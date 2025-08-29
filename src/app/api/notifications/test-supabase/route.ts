@@ -10,7 +10,7 @@ export async function GET() {
     
     // 2. push_subscriptions 테이블 존재 여부 확인
     console.log('📋 [SUPABASE TEST] push_subscriptions 테이블 확인...')
-    const { data: tableCheck, error: tableError } = await supabase
+    const { data: tableCheck, error: tableError } = await (supabase as any)
       .from('push_subscriptions')
       .select('count')
       .limit(1)
@@ -29,7 +29,7 @@ export async function GET() {
     
     // 3. 테이블 구조 확인
     console.log('🔍 [SUPABASE TEST] 테이블 구조 확인...')
-    const { data: columns, error: columnsError } = await supabase
+    const { data: columns, error: columnsError } = await (supabase as any)
       .rpc('get_table_columns', { table_name: 'push_subscriptions' })
       .single()
     
@@ -41,7 +41,7 @@ export async function GET() {
     
     // 4. 간단한 쿼리 테스트
     console.log('🔍 [SUPABASE TEST] 간단한 쿼리 테스트...')
-    const { data: queryTest, error: queryError } = await supabase
+    const { data: queryTest, error: queryError } = await (supabase as any)
       .from('push_subscriptions')
       .select('id, user_id, endpoint')
       .limit(5)

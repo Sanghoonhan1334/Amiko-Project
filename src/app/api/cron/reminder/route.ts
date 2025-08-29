@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     // 24시간 후 예약 중 리마인더가 아직 발송되지 않은 것들
-    const { data: upcomingBookings, error: bookingError } = await supabase
+    const { data: upcomingBookings, error: bookingError } = await (supabase as any)
       .from('bookings')
       .select(`
         *,
@@ -146,7 +146,7 @@ export async function GET(req: Request) {
         }
 
         // 5. 예약에 리마인더 발송 완료 표시
-        const { error: updateError } = await supabase
+        const { error: updateError } = await (supabase as any)
           .from('bookings')
           .update({ 
             reminder_sent: true,

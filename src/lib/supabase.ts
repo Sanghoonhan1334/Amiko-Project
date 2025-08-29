@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserClient, createServerClient } from '@supabase/ssr'
 
 // 환경 변수 검증 및 기본값 설정
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
@@ -15,7 +15,7 @@ console.log('[SUPABASE] URL:', supabaseUrl)
 console.log('[SUPABASE] Anon Key prefix:', supabaseAnonKey?.slice(0, 20) + '...')
 
 // 전역 브라우저 클라이언트 인스턴스 (모듈 레벨에서 생성)
-let globalBrowserClient: ReturnType<typeof createBrowserClient> | null = null
+let globalBrowserClient: ReturnType<typeof createBrowserClient<Database>> | null = null
 
 // 브라우저 환경에서만 클라이언트 생성
 const createBrowserClientInstance = () => {
@@ -30,7 +30,7 @@ const createBrowserClientInstance = () => {
   }
   
   // 새 인스턴스 생성
-  globalBrowserClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+  globalBrowserClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
@@ -44,11 +44,14 @@ const createBrowserClientInstance = () => {
 
 export const createClientComponentClient = createBrowserClientInstance
 
+// 기존 코드와의 호환성을 위한 supabase export (더미 객체)
+export const supabase = null as any
+
 // 서버 사이드용 클라이언트 (싱글톤)
-let serverClient: ReturnType<typeof createClient> | null = null
+let serverClient: ReturnType<typeof createClient<Database>> | null = null
 export const createServerComponentClient = () => {
   if (!serverClient) {
-    serverClient = createClient(supabaseUrl, supabaseAnonKey, {
+    serverClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
@@ -179,6 +182,44 @@ export type Database = {
           method?: string | null;
           receipt_url?: string | null;
           approved_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      consultants: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          specialty: string;
+          hourly_rate: number;
+          timezone: string;
+          available_hours: any;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email: string;
+          specialty?: string;
+          hourly_rate: number;
+          timezone?: string;
+          available_hours?: any;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          email?: string;
+          specialty?: string;
+          hourly_rate?: number;
+          timezone?: string;
+          available_hours?: any;
+          is_active?: boolean;
           created_at?: string;
           updated_at?: string;
         };

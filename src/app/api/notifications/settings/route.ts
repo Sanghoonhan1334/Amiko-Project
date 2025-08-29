@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     // 테이블 존재 여부 확인
     try {
-      const { data: tableCheck, error: tableError } = await supabase
+      const { data: tableCheck, error: tableError } = await (supabase as any)
         .from('notification_settings')
         .select('id')
         .limit(1)
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
     }
 
     // 기존 설정 조회
-    const { data: settings, error } = await supabase
+    const { data: settings, error } = await (supabase as any)
       .from('notification_settings')
       .select('*')
       .eq('user_id', userId)
@@ -87,7 +87,7 @@ export async function GET(request: Request) {
         }
 
         try {
-          const { data: newSettings, error: insertError } = await supabase
+          const { data: newSettings, error: insertError } = await (supabase as any)
             .from('notification_settings')
             .insert(defaultSettings)
             .select()

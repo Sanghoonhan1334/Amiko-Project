@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     // 상담사 정보 조회 및 예약 가능 시간 체크
-    const { data: consultant, error: consultantError } = await supabase
+    const { data: consultant, error: consultantError } = await (supabase as any)
       .from('consultants')
       .select('*')
       .eq('id', consultantId)
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     }
 
     // 기존 예약과 시간 충돌 체크
-    const { data: conflictingBookings, error: conflictError } = await supabase
+    const { data: conflictingBookings, error: conflictError } = await (supabase as any)
       .from('bookings')
       .select('*')
       .eq('consultant_id', consultantId)
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     const orderId = `order-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
     // Supabase에 예약 저장
-    const { data: booking, error } = await supabase
+    const { data: booking, error } = await (supabase as any)
       .from('bookings')
       .insert({
         user_id: userId,
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     console.log('[BOOKING] 생성됨:', booking)
 
     // 사용자 정보 조회 (이메일 발송용)
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await (supabase as any)
       .from('users')
       .select('email, name')
       .eq('id', userId)
@@ -169,7 +169,7 @@ export async function GET(request: Request) {
     }
 
     // 기본 예약 정보만 조회 (JOIN 제거)
-    const { data: bookings, error } = await supabase
+    const { data: bookings, error } = await (supabase as any)
       .from('bookings')
       .select('*')
       .eq('user_id', userId)

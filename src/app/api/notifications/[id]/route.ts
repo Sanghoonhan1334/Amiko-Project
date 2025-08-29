@@ -19,7 +19,7 @@ export async function PUT(
     }
 
     // 알림 읽음 처리
-    const { data: notification, error } = await supabase
+    const { data: notification, error } = await (supabase as any)
       .from('notifications')
       .update({
         is_read: isRead,
@@ -68,7 +68,7 @@ export async function DELETE(
     const { id } = await params
 
     // 알림 삭제
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('notifications')
       .delete()
       .eq('id', id)

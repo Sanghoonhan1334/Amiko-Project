@@ -29,10 +29,10 @@ export async function GET() {
 
       // 실제 데이터가 있는 경우 통계 계산
       const totalPayments = payments?.length || 0
-      const completedPayments = payments?.filter(p => p.status === 'DONE').length || 0
-      const pendingPayments = payments?.filter(p => p.status === 'PENDING').length || 0
-      const failedPayments = payments?.filter(p => p.status === 'FAILED').length || 0
-      const totalAmount = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
+      const completedPayments = payments?.filter((p: any) => p.status === 'DONE').length || 0
+      const pendingPayments = payments?.filter((p: any) => p.status === 'PENDING').length || 0
+      const failedPayments = payments?.filter((p: any) => p.status === 'FAILED').length || 0
+      const totalAmount = payments?.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0
 
       return NextResponse.json({
         success: true,

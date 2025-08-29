@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     console.log('✅ Toss 결제 취소 성공:', data);
 
     // 1. 예약 상태를 'cancelled'로 변경
-    const { data: updatedBooking, error: updateError } = await supabase
+    const { data: updatedBooking, error: updateError } = await (supabase as any)
       .from('bookings')
       .update({
         status: 'cancelled',

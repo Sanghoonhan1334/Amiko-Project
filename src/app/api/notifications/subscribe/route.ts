@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     // 구독 정보 저장 또는 업데이트
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('push_subscriptions')
       .upsert({
         user_id: userId,
@@ -70,7 +70,7 @@ export async function DELETE(request: Request) {
     }
 
     // 구독 정보 삭제
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('push_subscriptions')
       .delete()
       .eq('user_id', userId)

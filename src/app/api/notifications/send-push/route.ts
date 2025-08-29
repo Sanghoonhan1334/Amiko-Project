@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     // 1. 사용자의 푸시 구독 정보 조회
-    const { data: subscriptions, error: fetchError } = await supabase
+    const { data: subscriptions, error: fetchError } = await (supabase as any)
       .from('push_subscriptions')
       .select('*')
       .eq('user_id', userId)
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     console.log('✅ 푸시 구독 정보 조회 성공:', subscriptions.length, '개')
 
     // 2. 알림 로그 생성
-    const { data: notificationLog, error: logError } = await supabase
+    const { data: notificationLog, error: logError } = await (supabase as any)
       .from('push_notification_logs')
       .insert({
         user_id: userId,
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
 
     // 3. 각 구독에 대해 푸시 알림 발송
     const results = await Promise.allSettled(
-      subscriptions.map(async (subscription) => {
+      subscriptions.map(async (subscription: any) => {
         try {
           const pushPayload = {
             title,
@@ -158,7 +158,7 @@ export async function POST(request: Request) {
           // 구독이 유효하지 않은 경우 삭제
           if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 410) {
             console.log('🗑️ 유효하지 않은 구독 삭제:', subscription.id)
-            await supabase
+            await (supabase as any)
               .from('push_subscriptions')
               .delete()
               .eq('id', subscription.id)
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
     // 5. 알림 로그 상태 업데이트
     const finalStatus = failed === 0 ? 'sent' : (successful > 0 ? 'partial' : 'failed')
     
-    await supabase
+    await (supabase as any)
       .from('push_notification_logs')
       .update({
         status: finalStatus,

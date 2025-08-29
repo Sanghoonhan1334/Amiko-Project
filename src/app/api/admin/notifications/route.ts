@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from '@/lib/supabase';
+import { createServerComponentClient } from '@/lib/supabase';
 import { adminNotificationService } from '@/lib/admin-notification-service';
 
 export async function GET(req: Request) {
@@ -18,6 +18,7 @@ export async function GET(req: Request) {
     }
 
     // 사용자 권한 확인
+    const supabase = createServerComponentClient();
     const { data: userRole, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
@@ -81,6 +82,7 @@ export async function POST(req: Request) {
     }
 
     // 사용자 권한 확인
+    const supabase = createServerComponentClient();
     const { data: userRole, error: roleError } = await supabase
       .from('user_roles')
       .select('role')

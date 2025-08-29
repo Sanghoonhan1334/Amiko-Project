@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     }
 
     // 알림 생성
-    const { data: notification, error } = await supabase
+    const { data: notification, error } = await (supabase as any)
       .from('notifications')
       .insert({
         user_id: userId,
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     // 알림 로그 생성 (선택적)
     try {
-      await supabase
+      await (supabase as any)
         .from('notification_logs')
         .insert({
           notification_id: notification.id,
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
 
     // 테이블 존재 여부 확인
     try {
-      const { data: tableCheck, error: tableError } = await supabase
+      const { data: tableCheck, error: tableError } = await (supabase as any)
         .from('notifications')
         .select('id')
         .limit(1)
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
     }
 
     // 쿼리 구성
-    let query = supabase
+    let query = (supabase as any)
       .from('notifications')
       .select('*')
       .eq('user_id', userId)
@@ -167,7 +167,7 @@ export async function GET(request: Request) {
     // 읽지 않은 알림 개수 조회
     let unreadCount = 0
     try {
-      const { count } = await supabase
+      const { count } = await (supabase as any)
         .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)

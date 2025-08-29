@@ -18,7 +18,7 @@ export async function GET(
     }
 
     // 1. 먼저 기본 예약 정보만 조회
-    const { data: booking, error: basicError } = await supabase
+    const { data: booking, error: basicError } = await (supabase as any)
       .from('bookings')
       .select('*')
       .eq('id', id)
@@ -141,7 +141,7 @@ export async function PUT(
       }, {} as any);
 
     // 예약 정보 업데이트
-    const { data: updatedBooking, error } = await supabase
+    const { data: updatedBooking, error } = await (supabase as any)
       .from('bookings')
       .update({
         ...filteredData,
@@ -197,7 +197,7 @@ export async function DELETE(
     }
 
     // 예약 삭제 (실제로는 soft delete 권장)
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('bookings')
       .delete()
       .eq('id', id);

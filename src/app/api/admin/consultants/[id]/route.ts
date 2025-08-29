@@ -79,7 +79,7 @@ export async function PUT(
     }
 
     // 상담사 정보 수정
-    const { data: consultant, error } = await supabase
+    const { data: consultant, error } = await (supabase as any)
       .from('consultants')
       .update({
         name,

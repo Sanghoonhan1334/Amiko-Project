@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     // 모든 읽지 않은 알림을 읽음 처리
-    const { data: notifications, error } = await supabase
+    const { data: notifications, error } = await (supabase as any)
       .from('notifications')
       .update({
         is_read: true,

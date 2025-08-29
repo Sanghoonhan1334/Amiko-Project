@@ -21,7 +21,7 @@ export async function PUT(
     }
 
     // 기존 예약 정보 조회
-    const { data: existingBooking, error: fetchError } = await supabase
+    const { data: existingBooking, error: fetchError } = await (supabase as any)
       .from('bookings')
       .select('*')
       .eq('id', id)
@@ -43,7 +43,7 @@ export async function PUT(
     }
 
     // 상담사 정보 조회 및 예약 가능 시간 체크
-    const { data: consultant, error: consultantError } = await supabase
+    const { data: consultant, error: consultantError } = await (supabase as any)
       .from('consultants')
       .select('*')
       .eq('id', consultantId)
@@ -105,7 +105,7 @@ export async function PUT(
     }
 
     // 예약 정보 업데이트
-    const { data: updatedBooking, error: updateError } = await supabase
+    const { data: updatedBooking, error: updateError } = await (supabase as any)
       .from('bookings')
       .update({
         consultant_id: consultantId,

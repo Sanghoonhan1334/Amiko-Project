@@ -7,7 +7,7 @@ export async function GET() {
     
     // 1. 테이블 존재 여부 확인
     console.log('📋 [LOGS TABLE TEST] push_notification_logs 테이블 확인...')
-    const { data: tableCheck, error: tableError } = await supabase
+    const { data: tableCheck, error: tableError } = await (supabase as any)
       .from('push_notification_logs')
       .select('count')
       .limit(1)
@@ -26,7 +26,7 @@ export async function GET() {
     
     // 2. 테이블 구조 확인 (간단한 쿼리)
     console.log('🔍 [LOGS TABLE TEST] 테이블 구조 확인...')
-    const { data: structureTest, error: structureError } = await supabase
+    const { data: structureTest, error: structureError } = await (supabase as any)
       .from('push_notification_logs')
       .select('id, user_id, title, body, status, created_at')
       .limit(5)
@@ -53,7 +53,7 @@ export async function GET() {
       status: 'pending'
     }
     
-    const { data: insertTest, error: insertError } = await supabase
+    const { data: insertTest, error: insertError } = await (supabase as any)
       .from('push_notification_logs')
       .insert(testLog)
       .select()
@@ -76,7 +76,7 @@ export async function GET() {
     // 4. 테스트 데이터 삭제
     console.log('🗑️ [LOGS TABLE TEST] 테스트 데이터 삭제...')
     if (insertTest?.id) {
-      await supabase
+      await (supabase as any)
         .from('push_notification_logs')
         .delete()
         .eq('id', insertTest.id)

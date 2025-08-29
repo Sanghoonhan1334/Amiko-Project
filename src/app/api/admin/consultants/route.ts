@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerComponentClient } from '@/lib/supabase'
 
 // 상담사 목록 조회
 export async function GET() {
   try {
+    const supabase = createServerComponentClient();
     const { data: consultants, error } = await supabase
       .from('consultants')
       .select('*')
@@ -46,6 +47,8 @@ export async function POST(request: Request) {
       )
     }
 
+    const supabase = createServerComponentClient();
+
     // 이메일 중복 확인
     const { data: existingConsultant } = await supabase
       .from('consultants')
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
           sunday: []
         },
         is_active: is_active !== undefined ? is_active : true
-      })
+      } as any)
       .select()
       .single()
 

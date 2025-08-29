@@ -11,7 +11,7 @@ export async function POST() {
     const oneHourFromNow = new Date()
     oneHourFromNow.setHours(oneHourFromNow.getHours() + 1)
     
-    const { data: upcomingBookings, error } = await supabase
+    const { data: upcomingBookings, error } = await (supabase as any)
       .from('bookings')
       .select(`
         *,

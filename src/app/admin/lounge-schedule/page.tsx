@@ -37,7 +37,7 @@ const isOperator = async (): Promise<boolean> => {
     // 운영자 권한 체크 API 호출
     const response = await fetch('/api/admin/check-operator', {
       headers: {
-        'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`
+        'Authorization': `Bearer ${await supabase.auth.getSession().then((res: any) => res.data.session?.access_token)}`
       }
     })
 

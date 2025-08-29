@@ -18,7 +18,7 @@ export async function GET(
     console.log('[PAYMENT] 결제 상태 조회:', paymentKey);
 
     // Supabase에서 결제 정보 조회
-    const { data: payment, error } = await supabase
+    const { data: payment, error } = await (supabase as any)
       .from('payments')
       .select(`
         *,

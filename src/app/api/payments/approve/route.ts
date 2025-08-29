@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     console.log('✅ Toss 결제 승인 성공:', data);
 
     // 1. 예약 상태를 'pending' -> 'confirmed'로 변경
-    const { data: updatedBooking, error: updateError } = await supabase
+    const { data: updatedBooking, error: updateError } = await (supabase as any)
       .from('bookings')
       .update({ 
         status: 'confirmed',

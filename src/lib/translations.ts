@@ -32,7 +32,7 @@ export const translations = {
     },
     
     // ZEP 라운지
-    lounge: {
+    zepLounge: {
       title: 'ZEP 주말 라운지',
       subtitle: '운영자와 함께하는 즐거운 한국 문화 수다타임!',
       description: '매주 토요일 저녁, 여러분을 기다리고 있어요',
@@ -92,7 +92,7 @@ export const translations = {
     },
     
     // ZEP 라운지
-    lounge: {
+    zepLounge: {
       title: 'Sala ZEP de Fin de Semana',
       subtitle: '¡Tiempo de charla divertida sobre cultura coreana con operadores!',
       description: 'Todos los sábados por la noche, te estamos esperando',
