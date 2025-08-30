@@ -27,14 +27,33 @@ import {
 } from 'lucide-react'
 import VerificationGuard from '@/components/common/VerificationGuard'
 import StoryCarousel from './StoryCarousel'
+import { useLanguage } from '@/context/LanguageContext'
 
-// 카테고리 정의
-const categories = [
-  { id: 'beauty', name: '뷰티', icon: '💄', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-  { id: 'fashion', name: '코디', icon: '👗', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { id: 'travel', name: '한국여행', icon: '✈️', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { id: 'culture', name: '한국문화', icon: '🏮', color: 'bg-red-100 text-red-700 border-red-300' },
-  { id: 'free', name: '자유', icon: '💬', color: 'bg-gray-100 text-gray-700 border-gray-300' }
+// 포인트 시스템 정의
+const pointSystem = {
+  korean: {
+    question: 5,
+    answer: 5,
+    reaction: 2,
+    consultation: 30,
+    dailyLimit: 20
+  },
+  latin: {
+    question: 2,
+    answer: 2,
+    reaction: 1,
+    consultation: 30,
+    dailyLimit: 20
+  }
+}
+
+// 카테고리 정의 함수
+const getCategories = (t: any) => [
+  { id: 'beauty', name: t('communityTab.categories.beauty'), icon: '💄', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { id: 'fashion', name: t('communityTab.categories.fashion'), icon: '👗', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { id: 'travel', name: t('communityTab.categories.travel'), icon: '✈️', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { id: 'culture', name: t('communityTab.categories.culture'), icon: '🏮', color: 'bg-red-100 text-red-700 border-red-300' },
+  { id: 'free', name: t('communityTab.categories.free'), icon: '💬', color: 'bg-gray-100 text-gray-700 border-gray-300' }
 ]
 
 // 목업 데이터 - 질문
@@ -130,11 +149,15 @@ const mockTodayActivity = {
 }
 
 export default function CommunityTab() {
+  const { t } = useLanguage()
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedQuestion, setSelectedQuestion] = useState<typeof mockQuestions[0] | null>(null)
   const [showQuestionModal, setShowQuestionModal] = useState(false)
   const [showAnswerDrawer, setShowAnswerDrawer] = useState(false)
+  
+  // 좋아요 상태 관리
+  const [likedAnswers, setLikedAnswers] = useState<Set<string>>(new Set())
   
   // 질문 작성 폼 상태
   const [questionForm, setQuestionForm] = useState({
@@ -142,6 +165,11 @@ export default function CommunityTab() {
     content: '',
     category: 'free',
     tags: ''
+  })
+
+  // 답변 작성 폼 상태
+  const [answerForm, setAnswerForm] = useState({
+    content: ''
   })
 
   // Mock user profile for testing verification guard
@@ -187,19 +215,26 @@ export default function CommunityTab() {
       return
     }
 
-    // 여기서 실제 API 호출
-    console.log('새 질문 작성:', questionForm)
+    // 포인트 획득 시도
+    const pointsEarned = earnPoints('question')
     
-    // 폼 초기화
-    setQuestionForm({
-      title: '',
-      content: '',
-      category: 'free',
-      tags: ''
-    })
-    
-    setShowQuestionModal(false)
-    alert('질문이 등록되었습니다!')
+    if (pointsEarned) {
+      // 여기서 실제 API 호출
+      console.log('새 질문 작성:', questionForm)
+      
+      // 폼 초기화
+      setQuestionForm({
+        title: '',
+        content: '',
+        category: 'free',
+        tags: ''
+      })
+      
+      setShowQuestionModal(false)
+      const userType = currentProfile.is_korean ? 'korean' : 'latin'
+      const points = pointSystem[userType].question
+      alert(`질문이 등록되었습니다! +${points}점 획득!`)
+    }
   }
 
   // 질문 선택 및 답변 drawer 열기
@@ -213,6 +248,121 @@ export default function CommunityTab() {
     // 여기서 실제 API 호출
     console.log('업보트:', questionId)
     alert('업보트가 반영되었습니다!')
+  }
+
+  // 답변 좋아요 숫자 관리
+  const [answerUpvotes, setAnswerUpvotes] = useState<{ [key: string]: number }>(() => {
+    // mockAnswers의 upvotes 값으로 초기화
+    const initialUpvotes: { [key: string]: number } = {}
+    mockAnswers.forEach(answer => {
+      initialUpvotes[answer.id] = answer.upvotes
+    })
+    return initialUpvotes
+  })
+
+  // 포인트 시스템 상태 관리
+  const [userPoints, setUserPoints] = useState(100) // 초기 포인트
+  const [dailyPoints, setDailyPoints] = useState(0) // 오늘 획득한 포인트
+  const [pointHistory, setPointHistory] = useState<Array<{
+    id: string
+    activity: string
+    points: number
+    timestamp: Date
+    description: string
+  }>>([])
+
+  // 답변 좋아요 토글 처리
+  const handleAnswerLike = (answerId: string) => {
+    const isCurrentlyLiked = likedAnswers.has(answerId)
+    
+    if (isCurrentlyLiked) {
+      // 좋아요 취소
+      setLikedAnswers(prev => {
+        const newLiked = new Set(prev)
+        newLiked.delete(answerId)
+        return newLiked
+      })
+      
+      setAnswerUpvotes(prevUpvotes => ({
+        ...prevUpvotes,
+        [answerId]: Math.max(0, prevUpvotes[answerId] - 1)
+      }))
+    } else {
+      // 좋아요 추가
+      setLikedAnswers(prev => {
+        const newLiked = new Set(prev)
+        newLiked.add(answerId)
+        return newLiked
+      })
+      
+      setAnswerUpvotes(prevUpvotes => ({
+        ...prevUpvotes,
+        [answerId]: prevUpvotes[answerId] + 1
+      }))
+      
+      // 좋아요 시 포인트 획득
+      earnPoints('reaction')
+    }
+  }
+
+  // 포인트 획득 함수
+  const earnPoints = (activity: 'question' | 'answer' | 'reaction' | 'consultation') => {
+    const userType = currentProfile.is_korean ? 'korean' : 'latin'
+    const points = pointSystem[userType][activity]
+    const dailyLimit = pointSystem[userType].dailyLimit
+    
+    if (dailyPoints + points <= dailyLimit) {
+      setUserPoints(prev => prev + points)
+      setDailyPoints(prev => prev + points)
+      
+      // 포인트 히스토리에 기록
+      const newHistoryItem = {
+        id: Date.now().toString(),
+        activity,
+        points,
+        timestamp: new Date(),
+        description: getActivityDescription(activity, points)
+      }
+      
+      setPointHistory(prev => [newHistoryItem, ...prev])
+      
+      console.log(`${getActivityDescription(activity, points)} +${points}점 획득!`)
+      return true
+    } else {
+      alert(`오늘 포인트 한도를 초과했습니다. (일일 최대 ${dailyLimit}점)`)
+      return false
+    }
+  }
+
+  // 활동 설명 생성 함수
+  const getActivityDescription = (activity: string, points: number) => {
+    const descriptions = {
+      question: '질문 작성',
+      answer: '답변 작성', 
+      reaction: '좋아요/댓글',
+      consultation: '상담 참여'
+    }
+    return `${descriptions[activity]} (+${points}점)`
+  }
+
+  // 답변 등록 처리
+  const handleSubmitAnswer = () => {
+    if (!answerForm.content.trim()) {
+      alert('답변 내용을 입력해주세요.')
+      return
+    }
+
+    // 포인트 획득 시도
+    const pointsEarned = earnPoints('answer')
+    
+    if (pointsEarned) {
+      // 여기서 실제 API 호출
+      console.log('새 답변 작성:', answerForm.content)
+      
+      // 폼 초기화
+      setAnswerForm({ content: '' })
+      alert('답변이 등록되었습니다! +2점 획득!')
+    }
   }
 
   // 시간 포맷팅
@@ -232,7 +382,7 @@ export default function CommunityTab() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6">
       {/* 인증 가드 - 커뮤니티 활동 */}
       <VerificationGuard 
         profile={currentProfile} 
@@ -244,56 +394,112 @@ export default function CommunityTab() {
       <StoryCarousel onTabChange={handleTabChange} />
 
       {/* 포인트 규칙 안내 배너 */}
-      <Card className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200/50">
+      <Card className="p-4 sm:p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer !opacity-100 !transform-none">
         <div className="flex items-start gap-3">
           <Award className="w-5 h-5 text-yellow-600 mt-0.5" />
           <div className="space-y-2">
-            <h4 className="font-medium text-yellow-800">포인트 획득 규칙</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-yellow-700">🇰🇷 한국인</span>
-                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">질문 +3 / 답변 +3</Badge>
+            <h4 className="font-medium text-yellow-800">{t('communityTab.pointRules')}</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="font-medium text-yellow-700 whitespace-nowrap">🇰🇷 {t('communityTab.koreans')}</span>
+                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300 text-xs">{t('communityTab.question')} +5 / {t('communityTab.answer')} +5</Badge>
                 </div>
-                <p className="text-yellow-600">일일 상한 있음, 채택/좋아요 보너스</p>
+                <p className="text-yellow-600 text-xs">{t('communityTab.dailyLimit')}, {t('communityTab.adoptionLikeBonus')}</p>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-yellow-700">🌎 라틴 사용자</span>
-                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">질문 +1 / 답변 +1</Badge>
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="font-medium text-yellow-700 whitespace-nowrap">🌎 {t('communityTab.latinUsers')}</span>
+                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300 text-xs">{t('communityTab.question')} +2 / {t('communityTab.answer')} +2</Badge>
                 </div>
-                <p className="text-yellow-600">채택/좋아요 보너스, 스팸 쿨타임</p>
+                <p className="text-yellow-600 text-xs">{t('communityTab.adoptionLikeBonus')}, {t('communityTab.spamCooldown')}</p>
               </div>
             </div>
           </div>
         </div>
       </Card>
 
+      {/* 포인트 현황 카드 */}
+      <Card className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer !opacity-100 !transform-none">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
+            <Star className="w-5 h-5 text-blue-600" />
+          </div>
+          <div className="flex-1 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-blue-800">{t('pointStatus.title')}</h4>
+              <Badge className={`px-3 py-1 text-sm ${
+                currentProfile.is_korean ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-mint-100 text-mint-700 border-mint-300'
+              }`}>
+                {currentProfile.is_korean ? t('pointStatus.korean') : t('pointStatus.local')}
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{userPoints}</div>
+                <div className="text-sm text-blue-600">{t('pointStatus.totalPoints')}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{dailyPoints}</div>
+                <div className="text-sm text-green-600">{t('pointStatus.acquiredToday')}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {pointSystem[currentProfile.is_korean ? 'korean' : 'latin'].dailyLimit - dailyPoints}
+                </div>
+                <div className="text-sm text-orange-600">{t('pointStatus.remainingLimit')}</div>
+              </div>
+            </div>
+            
+            {/* 포인트 히스토리 (최근 3개) */}
+            {pointHistory.length > 0 && (
+              <div className="space-y-2">
+                <h5 className="font-medium text-blue-700 text-sm">{t('pointStatus.recentPointEarnings')}</h5>
+                <div className="space-y-1">
+                  {pointHistory.slice(0, 3).map((item) => (
+                    <div key={item.id} className="flex items-center justify-between text-xs bg-white/60 rounded px-2 py-1">
+                      <span className="text-blue-600">{item.description}</span>
+                      <span className="text-blue-500">
+                        {item.timestamp.toLocaleTimeString('ko-KR', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
       {/* 오늘의 활동 카드 */}
-      <Card className="p-4 bg-gradient-to-r from-mint-50 to-brand-50 border border-mint-200">
+      <Card className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-brand-50 border border-mint-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer !opacity-100 !transform-none">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 bg-mint-100 rounded-xl flex items-center justify-center">
             <TrendingUp className="w-4 h-4 text-mint-600" />
           </div>
-          <h4 className="font-semibold text-gray-800">오늘의 활동</h4>
+          <h4 className="font-semibold text-gray-800">{t('communityTab.todayActivity')}</h4>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-brand-600">{mockTodayActivity.questions}</div>
-            <div className="text-sm text-gray-600">내 질문</div>
+            <div className="text-sm text-gray-600">{t('communityTab.myQuestions')}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-mint-600">{mockTodayActivity.answers}</div>
-            <div className="text-sm text-gray-600">내 답변</div>
+            <div className="text-sm text-gray-600">{t('communityTab.myAnswers')}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-600">{mockTodayActivity.points}</div>
-            <div className="text-sm text-gray-600">획득 포인트</div>
+            <div className="text-sm text-gray-600">{t('communityTab.pointsAcquired')}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">{mockTodayActivity.upvotes}</div>
-            <div className="text-sm text-gray-600">받은 업보트</div>
+            <div className="text-sm text-gray-600">{t('communityTab.upvotesReceived')}</div>
           </div>
         </div>
       </Card>
@@ -308,13 +514,13 @@ export default function CommunityTab() {
             onClick={() => setUseVerifiedProfile(!useVerifiedProfile)}
             className="text-xs border-orange-300 text-orange-600 hover:bg-orange-50"
           >
-            {useVerifiedProfile ? '🔒 인증됨' : '❌ 미인증'} (테스트)
+            {useVerifiedProfile ? '🔒 인증됨' : '❌ 미인증'} ({t('communityTab.unverified')})
           </Button>
           
           <div className="relative">
             <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="질문 검색..."
+              placeholder={t('communityTab.searchQuestions')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
@@ -325,9 +531,9 @@ export default function CommunityTab() {
         {/* 질문하기 버튼 */}
         <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
           <DialogTrigger asChild>
-            <Button className="bg-brand-500 hover:bg-brand-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+            <Button className="bg-brand-500 hover:bg-brand-600 shadow-lg hover:shadow-xl transition-all duration-300">
               <Plus className="w-4 h-4 mr-2" />
-              질문하기
+              {t('communityTab.askQuestion')}
             </Button>
           </DialogTrigger>
           
@@ -354,7 +560,7 @@ export default function CommunityTab() {
                   onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
                   className="w-full p-3 border-2 border-gray-300 rounded-md focus:border-brand-500 focus:ring-2 focus:ring-brand-200 bg-white"
                 >
-                  {categories.map(category => (
+                  {getCategories(t).map(category => (
                     <option key={category.id} value={category.id}>
                       {category.icon} {category.name}
                     </option>
@@ -397,27 +603,27 @@ export default function CommunityTab() {
       </div>
 
       {/* 카테고리 탭 */}
-      <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="all" className="flex items-center gap-2">
-            <Star className="w-4 h-4" />
-            전체
+      <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full mt-8">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-8">
+          <TabsTrigger value="all" className="flex items-center gap-1 text-xs sm:text-sm">
+            <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+            {t('communityTab.categories.all')}
           </TabsTrigger>
-          {categories.map(category => (
-            <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-2">
+          {getCategories(t).map(category => (
+            <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1 text-xs sm:text-sm">
               <span>{category.icon}</span>
-              {category.name}
+              <span className="truncate">{category.name}</span>
             </TabsTrigger>
           ))}
         </TabsList>
         
-        <TabsContent value={activeCategory} className="mt-6">
+        <TabsContent value={activeCategory} className="mt-12">
           {/* 질문 카드 리스트 */}
-          <div className="space-y-4">
+          <div className="space-y-8">
             {filteredQuestions.map((question) => (
               <Card 
                 key={question.id} 
-                className="p-6 hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-brand-200 cursor-pointer"
+                className="p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-brand-200 cursor-pointer !opacity-100 !transform-none"
                 onClick={() => handleQuestionClick(question)}
               >
                 <div className="flex items-start gap-4">
@@ -516,7 +722,7 @@ export default function CommunityTab() {
 
       {/* 답변 보기 Drawer */}
       <Drawer open={showAnswerDrawer} onOpenChange={setShowAnswerDrawer}>
-        <DrawerContent>
+        <DrawerContent className="!opacity-100 !bg-white">
           <div className="mx-auto w-full max-w-2xl">
             <DrawerHeader>
               <DrawerTitle className="text-left">
@@ -528,7 +734,7 @@ export default function CommunityTab() {
               {/* 질문 상세 */}
               {selectedQuestion && (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 bg-gray-50 rounded-lg !opacity-100">
                     <p className="text-gray-700 mb-3">{selectedQuestion.preview}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <span>{selectedQuestion.author}</span>
@@ -547,17 +753,20 @@ export default function CommunityTab() {
                     {mockAnswers
                       .filter(answer => answer.questionId === selectedQuestion.id)
                       .map((answer) => (
-                        <Card key={answer.id} className="p-4">
+                        <Card key={answer.id} className="p-4 !opacity-100 !bg-white">
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col items-center gap-1 min-w-[50px]">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0 hover:bg-brand-50"
+                                onClick={() => handleAnswerLike(answer.id)}
                               >
-                                <ThumbsUp className="w-3 h-3 text-brand-500" />
+                                <ThumbsUp className={`w-3 h-3 ${likedAnswers.has(answer.id) ? 'text-red-500 fill-current' : 'text-brand-500'}`} />
                               </Button>
-                              <span className="text-sm font-medium text-brand-600">{answer.upvotes}</span>
+                              <span className="text-sm font-medium text-brand-600">
+                                {answerUpvotes[answer.id] !== undefined ? answerUpvotes[answer.id] : answer.upvotes}
+                              </span>
                             </div>
                             
                             <div className="flex-1">
@@ -584,10 +793,14 @@ export default function CommunityTab() {
                       placeholder="답변을 입력하세요..."
                       rows={4}
                       className="w-full"
+                      value={answerForm.content}
+                      onChange={(e) => setAnswerForm({ content: e.target.value })}
                     />
                     <div className="flex gap-3 justify-end">
-                      <Button variant="outline">취소</Button>
-                      <Button>답변 등록</Button>
+                      <Button variant="outline" onClick={() => setShowAnswerDrawer(false)}>
+                        취소
+                      </Button>
+                      <Button onClick={handleSubmitAnswer}>답변 등록</Button>
                     </div>
                   </div>
                 </div>

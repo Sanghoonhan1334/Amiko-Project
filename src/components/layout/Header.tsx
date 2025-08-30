@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { translations } from '@/lib/translations'
+import { useLanguage } from '@/context/LanguageContext'
 import { 
   Sparkles, 
   Play, 
@@ -28,8 +28,12 @@ export default function Header() {
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   
-  // 언어 상태
-  const [language, setLanguage] = useState<'ko' | 'es'>('ko')
+  // 언어 Context 사용
+  const languageContext = useLanguage()
+  const { language, toggleLanguage, t } = languageContext
+  
+  // 디버깅용 로그
+  console.log('Header mounted, language:', language, 't function:', typeof t)
 
   // 컴포넌트 마운트 확인
   useEffect(() => {
@@ -51,20 +55,37 @@ export default function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
-  // 언어 전환
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'ko' ? 'es' : 'ko')
-  }
 
-  // SSR 방지 - 스켈레톤 UI 반환
+
+  // SSR 방지 - 스켈레톤 UI 반환 (언어 전환 버튼 포함)
   if (!mounted) {
     return (
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50">
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">
-              Amiko
+            {/* 좌측 로고 */}
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">
+                Amiko
+              </div>
+              <div className="text-xl animate-pulse">
+                ✨
+              </div>
+            </Link>
+
+            {/* 중앙: 언어 전환 버튼 */}
+            <div className="flex items-center gap-1 md:gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+              >
+                <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
+                <span className="text-xs md:text-sm font-medium">한국어</span>
+              </Button>
             </div>
+
+            {/* 우측: 스켈레톤 */}
             <div className="w-32 h-8 bg-gray-200 rounded animate-pulse"></div>
           </div>
         </div>
@@ -108,11 +129,11 @@ export default function Header() {
                 size="sm"
                 onClick={toggleLanguage}
                 className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                title={language === 'ko' ? translations.ko.changeToSpanish : translations.es.changeToKorean}
+                title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
               >
                 <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
                 <span className="text-xs md:text-sm font-medium">
-                  {language === 'ko' ? translations.ko.korean : translations.es.spanish}
+                  {language === 'ko' ? t('korean') : t('spanish')}
                 </span>
               </Button>
             </div>
@@ -128,7 +149,7 @@ export default function Header() {
                 >
                   <Link href="/main">
                     <Home className="w-4 h-4 mr-2" />
-                    {translations[language].mainPage}
+                    {t('mainPage')}
                   </Link>
                 </Button>
               )}
@@ -142,7 +163,7 @@ export default function Header() {
                 >
                   <Link href="/">
                     <Home className="w-4 h-4 mr-2" />
-                    {translations[language].landingPage}
+                    {t('landingPage')}
                   </Link>
                 </Button>
               )}
@@ -156,7 +177,7 @@ export default function Header() {
                 >
                   <Link href="/main">
                     <Play className="w-4 h-4 mr-2" />
-                    {translations[language].start}
+                    {t('start')}
                   </Link>
                 </Button>
               )}
@@ -174,7 +195,7 @@ export default function Header() {
               >
                 <Link href="/lounge">
                   <Users className="w-4 h-4 mr-2" />
-                  라운지
+                  {t('lounge')}
                 </Link>
               </Button>
             </div>
@@ -214,7 +235,7 @@ export default function Header() {
                     onClick={toggleMobileMenu}
                   >
                     <Home className="w-5 h-5" />
-                    {translations[language].mainPage}
+                    {t('mainPage')}
                   </Link>
                 )}
                 
@@ -226,7 +247,7 @@ export default function Header() {
                     onClick={toggleMobileMenu}
                   >
                     <Home className="w-5 h-5" />
-                    {translations[language].landingPage}
+                    {t('landingPage')}
                   </Link>
                 )}
                 
@@ -238,7 +259,7 @@ export default function Header() {
                     onClick={toggleMobileMenu}
                   >
                     <Play className="w-5 h-5" />
-                    {translations[language].start}
+                    {t('start')}
                   </Link>
                 )}
                 
@@ -255,7 +276,7 @@ export default function Header() {
                   onClick={toggleMobileMenu}
                 >
                   <Users className="w-5 h-5" />
-                  라운지
+                  {t('lounge')}
                 </Link>
               </div>
               
@@ -269,7 +290,7 @@ export default function Header() {
                   className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full text-left"
                 >
                   <Globe className="w-5 h-5" />
-                  {language === 'ko' ? translations.ko.korean : translations.es.spanish}
+                  {language === 'ko' ? t('korean') : t('spanish')}
                 </button>
               </div>
               
@@ -284,7 +305,7 @@ export default function Header() {
                   onClick={toggleMobileMenu}
                 >
                   <MessageSquare className="w-5 h-5" />
-                  커뮤니티
+                  {t('community')}
                 </Link>
                 
                 <Link 
@@ -293,7 +314,7 @@ export default function Header() {
                   onClick={toggleMobileMenu}
                 >
                   <Calendar className="w-5 h-5" />
-                  라운지 일정
+                  {t('loungeSchedule')}
                 </Link>
                 
                 <Link 
@@ -302,7 +323,7 @@ export default function Header() {
                   onClick={toggleMobileMenu}
                 >
                   <User className="w-5 h-5" />
-                  프로필
+                  {t('profileMenu')}
                 </Link>
                 
                 <Link 
@@ -311,7 +332,7 @@ export default function Header() {
                   onClick={toggleMobileMenu}
                 >
                   <Settings className="w-5 h-5" />
-                  설정
+                  {t('settings')}
                 </Link>
               </div>
             </div>

@@ -18,12 +18,14 @@ import {
 } from 'lucide-react'
 import { format, addWeeks, isSameDay, isToday, isFuture } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { useLanguage } from '@/context/LanguageContext'
 
 
 
 
 
 export default function LoungePage() {
+  const { t } = useLanguage()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
 
   // 다음 4주 계산
@@ -35,9 +37,33 @@ export default function LoungePage() {
 
 
 
+  // 요일 번역 헬퍼 함수
+  const translateDayOfWeek = (date: Date) => {
+    const dayOfWeek = format(date, 'E', { locale: ko })
+    const dayMap: { [key: string]: string } = {
+      '일': t('calendar.days.sun'),
+      '월': t('calendar.days.mon'),
+      '화': t('calendar.days.tue'),
+      '수': t('calendar.days.wed'),
+      '목': t('calendar.days.thu'),
+      '금': t('calendar.days.fri'),
+      '토': t('calendar.days.sat')
+    }
+    return dayMap[dayOfWeek] || dayOfWeek
+  }
+
   // 날짜 포맷팅
   const formatDate = (date: Date) => {
-    return format(date, 'M월 d일 (E)', { locale: ko })
+    const month = t('calendar.months.august')
+    const day = format(date, 'd')
+    const dayOfWeek = translateDayOfWeek(date)
+    // 스페인어 모드일 때는 "30 de Agosto (Sáb)" 형식, 한국어 모드일 때는 "8월 30일 (토)" 형식
+    const { language } = useLanguage()
+    if (language === 'es') {
+      return `${day} de ${month} (${dayOfWeek})`
+    } else {
+      return `${month} ${day}일 (${dayOfWeek})`
+    }
   }
 
   // 시간 포맷팅
@@ -66,21 +92,21 @@ export default function LoungePage() {
           <div className="relative z-10 py-16 px-8">
             <div className="text-6xl mb-4">🎈</div>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-6">
-              ZEP 주말 라운지
+              {t('loungePage.title')}
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              운영자와 함께하는 즐거운 한국 문화 수다타임!<br />
-              매주 토요일 저녁, 여러분을 기다리고 있어요
-            </p>
+                          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                {t('loungePage.subtitle')}<br />
+                {t('loungePage.description')}
+              </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <div className="flex items-center gap-2 text-lg text-gray-700">
                 <Clock className="w-5 h-5 text-brand-500" />
-                <span>매주 토요일 20:00 (KST)</span>
+                <span>{t('loungePage.time')}</span>
               </div>
               <div className="flex items-center gap-2 text-lg text-gray-700">
                 <Users className="w-5 h-5 text-mint-500" />
-                <span>최대 30명 참여</span>
+                <span>{t('loungePage.maxParticipants')}</span>
               </div>
             </div>
           </div>
@@ -93,7 +119,7 @@ export default function LoungePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-2xl">
               <Calendar className="w-6 h-6 text-brand-600" />
-              다음 세션
+              {t('loungePage.nextSession')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -101,7 +127,7 @@ export default function LoungePage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Badge className="bg-brand-100 text-brand-700 border-brand-300">
-                    토요일
+                    {t('loungePage.saturday')}
                   </Badge>
                   <Badge className="bg-mint-100 text-mint-700 border-mint-300">
                     20:00 (KST)
@@ -110,13 +136,13 @@ export default function LoungePage() {
                 
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold text-gray-800">
-                    ZEP 주말 라운지
+                    {t('loungePage.title')}
                   </h3>
                   <p className="text-gray-600">
-                    운영자와 함께하는 특별한 시간
+                    {t('loungePage.specialTime')}
                   </p>
                   <p className="text-sm text-gray-500">
-                    한국 문화에 대한 자유로운 대화와 Q&A 시간
+                    {t('loungePage.specialDescription')}
                   </p>
                 </div>
               </div>
@@ -128,10 +154,10 @@ export default function LoungePage() {
                   className="bg-gradient-to-r from-brand-500 to-mint-500 hover:from-brand-600 hover:to-mint-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                 >
                   <ExternalLink className="w-5 h-5 mr-2" />
-                  ZEP 입장하기
+                  {t('loungePage.enterZep')}
                 </Button>
                 <div className="text-sm text-gray-500 mt-3">
-                  🎯 매주 토요일 저녁에 운영자와 함께하는 특별한 시간
+                  {t('loungePage.specialEvent')}
                 </div>
               </div>
             </div>
@@ -143,10 +169,10 @@ export default function LoungePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-2xl">
               <Calendar className="w-6 h-6 text-mint-600" />
-              {format(new Date(), 'M월')} 일정
+              {t('calendar.scheduleTitle')}
             </CardTitle>
             <CardDescription>
-              이번 달 ZEP 라운지 일정을 확인하고 원하는 날짜를 선택하세요
+              {t('loungePage.scheduleDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -155,12 +181,16 @@ export default function LoungePage() {
               <div className="flex justify-center">
                 <div className="bg-white/90 rounded-2xl p-6 shadow-lg border border-mint-200 max-w-sm">
                   <div className="text-sm text-mint-600 font-medium mb-3 text-center">
-                    {format(new Date(), 'M월 yyyy')}
+                    {t('calendar.months.august')} 2025
                   </div>
                   <div className="grid grid-cols-7 gap-1 text-xs text-gray-400 mb-2">
-                    {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-                      <div key={day} className="text-center">{day}</div>
-                    ))}
+                    <div className="text-center">{t('calendar.days.sun')}</div>
+                    <div className="text-center">{t('calendar.days.mon')}</div>
+                    <div className="text-center">{t('calendar.days.tue')}</div>
+                    <div className="text-center">{t('calendar.days.wed')}</div>
+                    <div className="text-center">{t('calendar.days.thu')}</div>
+                    <div className="text-center">{t('calendar.days.fri')}</div>
+                    <div className="text-center">{t('calendar.days.sat')}</div>
                   </div>
                   <div className="grid grid-cols-7 gap-1">
                     {next4Weeks.map((date, index) => {
@@ -191,10 +221,10 @@ export default function LoungePage() {
                   {selectedDate && (
                     <div className="mt-4 p-3 bg-mint-50 rounded-lg border border-mint-200">
                       <h4 className="font-medium text-mint-800 mb-2 text-sm">
-                        {formatDate(selectedDate)} 상세 정보
+                        {formatDate(selectedDate)} {t('loungePage.selectedDateInfo')}
                       </h4>
                       <p className="text-xs text-mint-600">
-                        이 날의 ZEP 라운지 일정을 확인하고 참여해보세요!
+                        {t('loungePage.selectedDateDescription')}
                       </p>
                     </div>
                   )}
@@ -203,16 +233,16 @@ export default function LoungePage() {
 
               {/* 라운지에서 하는 일 - 오른쪽 */}
               <div className="space-y-4">
-                <h4 className="font-semibold text-mint-800 text-lg mb-4">라운지에서 하는 일</h4>
+                <h4 className="font-semibold text-mint-800 text-lg mb-4">{t('loungePage.activities')}</h4>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <MessageCircle className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h5 className="font-medium text-purple-800 text-sm">자유로운 대화</h5>
+                      <h5 className="font-medium text-purple-800 text-sm">{t('loungePage.freeConversation')}</h5>
                       <p className="text-xs text-purple-600">
-                        한국 문화, 여행, 음식 등 다양한 주제로 대화를 나눕니다
+                        {t('loungePage.freeConversationDescription')}
                       </p>
                     </div>
                   </div>
@@ -222,9 +252,9 @@ export default function LoungePage() {
                       <Coffee className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h5 className="font-medium text-purple-800 text-sm">문화 체험</h5>
+                      <h5 className="font-medium text-purple-800 text-sm">{t('loungePage.culturalExperience')}</h5>
                       <p className="text-xs text-purple-600">
-                        한국 전통 문화와 현대 문화를 체험할 수 있습니다
+                        {t('loungePage.culturalExperienceDescription')}
                       </p>
                     </div>
                   </div>
@@ -234,9 +264,9 @@ export default function LoungePage() {
                       <Gift className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h5 className="font-medium text-purple-800 text-sm">특별 이벤트</h5>
+                      <h5 className="font-medium text-purple-800 text-sm">{t('loungePage.specialEvents')}</h5>
                       <p className="text-xs text-purple-600">
-                        정기적으로 특별한 이벤트와 선물을 제공합니다
+                        {t('loungePage.specialEventsDescription')}
                       </p>
                     </div>
                   </div>
@@ -256,13 +286,13 @@ export default function LoungePage() {
         <Card className="bg-gradient-to-r from-brand-500 to-mint-500 text-white border-0">
           <CardContent className="text-center py-12">
             <h3 className="text-2xl font-bold mb-4">
-              지금 바로 ZEP 라운지에 참여하세요!
+              {t('loungePage.ctaTitle')}
             </h3>
             <p className="text-lg mb-6 opacity-90">
-              한국 문화를 배우고 새로운 친구들을 만날 수 있는 특별한 시간
+              {t('loungePage.ctaDescription')}
             </p>
             <div className="text-white/80 text-sm">
-              🎈 위의 "ZEP 입장하기" 버튼을 클릭하여 라운지에 참여하세요
+              {t('loungePage.ctaInstruction')}
             </div>
           </CardContent>
         </Card>

@@ -1,0 +1,589 @@
+export const translations = {
+  ko: {
+    // 헤더
+    mainPage: '메인페이지',
+    landingPage: '랜딩페이지',
+    start: '시작하기',
+    lounge: '라운지',
+    
+    // 다크모드
+    darkMode: '다크 모드',
+    lightMode: '라이트 모드',
+    darkModeTitle: '다크 모드로 전환',
+    lightModeTitle: '라이트 모드로 전환',
+    
+    // 언어
+    korean: '한국어',
+    spanish: 'Español',
+    changeToSpanish: 'Cambiar a Español',
+    changeToKorean: '한국어로 변경',
+    
+    // 메뉴
+    community: '커뮤니티',
+    loungeSchedule: '라운지 일정',
+    profile: '프로필',
+    settings: '설정',
+    
+    // 랜딩페이지
+    hero: {
+      title: '한국 문화를 배우고\n새로운 친구들을 만나세요',
+      subtitle: '언어 장벽 없이 한국 문화를 체험하고, 전 세계 사람들과 소통하세요',
+      cta: '지금 시작하기',
+      video: '소개 영상 보기'
+    },
+    
+    // 랜딩 페이지 메인
+    landing: {
+      platform: '한국-라틴 청년 소통 플랫폼',
+      loveKorean: '한국 문화를 사랑하는',
+      globalSpace: '전 세계 친구들과 소통하는 특별한 공간',
+      introVideo: '대표자 소개 영상',
+      clickToWatch: '클릭해서 영상 보기',
+      start: '시작하기',
+      signupMessage: '지금 가입하고 한국 문화의 첫걸음을 시작해보세요! 🚀'
+    },
+    
+    // ZEP 라운지
+    zepLounge: {
+      title: 'ZEP 주말 라운지',
+      subtitle: '운영자와 함께하는 즐거운 한국 문화 수다타임!',
+      description: '매주 토요일 저녁, 여러분을 기다리고 있어요',
+      time: '매주 토요일 20:00 (KST)',
+      maxParticipants: '최대 30명 참여',
+      nextSession: '다음 세션',
+      activities: {
+        title: '라운지에서 하는 일',
+        conversation: {
+          title: '자유로운 대화',
+          description: '한국 문화, 여행, 음식 등 다양한 주제로 대화를 나눕니다'
+        },
+        culture: {
+          title: '문화 체험',
+          description: '한국 전통 문화와 현대 문화를 체험할 수 있습니다'
+        },
+        events: {
+          title: '특별 이벤트',
+          description: '정기적으로 특별한 이벤트와 선물을 제공합니다'
+        }
+      },
+      cta: '지금 바로 ZEP 라운지에 참여하세요!',
+      ctaSubtitle: '한국 문화를 배우고 새로운 친구들을 만날 수 있는 특별한 시간'
+    },
+    
+    // 특별 서비스 섹션
+    specialService: {
+      title: 'Amiko만의 특별한 서비스',
+      heading: '세 가지 핵심 기능으로 한국 문화를 경험하세요',
+      description: '가볍게 시작하고, 포인트를 모으며, 특별한 라운지에서 소통하는 완벽한 한국 문화 교류 플랫폼'
+    },
+    
+    // 기능 카드들
+    features: {
+      meeting: {
+        title: '만남 (Video llamada)',
+        description: '한국인 친구와 15분 무료 상담으로 가볍게 시작할 수 있어요',
+        videoSupport: '화상 상담 지원',
+        verifiedFriends: '검증된 한국인 친구',
+        button: '쿠폰 받기'
+      },
+      community: {
+        title: '커뮤니티 (Q&A)',
+        description: '질문하고 답변하며 포인트를 모아 특별한 혜택을 받아보세요',
+        categories: '5개 카테고리',
+        dailyLimit: '일일 포인트 상한',
+        button: '커뮤니티 가기'
+      },
+      lounge: {
+        title: 'ZEP 라운지',
+        description: '주말 1회 운영자와 함께하는 서로 알아가는 시간을 경험해보세요',
+        maxParticipants: '최대 30명 참여',
+        freeTime: '자유로운 소통 시간',
+        button: '라운지 안내'
+      }
+    },
+    
+    // 라운지 미니 섹션
+    loungeMini: {
+      specialTime: '🌟 이번 주 특별 시간',
+      gettingToKnow: '서로 알아가는 시간',
+      description: '자유롭게 이야기하고 문화를 나누며 새로운 친구를 만나보세요!',
+      features: {
+        freeTalk: '자유로운 대화',
+        culturalExchange: '문화 교류',
+        makeFriends: '친구 만들기'
+      },
+      button: '라운지 안내 보기',
+      message: '매주 토요일 저녁, 특별한 소통 시간을 기다려주세요! ✨',
+      // ZEP 라운지 헤더
+      weekendEvent: '주말 특별 이벤트',
+      title: 'ZEP 라운지',
+      subtitle: '운영자가 직접 참여하는 특별한 시간을 경험해보세요',
+      // 달력 관련
+      august: '8월 2025',
+      days: {
+        sun: '일',
+        mon: '월',
+        tue: '화',
+        wed: '수',
+        thu: '목',
+        fri: '금',
+        sat: '토'
+      },
+      saturdayEvent: '토요일 이벤트',
+      // 참여자 정보
+      participants: '30명',
+      maxParticipants: '최대 참여',
+      firstComeFirstServed: '선착순',
+      // 시간 정보
+      time: '20:00',
+      kst: '(KST)',
+      operationTime: '2시간 운영',
+      // 국가별 시간
+      timeByCountry: '🌍 각 나라 기준 시간',
+      countries: {
+        korea: '한국: 20:00 (KST)',
+        peru: '페루: 06:00 (PET)',
+        mexico: '멕시코: 05:00 (CST)'
+      }
+    },
+    // 메인페이지
+    main: {
+      // 상단 헤더
+      weekendLounge: '이번 주말 ZEP 라운지 🫧',
+      time: '토 20:00 (KST)',
+      maxParticipants: '최대 30명',
+      viewCalendar: '캘린더 보기',
+      // 탭 메뉴
+      meet: '만남',
+      community: '커뮤니티',
+      me: '마이',
+      // 탭 설명
+      meetDescription: '한국인 친구와 화상 상담으로 한국 문화를 배워보세요',
+      communityDescription: '질문하고 답변하며 포인트를 모아 특별한 혜택을 받아보세요',
+      meDescription: '프로필 관리, 포인트, 쿠폰 등 개인 정보를 확인하세요'
+    },
+    // 만남 탭
+    meetTab: {
+      // 본인 인증
+      verificationRequired: '본인 인증이 필요해요',
+      verificationDescription: '영상 매칭을 이용하려면 본인 인증이 필요합니다. 안전하고 신뢰할 수 있는 서비스를 위해 빠른 인증을 진행해주세요!',
+      verificationBenefits: '인증 완료 시 영상 매칭, 쿠폰 사용, 커뮤니티 활동이 모두 가능합니다',
+      verifyNow: '→ 지금 인증하기',
+      // 통역 모드
+      interpreterMode: '통역 모드 안내',
+      interpreterDescription: '한국인 친구에게만 표시되는 설정',
+      // 검색 및 필터링
+      searchFriends: 'Q 친구 검색...',
+      all: '전체',
+      byActivityScore: '활동점수순',
+      selectCoupon: '15분 쿠폰 선택',
+      quickMatch: '빠른 매칭',
+      // 기타
+      unverified: '미인증 (테스트)',
+      // 프로필 카드 버튼
+      bookConsultation: '상담 예약',
+      viewProfile: '프로필 보기',
+      // 통역 상태
+      interpreterOn: '통역 ON',
+      interpreterOff: '통역 OFF 시 +보너스 포인트',
+      // 맞춤형 친구 매칭
+      customizedMatching: '맞춤형 친구 매칭',
+      customizedDescription: '한국어 수준, 관심 분야, 선호 시간을 고려하여 최적의 친구와 만남을 추천해드립니다',
+      videoSupport: '화상 상담 지원',
+      verifiedFriends: '검증된 한국인 친구',
+      flexibleTime: '유연한 시간 조율'
+    },
+    // 커뮤니티 탭
+    communityTab: {
+      // 스토리 섹션
+      todayStory: '오늘의 스토리',
+      uploadStory: '+ 스토리 올리기',
+      // 질문 섹션
+      askQuestion: '+ 질문하기',
+      searchQuestions: '질문 검색...',
+      // 카테고리 필터
+      all: '☆ 전체',
+      beauty: '뷰티',
+      coordination: '코디',
+      koreanTravel: '한국여행',
+      koreanCulture: '한국문화',
+      free: '자유',
+      // 포인트 규칙
+      pointRules: '포인트 획득 규칙',
+      koreans: '한국인',
+      latinUsers: '라틴 사용자',
+      question: '질문',
+      answer: '답변',
+      dailyLimit: '일일 상한 있음',
+      adoptionLikeBonus: '채택/좋아요 보너스',
+      spamCooldown: '스팸 쿨타임',
+      // 오늘의 활동
+      todayActivity: '오늘의 활동',
+      myQuestions: '내 질문',
+      myAnswers: '내 답변',
+      pointsAcquired: '획득 포인트',
+      upvotesReceived: '받은 업보트',
+      // 기타
+      unverified: '미인증 (테스트)'
+    },
+    // 푸터
+    footer: {
+      description: '한국과 라틴 아메리카 청년들이 함께하는 언어 교류와 문화 체험 플랫폼 입니다.',
+      madeWithLove: 'Made with love in Korea',
+      copyright: '© 2025 Amiko. All rights reserved.',
+      privacy: '개인정보처리방침',
+      terms: '이용약관',
+      cookies: '쿠키 정책',
+      support: '지원',
+      help: '도움말',
+      faq: '자주 묻는 질문',
+      contact: '문의하기',
+      feedback: '피드백',
+      company: '회사',
+      about: '회사 소개',
+      followUs: 'Follow us:',
+      globalMessage: 'Made with ❤️ and ✨ for global community'
+    }
+  },
+  
+  es: {
+    // 헤더
+    mainPage: 'Página Principal',
+    landingPage: 'Página de Inicio',
+    start: 'Comenzar',
+    lounge: 'Sala',
+    
+    // 다크모드
+    darkMode: 'Modo Oscuro',
+    lightMode: 'Modo Claro',
+    darkModeTitle: 'Cambiar a Modo Oscuro',
+    lightModeTitle: 'Cambiar a Modo Claro',
+    
+    // 언어
+    korean: '한국어',
+    spanish: 'Español',
+    changeToSpanish: 'Cambiar a Español',
+    changeToKorean: '한국어로 변경',
+    
+    // 메뉴
+    community: 'Comunidad',
+    loungeSchedule: 'Horario de Sala',
+    profile: 'Perfil',
+    settings: 'Configuración',
+    
+    // 랜딩페이지
+    hero: {
+      title: 'Aprende cultura coreana y\nhaz nuevos amigos',
+      subtitle: 'Experimenta la cultura coreana sin barreras lingüísticas y comunícate con personas de todo el mundo',
+      cta: 'Comenzar Ahora',
+      video: 'Ver Video de Introducción'
+    },
+    
+    // 랜딩 페이지 메인
+    landing: {
+      platform: 'Plataforma de Comunicación Juvenil Corea-Latinoamérica',
+      loveKorean: 'Amando la cultura coreana',
+      globalSpace: 'Un espacio especial para comunicarse con amigos de todo el mundo',
+      introVideo: 'Video de Introducción del Representante',
+      clickToWatch: 'Haz clic para ver el video',
+      start: 'Comenzar',
+      signupMessage: '¡Regístrate ahora y comienza tu primer paso en la cultura coreana! 🚀'
+    },
+    
+    // ZEP 라운지
+    zepLounge: {
+      title: 'Sala ZEP de Fin de Semana',
+      subtitle: '¡Tiempo de charla divertida sobre cultura coreana con operadores!',
+      description: 'Todos los sábados por la noche, te estamos esperando',
+      time: 'Todos los sábados 20:00 (KST)',
+      maxParticipants: 'Máximo 30 participantes',
+      nextSession: 'Próxima Sesión',
+      activities: {
+        title: 'Qué hacer en la Sala',
+        conversation: {
+          title: 'Conversación Libre',
+          description: 'Conversamos sobre diversos temas como cultura coreana, viajes, comida, etc.'
+        },
+        culture: {
+          title: 'Experiencia Cultural',
+          description: 'Puedes experimentar la cultura tradicional y moderna de Corea'
+        },
+        events: {
+          title: 'Eventos Especiales',
+          description: 'Proporcionamos eventos especiales y regalos regularmente'
+        }
+      },
+      cta: '¡Únete ahora a la Sala ZEP!',
+      ctaSubtitle: 'Un tiempo especial para aprender cultura coreana y hacer nuevos amigos'
+    },
+    
+    // 특별 서비스 섹션
+    specialService: {
+      title: 'Servicios Especiales de Amiko',
+      heading: 'Experimenta la cultura coreana con tres funciones principales',
+      description: 'Una plataforma perfecta de intercambio cultural coreano para comenzar ligeramente, recolectar puntos y comunicarse en una sala especial'
+    },
+    
+    // 기능 카드들
+    features: {
+      meeting: {
+        title: 'Encuentro (Video llamada)',
+        description: 'Puedes comenzar fácilmente con una consulta gratuita de 15 minutos con un amigo coreano',
+        videoSupport: 'Soporte de consulta por video',
+        verifiedFriends: 'Amigos coreanos verificados',
+        button: 'Obtener cupón'
+      },
+      community: {
+        title: 'Comunidad (P&R)',
+        description: 'Haz preguntas y responde, recolecta puntos y recibe beneficios especiales',
+        categories: '5 categorías',
+        dailyLimit: 'Límite diario de puntos',
+        button: 'Ir a la comunidad'
+      },
+      lounge: {
+        title: 'Sala ZEP',
+        description: 'Experimenta tiempo para conocerse mutuamente con un operador una vez por fin de semana',
+        maxParticipants: 'Máximo 30 participantes',
+        freeTime: 'Tiempo de comunicación libre',
+        button: 'Guía de la sala'
+      }
+    },
+    
+    // 라운지 미니 섹션
+    loungeMini: {
+      specialTime: '🌟 Tiempo especial de esta semana',
+      gettingToKnow: 'Tiempo para conocerse mutuamente',
+      description: '¡Habla libremente, comparte cultura y haz nuevos amigos!',
+      features: {
+        freeTalk: 'Conversación libre',
+        culturalExchange: 'Intercambio cultural',
+        makeFriends: 'Hacer amigos'
+      },
+      button: 'Ver guía de la sala',
+      message: '¡Todos los sábados por la noche, esperamos tiempo especial de comunicación! ✨',
+      // ZEP 라운지 헤더
+      weekendEvent: 'Evento Especial de Fin de Semana',
+      title: 'Sala ZEP',
+      subtitle: 'Experimenta un tiempo especial donde el operador participa directamente',
+      // 달력 관련
+      august: 'Agosto 2025',
+      days: {
+        sun: 'Dom',
+        mon: 'Lun',
+        tue: 'Mar',
+        wed: 'Mié',
+        thu: 'Jue',
+        fri: 'Vie',
+        sat: 'Sáb'
+      },
+      saturdayEvent: 'Evento del Sábado',
+      // 참여자 정보
+      participants: '30',
+      maxParticipants: 'Máximo',
+      firstComeFirstServed: 'Primero en llegar',
+      // 시간 정보
+      time: '20:00',
+      kst: '(KST)',
+      operationTime: '2 horas',
+      // 국가별 시간
+      timeByCountry: '🌍 Hora según cada país',
+      countries: {
+        korea: 'Corea: 20:00 (KST)',
+        peru: 'Perú: 06:00 (PET)',
+        mexico: 'México: 05:00 (CST)'
+      }
+    },
+    // 푸터
+    footer: {
+      description: 'Plataforma de intercambio lingüístico y experiencia cultural para jóvenes de Corea y América Latina.',
+      madeWithLove: 'Hecho con amor en Corea',
+      copyright: '© 2025 Amiko. Todos los derechos reservados.',
+      privacy: 'Política de Privacidad',
+      terms: 'Términos de Uso',
+      cookies: 'Política de Cookies',
+      support: 'Soporte',
+      help: 'Ayuda',
+      faq: 'Preguntas Frecuentes',
+      contact: 'Contacto',
+      feedback: 'Comentarios',
+      company: 'Empresa',
+      about: 'Acerca de',
+      followUs: 'Síguenos:',
+      globalMessage: 'Hecho con ❤️ y ✨ para una comunidad global'
+    },
+    // 메인페이지
+    main: {
+      // 상단 헤더
+      weekendLounge: 'Sala ZEP de este fin de semana 🫧',
+      time: 'Sáb 20:00 (KST)',
+      maxParticipants: 'Máximo 30',
+      viewCalendar: 'Ver Calendario',
+      // 탭 메뉴
+      meet: 'Encuentro',
+      community: 'Comunidad',
+      me: 'Mi Perfil',
+      // 탭 설명
+      meetDescription: 'Aprende cultura coreana con amigos coreanos a través de consultas por video',
+      communityDescription: 'Haz preguntas, responde y acumula puntos para recibir beneficios especiales',
+      meDescription: 'Gestiona tu perfil, puntos, cupones y otra información personal'
+    },
+    // 만남 탭
+    meetTab: {
+      // 본인 인증
+      verificationRequired: 'Verificación de identidad requerida',
+      verificationDescription: 'Para usar el emparejamiento por video, se requiere verificación de identidad. ¡Por favor, proceda con la verificación rápida para un servicio seguro y confiable!',
+      verificationBenefits: 'Al completar la verificación, el emparejamiento por video, uso de cupones y actividades comunitarias serán posibles',
+      verifyNow: '→ Verificar ahora',
+      // 통역 모드
+      interpreterMode: 'Guía del modo intérprete',
+      interpreterDescription: 'Configuración visible solo para amigos coreanos',
+      // 검색 및 필터링
+      searchFriends: 'Q Buscar amigos...',
+      all: 'Todo',
+      byActivityScore: 'Por puntuación de actividad',
+      selectCoupon: 'Seleccionar cupón de 15 min',
+      quickMatch: 'Emparejamiento rápido',
+      // 기타
+      unverified: 'No verificado (Prueba)',
+      // 프로필 카드 버튼
+      bookConsultation: 'Reservar Consulta',
+      viewProfile: 'Ver Perfil',
+      // 통역 상태
+      interpreterOn: 'Intérprete ON',
+      interpreterOff: 'Intérprete OFF + Puntos Bonus',
+      // 맞춤형 친구 매칭
+      customizedMatching: 'Emparejamiento de Amigos Personalizado',
+      customizedDescription: 'Te recomendamos el mejor amigo considerando tu nivel de coreano, intereses y tiempo preferido',
+      videoSupport: 'Soporte de Consulta por Video',
+      verifiedFriends: 'Amigos Coreanos Verificados',
+      flexibleTime: 'Ajuste Flexible de Horarios'
+    },
+    // 커뮤니티 탭
+    communityTab: {
+      // 스토리 섹션
+      todayStory: 'Story de Hoy',
+      uploadStory: '+ Subir Story',
+      // 질문 섹션
+      askQuestion: '+ Hacer Pregunta',
+      searchQuestions: 'Buscar preguntas...',
+      // 카테고리 필터
+      all: '☆ Todo',
+      beauty: 'Belleza',
+      coordination: 'Coordinación',
+      koreanTravel: 'Viaje a Corea',
+      koreanCulture: 'Cultura Coreana',
+      free: 'Libre',
+      // 포인트 규칙
+      pointRules: 'Reglas de Obtención de Puntos',
+      koreans: 'Coreanos',
+      latinUsers: 'Usuarios Latinos',
+      question: 'Pregunta',
+      answer: 'Respuesta',
+      dailyLimit: 'Límite diario',
+      adoptionLikeBonus: 'Bonus de adopción/me gusta',
+      spamCooldown: 'Tiempo de enfriamiento anti-spam',
+      // 오늘의 활동
+      todayActivity: 'Actividad de Hoy',
+      myQuestions: 'Mis Preguntas',
+      myAnswers: 'Mis Respuestas',
+      pointsAcquired: 'Puntos Obtenidos',
+      upvotesReceived: 'Upvotes Recibidos',
+      // 기타
+      unverified: 'No verificado (Prueba)'
+    },
+    // 프로필 페이지
+    profile: {
+      // 프로필 섹션
+      myProfile: '내 프로필',
+      native: '현지인 (테스트)',
+      unverified: '미인증 (테스트)',
+      edit: '편집',
+      // 사용자 정보 라벨
+      name: '이름',
+      major: '전공',
+      university: '대학교',
+      year: '학년',
+      selfIntroduction: '자기소개',
+      availableTime: '가능 시간',
+      interests: '관심사',
+      joinDate: '가입일',
+      // 시간 태그
+      weekdayEvening: '평일저녁',
+      weekendAfternoon: '주말오후',
+      // 관심사 태그
+      koreanLanguage: '한국어',
+      koreanCulture: '한국문화',
+      cooking: '요리',
+      travel: '여행',
+      music: '음악',
+      // 요약 카드
+      myPoints: '내 포인트',
+      thisMonthPoints: '이번 달 +{points}점',
+      consecutiveDays: '연속 {days}일',
+      exchangeCount: '교류 건수',
+      totalCases: '총 {count}건 진행',
+      successfulExchanges: '성공적인 교류',
+      communityActivity: '커뮤니티 활동',
+      questionsAnswersAdoptions: '질문/답변/채택',
+      thisMonthActivity: '이번 달 +{points}점',
+      // 하단 카드
+      myCoupons: '나의 쿠폰',
+      consultation15min: '15분 상담',
+      expirationDate: '만료일',
+      purchaseHistory: '구매내역',
+      consultationCoupons: '15분 상담 쿠폰 {count}장'
+    },
+    // 비디오 통화
+    videoCall: 'Video llamada'
+  },
+  // 스페인어 섹션
+  es: {
+    // 프로필 페이지 (스페인어)
+    profile: {
+      // 프로필 섹션
+      myProfile: 'Mi Perfil',
+      native: 'Nativo (Prueba)',
+      unverified: 'No verificado (Prueba)',
+      edit: 'Editar',
+      // 사용자 정보 라벨
+      name: 'Nombre',
+      major: 'Especialidad',
+      university: 'Universidad',
+      year: 'Año',
+      selfIntroduction: 'Presentación',
+      availableTime: 'Horarios disponibles',
+      interests: 'Intereses',
+      joinDate: 'Fecha de registro',
+      // 시간 태그
+      weekdayEvening: 'Noches de semana',
+      weekendAfternoon: 'Tardes de fin de semana',
+      // 관심사 태그
+      koreanLanguage: 'Idioma coreano',
+      koreanCulture: 'Cultura coreana',
+      cooking: 'Cocina',
+      travel: 'Viajes',
+      music: 'Música',
+      // 요약 카드
+      myPoints: 'Mis Puntos',
+      thisMonthPoints: '+{points} pts este mes',
+      consecutiveDays: '{days} días consecutivos',
+      exchangeCount: 'Intercambios',
+      totalCases: '{count} casos en total',
+      successfulExchanges: 'Intercambios exitosos',
+      communityActivity: 'Actividad comunitaria',
+      questionsAnswersAdoptions: 'Preguntas/Respuestas/Adopciones',
+      thisMonthActivity: '+{points} pts este mes',
+      // 하단 카드
+      myCoupons: 'Mis Cupones',
+      consultation15min: 'Consulta de 15 min',
+      expirationDate: 'Fecha de vencimiento',
+      purchaseHistory: 'Historial de compras',
+      consultationCoupons: '{count} cupones de consulta de 15 min'
+    },
+    // 비디오 통화
+    videoCall: 'Video llamada'
+  }
+}
+
+export type Language = keyof typeof translations
+export type TranslationKey = keyof typeof translations.ko

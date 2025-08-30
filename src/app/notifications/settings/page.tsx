@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { NotificationType, NOTIFICATION_TEMPLATES } from '@/lib/notifications'
 import PushNotificationToggle from '@/components/notifications/PushNotificationToggle'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface NotificationSettings {
   email_enabled: boolean
@@ -23,6 +24,7 @@ interface NotificationSettings {
 
 export default function NotificationSettingsPage() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const [settings, setSettings] = useState<NotificationSettings>({
     email_enabled: true,
     push_enabled: true,
@@ -71,7 +73,7 @@ export default function NotificationSettingsPage() {
             in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
           }
           setSettings(defaultSettings)
-          setError('알림 설정 테이블이 아직 생성되지 않았습니다. 기본 설정을 사용합니다.')
+          setError(t('notificationSettings.tableMissing'))
           setTimeout(() => setError(''), 5000)
           return
         }
@@ -87,7 +89,7 @@ export default function NotificationSettingsPage() {
           in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
         }
         setSettings(defaultSettings)
-        setError('설정을 불러올 수 없습니다. 기본 설정을 사용합니다.')
+        setError(t('notificationSettings.errorMessage'))
         setTimeout(() => setError(''), 5000)
       }
     } catch (error) {
@@ -103,7 +105,7 @@ export default function NotificationSettingsPage() {
         in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
       }
       setSettings(defaultSettings)
-      setError('네트워크 오류가 발생했습니다. 기본 설정을 사용합니다.')
+      setError(t('notificationSettings.networkError'))
       setTimeout(() => setError(''), 5000)
     } finally {
       setLoading(false)
@@ -137,7 +139,7 @@ export default function NotificationSettingsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setSuccess(data.message || '알림 설정이 저장되었습니다.')
+        setSuccess(data.message || t('notificationSettings.successMessage'))
         setTimeout(() => setSuccess(''), 5000)
       } else {
         // 에러 응답 처리
@@ -302,10 +304,10 @@ export default function NotificationSettingsPage() {
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  ⚙️ 알림 설정
+                  ⚙️ {t('notificationSettings.title')}
                 </h1>
                 <p className="text-gray-600">
-                  원하는 알림을 선택하고 설정할 수 있습니다.
+                  {t('notificationSettings.subtitle')}
                 </p>
               </div>
               
@@ -340,7 +342,7 @@ export default function NotificationSettingsPage() {
                     }
                   }}
                 >
-                  🔍 시스템 상태
+                  🔍 {t('notificationSettings.systemStatus')}
                 </Button>
                 
                 <Button
@@ -349,7 +351,7 @@ export default function NotificationSettingsPage() {
                   onClick={resetSettings}
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
-                  초기화
+                  {t('notificationSettings.reset')}
                 </Button>
                 
                 <Button
@@ -375,7 +377,7 @@ export default function NotificationSettingsPage() {
 
                       if (response.ok) {
                         const data = await response.json()
-                        setSuccess('테스트 알림이 발송되었습니다!')
+                        setSuccess(t('notificationSettings.testSuccess'))
                         setTimeout(() => setSuccess(''), 5000)
                       } else {
                         const errorData = await response.json()
@@ -385,12 +387,12 @@ export default function NotificationSettingsPage() {
                       }
                     } catch (error) {
                       console.error('테스트 알림 발송 실패:', error)
-                      setError('테스트 알림 발송 중 오류가 발생했습니다.')
+                      setError(t('notificationSettings.testError'))
                       setTimeout(() => setError(''), 5000)
                     }
                   }}
                 >
-                  🧪 테스트 알림
+                  🧪 {t('notificationSettings.testNotification')}
                 </Button>
                 
                 <div className="flex items-center space-x-2">
@@ -399,13 +401,13 @@ export default function NotificationSettingsPage() {
                     disabled={saving}
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    {saving ? '저장 중...' : '저장'}
+                    {saving ? t('notificationSettings.saving') : t('notificationSettings.save')}
                   </Button>
                   
                   {autoSaving && (
                     <div className="flex items-center text-sm text-gray-500">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2"></div>
-                      자동 저장 중...
+                      {t('notificationSettings.autoSaving')}
                     </div>
                   )}
                 </div>
@@ -455,10 +457,10 @@ export default function NotificationSettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Bell className="w-5 h-5" />
-                  <span>알림 채널</span>
+                  <span>{t('notificationSettings.notificationChannels')}</span>
                 </CardTitle>
                 <CardDescription>
-                  어떤 방법으로 알림을 받을지 선택하세요.
+                  {t('notificationSettings.channelDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -467,8 +469,8 @@ export default function NotificationSettingsPage() {
                   <div className="flex items-center space-x-3">
                     <Mail className="w-5 h-5 text-blue-600" />
                     <div>
-                      <Label className="text-base font-medium">이메일 알림</Label>
-                      <p className="text-sm text-gray-600">이메일로 알림을 받습니다.</p>
+                      <Label className="text-base font-medium">{t('notificationSettings.emailNotification')}</Label>
+                      <p className="text-sm text-gray-600">{t('notificationSettings.emailDescription')}</p>
                     </div>
                   </div>
                   <Switch
@@ -482,8 +484,8 @@ export default function NotificationSettingsPage() {
                   <div className="flex items-center space-x-3">
                     <Smartphone className="w-5 h-5 text-green-600" />
                     <div>
-                      <Label className="text-base font-medium">브라우저 푸시 알림</Label>
-                      <p className="text-sm text-gray-600">브라우저에서 푸시 알림을 받습니다.</p>
+                      <Label className="text-base font-medium">{t('notificationSettings.browserPushNotification')}</Label>
+                      <p className="text-sm text-gray-600">{t('notificationSettings.browserPushDescription')}</p>
                     </div>
                   </div>
                   
@@ -496,8 +498,8 @@ export default function NotificationSettingsPage() {
                   <div className="flex items-center space-x-3">
                     <Bell className="w-5 h-5 text-purple-600" />
                     <div>
-                      <Label className="text-base font-medium">웹사이트 내 알림</Label>
-                      <p className="text-sm text-gray-600">웹사이트에서 알림을 확인합니다.</p>
+                      <Label className="text-base font-medium">{t('notificationSettings.inAppNotification')}</Label>
+                      <p className="text-sm text-gray-600">{t('notificationSettings.inAppDescription')}</p>
                     </div>
                   </div>
                   <Switch
@@ -511,9 +513,9 @@ export default function NotificationSettingsPage() {
             {/* 알림 타입별 설정 */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>알림 종류별 설정</CardTitle>
+                <CardTitle>{t('notificationSettings.notificationTypes')}</CardTitle>
                 <CardDescription>
-                  각 알림 채널에서 받고 싶은 알림을 선택하세요.
+                  {t('notificationSettings.typesDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -542,7 +544,7 @@ export default function NotificationSettingsPage() {
                           />
                           <div className="flex items-center space-x-2">
                             <Mail className="w-4 h-4 text-blue-600" />
-                            <Label className="text-sm">이메일</Label>
+                            <Label className="text-sm">{t('notificationSettings.email')}</Label>
                           </div>
                         </div>
 
@@ -555,7 +557,7 @@ export default function NotificationSettingsPage() {
                           />
                           <div className="flex items-center space-x-2">
                             <Smartphone className="w-4 h-4 text-green-600" />
-                            <Label className="text-sm">푸시</Label>
+                            <Label className="text-sm">{t('notificationSettings.push')}</Label>
                           </div>
                         </div>
 
@@ -568,7 +570,7 @@ export default function NotificationSettingsPage() {
                           />
                           <div className="flex items-center space-x-2">
                             <Bell className="w-4 h-4 text-purple-600" />
-                            <Label className="text-sm">웹사이트</Label>
+                            <Label className="text-sm">{t('notificationSettings.website')}</Label>
                           </div>
                         </div>
                       </div>
@@ -587,7 +589,7 @@ export default function NotificationSettingsPage() {
                 className="px-8"
               >
                 <Save className="w-5 h-5 mr-2" />
-                {saving ? '저장 중...' : '설정 저장'}
+                {saving ? t('notificationSettings.saving') : t('notificationSettings.saveSettings')}
               </Button>
             </div>
           </div>

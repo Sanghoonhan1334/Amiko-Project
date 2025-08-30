@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users, ArrowRight, Sparkles, Heart, Star } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function LoungeMini() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   // 다음 주말 날짜 계산 (간단한 예시)
   const getNextWeekend = () => {
@@ -40,15 +42,15 @@ export default function LoungeMini() {
             <div className="mb-8">
               <div className="inline-flex items-center gap-3 bg-gradient-to-r from-sky-100 to-brand-100 rounded-3xl px-6 py-3 mb-6">
                 <Sparkles className="w-5 h-5 text-sky-600" />
-                <span className="text-sky-700 font-medium">주말 특별 이벤트</span>
+                <span className="text-sky-700 font-medium">{t('loungeMini.weekendEvent')}</span>
               </div>
               
               <h2 className="heading-primary mb-4">
-                🫧 ZEP 라운지
+                🫧 {t('loungeMini.title')}
               </h2>
               
               <p className="text-body text-lg max-w-2xl mx-auto">
-                운영자가 직접 참여하는 특별한 시간을 경험해보세요
+                {t('loungeMini.subtitle')}
               </p>
             </div>
 
@@ -58,16 +60,16 @@ export default function LoungeMini() {
                 {/* 작은 달력 */}
                 <div className="text-center">
                   <div className="bg-white/90 rounded-2xl p-6 shadow-lg border border-sky-200">
-                    <div className="text-sm text-sky-600 font-medium mb-3">8월 2025</div>
-                    <div className="grid grid-cols-7 gap-1 text-xs text-gray-400 mb-2">
-                      <div>일</div>
-                      <div>월</div>
-                      <div>화</div>
-                      <div>수</div>
-                      <div>목</div>
-                      <div>금</div>
-                      <div>토</div>
-                    </div>
+                    <div className="text-sm text-sky-600 font-medium mb-3">{t('calendar.months.august')}</div>
+                                          <div className="grid grid-cols-7 gap-1 text-xs text-gray-400 mb-2">
+                        <div>{t('calendar.days.sun')}</div>
+                        <div>{t('calendar.days.mon')}</div>
+                        <div>{t('calendar.days.tue')}</div>
+                        <div>{t('calendar.days.wed')}</div>
+                        <div>{t('calendar.days.thu')}</div>
+                        <div>{t('calendar.days.fri')}</div>
+                        <div>{t('calendar.days.sat')}</div>
+                      </div>
                     <div className="grid grid-cols-7 gap-1">
                       <div className="w-6 h-6"></div>
                       <div className="w-6 h-6"></div>
@@ -109,7 +111,7 @@ export default function LoungeMini() {
                     <div className="mt-3">
                       <Badge className="bg-sky-100 text-sky-700 border-sky-300 text-xs">
                         <Calendar className="w-3 h-3 mr-1" />
-                        토요일 이벤트
+                        {t('loungeMini.saturdayEvent')}
                       </Badge>
                     </div>
                   </div>
@@ -121,16 +123,16 @@ export default function LoungeMini() {
                   <div className="text-center">
                     <div className="bg-white/90 rounded-2xl p-4 shadow-lg">
                       <div className="text-3xl font-bold text-brand-600 mb-1">
-                        20:00
+                        {t('loungeMini.time')}
                       </div>
                       <div className="text-sm text-gray-600">
-                        (KST)
+                        {t('loungeMini.kst')}
                       </div>
                     </div>
                     <div className="mt-3">
                       <Badge className="bg-brand-100 text-brand-700 border-brand-300">
                         <Clock className="w-4 h-4 mr-1" />
-                        2시간 운영
+                        {t('loungeMini.operationTime')}
                       </Badge>
                     </div>
                   </div>
@@ -139,16 +141,16 @@ export default function LoungeMini() {
                   <div className="text-center">
                     <div className="bg-white/90 rounded-2xl p-4 shadow-lg">
                       <div className="text-3xl font-bold text-mint-600 mb-1">
-                        30명
+                        {t('loungeMini.participants')}
                       </div>
                       <div className="text-sm text-gray-600">
-                        최대 참여
+                        {t('loungeMini.maxParticipants')}
                       </div>
                     </div>
                     <div className="mt-3">
                       <Badge className="bg-mint-100 text-mint-700 border-mint-300">
                         <Users className="w-4 h-4 mr-1" />
-                        선착순
+                        {t('loungeMini.firstComeFirstServed')}
                       </Badge>
                     </div>
                   </div>
@@ -158,19 +160,19 @@ export default function LoungeMini() {
               {/* 국가별 시간대 추가 */}
               <div className="mt-6 pt-6 border-t border-sky-200/30">
                 <div className="text-center text-sm text-gray-600 space-y-2">
-                  <div className="font-medium text-gray-700 mb-2">🌍 각 나라 기준 시간</div>
+                  <div className="font-medium text-gray-700 mb-2">{t('loungeMini.timeByCountry')}</div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-lg">🇰🇷</span>
-                      <span>한국: 20:00 (KST)</span>
+                      <span>{t('loungeMini.timeFormat.korea')}</span>
                     </div>
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-lg">🇵🇪</span>
-                      <span>페루: 06:00 (PET)</span>
+                      <span>{t('loungeMini.timeFormat.peru')}</span>
                     </div>
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-lg">🇲🇽</span>
-                      <span>멕시코: 05:00 (CST)</span>
+                      <span>{t('loungeMini.timeFormat.mexico')}</span>
                     </div>
                   </div>
                 </div>
@@ -182,30 +184,30 @@ export default function LoungeMini() {
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-banana-100 to-sky-100 rounded-2xl px-4 py-2 mb-4">
                 <Star className="w-5 h-5 text-banana-600" />
                 <Badge className="bg-banana-100 text-banana-700 border-banana-300">
-                  🌟 이번 주 특별 시간
+                  {t('loungeMini.specialTime')}
                 </Badge>
               </div>
               
               <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                서로 알아가는 시간
+                {t('loungeMini.gettingToKnow')}
               </h3>
               
               <p className="text-body text-lg mb-4">
-                자유롭게 이야기하고 문화를 나누며 새로운 친구를 만나보세요!
+                {t('loungeMini.description')}
               </p>
               
               <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
                 <span className="flex items-center gap-2">
                   <Heart className="w-4 h-4 text-brand-500" />
-                  자유로운 대화
+                  {t('loungeMini.features.freeTalk')}
                 </span>
                 <span className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-mint-500" />
-                  문화 교류
+                  {t('loungeMini.features.culturalExchange')}
                 </span>
                 <span className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-sky-500" />
-                  친구 만들기
+                  {t('loungeMini.features.makeFriends')}
                 </span>
               </div>
             </div>
@@ -217,13 +219,13 @@ export default function LoungeMini() {
               onClick={() => router.push('/lounge')}
             >
               <Sparkles className="w-6 h-6 mr-3" />
-              라운지 안내 보기
+              {t('loungeMini.button')}
               <ArrowRight className="w-6 h-6 ml-3" />
             </Button>
 
             {/* 추가 정보 */}
             <p className="text-gray-600 mt-6 text-lg">
-              매주 토요일 저녁, 특별한 소통 시간을 기다려주세요! 🌟
+              {t('loungeMini.message')}
             </p>
           </div>
         </div>

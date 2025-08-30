@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Play, Sparkles, Heart, Globe } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function Hero() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
   const router = useRouter()
+  const { t } = useLanguage()
 
   return (
     <section className="min-h-screen relative overflow-hidden bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/hanok-bg.png)' }}>
@@ -26,7 +28,7 @@ export default function Hero() {
         <div className="max-w-4xl">
           <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-3xl px-6 py-3 mb-8 shadow-2xl border border-white/30">
             <Sparkles className="w-5 h-5 text-white" />
-            <span className="text-white font-medium">한국-라틴 청년 소통 플랫폼</span>
+            <span className="text-white font-medium">{t('landing.platform')}</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 drop-shadow-2xl">
@@ -37,12 +39,12 @@ export default function Hero() {
           <p className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed mb-8 drop-shadow-lg">
             <span className="inline-flex items-center gap-2">
               <Heart className="w-6 h-6 text-pink-300" />
-              한국 문화를 사랑하는
+              {t('landing.loveKorean')}
             </span>
             <br />
             <span className="inline-flex items-center gap-2">
               <Globe className="w-6 h-6 text-indigo-300" />
-              전 세계 친구들과 소통하는 특별한 공간
+              {t('landing.globalSpace')}
             </span>
           </p>
 
@@ -59,8 +61,8 @@ export default function Hero() {
                       <Play className="w-12 h-12 text-white ml-1 drop-shadow-lg" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-white font-semibold text-lg drop-shadow-lg">대표자 소개 영상</p>
-                      <p className="text-white/80 text-sm drop-shadow">클릭해서 영상 보기</p>
+                      <p className="text-white font-semibold text-lg drop-shadow-lg">{t('landing.introVideo')}</p>
+                      <p className="text-white/80 text-sm drop-shadow">{t('landing.clickToWatch')}</p>
                     </div>
                   </div>
                 </div>
@@ -83,12 +85,12 @@ export default function Hero() {
             onClick={() => router.push('/sign-up')}
           >
             <Sparkles className="w-6 h-6 mr-3" />
-            시작하기
+            {t('landing.start')}
           </Button>
 
           {/* 추가 설명 */}
           <p className="text-white/90 mt-8 text-lg drop-shadow-lg">
-            지금 가입하고 한국 문화의 첫걸음을 시작해보세요! 🚀
+            {t('landing.signupMessage')}
           </p>
         </div>
       </div>

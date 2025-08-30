@@ -3,9 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, ArrowRight } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function Hero() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   const handleNavigation = (path: string) => {
     if (path.startsWith('#')) {
@@ -23,14 +25,12 @@ export default function Hero() {
       <div className="container max-w-6xl mx-auto px-4 text-center">
         {/* 메인 타이틀 */}
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-          한국 문화를 배우는
-          <span className="block text-blue-600 mt-2">가장 쉬운 방법</span>
+          {t('hero.title')}
         </h1>
         
         {/* 서브 텍스트 */}
         <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-12">
-          한국인 멘토와 함께하는 문화 교류, 발음 교정, 커뮤니티를 통해 
-          진정한 한국 문화를 경험하세요.
+          {t('hero.subtitle')}
         </p>
         
         {/* CTA 버튼 */}
@@ -40,7 +40,7 @@ export default function Hero() {
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg rounded-xl"
             onClick={() => handleNavigation('/booking/create')}
           >
-            상담 예약하기
+            {t('hero.cta')}
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
           <Button 
@@ -50,7 +50,7 @@ export default function Hero() {
             onClick={() => handleNavigation('#video')}
           >
             <Play className="w-5 h-5 mr-2" />
-            소개 영상 보기
+            {t('hero.video')}
           </Button>
         </div>
       </div>

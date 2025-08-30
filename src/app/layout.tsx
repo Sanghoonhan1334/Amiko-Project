@@ -4,6 +4,7 @@ import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { AuthProvider } from '@/context/AuthContext'
+import { LanguageProvider } from '@/context/LanguageContext'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -42,9 +43,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`}>
         <AuthProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <LanguageProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

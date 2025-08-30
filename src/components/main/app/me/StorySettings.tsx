@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { Story } from '@/types/story'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 
 // 목업 스토리 데이터 (내가 올린 것들 - 아카이브 방식)
 const mockMyStories: Story[] = [
@@ -80,6 +81,7 @@ const mockMyStories: Story[] = [
 
 export default function StorySettings() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const [stories, setStories] = useState<Story[]>(mockMyStories)
   const [globalStorySettings, setGlobalStorySettings] = useState({
     autoPublic: true,
@@ -100,7 +102,7 @@ export default function StorySettings() {
 
   // 스토리 삭제
   const deleteStory = (storyId: string) => {
-    if (confirm('정말로 이 스토리를 삭제하시겠습니까?')) {
+    if (confirm(t('storySettings.deleteConfirm'))) {
       setStories(prev => prev.filter(story => story.id !== storyId))
     }
   }
@@ -121,11 +123,11 @@ export default function StorySettings() {
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
           <ImageIcon className="w-6 h-6 text-brand-500" />
-          스토리 설정
+          {t('storySettings.title')}
         </h3>
         <Badge variant="outline" className="text-brand-600 border-brand-300">
           <Clock className="w-3 h-3 mr-1" />
-          아카이브 저장
+          {t('storySettings.archiveSave')}
         </Badge>
       </div>
 
@@ -133,16 +135,16 @@ export default function StorySettings() {
       <Card className="p-6 bg-gradient-to-r from-brand-50 to-mint-50 border border-brand-200">
         <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Settings className="w-5 h-5 text-brand-600" />
-          기본 설정
+          {t('storySettings.basicSettings')}
         </h4>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label htmlFor="autoPublic" className="text-sm font-medium text-gray-700">
-                새 스토리 자동 공개
+                {t('storySettings.autoPublic')}
               </Label>
-              <p className="text-xs text-gray-500">새로 올리는 스토리를 기본적으로 공개로 설정</p>
+              <p className="text-xs text-gray-500">{t('storySettings.autoPublicDescription')}</p>
             </div>
             <Switch
               id="autoPublic"
@@ -154,9 +156,9 @@ export default function StorySettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label htmlFor="showInProfile" className="text-sm font-medium text-gray-700">
-                프로필에 스토리 표시
+                {t('storySettings.showInProfile')}
               </Label>
-              <p className="text-xs text-gray-500">다른 사용자가 내 프로필에서 지난 스토리 확인 가능</p>
+              <p className="text-xs text-gray-500">{t('storySettings.showInProfileDescription')}</p>
             </div>
             <Switch
               id="showInProfile"
@@ -172,7 +174,7 @@ export default function StorySettings() {
         <Card className="p-6">
           <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5 text-green-600" />
-            최근 스토리 ({recentStories.length}개)
+            {t('storySettings.recentStories')} ({recentStories.length}개)
           </h4>
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -188,7 +190,7 @@ export default function StorySettings() {
                     
                     {/* 작성 시간 표시 */}
                     <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                      {Math.floor((Date.now() - story.createdAt.getTime()) / (1000 * 60 * 60))}시간 전
+                      {t('storySettings.hoursAgo').replace('{hours}', Math.floor((Date.now() - story.createdAt.getTime()) / (1000 * 60 * 60)).toString())}
                     </div>
                     
                     {/* 공개/비공개 표시 */}
@@ -216,7 +218,7 @@ export default function StorySettings() {
                           onClick={() => toggleStoryVisibility(story.id)}
                           className="text-xs"
                         >
-                          {story.isPublic ? '비공개로' : '공개로'}
+                          {story.isPublic ? t('storySettings.makePrivate') : t('storySettings.makePublic')}
                         </Button>
                       </div>
                       
@@ -227,7 +229,7 @@ export default function StorySettings() {
                         className="text-red-600 border-red-300 hover:bg-red-50 text-xs"
                       >
                         <Trash2 className="w-3 h-3 mr-1" />
-                        삭제
+                        {t('storySettings.delete')}
                       </Button>
                     </div>
                   </div>
@@ -243,7 +245,7 @@ export default function StorySettings() {
         <Card className="p-6 bg-gray-50">
           <h4 className="font-semibold text-gray-600 mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-gray-500" />
-            아카이브 스토리 ({archiveStories.length}개)
+            {t('storySettings.archiveStories')} ({archiveStories.length}개)
           </h4>
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -260,7 +262,7 @@ export default function StorySettings() {
                     {/* 아카이브 표시 */}
                     <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
                       <Badge variant="secondary" className="bg-gray-500 text-white">
-                        아카이브
+                        {t('storySettings.archive')}
                       </Badge>
                     </div>
                   </div>
@@ -269,8 +271,8 @@ export default function StorySettings() {
                     <p className="text-sm text-gray-500 line-clamp-2 mb-3">{story.text}</p>
                     
                     <div className="flex items-center justify-between text-xs text-gray-400">
-                      <span>작성: {story.createdAt.toLocaleDateString('ko-KR')}</span>
-                      <span>{story.isPublic ? '공개됨' : '비공개됨'}</span>
+                      <span>{t('storySettings.written')}: {story.createdAt.toLocaleDateString('ko-KR')}</span>
+                      <span>{story.isPublic ? t('storySettings.public') : t('storySettings.private')}</span>
                     </div>
                   </div>
                 </div>
@@ -280,7 +282,7 @@ export default function StorySettings() {
           
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-500">
-              아카이브된 스토리는 영구 보관되며, 공개/비공개 설정만 변경 가능합니다.
+              {t('storySettings.archiveDescription')}
             </p>
           </div>
         </Card>
@@ -290,12 +292,12 @@ export default function StorySettings() {
       {stories.length === 0 && (
         <Card className="p-12 text-center bg-gradient-to-r from-brand-50 to-mint-50 border border-brand-200">
           <ImageIcon className="w-16 h-16 text-brand-300 mx-auto mb-4" />
-          <h4 className="text-lg font-semibold text-gray-700 mb-2">아직 스토리가 없어요!</h4>
+          <h4 className="text-lg font-semibold text-gray-700 mb-2">{t('storySettings.noStories')}</h4>
           <p className="text-gray-500 mb-4">
-            커뮤니티 탭에서 첫 번째 스토리를 올려보세요.
+            {t('storySettings.noStoriesDescription')}
           </p>
           <Button className="bg-brand-500 hover:bg-brand-600">
-            커뮤니티로 이동
+            {t('storySettings.goToCommunity')}
           </Button>
         </Card>
       )}

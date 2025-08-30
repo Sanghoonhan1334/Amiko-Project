@@ -36,6 +36,7 @@ import {
 import VerificationGuard from '@/components/common/VerificationGuard'
 import StorySettings from './StorySettings'
 import { UserProfile, KoreanUserProfile, LatinUserProfile } from '@/types/user'
+import { useLanguage } from '@/context/LanguageContext'
 
 // 목업 데이터 - 현지인 사용자 프로필
 const mockLatinUserProfile: LatinUserProfile = {
@@ -65,32 +66,17 @@ const mockLatinUserProfile: LatinUserProfile = {
       id: '1',
       type: '15분 상담',
       quantity: 2,
-      expiresAt: '2024-02-15',
+      expiresAt: null,
       isUsed: false,
-      price: '₩12,000'
-    },
-    {
-      id: '2',
-      type: '30분 상담',
-      quantity: 1,
-      expiresAt: '2024-02-20',
-      isUsed: false,
-      price: '₩20,000'
+      price: '$2'
     }
   ],
   purchaseHistory: [
     {
       id: '1',
       item: '15분 상담 쿠폰 2장',
-      amount: 12000,
+      amount: 2,
       date: '2024-01-15',
-      status: 'completed'
-    },
-    {
-      id: '2',
-      item: '30분 상담 쿠폰 1장',
-      amount: 20000,
-      date: '2024-01-20',
       status: 'completed'
     }
   ]
@@ -223,10 +209,44 @@ const mockNotificationSettings = {
 }
 
 export default function MyTab() {
+  const { t } = useLanguage()
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState<KoreanUserProfile | LatinUserProfile>(mockLatinUserProfile)
   const [notificationSettings, setNotificationSettings] = useState(mockNotificationSettings)
   const [useVerifiedProfile, setUseVerifiedProfile] = useState(false)
+  
+  // 시간과 관심사 번역 함수
+  const translateTimeTag = (time: string) => {
+    const timeMap: { [key: string]: string } = {
+      '평일저녁': t('profile.weekdayEvening'),
+      '주말오후': t('profile.weekendAfternoon'),
+      '평일오후': '평일오후', // 기본값
+      '주말오전': '주말오전', // 기본값
+      '주말저녁': '주말저녁'  // 기본값
+    }
+    return timeMap[time] || time
+  }
+  
+  const translateInterestTag = (interest: string) => {
+    const interestMap: { [key: string]: string } = {
+      '한국어': t('profile.koreanLanguage'),
+      '한국문화': t('profile.koreanCulture'),
+      '요리': t('profile.cooking'),
+      '여행': t('profile.travel'),
+      '음악': t('profile.music'),
+      '영화': '영화', // 기본값
+      '패션': '패션', // 기본값
+      '스포츠': '스포츠' // 기본값
+    }
+    return interestMap[interest] || interest
+  }
+  
+  const translateCouponType = (type: string) => {
+    if (type.includes('15분')) {
+      return t('profile.consultation15min')
+    }
+    return type
+  }
   
   // 현재 프로필 가드용 데이터
   const currentProfileForGuard = useVerifiedProfile ? mockVerifiedUserProfileForGuard : mockUserProfileForGuard
@@ -269,7 +289,7 @@ export default function MyTab() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
       {/* 인증 가드 - 전체 서비스 이용 */}
       <VerificationGuard 
         profile={currentProfileForGuard} 
@@ -279,12 +299,12 @@ export default function MyTab() {
 
       {/* 내 프로필 */}
       <Card className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-6">
-        <div className="flex items-start gap-8">
+        <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-8">
           {/* 프로필 정보 */}
-          <div className="flex-1 space-y-6 px-2">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">내 프로필</h2>
-              <div className="flex gap-2">
+          <div className="flex-1 space-y-4 md:space-y-6 px-2 min-w-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h2 className="text-2xl font-bold text-gray-800">{t('profile.myProfile')}</h2>
+              <div className="flex flex-wrap gap-2">
                 {/* 테스트용 사용자 타입 토글 */}
                 <Button
                   variant="outline"
@@ -292,7 +312,7 @@ export default function MyTab() {
                   onClick={() => setUseKoreanProfile(!useKoreanProfile)}
                   className="text-xs border-blue-300 text-blue-600 hover:bg-blue-50"
                 >
-                  {useKoreanProfile ? '🇰🇷 한국인' : '🌎 현지인'} (테스트)
+                  {useKoreanProfile ? '🇰🇷 한국인' : '🌎 현지인'} ({t('profile.native')})
                 </Button>
                 
                 {/* 테스트용 인증 상태 토글 */}
@@ -302,7 +322,7 @@ export default function MyTab() {
                   onClick={() => setUseVerifiedProfile(!useVerifiedProfile)}
                   className="text-xs border-orange-300 text-orange-600 hover:bg-orange-50"
                 >
-                  {useVerifiedProfile ? '🔒 인증됨' : '❌ 미인증'} (테스트)
+                  {useVerifiedProfile ? '🔒 인증됨' : '❌ 미인증'} ({t('profile.unverified')})
                 </Button>
                 
                 {isEditing ? (
@@ -332,16 +352,16 @@ export default function MyTab() {
                     className="border-brand-300 text-brand-700 hover:bg-brand-50"
                   >
                     <Edit3 className="w-4 h-4 mr-2" />
-                    편집
+                    {t('profile.edit')}
                   </Button>
                 )}
               </div>
             </div>
 
             {/* 기본 정보 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block">이름</label>
+                <label className="text-sm font-medium text-gray-700 block">{t('profile.name')}</label>
                 {isEditing ? (
                   <Input
                     value={currentUserProfile.name}
@@ -354,7 +374,7 @@ export default function MyTab() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block">대학교</label>
+                <label className="text-sm font-medium text-gray-700 block">{t('profile.university')}</label>
                 {isEditing ? (
                   <Input
                     value={currentUserProfile.university}
@@ -367,7 +387,7 @@ export default function MyTab() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block">전공</label>
+                <label className="text-sm font-medium text-gray-700 block">{t('profile.major')}</label>
                 {isEditing ? (
                   <Input
                     value={currentUserProfile.major}
@@ -380,7 +400,7 @@ export default function MyTab() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block">학년</label>
+                <label className="text-sm font-medium text-gray-700 block">{t('profile.year')}</label>
                 {isEditing ? (
                   <Select value={currentUserProfile.grade} onValueChange={(value) => setProfile({ ...currentUserProfile, grade: value })}>
                     <SelectTrigger className="border-brand-200 focus:border-brand-500">
@@ -402,7 +422,7 @@ export default function MyTab() {
 
             {/* 소개 */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 block">자기소개</label>
+              <label className="text-sm font-medium text-gray-700 block">{t('profile.selfIntroduction')}</label>
               {isEditing ? (
                 <Textarea
                   value={currentUserProfile.introduction}
@@ -417,7 +437,7 @@ export default function MyTab() {
 
             {/* 가능 시간 */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 block">가능 시간</label>
+                              <label className="text-sm font-medium text-gray-700 block">{t('profile.availableTime')}</label>
               {isEditing ? (
                 <div className="flex flex-wrap gap-2">
                   {['평일오후', '평일저녁', '주말오전', '주말오후', '주말저녁'].map((time) => (
@@ -436,7 +456,7 @@ export default function MyTab() {
                         : 'border-brand-200 text-brand-700 hover:bg-brand-50'
                       }
                     >
-                      {time}
+                      {translateTimeTag(time)}
                     </Button>
                   ))}
                 </div>
@@ -445,7 +465,7 @@ export default function MyTab() {
                   {profile.availableTime.map((time) => (
                     <Badge key={time} className="bg-brand-100 text-brand-700 border-brand-300">
                       <Clock className="w-3 h-3 mr-1" />
-                      {time}
+                      {translateTimeTag(time)}
                     </Badge>
                   ))}
                 </div>
@@ -454,7 +474,7 @@ export default function MyTab() {
 
             {/* 관심사 */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 block">관심사</label>
+                              <label className="text-sm font-medium text-gray-700 block">{t('profile.interests')}</label>
               {isEditing ? (
                 <div className="flex flex-wrap gap-2">
                   {['한국어', '한국문화', '요리', '여행', '음악', '영화', '패션', '스포츠'].map((interest) => (
@@ -473,7 +493,7 @@ export default function MyTab() {
                         : 'border-mint-200 text-mint-700 hover:bg-mint-50'
                       }
                     >
-                      {interest}
+                      {translateInterestTag(interest)}
                     </Button>
                   ))}
                 </div>
@@ -482,7 +502,7 @@ export default function MyTab() {
                   {currentUserProfile.interests.map((interest) => (
                     <Badge key={interest} className="bg-mint-100 text-mint-700 border-mint-300">
                       <Heart className="w-3 h-3 mr-1" />
-                      {interest}
+                      {translateInterestTag(interest)}
                     </Badge>
                   ))}
                 </div>
@@ -496,7 +516,7 @@ export default function MyTab() {
               {currentUserProfile.avatar}
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500">가입일: {currentUserProfile.joinDate}</p>
+              <p className="text-xs text-gray-500">{t('profile.joinDate')}: {currentUserProfile.joinDate}</p>
             </div>
           </div>
         </div>
@@ -511,13 +531,13 @@ export default function MyTab() {
               <Zap className="w-5 h-5 text-brand-600" />
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800">내 포인트</h4>
-              <p className="text-sm text-gray-600">이번 달 +{mockUserStats.monthlyPoints}점</p>
+              <h4 className="font-semibold text-gray-800">{t('profile.myPoints')}</h4>
+              <p className="text-sm text-gray-600">{t('profile.thisMonthPoints').replace('{points}', mockUserStats.monthlyPoints.toString())}</p>
             </div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-brand-600 mb-2">{currentUserProfile.points.toLocaleString()}</div>
-            <div className="text-sm text-gray-600">연속 {mockUserStats.streak}일</div>
+            <div className="text-sm text-gray-600">{t('profile.consecutiveDays').replace('{days}', mockUserStats.streak.toString())}</div>
           </div>
         </Card>
 
@@ -528,13 +548,13 @@ export default function MyTab() {
               <MessageSquare className="w-5 h-5 text-mint-600" />
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800">교류 건수</h4>
-              <p className="text-sm text-gray-600">총 {currentUserProfile.exchangeCount}건 진행</p>
+              <h4 className="font-semibold text-gray-800">{t('profile.exchangeCount')}</h4>
+                              <p className="text-sm text-gray-600">{t('profile.totalCases').replace('{count}', currentUserProfile.exchangeCount.toString())}</p>
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-mint-600 mb-2">{currentUserProfile.exchangeCount}건</div>
-            <div className="text-sm text-gray-600">성공적인 교류</div>
+            <div className="text-3xl font-bold text-mint-600 mb-2">{currentUserProfile.exchangeCount}{t('profile.units.cases')}</div>
+            <div className="text-sm text-gray-600">{t('profile.successfulExchanges')}</div>
           </div>
         </Card>
 
@@ -546,14 +566,14 @@ export default function MyTab() {
                 <Trophy className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">한국인 순위</h4>
-                <p className="text-sm text-gray-600">한국인 {currentUserProfile.totalKoreanUsers}명 중</p>
+                <h4 className="font-semibold text-gray-800">{t('myTab.koreanRank')}</h4>
+                <p className="text-sm text-gray-600">{t('myTab.koreanRankDescription').replace('{count}', currentUserProfile.totalKoreanUsers.toString())}</p>
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">{currentUserProfile.koreanRank}위</div>
+              <div className="text-3xl font-bold text-yellow-600 mb-2">{currentUserProfile.koreanRank}{t('profile.units.rank')}</div>
               <Badge className={`px-2 py-1 text-xs ${getRankColor(currentUserProfile.koreanRank)}`}>
-                {currentUserProfile.koreanRank <= 3 ? '🏆 TOP 3' : currentUserProfile.koreanRank <= 10 ? '🥈 TOP 10' : '🥉 일반'}
+                {currentUserProfile.koreanRank <= 3 ? t('myTab.top3') : currentUserProfile.koreanRank <= 10 ? t('myTab.top10') : t('myTab.normal')}
               </Badge>
             </div>
           </Card>
@@ -564,13 +584,13 @@ export default function MyTab() {
                 <MessageSquare className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">커뮤니티 활동</h4>
-                <p className="text-sm text-gray-600">질문/답변/채택</p>
+                <h4 className="font-semibold text-gray-800">{t('myTab.communityActivity')}</h4>
+                <p className="text-sm text-gray-600">{t('myTab.communityDescription')}</p>
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">{mockCommunityStats.totalPoints}점</div>
-              <div className="text-sm text-gray-600">이번 달 +{mockCommunityStats.monthlyPoints}점</div>
+              <div className="text-3xl font-bold text-yellow-600 mb-2">{mockCommunityStats.totalPoints}{t('profile.units.points')}</div>
+              <div className="text-sm text-gray-600">{t('myTab.thisMonthPoints').replace('{points}', mockCommunityStats.monthlyPoints.toString())}</div>
             </div>
           </Card>
         )}
@@ -578,14 +598,14 @@ export default function MyTab() {
 
       {/* 현지인 전용: 나의 쿠폰/구매내역 리스트 */}
       {!currentUserProfile.isKorean && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
           {/* 쿠폰 리스트 */}
           <Card className="p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-3xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-brand-100 rounded-xl flex items-center justify-center">
                 <Gift className="w-4 h-4 text-brand-600" />
               </div>
-              <h3 className="font-semibold text-gray-800">나의 쿠폰</h3>
+              <h3 className="font-semibold text-gray-800">{t('profile.myCoupons')}</h3>
             </div>
             
             <div className="space-y-3">
@@ -594,13 +614,15 @@ export default function MyTab() {
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${coupon.isUsed ? 'bg-gray-300' : 'bg-brand-500'}`} />
                     <div>
-                      <div className="font-medium text-gray-800">{coupon.type}</div>
+                      <div className="font-medium text-gray-800">{translateCouponType(coupon.type)}</div>
                       <div className="text-sm text-gray-600">{coupon.quantity}장 • {coupon.price}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-gray-500">만료일</div>
-                    <div className="text-sm font-medium text-gray-700">{coupon.expiresAt}</div>
+                    <div className="text-sm text-gray-500">{t('profile.expirationDate')}</div>
+                    <div className="text-sm font-medium text-gray-700">
+                      {coupon.expiresAt ? coupon.expiresAt : t('profile.noExpiration')}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -613,24 +635,26 @@ export default function MyTab() {
               <div className="w-8 h-8 bg-mint-100 rounded-xl flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-mint-600" />
               </div>
-              <h3 className="font-semibold text-gray-800">구매내역</h3>
+              <h3 className="font-semibold text-gray-800">{t('profile.purchaseHistory')}</h3>
             </div>
             
             <div className="space-y-3">
               {currentUserProfile.purchaseHistory.map((purchase) => (
                 <div key={purchase.id} className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-mint-200">
                   <div>
-                    <div className="font-medium text-gray-800">{purchase.item}</div>
+                    <div className="font-medium text-gray-800">
+                      {purchase.item === '15분 상담 쿠폰 2장' ? t('profile.purchaseItems.consultation15min2') : purchase.item}
+                    </div>
                     <div className="text-sm text-gray-600">{purchase.date}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium text-gray-800">₩{purchase.amount.toLocaleString()}</div>
+                    <div className="font-medium text-gray-800">${purchase.amount}</div>
                     <Badge className={`mt-1 ${
                       purchase.status === 'completed' ? 'bg-green-100 text-green-700' : 
                       purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                     }`}>
-                      {purchase.status === 'completed' ? '완료' : 
-                       purchase.status === 'pending' ? '진행중' : '취소됨'}
+                      {purchase.status === 'completed' ? t('myTab.completed') : 
+                       purchase.status === 'pending' ? t('myTab.pending') : t('myTab.cancelled')}
                     </Badge>
                   </div>
                 </div>
@@ -651,7 +675,7 @@ export default function MyTab() {
           <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
             <Settings className="w-4 h-4 text-purple-600" />
           </div>
-          <h3 className="font-semibold text-gray-800">알림 설정</h3>
+          <h3 className="font-semibold text-gray-800">{t('myTab.notificationSettings')}</h3>
         </div>
         
         <div className="space-y-4">
@@ -659,8 +683,8 @@ export default function MyTab() {
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-purple-600" />
               <div>
-                <div className="font-medium text-gray-800">웹푸시 알림</div>
-                <div className="text-sm text-gray-600">새로운 메시지, 업데이트 알림</div>
+                <div className="font-medium text-gray-800">{t('myTab.webPushNotification')}</div>
+                <div className="text-sm text-gray-600">{t('myTab.webPushDescription')}</div>
               </div>
             </div>
             <Switch
@@ -673,8 +697,8 @@ export default function MyTab() {
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-purple-600" />
               <div>
-                <div className="font-medium text-gray-800">이메일 알림</div>
-                <div className="text-sm text-gray-600">주요 업데이트 및 이벤트 소식</div>
+                <div className="font-medium text-gray-800">{t('myTab.emailNotification')}</div>
+                <div className="text-sm text-gray-600">{t('myTab.emailDescription')}</div>
               </div>
             </div>
             <Switch
@@ -687,8 +711,8 @@ export default function MyTab() {
             <div className="flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-purple-600" />
               <div>
-                <div className="font-medium text-gray-800">마케팅 알림</div>
-                <div className="text-sm text-gray-600">특별 혜택 및 이벤트 정보</div>
+                <div className="font-medium text-gray-800">{t('myTab.marketingNotification')}</div>
+                <div className="text-sm text-gray-600">{t('myTab.marketingDescription')}</div>
               </div>
             </div>
             <Switch

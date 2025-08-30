@@ -13,9 +13,11 @@ import {
   Facebook,
   Youtube
 } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
+  const { t } = useLanguage()
 
   return (
     <footer className="bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 border-t border-brand-200/50">
@@ -31,60 +33,59 @@ export default function Footer() {
               <div className="text-xl animate-pulse">✨</div>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed">
-              한국과 라틴 아메리카 청년들이 함께하는 
-              언어 교류와 문화 체험 플랫폼입니다.
+              {t('footer.description')}
             </p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Heart className="w-4 h-4 text-pink-500" />
-              <span>Made with love in Korea</span>
+              <span>{t('footer.madeWithLove')}</span>
             </div>
           </div>
 
           {/* 지원 링크 */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-800 text-lg">지원</h4>
+            <h4 className="font-semibold text-gray-800 text-lg">{t('footer.support')}</h4>
             <div className="space-y-2">
               <Link 
                 href="/help" 
                 className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
               >
                 <Globe className="w-4 h-4" />
-                도움말
+                {t('footer.help')}
               </Link>
               <Link 
                 href="/faq" 
                 className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
               >
                 <MessageSquare className="w-4 h-4" />
-                자주 묻는 질문
+                {t('footer.faq')}
               </Link>
               <Link 
                 href="/contact" 
                 className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
               >
                 <Mail className="w-4 h-4" />
-                문의하기
+                {t('footer.contact')}
               </Link>
               <Link 
                 href="/feedback" 
                 className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
               >
                 <Trophy className="w-4 h-4" />
-                피드백
+                {t('footer.feedback')}
               </Link>
             </div>
           </div>
 
           {/* 회사 정보 */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-800 text-lg">회사</h4>
+            <h4 className="font-semibold text-gray-800 text-lg">{t('footer.company')}</h4>
             <div className="space-y-2">
               <Link 
                 href="/about" 
                 className="flex items-center gap-2 text-gray-600 hover:text-yellow-600 transition-colors duration-300 text-sm"
               >
                 <Heart className="w-4 h-4" />
-                회사 소개
+                {t('footer.about')}
               </Link>
             </div>
           </div>
@@ -98,26 +99,26 @@ export default function Footer() {
           {/* 저작권 */}
           <div className="text-center md:text-left">
             <p className="text-gray-600 text-sm">
-              © {currentYear} Amiko. All rights reserved.
+              © {currentYear} Amiko. {t('footer.copyright').replace('© 2025 Amiko. ', '')}
             </p>
             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
               <Link href="/privacy" className="hover:text-brand-600 transition-colors duration-300">
-                개인정보처리방침
+                {t('footer.privacy')}
               </Link>
               <span>•</span>
               <Link href="/terms" className="hover:text-brand-600 transition-colors duration-300">
-                이용약관
+                {t('footer.terms')}
               </Link>
               <span>•</span>
               <Link href="/cookies" className="hover:text-brand-600 transition-colors duration-300">
-                쿠키 정책
+                {t('footer.cookies')}
               </Link>
             </div>
           </div>
 
           {/* 소셜 미디어 아이콘 */}
           <div className="flex items-center gap-4">
-            <h5 className="text-sm font-medium text-gray-700 mr-2">Follow us:</h5>
+            <h5 className="text-sm font-medium text-gray-700 mr-2">{t('footer.followUs')}</h5>
             <div className="flex items-center gap-3">
               {/* Instagram */}
               <Button
@@ -155,12 +156,8 @@ export default function Footer() {
         {/* 추가 정보 */}
         <div className="mt-8 pt-6 border-t border-brand-200/30">
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-2">
-              🌏 한국어 • Español • English • Português
-            </p>
             <p className="text-xs text-gray-400">
-              Made with <Heart className="w-3 h-3 inline text-pink-400" /> and <Sparkles className="w-3 h-3 inline text-yellow-400" /> 
-              for global language learners
+              {t('footer.globalMessage')}
             </p>
           </div>
         </div>

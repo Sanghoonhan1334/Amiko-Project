@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Shield, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react'
 import { isVerified, UserProfile } from '@/lib/auth-utils'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface VerificationGuardProps {
   profile: UserProfile | null
@@ -20,6 +21,7 @@ export default function VerificationGuard({
   className = ''
 }: VerificationGuardProps) {
   const router = useRouter()
+  const { t } = useLanguage()
   const verified = isVerified(profile)
 
   // 인증이 완료된 경우 성공 메시지 표시 (선택사항)
@@ -27,10 +29,10 @@ export default function VerificationGuard({
     return (
       <Alert className={`border-green-200 bg-green-50 text-green-800 ${className}`}>
         <CheckCircle className="h-4 w-4" />
-        <AlertTitle>인증 완료!</AlertTitle>
-        <AlertDescription>
-          본인 인증이 완료되어 모든 서비스를 이용할 수 있습니다.
-        </AlertDescription>
+              <AlertTitle>¡Verificación completada!</AlertTitle>
+      <AlertDescription>
+        La verificación de identidad se ha completado y puede usar todos los servicios.
+      </AlertDescription>
       </Alert>
     )
   }
@@ -44,14 +46,14 @@ export default function VerificationGuard({
   const getFeatureName = (feature: string) => {
     switch (feature) {
       case 'video_matching':
-        return '영상 매칭'
+        return t('meetTab.verificationRequired').includes('Verificación') ? 'Emparejamiento por video' : '영상 매칭'
       case 'coupon_usage':
-        return '쿠폰 사용'
+        return t('meetTab.verificationRequired').includes('Verificación') ? 'Uso de cupones' : '쿠폰 사용'
       case 'community_posting':
-        return '커뮤니티 활동'
+        return t('meetTab.verificationRequired').includes('Verificación') ? 'Actividades comunitarias' : '커뮤니티 활동'
       case 'all':
       default:
-        return '이 서비스'
+        return t('meetTab.verificationRequired').includes('Verificación') ? 'este servicio' : '이 서비스'
     }
   }
 
@@ -62,17 +64,16 @@ export default function VerificationGuard({
   return (
     <Alert className={`border-orange-200 bg-orange-50 text-orange-800 ${className}`}>
       <AlertTriangle className="h-4 w-4" />
-      <AlertTitle>본인 인증이 필요해요</AlertTitle>
+      <AlertTitle>{t('meetTab.verificationRequired')}</AlertTitle>
       <AlertDescription className="mt-2">
         <div className="space-y-3">
           <p>
-            {getFeatureName(requiredFeature)}을 이용하려면 본인 인증이 필요합니다.
-            안전하고 신뢰할 수 있는 서비스를 위해 빠른 인증을 진행해주세요!
+            {t('meetTab.verificationDescription')}
           </p>
           
           <div className="flex items-center gap-2 text-sm text-orange-700">
             <Shield className="h-4 w-4" />
-            <span>인증 완료 시 영상 매칭, 쿠폰 사용, 커뮤니티 활동이 모두 가능합니다</span>
+            <span>{t('meetTab.verificationBenefits')}</span>
           </div>
           
           <Button
@@ -81,7 +82,7 @@ export default function VerificationGuard({
             className="bg-orange-600 hover:bg-orange-700 text-white"
           >
             <ArrowRight className="h-4 w-4 mr-2" />
-            지금 인증하기
+            {t('meetTab.verifyNow')}
           </Button>
         </div>
       </AlertDescription>

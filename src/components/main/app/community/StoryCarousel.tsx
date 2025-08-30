@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { Story, StoryForm } from '@/types/story'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 
 // 목업 스토리 데이터 (24시간 이내, 공개된 것만)
 const mockStories: Story[] = [
@@ -107,6 +108,7 @@ interface StoryCarouselProps {
 
 export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
   const { user } = useAuth()
+  const { t } = useLanguage()
   
   // 상태 관리
   const [viewMode, setViewMode] = useState<'collapsed' | 'expanded'>('collapsed')
@@ -379,7 +381,7 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <Clock className="w-5 h-5 text-brand-500" />
-          오늘의 스토리
+          {t('communityTab.todayStory')}
         </h3>
         
         <div className="flex items-center gap-2">
@@ -388,7 +390,7 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
             <DialogTrigger asChild>
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md">
                 <Plus className="w-4 h-4 mr-1" />
-                스토리 올리기
+                {t('communityTab.uploadStory')}
               </Button>
             </DialogTrigger>
             
@@ -537,10 +539,12 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
               snap-x snap-mandatory
               max-w-none
               transition-all duration-300 ease-in-out
+              pb-2
             `}
             style={{
               scrollbarWidth: 'none', // Firefox
-              msOverflowStyle: 'none' // IE/Edge
+              msOverflowStyle: 'none', // IE/Edge
+              scrollSnapType: 'x mandatory'
             }}
           >
             {/* 스크롤바 숨기기 (Webkit) */}
@@ -554,7 +558,11 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
               <div
                 key={story.id}
                 className="snap-start flex-shrink-0 relative"
-                style={{ minWidth: '200px' }}
+                style={{ 
+                  minWidth: '280px',
+                  maxWidth: '320px',
+                  width: '280px'
+                }}
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full p-3 group">
                   <div className="relative">
@@ -638,7 +646,15 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
                         <span className="text-xs font-medium text-gray-800">{story.userName}</span>
                       </div>
                       
-                      <p className="text-xs text-gray-600 line-clamp-2 mb-2">{story.text}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words leading-relaxed" style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        wordBreak: 'break-word'
+                      }}>
+                        {story.text}
+                      </p>
                       
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span>{story.createdAt.toLocaleTimeString('ko-KR', { 
@@ -715,7 +731,8 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
       {viewMode === 'expanded' && hasMore && (
         <div className="text-center mt-4">
           <p className="text-sm text-gray-500">
-            좌우로 스크롤하여 더 많은 스토리를 확인하세요
+            <span className="hidden sm:inline">좌우로 스크롤하여</span>
+            <span className="sm:hidden">좌우로 밀어서</span> 더 많은 스토리를 확인하세요
           </p>
         </div>
       )}
