@@ -34,8 +34,7 @@ const createBrowserClientInstance = () => {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true
-    }
+      detectSessionInUrl: true }
   })
   
   console.log('[SUPABASE] Global browser client created')
