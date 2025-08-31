@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 
-import { Search, Video, Clock, Star, Zap, Users, Globe, MapPin, Heart } from 'lucide-react'
+import { Search, Video, Clock, Star, Zap, Users, Globe, MapPin } from 'lucide-react'
 import VerificationGuard from '@/components/common/VerificationGuard'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -81,23 +81,53 @@ export default function MeetTab() {
   // Mock user profile for testing verification guard
   const mockUserProfile = {
     id: 'user-1',
+    name: 'Test User',
+    email: 'test@example.com',
+    avatar: '👤',
+    isKorean: false,
+    country: 'BR',
+    introduction: 'Test user for verification guard',
+    availableTime: ['평일오후'],
+    interests: ['한국어'],
+    userType: 'student',
+    exchangeCount: 0,
+    points: 0,
+    joinDate: '2024-01-01',
+    level: '초급',
+    storySettings: {
+      autoPublic: true,
+      showInProfile: true
+    },
     kakao_linked_at: null,
     wa_verified_at: null,
     sms_verified_at: null,
-    email_verified_at: null,
-    is_korean: false,
-    country: 'BR'
+    email_verified_at: null
   }
 
   // Mock verified user profile for testing success state
   const mockVerifiedUserProfile = {
     id: 'user-2',
+    name: 'Verified User',
+    email: 'verified@example.com',
+    avatar: '✅',
+    isKorean: false,
+    country: 'BR',
+    introduction: 'Verified user for testing success state',
+    availableTime: ['평일오후'],
+    interests: ['한국어'],
+    userType: 'student',
+    exchangeCount: 0,
+    points: 0,
+    joinDate: '2024-01-01',
+    level: '초급',
+    storySettings: {
+      autoPublic: true,
+      showInProfile: true
+    },
     kakao_linked_at: null,
     wa_verified_at: '2024-01-15T10:00:00Z',
     sms_verified_at: null,
-    email_verified_at: null,
-    is_korean: false,
-    country: 'BR'
+    email_verified_at: null
   }
 
   // Toggle between verified and unverified for testing

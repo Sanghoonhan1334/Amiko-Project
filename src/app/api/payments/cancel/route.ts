@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { emailService } from '@/lib/email-service';
 
 export async function POST(req: Request) {
@@ -15,6 +15,23 @@ export async function POST(req: Request) {
         { success: false, message: '필수 파라미터가 누락되었습니다.' },
         { status: 400 }
       );
+    }
+
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+    // 결제 정보 조회
+    const { error: fetchError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('payment_key', paymentKey)
+      .single()
+
+    if (fetchError) {
+      console.error('❌ 결제 정보 조회 실패:', fetchError)
+      return NextResponse.json(
+        { success: false, error: '결제 정보를 찾을 수 없습니다.' },
+        { status: 500 }
+      )
     }
 
     // Toss Payments API 호출하여 결제 취소
@@ -45,7 +62,7 @@ export async function POST(req: Request) {
     console.log('✅ Toss 결제 취소 성공:', data);
 
     // 1. 예약 상태를 'cancelled'로 변경
-    const { data: updatedBooking, error: updateError } = await (supabase as any)
+    const { data: updatedBooking, error: updateError } = await supabase
       .from('bookings')
       .update({
         status: 'cancelled',

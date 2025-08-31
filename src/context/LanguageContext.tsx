@@ -56,14 +56,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       console.log('LanguageContext: Current language object:', translations[language])
 
       const keys = key.split('.')
-      let value: any = translations[language]
+      let value: unknown = translations[language]
       
       console.log('LanguageContext: Starting with value:', value)
       
       for (const k of keys) {
         console.log('LanguageContext: Processing key:', k)
-        if (value && typeof value === 'object' && k in value) {
-          value = value[k]
+        if (typeof value === 'object' && value !== null && k in value) {
+          value = (value as Record<string, unknown>)[k]
           console.log('LanguageContext: Found value for key', k, ':', value)
         } else {
           console.warn(`LanguageContext: Translation key not found: ${key} in language ${language}`)

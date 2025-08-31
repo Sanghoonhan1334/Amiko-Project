@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { formatTimeOnly, formatDateOnly } from '@/lib/timezone'
+
 
 interface TimeSlot {
   start: string
@@ -76,8 +76,8 @@ export default function CreateBookingPage() {
       }
       const data = await response.json()
       setConsultants(data.consultants || [])
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     }
   }
 
@@ -208,8 +208,8 @@ export default function CreateBookingPage() {
       // 결제 페이지로 이동 (예약 ID와 함께)
       router.push(`/payments/checkout?bookingId=${booking.id}&amount=${formData.price}`)
       
-    } catch (err: any) {
-      setError(err.message || '예약 생성 중 오류가 발생했습니다.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }

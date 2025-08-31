@@ -18,7 +18,7 @@ export default function PushNotificationToggle() {
   const { user } = useAuth()
   const [isEnabled, setIsEnabled] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [status, setStatus] = useState<any>(null)
+  const [status, setStatus] = useState<Record<string, unknown> | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -116,8 +116,7 @@ export default function PushNotificationToggle() {
     showLocalNotification({
       title: '🧪 테스트 알림',
       body: '푸시 알림이 정상적으로 작동합니다!',
-      data: { url: '/notifications' },
-      tag: 'test'
+      data: { url: '/notifications' }
     })
 
     setSuccess('테스트 알림이 발송되었습니다!')

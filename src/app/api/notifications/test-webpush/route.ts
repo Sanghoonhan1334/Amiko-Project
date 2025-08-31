@@ -37,38 +37,18 @@ export async function GET() {
       }, { status: 500 })
     }
     
-    // 간단한 구독 객체 생성 테스트
-    try {
-      const testSubscription = {
-        endpoint: 'https://fcm.googleapis.com/fcm/send/test',
-        keys: {
-          p256dh: 'test-p256dh-key',
-          auth: 'test-auth-key'
-        }
-      }
-      
-      // 실제 발송은 하지 않고 구독 객체만 검증
-      console.log('✅ [WEBPUSH TEST] 구독 객체 검증 성공')
-      
-      return NextResponse.json({
-        success: true,
-        message: 'web-push 라이브러리 정상 작동',
-        timestamp: new Date().toISOString(),
-        vapidKeys: {
-          publicKeyLength: vapidPublicKey.length,
-          privateKeyLength: vapidPrivateKey.length
-        },
-        webpushStatus: 'initialized'
-      })
-      
-    } catch (subscriptionError) {
-      console.error('❌ [WEBPUSH TEST] 구독 객체 검증 실패:', subscriptionError)
-      return NextResponse.json({
-        success: false,
-        message: '구독 객체 검증 실패',
-        error: subscriptionError && typeof subscriptionError === 'object' && 'message' in subscriptionError ? String(subscriptionError.message) : 'Unknown error'
-      }, { status: 500 })
-    }
+
+    
+    return NextResponse.json({
+      success: true,
+      message: 'web-push 라이브러리 정상 작동',
+      timestamp: new Date().toISOString(),
+      vapidKeys: {
+        publicKeyLength: vapidPublicKey.length,
+        privateKeyLength: vapidPrivateKey.length
+      },
+      webpushStatus: 'initialized'
+    })
     
   } catch (error) {
     console.error('❌ [WEBPUSH TEST] 예외 발생:', error)

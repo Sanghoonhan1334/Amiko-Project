@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 후기 작성
 export async function POST(request: Request) {
@@ -14,6 +14,8 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     // 예약 정보 조회 및 상태 확인
     const { data: booking, error: bookingError } = await supabase
@@ -99,6 +101,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const consultantId = searchParams.get('consultantId')
     const userId = searchParams.get('userId')
+    
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     let query = supabase
       .from('reviews')

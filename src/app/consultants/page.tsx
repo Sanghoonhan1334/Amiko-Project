@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,91 +23,30 @@ export default function ConsultantsPage() {
 
   const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
 
   // 내부 API 호출 - CORS 프리
-  const fetchConsultants = async () => {
+  const fetchConsultants = useCallback(async () => {
     try {
-      console.log('🔍 [CONSULTANTS] 네트워크 요청 Origin 확인:');
-      console.log('📍 요청 URL:', '/api/consultants');
-      console.log('📍 Origin:', window.location.origin);
-      console.log('📍 Same-Origin:', true);
-      
-      // 실제 API 호출
-      const response = await fetch('/api/consultants');
-      const result = await response.json();
-      
-      if (result.success) {
-        setConsultants(result.data);
-        console.log('✅ 상담사 데이터 로드 성공:', result.data.length, '명');
-      } else {
-        console.error('❌ 상담사 데이터 로드 실패:', result.message);
-        // 실패 시 더미 데이터 사용
-        setConsultants(dummyConsultants);
+      setLoading(true)
+      const response = await fetch('/api/consultants')
+      if (!response.ok) {
+        throw new Error('상담사 목록을 불러올 수 없습니다.')
       }
+      const data = await response.json()
+      setConsultants(data.consultants || [])
     } catch (error) {
-      console.error('상담사 데이터 조회 실패:', error);
-      // 오류 시 더미 데이터 사용
-      setConsultants(dummyConsultants);
+      setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }, [])
 
   useEffect(() => {
     fetchConsultants();
-  }, []);
+  }, [fetchConsultants]);
 
-  // 더미 상담사 데이터
-  const dummyConsultants = [
-    {
-      id: 1,
-      name: '김멘토',
-      specialty: '문화 교류',
-      experience: '5년',
-      rating: 4.8,
-      totalSessions: 127,
-      languages: ['한국어', '영어', '일본어'],
-      description: '한국 문화와 언어를 가르치는 것을 좋아하는 따뜻한 멘토입니다.',
-      price: '50,000원',
-      available: true
-    },
-    {
-      id: 2,
-      name: '이멘토',
-      specialty: '발음 교정',
-      experience: '3년',
-      rating: 4.9,
-      totalSessions: 89,
-      languages: ['한국어', '중국어'],
-      description: '정확한 한국어 발음과 자연스러운 회화를 가르치는 전문가입니다.',
-      price: '45,000원',
-      available: true
-    },
-    {
-      id: 3,
-      name: '박멘토',
-      specialty: '문화 교류',
-      experience: '7년',
-      rating: 4.7,
-      totalSessions: 203,
-      languages: ['한국어', '영어', '프랑스어'],
-      description: '다양한 문화적 배경을 가진 학생들과 소통하는 것을 즐깁니다.',
-      price: '55,000원',
-      available: false
-    },
-    {
-      id: 4,
-      name: '최멘토',
-      specialty: '발음 교정',
-      experience: '4년',
-      rating: 4.6,
-      totalSessions: 156,
-      languages: ['한국어', '러시아어'],
-      description: '체계적이고 효과적인 한국어 학습 방법을 제공합니다.',
-      price: '48,000원',
-      available: true
-    }
-  ];
+
 
   if (loading) {
     return (

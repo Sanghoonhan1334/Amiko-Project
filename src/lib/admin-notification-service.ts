@@ -1,8 +1,8 @@
-import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js';
 import { emailService } from './email-service';
 
 export interface AdminNotificationData {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AdminNotification {
@@ -46,6 +46,7 @@ class AdminNotificationService {
       console.log('🔔 [ADMIN NOTIFICATION] 알림 생성:', { type, title, priority });
 
       // 1. 데이터베이스에 알림 저장
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { data: notification, error: dbError } = await supabase
         .from('admin_notifications')
         .insert({
@@ -67,7 +68,7 @@ class AdminNotificationService {
       console.log('✅ 관리자 알림 저장 성공:', notification.id);
 
       // 2. 해당 역할을 가진 관리자들에게 알림 발송
-      await this.sendNotificationsToAdmins(type, title, message, data, priority, targetRoles);
+      await this.sendNotificationsToAdmins(type, title, message, data);
 
       return notification.id;
     } catch (error) {
@@ -83,30 +84,37 @@ class AdminNotificationService {
     type: string,
     title: string,
     message: string,
-    data?: AdminNotificationData,
-    priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal',
-    targetRoles: string[] = ['admin']
+    data?: AdminNotificationData
   ) {
     try {
-      // 1. 해당 역할을 가진 관리자들 조회
-      const { data: admins, error: adminError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('role', targetRoles);
+      // 관리자 사용자 목록 조회
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: adminUsers, error } = await supabase
+        .from('users')
+        .select('id, email, notification_settings')
+        .eq('role', 'admin')
+        .eq('is_active', true)
 
-      if (adminError || !admins) {
-        console.error('❌ 관리자 조회 실패:', adminError);
-        return;
+      if (error) {
+        console.error('관리자 사용자 조회 실패:', error)
+        return
       }
 
-      console.log(`👥 [ADMIN NOTIFICATION] 알림 대상 관리자: ${admins.length}명`);
+      if (!adminUsers || adminUsers.length === 0) {
+        console.log('활성화된 관리자 사용자가 없습니다.')
+        return
+      }
 
-      // 2. 각 관리자에게 알림 발송
-      for (const admin of admins) {
-        await this.sendNotificationToAdmin(admin.user_id, type, title, message, data, priority);
+      // 각 관리자에게 알림 전송
+      for (const adminUser of adminUsers) {
+        try {
+          await this.sendNotificationToAdmin(adminUser.id, type, title, message, data)
+        } catch (userError) {
+          console.error(`관리자 ${adminUser.id}에게 알림 전송 실패:`, userError)
+        }
       }
     } catch (error) {
-      console.error('❌ 관리자 알림 발송 중 오류:', error);
+      console.error('관리자 알림 전송 실패:', error)
     }
   }
 
@@ -118,11 +126,11 @@ class AdminNotificationService {
     type: string,
     title: string,
     message: string,
-    data?: AdminNotificationData,
-    priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal'
+    data?: AdminNotificationData
   ) {
     try {
       // 1. 관리자의 알림 설정 확인
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { data: settings, error: settingsError } = await supabase
         .from('admin_notification_settings')
         .select('*')
@@ -148,7 +156,6 @@ class AdminNotificationService {
               data: {
                 type: 'admin_notification',
                 notificationType: type,
-                priority,
                 ...data
               }
             })
@@ -174,7 +181,6 @@ class AdminNotificationService {
               notificationType: type,
               title,
               message,
-              priority,
               data: JSON.stringify(data, null, 2)
             }
           );
@@ -323,6 +329,7 @@ class AdminNotificationService {
     unreadOnly: boolean = false
   ) {
     try {
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       let query = supabase
         .from('admin_notifications')
         .select('*')
@@ -352,6 +359,7 @@ class AdminNotificationService {
    */
   async markAsRead(notificationId: string, userId: string): Promise<boolean> {
     try {
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { error } = await supabase
         .from('admin_notifications')
         .update({
@@ -378,6 +386,7 @@ class AdminNotificationService {
    */
   async markAllAsRead(userId: string, notificationTypes?: string[]): Promise<number> {
     try {
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       let query = supabase
         .from('admin_notifications')
         .update({
@@ -408,8 +417,9 @@ class AdminNotificationService {
   /**
    * 읽지 않은 알림 개수 조회
    */
-  async getUnreadCount(userId: string): Promise<number> {
+  async getUnreadCount(): Promise<number> {
     try {
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { count, error } = await supabase
         .from('admin_notifications')
         .select('*', { count: 'exact', head: true })

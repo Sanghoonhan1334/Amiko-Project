@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { Bell, Mail, Smartphone, Save, RotateCcw, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { NotificationType, NOTIFICATION_TEMPLATES } from '@/lib/notifications'
+
 import PushNotificationToggle from '@/components/notifications/PushNotificationToggle'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -40,7 +40,7 @@ export default function NotificationSettingsPage() {
   // 푸시 알림 관련 상태는 PushNotificationToggle 컴포넌트에서 관리
 
   // 알림 설정 조회
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     if (!user) return
 
     try {
@@ -110,17 +110,17 @@ export default function NotificationSettingsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, t])
 
   // 컴포넌트 마운트 시 설정 조회
   useEffect(() => {
     if (user) {
       fetchSettings()
     }
-  }, [user])
+  }, [user, fetchSettings])
 
   // 알림 설정 저장
-  const saveSettings = async () => {
+  const saveSettings = useCallback(async () => {
     if (!user || !settings) return
 
     try {
@@ -169,7 +169,7 @@ export default function NotificationSettingsPage() {
     } finally {
       setSaving(false)
     }
-  }
+  }, [user, settings, t])
 
   // 설정 초기화
   const resetSettings = () => {
@@ -211,25 +211,7 @@ export default function NotificationSettingsPage() {
     }))
   }
 
-  // 알림 타입별 설명
-  const getNotificationDescription = (type: string) => {
-    switch (type) {
-      case 'booking_created':
-        return '새로운 상담 예약이 생성될 때'
-      case 'payment_confirmed':
-        return '결제가 완료되고 예약이 확정될 때'
-      case 'consultation_reminder':
-        return '상담 전날 또는 상담 시간 1시간 전'
-      case 'consultation_completed':
-        return '상담이 완료될 때'
-      case 'review_reminder':
-        return '상담 완료 후 후기 작성 안내'
-      case 'system':
-        return '시스템 공지사항 및 업데이트'
-      default:
-        return ''
-    }
-  }
+
 
   // 설정 변경 시 자동 저장 (디바운스)
   useEffect(() => {
@@ -240,13 +222,13 @@ export default function NotificationSettingsPage() {
     }, 2000) // 2초 후 자동 저장
 
     return () => clearTimeout(timeoutId)
-  }, [settings, user])
+  }, [settings, user, saveSettings])
 
   // 자동 저장 중일 때 표시할 상태
   const [autoSaving, setAutoSaving] = useState(false)
 
   // 자동 저장 함수 (사용자에게 알림 없이)
-  const autoSave = async () => {
+  const autoSave = useCallback(async () => {
     if (!user || !settings) return
 
     try {
@@ -268,7 +250,7 @@ export default function NotificationSettingsPage() {
     } finally {
       setAutoSaving(false)
     }
-  }
+  }, [user, settings])
 
   // 설정 변경 시 자동 저장 (디바운스)
   useEffect(() => {
@@ -279,7 +261,7 @@ export default function NotificationSettingsPage() {
     }, 2000) // 2초 후 자동 저장
 
     return () => clearTimeout(timeoutId)
-  }, [settings, user])
+  }, [settings, user, autoSave])
 
   if (loading) {
     return (
@@ -337,7 +319,7 @@ export default function NotificationSettingsPage() {
                       } else {
                         alert('시스템 상태 확인에 실패했습니다.')
                       }
-                    } catch (error) {
+                    } catch {
                       alert('시스템 상태 확인 중 오류가 발생했습니다.')
                     }
                   }}
@@ -376,7 +358,6 @@ export default function NotificationSettingsPage() {
                       });
 
                       if (response.ok) {
-                        const data = await response.json()
                         setSuccess(t('notificationSettings.testSuccess'))
                         setTimeout(() => setSuccess(''), 5000)
                       } else {
@@ -385,8 +366,7 @@ export default function NotificationSettingsPage() {
                         setError(`테스트 알림 발송 실패: ${errorData.message || '알 수 없는 오류'}`)
                         setTimeout(() => setError(''), 8000)
                       }
-                    } catch (error) {
-                      console.error('테스트 알림 발송 실패:', error)
+                    } catch {
                       setError(t('notificationSettings.testError'))
                       setTimeout(() => setError(''), 5000)
                     }
@@ -510,75 +490,7 @@ export default function NotificationSettingsPage() {
               </CardContent>
             </Card>
 
-            {/* 알림 타입별 설정 */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>{t('notificationSettings.notificationTypes')}</CardTitle>
-                <CardDescription>
-                  {t('notificationSettings.typesDescription')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {Object.entries(NOTIFICATION_TEMPLATES).map(([type, template]) => (
-                    <div key={type} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{template.title}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{template.message}</p>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {getNotificationDescription(type)}
-                          </p>
-                        </div>
-                      </div>
 
-                      <Separator className="my-4" />
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* 이메일 설정 */}
-                        <div className="flex items-center space-x-3">
-                          <Switch
-                            checked={settings.email_enabled && settings.email_types.includes(type)}
-                            onCheckedChange={() => toggleNotificationType('email', type)}
-                            disabled={!settings.email_enabled}
-                          />
-                          <div className="flex items-center space-x-2">
-                            <Mail className="w-4 h-4 text-blue-600" />
-                            <Label className="text-sm">{t('notificationSettings.email')}</Label>
-                          </div>
-                        </div>
-
-                        {/* 푸시 설정 */}
-                        <div className="flex items-center space-x-3">
-                          <Switch
-                            checked={settings.push_enabled && settings.push_types.includes(type)}
-                            onCheckedChange={() => toggleNotificationType('push', type)}
-                            disabled={!settings.push_enabled}
-                          />
-                          <div className="flex items-center space-x-2">
-                            <Smartphone className="w-4 h-4 text-green-600" />
-                            <Label className="text-sm">{t('notificationSettings.push')}</Label>
-                          </div>
-                        </div>
-
-                        {/* 인앱 설정 */}
-                        <div className="flex items-center space-x-3">
-                          <Switch
-                            checked={settings.in_app_enabled && settings.in_app_types.includes(type)}
-                            onCheckedChange={() => toggleNotificationType('in_app', type)}
-                            disabled={!settings.in_app_enabled}
-                          />
-                          <div className="flex items-center space-x-2">
-                            <Bell className="w-4 h-4 text-purple-600" />
-                            <Label className="text-sm">{t('notificationSettings.website')}</Label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* 저장 버튼 */}
             <div className="text-center">

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { createBrowserClient, createServerClient } from '@supabase/ssr'
+import { createBrowserClient } from '@supabase/ssr'
 
 // 환경 변수 검증 및 기본값 설정
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
@@ -44,7 +44,7 @@ const createBrowserClientInstance = () => {
 export const createClientComponentClient = createBrowserClientInstance
 
 // 기존 코드와의 호환성을 위한 supabase export (더미 객체)
-export const supabase = null as any
+export const supabase = null as never
 
 // 서버 사이드용 클라이언트 (싱글톤)
 let serverClient: ReturnType<typeof createClient<Database>> | null = null
@@ -193,7 +193,7 @@ export type Database = {
           specialty: string;
           hourly_rate: number;
           timezone: string;
-          available_hours: any;
+          available_hours: Record<string, unknown>;
           is_active: boolean;
           created_at: string;
           updated_at: string;
@@ -205,7 +205,7 @@ export type Database = {
           specialty?: string;
           hourly_rate: number;
           timezone?: string;
-          available_hours?: any;
+          available_hours?: Record<string, unknown>;
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -217,7 +217,7 @@ export type Database = {
           specialty?: string;
           hourly_rate?: number;
           timezone?: string;
-          available_hours?: any;
+          available_hours?: Record<string, unknown>;
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;

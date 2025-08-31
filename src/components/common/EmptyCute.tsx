@@ -4,18 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { 
   Plus, 
-  Heart, 
-  Sparkles, 
   MessageSquare, 
   Users, 
   Calendar,
   BookOpen,
-  Camera,
-  Video,
-  Music,
-  Gamepad2,
-  Coffee,
-  Plane,
   Gift,
   Star,
   Zap

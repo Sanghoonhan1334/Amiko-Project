@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 특정 상담사 조회
 export async function GET(
@@ -8,6 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     const { data: consultant, error } = await supabase
       .from('consultants')
@@ -16,25 +17,14 @@ export async function GET(
       .single()
 
     if (error) {
-      console.error('[ADMIN CONSULTANT] 조회 실패:', error)
-      return NextResponse.json(
-        { success: false, error: '상담사 정보 조회에 실패했습니다.' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     if (!consultant) {
-      return NextResponse.json(
-        { success: false, error: '상담사를 찾을 수 없습니다.' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: '컨설턴트를 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    return NextResponse.json({
-      success: true,
-      consultant,
-      message: '상담사 정보 조회 성공'
-    })
+    return NextResponse.json({ consultant })
 
   } catch (error) {
     console.error('상담사 정보 조회 실패:', error)
@@ -52,6 +42,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const body = await request.json()
     const { name, email, specialty, hourly_rate, timezone, available_hours, is_active } = body
 
@@ -79,7 +70,7 @@ export async function PUT(
     }
 
     // 상담사 정보 수정
-    const { data: consultant, error } = await (supabase as any)
+    const { data: consultant, error } = await supabase
       .from('consultants')
       .update({
         name,
@@ -133,6 +124,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     // 상담사 삭제
     const { error } = await supabase

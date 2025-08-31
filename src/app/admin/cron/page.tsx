@@ -6,7 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function CronTestPage() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    success?: boolean;
+    message?: string;
+    testResult?: Record<string, unknown>;
+    results?: {
+      total?: number;
+      success?: number;
+      failure?: number;
+    };
+  } | null>(null);
   const [error, setError] = useState<string>('');
 
   const testReminder = async () => {
@@ -150,9 +159,9 @@ export default function CronTestPage() {
           <CardContent>
             <div className="space-y-2">
               <p><strong>성공:</strong> {result.success ? '✅' : '❌'}</p>
-              <p><strong>메시지:</strong> {result.message}</p>
+              <p><strong>메시지:</strong> {typeof result.message === 'string' ? result.message : '메시지 없음'}</p>
               
-              {result.testResult && (
+              {result.testResult && typeof result.testResult === 'object' && (
                 <div className="mt-4 p-4 bg-white rounded border">
                   <h4 className="font-semibold mb-2">📊 상세 결과:</h4>
                   <pre className="text-sm text-gray-700 whitespace-pre-wrap">
@@ -161,13 +170,13 @@ export default function CronTestPage() {
                 </div>
               )}
               
-              {result.results && (
+              {result.results && typeof result.results === 'object' && (
                 <div className="mt-4 p-4 bg-white rounded border">
                   <h4 className="font-semibold mb-2">📊 통계:</h4>
                   <ul className="space-y-1">
-                    <li><strong>전체:</strong> {result.results.total}건</li>
-                    <li><strong>성공:</strong> {result.results.success}건</li>
-                    <li><strong>실패:</strong> {result.results.failure}건</li>
+                    <li><strong>전체:</strong> {typeof result.results.total === 'number' ? result.results.total : 0}건</li>
+                    <li><strong>성공:</strong> {typeof result.results.success === 'number' ? result.results.success : 0}건</li>
+                    <li><strong>실패:</strong> {typeof result.results.failure === 'number' ? result.results.failure : 0}건</li>
                   </ul>
                 </div>
               )}

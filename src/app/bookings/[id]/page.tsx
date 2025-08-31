@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { Label } from '@/components/ui/label'
-import { formatTimeOnly, formatDateOnly, convertToUserTimezone } from '@/lib/timezone'
+
 
 interface Consultant {
   id: string
@@ -56,8 +56,8 @@ export default function BookingDetailPage() {
         }
         const data = await response.json()
         setBooking(data.booking)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       } finally {
         setLoading(false)
       }
@@ -108,21 +108,27 @@ export default function BookingDetailPage() {
 
     setCancelling(true)
     try {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'cancelled' }),
+      const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cancelReason: '사용자 요청'
+        }),
       })
-      
-      if (response.ok) {
+
+      const result = await response.json()
+
+      if (result.success) {
         // 예약 상태 업데이트
         setBooking(prev => prev ? { ...prev, status: 'cancelled' } : null)
-        alert('예약이 취소되었습니다.')
+        alert('예약이 성공적으로 취소되었습니다.')
       } else {
         alert('예약 취소에 실패했습니다.')
       }
-    } catch (error) {
-      alert('예약 취소 중 오류가 발생했습니다.')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
       setCancelling(false)
     }

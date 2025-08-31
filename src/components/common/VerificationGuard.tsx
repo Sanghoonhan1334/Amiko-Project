@@ -16,7 +16,6 @@ interface VerificationGuardProps {
 
 export default function VerificationGuard({
   profile,
-  requiredFeature = 'all',
   showSuccess = false,
   className = ''
 }: VerificationGuardProps) {
@@ -42,20 +41,7 @@ export default function VerificationGuard({
     return null
   }
 
-  // 인증이 필요한 경우 경고 배너 표시
-  const getFeatureName = (feature: string) => {
-    switch (feature) {
-      case 'video_matching':
-        return t('meetTab.verificationRequired').includes('Verificación') ? 'Emparejamiento por video' : '영상 매칭'
-      case 'coupon_usage':
-        return t('meetTab.verificationRequired').includes('Verificación') ? 'Uso de cupones' : '쿠폰 사용'
-      case 'community_posting':
-        return t('meetTab.verificationRequired').includes('Verificación') ? 'Actividades comunitarias' : '커뮤니티 활동'
-      case 'all':
-      default:
-        return t('meetTab.verificationRequired').includes('Verificación') ? 'este servicio' : '이 서비스'
-    }
-  }
+
 
   const handleVerify = () => {
     router.push('/verify')

@@ -10,32 +10,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 
 import { 
-  User, 
   Edit3, 
   Save, 
   X, 
   Trophy, 
-  Star, 
-   
   Gift, 
-   
-   
   Bell, 
   Mail, 
   Clock, 
-  MapPin, 
-  Heart,
-  TrendingUp,
   Zap,
-  Crown,
-  Target,
-  Calendar,
   Settings,
-  MessageSquare
+  MessageSquare,
+  Heart,
+  Calendar
 } from 'lucide-react'
 import VerificationGuard from '@/components/common/VerificationGuard'
 import StorySettings from './StorySettings'
-import { UserProfile, KoreanUserProfile, LatinUserProfile } from '@/types/user'
+import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 
 // 목업 데이터 - 현지인 사용자 프로필
@@ -66,7 +57,7 @@ const mockLatinUserProfile: LatinUserProfile = {
       id: '1',
       type: '15분 상담',
       quantity: 2,
-      expiresAt: null,
+      expiresAt: undefined,
       isUsed: false,
       price: '$2'
     }
@@ -112,23 +103,53 @@ const mockKoreanUserProfile: KoreanUserProfile = {
   // Mock user profile for testing verification guard
   const mockUserProfileForGuard = {
     id: 'user-1',
+    name: 'Test User',
+    email: 'test@example.com',
+    avatar: '👤',
+    isKorean: false,
+    country: 'BR',
+    introduction: 'Test user for verification guard',
+    availableTime: ['평일오후'],
+    interests: ['한국어'],
+    userType: 'student',
+    exchangeCount: 0,
+    points: 0,
+    joinDate: '2024-01-01',
+    level: '초급',
+    storySettings: {
+      autoPublic: true,
+      showInProfile: true
+    },
     kakao_linked_at: null,
     wa_verified_at: null,
     sms_verified_at: null,
-    email_verified_at: null,
-    is_korean: false,
-    country: 'BR'
+    email_verified_at: null
   }
 
   // Mock verified user profile for testing success state
   const mockVerifiedUserProfileForGuard = {
     id: 'user-2',
+    name: 'Verified User',
+    email: 'verified@example.com',
+    avatar: '✅',
+    isKorean: false,
+    country: 'BR',
+    introduction: 'Verified user for testing success state',
+    availableTime: ['평일오후'],
+    interests: ['한국어'],
+    userType: 'student',
+    exchangeCount: 0,
+    points: 0,
+    joinDate: '2024-01-01',
+    level: '초급',
+    storySettings: {
+      autoPublic: true,
+      showInProfile: true
+    },
     kakao_linked_at: null,
     wa_verified_at: '2024-01-15T10:00:00Z',
     sms_verified_at: null,
-    email_verified_at: null,
-    is_korean: false,
-    country: 'BR'
+    email_verified_at: null
   }
 
 
@@ -153,50 +174,7 @@ const mockCommunityStats = {
   helpfulVotes: 156
 }
 
-// 목업 데이터 - 쿠폰/구매내역
-const mockCoupons = [
-  {
-    id: 1,
-    type: '15분 상담',
-    quantity: 2,
-    expiresAt: '2024-02-15',
-    isUsed: false,
-    price: '₩12,000'
-  },
-  {
-    id: 2,
-    type: '30분 상담',
-    quantity: 1,
-    expiresAt: '2024-01-30',
-    isUsed: true,
-    price: '₩15,000'
-  },
-  {
-    id: 3,
-    type: '무료 쿠폰',
-    quantity: 1,
-    expiresAt: '2024-01-20',
-    isUsed: false,
-    price: '무료'
-  }
-]
 
-const mockPurchaseHistory = [
-  {
-    id: 1,
-    item: '15분 상담 쿠폰 3장',
-    date: '2024-01-10',
-    amount: '₩16,000',
-    status: '완료'
-  },
-  {
-    id: 2,
-    item: '30분 상담 쿠폰 1장',
-    date: '2024-01-05',
-    amount: '₩15,000',
-    status: '완료'
-  }
-]
 
 
 

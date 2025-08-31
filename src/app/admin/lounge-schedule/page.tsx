@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,14 +20,15 @@ import {
   Save,
   AlertCircle
 } from 'lucide-react'
-import { format, addDays, isToday, isFuture } from 'date-fns'
+import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 운영자 권한 체크
 const isOperator = async (): Promise<boolean> => {
   try {
     // Supabase에서 현재 사용자 정보 가져오기
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -37,7 +38,7 @@ const isOperator = async (): Promise<boolean> => {
     // 운영자 권한 체크 API 호출
     const response = await fetch('/api/admin/check-operator', {
       headers: {
-        'Authorization': `Bearer ${await supabase.auth.getSession().then((res: any) => res.data.session?.access_token)}`
+        'Authorization': `Bearer ${await supabase.auth.getSession().then((res) => res.data.session?.access_token)}`
       }
     })
 
@@ -160,14 +161,14 @@ export default function LoungeSchedulePage() {
   }
 
   // 새 일정 생성
-  const createSchedule = async (data: any) => {
+  const createSchedule = async (data: Partial<LoungeSchedule>) => {
     // TODO: 실제 Supabase API 호출
     console.log('새 일정 생성:', data)
     alert('새 일정이 생성되었습니다!')
   }
 
   // 일정 수정
-  const updateSchedule = async (id: string, data: any) => {
+  const updateSchedule = async (id: string, data: Partial<LoungeSchedule>) => {
     // TODO: 실제 Supabase API 호출
     console.log('일정 수정:', id, data)
     alert('일정이 수정되었습니다!')

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    console.log('🧪 [TEST REMINDER] 리마인더 테스트 시작');
+    console.log('🧪 [CRON TEST] 리마인더 테스트 시작...')
 
     // 리마인더 API 호출
     const response = await fetch(`${process.env.APP_URL || 'http://localhost:3000'}/api/cron/reminder`, {
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
     const result = await response.json();
 
-    console.log('🧪 [TEST REMINDER] 리마인더 테스트 결과:', result);
+    console.log('🧪 [CRON TEST] 리마인더 테스트 결과:', result);
 
     return NextResponse.json({
       success: true,
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     });
 
   } catch (error) {
-    console.error('❌ [TEST REMINDER] 리마인더 테스트 실패:', error);
+    console.error('❌ [CRON TEST] 리마인더 테스트 실패:', error);
     
     return NextResponse.json(
       { 
@@ -33,6 +33,6 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
-  return GET(req);
+export async function POST() {
+  return GET();
 }

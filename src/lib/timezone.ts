@@ -128,8 +128,8 @@ export const formatRelativeTime = (
     } else {
       return '방금 전'
     }
-  } catch (error) {
-    console.error('상대적 시간 표시 실패:', error)
+  } catch {
+    console.error('상대적 시간 표시 실패')
     return '시간 정보 없음'
   }
 }
@@ -175,7 +175,7 @@ export const getTimezoneOffset = (timezone: string): string => {
     const minutes = Math.abs(Math.floor((offset % 1) * 60))
     
     return `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-  } catch (error) {
+  } catch {
     return '+00:00'
   }
 }
@@ -197,7 +197,7 @@ export const isBusinessHours = (
     
     // 일반적인 업무 시간: 오전 9시 ~ 오후 6시
     return hour >= 9 && hour < 18
-  } catch (error) {
+  } catch {
     return false
   }
 }
@@ -220,7 +220,7 @@ export const getBusinessHours = (timezone: string): string => {
     } else {
       return `업무 종료 후 ${hour - 18}시간`
     }
-  } catch (error) {
+  } catch {
     return '업무 시간 정보 없음'
   }
 }

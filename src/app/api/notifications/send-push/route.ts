@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
 
 // VAPID 키 설정 (환경변수가 없으면 빌드 시점에 오류를 방지하기 위해 조건부로 설정)
@@ -45,8 +45,10 @@ export async function POST(request: Request) {
       )
     }
 
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
     // 1. 사용자의 푸시 구독 정보 조회
-    const { data: subscriptions, error: fetchError } = await (supabase as any)
+    const { data: subscriptions, error: fetchError } = await supabase
       .from('push_subscriptions')
       .select('*')
       .eq('user_id', userId)
@@ -78,7 +80,7 @@ export async function POST(request: Request) {
     console.log('✅ 푸시 구독 정보 조회 성공:', subscriptions.length, '개')
 
     // 2. 알림 로그 생성
-    const { data: notificationLog, error: logError } = await (supabase as any)
+    const { data: notificationLog, error: logError } = await supabase
       .from('push_notification_logs')
       .insert({
         user_id: userId,
@@ -113,7 +115,7 @@ export async function POST(request: Request) {
 
     // 3. 각 구독에 대해 푸시 알림 발송
     const results = await Promise.allSettled(
-      subscriptions.map(async (subscription: any) => {
+      subscriptions.map(async (subscription: Record<string, unknown>) => {
         try {
           const pushPayload = {
             title,
@@ -131,10 +133,10 @@ export async function POST(request: Request) {
           }
 
           const pushSubscription = {
-            endpoint: subscription.endpoint,
+            endpoint: String(subscription.endpoint),
             keys: {
-              p256dh: subscription.p256dh_key,
-              auth: subscription.auth_key
+              p256dh: String(subscription.p256dh_key),
+              auth: String(subscription.auth_key)
             }
           }
 
@@ -158,7 +160,7 @@ export async function POST(request: Request) {
           // 구독이 유효하지 않은 경우 삭제
           if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 410) {
             console.log('🗑️ 유효하지 않은 구독 삭제:', subscription.id)
-            await (supabase as any)
+            await supabase
               .from('push_subscriptions')
               .delete()
               .eq('id', subscription.id)
@@ -184,7 +186,7 @@ export async function POST(request: Request) {
     // 5. 알림 로그 상태 업데이트
     const finalStatus = failed === 0 ? 'sent' : (successful > 0 ? 'partial' : 'failed')
     
-    await (supabase as any)
+    await supabase
       .from('push_notification_logs')
       .update({
         status: finalStatus,

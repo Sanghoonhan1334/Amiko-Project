@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 예약 수정
 export async function PUT(
@@ -8,6 +8,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const body = await request.json()
     
     const { consultantId, topic, startAt, endAt, duration, price, description } = body
@@ -21,7 +22,7 @@ export async function PUT(
     }
 
     // 기존 예약 정보 조회
-    const { data: existingBooking, error: fetchError } = await (supabase as any)
+    const { data: existingBooking, error: fetchError } = await supabase
       .from('bookings')
       .select('*')
       .eq('id', id)
@@ -43,7 +44,7 @@ export async function PUT(
     }
 
     // 상담사 정보 조회 및 예약 가능 시간 체크
-    const { data: consultant, error: consultantError } = await (supabase as any)
+    const { data: consultant, error: consultantError } = await supabase
       .from('consultants')
       .select('*')
       .eq('id', consultantId)
@@ -105,7 +106,7 @@ export async function PUT(
     }
 
     // 예약 정보 업데이트
-    const { data: updatedBooking, error: updateError } = await (supabase as any)
+    const { data: updatedBooking, error: updateError } = await supabase
       .from('bookings')
       .update({
         consultant_id: consultantId,

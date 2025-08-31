@@ -39,10 +39,7 @@ export async function POST(request: NextRequest) {
 
     // 1. 현재 로그인 사용자 필드 업데이트
     const verificationField = `${channel}_verified_at`
-    const userUpdateData = {
-      [verificationField]: now
-    }
-
+    
     console.log('사용자 인증 상태 업데이트:', {
       userId,
       field: verificationField,

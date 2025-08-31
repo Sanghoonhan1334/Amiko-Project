@@ -73,11 +73,9 @@ const mockStories: Story[] = [
   }
 ]
 
-interface StorySectionProps {
-  onTabChange?: () => void
-}
 
-export default function StorySection({ onTabChange }: StorySectionProps) {
+
+export default function StorySection() {
   const { user } = useAuth()
   const [stories, setStories] = useState<Story[]>(mockStories)
   const [storyState, setStoryState] = useState<StoryState>({

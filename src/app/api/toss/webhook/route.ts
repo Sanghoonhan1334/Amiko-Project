@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Toss 상태를 DB 상태로 매핑
 function mapTossStatusToDbStatus(tossStatus: string): string {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: '웹훅 처리 완료' });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[WEBHOOK] 웹훅 처리 실패:', error);
     return NextResponse.json(
       { success: false, message: '웹훅 처리 중 오류 발생' },
@@ -75,18 +75,19 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePaymentStatusChanged(data: any) {
+async function handlePaymentStatusChanged(data: Record<string, unknown>) {
   console.log('[WEBHOOK] 결제 상태 변경:', data);
   
   try {
-    const paymentKey = data.data.paymentKey;
-    const newStatus = data.data.status;
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const paymentKey = (data.data as Record<string, unknown>).paymentKey;
+    const newStatus = (data.data as Record<string, unknown>).status;
     
     // Supabase에서 결제 상태 업데이트
     const { error } = await supabase
       .from('payments')
       .update({ 
-        status: mapTossStatusToDbStatus(newStatus),
+        status: mapTossStatusToDbStatus(newStatus as string),
         updated_at: new Date().toISOString()
       })
       .eq('payment_key', paymentKey);
@@ -101,11 +102,12 @@ async function handlePaymentStatusChanged(data: any) {
   }
 }
 
-async function handlePaymentCanceled(data: any) {
+async function handlePaymentCanceled(data: Record<string, unknown>) {
   console.log('[WEBHOOK] 결제 취소:', data);
   
   try {
-    const paymentKey = data.data.paymentKey;
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const paymentKey = (data.data as Record<string, unknown>).paymentKey;
     
     // Supabase에서 결제 상태를 취소로 업데이트
     const { error } = await supabase
@@ -126,11 +128,12 @@ async function handlePaymentCanceled(data: any) {
   }
 }
 
-async function handlePaymentFailed(data: any) {
+async function handlePaymentFailed(data: Record<string, unknown>) {
   console.log('[WEBHOOK] 결제 실패:', data);
   
   try {
-    const paymentKey = data.data.paymentKey;
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const paymentKey = (data.data as Record<string, unknown>).paymentKey;
     
     // Supabase에서 결제 상태를 실패로 업데이트
     const { error } = await supabase

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 알림 설정 조회
 export async function GET(request: Request) {
@@ -14,111 +14,17 @@ export async function GET(request: Request) {
       )
     }
 
-    // 테이블 존재 여부 확인
-    try {
-      const { data: tableCheck, error: tableError } = await (supabase as any)
-        .from('notification_settings')
-        .select('id')
-        .limit(1)
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-      if (tableError) {
-        console.error('[NOTIFICATION SETTINGS] 테이블 확인 실패:', tableError)
-        
-        if (tableError.code === 'PGRST205') {
-          // 테이블이 없으면 기본 설정 반환
-          const defaultSettings = {
-            user_id: userId,
-            email_enabled: true,
-            push_enabled: true,
-            in_app_enabled: true,
-            email_types: ['booking_created', 'payment_confirmed', 'consultation_reminder'],
-            push_types: ['booking_created', 'payment_confirmed'],
-            in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
-          }
-          
-          return NextResponse.json({
-            success: true,
-            settings: defaultSettings,
-            message: '알림 설정 테이블이 아직 생성되지 않았습니다. 기본 설정을 반환합니다.'
-          })
-        }
-        
-        throw tableError
-      }
-    } catch (checkError) {
-      console.error('[NOTIFICATION SETTINGS] 테이블 확인 중 오류:', checkError)
-      
-      // 에러가 발생해도 기본 설정 반환
-      const defaultSettings = {
-        user_id: userId,
-        email_enabled: true,
-        push_enabled: true,
-        in_app_enabled: true,
-        email_types: ['booking_created', 'payment_confirmed', 'consultation_reminder'],
-        push_types: ['booking_created', 'payment_confirmed'],
-        in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
-      }
-      
-      return NextResponse.json({
-        success: true,
-        settings: defaultSettings,
-        message: '데이터베이스 연결에 문제가 있습니다. 기본 설정을 반환합니다.'
-      })
-    }
-
-    // 기존 설정 조회
-    const { data: settings, error } = await (supabase as any)
+    // 사용자별 알림 설정 조회
+    const { data: settings, error: fetchError } = await supabase
       .from('notification_settings')
       .select('*')
       .eq('user_id', userId)
       .single()
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // 설정이 없는 경우 기본 설정 생성
-        const defaultSettings = {
-          user_id: userId,
-          email_enabled: true,
-          push_enabled: true,
-          in_app_enabled: true,
-          email_types: ['booking_created', 'payment_confirmed', 'consultation_reminder'],
-          push_types: ['booking_created', 'payment_confirmed'],
-          in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
-        }
-
-        try {
-          const { data: newSettings, error: insertError } = await (supabase as any)
-            .from('notification_settings')
-            .insert(defaultSettings)
-            .select()
-            .single()
-
-          if (insertError) {
-            console.error('[NOTIFICATION SETTINGS] 기본 설정 생성 실패:', insertError)
-            // 생성 실패해도 기본 설정 반환
-            return NextResponse.json({
-              success: true,
-              settings: defaultSettings,
-              message: '기본 설정을 반환합니다.'
-            })
-          }
-
-          return NextResponse.json({
-            success: true,
-            settings: newSettings,
-            message: '기본 설정이 생성되었습니다.'
-          })
-        } catch (insertError) {
-          console.error('[NOTIFICATION SETTINGS] 기본 설정 생성 중 오류:', insertError)
-          return NextResponse.json({
-            success: true,
-            settings: defaultSettings,
-            message: '기본 설정을 반환합니다.'
-          })
-        }
-      }
-
-      console.error('[NOTIFICATION SETTINGS] 설정 조회 실패:', error)
+    if (fetchError) {
+      console.error('❌ 알림 설정 조회 실패:', fetchError)
       return NextResponse.json(
         { success: false, error: '알림 설정 조회에 실패했습니다.' },
         { status: 500 }

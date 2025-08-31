@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,6 @@ import {
   MessageCircle,
   Mail,
   Apple,
-  HelpCircle,
   ArrowLeft
 } from 'lucide-react'
 

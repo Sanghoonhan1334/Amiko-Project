@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerComponentClient } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(
   req: Request,
@@ -18,7 +18,7 @@ export async function POST(
       );
     }
 
-    const supabase = createServerComponentClient();
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
     // 1. 예약 정보 조회
     const { data: booking, error: fetchError } = await supabase
@@ -37,15 +37,15 @@ export async function POST(
 
     console.log('✅ 예약 조회 성공:', booking);
 
-    // 2. 예약 상태를 'cancelled'로 변경 (간단하게)
-    const { data: updatedBooking, error: updateError } = await ((supabase as any)
+    // 2. 예약 상태를 'cancelled'로 변경
+    const { data: updatedBooking, error: updateError } = await supabase
       .from('bookings')
       .update({ 
         status: 'cancelled'
       })
       .eq('id', id)
       .select('*')
-      .single());
+      .single();
 
     if (updateError) {
       console.error('❌ 예약 취소 처리 실패:', updateError);

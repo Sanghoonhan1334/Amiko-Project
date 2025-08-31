@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { emailService } from '@/lib/email-service';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    console.log('🕒 [CRON REMINDER] 자동 리마인더 스케줄러 시작');
+    console.log('🔔 [CRON] 리마인더 작업 시작...')
+
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     // 현재 시간부터 24시간 후까지의 예약을 조회
     const now = new Date();
@@ -12,7 +14,7 @@ export async function GET(req: Request) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     // 24시간 후 예약 중 리마인더가 아직 발송되지 않은 것들
-    const { data: upcomingBookings, error: bookingError } = await (supabase as any)
+    const { data: upcomingBookings, error: bookingError } = await supabase
       .from('bookings')
       .select(`
         *,
@@ -146,7 +148,7 @@ export async function GET(req: Request) {
         }
 
         // 5. 예약에 리마인더 발송 완료 표시
-        const { error: updateError } = await (supabase as any)
+        const { error: updateError } = await supabase
           .from('bookings')
           .update({ 
             reminder_sent: true,
@@ -193,6 +195,6 @@ export async function GET(req: Request) {
 }
 
 // POST로도 호출 가능하게 함 (테스트용)
-export async function POST(req: Request) {
-  return GET(req);
+export async function POST() {
+  return GET();
 }

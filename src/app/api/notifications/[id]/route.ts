@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 특정 알림 읽음 처리
 export async function PUT(
@@ -18,8 +18,10 @@ export async function PUT(
       )
     }
 
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    
     // 알림 읽음 처리
-    const { data: notification, error } = await (supabase as any)
+    const { data: notification, error } = await supabase
       .from('notifications')
       .update({
         is_read: isRead,
@@ -67,8 +69,10 @@ export async function DELETE(
   try {
     const { id } = await params
 
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    
     // 알림 삭제
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('notifications')
       .delete()
       .eq('id', id)

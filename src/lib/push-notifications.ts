@@ -10,19 +10,12 @@ export interface PushSubscriptionData {
   };
 }
 
-export interface NotificationPayload {
-  title: string;
-  body: string;
-  icon?: string;
-  badge?: string;
-  tag?: string;
-  data?: any;
-  actions?: Array<{
-    action: string;
-    title: string;
-    icon?: string;
-  }>;
-  requireInteraction?: boolean;
+export interface PushNotificationData {
+  title: string
+  body: string
+  icon?: string
+  badge?: string
+  data?: Record<string, unknown>
 }
 
 /**
@@ -231,7 +224,7 @@ export async function sendSubscriptionToServer(
 /**
  * 로컬 알림 표시 (테스트용)
  */
-export function showLocalNotification(payload: NotificationPayload): void {
+export function showLocalNotification(payload: PushNotificationData): void {
   if (!('Notification' in window) || Notification.permission !== 'granted') {
     console.warn('[PUSH] 로컬 알림을 표시할 수 없습니다');
     return;
@@ -242,9 +235,7 @@ export function showLocalNotification(payload: NotificationPayload): void {
       body: payload.body,
       icon: payload.icon || '/favicon.ico',
       badge: payload.badge || '/favicon.ico',
-      tag: payload.tag,
       data: payload.data,
-      requireInteraction: payload.requireInteraction
     });
 
     // 알림 클릭 이벤트
@@ -253,7 +244,7 @@ export function showLocalNotification(payload: NotificationPayload): void {
       notification.close();
       
       if (payload.data?.url) {
-        window.location.href = payload.data.url;
+        window.location.href = payload.data.url as string;
       }
     };
 

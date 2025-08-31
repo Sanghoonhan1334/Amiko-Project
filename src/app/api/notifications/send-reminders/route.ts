@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { emailService } from '@/lib/email-service'
 
 // 상담 시작 1시간 전 알림 이메일 발송
@@ -7,30 +7,28 @@ export async function POST() {
   try {
     console.log('[REMINDER] 상담 알림 이메일 발송 시작')
 
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
     // 1시간 후에 시작하는 상담 조회
     const oneHourFromNow = new Date()
     oneHourFromNow.setHours(oneHourFromNow.getHours() + 1)
     
-    const { data: upcomingBookings, error } = await (supabase as any)
+    const { data: bookings, error: bookingError } = await supabase
       .from('bookings')
-      .select(`
-        *,
-        users!inner(email, name),
-        consultants!inner(name, specialty)
-      `)
+      .select('*')
       .eq('status', 'confirmed')
       .gte('start_at', oneHourFromNow.toISOString())
       .lt('start_at', new Date(oneHourFromNow.getTime() + 5 * 60 * 1000).toISOString()) // 5분 범위
 
-    if (error) {
-      console.error('[REMINDER] 상담 조회 실패:', error)
+    if (bookingError) {
+      console.error('[REMINDER] 상담 조회 실패:', bookingError)
       return NextResponse.json(
         { success: false, error: '상담 조회에 실패했습니다.' },
         { status: 500 }
       )
     }
 
-    if (!upcomingBookings || upcomingBookings.length === 0) {
+    if (!bookings || bookings.length === 0) {
       console.log('[REMINDER] 발송할 상담 알림이 없습니다.')
       return NextResponse.json({
         success: true,
@@ -39,11 +37,11 @@ export async function POST() {
       })
     }
 
-    console.log(`[REMINDER] ${upcomingBookings.length}개의 상담 알림 발송 시작`)
+    console.log(`[REMINDER] ${bookings.length}개의 상담 알림 발송 시작`)
 
     // 각 상담에 대해 알림 이메일 발송
     const emailResults = []
-    for (const booking of upcomingBookings) {
+    for (const booking of bookings) {
       try {
         await emailService.sendNotificationEmail(
           booking.users.email,
@@ -86,7 +84,7 @@ export async function POST() {
     return NextResponse.json({
       success: true,
       message: '상담 알림 이메일 발송이 완료되었습니다.',
-      total: upcomingBookings.length,
+      total: bookings.length,
       successCount: successCount,
       failed: failedCount,
       results: emailResults

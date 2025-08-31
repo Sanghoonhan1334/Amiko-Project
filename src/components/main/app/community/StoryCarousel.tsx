@@ -102,11 +102,7 @@ const mockStories: Story[] = [
   }
 ]
 
-interface StoryCarouselProps {
-  onTabChange?: () => void
-}
-
-export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
+export default function StoryCarousel() {
   const { user } = useAuth()
   const { t } = useLanguage()
   
@@ -117,7 +113,7 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [cursor, setCursor] = useState<string | null>(null)
+
   
          // 스토리 업로드 관련 상태
        const [showUploadModal, setShowUploadModal] = useState(false)
@@ -167,6 +163,31 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
     }
   }, [])
 
+  // 추가 스토리 로드
+  const loadMoreStories = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return
+
+    setIsLoadingMore(true)
+    try {
+      // 실제로는 API 호출: cursor 기반으로 다음 페이지
+      await new Promise(resolve => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+      
+      const currentCount = stories.length
+      const nextStories = mockStories.slice(currentCount, currentCount + 3)
+      
+      if (nextStories.length > 0) {
+        setStories(prev => [...prev, ...nextStories])
+        setHasMore(currentCount + nextStories.length < mockStories.length)
+      } else {
+        setHasMore(false)
+      }
+    } catch (error) {
+      console.error('추가 스토리 로드 실패:', error)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [isLoadingMore, hasMore, stories.length])
+
   // 무한 스크롤 감지 (가로 스크롤)
   useEffect(() => {
     if (viewMode === 'expanded' && hasMore && !isLoadingMore) {
@@ -185,7 +206,7 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
 
       return () => observer.disconnect()
     }
-  }, [viewMode, hasMore, isLoadingMore])
+  }, [viewMode, hasMore, isLoadingMore, loadMoreStories])
 
   // 초기 스토리 로드 (1개만)
   const loadInitialStories = async () => {
@@ -195,37 +216,11 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
       const initialStories = mockStories.slice(0, 1)
       setStories(initialStories)
       setHasMore(mockStories.length > 1)
-      setCursor('1') // 다음 페이지 커서
+      // 다음 페이지 커서
     } catch (error) {
       console.error('초기 스토리 로드 실패:', error)
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  // 추가 스토리 로드
-  const loadMoreStories = async () => {
-    if (isLoadingMore || !hasMore) return
-
-    setIsLoadingMore(true)
-    try {
-      // 실제로는 API 호출: cursor 기반으로 다음 페이지
-      await new Promise(resolve => setTimeout(resolve, 500)) // 로딩 시뮬레이션
-      
-      const currentCount = stories.length
-      const nextStories = mockStories.slice(currentCount, currentCount + 3)
-      
-      if (nextStories.length > 0) {
-        setStories(prev => [...prev, ...nextStories])
-        setCursor((currentCount + nextStories.length).toString())
-        setHasMore(currentCount + nextStories.length < mockStories.length)
-      } else {
-        setHasMore(false)
-      }
-    } catch (error) {
-      console.error('추가 스토리 로드 실패:', error)
-    } finally {
-      setIsLoadingMore(false)
     }
   }
 
@@ -249,7 +244,7 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
     setCurrentIndex(0)
     setStories(mockStories.slice(0, 1))
     setHasMore(mockStories.length > 1)
-    setCursor('1')
+    // 커서 초기화
     
     // 스크롤 위치도 초기화
     if (containerRef.current) {
@@ -554,7 +549,7 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
               }
             `}</style>
 
-            {visibleStories.map((story, index) => (
+            {visibleStories.map((story) => (
               <div
                 key={story.id}
                 className="snap-start flex-shrink-0 relative"
@@ -714,11 +709,11 @@ export default function StoryCarousel({ onTabChange }: StoryCarouselProps) {
           {/* 인디케이터 (선택사항) */}
           {viewMode === 'expanded' && stories.length > 1 && (
             <div className="flex justify-center mt-4 gap-2">
-              {stories.map((_, index) => (
+              {stories.map((_, i) => (
                 <div
-                  key={index}
+                  key={i}
                   className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                    index === currentIndex ? 'bg-brand-500' : 'bg-gray-300'
+                    i === currentIndex ? 'bg-brand-500' : 'bg-gray-300'
                   }`}
                 />
               ))}

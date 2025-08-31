@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { formatTimeOnly, formatDateOnly } from '@/lib/timezone'
+
 
 interface TimeSlot {
   start: string
@@ -122,8 +122,8 @@ export default function EditBookingPage() {
             calculateAvailableTimes(consultant, startDate.toISOString().split('T')[0])
           }
         }
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       } finally {
         setLoading(false)
       }
@@ -258,8 +258,8 @@ export default function EditBookingPage() {
       alert('예약이 성공적으로 수정되었습니다.')
       router.push(`/bookings/${bookingId}`)
       
-    } catch (err: any) {
-      setError(err.message || '예약 수정 중 오류가 발생했습니다.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

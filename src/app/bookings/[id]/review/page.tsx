@@ -59,8 +59,8 @@ export default function ReviewPage() {
         }
         const data = await response.json()
         setBooking(data.booking)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       } finally {
         setLoading(false)
       }
@@ -111,8 +111,8 @@ export default function ReviewPage() {
       alert('후기가 성공적으로 작성되었습니다.')
       router.push(`/bookings/${bookingId}`)
       
-    } catch (err: any) {
-      setError(err.message || '후기 작성 중 오류가 발생했습니다.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

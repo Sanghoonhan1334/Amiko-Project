@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar, Sparkles, Clock, Users, Home } from 'lucide-react'
+import { Calendar, Sparkles, Clock, Users } from 'lucide-react'
 import MeetTab from '@/components/main/app/meet/MeetTab'
 import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'

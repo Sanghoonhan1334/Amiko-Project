@@ -5,7 +5,7 @@ export interface Notification {
   type: NotificationType
   title: string
   message: string
-  data?: Record<string, any>
+  data?: Record<string, unknown>
   isRead: boolean
   createdAt: string
   readAt?: string
@@ -18,6 +18,13 @@ export type NotificationType =
   | 'consultation_completed' // 상담 완료
   | 'review_reminder'       // 후기 작성 안내
   | 'system'                // 시스템 알림
+
+export interface NotificationData {
+  title: string
+  message: string
+  type: NotificationType
+  data?: Record<string, unknown>
+}
 
 // 알림 템플릿
 export const NOTIFICATION_TEMPLATES = {

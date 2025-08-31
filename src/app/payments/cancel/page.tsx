@@ -8,9 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { AlertCircle, XCircle, Calendar, Clock, User, CreditCard, AlertTriangle } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import { AlertCircle, XCircle, CreditCard, AlertTriangle } from 'lucide-react'
 
 interface CancelReason {
   value: string
@@ -27,7 +25,6 @@ const CANCEL_REASONS: CancelReason[] = [
 ]
 
 function PaymentCancelContent() {
-  const { user } = useAuth()
   const searchParams = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -95,8 +95,8 @@ export default function AdminConsultantsPage() {
       }
       const data = await response.json()
       setConsultants(data.consultants || [])
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -140,8 +140,8 @@ export default function AdminConsultantsPage() {
       setIsDialogOpen(false)
       resetForm()
       fetchConsultants()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     }
   }
 
@@ -174,8 +174,8 @@ export default function AdminConsultantsPage() {
       }
 
       fetchConsultants()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     }
   }
 
@@ -196,8 +196,8 @@ export default function AdminConsultantsPage() {
       }
 
       fetchConsultants()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     }
   }
 

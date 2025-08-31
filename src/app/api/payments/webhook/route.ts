@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { emailService } from '@/lib/email-service';
 import { adminNotificationService } from '@/lib/admin-notification-service';
 
@@ -27,9 +27,10 @@ export async function POST(req: Request) {
       amount, 
       status, 
       method, 
-      approvedAt,
       type 
     } = body;
+
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     // 웹훅 타입에 따른 처리
     switch (type) {

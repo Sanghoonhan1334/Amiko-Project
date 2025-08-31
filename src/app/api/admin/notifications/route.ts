@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     );
 
     // 읽지 않은 알림 개수 조회
-    const unreadCount = await adminNotificationService.getUnreadCount(userId);
+    const unreadCount = await adminNotificationService.getUnreadCount();
 
     return NextResponse.json({
       success: true,

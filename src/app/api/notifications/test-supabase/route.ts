@@ -1,62 +1,52 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET() {
   try {
     console.log('🧪 [SUPABASE TEST] Supabase 연결 테스트 시작')
     
-    // 1. 기본 연결 테스트
-    console.log('🔗 [SUPABASE TEST] 기본 연결 테스트...')
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
-    // 2. push_subscriptions 테이블 존재 여부 확인
-    console.log('📋 [SUPABASE TEST] push_subscriptions 테이블 확인...')
-    const { data: tableCheck, error: tableError } = await (supabase as any)
-      .from('push_subscriptions')
-      .select('count')
+    // 테이블 존재 여부 확인
+    const { data: tableExists } = await supabase
+      .from('notifications')
+      .select('id')
       .limit(1)
-    
-    if (tableError) {
-      console.error('❌ [SUPABASE TEST] 테이블 확인 실패:', tableError)
-      return NextResponse.json({
-        success: false,
-        message: 'push_subscriptions 테이블 확인 실패',
-        error: tableError.message,
-        code: tableError.code
-      }, { status: 500 })
+
+    if (!tableExists) {
+      return NextResponse.json(
+        { success: false, error: 'notifications 테이블이 존재하지 않습니다.' },
+        { status: 500 }
+      )
     }
-    
-    console.log('✅ [SUPABASE TEST] push_subscriptions 테이블 존재 확인')
-    
-    // 3. 테이블 구조 확인
-    console.log('🔍 [SUPABASE TEST] 테이블 구조 확인...')
-    const { data: columns, error: columnsError } = await (supabase as any)
-      .rpc('get_table_columns', { table_name: 'push_subscriptions' })
-      .single()
-    
-    if (columnsError) {
-      console.log('⚠️ [SUPABASE TEST] 컬럼 정보 조회 실패 (정상적일 수 있음):', columnsError.message)
-    } else {
-      console.log('✅ [SUPABASE TEST] 테이블 구조 확인 완료')
-    }
-    
-    // 4. 간단한 쿼리 테스트
-    console.log('🔍 [SUPABASE TEST] 간단한 쿼리 테스트...')
-    const { data: queryTest, error: queryError } = await (supabase as any)
-      .from('push_subscriptions')
-      .select('id, user_id, endpoint')
+
+    // 테이블 구조 확인
+    const { data: structureData, error: structureError } = await supabase
+      .from('notifications')
+      .select('id, user_id, title, message, type, created_at')
       .limit(5)
-    
-    if (queryError) {
-      console.error('❌ [SUPABASE TEST] 쿼리 테스트 실패:', queryError)
-      return NextResponse.json({
-        success: false,
-        message: '쿼리 테스트 실패',
-        error: queryError.message,
-        code: queryError.code
-      }, { status: 500 })
+
+    if (structureError) {
+      console.error('❌ 테이블 구조 확인 실패:', structureError)
+      return NextResponse.json(
+        { success: false, error: '테이블 구조 확인에 실패했습니다.' },
+        { status: 500 }
+      )
     }
-    
-    console.log('✅ [SUPABASE TEST] 쿼리 테스트 성공')
+
+    // 컬럼 정보 확인
+    const { error: columnsError } = await supabase
+      .from('notifications')
+      .select('*')
+      .limit(1)
+
+    if (columnsError) {
+      console.error('❌ 컬럼 정보 확인 실패:', columnsError)
+      return NextResponse.json(
+        { success: false, error: '컬럼 정보 확인에 실패했습니다.' },
+        { status: 500 }
+      )
+    }
     
     return NextResponse.json({
       success: true,
@@ -64,8 +54,8 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       tableExists: true,
       queryTest: {
-        count: queryTest?.length || 0,
-        sample: queryTest?.slice(0, 2) || []
+        count: structureData?.length || 0,
+        sample: structureData?.slice(0, 2) || []
       }
     })
     

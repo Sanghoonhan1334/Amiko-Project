@@ -1,72 +1,57 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET() {
   try {
-    // payments 테이블이 없는 경우 더미 데이터 반환
-    try {
-      const { data: payments, error } = await supabase
-        .from('payments')
-        .select('*')
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    // 전체 결제 통계
+    const { data: totalData, error: totalError } = await supabase
+      .from('payments')
+      .select('id, amount, status')
 
-      if (error) {
-        if (error.code === 'PGRST205') {
-          // 테이블이 없는 경우 더미 데이터 반환
-          return NextResponse.json({
-            success: true,
-            stats: {
-              totalPayments: 2,
-              completedPayments: 2,
-              totalAmount: 100000,
-              pendingPayments: 0,
-              failedPayments: 0
-            },
-            message: '더미 데이터 (payments 테이블이 없음)'
-          })
-        }
-        throw error
-      }
-
-      // 실제 데이터가 있는 경우 통계 계산
-      const totalPayments = payments?.length || 0
-      const completedPayments = payments?.filter((p: any) => p.status === 'DONE').length || 0
-      const pendingPayments = payments?.filter((p: any) => p.status === 'PENDING').length || 0
-      const failedPayments = payments?.filter((p: any) => p.status === 'FAILED').length || 0
-      const totalAmount = payments?.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0
-
-      return NextResponse.json({
-        success: true,
-        stats: {
-          totalPayments,
-          completedPayments,
-          totalAmount,
-          pendingPayments,
-          failedPayments
-        },
-        message: '결제 통계 조회 성공'
-      })
-
-    } catch (dbError: any) {
-      console.error('[ADMIN STATS PAYMENTS] DB 조회 실패:', dbError)
-      
-      // 더미 데이터 반환
-      return NextResponse.json({
-        success: true,
-        stats: {
-          totalPayments: 2,
-          completedPayments: 2,
-          totalAmount: 100000,
-          pendingPayments: 0,
-          failedPayments: 0
-        },
-        message: '더미 데이터 (DB 오류)'
-      })
+    if (totalError) {
+      console.error('[ADMIN] 결제 통계 조회 실패:', totalError)
+      return NextResponse.json(
+        { success: false, message: '결제 통계 조회에 실패했습니다.' },
+        { status: 500 }
+      )
     }
 
-  } catch (error) {
-    console.error('결제 통계 조회 실패:', error)
+    // 총 결제 건수
+    const totalPayments = totalData.length
+
+    // 총 결제 금액
+    const totalAmount = totalData.reduce((sum: number, payment: { amount: number }) => sum + payment.amount, 0)
+
+    // 결제 상태별 통계
+    const statusStats = totalData.reduce((acc: Record<string, number>, payment: { status: string }) => {
+      acc[payment.status] = (acc[payment.status] || 0) + 1
+      return acc
+    }, {})
+
+    // 최근 결제 내역 (최근 5건)
+    const { data: recentPayments, error: recentError } = await supabase
+      .from('payments')
+      .select('id, amount, status, method, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    if (recentError) {
+      console.error('[ADMIN] 최근 결제 조회 실패:', recentError)
+    }
+
+    return NextResponse.json({
+      success: true,
+      total: totalPayments,
+      totalAmount,
+      statusStats,
+      recent: recentPayments || []
+    })
+
+  } catch (error: unknown) {
+    console.error('[ADMIN] 결제 통계 처리 실패:', error)
     return NextResponse.json(
-      { success: false, error: '결제 통계 조회에 실패했습니다.' },
+      { success: false, message: '결제 통계 처리 중 오류가 발생했습니다.' },
       { status: 500 }
     )
   }

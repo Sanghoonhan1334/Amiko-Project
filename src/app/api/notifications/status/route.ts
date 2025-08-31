@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 알림 시스템 상태 확인
 export async function GET() {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
     const status = {
       notifications_table: false,
       notification_settings_table: false,
@@ -12,70 +14,48 @@ export async function GET() {
       tables_ready: false
     }
 
-    // 데이터베이스 연결 확인
-    try {
-      const { data: connectionTest, error: connectionError } = await supabase
-        .from('notifications')
-        .select('id')
-        .limit(1)
+    // 데이터베이스 연결 테스트
+    const { error: connectionError } = await supabase
+      .from('notifications')
+      .select('id')
+      .limit(1)
 
-      if (connectionError && connectionError.code === 'PGRST205') {
-        // 테이블이 없는 것은 정상적인 상황
-        status.database_connection = true
-      } else if (connectionError) {
-        // 다른 에러는 연결 문제
-        status.database_connection = false
-        console.error('[NOTIFICATION STATUS] 데이터베이스 연결 확인 실패:', connectionError)
-      } else {
-        status.database_connection = true
-      }
-    } catch (connectionError) {
-      status.database_connection = false
-      console.error('[NOTIFICATION STATUS] 데이터베이스 연결 확인 중 예외:', connectionError)
+    if (connectionError) {
+      console.error('❌ 데이터베이스 연결 실패:', connectionError)
+      return NextResponse.json(
+        { success: false, error: '데이터베이스 연결에 실패했습니다.' },
+        { status: 500 }
+      )
     }
 
-    // 각 테이블 존재 여부 확인
-    try {
-      // notifications 테이블
-      const { data: notificationsCheck, error: notificationsError } = await supabase
-        .from('notifications')
-        .select('id')
-        .limit(1)
+    // 알림 테이블 상태 확인
+    const { error: notificationsError } = await supabase
+      .from('notifications')
+      .select('id, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5)
 
-      if (!notificationsError) {
-        status.notifications_table = true
-      } else if (notificationsError.code !== 'PGRST205') {
-        console.error('[NOTIFICATION STATUS] notifications 테이블 확인 실패:', notificationsError)
-      }
+    if (notificationsError) {
+      console.error('❌ 알림 테이블 조회 실패:', notificationsError)
+      return NextResponse.json(
+        { success: false, error: '알림 테이블 조회에 실패했습니다.' },
+        { status: 500 }
+      )
+    }
 
-      // notification_settings 테이블
-      const { data: settingsCheck, error: settingsError } = await supabase
-        .from('notification_settings')
-        .select('user_id')
-        .limit(1)
+    // 로그 테이블 상태 확인
+    const { error: logsError } = await supabase
+      .from('notification_logs')
+      .select('id, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5)
 
-      console.log('[NOTIFICATION STATUS] settings 테이블 확인 결과:', { data: settingsCheck, error: settingsError })
-
-      if (!settingsError) {
-        status.notification_settings_table = true
-      } else if (settingsError.code !== 'PGRST205') {
-        console.error('[NOTIFICATION STATUS] notification_settings 테이블 확인 실패:', settingsError)
-      }
-
-      // notification_logs 테이블
-      const { data: logsCheck, error: logsError } = await supabase
-        .from('notification_logs')
-        .select('id')
-        .limit(1)
-
-      if (!logsError) {
-        status.notification_logs_table = true
-      } else if (logsError.code !== 'PGRST205') {
-        console.error('[NOTIFICATION STATUS] notification_logs 테이블 확인 실패:', logsError)
-      }
-
-    } catch (tableCheckError) {
-      console.error('[NOTIFICATION STATUS] 테이블 확인 중 예외:', tableCheckError)
+    if (logsError) {
+      console.error('❌ 로그 테이블 조회 실패:', logsError)
+      return NextResponse.json(
+        { success: false, error: '로그 테이블 조회에 실패했습니다.' },
+        { status: 500 }
+      )
     }
 
     // 모든 필수 테이블이 준비되었는지 확인

@@ -1,15 +1,14 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClientComponentClient } from '@/lib/supabase'
 
 interface AuthContextType {
   user: User | null
-  session: Session | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: unknown }>
+  signUp: (email: string, password: string) => Promise<{ error: unknown }>
   signOut: () => Promise<void>
   refreshSession: () => Promise<boolean>
 }
@@ -21,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [supabase, setSupabase] = useState<any>(null)
+  const [supabase, setSupabase] = useState<ReturnType<typeof createClientComponentClient> | null>(null)
   
   // 클라이언트에서만 Supabase 클라이언트 생성
   useEffect(() => {
@@ -73,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setSession({
                   user: sessionData.user,
                   expires_at: sessionData.expires_at
-                } as any)
+                } as Session)
                 
                 // Supabase에 세션 복구 시도 (선택사항)
                 // 로컬 세션이 유효하면 이미 사용자 상태가 설정되어 있음
@@ -101,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 인증 상태 변경 감지
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, session: any) => {
+      async (event: string, session: Session | null) => {
         console.log('[AUTH] 인증 상태 변경:', event, session ? '세션 있음' : '세션 없음')
         
         if (session) {
@@ -130,6 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     console.log('[AUTH] 로그인 시도:', { email, passwordLength: password.length });
+    
+    if (!supabase) {
+      console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
+      return { error: new Error('Supabase 클라이언트가 초기화되지 않음') };
+    }
     
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -185,6 +189,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string) => {
     console.log('[AUTH] 회원가입 시도:', { email, passwordLength: password.length });
     
+    if (!supabase) {
+      console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
+      return { error: new Error('Supabase 클라이언트가 초기화되지 않음') };
+    }
+    
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -205,6 +214,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    if (!supabase) {
+      console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
+      return;
+    }
+    
     try {
       await supabase.auth.signOut()
       // 로컬 스토리지에서 세션 제거
@@ -219,6 +233,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 세션 복구 함수
   const refreshSession = async () => {
+    if (!supabase) {
+      console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
+      return false;
+    }
+    
     try {
       const { data: { session }, error } = await supabase.auth.refreshSession()
       if (session && !error) {

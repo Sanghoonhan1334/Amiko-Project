@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 모든 알림 읽음 처리
 export async function POST(request: Request) {
@@ -14,8 +14,10 @@ export async function POST(request: Request) {
       )
     }
 
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    
     // 모든 읽지 않은 알림을 읽음 처리
-    const { data: notifications, error } = await (supabase as any)
+    const { data: notifications, error } = await supabase
       .from('notifications')
       .update({
         is_read: true,

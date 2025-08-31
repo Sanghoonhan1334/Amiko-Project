@@ -36,7 +36,6 @@ function CheckoutContent() {
   const searchParams = useSearchParams()
   
   const bookingId = searchParams.get('bookingId')
-  const amount = searchParams.get('amount')
   
   const [booking, setBooking] = useState<Booking | null>(null)
   const [consultant, setConsultant] = useState<Consultant | null>(null)
@@ -70,8 +69,8 @@ function CheckoutContent() {
             setConsultant(consultantData.consultant)
           }
         }
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       } finally {
         setLoading(false)
       }
@@ -101,7 +100,7 @@ function CheckoutContent() {
         customerEmail: user.email,
       })
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('결제 처리 실패:', err)
       setError('결제 처리 중 오류가 발생했습니다.')
     } finally {

@@ -7,18 +7,16 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Calendar, 
   Clock, 
-  Users,
-  MapPin, 
-  MessageCircle,
-  Coffee,
-  Gift,
-  ArrowRight,
-  ExternalLink,
-  Sparkles
+  Users, 
+  ExternalLink, 
+  MessageCircle, 
+  Coffee, 
+  Gift
 } from 'lucide-react'
-import { format, addWeeks, isSameDay, isToday, isFuture } from 'date-fns'
+import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useLanguage } from '@/context/LanguageContext'
+import { enUS } from 'date-fns/locale'
 
 
 
@@ -37,38 +35,15 @@ export default function LoungePage() {
 
 
 
-  // 요일 번역 헬퍼 함수
-  const translateDayOfWeek = (date: Date) => {
-    const dayOfWeek = format(date, 'E', { locale: ko })
-    const dayMap: { [key: string]: string } = {
-      '일': t('calendar.days.sun'),
-      '월': t('calendar.days.mon'),
-      '화': t('calendar.days.tue'),
-      '수': t('calendar.days.wed'),
-      '목': t('calendar.days.thu'),
-      '금': t('calendar.days.fri'),
-      '토': t('calendar.days.sat')
-    }
-    return dayMap[dayOfWeek] || dayOfWeek
-  }
 
+
+  // 언어 설정 가져오기
+  const { language } = useLanguage()
+  
   // 날짜 포맷팅
-  const formatDate = (date: Date) => {
-    const month = t('calendar.months.august')
-    const day = format(date, 'd')
-    const dayOfWeek = translateDayOfWeek(date)
-    // 스페인어 모드일 때는 "30 de Agosto (Sáb)" 형식, 한국어 모드일 때는 "8월 30일 (토)" 형식
-    const { language } = useLanguage()
-    if (language === 'es') {
-      return `${day} de ${month} (${dayOfWeek})`
-    } else {
-      return `${month} ${day}일 (${dayOfWeek})`
-    }
-  }
-
-  // 시간 포맷팅
-  const formatTime = (date: Date) => {
-    return format(date, 'HH:mm')
+  const formatDate = (dateString: string, lang: string) => {
+    const date = new Date(dateString)
+    return format(date, 'MMM dd, yyyy', { locale: lang === 'ko' ? ko : enUS })
   }
 
   // ZEP 입장하기 (외부 링크 placeholder)
@@ -194,8 +169,9 @@ export default function LoungePage() {
                   </div>
                   <div className="grid grid-cols-7 gap-1">
                     {next4Weeks.map((date, index) => {
-                      const isTodayDate = isToday(date)
-                      const isFutureDate = isFuture(date)
+                      const today = new Date()
+                      const isTodayDate = date.toDateString() === today.toDateString()
+                      const isFutureDate = date > today
                       
                       return (
                         <div
@@ -221,7 +197,7 @@ export default function LoungePage() {
                   {selectedDate && (
                     <div className="mt-4 p-3 bg-mint-50 rounded-lg border border-mint-200">
                       <h4 className="font-medium text-mint-800 mb-2 text-sm">
-                        {formatDate(selectedDate)} {t('loungePage.selectedDateInfo')}
+                        {formatDate(selectedDate.toISOString(), language)} {t('loungePage.selectedDateInfo')}
                       </h4>
                       <p className="text-xs text-mint-600">
                         {t('loungePage.selectedDateDescription')}

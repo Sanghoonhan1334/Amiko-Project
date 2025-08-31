@@ -111,8 +111,8 @@ export default function Testimonials() {
               </CardHeader>
               
               <CardContent>
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  "{testimonial.content}"
+                <p className="text-gray-600 mb-4">
+                  &ldquo;Amiko를 통해 한국어를 배우면서 한국 문화에 대한 이해도가 깊어졌어요.&rdquo;
                 </p>
                 
                 <div className="flex flex-wrap gap-2 mb-3">

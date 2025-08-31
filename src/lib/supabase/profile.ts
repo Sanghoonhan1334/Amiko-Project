@@ -1,4 +1,4 @@
-import { supabase } from '../supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export interface Profile {
   id: string
@@ -37,6 +37,7 @@ export interface UpdateProfileData {
  */
 export async function createProfile(userId: string, data: CreateProfileData): Promise<Profile | null> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     const { data: profile, error } = await supabase
       .from('profiles')
       .insert([
@@ -68,6 +69,7 @@ export async function createProfile(userId: string, data: CreateProfileData): Pr
  */
 export async function getProfile(userId: string): Promise<Profile | null> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
@@ -91,6 +93,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
  */
 export async function updateProfile(userId: string, data: UpdateProfileData): Promise<Profile | null> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     // 학교 코드가 변경되면 school_verified 상태도 업데이트
     const updateData = {
       ...data,
@@ -122,6 +125,7 @@ export async function updateProfile(userId: string, data: UpdateProfileData): Pr
  */
 export async function verifySchoolCode(userId: string, schoolCode: string): Promise<boolean> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -148,6 +152,7 @@ export async function verifySchoolCode(userId: string, schoolCode: string): Prom
  */
 export async function removeSchoolCode(userId: string): Promise<boolean> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -174,6 +179,7 @@ export async function removeSchoolCode(userId: string): Promise<boolean> {
  */
 export async function searchProfilesBySchool(schoolCode: string): Promise<Profile[]> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     const { data: profiles, error } = await supabase
       .from('profiles')
       .select('*')
@@ -198,6 +204,7 @@ export async function searchProfilesBySchool(schoolCode: string): Promise<Profil
  */
 export async function getVerifiedSchoolUsersCount(schoolCode: string): Promise<number> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     const { count, error } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })

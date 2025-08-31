@@ -1,7 +1,7 @@
 import { supabaseServer } from '@/lib/supabaseServer'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CreditCard, Calendar, User, Receipt, DollarSign } from 'lucide-react'
+import { CreditCard, Receipt, Calendar, User } from 'lucide-react'
 
 interface Payment {
   id: string

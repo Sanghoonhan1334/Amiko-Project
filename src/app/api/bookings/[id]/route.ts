@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   req: Request,
@@ -7,6 +7,7 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     console.log('🔍 [BOOKING API] 예약 조회 요청:', id);
 
@@ -18,7 +19,7 @@ export async function GET(
     }
 
     // 1. 먼저 기본 예약 정보만 조회
-    const { data: booking, error: basicError } = await (supabase as any)
+    const { data: booking, error: basicError } = await supabase
       .from('bookings')
       .select('*')
       .eq('id', id)
@@ -115,6 +116,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const updateData = await req.json();
     
     console.log('🔍 [BOOKING API] 예약 수정 요청:', { id, updateData });
@@ -138,10 +140,10 @@ export async function PUT(
       .reduce((obj, key) => {
         obj[key] = updateData[key];
         return obj;
-      }, {} as any);
+      }, {} as Record<string, unknown>);
 
     // 예약 정보 업데이트
-    const { data: updatedBooking, error } = await (supabase as any)
+    const { data: updatedBooking, error } = await supabase
       .from('bookings')
       .update({
         ...filteredData,
@@ -186,6 +188,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     console.log('🔍 [BOOKING API] 예약 삭제 요청:', id);
 
@@ -197,7 +200,7 @@ export async function DELETE(
     }
 
     // 예약 삭제 (실제로는 soft delete 권장)
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('bookings')
       .delete()
       .eq('id', id);

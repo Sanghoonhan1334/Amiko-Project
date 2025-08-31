@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+
 
 interface AdminNotification {
   id: string;
   type: string;
   title: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
   priority: 'low' | 'normal' | 'high' | 'urgent';
   is_read: boolean;
   read_by?: string;
@@ -19,16 +19,6 @@ interface AdminNotification {
   target_roles: string[];
   created_at: string;
   expires_at?: string;
-}
-
-interface NotificationData {
-  notifications: AdminNotification[];
-  unreadCount: number;
-  pagination: {
-    limit: number;
-    offset: number;
-    total: number;
-  };
 }
 
 export default function AdminNotificationsPage() {
@@ -39,7 +29,7 @@ export default function AdminNotificationsPage() {
   const [userId, setUserId] = useState<string>(''); // 실제로는 인증에서 가져와야 함
 
   // 알림 목록 조회
-  const fetchNotifications = async (unreadOnly: boolean = false) => {
+  const fetchNotifications = useCallback(async (unreadOnly: boolean = false) => {
     if (!userId) return;
 
     try {
@@ -57,12 +47,12 @@ export default function AdminNotificationsPage() {
       } else {
         setError(result.error || '알림 조회에 실패했습니다.');
       }
-    } catch (err) {
-      setError('알림 조회 중 오류가 발생했습니다.');
+    } catch {
+      setError('알림을 가져오는 중 오류가 발생했습니다.')
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   // 알림 읽음 처리
   const markAsRead = async (notificationId: string) => {
@@ -171,7 +161,7 @@ export default function AdminNotificationsPage() {
     if (userId) {
       fetchNotifications();
     }
-  }, [userId]);
+  }, [userId, fetchNotifications]);
 
   if (loading) {
     return (

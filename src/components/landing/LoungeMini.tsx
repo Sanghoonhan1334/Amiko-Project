@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users, ArrowRight, Sparkles, Heart, Star } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
 
 export default function LoungeMini() {
   const router = useRouter()
@@ -25,6 +27,7 @@ export default function LoungeMini() {
   }
 
   const nextWeekend = getNextWeekend()
+
 
   return (
     <section className="section-padding bg-gradient-to-r from-sky-50 via-brand-50 to-mint-50 relative overflow-hidden">

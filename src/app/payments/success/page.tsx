@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +22,7 @@ function PaymentSuccessContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [paymentData, setPaymentData] = useState<PaymentSuccessData | null>(null)
-  const [booking, setBooking] = useState<any>(null)
+  const [booking, setBooking] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
     const processPaymentSuccess = async () => {
@@ -175,23 +175,23 @@ function PaymentSuccessContent() {
                 <div className="flex items-center">
                   <User className="w-4 h-4 mr-2 text-gray-600" />
                   <span className="text-gray-600 mr-2">상담사:</span>
-                  <span className="font-semibold">{booking.consultants?.name}</span>
+                  <span className="font-semibold">{typeof booking.consultants === 'object' && booking.consultants && 'name' in booking.consultants ? String(booking.consultants.name) : 'N/A'}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-gray-600" />
                   <span className="text-gray-600 mr-2">상담 일시:</span>
                   <span className="font-semibold">
-                    {new Date(booking.start_at).toLocaleString('ko-KR')}
+                    {typeof booking.start_at === 'string' ? new Date(booking.start_at).toLocaleString('ko-KR') : 'N/A'}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-2 text-gray-600" />
                   <span className="text-gray-600 mr-2">상담 시간:</span>
-                  <span className="font-semibold">{booking.duration}분</span>
+                  <span className="font-semibold">{typeof booking.duration === 'number' ? `${booking.duration}분` : 'N/A'}</span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-600 mr-2">상담 주제:</span>
-                  <span className="font-semibold">{booking.topic}</span>
+                  <span className="font-semibold">{typeof booking.topic === 'string' ? booking.topic : 'N/A'}</span>
                 </div>
               </div>
             </div>

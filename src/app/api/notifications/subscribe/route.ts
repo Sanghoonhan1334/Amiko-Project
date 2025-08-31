@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: Request) {
   try {
@@ -15,8 +15,10 @@ export async function POST(request: Request) {
       )
     }
 
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
     // 구독 정보 저장 또는 업데이트
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('push_subscriptions')
       .upsert({
         user_id: userId,
@@ -69,8 +71,10 @@ export async function DELETE(request: Request) {
       )
     }
 
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
     // 구독 정보 삭제
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('push_subscriptions')
       .delete()
       .eq('user_id', userId)

@@ -1,14 +1,13 @@
 // 인증 관련 유틸리티 함수들
 
 export interface UserProfile {
-  id?: string
-  kakao_linked_at?: string | null
-  wa_verified_at?: string | null
-  sms_verified_at?: string | null
-  email_verified_at?: string | null
-  is_korean?: boolean
-  country?: string
-  [key: string]: any
+  id: string
+  email: string
+  name?: string
+  phone?: string
+  role?: string
+  permissions?: string[]
+  [key: string]: unknown
 }
 
 /**
@@ -63,13 +62,16 @@ export function isKorean(profile: UserProfile | null): boolean {
  * @returns 권한 보유 여부
  */
 export function hasPermission(
-  profile: UserProfile | null, 
-  requiredPermissions: ('video_matching' | 'coupon_usage' | 'community_posting')[]
+  user: UserProfile | null,
+  _requiredPermissions: ('video_matching' | 'coupon_usage' | 'community_posting')[]
 ): boolean {
-  if (!isVerified(profile)) return false
+  if (!user) return false
   
-  // 기본 인증만으로 모든 권한 획득
-  return true
+  // 사용자 권한 확인
+  const userPermissions = user.permissions || []
+  
+  // 필요한 권한이 모두 있는지 확인
+  return _requiredPermissions.every(permission => userPermissions.includes(permission))
 }
 
 /**

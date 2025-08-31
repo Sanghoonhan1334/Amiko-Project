@@ -8,19 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
-  MessageCircle, 
-  Smartphone, 
-  Mail, 
   CheckCircle, 
   ArrowRight,
-  Sparkles,
   Shield,
   Clock,
   Zap,
-  Phone,
   MessageSquare,
   Check,
-  X,
   AlertCircle
 } from 'lucide-react'
 

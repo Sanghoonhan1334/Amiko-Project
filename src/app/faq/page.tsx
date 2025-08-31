@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Sparkles, Users, Calendar, Gift, Coffee } from 'lucide-react'
+import { MessageSquare, Sparkles, Users } from 'lucide-react'
 
 export default function FaqPage() {
   const faqs = [

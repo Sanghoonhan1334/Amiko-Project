@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Bell, BellOff, Check, Trash2, Settings } from 'lucide-react'
+import { BellOff, Check, Trash2, Settings } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { Notification, NotificationType } from '@/lib/notifications'
@@ -24,7 +23,7 @@ export default function NotificationsPage() {
   const limit = 20
 
   // 알림 목록 조회
-  const fetchNotifications = async (pageNum: number = 1, append: boolean = false) => {
+  const fetchNotifications = useCallback(async (pageNum: number = 1, append: boolean = false) => {
     if (!user) return
 
     try {
@@ -33,7 +32,7 @@ export default function NotificationsPage() {
       const unreadOnly = filter === 'unread'
       
       const response = await fetch(
-        `/api/notifications?userId=${user.id}&limit=${limit}&offset=${offset}&unreadOnly=${unreadOnly}`
+        `/api/notifications/${user.id}?limit=${limit}&offset=${offset}&unreadOnly=${unreadOnly}`
       )
       
       if (response.ok) {
@@ -51,19 +50,19 @@ export default function NotificationsPage() {
       } else {
         throw new Error('알림 조회에 실패했습니다.')
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, filter])
 
   // 컴포넌트 마운트 시 알림 조회
   useEffect(() => {
     if (user) {
       fetchNotifications(1, false)
     }
-  }, [user, filter])
+  }, [user, filter, fetchNotifications])
 
   // 필터 변경 시 페이지 초기화
   useEffect(() => {

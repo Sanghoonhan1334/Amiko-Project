@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { createServerComponentClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 상담사 목록 조회
 export async function GET() {
   try {
-    const supabase = createServerComponentClient();
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     const { data: consultants, error } = await supabase
       .from('consultants')
       .select('*')
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = createServerComponentClient();
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
     // 이메일 중복 확인
     const { data: existingConsultant } = await supabase
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
           sunday: []
         },
         is_active: is_active !== undefined ? is_active : true
-      } as any)
+      })
       .select()
       .single()
 

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // orderId로 booking_id 찾기
 async function findBookingIdByOrderId(orderId: string): Promise<string> {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: booking, error } = await supabase
       .from('bookings')
       .select('id')
@@ -36,6 +37,8 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[CONFIRM] 결제 확인 요청:', { paymentKey, orderId, amount });
+
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     // Toss Secret Key 확인
     const secretKey = process.env.TOSS_SECRET_KEY;
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     // Supabase 테이블 존재 여부 확인
     try {
-      const { data: tableCheck, error: tableError } = await supabase
+      const { error: tableError } = await supabase
         .from('payments')
         .select('id')
         .limit(1);
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 중복 결제 방지: orderId로 기존 결제 확인
-      const { data: existingPayment, error: checkError } = await supabase
+      const { data: existingPayment } = await supabase
         .from('payments')
         .select('id, amount, status, payment_key')
         .eq('order_id', orderId)
@@ -157,7 +160,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Supabase payments 테이블에 저장/업데이트
-      let payment;
+      let dbPaymentData;
       if (existingPayment) {
         // 기존 결제 정보 업데이트
         const { data: updatedPayment, error } = await supabase
@@ -179,7 +182,7 @@ export async function POST(request: NextRequest) {
           console.error('[CONFIRM] 결제 업데이트 실패:', error);
           throw error;
         }
-        payment = updatedPayment;
+        dbPaymentData = updatedPayment;
       } else {
         // 새 결제 정보 저장
         const { data: newPayment, error } = await supabase
@@ -202,10 +205,10 @@ export async function POST(request: NextRequest) {
           console.error('[CONFIRM] 결제 저장 실패:', error);
           throw error;
         }
-        payment = newPayment;
+        dbPaymentData = newPayment;
       }
 
-              console.log('[CONFIRM] Supabase 저장/업데이트 성공:', payment);
+      console.log('[CONFIRM] Supabase 저장/업데이트 성공:', dbPaymentData);
 
     } catch (dbError) {
       console.error('[CONFIRM] DB 처리 중 오류:', dbError);
@@ -226,7 +229,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[CONFIRM] 결제 확인 처리 실패:', error);
     return NextResponse.json(
       { success: false, message: '결제 확인 처리 중 오류가 발생했습니다.' },

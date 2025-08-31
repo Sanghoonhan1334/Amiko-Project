@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { emailService } from '@/lib/email-service'
 
 // CORS 프리: 내부 API이므로 CORS 설정 불필요
 
 export async function POST(request: Request) {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    
     const body = await request.json()
     console.log('[BOOKING] 받은 데이터:', body)
     
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     // 상담사 정보 조회 및 예약 가능 시간 체크
-    const { data: consultant, error: consultantError } = await (supabase as any)
+    const { data: consultant, error: consultantError } = await supabase
       .from('consultants')
       .select('*')
       .eq('id', consultantId)
@@ -66,7 +68,7 @@ export async function POST(request: Request) {
     }
 
     // 기존 예약과 시간 충돌 체크
-    const { data: conflictingBookings, error: conflictError } = await (supabase as any)
+    const { data: conflictingBookings, error: conflictError } = await supabase
       .from('bookings')
       .select('*')
       .eq('consultant_id', consultantId)
@@ -86,7 +88,7 @@ export async function POST(request: Request) {
     const orderId = `order-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
     // Supabase에 예약 저장
-    const { data: booking, error } = await (supabase as any)
+    const { data: booking, error } = await supabase
       .from('bookings')
       .insert({
         user_id: userId,
@@ -114,7 +116,7 @@ export async function POST(request: Request) {
     console.log('[BOOKING] 생성됨:', booking)
 
     // 사용자 정보 조회 (이메일 발송용)
-    const { data: user, error: userError } = await (supabase as any)
+    const { data: user, error: userError } = await supabase
       .from('users')
       .select('email, name')
       .eq('id', userId)
@@ -158,6 +160,8 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     
@@ -169,7 +173,7 @@ export async function GET(request: Request) {
     }
 
     // 기본 예약 정보만 조회 (JOIN 제거)
-    const { data: bookings, error } = await (supabase as any)
+    const { data: bookings, error } = await supabase
       .from('bookings')
       .select('*')
       .eq('user_id', userId)

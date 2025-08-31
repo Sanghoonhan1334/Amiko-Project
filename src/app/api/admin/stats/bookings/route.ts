@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET() {
   try {
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     // 전체 예약 통계
     const { data: totalData, error: totalError } = await supabase
       .from('bookings')
@@ -36,7 +37,7 @@ export async function GET() {
       recent: recentBookings || []
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[ADMIN] 예약 통계 처리 실패:', error)
     return NextResponse.json(
       { success: false, message: '예약 통계 처리 중 오류가 발생했습니다.' },

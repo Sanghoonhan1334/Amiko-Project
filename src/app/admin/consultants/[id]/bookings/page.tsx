@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { formatTimeOnly, formatDateOnly } from '@/lib/timezone'
+
 
 interface Consultant {
   id: string
@@ -36,7 +36,6 @@ interface Booking {
 
 export default function ConsultantBookingsPage() {
   const params = useParams()
-  const router = useRouter()
   const consultantId = params.id as string
   
   const [consultant, setConsultant] = useState<Consultant | null>(null)
@@ -67,8 +66,8 @@ export default function ConsultantBookingsPage() {
         const bookingsData = await bookingsResponse.json()
         setBookings(bookingsData.bookings || [])
         setFilteredBookings(bookingsData.bookings || [])
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       } finally {
         setLoading(false)
       }

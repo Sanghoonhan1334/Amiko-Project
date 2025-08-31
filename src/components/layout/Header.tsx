@@ -6,20 +6,16 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
 import { 
-  Sparkles, 
   Play, 
-  Smartphone, 
   Users, 
   Menu, 
-  X,
-  Home,
-  MessageSquare,
-  Calendar,
-  User,
-  Settings,
-  Sun,
-  Moon,
-  Globe
+  X, 
+  MessageSquare, 
+  Calendar, 
+  User, 
+  Settings, 
+  Globe,
+  Home
 } from 'lucide-react'
 
 export default function Header() {
@@ -94,9 +90,7 @@ export default function Header() {
   }
 
   // 현재 페이지에 따른 버튼 표시 조건
-  const isMainPage = pathname === '/main'
   const isLoungePage = pathname === '/lounge'
-  const isAuthPage = pathname === '/sign-up' || pathname === '/sign-in' || pathname === '/verify'
   const isLandingPage = pathname === '/'
 
   return (

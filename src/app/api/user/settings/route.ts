@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // 사용자 설정 조회
 export async function GET(request: Request) {
@@ -13,6 +13,8 @@ export async function GET(request: Request) {
         { status: 400 }
       )
     }
+
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     // 사용자 설정 조회 (user_preferences 테이블)
     const { data: preferences, error } = await supabase
@@ -64,6 +66,8 @@ export async function PUT(request: Request) {
         { status: 400 }
       )
     }
+
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
     // user_preferences 테이블에 설정 저장 (upsert)
     const { error } = await supabase

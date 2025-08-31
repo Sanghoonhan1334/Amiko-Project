@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   request: NextRequest,
@@ -17,29 +17,21 @@ export async function GET(
 
     console.log('[PAYMENT] 결제 상태 조회:', paymentKey);
 
-    // Supabase에서 결제 정보 조회
-    const { data: payment, error } = await (supabase as any)
-      .from('payments')
-      .select(`
-        *,
-        bookings (
-          id,
-          topic,
-          start_at,
-          end_at,
-          price_cents,
-          status
-        )
-      `)
-      .eq('payment_key', paymentKey)
-      .single();
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-    if (error) {
-      console.error('[PAYMENT] 결제 조회 실패:', error);
+    // 결제 정보 조회
+    const { data: payment, error: fetchError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('payment_key', paymentKey)
+      .single()
+
+    if (fetchError) {
+      console.error('❌ 결제 정보 조회 실패:', fetchError)
       return NextResponse.json(
-        { success: false, message: '결제 정보를 찾을 수 없습니다.' },
+        { success: false, error: '결제 정보를 찾을 수 없습니다.' },
         { status: 404 }
-      );
+      )
     }
 
     return NextResponse.json({
@@ -58,7 +50,7 @@ export async function GET(
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[PAYMENT] 결제 조회 처리 실패:', error);
     return NextResponse.json(
       { success: false, message: '결제 조회 중 오류가 발생했습니다.' },

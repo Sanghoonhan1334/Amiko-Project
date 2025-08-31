@@ -69,42 +69,10 @@ export default function PaymentButton({
       });
 
       console.log("✅ Toss Payments 결제 요청 완료");
-    } catch (error: any) {
-      console.error("❌ Toss Payments 결제 요청 실패:", error);
-      
-      // 에러 상세 정보 로깅 (개발자용)
-      console.log("🔍 에러 상세 정보:");
-      console.log("  - 에러 타입:", typeof error);
-      console.log("  - 에러 메시지:", error?.message);
-      console.log("  - 에러 이름:", error?.name);
-      console.log("  - 에러 스택:", error?.stack);
-      
-      // 사용자 친화적인 에러 메시지
-      let userMessage = "결제를 시작할 수 없습니다.";
-      let isUserCancelled = false;
-      
-      if (error?.message?.includes("취소")) {
-        userMessage = "결제가 취소되었습니다.";
-        isUserCancelled = true;
-      } else if (error?.message?.includes("timeout")) {
-        userMessage = "결제 시간이 초과되었습니다. 다시 시도해주세요.";
-      } else if (error?.message?.includes("network")) {
-        userMessage = "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.";
-      } else if (error?.message?.includes("key")) {
-        userMessage = "결제 설정에 문제가 있습니다. 관리자에게 문의해주세요.";
-      }
-      
-      // 사용자에게는 간단한 메시지만 표시
-      console.log("💬 사용자 메시지:", userMessage);
-      
-      // 취소된 경우는 alert를 표시하지 않음 (사용자가 의도적으로 취소한 것)
-      if (!isUserCancelled) {
-        alert(userMessage);
-      } else {
-        console.log("✅ 사용자가 의도적으로 결제를 취소했습니다.");
-      }
+    } catch (error: unknown) {
+      console.error('결제 처리 실패:', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 

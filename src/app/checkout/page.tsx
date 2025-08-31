@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,7 +25,7 @@ function CheckoutContent() {
   const [isFormValid, setIsFormValid] = useState(false);
 
   // 내부 API 호출 - CORS 프리
-  const fetchServiceInfo = async () => {
+  const fetchServiceInfo = useCallback(async () => {
     try {
       console.log('🔍 [CHECKOUT] 네트워크 요청 Origin 확인:');
       console.log('📍 요청 URL:', `/api/services/${service}`);
@@ -45,11 +45,11 @@ function CheckoutContent() {
     } catch (error) {
       console.error('서비스 정보 조회 실패:', error);
     }
-  };
+  }, [service]);
 
   useEffect(() => {
     fetchServiceInfo();
-  }, [service]);
+  }, [service, fetchServiceInfo]);
 
   // 폼 유효성 검사
   useEffect(() => {
@@ -76,39 +76,23 @@ function CheckoutContent() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handlePaymentSuccess = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
     try {
-      console.log('🔍 [CHECKOUT] 결제 성공 후 예약 정보 저장:');
-      console.log('📍 요청 URL:', '/api/payments/create');
-      console.log('📍 Origin:', window.location.origin);
-      console.log('📍 Same-Origin:', true);
-      
-      // 결제 성공 후 내부 API로 예약 정보 저장
-      const response = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          service: selectedService, 
-          ...formData,
-          status: 'paid'
-        })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        console.log('✅ 예약 정보 저장 성공:', result.data);
-        // 성공 페이지로 리다이렉트
-        window.location.href = `/payments/success?orderId=${result.data.orderId}`;
-      } else {
-        throw new Error(result.message || '예약 생성 실패');
+      // 폼 데이터 검증
+      if (!isFormValid) {
+        console.log('모든 필수 필드를 입력해주세요.')
+        return
       }
+
+      console.log('폼이 제출되었습니다!')
+      console.log('폼 데이터:', formData)
       
-    } catch (error) {
-      console.error('예약 정보 저장 실패:', error);
-      alert('예약 정보 저장에 실패했습니다. 고객센터로 문의해주세요.');
+    } catch (err: unknown) {
+      console.error('오류 발생:', err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 py-8">

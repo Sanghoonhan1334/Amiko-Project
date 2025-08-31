@@ -61,7 +61,7 @@ export interface Coupon {
   id: string
   type: string
   quantity: number
-  expiresAt: string
+  expiresAt?: string
   isUsed: boolean
   price: string
 }

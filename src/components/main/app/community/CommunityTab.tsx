@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Plus, 
@@ -15,19 +14,16 @@ import {
   ThumbsUp, 
   User, 
   Clock, 
-  Tag,
   Award,
   TrendingUp,
   Star,
-  Zap,
-  Heart,
   Eye,
-  Calendar,
   Target
 } from 'lucide-react'
 import VerificationGuard from '@/components/common/VerificationGuard'
 import StoryCarousel from './StoryCarousel'
 import { useLanguage } from '@/context/LanguageContext'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 
 // 포인트 시스템 정의
 const pointSystem = {
@@ -48,7 +44,7 @@ const pointSystem = {
 }
 
 // 카테고리 정의 함수
-const getCategories = (t: any) => [
+const getCategories = (t: (key: string) => string) => [
   { id: 'beauty', name: t('communityTab.categories.beauty'), icon: '💄', color: 'bg-pink-100 text-pink-700 border-pink-300' },
   { id: 'fashion', name: t('communityTab.categories.fashion'), icon: '👗', color: 'bg-purple-100 text-purple-700 border-purple-300' },
   { id: 'travel', name: t('communityTab.categories.travel'), icon: '✈️', color: 'bg-blue-100 text-blue-700 border-blue-300' },
@@ -157,7 +153,7 @@ export default function CommunityTab() {
   const [showAnswerDrawer, setShowAnswerDrawer] = useState(false)
   
   // 좋아요 상태 관리
-  const [likedAnswers, setLikedAnswers] = useState<Set<string>>(new Set())
+  const [likedAnswers, setLikedAnswers] = useState<Set<number>>(new Set())
   
   // 질문 작성 폼 상태
   const [questionForm, setQuestionForm] = useState({
@@ -175,6 +171,7 @@ export default function CommunityTab() {
   // Mock user profile for testing verification guard
   const mockUserProfile = {
     id: 'user-1',
+    email: 'user1@example.com',
     kakao_linked_at: null,
     wa_verified_at: null,
     sms_verified_at: null,
@@ -186,6 +183,7 @@ export default function CommunityTab() {
   // Mock verified user profile for testing success state
   const mockVerifiedUserProfile = {
     id: 'user-2',
+    email: 'user2@example.com',
     kakao_linked_at: null,
     wa_verified_at: '2024-01-15T10:00:00Z',
     sms_verified_at: null,
@@ -251,9 +249,9 @@ export default function CommunityTab() {
   }
 
   // 답변 좋아요 숫자 관리
-  const [answerUpvotes, setAnswerUpvotes] = useState<{ [key: string]: number }>(() => {
+  const [answerUpvotes, setAnswerUpvotes] = useState<{ [key: number]: number }>(() => {
     // mockAnswers의 upvotes 값으로 초기화
-    const initialUpvotes: { [key: string]: number } = {}
+          const initialUpvotes: { [key: number]: number } = {}
     mockAnswers.forEach(answer => {
       initialUpvotes[answer.id] = answer.upvotes
     })
@@ -272,7 +270,7 @@ export default function CommunityTab() {
   }>>([])
 
   // 답변 좋아요 토글 처리
-  const handleAnswerLike = (answerId: string) => {
+  const handleAnswerLike = (answerId: number) => {
     const isCurrentlyLiked = likedAnswers.has(answerId)
     
     if (isCurrentlyLiked) {
@@ -336,13 +334,13 @@ export default function CommunityTab() {
 
   // 활동 설명 생성 함수
   const getActivityDescription = (activity: string, points: number) => {
-    const descriptions = {
+    const descriptions: Record<string, string> = {
       question: '질문 작성',
       answer: '답변 작성', 
       reaction: '좋아요/댓글',
       consultation: '상담 참여'
     }
-    return `${descriptions[activity]} (+${points}점)`
+    return `${descriptions[activity] || '활동'} (+${points}점)`
   }
 
   // 답변 등록 처리
@@ -376,10 +374,7 @@ export default function CommunityTab() {
     return `${Math.floor(diffInHours / 24)}일 전`
   }
 
-  // 탭 변경 감지 함수
-  const handleTabChange = () => {
-    // 스토리 섹션의 상태를 리셋하기 위한 콜백
-  }
+
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
@@ -391,7 +386,7 @@ export default function CommunityTab() {
       />
 
       {/* 스토리 섹션 */}
-      <StoryCarousel onTabChange={handleTabChange} />
+      <StoryCarousel />
 
       {/* 포인트 규칙 안내 배너 */}
       <Card className="p-4 sm:p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer !opacity-100 !transform-none">

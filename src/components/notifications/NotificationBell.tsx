@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Bell, BellOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,7 +19,7 @@ export default function NotificationBell({ className }: NotificationBellProps) {
   const [loading, setLoading] = useState(false)
 
   // 알림 목록 조회
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return
 
     try {
@@ -54,7 +54,7 @@ export default function NotificationBell({ className }: NotificationBellProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   // 컴포넌트 마운트 시 알림 조회
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function NotificationBell({ className }: NotificationBellProps) {
     const interval = setInterval(fetchNotifications, 30000)
     
     return () => clearInterval(interval)
-  }, [user])
+  }, [user, fetchNotifications])
 
   // 알림 읽음 처리
   const markAsRead = async (notificationId: string) => {

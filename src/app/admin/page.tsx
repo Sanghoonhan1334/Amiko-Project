@@ -9,8 +9,8 @@ interface DashboardStats {
   totalRevenue: number;
   totalBookings: number;
   totalUsers: number;
-  recentPayments: any[];
-  recentBookings: any[];
+  recentPayments: Record<string, unknown>[];
+  recentBookings: Record<string, unknown>[];
 }
 
 export default function AdminDashboard() {
@@ -151,20 +151,20 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-3">
               {stats.recentPayments.length > 0 ? (
-                stats.recentPayments.map((payment: any) => (
-                  <div key={payment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                stats.recentPayments.map((payment: Record<string, unknown>) => (
+                  <div key={String(payment.id)} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-sm">{payment.order_id}</p>
-                      <p className="text-xs text-gray-500">{payment.method}</p>
+                      <p className="font-medium text-sm">{typeof payment.order_id === 'string' ? payment.order_id : 'N/A'}</p>
+                      <p className="text-xs text-gray-500">{typeof payment.method === 'string' ? payment.method : 'N/A'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-sm">₩{safeToLocaleString(payment.amount)}</p>
+                      <p className="font-medium text-sm">₩{safeToLocaleString(typeof payment.amount === 'number' ? payment.amount : 0)}</p>
                       <p className={`text-xs px-2 py-1 rounded-full ${
                         payment.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                         payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {payment.status}
+                        {typeof payment.status === 'string' ? payment.status : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -189,22 +189,22 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-3">
               {stats.recentBookings.length > 0 ? (
-                stats.recentBookings.map((booking: any) => (
-                  <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                stats.recentBookings.map((booking: Record<string, unknown>) => (
+                  <div key={String(booking.id)} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-sm">{booking.topic}</p>
+                      <p className="font-medium text-sm">{typeof booking.topic === 'string' ? booking.topic : 'N/A'}</p>
                       <p className="text-xs text-gray-500">
-                        {booking.start_at ? new Date(booking.start_at).toLocaleDateString() : '날짜 없음'}
+                        {typeof booking.start_at === 'string' ? new Date(booking.start_at).toLocaleDateString() : '날짜 없음'}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-sm">₩{safeToLocaleString(booking.price)}</p>
+                      <p className="font-medium text-sm">₩{safeToLocaleString(typeof booking.price === 'number' ? booking.price : 0)}</p>
                       <p className={`text-xs px-2 py-1 rounded-full ${
                         booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                         booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {booking.status}
+                        {typeof booking.status === 'string' ? booking.status : 'N/A'}
                       </p>
                     </div>
                   </div>

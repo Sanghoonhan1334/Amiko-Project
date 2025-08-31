@@ -24,7 +24,7 @@ export default function Navbar() {
       await signOut()
       router.push('/')
       alert('로그아웃되었습니다.')
-    } catch (error) {
+    } catch {
       alert('로그아웃 중 오류가 발생했습니다.')
     }
   }
