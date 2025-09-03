@@ -16,6 +16,7 @@ export const translations = {
     community: '커뮤니티',
     profileMenu: '프로필',
     settings: '설정',
+    videoCall: '화상 통화',
     
     // 달력
     calendar: {
@@ -78,7 +79,7 @@ export const translations = {
     // 기능 카드들
     features: {
       meeting: {
-        title: '만남 (Video llamada)',
+        title: '영상소통 (Video llamada)',
         description: '한국인 친구와 15분 무료 상담으로 가볍게 시작할 수 있어요',
         videoSupport: '화상 상담 지원',
         verifiedFriends: '검증된 한국인 친구',
@@ -109,7 +110,7 @@ export const translations = {
     
     // 메인페이지
     main: {
-      meet: '만남',
+      meet: '영상소통',
       community: '커뮤니티',
       me: '내 정보',
       meetDescription: '한국인 친구와 화상 상담을 통해 한국 문화를 배워보세요',
@@ -175,7 +176,67 @@ export const translations = {
       specialEventsDescription: '정기적으로 특별 이벤트와 선물을 제공해요',
       ctaTitle: '지금 바로 ZEP 라운지에 참여해보세요!',
       ctaDescription: '한국 문화를 배우고 새로운 친구를 만날 수 있는 특별한 시간',
-      ctaInstruction: '🎈 위의 "ZEP 입장하기" 버튼을 클릭하여 라운지에 참여하세요'
+      ctaInstruction: '🎈 위의 "ZEP 입장하기" 버튼을 클릭하여 라운지에 참여하세요',
+      timezone: {
+        myTime: '내 시간'
+      },
+      filters: {
+        topic: '주제',
+        language: '언어',
+        level: '난이도',
+        price: '무료/유료',
+        reset: '필터 초기화',
+        topics: {
+          freeTalk: '자유 대화',
+          kCulture: '한국 문화',
+          travel: '여행',
+          food: '음식'
+        },
+        languages: {
+          korean: '한국어',
+          spanish: '스페인어',
+          english: '영어'
+        },
+        levels: {
+          beginner: '초급',
+          intermediate: '중급',
+          advanced: '고급'
+        },
+        priceOptions: {
+          all: '전체',
+          free: '무료',
+          paid: '유료'
+        }
+      },
+      sessions: {
+        upcoming: '다가오는 세션',
+        seatsLeft: '잔여석',
+        startsAt: '시작',
+        joinNow: '입장하기'
+      },
+      highlights: {
+        title: '하이라이트 스토리',
+        subtitle: '지난 라운지 참여자들의 베스트 순간'
+      },
+      guide: {
+        title: '라운지 가이드 & FAQ',
+        etiquette: {
+          title: '에티켓',
+          content: '상대방을 존중하고 배려하는 마음으로 대화해요. 욕설, 비하, 스팸은 금지입니다.'
+        },
+        verification: {
+          title: '본인인증',
+          content: '안전하고 신뢰할 수 있는 공간을 위해 간단한 본인 인증을 권장합니다.'
+        },
+        points: {
+          title: '포인트 안내',
+          content: '참여와 기여에 따라 포인트를 획득할 수 있으며, 추후 다양한 혜택으로 교환할 수 있어요.'
+        }
+      },
+      mobileCta: {
+        todayStart: '오늘 {{time}} 시작',
+        enterNow: '입장하기'
+      }
     },
     
     // 라운지 미니
@@ -215,6 +276,9 @@ export const translations = {
     
     // 커뮤니티 탭
     communityTab: {
+      story: '스토리',
+      qa: 'Q&A',
+      lounge: '라운지',
       todayStory: '오늘의 스토리',
       uploadStory: '+ 스토리 올리기',
       askQuestion: '+ 질문하기',
@@ -240,7 +304,64 @@ export const translations = {
       myQuestions: '내 질문',
       myAnswers: '내 답변',
       pointsAcquired: '획득 포인트',
-      upvotesReceived: '받은 좋아요'
+      upvotesReceived: '받은 좋아요',
+      loungeHooks: {
+        thisWeekLounge: '이번 주 라운지',
+        joinSpecialTime: '운영자와 함께하는 특별한 시간에 참여하세요',
+        goToLounge: '라운지 가기',
+        specialReward: '특별 보상',
+        points: '포인트',
+        nativeAdTitle: '🎈 라운지에서 특별한 시간을 보내세요!',
+        nativeAdDescription: '매주 토요일 저녁, 운영자와 함께하는 한국 문화 수다타임',
+        seatsRemaining: '석 남음',
+        joinNow: '지금 참여',
+        sponsored: '후원',
+        loungeParticipation: '라운지 참여',
+        specialBonusPoints: '특별 보너스 포인트 획득',
+        nextLounge: '다음 라운지',
+        rewards: '보상',
+        weeklySchedule: '매주 토요일 정기 운영',
+        whatWeDoInLounge: '라운지에서 하는 일'
+      }
+    },
+
+    // 라운지 리워드 모달
+    loungeReward: {
+      welcome: '라운지에 오신 것을 환영합니다!',
+      pointsEarned: '포인트 획득',
+      pointsDescription: '라운지 참여로 특별 포인트를 받았습니다',
+      specialBenefits: '라운지 특별 혜택',
+      networkingOpportunity: '네트워킹 기회',
+      meetNewFriends: '새로운 친구들을 만나보세요',
+      languageExchange: '언어 교환',
+      practiceLanguage: '자연스러운 언어 연습',
+      specialEvents: '특별 이벤트',
+      weeklySpecialEvents: '매주 특별한 이벤트 참여',
+      showGuide: '가이드 보기',
+      startNow: '지금 시작',
+      quickGuide: '라운지 이용 가이드',
+      guide: {
+        step1: {
+          title: '자기소개하기',
+          description: '간단히 인사하고 자신을 소개해보세요'
+        },
+        step2: {
+          title: '대화 참여하기',
+          description: '관심 있는 주제에 자유롭게 참여하세요'
+        },
+        step3: {
+          title: '즐기기',
+          description: '문화 교류를 통해 즐거운 시간을 보내세요'
+        }
+      },
+      back: '이전',
+      gotIt: '확인했어요'
+    },
+
+    // 라운지 참여자
+    loungeParticipants: {
+      noParticipants: '아직 참여자가 없어요',
+      participants: '명 참여 중'
     },
     
     // 포인트 현황
@@ -424,6 +545,7 @@ export const translations = {
     community: 'Comunidad',
     profileMenu: 'Perfil',
     settings: 'Configuración',
+    videoCall: 'Video llamada',
     
     // 달력
     calendar: {
@@ -486,7 +608,7 @@ export const translations = {
     // 기능 카드들
     features: {
       meeting: {
-        title: 'Encuentro (Video llamada)',
+        title: 'Comunicación por Video (Video llamada)',
         description: 'Puedes comenzar fácilmente con una consulta gratuita de 15 minutos con un amigo coreano',
         videoSupport: 'Soporte de consulta por video',
         verifiedFriends: 'Amigos coreanos verificados',
@@ -534,12 +656,72 @@ export const translations = {
       specialEventsDescription: 'Proporcionamos eventos especiales y regalos regularmente',
       ctaTitle: '¡Participa en la sala ZEP ahora mismo!',
       ctaDescription: 'Tiempo especial para aprender cultura coreana y hacer nuevos amigos',
-      ctaInstruction: '🎈 Haz clic en el botón "Entrar a ZEP" de arriba para participar en la sala'
+      ctaInstruction: '🎈 Haz clic en el botón "Entrar a ZEP" de arriba para participar en la sala',
+      timezone: {
+        myTime: 'Mi hora'
+      },
+      filters: {
+        topic: 'Tema',
+        language: 'Idioma',
+        level: 'Nivel',
+        price: 'Gratis/Pago',
+        reset: 'Restablecer',
+        topics: {
+          freeTalk: 'Charla libre',
+          kCulture: 'Cultura coreana',
+          travel: 'Viajes',
+          food: 'Comida'
+        },
+        languages: {
+          korean: 'Coreano',
+          spanish: 'Español',
+          english: 'Inglés'
+        },
+        levels: {
+          beginner: 'Principiante',
+          intermediate: 'Intermedio',
+          advanced: 'Avanzado'
+        },
+        priceOptions: {
+          all: 'Todos',
+          free: 'Gratis',
+          paid: 'Pago'
+        }
+      },
+      sessions: {
+        upcoming: 'Próximas sesiones',
+        seatsLeft: 'Plazas',
+        startsAt: 'Inicio',
+        joinNow: 'Entrar'
+      },
+      highlights: {
+        title: 'Historias destacadas',
+        subtitle: 'Mejores momentos de participantes anteriores'
+      },
+      guide: {
+        title: 'Guía y Preguntas Frecuentes',
+        etiquette: {
+          title: 'Etiqueta',
+          content: 'Conversa con respeto y consideración. Prohibido insultos, discriminación y spam.'
+        },
+        verification: {
+          title: 'Verificación',
+          content: 'Para un espacio seguro y confiable, recomendamos una verificación simple.'
+        },
+        points: {
+          title: 'Puntos',
+          content: 'Puedes ganar puntos por participar y contribuir; canjeables por beneficios más adelante.'
+        }
+      },
+      mobileCta: {
+        todayStart: 'Hoy comienza a las {{time}}',
+        enterNow: 'Entrar'
+      }
     },
     
     // 메인페이지
     main: {
-      meet: 'Encuentro',
+      meet: 'Comunicación por Video',
       community: 'Comunidad',
       me: 'Mi Perfil',
       meetDescription: 'Aprende cultura coreana con amigos coreanos a través de consultas por video',
@@ -623,6 +805,9 @@ export const translations = {
     
     // 커뮤니티 탭
     communityTab: {
+      story: 'Historia',
+      qa: 'P&R',
+      lounge: 'Sala',
       todayStory: 'Historia de hoy',
       uploadStory: '+ Subir historia',
       askQuestion: '+ Hacer pregunta',
@@ -648,7 +833,64 @@ export const translations = {
       myQuestions: 'Mis preguntas',
       myAnswers: 'Mis respuestas',
       pointsAcquired: 'Puntos obtenidos',
-      upvotesReceived: 'Me gusta recibidos'
+      upvotesReceived: 'Me gusta recibidos',
+      loungeHooks: {
+        thisWeekLounge: 'Sala de esta semana',
+        joinSpecialTime: 'Participa en tiempo especial con el operador',
+        goToLounge: 'Ir a la sala',
+        specialReward: 'Recompensa especial',
+        points: 'puntos',
+        nativeAdTitle: '🎈 ¡Disfruta de un momento especial en la sala!',
+        nativeAdDescription: 'Todos los sábados por la noche, charla sobre cultura coreana con el operador',
+        seatsRemaining: 'plazas restantes',
+        joinNow: 'Participar ahora',
+        sponsored: 'Patrocinado',
+        loungeParticipation: 'Participación en sala',
+        specialBonusPoints: 'Obtener puntos de bonificación especial',
+        nextLounge: 'Próxima sala',
+        rewards: 'Recompensas',
+        weeklySchedule: 'Operación regular todos los sábados',
+        whatWeDoInLounge: 'Qué hacemos en la sala'
+      }
+    },
+
+    // 라운지 리워드 모달
+    loungeReward: {
+      welcome: '¡Bienvenido a la sala!',
+      pointsEarned: 'puntos obtenidos',
+      pointsDescription: 'Has recibido puntos especiales por participar en la sala',
+      specialBenefits: 'Beneficios especiales de la sala',
+      networkingOpportunity: 'Oportunidad de networking',
+      meetNewFriends: 'Conoce nuevos amigos',
+      languageExchange: 'Intercambio de idiomas',
+      practiceLanguage: 'Práctica natural del idioma',
+      specialEvents: 'Eventos especiales',
+      weeklySpecialEvents: 'Participa en eventos especiales semanales',
+      showGuide: 'Ver guía',
+      startNow: 'Comenzar ahora',
+      quickGuide: 'Guía de uso de la sala',
+      guide: {
+        step1: {
+          title: 'Presentarte',
+          description: 'Saluda brevemente y preséntate'
+        },
+        step2: {
+          title: 'Participar en conversaciones',
+          description: 'Participa libremente en temas que te interesen'
+        },
+        step3: {
+          title: 'Disfrutar',
+          description: 'Pasa un momento agradable a través del intercambio cultural'
+        }
+      },
+      back: 'Anterior',
+      gotIt: 'Entendido'
+    },
+
+    // 라운지 참여자
+    loungeParticipants: {
+      noParticipants: 'Aún no hay participantes',
+      participants: 'participando'
     },
     
     // 포인트 현황

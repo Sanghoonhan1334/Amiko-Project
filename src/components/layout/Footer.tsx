@@ -23,17 +23,21 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-12">
         {/* 메인 푸터 콘텐츠 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-          {/* 브랜드 섹션 */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">
-                Amiko
-              </div>
-              <div className="text-xl animate-pulse">✨</div>
-            </div>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              {t('footer.description')}
-            </p>
+                     {/* 브랜드 섹션 */}
+           <div>
+             <div className="flex items-end gap-2 -mt-8 mb-0">
+               <div className="flex items-center gap-2">
+                 <img 
+                   src="/amiko-foto.png" 
+                   alt="Amiko" 
+                   className="h-32 w-auto object-contain"
+                   style={{ maxHeight: '128px' }}
+                 />
+               </div>
+             </div>
+             <p className="text-gray-600 text-sm leading-relaxed -mt-8">
+               {t('footer.description')}
+             </p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Heart className="w-4 h-4 text-pink-500" />
               <span>{t('footer.madeWithLove')}</span>
@@ -97,8 +101,15 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* 저작권 */}
           <div className="text-center md:text-left">
-            <p className="text-gray-600 text-sm">
-              © {currentYear} Amiko. {t('footer.copyright').replace('© 2025 Amiko. ', '')}
+            <p className="text-gray-600 text-sm flex items-center gap-2 justify-center md:justify-start">
+              <span>© {currentYear}</span>
+              <img 
+                src="/amiko-foto.png" 
+                alt="Amiko" 
+                className="h-4 w-auto object-contain"
+                style={{ maxHeight: '16px' }}
+              />
+              <span>. {t('footer.copyright').replace('© 2025 Amiko. ', '')}</span>
             </p>
             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
               <Link href="/privacy" className="hover:text-brand-600 transition-colors duration-300">

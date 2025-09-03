@@ -75,7 +75,6 @@ export default function MeetTab() {
   const { t } = useLanguage()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCoupon, setSelectedCoupon] = useState('')
-  const [sortBy, setSortBy] = useState('activityScore')
 
 
   // Mock user profile for testing verification guard
@@ -154,17 +153,7 @@ export default function MeetTab() {
     return matchesSearch
   })
 
-  // 정렬
-  const sortedMentors = [...filteredMentors].sort((a, b) => {
-    switch (sortBy) {
-      case 'activityScore':
-        return b.activityScore - a.activityScore
-      case 'name':
-        return a.name.localeCompare(b.name)
-      default:
-        return 0
-    }
-  })
+
 
   return (
     <div className="space-y-6 p-6">
@@ -193,16 +182,7 @@ export default function MeetTab() {
           
 
           
-          {/* 정렬 기준 */}
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full min-w-32">
-              <SelectValue placeholder="정렬 기준" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border border-gray-200 shadow-lg">
-              <SelectItem value="activityScore">{t('meetTab.byActivityScore')}</SelectItem>
-              <SelectItem value="name">{t('meetTab.byName')}</SelectItem>
-            </SelectContent>
-          </Select>
+
         </div>
 
         {/* 액션 버튼들 */}
@@ -231,7 +211,7 @@ export default function MeetTab() {
 
           {/* 빠른 매칭 버튼 */}
           <Button 
-            className="bg-brand-500 hover:bg-brand-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 whitespace-nowrap w-full"
+            className="bg-pink-500 hover:bg-pink-600 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 whitespace-nowrap w-full"
             onClick={handleQuickMatching}
           >
             <Zap className="w-4 h-4 mr-2" />
@@ -242,7 +222,7 @@ export default function MeetTab() {
 
               {/* 친구 카드 리스트 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {sortedMentors.map((mentor) => (
+        {filteredMentors.map((mentor) => (
                           <Card key={mentor.id} className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-brand-200 !opacity-100 !transform-none">
             {/* 친구 정보 */}
             <div className="text-center mb-2">
@@ -303,8 +283,8 @@ export default function MeetTab() {
 
             {/* 상세 정보 */}
             <div className="mb-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">활동점수</span>
+              <div className="flex items-center justify-center text-sm">
+                <span className="text-gray-600 mr-2">별점</span>
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 text-yellow-500" />
                   <span className="font-medium text-gray-700">{mentor.activityScore}</span>
@@ -329,11 +309,11 @@ export default function MeetTab() {
 
             {/* 액션 버튼 */}
             <div className="space-y-2">
-              <Button className="w-full bg-brand-500 hover:bg-brand-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+              <Button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
                 <Video className="w-4 h-4 mr-2" />
                 {t('meetTab.bookConsultation')}
               </Button>
-              <Button variant="outline" className="w-full border-brand-300 text-brand-700 hover:bg-brand-50 hover:border-brand-400">
+              <Button variant="outline" className="w-full border-pink-300 text-pink-700 hover:bg-pink-50 hover:border-pink-400 font-medium">
                 {t('meetTab.viewProfile')}
               </Button>
             </div>
@@ -342,7 +322,7 @@ export default function MeetTab() {
       </div>
 
       {/* 결과 없음 */}
-      {sortedMentors.length === 0 && (
+      {filteredMentors.length === 0 && (
         <Card className="p-12 text-center">
           <div className="text-4xl mb-4">🔍</div>
           <h3 className="text-lg font-semibold text-gray-800 mb-2">검색 결과가 없습니다</h3>

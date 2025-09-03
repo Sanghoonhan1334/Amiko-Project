@@ -86,6 +86,53 @@
   .badge-sky {
     @apply bg-sky-100 text-sky-700;
   }
+  
+  /* 스크롤바 숨기기 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
+  /* 햄버거 메뉴 애니메이션 */
+  .hamburger-menu-icon {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hamburger-menu-icon.open {
+    transform: rotate(180deg);
+  }
+  
+  .hamburger-line {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hamburger-line:nth-child(1) {
+    transform-origin: center;
+  }
+  
+  .hamburger-line:nth-child(2) {
+    transform-origin: center;
+  }
+  
+  .hamburger-line:nth-child(3) {
+    transform-origin: center;
+  }
+  
+  .hamburger-menu-icon.open .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  
+  .hamburger-menu-icon.open .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .hamburger-menu-icon.open .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
 }
 
 /* 파스텔 그라데이션 배경 & 블롭 */

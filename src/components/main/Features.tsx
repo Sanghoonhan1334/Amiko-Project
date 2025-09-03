@@ -54,10 +54,10 @@ export default function Features() {
         {/* 섹션 제목 */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Amiko만의 특별한 장점
+            왜 Amiko를 선택해야 할까요?
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            다른 곳에서는 경험할 수 없는 Amiko만의 특별한 서비스를 확인하세요
+            한국과 남미를 잇는 진정한 문화 교류 플랫폼
           </p>
         </div>
         
@@ -87,13 +87,14 @@ export default function Features() {
         
         {/* 추가 정보 */}
         <div className="mt-16 text-center">
-          <div className="bg-white rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              모든 장점을 한 번에 경험해보세요
+          <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-8 shadow-lg max-w-4xl mx-auto text-white">
+            <h3 className="text-2xl font-bold mb-4">
+              지금 시작해보세요
             </h3>
-            <p className="text-gray-600 text-lg">
-              Amiko는 단순한 언어 학습을 넘어서, 진정한 한국 문화 경험을 제공합니다. 
-              지금 바로 시작하여 Amiko만의 특별한 서비스를 경험해보세요.
+            <p className="text-white/90 text-lg">
+              안전하고 신뢰할 수 있는 환경에서 진정한 한국 문화를 경험하세요. 
+              <br />
+              Amiko와 함께 한국과 남미를 잇는 특별한 여정을 시작하세요.
             </p>
           </div>
         </div>
