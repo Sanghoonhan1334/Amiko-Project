@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -173,10 +173,10 @@ export default function Hero() {
 
           {/* 커스텀 네비게이션 버튼 */}
           <div className="swiper-button-prev !w-12 !h-12 !bg-transparent !border !border-gray-300 !rounded-full !text-gray-400 hover:!bg-gray-50 transition-all duration-300 !top-1/2 !-translate-y-1/2 !left-4">
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronsLeft className="w-5 h-5" />
           </div>
           <div className="swiper-button-next !w-12 !h-12 !bg-transparent !border !border-gray-300 !rounded-full !text-gray-400 hover:!bg-gray-50 transition-all duration-300 !top-1/2 !-translate-y-1/2 !right-4">
-            <ChevronRight className="w-5 h-5" />
+            <ChevronsRight className="w-5 h-5" />
           </div>
 
           {/* 커스텀 페이지네이션 */}
