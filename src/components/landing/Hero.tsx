@@ -116,7 +116,7 @@ export default function Hero() {
                       </div>
                       
                       {/* 오른쪽: 작은 텍스트들 */}
-                      <div className="flex-1 space-y-6">
+                      <div className="flex-1 space-y-6 -ml-8">
                         <p className="text-gray-600 text-lg leading-relaxed">
                           서로의 나라에 대한 좋은 이미지를 가지고 그들을 만나기 위해 화상 채팅 어플을 사용했던 경험이 있으신가요?
                         </p>
