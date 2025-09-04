@@ -40,6 +40,8 @@ export default function Hero() {
             spaceBetween={0}
             slidesPerView={1}
             navigation={false}
+            allowTouchMove={true}
+            mousewheel={true}
             pagination={{
               clickable: true,
               el: '.swiper-pagination',
@@ -47,7 +49,7 @@ export default function Hero() {
               bulletActiveClass: 'swiper-pagination-bullet-active'
             }}
 
-            className="w-full h-[700px] relative z-10"
+            className="w-full h-screen relative z-10"
             onInit={(swiper) => {
               // Swiper 초기화 시 전역 인스턴스 설정
               ;(window as any).swiperInstance = swiper
@@ -74,7 +76,7 @@ export default function Hero() {
           >
             {/* 회사소개 섹션 */}
             <SwiperSlide>
-              <div className="text-center h-full overflow-y-auto scrollbar-hide">
+              <div className="text-center h-screen overflow-y-auto pb-20">
           <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-3xl px-6 py-3 mb-8 shadow-2xl border border-white/30">
             <Sparkles className="w-5 h-5 text-white" />
                   <span className="text-white font-medium">한국과 남미를 잇는 다리</span>
@@ -202,7 +204,7 @@ export default function Hero() {
 
             {/* 대화 섹션 */}
             <SwiperSlide>
-              <div className="text-center h-full overflow-y-auto scrollbar-hide">
+              <div className="text-center h-screen overflow-y-auto pb-20">
                 <h2 className="text-4xl font-bold text-white mb-8 drop-shadow-2xl">대화</h2>
                 <p className="text-xl text-white/90 mb-8">안전하고 신뢰할 수 있는 영상통화 연결 서비스</p>
                 
@@ -229,18 +231,18 @@ export default function Hero() {
                     </div>
                   </div>
                   
-                  <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/30 mb-6">
+                  <div className="bg-white/20 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/30 mb-8">
                     <h3 className="text-2xl font-bold text-white mb-4">⚠️ 온라인에서의 신뢰가 걱정되시나요?</h3>
                     <p className="text-white/80 text-lg leading-relaxed mb-4">
                       인터넷에서 만나는 사람들이 정말 믿을 만한지,
                       <br />
                       혹시 사기나 불쾌한 경험을 당하지 않을까 걱정되시나요?
                     </p>
-                    <div className="bg-white/10 rounded-xl p-4">
-                      <p className="text-yellow-300 font-semibold text-lg mb-2">
+                    <div className="bg-white/10 rounded-xl p-6">
+                      <p className="text-yellow-300 font-semibold text-lg mb-3">
                         👉 Amiko의 보안 시스템:
                       </p>
-                      <p className="text-white/90 text-base">
+                      <p className="text-white/90 text-base leading-relaxed">
                         오직 인증된 사용자만 참여 가능하며,
                         <br />
                         부정 행위가 발생하면 즉시 인증 정보를 통해 차단됩니다.
@@ -250,18 +252,18 @@ export default function Hero() {
                     </div>
                   </div>
 
-                  <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/30">
+                  <div className="bg-white/20 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/30 mb-8">
                     <h3 className="text-2xl font-bold text-white mb-4">🌍 언어 장벽 때문에 망설이셨나요?</h3>
                     <p className="text-white/80 text-lg leading-relaxed mb-4">
                       한국어를 잘 몰라서,
                       <br />
                       혹은 스페인어가 서툴러서 대화가 끊길까 걱정되시나요?
                     </p>
-                    <div className="bg-white/10 rounded-xl p-4">
-                      <p className="text-yellow-300 font-semibold text-lg mb-2">
+                    <div className="bg-white/10 rounded-xl p-6">
+                      <p className="text-yellow-300 font-semibold text-lg mb-3">
                         👉 Amiko의 AI 통역 기능:
                       </p>
-                      <ul className="text-white/90 text-base space-y-2">
+                      <ul className="text-white/90 text-base space-y-3">
                         <li>• 영상통화 중 실시간 AI 통역 제공</li>
                         <li>• 한국어 ↔ 스페인어가 자동 변환되어<br />
                         &nbsp;&nbsp;&nbsp;언어 실력이 부족해도 원활한 소통이 가능합니다.</li>
@@ -320,7 +322,7 @@ export default function Hero() {
                 </div>
 
                 {/* 다음 섹션 안내 */}
-                <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/30 mt-8">
+                <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/30 mt-8 mb-12">
                   <div className="flex items-center justify-center space-x-4">
                     <span className="text-white/80 text-lg">오른쪽으로 넘기시면</span>
                     <span className="text-yellow-300 font-semibold text-xl">커뮤니티 기능</span>
