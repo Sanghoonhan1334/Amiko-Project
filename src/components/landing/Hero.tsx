@@ -62,7 +62,7 @@ export default function Hero() {
             <SwiperSlide>
               <div className="min-h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
-                <div className="flex items-center justify-between py-10">
+                <div className="flex items-center justify-between py-20">
                   {/* 왼쪽 콘텐츠 */}
                   <div className="flex-1 max-w-2xl">
                     <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-blue-200/30">
