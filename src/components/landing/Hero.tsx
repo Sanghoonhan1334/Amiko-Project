@@ -89,123 +89,73 @@ export default function Hero() {
                   </div>
                 </div>
 
-
-              </div>
-            </SwiperSlide>
-
-            {/* 두 번째 슬라이드 - 메인 히어로 (기존 첫 번째) */}
-            <SwiperSlide>
-              <div className="min-h-[600px] py-20">
-                {/* 메인 콘텐츠 */}
-                <div className="max-w-6xl mx-auto px-4">
-                  {/* 제목과 설명 */}
-                  <div className="text-center mb-12">
-                    <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                      지구 반대편과 소통하세요.
-                    </h1>
-                    
-                    <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                      Amiko <span className="underline decoration-purple-300 decoration-2">커뮤니티 서비스</span>
-                    </h2>
-                    
-                    <p className="text-gray-600 text-lg leading-relaxed max-w-3xl mx-auto">
-                      Amiko는 지구 반대편을 연결하는 다리입니다. 커뮤니티를 통해 서로의 문화에 더욱 가까이 다가가보세요.
-                    </p>
-                  </div>
-                  
-                  {/* 3개 기능 카드 - 가로 배치 */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* 01 K-Trand 카드 */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                          <span className="text-orange-600 font-bold text-sm">NEWS</span>
-                        </div>
-                        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">01</span>
+                {/* 하단 흰색 배경 섹션 */}
+                <div className="bg-white py-6">
+                  <div className="container-custom max-w-6xl mx-auto px-4">
+                    <div className="flex flex-col lg:flex-row items-start gap-12">
+                      {/* 왼쪽: 큰 텍스트 */}
+                      <div className="flex-1 flex justify-center -ml-8">
+                        <h2 className="text-3xl font-normal text-gray-900 leading-tight mt-12 font-['Noto_Sans_KR']">
+                          검증된 한국인 튜터들이<br />
+                          여러분들과 함께합니다.
+                        </h2>
                       </div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">K-Trand</h3>
-                      <p className="text-gray-600 text-sm">
-                        한국인이 직접 전하는 정확하고 빠른 K-Trand, Amiko에서 경험해보세요.
-                      </p>
-                    </div>
 
-                    {/* 02 자유게시판 카드 */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <span className="text-blue-600 text-xl">💬</span>
-                        </div>
-                        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">02</span>
+                      {/* 오른쪽: 작은 텍스트들 */}
+                      <div className="flex-1 flex flex-col gap-4 -ml-12 mr-8">
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          • 한국어를 배우고 싶은 외국인들을 위한 맞춤형 커리큘럼
+                        </p>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          • 한국 문화와 언어를 함께 배우는 체계적인 교육 시스템
+                        </p>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          • 실시간 화상 통화를 통한 생생한 한국어 학습 경험
+                        </p>
                       </div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">자유게시판</h3>
-                      <p className="text-gray-600 text-sm">
-                        K-POP게시판, K-DRAMA게시판 여행 게시판, 자유 게시판을 통해 자유로운 소통을 경험해보세요.
-                      </p>
-                    </div>
-
-                    {/* 03 Q&A 카드 */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                          <span className="text-green-600 text-xl">❓</span>
-                        </div>
-                        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">03</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">Q&A</h3>
-                      <p className="text-gray-600 text-sm">
-                        Q&A 커뮤니티를 통해 서로에게 궁금한 점들을 질문하고 현지인에게 직접 답변을 받아보세요.
-                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </SwiperSlide>
 
-            {/* 세 번째 슬라이드 - 회사소개 */}
+            {/* 두 번째 슬라이드 - 홈 (Amiko의 목표) */}
             <SwiperSlide>
-              <div className="min-h-[600px] py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-                <div className="max-w-4xl mx-auto px-4">
-                  <div className="space-y-8">
-                    {/* 첫 번째 카드 */}
-                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
-                      <div className="flex flex-col items-center text-center">
-                        <img 
-                          src="/1.png" 
-                          alt="AMIKO Logo 1" 
-                          className="w-32 h-32 object-contain mb-4"
-                        />
-                        <p className="text-gray-700 text-lg">
-                          : AMI(America) KO(Korea)를 잇다.
-                        </p>
-                      </div>
+              <div className="min-h-screen flex items-center justify-center py-20">
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                  <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-8 border border-blue-200/30">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                    <span className="text-blue-700 font-medium text-sm">Amiko의 목표</span>
+                  </div>
+                  
+                  <h2 className="text-4xl font-bold text-gray-900 mb-8 leading-tight">
+                    언어와 문화의 장벽을 허물고<br />
+                    <span className="text-blue-600">진정한 소통</span>을 만들어갑니다
+                  </h2>
+                  
+                  <div className="grid md:grid-cols-3 gap-8 mt-12">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg">
+                      <div className="text-4xl mb-4">🌍</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">글로벌 커뮤니티</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        전 세계 사람들이 언어의 장벽 없이 자유롭게 소통할 수 있는 플랫폼을 제공합니다.
+                      </p>
                     </div>
-
-                    {/* 두 번째 카드 */}
-                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
-                      <div className="flex flex-col items-center text-center">
-                        <img 
-                          src="/2.png" 
-                          alt="AMIKO Logo 2" 
-                          className="w-32 h-32 object-contain mb-4"
-                        />
-                        <p className="text-gray-700 text-lg">
-                          : <span className="text-red-500">AM</span>erica와 <span className="text-blue-500">KO</span>rea를 이어주는 다리
-                        </p>
-                      </div>
+                    
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg">
+                      <div className="text-4xl mb-4">🎯</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">맞춤형 학습</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        개인의 수준과 목표에 맞는 맞춤형 커리큘럼으로 효율적인 언어 학습을 지원합니다.
+                      </p>
                     </div>
-
-                    {/* 세 번째 카드 */}
-                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
-                      <div className="flex flex-col items-center text-center">
-                        <img 
-                          src="/3.png" 
-                          alt="AMIKO Logo 3" 
-                          className="w-32 h-32 object-contain mb-4"
-                        />
-                        <p className="text-gray-700 text-lg">
-                          : A mí(나에게) Korea를 더 가깝게
-                        </p>
-                      </div>
+                    
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg">
+                      <div className="text-4xl mb-4">🤝</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">문화 교류</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        단순한 언어 학습을 넘어 문화적 이해와 상호 존중을 바탕으로 한 진정한 교류를 추구합니다.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -258,10 +208,6 @@ export default function Hero() {
           </div>
         </div>
       </div>
-
-
-
-      
 
       {/* 비디오 모달 */}
       {showVideo && (

@@ -261,9 +261,9 @@ export default function Header() {
                   // 랜딩페이지 네비게이션 - 홈과 회사소개 탭
                   <>
                     <button 
-                      onClick={() => handleNavClick(0)}
+                      onClick={() => router.push('/')}
                       className={`font-semibold transition-all duration-300 ${
-                        activeSlide === 0 
+                        pathname === '/' 
                           ? 'text-blue-600' 
                           : 'text-gray-800 hover:text-gray-600'
                       }`}
@@ -271,9 +271,9 @@ export default function Header() {
                       홈
                     </button>
                     <button 
-                      onClick={() => handleNavClick(2)}
+                      onClick={() => router.push('/about')}
                       className={`font-semibold transition-all duration-300 ${
-                        activeSlide === 2 
+                        pathname === '/about' 
                           ? 'text-blue-600' 
                           : 'text-gray-800 hover:text-gray-600'
                       }`}
