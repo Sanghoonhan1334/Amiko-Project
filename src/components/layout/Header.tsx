@@ -241,22 +241,21 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-8 z-10">
-              <div className="flex items-center gap-8">
-                {/* 로고 */}
-                <div className="pointer-events-none">
-                  <img 
-                    src="/amiko-foto.png" 
-                    alt="Amiko" 
-                    className="h-32 w-auto object-contain transition-all duration-300 pointer-events-none"
-                    style={{ 
-                      maxHeight: '128px'
-                    }}
-                  />
-                </div>
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-4 z-10 flex flex-col items-center">
+              {/* 로고 */}
+              <div className="pointer-events-none mb-4">
+                <img 
+                  src="/amiko-foto.png" 
+                  alt="Amiko" 
+                  className="h-32 w-auto object-contain transition-all duration-300 pointer-events-none"
+                  style={{ 
+                    maxHeight: '128px'
+                  }}
+                />
+              </div>
 
-                                {/* 네비게이션 */}
-                <nav className="flex space-x-8">
+              {/* 네비게이션 */}
+              <nav className="flex space-x-8">
                   {isLandingPage ? (
                     // 랜딩페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                     <>
