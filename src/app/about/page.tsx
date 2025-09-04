@@ -117,6 +117,61 @@ export default function AboutPage() {
                 </div>
               </div>
             </SwiperSlide>
+
+            {/* 대표자 소개 텍스트 슬라이드 */}
+            <SwiperSlide>
+              <div className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+                <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-4">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 sm:p-12 lg:p-16 border border-gray-200/50 shadow-lg">
+                    <div className="text-center mb-8">
+                      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+                        안녕하세요.
+                      </h2>
+                    </div>
+                    
+                    <div className="space-y-6 text-left">
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        Amiko를 찾아주셔서 감사합니다.
+                      </p>
+                      
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        Amiko의 CTO 한상훈(Samuel), CMO 박겸(Pablo)입니다.
+                      </p>
+                      
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        저희는 여러 남미 국가에서 살며 그들의 문화와 사람들을 진심으로 사랑하게 되었습니다.
+                      </p>
+                      
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        최근 한국의 다양한 매체를 통해 남미의 아름다움이 소개되면서, 많은 한국인들이 점차 지구 반대편의 매력적인 대륙에 대해 알아가고 있습니다.
+                      </p>
+                      
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        이러한 경험을 통해 한국과 남미를 더욱 가깝게 연결할 수 있는 문화 교류와 커뮤니티의 필요성을 깊이 느끼게 되었습니다.
+                      </p>
+                      
+                      <p className="text-gray-700 text-lg leading-relaxed font-semibold">
+                        그래서 다짐했습니다. 한국과 남미를 이어주는 다리를 만들자.
+                      </p>
+                      
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        Amiko는 화상 통화와 커뮤니티 서비스를 기반으로, 철저히 검증된 멤버십을 통해 신뢰할 수 있는 플랫폼을 제공합니다.
+                      </p>
+                      
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        단순한 소통을 넘어 한국의 트렌드, 패션, K-POP, 라이프스타일까지 공유할 수 있는 커뮤니티로 발전해 나가겠습니다.
+                      </p>
+                      
+                      <div className="text-center mt-12">
+                        <p className="text-2xl font-bold text-gray-900">
+                          Amiko를 통해 서로에게 가까이 다가가보세요.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SwiperSlide>
           </Swiper>
 
           {/* 커스텀 네비게이션 버튼 */}
