@@ -241,13 +241,13 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 z-10">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-6 z-10">
               <div className="flex items-center group">
                 <img 
                   src="/amiko-foto.jpg" 
                   alt="Amiko" 
-                  className="h-32 w-auto object-contain group-hover:scale-105 transition-all duration-300"
-                  style={{ maxHeight: '128px' }}
+                  className="h-40 w-auto object-contain group-hover:scale-105 transition-all duration-300"
+                  style={{ maxHeight: '160px' }}
                 />
               </div>
             </div>
