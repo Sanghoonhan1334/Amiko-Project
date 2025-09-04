@@ -255,33 +255,43 @@ export default function Header() {
                   />
                 </div>
 
-                {/* 네비게이션 */}
+                                {/* 네비게이션 */}
                 <nav className="flex space-x-8">
-                {isLandingPage ? (
-                  // 랜딩페이지 네비게이션 - 홈과 회사소개 탭
-                  <>
-                    <button 
-                      onClick={() => router.push('/')}
-                      className={`font-semibold transition-all duration-300 ${
-                        pathname === '/' 
-                          ? 'text-blue-600' 
-                          : 'text-gray-800 hover:text-gray-600'
-                      }`}
-                    >
-                      홈
-                    </button>
-                    <button 
-                      onClick={() => router.push('/about')}
-                      className={`font-semibold transition-all duration-300 ${
-                        pathname === '/about' 
-                          ? 'text-blue-600' 
-                          : 'text-gray-800 hover:text-gray-600'
-                      }`}
-                    >
-                      회사소개
-                    </button>
-                  </>
-                ) : isMainPage ? (
+                  {isLandingPage ? (
+                    // 랜딩페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의
+                    <>
+                      <button 
+                        onClick={() => router.push('/')}
+                        className={`font-semibold transition-all duration-300 ${
+                          pathname === '/' 
+                            ? 'text-blue-600' 
+                            : 'text-gray-800 hover:text-gray-600'
+                        }`}
+                      >
+                        홈
+                      </button>
+                      <button 
+                        onClick={() => router.push('/about')}
+                        className={`font-semibold transition-all duration-300 ${
+                          pathname === '/about' 
+                            ? 'text-blue-600' 
+                            : 'text-gray-800 hover:text-gray-600'
+                        }`}
+                      >
+                        회사소개
+                      </button>
+                      <button 
+                        className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
+                      >
+                        문의
+                      </button>
+                      <button 
+                        className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
+                      >
+                        제휴문의
+                      </button>
+                    </>
+                  ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex space-x-8">
                     <button 
