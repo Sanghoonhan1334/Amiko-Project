@@ -173,7 +173,11 @@ export default function Hero() {
 
           {/* 커스텀 네비게이션 버튼 */}
           <button 
-            onClick={() => swiperRef.current?.slidePrev()}
+            onClick={() => {
+              if (swiperRef.current && swiperRef.current.swiper) {
+                swiperRef.current.swiper.slidePrev()
+              }
+            }}
             className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-lg transition-all duration-300"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +186,11 @@ export default function Hero() {
           </button>
           
           <button 
-            onClick={() => swiperRef.current?.slideNext()}
+            onClick={() => {
+              if (swiperRef.current && swiperRef.current.swiper) {
+                swiperRef.current.swiper.slideNext()
+              }
+            }}
             className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-lg transition-all duration-300"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
