@@ -98,10 +98,6 @@ export default function AboutPage() {
             <SwiperSlide>
               <div className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="max-w-4xl mx-auto px-4 text-center">
-                  <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-8 border border-blue-200/30">
-                    <span className="text-blue-700 font-medium text-sm">🎬 대표자 소개영상</span>
-                  </div>
-                  
                   <h2 className="text-4xl font-bold text-gray-900 mb-8 leading-tight">
                     대표자 소개영상
                   </h2>
