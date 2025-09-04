@@ -93,6 +93,39 @@ export default function AboutPage() {
                 </div>
               </div>
             </SwiperSlide>
+
+            {/* 소개 영상 슬라이드 */}
+            <SwiperSlide>
+              <div className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                  <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-8 border border-blue-200/30">
+                    <span className="text-blue-700 font-medium text-sm">🎬 소개 영상</span>
+                  </div>
+                  
+                  <h2 className="text-4xl font-bold text-gray-900 mb-8 leading-tight">
+                    Amiko를 더 자세히 알아보세요
+                  </h2>
+                  
+                  <p className="text-gray-600 text-lg leading-relaxed mb-12 max-w-2xl mx-auto">
+                    Amiko의 비전과 미션, 그리고 우리가 추구하는 가치에 대해 소개 영상을 통해 자세히 알아보세요.
+                  </p>
+                  
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg max-w-3xl mx-auto">
+                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-6xl mb-4">🎥</div>
+                        <p className="text-gray-600 text-lg">
+                          소개 영상이 여기에 표시됩니다
+                        </p>
+                        <p className="text-gray-500 text-sm mt-2">
+                          (실제 영상 URL로 교체 예정)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SwiperSlide>
           </Swiper>
 
           {/* 커스텀 네비게이션 버튼 */}
