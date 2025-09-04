@@ -250,7 +250,8 @@ export default function Header() {
                   style={{ 
                     maxHeight: '192px',
                     mixBlendMode: 'multiply',
-                    filter: 'contrast(1.1) brightness(1.05)'
+                    filter: 'contrast(1.2) brightness(1.1) saturate(1.1)',
+                    backgroundColor: 'transparent'
                   }}
                 />
               </div>
