@@ -259,47 +259,43 @@ export default function Header() {
             <div className="absolute left-1/2 transform -translate-x-1/2 top-20 z-10">
               <nav className="flex space-x-8">
                 {isLandingPage ? (
-                  // 랜딩페이지 네비게이션
+                  // 랜딩페이지 네비게이션 - 예시 사진 스타일
                   <>
                     <button 
+                      onClick={() => router.push('/main')}
+                      className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
+                    >
+                      홈
+                    </button>
+                    <button 
                       onClick={() => handleNavClick(0)}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`font-semibold transition-all duration-300 ${
                         activeSlide === 0 
-                          ? 'text-brand-500 scale-110' 
-                          : 'text-gray-800 hover:text-brand-500'
+                          ? 'text-blue-600' 
+                          : 'text-gray-800 hover:text-gray-600'
                       }`}
                     >
                       회사소개
                     </button>
                     <button 
                       onClick={() => handleNavClick(1)}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`font-semibold transition-all duration-300 ${
                         activeSlide === 1 
-                          ? 'text-brand-500 scale-110' 
-                          : 'text-gray-800 hover:text-brand-500'
+                          ? 'text-blue-600' 
+                          : 'text-gray-800 hover:text-gray-600'
                       }`}
                     >
-                      대화
+                      문의
                     </button>
                     <button 
                       onClick={() => handleNavClick(2)}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`font-semibold transition-all duration-300 ${
                         activeSlide === 2 
-                          ? 'text-brand-500 scale-110' 
-                          : 'text-gray-800 hover:text-brand-500'
+                          ? 'text-blue-600' 
+                          : 'text-gray-800 hover:text-gray-600'
                       }`}
                     >
-                      커뮤니티
-                    </button>
-                    <button 
-                      onClick={() => handleNavClick(3)}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
-                        activeSlide === 3 
-                          ? 'text-brand-500 scale-110' 
-                          : 'text-gray-800 hover:text-brand-500'
-                      }`}
-                    >
-                      시상이벤트
+                      제휴문의
                     </button>
                   </>
                 ) : isMainPage ? (
@@ -400,28 +396,26 @@ export default function Header() {
             <div className="hidden md:flex items-center gap-2 relative z-20">
               {/* 메인페이지로 이동 버튼 - 랜딩 페이지에서만 표시 */}
               {isLandingPage && (
-                <div className="relative">
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={() => router.push('/main')}
+                    className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    시작하기
+                  </Button>
+                  
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/main')}
-                    className={`px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-500 border border-gray-200 relative z-10 ${
-                      highlightMainButton 
-                        ? 'scale-110 shadow-lg border-yellow-400 bg-yellow-50' 
-                        : ''
-                    }`}
-                    title="메인페이지로 이동"
+                    onClick={toggleLanguage}
+                    className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                    title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
                   >
-                    <Home className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
+                    <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
                     <span className="text-xs md:text-sm font-medium">
-                      메인페이지
+                      {language === 'ko' ? t('korean') : t('spanish')}
                     </span>
                   </Button>
-                  
-                  {/* 하이라이트 효과 */}
-                  {highlightMainButton && (
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400/20 to-orange-400/20 animate-pulse scale-125 transition-all duration-500"></div>
-                  )}
                 </div>
               )}
               
