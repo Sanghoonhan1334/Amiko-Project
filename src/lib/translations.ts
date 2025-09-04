@@ -523,8 +523,7 @@ export const translations = {
       storyImage: '스토리 이미지'
     },
     
-    // 비디오 통화
-    videoCall: 'Video llamada',
+
     
     // 푸터
     footer: {
