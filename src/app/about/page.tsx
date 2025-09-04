@@ -97,12 +97,12 @@ export default function AboutPage() {
             {/* 소개 영상 슬라이드 */}
             <SwiperSlide>
               <div className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-                <div className="max-w-4xl mx-auto px-4 text-center">
+                <div className="w-full max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl mx-auto px-4 text-center">
                   <h2 className="text-4xl font-bold text-gray-900 mb-8 leading-tight">
                     대표자 소개영상
                   </h2>
                   
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-8xl mx-auto">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
                         src="https://www.youtube.com/embed/6BdrKjSMBJY?autoplay=0&rel=0"
