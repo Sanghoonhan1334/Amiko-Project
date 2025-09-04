@@ -281,26 +281,6 @@ export default function Header() {
                     >
                       회사소개
                     </button>
-                    <button 
-                      onClick={() => handleNavClick(2)}
-                      className={`font-semibold transition-all duration-300 ${
-                        activeSlide === 2 
-                          ? 'text-blue-600' 
-                          : 'text-gray-800 hover:text-gray-600'
-                      }`}
-                    >
-                      문의
-                    </button>
-                    <button 
-                      onClick={() => handleNavClick(3)}
-                      className={`font-semibold transition-all duration-300 ${
-                        activeSlide === 3 
-                          ? 'text-blue-600' 
-                          : 'text-gray-800 hover:text-gray-600'
-                      }`}
-                    >
-                      제휴문의
-                    </button>
                   </>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
