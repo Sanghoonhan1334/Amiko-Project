@@ -78,21 +78,7 @@ export default function Hero() {
                       자체 플랫폼을 통한 1:1 화상 미팅 시스템과 AI 통역 서비스로 막힘없이, 간편하게, 서로의 문화와 언어를 교류할 수 있습니다.
                     </p>
                     
-                    <div className="flex gap-4">
-                      <Button 
-                        onClick={() => router.push('/main?tab=meet')}
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
-                      >
-                        시작하기
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        onClick={() => setShowVideo(true)}
-                        className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-medium transition-all duration-300"
-                      >
-                        소개 영상 보기
-                      </Button>
-                    </div>
+                    
                   </div>
 
                   {/* 오른쪽 이미지 영역 */}
