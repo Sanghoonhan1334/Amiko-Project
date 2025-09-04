@@ -185,12 +185,13 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
       setIsJoined(true)
     } catch (error) {
       console.error('Failed to join channel:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
       })
-      alert(`채널 참여에 실패했습니다: ${error.message}`)
+      alert(`채널 참여에 실패했습니다: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -209,7 +210,8 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
       setIsJoined(false)
       onEndCall()
     } catch (error) {
-      console.error('Failed to leave channel:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Failed to leave channel:', errorMessage)
     }
   }
 
@@ -226,7 +228,8 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
           await agoraClientRef.current.publish(localAudioTrack)
           console.log('마이크 발행됨')
         } catch (error) {
-          console.error('마이크 발행 실패:', error)
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          console.error('마이크 발행 실패:', errorMessage)
           // 발행 실패 시 트랙 비활성화
           localAudioTrack.setEnabled(false)
           return
@@ -278,7 +281,8 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
           console.log('카메라 발행 완료')
           
         } catch (error) {
-          console.error('카메라 켜기 실패:', error)
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          console.error('카메라 켜기 실패:', errorMessage)
           localVideoTrack.setEnabled(false)
           setIsVideoEnabled(false)
         }
