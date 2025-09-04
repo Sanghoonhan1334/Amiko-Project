@@ -242,16 +242,13 @@ export default function Header() {
 
             {/* 중앙: 로고 */}
             <div className="absolute left-1/2 transform -translate-x-1/2 -top-4 z-10">
-              <div className="flex items-center gap-2 group">
+              <div className="flex items-center group">
                 <img 
-                  src="/amiko-foto.png" 
+                  src="/amiko-foto.jpeg" 
                   alt="Amiko" 
                   className="h-32 w-auto object-contain group-hover:scale-105 transition-all duration-300"
                   style={{ maxHeight: '128px' }}
                 />
-                <div className="text-2xl animate-pulse group-hover:animate-bounce">
-                  ✨
-                </div>
               </div>
             </div>
 
