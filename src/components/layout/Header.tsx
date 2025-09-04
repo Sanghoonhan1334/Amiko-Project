@@ -258,29 +258,13 @@ export default function Header() {
             <div className="absolute left-1/2 transform -translate-x-1/2 top-20 z-10">
               <nav className="flex space-x-8">
                 {isLandingPage ? (
-                  // 랜딩페이지 네비게이션 - 홈 탭 고정
-                  <>
-                    <button 
-                      onClick={() => handleNavClick(0)}
-                      className={`font-semibold transition-all duration-300 ${
-                        activeSlide === 0 
-                          ? 'text-blue-600' 
-                          : 'text-gray-800 hover:text-gray-600'
-                      }`}
-                    >
-                      홈
-                    </button>
-                    <button 
-                      onClick={() => handleNavClick(1)}
-                      className={`font-semibold transition-all duration-300 ${
-                        activeSlide === 1 
-                          ? 'text-blue-600' 
-                          : 'text-gray-800 hover:text-gray-600'
-                      }`}
-                    >
-                      홈
-                    </button>
-                  </>
+                  // 랜딩페이지 네비게이션 - 홈 탭 하나만
+                  <button 
+                    onClick={() => handleNavClick(0)}
+                    className="font-semibold transition-all duration-300 text-blue-600"
+                  >
+                    홈
+                  </button>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex space-x-8">
