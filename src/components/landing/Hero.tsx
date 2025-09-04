@@ -217,6 +217,34 @@ export default function Hero() {
         </div>
       </div>
 
+      {/* 하단 흰색 배경 섹션 */}
+      <div className="bg-white py-16">
+        <div className="container-custom max-w-6xl mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-start gap-12">
+            {/* 왼쪽: 큰 텍스트 */}
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold text-gray-900 leading-tight">
+                검증된 한국인 튜터들이<br />
+                여러분들과 함께합니다.
+              </h2>
+            </div>
+            
+            {/* 오른쪽: 작은 텍스트들 */}
+            <div className="flex-1 space-y-6">
+              <p className="text-gray-600 text-lg leading-relaxed">
+                서로의 나라에 대한 좋은 이미지를 가지고 그들을 만나기 위해 화상 채팅 어플을 사용했던 경험이 있으신가요?
+              </p>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                혹시 그 경험이 당신에게 실망으로 다가오시지는 않으셨나요?
+              </p>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Amiko는 검증된 한국인 튜터들과 별점 시스템을 통해 좋은 경험을 여러분들께 선사합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 비디오 모달 */}
       {showVideo && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
