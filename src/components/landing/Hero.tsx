@@ -104,7 +104,7 @@ export default function Hero() {
                 </div>
 
                 {/* 하단 흰색 배경 섹션 */}
-                <div className="bg-white py-12">
+                <div className="bg-white py-6">
                   <div className="container-custom max-w-6xl mx-auto px-4">
                     <div className="flex flex-col lg:flex-row items-start gap-12">
                       {/* 왼쪽: 큰 텍스트 */}
