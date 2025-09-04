@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import HomeTab from '@/components/main/app/home/HomeTab'
 import MeetTab from '@/components/main/app/meet/MeetTab'
@@ -8,7 +8,7 @@ import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'
 import { useLanguage } from '@/context/LanguageContext'
 
-export default function AppPage() {
+function AppPageContent() {
   const { t } = useLanguage()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -126,5 +126,13 @@ export default function AppPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AppPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen body-gradient pt-40 flex items-center justify-center">Loading...</div>}>
+      <AppPageContent />
+    </Suspense>
   )
 }
