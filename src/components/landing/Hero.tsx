@@ -60,45 +60,50 @@ export default function Hero() {
           >
             {/* 첫 번째 슬라이드 - 홈 (사진과 동일하게) */}
             <SwiperSlide>
-              <div className="flex items-center justify-between min-h-[600px] py-20">
-                {/* 왼쪽 콘텐츠 */}
-                <div className="flex-1 max-w-2xl">
-                  <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-blue-200/30">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                    <span className="text-blue-700 font-medium text-sm">Amiko에 탑재된 AI 통역과 함께</span>
+              <div className="min-h-screen flex flex-col">
+                {/* 상단 메인 콘텐츠 */}
+                <div className="flex items-center justify-between flex-1 py-20">
+                  {/* 왼쪽 콘텐츠 */}
+                  <div className="flex-1 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-blue-200/30">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      <span className="text-blue-700 font-medium text-sm">Amiko에 탑재된 AI 통역과 함께</span>
+                    </div>
+                    
+                    <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                      화상으로 소통하세요
+                    </h1>
+                    
+                    <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                      자체 플랫폼을 통한 1:1 화상 미팅 시스템과 AI 통역 서비스로 막힘없이, 간편하게, 서로의 문화와 언어를 교류할 수 있습니다.
+                    </p>
+                    
+                    <div className="flex gap-4">
+                      <Button 
+                        onClick={() => router.push('/main?tab=meet')}
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                      >
+                        시작하기
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setShowVideo(true)}
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-medium transition-all duration-300"
+                      >
+                        소개 영상 보기
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                    화상으로 소통하세요
-                  </h1>
-                  
-                  <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                    자체 플랫폼을 통한 1:1 화상 미팅 시스템과 AI 통역 서비스로 막힘없이, 간편하게, 서로의 문화와 언어를 교류할 수 있습니다.
-                  </p>
-                  
-                  <div className="flex gap-4">
-                    <Button 
-                      onClick={() => router.push('/main?tab=meet')}
-                      className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
-                    >
-                      시작하기
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => setShowVideo(true)}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-medium transition-all duration-300"
-                    >
-                      소개 영상 보기
-                    </Button>
+
+                  {/* 오른쪽 이미지 영역 */}
+                  <div className="flex-1 flex justify-center items-center">
+                    <div className="w-80 h-80 bg-gradient-to-br from-blue-100 to-slate-100 rounded-full flex items-center justify-center shadow-2xl">
+                      <div className="text-6xl">🎥</div>
+                    </div>
                   </div>
                 </div>
 
-                {/* 오른쪽 이미지 영역 */}
-                <div className="flex-1 flex justify-center items-center">
-                  <div className="w-80 h-80 bg-gradient-to-br from-blue-100 to-slate-100 rounded-full flex items-center justify-center shadow-2xl">
-                    <div className="text-6xl">🎥</div>
-                  </div>
-                </div>
+                
               </div>
             </SwiperSlide>
 
