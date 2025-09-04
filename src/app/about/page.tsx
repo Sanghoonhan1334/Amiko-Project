@@ -102,7 +102,7 @@ export default function AboutPage() {
                     대표자 소개영상
                   </h2>
                   
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-8xl mx-auto">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
                         src="https://www.youtube.com/embed/6BdrKjSMBJY?autoplay=0&rel=0"
