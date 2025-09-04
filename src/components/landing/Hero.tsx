@@ -108,8 +108,8 @@ export default function Hero() {
                   <div className="container-custom max-w-6xl mx-auto px-4">
                     <div className="flex flex-col lg:flex-row items-start gap-12">
                       {/* 왼쪽: 큰 텍스트 */}
-                      <div className="flex-1">
-                        <h2 className="text-3xl font-bold text-gray-900 leading-tight">
+                      <div className="flex-1 flex justify-center">
+                        <h2 className="text-3xl font-bold text-gray-900 leading-tight mt-8">
                           검증된 한국인 튜터들이<br />
                           여러분들과 함께합니다.
                         </h2>
