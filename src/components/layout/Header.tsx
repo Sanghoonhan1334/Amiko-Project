@@ -1,139 +1,76 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Globe, LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { 
-  Play, 
-  Users, 
-  Menu, 
-  X, 
-  MessageSquare, 
-  Calendar, 
-  User, 
-  Settings, 
-  Globe,
-  Home,
-  LogOut
-} from 'lucide-react'
 
 export default function Header() {
-  const [isScrolled, setIsScrolled] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+  const { language, t, toggleLanguage } = useLanguage()
+  const { user, signOut } = useAuth()
+  const [activeMainTab, setActiveMainTab] = useState('home')
+
+  // 모바일 메뉴 상태
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
   const [highlightMainButton, setHighlightMainButton] = useState(false)
-  const [activeMainTab, setActiveMainTab] = useState('home')
-  const pathname = usePathname()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  
-  // 언어 Context 사용
-  const languageContext = useLanguage()
-  const { language, toggleLanguage, t } = languageContext
-  
-  // 인증 Context 사용
-  const { user, signOut } = useAuth()
-  
-  // 디버깅용 로그
-  console.log('Header mounted, language:', language, 't function:', typeof t)
 
-  // 컴포넌트 마운트 확인
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  // 랜딩페이지와 메인페이지 구분
+  const isLandingPage = pathname === '/' || pathname === '/about'
+  const isMainPage = pathname.startsWith('/main') || pathname.startsWith('/lounge')
 
-  // 스크롤 감지
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // 슬라이드 변경 이벤트 감지
+  // 슬라이드 변경 이벤트 리스너
   useEffect(() => {
     const handleSlideChange = (event: CustomEvent) => {
-      console.log('Header received slideChanged event:', event.detail.activeIndex)
-      setActiveSlide(event.detail.activeIndex)
+      setActiveSlide(event.detail.slideIndex)
     }
 
     window.addEventListener('slideChanged', handleSlideChange as EventListener)
-    return () => window.removeEventListener('slideChanged', handleSlideChange as EventListener)
+    return () => {
+      window.removeEventListener('slideChanged', handleSlideChange as EventListener)
+    }
   }, [])
 
-  // 메인페이지 버튼 하이라이트 이벤트 감지
+  // 메인 버튼 하이라이트 효과
   useEffect(() => {
-    const handleHighlightMainButton = (event: CustomEvent) => {
-      setHighlightMainButton(event.detail.highlight)
+    if (isLandingPage) {
+      setHighlightMainButton(true)
+      const timer = setTimeout(() => setHighlightMainButton(false), 2000)
+      return () => clearTimeout(timer)
     }
-
-    window.addEventListener('highlightMainButton', handleHighlightMainButton as EventListener)
-    return () => window.removeEventListener('highlightMainButton', handleHighlightMainButton as EventListener)
-  }, [])
-
-  // 메인페이지 URL 파라미터에서 탭 상태 동기화
-  useEffect(() => {
-    console.log('Header: pathname changed to:', pathname)
-    if (pathname === '/main') {
-      const tabParam = searchParams.get('tab')
-      console.log('Header: on main page, tabParam:', tabParam)
-      if (tabParam && ['home', 'meet', 'community', 'me'].includes(tabParam)) {
-        setActiveMainTab(tabParam)
-      }
-    } else if (pathname === '/lounge') {
-      // 라운지 페이지일 때는 라운지 탭 활성화
-      console.log('Header: on lounge page, setting tab to lounge')
-      setActiveMainTab('lounge')
-    }
-  }, [pathname, searchParams])
-
-  // 메인페이지 진입 시 라운지 상태 초기화
-  useEffect(() => {
-    if (pathname === '/main') {
-      console.log('Header: on main page, activeMainTab:', activeMainTab)
-      if (activeMainTab === 'lounge') {
-        console.log('Header: resetting from lounge to home')
-        setActiveMainTab('home')
-      }
-    }
-  }, [pathname, activeMainTab])
-
-  // MainPage의 탭 상태와 동기화
-  useEffect(() => {
-    if (pathname === '/main' && typeof window !== 'undefined') {
-      const checkMainPageTab = () => {
-        const currentTab = (window as any).currentMainTab
-        if (currentTab && ['home', 'meet', 'community', 'me'].includes(currentTab)) {
-          console.log('Header: syncing with MainPage tab:', currentTab)
-          setActiveMainTab(currentTab)
-        }
-      }
-      
-      // 초기 체크
-      checkMainPageTab()
-      
-      // 주기적으로 체크 (MainPage가 업데이트될 때까지)
-      const interval = setInterval(checkMainPageTab, 100)
-      return () => clearInterval(interval)
-    }
-  }, [pathname])
-
-  // 모바일 메뉴 상태 추적
-  useEffect(() => {
-    console.log('모바일 메뉴 상태 변경:', isMobileMenuOpen)
-  }, [isMobileMenuOpen])
+  }, [isLandingPage])
 
   // 모바일 메뉴 토글
   const toggleMobileMenu = () => {
-    console.log('햄버거 메뉴 클릭됨! 현재 상태:', isMobileMenuOpen)
     setIsMobileMenuOpen(!isMobileMenuOpen)
-    console.log('새로운 상태:', !isMobileMenuOpen)
+  }
+
+  // 네비게이션 클릭 핸들러
+  const handleNavClick = (path: string) => {
+    router.push(path)
+    setIsMobileMenuOpen(false)
+  }
+
+  // 메인페이지 네비게이션 클릭 핸들러
+  const handleMainNavClick = (tab: string) => {
+    setActiveMainTab(tab)
+    if (pathname === '/main') {
+      // 세션스토리지에 저장
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('lastActiveTab', tab)
+      }
+      
+      // 커스텀 이벤트로 알림
+      window.dispatchEvent(new CustomEvent('mainTabChanged', { 
+        detail: { tab } 
+      }))
+    }
   }
 
   // 로그아웃 처리
@@ -141,103 +78,49 @@ export default function Header() {
     try {
       await signOut()
       router.push('/')
-      alert('로그아웃되었습니다.')
     } catch (error) {
       console.error('로그아웃 오류:', error)
-      alert('로그아웃 중 오류가 발생했습니다.')
     }
-  }
-
-  // 네비게이션 탭 클릭 처리
-  const handleNavClick = (slideIndex: number) => {
-    if (pathname === '/') {
-      // 랜딩페이지에서만 슬라이더 제어
-      const swiper = (window as any).swiperInstance
-      console.log('handleNavClick:', slideIndex, 'swiper:', swiper)
-      if (swiper) {
-        swiper.slideTo(slideIndex)
-        setActiveSlide(slideIndex)
-      } else {
-        console.log('Swiper instance not found!')
-      }
-    }
-  }
-
-  // 메인페이지 네비게이션 클릭 처리
-  const handleMainNavClick = (tab: string) => {
-    console.log('Header: handleMainNavClick called with tab:', tab, 'pathname:', pathname)
-    if (pathname === '/main') {
-      setActiveMainTab(tab)
-      
-      // 세션스토리지에 저장
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('lastActiveTab', tab)
-      }
-      
-      // 직접 메인페이지 함수 호출
-      if (typeof window !== 'undefined' && (window as any).changeMainTab) {
-        (window as any).changeMainTab(tab)
-      }
-      
-      // 커스텀 이벤트로도 알림
-      window.dispatchEvent(new CustomEvent('mainTabChanged', { 
-        detail: { tab } 
-      }))
-    } else {
-      console.log('Header: not on main page, current pathname:', pathname)
-    }
-  }
-
-  // 현재 페이지에 따른 버튼 표시 조건
-  const isLandingPage = pathname === '/' || pathname === '/about'
-  const isMainPage = pathname === '/main'
-
-  // SSR 방지 - 스켈레톤 UI 반환
-  if (!mounted) {
-    return (
-      <header className="fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50">
-        <div className="max-w-5xl mx-auto px-4">
-          <div className="flex items-center justify-between h-32">
-            {/* 좌측: 햄버거 메뉴 스켈레톤 */}
-            <div className="w-10 h-10 bg-gray-200 rounded animate-pulse"></div>
-
-            {/* 중앙: 로고 스켈레톤 */}
-            <div className="w-24 h-8 bg-gray-200 rounded animate-pulse"></div>
-
-            {/* 우측: 언어 버튼 스켈레톤 */}
-            <div className="w-20 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-      </header>
-    )
   }
 
   return (
     <>
-      {/* 데스크톱 헤더 */}
-      <header 
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
-          isScrolled 
-            ? 'bg-white shadow-lg border-b border-gray-200' 
-            : 'bg-white border-b border-gray-200'
-        }`}
-      >
-        <div className="max-w-5xl mx-auto px-4">
-          <div className="flex items-center justify-between h-32">
-            {/* 좌측: 햄버거 메뉴 (모바일에서만 표시) */}
-            <div className="flex items-center relative z-20 md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleMobileMenu}
-                className="p-2 hover:bg-gray-100 transition-all duration-300 relative"
-              >
-                <div className={`hamburger-menu-icon w-5 h-5 flex flex-col justify-center items-center ${isMobileMenuOpen ? 'open' : ''}`}>
-                  <span className="hamburger-line w-5 h-0.5 bg-gray-700 rounded-full mb-1"></span>
-                  <span className="hamburger-line w-5 h-0.5 bg-gray-700 rounded-full mb-1"></span>
-                  <span className="hamburger-line w-5 h-0.5 bg-gray-700 rounded-full"></span>
-                </div>
-              </Button>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            {/* 좌측: 언어 전환 버튼 */}
+            <div className="flex items-center">
+              {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
+              {isLandingPage && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleLanguage}
+                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
+                >
+                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
+                  <span className="text-xs md:text-sm font-medium">
+                    {language === 'ko' ? t('korean') : t('spanish')}
+                  </span>
+                </Button>
+              )}
+              
+              {/* 언어 전환 버튼 - 랜딩페이지가 아닐 때만 표시 */}
+              {!isLandingPage && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleLanguage}
+                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
+                >
+                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
+                  <span className="text-xs md:text-sm font-medium">
+                    {language === 'ko' ? t('korean') : t('spanish')}
+                  </span>
+                </Button>
+              )}
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
@@ -256,47 +139,47 @@ export default function Header() {
 
               {/* 네비게이션 */}
               <nav className="flex space-x-8">
-                  {isLandingPage ? (
-                    // 랜딩페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
-                    <>
-                      <button 
-                        onClick={() => router.push('/')}
-                        className={`font-semibold transition-all duration-300 ${
-                          pathname === '/' 
-                            ? 'text-blue-600' 
-                            : 'text-gray-800 hover:text-gray-600'
-                        }`}
-                      >
-                        홈
-                      </button>
-                      <button 
-                        onClick={() => router.push('/about')}
-                        className={`font-semibold transition-all duration-300 ${
-                          pathname === '/about' 
-                            ? 'text-blue-600' 
-                            : 'text-gray-800 hover:text-gray-600'
-                        }`}
-                      >
-                        회사소개
-                      </button>
-                      <button 
-                        className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
-                      >
-                        문의
-                      </button>
-                      <button 
-                        className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
-                      >
-                        제휴문의
-                      </button>
-                      <button 
-                        onClick={() => router.push('/main')}
-                        className="font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl"
-                      >
-                        시작하기
-                      </button>
-                    </>
-                  ) : isMainPage ? (
+                {isLandingPage ? (
+                  // 랜딩페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
+                  <>
+                    <button 
+                      onClick={() => router.push('/')}
+                      className={`font-semibold transition-all duration-300 ${
+                        pathname === '/' 
+                          ? 'text-blue-600' 
+                          : 'text-gray-800 hover:text-gray-600'
+                      }`}
+                    >
+                      홈
+                    </button>
+                    <button 
+                      onClick={() => router.push('/about')}
+                      className={`font-semibold transition-all duration-300 ${
+                        pathname === '/about' 
+                          ? 'text-blue-600' 
+                          : 'text-gray-800 hover:text-gray-600'
+                      }`}
+                    >
+                      회사소개
+                    </button>
+                    <button 
+                      className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
+                    >
+                      문의
+                    </button>
+                    <button 
+                      className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
+                    >
+                      제휴문의
+                    </button>
+                    <button 
+                      onClick={() => router.push('/main')}
+                      className="font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl"
+                    >
+                      시작하기
+                    </button>
+                  </>
+                ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex space-x-8">
                     <button 
@@ -339,107 +222,51 @@ export default function Header() {
                     >
                       내정보
                     </button>
-                    <button 
-                      onClick={() => {
-                        setActiveMainTab('lounge')
-                        router.push('/lounge')
-                      }}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
-                        activeMainTab === 'lounge' 
-                          ? 'text-purple-500 scale-110' 
-                          : 'text-gray-800 hover:text-purple-500'
-                      }`}
-                    >
-                      라운지
-                    </button>
                   </div>
-                ) : (
-                  // 라운지 페이지 네비게이션 (데스크톱에서만 표시)
-                  <div className="hidden md:flex space-x-8">
-                    <button 
-                      onClick={() => router.push('/main?tab=home')}
-                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-orange-500"
-                    >
-                      홈
-                    </button>
-                    <button 
-                      onClick={() => router.push('/main?tab=meet')}
-                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-brand-500"
-                    >
-                      영상소통
-                    </button>
-                    <button 
-                      onClick={() => router.push('/main?tab=community')}
-                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-mint-500"
-                    >
-                      커뮤니티
-                    </button>
-                    <button 
-                      onClick={() => router.push('/main?tab=me')}
-                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-sky-500"
-                    >
-                      내정보
-                    </button>
-                    <button 
-                      className="font-semibold transition-all duration-300 drop-shadow-lg text-purple-500 scale-110"
-                    >
-                      라운지
-                    </button>
-                  </div>
-                )}
+                ) : null}
               </nav>
             </div>
-          </div>
 
-            {/* 우측: 언어 전환 (데스크톱에서만 표시) */}
-            <div className="hidden md:flex items-center gap-2 relative z-20">
-              {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
-              {isLandingPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLanguage}
-                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
-                >
-                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
-                  <span className="text-xs md:text-sm font-medium">
-                    {language === 'ko' ? t('korean') : t('spanish')}
-                  </span>
-                </Button>
-              )}
-              
-              {/* 랜딩페이지로 이동 버튼 - 메인페이지에서만 표시 */}
+            {/* 우측: 알림, 프로필, 모바일 메뉴 */}
+            <div className="flex items-center space-x-4">
+              {/* 알림 버튼 - 메인페이지에서만 표시 */}
               {isMainPage && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push('/')}
-                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                  title="랜딩페이지로 이동"
+                  className="relative p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
                 >
-                  <Home className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
-                  <span className="text-xs md:text-sm font-medium">
-                    랜딩페이지
-                  </span>
+                  <Bell className="w-5 h-5 text-gray-600" />
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+                    3
+                  </Badge>
                 </Button>
               )}
-              
-              {/* 언어 전환 버튼 - 랜딩페이지가 아닐 때만 표시 */}
-              {!isLandingPage && (
+
+              {/* 프로필 버튼 - 메인페이지에서만 표시 */}
+              {isMainPage && user && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={toggleLanguage}
-                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
                 >
-                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
-                  <span className="text-xs md:text-sm font-medium">
-                    {language === 'ko' ? t('korean') : t('spanish')}
-                  </span>
+                  <Users className="w-5 h-5 text-gray-600" />
                 </Button>
               )}
+
+              {/* 모바일 메뉴 버튼 */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleMobileMenu}
+                className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-5 h-5 text-gray-600" />
+                ) : (
+                  <Menu className="w-5 h-5 text-gray-600" />
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -538,68 +365,6 @@ export default function Header() {
                     <span className="text-base">🎈</span>
                     라운지
                   </button>
-                  
-                  {/* 랜딩페이지로 이동 - 메인페이지에서만 표시 */}
-                  <Link 
-                    href="/" 
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 text-gray-700 hover:text-brand-600 transition-all duration-300"
-                    onClick={toggleMobileMenu}
-                  >
-                    <Home className="w-5 h-5" />
-                    랜딩페이지로 이동
-                  </Link>
-                </div>
-              )}
-
-              {/* 라운지 페이지 네비게이션 - 라운지 페이지에서만 표시 */}
-              {!isLandingPage && !isMainPage && (
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      router.push('/main')
-                      toggleMobileMenu()
-                    }}
-                    className="flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-                  >
-                    <span className="text-base">🎥</span>
-                    영상소통
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push('/main')
-                      toggleMobileMenu()
-                    }}
-                    className="flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-                  >
-                    <span className="text-base">💬</span>
-                    커뮤니티
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push('/main')
-                      toggleMobileMenu()
-                    }}
-                    className="flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-                  >
-                    <span className="text-base">👤</span>
-                    내정보
-                  </button>
-                  <button
-                    className="flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 bg-purple-50 text-purple-600"
-                  >
-                    <span className="text-base">🎈</span>
-                    라운지
-                  </button>
-                  
-                  {/* 랜딩페이지로 이동 - 라운지 페이지에서만 표시 */}
-                  <Link 
-                    href="/" 
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 text-gray-700 hover:text-brand-600 transition-all duration-300"
-                    onClick={toggleMobileMenu}
-                  >
-                    <Home className="w-5 h-5" />
-                    랜딩페이지로 이동
-                  </Link>
                 </div>
               )}
             </div>
@@ -645,7 +410,7 @@ export default function Header() {
                   className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 text-gray-700 hover:text-brand-600 transition-all duration-300"
                   onClick={toggleMobileMenu}
                 >
-                  <User className="w-5 h-5" />
+                  <span className="text-base">🔐</span>
                   로그인
                 </Link>
               )}
