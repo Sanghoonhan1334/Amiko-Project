@@ -186,6 +186,57 @@ export default function Hero() {
                 </div>
               </div>
             </SwiperSlide>
+
+            {/* 세 번째 슬라이드 - 회사소개 */}
+            <SwiperSlide>
+              <div className="min-h-[600px] py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+                <div className="max-w-4xl mx-auto px-4">
+                  <div className="space-y-8">
+                    {/* 첫 번째 카드 */}
+                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
+                      <div className="flex flex-col items-center text-center">
+                        <img 
+                          src="/1.png" 
+                          alt="AMIKO Logo 1" 
+                          className="w-32 h-32 object-contain mb-4"
+                        />
+                        <p className="text-gray-700 text-lg">
+                          : AMI(America) KO(Korea)를 잇다.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 두 번째 카드 */}
+                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
+                      <div className="flex flex-col items-center text-center">
+                        <img 
+                          src="/2.png" 
+                          alt="AMIKO Logo 2" 
+                          className="w-32 h-32 object-contain mb-4"
+                        />
+                        <p className="text-gray-700 text-lg">
+                          : <span className="text-red-500">AM</span>erica와 <span className="text-blue-500">KO</span>rea를 이어주는 다리
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 세 번째 카드 */}
+                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
+                      <div className="flex flex-col items-center text-center">
+                        <img 
+                          src="/3.png" 
+                          alt="AMIKO Logo 3" 
+                          className="w-32 h-32 object-contain mb-4"
+                        />
+                        <p className="text-gray-700 text-lg">
+                          : A mí(나에게) Korea를 더 가깝게
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SwiperSlide>
           </Swiper>
 
           {/* 커스텀 네비게이션 버튼 */}
