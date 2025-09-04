@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
       channelName,
       uid,
       RtcRole.PUBLISHER,
-      privilegeExpiredTs
+      privilegeExpiredTs,
+      0 // uidType: 0 for int, 1 for string
     )
 
     return NextResponse.json({ token })
