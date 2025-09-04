@@ -375,22 +375,31 @@ export default function Header() {
               </nav>
             </div>
 
-            {/* 우측: 메인페이지 이동 + 언어 전환 (데스크톱에서만 표시) */}
-            <div className="hidden md:flex items-center gap-2 relative z-20">
-              {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
+            {/* 우측: 시작하기 버튼 + 언어 전환 (데스크톱에서만 표시) */}
+            <div className="hidden md:flex items-center gap-4 relative z-20">
+              {/* 랜딩페이지에서는 시작하기 버튼과 언어 전환 버튼 표시 */}
               {isLandingPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLanguage}
-                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
-                >
-                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
-                  <span className="text-xs md:text-sm font-medium">
-                    {language === 'ko' ? t('korean') : t('spanish')}
-                  </span>
-                </Button>
+                <>
+                  <Button
+                    onClick={() => router.push('/main')}
+                    className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    시작하기
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleLanguage}
+                    className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                    title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
+                  >
+                    <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
+                    <span className="text-xs md:text-sm font-medium">
+                      {language === 'ko' ? t('korean') : t('spanish')}
+                    </span>
+                  </Button>
+                </>
               )}
               
               {/* 랜딩페이지로 이동 버튼 - 메인페이지에서만 표시 */}
@@ -448,7 +457,19 @@ export default function Header() {
           <div className="pt-6 px-4 pb-4 space-y-2 max-h-96 overflow-y-auto">
             {/* 메인 메뉴 */}
             <div className="space-y-1">
-              {/* 랜딩페이지에서는 메인페이지로 이동 링크 제거 */}
+              {/* 랜딩페이지에서는 시작하기 버튼 표시 */}
+              {isLandingPage && (
+                <button
+                  onClick={() => {
+                    router.push('/main')
+                    toggleMobileMenu()
+                  }}
+                  className="flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 bg-gray-900 text-white hover:bg-gray-800"
+                >
+                  <span className="text-base">🚀</span>
+                  시작하기
+                </button>
+              )}
               
               {/* 메인페이지 네비게이션 - 메인페이지에서만 표시 */}
               {isMainPage && (
