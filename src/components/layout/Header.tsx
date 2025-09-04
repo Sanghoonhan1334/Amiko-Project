@@ -241,7 +241,7 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-2 z-10">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 z-10">
               <div className="flex items-center group">
                 <img 
                   src="/amiko-foto.jpg" 
