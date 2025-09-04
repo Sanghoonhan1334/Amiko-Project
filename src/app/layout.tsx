@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Baloo_2 } from 'next/font/google'
 import './globals.css'
-import Header from '@/components/layout/Header'
+import HeaderWrapper from '@/components/layout/HeaderWrapper'
 import Footer from '@/components/layout/Footer'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
@@ -44,7 +44,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`}>
         <AuthProvider>
           <LanguageProvider>
-            <Header />
+            <HeaderWrapper />
             <main>{children}</main>
             <Footer />
           </LanguageProvider>
