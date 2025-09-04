@@ -104,22 +104,26 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 메인 히어로 (기존 첫 번째) */}
             <SwiperSlide>
-              <div className="flex items-center justify-between min-h-[600px] py-20">
-                {/* 왼쪽 콘텐츠 */}
-                <div className="flex-1 max-w-2xl">
-                  <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                    지구 반대편과 소통하세요.
-                  </h1>
+              <div className="min-h-[600px] py-20">
+                {/* 메인 콘텐츠 */}
+                <div className="max-w-6xl mx-auto px-4">
+                  {/* 제목과 설명 */}
+                  <div className="text-center mb-12">
+                    <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                      지구 반대편과 소통하세요.
+                    </h1>
+                    
+                    <h2 className="text-3xl font-bold text-gray-800 mb-4">
+                      Amiko <span className="underline decoration-purple-300 decoration-2">커뮤니티 서비스</span>
+                    </h2>
+                    
+                    <p className="text-gray-600 text-lg leading-relaxed max-w-3xl mx-auto">
+                      Amiko는 지구 반대편을 연결하는 다리입니다. 커뮤니티를 통해 서로의 문화에 더욱 가까이 다가가보세요.
+                    </p>
+                  </div>
                   
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                    Amiko <span className="underline decoration-purple-300 decoration-2">커뮤니티 서비스</span>
-                  </h2>
-                  
-                  <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                    Amiko는 지구 반대편을 연결하는 다리입니다. 커뮤니티를 통해 서로의 문화에 더욱 가까이 다가가보세요.
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  {/* 3개 기능 카드 - 가로 배치 */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* 01 K-Trand 카드 */}
                     <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
                       <div className="flex justify-between items-start mb-4">
@@ -161,13 +165,6 @@ export default function Hero() {
                         Q&A 커뮤니티를 통해 서로에게 궁금한 점들을 질문하고 현지인에게 직접 답변을 받아보세요.
                       </p>
                     </div>
-                  </div>
-                </div>
-
-                {/* 오른쪽 이미지 영역 */}
-                <div className="flex-1 flex justify-center items-center">
-                  <div className="w-80 h-80 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center shadow-2xl">
-                    <div className="text-6xl">🌍</div>
                   </div>
                 </div>
               </div>
