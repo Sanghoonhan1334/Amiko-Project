@@ -189,7 +189,7 @@ export default function Header() {
   }
 
   // 현재 페이지에 따른 버튼 표시 조건
-  const isLandingPage = pathname === '/'
+  const isLandingPage = pathname === '/' || pathname === '/about'
   const isMainPage = pathname === '/main'
 
   // SSR 방지 - 스켈레톤 UI 반환
