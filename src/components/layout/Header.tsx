@@ -247,7 +247,11 @@ export default function Header() {
                   src="/amiko-foto.jpg" 
                   alt="Amiko" 
                   className="h-48 w-auto object-contain group-hover:scale-105 transition-all duration-300"
-                  style={{ maxHeight: '192px' }}
+                  style={{ 
+                    maxHeight: '192px',
+                    mixBlendMode: 'multiply',
+                    filter: 'contrast(1.1) brightness(1.05)'
+                  }}
                 />
               </div>
             </div>
