@@ -258,7 +258,7 @@ export default function Header() {
             <div className="absolute left-1/2 transform -translate-x-1/2 top-20 z-10">
               <nav className="flex space-x-8">
                 {isLandingPage ? (
-                  // 랜딩페이지 네비게이션 - 예시 사진 스타일
+                  // 랜딩페이지 네비게이션 - 홈 탭 고정
                   <>
                     <button 
                       onClick={() => handleNavClick(0)}
@@ -278,7 +278,7 @@ export default function Header() {
                           : 'text-gray-800 hover:text-gray-600'
                       }`}
                     >
-                      회사소개
+                      홈
                     </button>
                   </>
                 ) : isMainPage ? (
