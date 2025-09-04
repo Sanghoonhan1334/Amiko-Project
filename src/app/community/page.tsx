@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function CommunityRedirectPage() {
+function CommunityRedirectContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -20,6 +20,14 @@ export default function CommunityRedirectPage() {
   }, [router, searchParams])
 
   return null
+}
+
+export default function CommunityRedirectPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CommunityRedirectContent />
+    </Suspense>
+  )
 }
 
 
