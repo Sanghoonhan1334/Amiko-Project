@@ -240,23 +240,23 @@ export default function Header() {
               </Button>
             </div>
 
-            {/* 중앙: 로고 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-12 z-10 pointer-events-none">
-              <div className="flex items-center group">
-                <img 
-                  src="/amiko-foto.png" 
-                  alt="Amiko" 
-                  className="h-48 w-auto object-contain group-hover:scale-105 transition-all duration-300 pointer-events-none"
-                  style={{ 
-                    maxHeight: '192px'
-                  }}
-                />
-              </div>
-            </div>
+            {/* 중앙: 로고와 네비게이션 */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-8 z-10">
+              <div className="flex items-center gap-8">
+                {/* 로고 */}
+                <div className="pointer-events-none">
+                  <img 
+                    src="/amiko-foto.png" 
+                    alt="Amiko" 
+                    className="h-32 w-auto object-contain transition-all duration-300 pointer-events-none"
+                    style={{ 
+                      maxHeight: '128px'
+                    }}
+                  />
+                </div>
 
-            {/* 메인 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-20 z-10">
-              <nav className="flex space-x-8">
+                {/* 네비게이션 */}
+                <nav className="flex space-x-8">
                 {isLandingPage ? (
                   // 랜딩페이지 네비게이션 - 홈과 회사소개 탭
                   <>
@@ -374,6 +374,7 @@ export default function Header() {
                 )}
               </nav>
             </div>
+          </div>
 
             {/* 우측: 시작하기 버튼 + 언어 전환 (데스크톱에서만 표시) */}
             <div className="hidden md:flex items-center gap-4 relative z-20">
