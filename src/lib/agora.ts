@@ -17,9 +17,7 @@ export const initializeAgoraClient = () => {
   if (!agoraClient) {
     agoraClient = AgoraRTC.createClient({ 
       mode: 'rtc', 
-      codec: 'vp8',
-      // 통계 수집 비활성화
-      enableLogUpload: false
+      codec: 'vp8'
     })
     
     // 경고 메시지 필터링
