@@ -419,18 +419,21 @@ export default function Header() {
                 </Button>
               )}
               
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLanguage}
-                className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
-              >
-                <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
-                <span className="text-xs md:text-sm font-medium">
-                  {language === 'ko' ? t('korean') : t('spanish')}
-                </span>
-              </Button>
+              {/* 언어 전환 버튼 - 랜딩페이지가 아닐 때만 표시 */}
+              {!isLandingPage && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleLanguage}
+                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
+                >
+                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
+                  <span className="text-xs md:text-sm font-medium">
+                    {language === 'ko' ? t('korean') : t('spanish')}
+                  </span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
