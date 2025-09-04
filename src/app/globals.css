@@ -97,6 +97,28 @@
     display: none;  /* Chrome, Safari and Opera */
   }
   
+  /* line-clamp 유틸리티 */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
   /* 햄버거 메뉴 애니메이션 */
   .hamburger-menu-icon {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

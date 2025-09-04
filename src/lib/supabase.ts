@@ -2,13 +2,43 @@ import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@supabase/ssr'
 
 // 환경 변수 검증 및 기본값 설정
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 // 환경 변수가 설정되지 않은 경우 경고 출력
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  console.warn('[SUPABASE] 환경변수가 설정되지 않았습니다. 기본값을 사용합니다.')
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('[SUPABASE] 환경변수가 설정되지 않았습니다. 더미 클라이언트를 사용합니다.')
   console.warn('[SUPABASE] .env.local 파일에 NEXT_PUBLIC_SUPABASE_URL과 NEXT_PUBLIC_SUPABASE_ANON_KEY를 설정해주세요.')
+}
+
+// 더미 클라이언트 함수들
+const createDummyClient = () => {
+  console.log('[SUPABASE] Using dummy client')
+  return {
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signOut: () => Promise.resolve({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+    }
+  } as any
+}
+
+const createDummyServerClient = () => {
+  console.log('[SUPABASE] Using dummy server client')
+  return {
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null })
+    }
+  } as any
+}
+
+const createDummyActionClient = () => {
+  console.log('[SUPABASE] Using dummy action client')
+  return {
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null })
+    }
+  } as any
 }
 
 console.log('[SUPABASE] URL:', supabaseUrl)
@@ -19,26 +49,46 @@ let globalBrowserClient: ReturnType<typeof createBrowserClient<Database>> | null
 
 // 브라우저 환경에서만 클라이언트 생성
 const createBrowserClientInstance = () => {
+  // 환경변수가 없거나 유효하지 않으면 더미 클라이언트 반환
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl === 'undefined' || supabaseAnonKey === 'undefined' ||
+      !supabaseUrl.startsWith('http')) {
+    console.log('[SUPABASE] Using dummy client due to missing or invalid environment variables')
+    console.log('[SUPABASE] supabaseUrl:', supabaseUrl)
+    console.log('[SUPABASE] supabaseAnonKey:', supabaseAnonKey ? 'exists' : 'missing')
+    return createDummyClient()
+  }
+  
   // 이미 존재하면 기존 인스턴스 반환
   if (globalBrowserClient) {
     return globalBrowserClient
   }
   
-  // 브라우저 환경이 아니면 에러
+  // 브라우저 환경이 아니면 더미 클라이언트 반환
   if (typeof window === 'undefined') {
-    throw new Error('createClientComponentClient can only be called in browser environment')
+    console.log('[SUPABASE] Using dummy client due to SSR')
+    return createDummyClient()
   }
   
-  // 새 인스턴스 생성
-  globalBrowserClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true }
-  })
-  
-  console.log('[SUPABASE] Global browser client created')
-  return globalBrowserClient
+  try {
+    // URL 유효성 검사
+    new URL(supabaseUrl)
+    
+    // 새 인스턴스 생성
+    globalBrowserClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true }
+    })
+    
+    console.log('[SUPABASE] Global browser client created')
+    return globalBrowserClient
+  } catch (error) {
+    console.error('[SUPABASE] Failed to create browser client:', error)
+    console.log('[SUPABASE] Falling back to dummy client')
+    return createDummyClient()
+  }
 }
 
 export const createClientComponentClient = createBrowserClientInstance
@@ -49,14 +99,30 @@ export const supabase = null as never
 // 서버 사이드용 클라이언트 (싱글톤)
 let serverClient: ReturnType<typeof createClient<Database>> | null = null
 export const createServerComponentClient = () => {
+  // 환경변수가 없거나 유효하지 않으면 더미 클라이언트 반환
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl === 'undefined' || supabaseAnonKey === 'undefined' ||
+      !supabaseUrl.startsWith('http')) {
+    console.log('[SUPABASE] Using dummy server client due to missing or invalid environment variables')
+    return createDummyServerClient()
+  }
+  
   if (!serverClient) {
-    serverClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-    console.log('[SUPABASE] Server client created')
+    try {
+      // URL 유효성 검사
+      new URL(supabaseUrl)
+      
+      serverClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+      console.log('[SUPABASE] Server client created')
+    } catch (error) {
+      console.error('[SUPABASE] Failed to create server client:', error)
+      return createDummyServerClient()
+    }
   }
   return serverClient
 }
@@ -64,14 +130,30 @@ export const createServerComponentClient = () => {
 // 서버 액션용 클라이언트 (싱글톤)
 let actionClient: ReturnType<typeof createClient> | null = null
 export const createActionClient = () => {
+  // 환경변수가 없거나 유효하지 않으면 더미 클라이언트 반환
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl === 'undefined' || supabaseAnonKey === 'undefined' ||
+      !supabaseUrl.startsWith('http')) {
+    console.log('[SUPABASE] Using dummy action client due to missing or invalid environment variables')
+    return createDummyActionClient()
+  }
+  
   if (!actionClient) {
-    actionClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-    console.log('[SUPABASE] Action client created')
+    try {
+      // URL 유효성 검사
+      new URL(supabaseUrl)
+      
+      actionClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+      console.log('[SUPABASE] Action client created')
+    } catch (error) {
+      console.error('[SUPABASE] Failed to create action client:', error)
+      return createDummyActionClient()
+    }
   }
   return actionClient
 }

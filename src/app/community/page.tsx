@@ -10,7 +10,11 @@ export default function CommunityRedirectPage() {
   useEffect(() => {
     const cTab = searchParams.get('tab') || 'lounge'
     const params = new URLSearchParams(searchParams.toString())
-    params.set('tab', 'community')
+    
+    // 기존 tab 파라미터가 있으면 유지, 없으면 community로 설정
+    if (!params.get('tab')) {
+      params.set('tab', 'community')
+    }
     params.set('cTab', cTab)
     router.replace(`/main?${params.toString()}`)
   }, [router, searchParams])

@@ -16,7 +16,6 @@ export const translations = {
     community: '커뮤니티',
     profileMenu: '프로필',
     settings: '설정',
-    videoCall: '화상 통화',
     
     // 달력
     calendar: {
@@ -49,6 +48,25 @@ export const translations = {
         fri: '금',
         sat: '토'
       }
+    },
+    
+    // 영상통화
+    videoCall: {
+      title: '영상통화',
+      participants: '참가자',
+      me: '나 (로컬)',
+      opponent: '상대방',
+      muted: '음소거',
+      unmuted: '음소거 해제',
+      cameraOff: '카메라 꺼짐',
+      cameraOn: '카메라 켜기',
+      endCall: '통화 종료',
+      waitingForOpponent: '상대방을 기다리는 중...',
+      waitingMessage: '다른 사용자가 같은 채널에 접속하면 자동으로 연결됩니다',
+      connecting: '연결 중...',
+      startCall: '통화 시작',
+      cameraOffMessage: '카메라가 꺼져있습니다',
+      cameraOffSubtitle: '카메라를 켜서 상대방과 소통하세요'
     },
     
     // 랜딩페이지
@@ -389,9 +407,9 @@ export const translations = {
       myPoints: '내 포인트',
       thisMonthPoints: '이번 달 포인트',
       consecutiveDays: '연속 출석',
-      exchangeCount: '교환 횟수',
+      exchangeCount: '영상소통 횟수',
       totalCases: '총 {count}건 진행',
-      successfulExchanges: '성공적인 교환',
+              successfulExchanges: '성공적인 영상소통',
       myCoupons: '내 쿠폰',
       expirationDate: '만료일',
       noExpiration: '무기한',
@@ -545,7 +563,6 @@ export const translations = {
     community: 'Comunidad',
     profileMenu: 'Perfil',
     settings: 'Configuración',
-    videoCall: 'Video llamada',
     
     // 달력
     calendar: {
@@ -578,6 +595,25 @@ export const translations = {
         fri: 'Vie',
         sat: 'Sáb'
       }
+    },
+    
+    // 영상통화
+    videoCall: {
+      title: 'Videollamada',
+      participants: 'Participantes',
+      me: 'Yo (Local)',
+      opponent: 'Oponente',
+      muted: 'Silenciado',
+      unmuted: 'Desilenciar',
+      cameraOff: 'Cámara apagada',
+      cameraOn: 'Encender cámara',
+      endCall: 'Terminar llamada',
+      waitingForOpponent: 'Esperando al oponente...',
+      waitingMessage: 'Se conectará automáticamente cuando otro usuario se una al mismo canal',
+      connecting: 'Conectando...',
+      startCall: 'Iniciar llamada',
+      cameraOffMessage: 'La cámara está apagada',
+      cameraOffSubtitle: 'Enciende la cámara para comunicarte con el oponente'
     },
     
     // 랜딩페이지
@@ -918,9 +954,9 @@ export const translations = {
       myPoints: 'Mis puntos',
       thisMonthPoints: 'Puntos de este mes',
       consecutiveDays: 'Días consecutivos',
-      exchangeCount: 'Número de intercambios',
+      exchangeCount: 'Número de videollamadas',
       totalCases: 'Total de {count} casos',
-      successfulExchanges: 'Intercambios exitosos',
+              successfulExchanges: 'Videollamadas exitosas',
       myCoupons: 'Mis cupones',
       expirationDate: 'Fecha de vencimiento',
       noExpiration: 'Sin vencimiento',
@@ -1033,9 +1069,6 @@ export const translations = {
       goToCommunity: 'Ir a Comunidad',
       storyImage: 'Imagen de la Historia'
     },
-    
-    // 비디오 통화
-    videoCall: 'Video llamada',
     
     // 푸터
     footer: {

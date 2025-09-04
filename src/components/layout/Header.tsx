@@ -26,7 +26,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
   const [highlightMainButton, setHighlightMainButton] = useState(false)
-  const [activeMainTab, setActiveMainTab] = useState('meet')
+  const [activeMainTab, setActiveMainTab] = useState('home')
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -83,21 +83,13 @@ export default function Header() {
     if (pathname === '/main') {
       const tabParam = searchParams.get('tab')
       console.log('Header: on main page, tabParam:', tabParam)
-      if (tabParam && ['meet', 'community', 'me'].includes(tabParam)) {
+      if (tabParam && ['home', 'meet', 'community', 'me'].includes(tabParam)) {
         setActiveMainTab(tabParam)
-      } else {
-        // 기본값 설정
-        console.log('Header: setting default tab to meet')
-        setActiveMainTab('meet')
       }
     } else if (pathname === '/lounge') {
       // 라운지 페이지일 때는 라운지 탭 활성화
       console.log('Header: on lounge page, setting tab to lounge')
       setActiveMainTab('lounge')
-    } else {
-      // 다른 페이지일 때는 상태 초기화
-      console.log('Header: on other page, resetting to meet')
-      setActiveMainTab('meet')
     }
   }, [pathname, searchParams])
 
@@ -106,11 +98,31 @@ export default function Header() {
     if (pathname === '/main') {
       console.log('Header: on main page, activeMainTab:', activeMainTab)
       if (activeMainTab === 'lounge') {
-        console.log('Header: resetting from lounge to meet')
-        setActiveMainTab('meet')
+        console.log('Header: resetting from lounge to home')
+        setActiveMainTab('home')
       }
     }
   }, [pathname, activeMainTab])
+
+  // MainPage의 탭 상태와 동기화
+  useEffect(() => {
+    if (pathname === '/main' && typeof window !== 'undefined') {
+      const checkMainPageTab = () => {
+        const currentTab = (window as any).currentMainTab
+        if (currentTab && ['home', 'meet', 'community', 'me'].includes(currentTab)) {
+          console.log('Header: syncing with MainPage tab:', currentTab)
+          setActiveMainTab(currentTab)
+        }
+      }
+      
+      // 초기 체크
+      checkMainPageTab()
+      
+      // 주기적으로 체크 (MainPage가 업데이트될 때까지)
+      const interval = setInterval(checkMainPageTab, 100)
+      return () => clearInterval(interval)
+    }
+  }, [pathname])
 
   // 모바일 메뉴 상태 추적
   useEffect(() => {
@@ -156,6 +168,11 @@ export default function Header() {
     console.log('Header: handleMainNavClick called with tab:', tab, 'pathname:', pathname)
     if (pathname === '/main') {
       setActiveMainTab(tab)
+      
+      // 세션스토리지에 저장
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('lastActiveTab', tab)
+      }
       
       // 직접 메인페이지 함수 호출
       if (typeof window !== 'undefined' && (window as any).changeMainTab) {
@@ -225,7 +242,7 @@ export default function Header() {
 
             {/* 중앙: 로고 */}
             <div className="absolute left-1/2 transform -translate-x-1/2 -top-4 z-10">
-              <Link href="/" className="flex items-center gap-2 group">
+              <div className="flex items-center gap-2 group">
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
@@ -235,7 +252,7 @@ export default function Header() {
                 <div className="text-2xl animate-pulse group-hover:animate-bounce">
                   ✨
                 </div>
-              </Link>
+              </div>
             </div>
 
             {/* 메인 네비게이션 */}
@@ -282,12 +299,22 @@ export default function Header() {
                           : 'text-gray-800 hover:text-brand-500'
                       }`}
                     >
-                      이벤트
+                      시상이벤트
                     </button>
                   </>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex space-x-8">
+                    <button 
+                      onClick={() => handleMainNavClick('home')}
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                        activeMainTab === 'home' 
+                          ? 'text-orange-500 scale-110' 
+                          : 'text-gray-800 hover:text-orange-500'
+                      }`}
+                    >
+                      홈
+                    </button>
                     <button 
                       onClick={() => handleMainNavClick('meet')}
                       className={`font-semibold transition-all duration-300 drop-shadow-lg ${
@@ -336,19 +363,25 @@ export default function Header() {
                   // 라운지 페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex space-x-8">
                     <button 
-                      onClick={() => router.push('/main')}
+                      onClick={() => router.push('/main?tab=home')}
+                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-orange-500"
+                    >
+                      홈
+                    </button>
+                    <button 
+                      onClick={() => router.push('/main?tab=meet')}
                       className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-brand-500"
                     >
                       영상소통
                     </button>
                     <button 
-                      onClick={() => router.push('/main')}
+                      onClick={() => router.push('/main?tab=community')}
                       className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-mint-500"
                     >
                       커뮤니티
                     </button>
                     <button 
-                      onClick={() => router.push('/main')}
+                      onClick={() => router.push('/main?tab=me')}
                       className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-sky-500"
                     >
                       내정보

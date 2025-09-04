@@ -77,9 +77,7 @@ export default function LoungePage() {
                 Amiko 라운지가 곧 오픈됩니다!
               </h3>
               <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-                ZEP 메타버스 플랫폼을 활용하여 한국과 중남미 청년들이 자유롭게 소통할 수 있는 
-                가상 공간을 준비하고 있습니다. 화면 공유 없이 음성과 채팅만으로 
-                편안하게 대화할 수 있는 환경을 만들어갈 예정입니다.
+                함께 모임을 가지게 될 시점에 사용하기 위해 라운지도 만들어갈 예정입니다.
               </p>
             </div>
           </CardContent>

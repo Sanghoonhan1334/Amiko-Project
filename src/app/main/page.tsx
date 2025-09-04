@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import HomeTab from '@/components/main/app/home/HomeTab'
 import MeetTab from '@/components/main/app/meet/MeetTab'
 import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'
@@ -10,41 +11,37 @@ import { useLanguage } from '@/context/LanguageContext'
 export default function AppPage() {
   const { t } = useLanguage()
   const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState('meet')
+  const router = useRouter()
+  
+  const [activeTab, setActiveTab] = useState('home')
 
-  // 전역 상태에서 탭 상태 동기화
+  // URL 파라미터에서 탭 확인 및 설정
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).currentMainTab) {
-      const globalTab = (window as any).currentMainTab
-      console.log('MainPage: global tab changed to:', globalTab)
-      if (['meet', 'community', 'me'].includes(globalTab)) {
-        setActiveTab(globalTab)
-      }
+    // 클라이언트에서만 실행
+    if (typeof window === 'undefined') return
+    
+    const tabParam = searchParams.get('tab')
+    console.log('MainPage: tabParam from URL:', tabParam)
+    
+    let targetTab = 'home' // 기본값
+    
+    if (tabParam && ['home', 'meet', 'community', 'me'].includes(tabParam)) {
+      // URL 파라미터가 있으면 그것을 사용
+      targetTab = tabParam
+      console.log('MainPage: using URL param:', targetTab)
+    } else {
+      // URL 파라미터가 없으면 기본값 사용하고 URL 업데이트
+      console.log('MainPage: no tab param, using default: home')
+      router.replace('/main?tab=home')
+      return // URL 업데이트 후 다시 실행될 것이므로 여기서 종료
     }
-  }, [])
+    
+    // 탭 설정
+    setActiveTab(targetTab)
+    ;(window as any).currentMainTab = targetTab
+  }, [searchParams, router])
 
-  // 페이지 진입 시 초기화
-  useEffect(() => {
-    console.log('MainPage: page mounted, initializing...')
-    // 전역 상태 확인
-    if (typeof window !== 'undefined' && (window as any).currentMainTab) {
-      const globalTab = (window as any).currentMainTab
-      if (['meet', 'community', 'me'].includes(globalTab)) {
-        setActiveTab(globalTab)
-        return
-      }
-    }
-    // 기본값 설정
-    setActiveTab('meet')
-  }, [])
 
-  // 라운지에서 돌아왔을 때 상태 초기화
-  useEffect(() => {
-    if (activeTab === 'lounge') {
-      console.log('MainPage: resetting from lounge to meet')
-      setActiveTab('meet')
-    }
-  }, [activeTab])
 
   // 헤더에서 탭 변경 이벤트 감지
   useEffect(() => {
@@ -75,6 +72,12 @@ export default function AppPage() {
 
           {/* 콘텐츠 */}
           <div className="space-y-8">
+            {activeTab === 'home' && (
+              <div className="card p-8">
+                <HomeTab />
+              </div>
+            )}
+
             {activeTab === 'meet' && (
               <div className="card p-8">
                 <div className="flex items-center gap-3 mb-6">

@@ -20,9 +20,21 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-  Heart
+  Heart,
+  MessageSquare,
+  Send
 } from 'lucide-react'
 import { Story, StoryForm } from '@/types/story'
+
+// 댓글 타입 정의
+interface Comment {
+  id: string
+  storyId: string
+  author: string
+  content: string
+  createdAt: Date
+  likes: number
+}
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -99,6 +111,78 @@ const mockStories: Story[] = [
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12시간 전
     expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12시간 후 만료
     isExpired: false
+  },
+  {
+    id: '7',
+    userId: 'user7',
+    userName: '안드레스',
+    userAvatar: '/avatars/user7.jpg',
+    imageUrl: '/stories/story7.jpg',
+    text: '한국 김치를 처음 먹어봤어요! 매운맛이 정말 대박이었습니다 🔥',
+    isPublic: true,
+    createdAt: new Date(Date.now() - 14 * 60 * 60 * 1000), // 14시간 전
+    expiresAt: new Date(Date.now() + 10 * 60 * 60 * 1000), // 10시간 후 만료
+    isExpired: false
+  },
+  {
+    id: '8',
+    userId: 'user8',
+    userName: '박지영',
+    userAvatar: '/avatars/user8.jpg',
+    imageUrl: '/stories/story8.jpg',
+    text: '스페인어 수업에서 배운 표현들을 실생활에서 써봤어요! 🗣️',
+    isPublic: true,
+    createdAt: new Date(Date.now() - 16 * 60 * 60 * 1000), // 16시간 전
+    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8시간 후 만료
+    isExpired: false
+  },
+  {
+    id: '9',
+    userId: 'user9',
+    userName: '카르멘',
+    userAvatar: '/avatars/user9.jpg',
+    imageUrl: '/stories/story9.jpg',
+    text: '한국 드라마 OST를 들으면서 한국어 공부하고 있어요 🎵',
+    isPublic: true,
+    createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000), // 18시간 전
+    expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6시간 후 만료
+    isExpired: false
+  },
+  {
+    id: '10',
+    userId: 'user10',
+    userName: '김현우',
+    userAvatar: '/avatars/user10.jpg',
+    imageUrl: '/stories/story10.jpg',
+    text: '스페인 친구와 함께 한국 요리를 만들어봤어요! 🍜',
+    isPublic: true,
+    createdAt: new Date(Date.now() - 20 * 60 * 60 * 1000), // 20시간 전
+    expiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4시간 후 만료
+    isExpired: false
+  },
+  {
+    id: '11',
+    userId: 'user11',
+    userName: '소피아',
+    userAvatar: '/avatars/user11.jpg',
+    imageUrl: '/stories/story11.jpg',
+    text: '한국 전통 한복을 입어보고 싶어요! 너무 예쁘네요 💕',
+    isPublic: true,
+    createdAt: new Date(Date.now() - 22 * 60 * 60 * 1000), // 22시간 전
+    expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2시간 후 만료
+    isExpired: false
+  },
+  {
+    id: '12',
+    userId: 'user12',
+    userName: '이민수',
+    userAvatar: '/avatars/user12.jpg',
+    imageUrl: '/stories/story12.jpg',
+    text: '스페인 여행 계획을 세우고 있어요! 추천 장소 있나요? ✈️',
+    isPublic: true,
+    createdAt: new Date(Date.now() - 23 * 60 * 60 * 1000), // 23시간 전
+    expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1시간 후 만료
+    isExpired: false
   }
 ]
 
@@ -107,7 +191,7 @@ export default function StoryCarousel() {
   const { t } = useLanguage()
   
   // 상태 관리
-  const [viewMode, setViewMode] = useState<'collapsed' | 'expanded'>('collapsed')
+  const [viewMode, setViewMode] = useState<'collapsed' | 'expanded' | 'compact'>('collapsed')
   const [stories, setStories] = useState<Story[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [hasMore, setHasMore] = useState(true)
@@ -122,10 +206,15 @@ export default function StoryCarousel() {
          text: '',
          isPublic: true
        })
-       const [isUploading, setIsUploading] = useState(false)
-       
-       // 좋아요 상태 관리
-       const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
+         const [isUploading, setIsUploading] = useState(false)
+  
+  // 좋아요 상태 관리
+  const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
+  
+  // 댓글 관련 상태
+  const [showCommentModal, setShowCommentModal] = useState<string | null>(null)
+  const [commentText, setCommentText] = useState('')
+  const [storyComments, setStoryComments] = useState<Record<string, Comment[]>>({})
 
   // refs
   const containerRef = useRef<HTMLDivElement>(null)
@@ -208,15 +297,13 @@ export default function StoryCarousel() {
     }
   }, [viewMode, hasMore, isLoadingMore, loadMoreStories])
 
-  // 초기 스토리 로드 (1개만)
+  // 초기 스토리 로드 (모든 스토리)
   const loadInitialStories = async () => {
     setIsLoading(true)
     try {
-      // 실제로는 API 호출: 최신 스토리 1개만
-      const initialStories = mockStories.slice(0, 1)
-      setStories(initialStories)
-      setHasMore(mockStories.length > 1)
-      // 다음 페이지 커서
+      // 실제로는 API 호출: 모든 스토리 로드
+      setStories(mockStories)
+      setHasMore(false) // 모든 스토리를 로드했으므로 더 이상 없음
     } catch (error) {
       console.error('초기 스토리 로드 실패:', error)
     } finally {
@@ -227,13 +314,10 @@ export default function StoryCarousel() {
   // 뷰 모드 토글
   const toggleViewMode = async () => {
     if (viewMode === 'collapsed') {
-      // collapsed → expanded: 최소 3개까지 보장
+      // collapsed → expanded: 모든 스토리 표시
       setViewMode('expanded')
-      if (stories.length < 3) {
-        await loadMoreStories()
-      }
     } else {
-      // expanded → collapsed: 1개로 축소
+      // expanded → collapsed: 모든 스토리 유지
       resetToCollapsed()
     }
   }
@@ -242,9 +326,8 @@ export default function StoryCarousel() {
   const resetToCollapsed = () => {
     setViewMode('collapsed')
     setCurrentIndex(0)
-    setStories(mockStories.slice(0, 1))
-    setHasMore(mockStories.length > 1)
-    // 커서 초기화
+    setStories(mockStories) // 모든 스토리 유지
+    setHasMore(false) // 모든 스토리를 로드했으므로 더 이상 없음
     
     // 스크롤 위치도 초기화
     if (containerRef.current) {
@@ -303,18 +386,52 @@ export default function StoryCarousel() {
     }
   }, [handleScroll])
 
-         // 좋아요 토글 처리
-       const handleLikeToggle = (storyId: string) => {
-         setLikedStories(prev => {
-           const newLiked = new Set(prev)
-           if (newLiked.has(storyId)) {
-             newLiked.delete(storyId)
-           } else {
-             newLiked.add(storyId)
-           }
-           return newLiked
-         })
-       }
+  // 좋아요 토글 처리
+  const handleLikeToggle = (storyId: string) => {
+    setLikedStories(prev => {
+      const newLiked = new Set(prev)
+      if (newLiked.has(storyId)) {
+        newLiked.delete(storyId)
+      } else {
+        newLiked.add(storyId)
+      }
+      return newLiked
+    })
+  }
+
+  // 댓글 추가
+  const handleAddComment = (storyId: string) => {
+    if (!commentText.trim()) return
+
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      storyId,
+      author: user?.user_metadata?.full_name || '익명',
+      content: commentText,
+      createdAt: new Date(),
+      likes: 0
+    }
+
+    setStoryComments(prev => ({
+      ...prev,
+      [storyId]: [...(prev[storyId] || []), newComment]
+    }))
+
+    setCommentText('')
+    setShowCommentModal(null)
+  }
+
+  // 댓글 좋아요
+  const handleCommentLike = (storyId: string, commentId: string) => {
+    setStoryComments(prev => ({
+      ...prev,
+      [storyId]: prev[storyId]?.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, likes: comment.likes + 1 }
+          : comment
+      ) || []
+    }))
+  }
        
        // 스토리 업로드 처리
        const handleStoryUpload = async () => {
@@ -367,8 +484,8 @@ export default function StoryCarousel() {
     return () => clearInterval(interval)
   }, [])
 
-  // 현재 표시할 스토리들
-  const visibleStories = viewMode === 'collapsed' ? stories.slice(0, 1) : stories
+  // 현재 표시할 스토리들 (모든 스토리 표시)
+  const visibleStories = stories
 
   return (
     <div className="mb-6">
@@ -465,27 +582,7 @@ export default function StoryCarousel() {
             </DialogContent>
           </Dialog>
           
-          {/* 확장/축소 버튼 */}
-          {stories.length > 1 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleViewMode}
-              className="border-gray-300 hover:bg-gray-50"
-            >
-              {viewMode === 'expanded' ? (
-                <>
-                  <ChevronUp className="w-4 h-4 mr-1" />
-                  줄이기
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-4 h-4 mr-1" />
-                  늘리기
-                </>
-              )}
-            </Button>
-          )}
+
         </div>
       </div>
 
@@ -499,226 +596,163 @@ export default function StoryCarousel() {
       {/* 스토리 캐러셀 */}
       {!isLoading && (
         <div className="relative">
-          {/* 좌우 네비게이션 버튼 (데스크탑, expanded 상태에서만) */}
-          {viewMode === 'expanded' && stories.length > 1 && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={navigateToPrev}
-                disabled={currentIndex === 0}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg border-gray-300"
-                aria-label="이전 스토리"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={navigateToNext}
-                disabled={currentIndex === stories.length - 1}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg border-gray-300"
-                aria-label="다음 스토리"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </>
-          )}
 
-          {/* 캐러셀 컨테이너 */}
-          <div 
-            ref={containerRef}
-            className={`
-              flex gap-4 overflow-x-auto overflow-y-hidden
-              snap-x snap-mandatory
-              max-w-none
-              transition-all duration-300 ease-in-out
-              pb-2
-            `}
-            style={{
-              scrollbarWidth: 'none', // Firefox
-              msOverflowStyle: 'none', // IE/Edge
-              scrollSnapType: 'x mandatory'
-            }}
-          >
-            {/* 스크롤바 숨기기 (Webkit) */}
-            <style jsx>{`
-              div::-webkit-scrollbar {
-                display: none;
-              }
-            `}</style>
-
-            {visibleStories.map((story) => (
-              <div
-                key={story.id}
-                className="snap-start flex-shrink-0 relative"
-                style={{ 
-                  minWidth: '280px',
-                  maxWidth: '320px',
-                  width: '280px'
-                }}
-              >
-                <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full p-3 group">
-                  <div className="relative">
-                    {/* 스토리 이미지 */}
-                    <div className="aspect-square bg-gray-200 relative overflow-hidden rounded-lg">
-                      <img
-                        src={story.imageUrl}
-                        alt="스토리 이미지"
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={() => {
-                          // 모바일에서는 전체화면 모달 열기
-                          if (window.innerWidth <= 768) {
-                            // TODO: 전체화면 스토리 뷰어 구현
-                            console.log('모바일 전체화면 스토리 뷰어 열기')
-                          }
-                        }}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.src = `https://picsum.photos/400/400?random=${story.id}`
-                        }}
-                      />
-                      
-                      {/* 만료 시간 표시 */}
-                      <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                        {Math.max(0, Math.floor((story.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)))}시간
+          {/* 스크롤 가능한 스토리 그리드 */}
+          <div className="overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {stories.map((story) => (
+                <div
+                  key={story.id}
+                  className="relative"
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full p-3 group">
+                    <div className="relative">
+                      {/* 스토리 이미지 */}
+                      <div className="aspect-square bg-gray-200 relative overflow-hidden rounded-lg">
+                        <img
+                          src={story.imageUrl}
+                          alt="스토리 이미지"
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => {
+                            // 모바일에서는 전체화면 모달 열기
+                            if (window.innerWidth <= 768) {
+                              // TODO: 전체화면 스토리 뷰어 구현
+                              console.log('모바일 전체화면 스토리 뷰어 열기')
+                            }
+                          }}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = `https://picsum.photos/400/400?random=${story.id}`
+                          }}
+                        />
+                        
+                        {/* 만료 시간 표시 */}
+                        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                          {Math.max(0, Math.floor((story.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)))}시간
+                        </div>
+                        
+                        {/* 공개/비공개 표시 */}
+                        <div className="absolute top-2 left-2">
+                          {story.isPublic ? (
+                            <div className="bg-green-500 text-white p-1 rounded-full">
+                              <Eye className="w-3 h-3" />
+                            </div>
+                          ) : (
+                            <div className="bg-gray-500 text-white p-1 rounded-full">
+                              <EyeOff className="w-3 h-3" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* 스토리 오버레이 메뉴 (마우스 오버 시) */}
+                        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100 pointer-events-none">
+                          <div className="flex gap-3 pointer-events-auto">
+                            {/* 좋아요 버튼 */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleLikeToggle(story.id)
+                              }}
+                              className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                            >
+                              {likedStories.has(story.id) ? (
+                                <Heart className="w-5 h-5 text-red-500 fill-current" />
+                              ) : (
+                                <Heart className="w-5 h-5 text-red-500" />
+                              )}
+                            </button>
+                            
+                            {/* 댓글 버튼 */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowCommentModal(story.id)
+                              }}
+                              className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                            >
+                              <MessageSquare className="w-5 h-5 text-blue-500" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                       
-                      {/* 공개/비공개 표시 */}
-                      <div className="absolute top-2 left-2">
-                        {story.isPublic ? (
-                          <div className="bg-green-500 text-white p-1 rounded-full">
-                            <Eye className="w-3 h-3" />
+                      {/* 스토리 내용 */}
+                      <div className="p-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-5 h-5 bg-brand-100 rounded-full flex items-center justify-center">
+                            <User className="w-3 h-3 text-brand-600" />
                           </div>
-                        ) : (
-                          <div className="bg-gray-500 text-white p-1 rounded-full">
-                            <EyeOff className="w-3 h-3" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* 스토리 오버레이 메뉴 (마우스 오버 시) */}
-                      <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100 pointer-events-none">
-                        <div className="flex gap-3 pointer-events-auto">
-                          {/* 좋아요 버튼 */}
+                          <span className="text-xs font-medium text-gray-800">{story.userName}</span>
+                        </div>
+                        
+                        <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words leading-relaxed" style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          wordBreak: 'break-word'
+                        }}>
+                          {story.text}
+                        </p>
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                          <span>{story.createdAt.toLocaleTimeString('ko-KR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}</span>
+                          <span>24시간 후 삭제</span>
+                        </div>
+                        
+                        {/* 좋아요와 댓글 버튼 */}
+                        <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               handleLikeToggle(story.id)
                             }}
-                            className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                            className="flex items-center gap-1 text-xs text-gray-600 hover:text-red-500 transition-colors"
                           >
                             {likedStories.has(story.id) ? (
-                              <Heart className="w-5 h-5 text-red-500 fill-current" />
+                              <Heart className="w-4 h-4 text-red-500 fill-current" />
                             ) : (
-                              <Heart className="w-5 h-5 text-red-500" />
+                              <Heart className="w-4 h-4" />
                             )}
+                            <span>좋아요</span>
                           </button>
                           
-                          {/* 프로필 보기 버튼 */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              // TODO: 프로필 보기 모달/페이지 이동
-                              console.log('프로필 보기:', story.userId)
-                              alert(`프로필 보기! 사용자 ID: ${story.userId}`)
+                              setShowCommentModal(story.id)
                             }}
-                            className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                            className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
                           >
-                            <User className="w-5 h-5 text-blue-500" />
+                            <MessageSquare className="w-4 h-4" />
+                            <span>댓글</span>
                           </button>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* 스토리 내용 */}
-                    <div className="p-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-5 h-5 bg-brand-100 rounded-full flex items-center justify-center">
-                          <User className="w-3 h-3 text-brand-600" />
-                        </div>
-                        <span className="text-xs font-medium text-gray-800">{story.userName}</span>
-                      </div>
-                      
-                      <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words leading-relaxed" style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        wordBreak: 'break-word'
-                      }}>
-                        {story.text}
-                      </p>
-                      
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{story.createdAt.toLocaleTimeString('ko-KR', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}</span>
-                        <span>24시간 후 삭제</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* 더보기 버튼 - 중앙에 짧은 형태 */}
-                {viewMode === 'collapsed' && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 z-20">
-                    <Button
-                      onClick={() => toggleViewMode()}
-                      className="h-24 bg-white/80 hover:bg-white/90 backdrop-blur-sm border border-white/50 text-gray-700 hover:text-gray-900 shadow-lg rounded-l-lg rounded-r-none px-0 w-[4px] flex items-center justify-center transition-all duration-300 hover:w-[20px] overflow-hidden group"
-                      size="sm"
-                    >
-                      <ChevronRight className="w-4 h-4 transition-all duration-200 group-hover:opacity-0" />
-                      <span 
-                        className="text-xs font-medium absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap"
-                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-                      >
-                        더보기
-                      </span>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* 무한 스크롤 트리거 (가로 스크롤용) */}
-            {viewMode === 'expanded' && hasMore && (
-              <div ref={loadMoreRef} className="snap-start flex-shrink-0 flex items-center justify-center" style={{ minWidth: '260px' }}>
-                <div className="w-full h-full flex items-center justify-center">
-                  {isLoadingMore ? (
-                    <div className="flex flex-col items-center gap-2 text-center">
-                      <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-                      <span className="text-sm text-gray-500">더 많은 스토리를 불러오는 중...</span>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      onClick={loadMoreStories}
-                      className="border-brand-300 text-brand-600 hover:bg-brand-50"
-                    >
-                      더 많은 스토리 보기
-                    </Button>
-                  )}
+                  </Card>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* 인디케이터 (선택사항) */}
-          {viewMode === 'expanded' && stories.length > 1 && (
-            <div className="flex justify-center mt-4 gap-2">
-              {stories.map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                    i === currentIndex ? 'bg-brand-500' : 'bg-gray-300'
-                  }`}
-                />
               ))}
             </div>
-          )}
+            
+            {/* 스토리가 없을 때 */}
+            {stories.length === 0 && (
+              <Card className="p-8 text-center">
+                <div className="text-4xl mb-4">📖</div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">오늘 올라온 스토리가 없습니다</h3>
+                <p className="text-gray-600 mb-4">
+                  오늘은 아직 새로운 스토리가 없어요. 첫 번째 스토리를 올려보세요!
+                </p>
+                <Button onClick={() => setShowUploadModal(true)} className="bg-brand-500 hover:bg-brand-600">
+                  <Plus className="w-4 h-4 mr-2" />
+                  스토리 올리기
+                </Button>
+              </Card>
+            )}
+          </div>
         </div>
       )}
 
@@ -740,6 +774,74 @@ export default function StoryCarousel() {
           </p>
         </div>
       )}
+
+      {/* 댓글 모달 */}
+      <Dialog open={!!showCommentModal} onOpenChange={() => setShowCommentModal(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>댓글</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* 댓글 목록 */}
+            <div className="max-h-60 overflow-y-auto space-y-3">
+              {showCommentModal && storyComments[showCommentModal]?.map(comment => (
+                <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">{comment.author}</span>
+                        <span className="text-xs text-gray-500">
+                          {comment.createdAt.toLocaleTimeString('ko-KR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700">{comment.content}</p>
+                    </div>
+                    <button
+                      onClick={() => handleCommentLike(showCommentModal, comment.id)}
+                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500"
+                    >
+                      <Heart className="w-3 h-3" />
+                      <span>{comment.likes}</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+              
+              {showCommentModal && (!storyComments[showCommentModal] || storyComments[showCommentModal].length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  아직 댓글이 없습니다.
+                </div>
+              )}
+            </div>
+            
+            {/* 댓글 작성 */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="댓글을 입력하세요..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddComment(showCommentModal!)
+                  }
+                }}
+                className="flex-1"
+              />
+              <Button 
+                onClick={() => handleAddComment(showCommentModal!)}
+                disabled={!commentText.trim()}
+                size="sm"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

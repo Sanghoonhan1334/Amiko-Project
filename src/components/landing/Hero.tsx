@@ -75,8 +75,8 @@ export default function Hero() {
             {/* 회사소개 섹션 */}
             <SwiperSlide>
               <div className="text-center h-full overflow-y-auto scrollbar-hide">
-                <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-3xl px-6 py-3 mb-8 shadow-2xl border border-white/30">
-                  <Sparkles className="w-5 h-5 text-white" />
+          <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-3xl px-6 py-3 mb-8 shadow-2xl border border-white/30">
+            <Sparkles className="w-5 h-5 text-white" />
                   <span className="text-white font-medium">한국과 남미를 잇는 다리</span>
                 </div>
                 
@@ -103,8 +103,8 @@ export default function Hero() {
                           <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-300">
                             <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1"></div>
                           </div>
-                        </div>
-                        
+          </div>
+          
                         {/* 호버시 텍스트 */}
                         <div className="absolute bottom-4 left-4 right-4 text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <p className="text-lg font-semibold drop-shadow-lg">클릭하여 영상 보기</p>
@@ -136,7 +136,7 @@ export default function Hero() {
                     <h3 className="text-2xl font-bold text-white mb-4">🌎 Amiko의 시작</h3>
                     <p className="text-white/80 text-lg leading-relaxed mb-4">
                       남미 여러 지역에서 봉사와 선교 활동을 하며, 저는 그곳 사람들을 진심으로 사랑하게 되었습니다.
-                      <br />
+            <br />
                       하지만 한국인들은 지구 반대편의 이 따뜻한 이웃들을 아직 잘 알지 못합니다.
                     </p>
                     <div className="bg-white/10 rounded-xl p-4">
@@ -267,10 +267,10 @@ export default function Hero() {
                         &nbsp;&nbsp;&nbsp;언어 실력이 부족해도 원활한 소통이 가능합니다.</li>
                         <li>• 필요에 따라 영어 통역도 지원 예정</li>
                       </ul>
-                    </div>
                   </div>
                 </div>
-
+              </div>
+              
                 {/* 신뢰 시스템 & 차별화 포인트 */}
                 <div className="max-w-4xl mx-auto">
                   <div className="bg-gradient-to-r from-green-400/20 to-blue-400/20 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-green-300/30 mb-6">
@@ -305,9 +305,9 @@ export default function Hero() {
                           <li>• 한국어 ↔ 스페인어 실시간 통역</li>
                           <li>• 언어 걱정 없이 누구나 대화 가능</li>
                         </ul>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+            </div>
+          </div>
 
                   {/* Amiko의 약속 */}
                   <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/30">
@@ -390,9 +390,9 @@ export default function Hero() {
                       나의 일상, 한국 문화 경험담, 여행기 등을 공유하세요.<br />
                       사진과 짧은 영상도 올릴 수 있으며,<br />
                       서로의 삶을 가까이 느낄 수 있는 교류의 장입니다.
-                    </p>
-                  </div>
-                </div>
+          </p>
+        </div>
+      </div>
 
                 {/* 다음 섹션 안내 */}
                 <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/30 mt-8">
@@ -409,7 +409,7 @@ export default function Hero() {
             {/* 이벤트 섹션 */}
             <SwiperSlide>
               <div className="text-center h-full overflow-y-auto scrollbar-hide">
-                <h2 className="text-4xl font-bold text-white mb-8 drop-shadow-2xl">✈️ Amiko 특별 이벤트</h2>
+                <h2 className="text-4xl font-bold text-white mb-8 drop-shadow-2xl">🎁 Amiko 특별 이벤트</h2>
                 <p className="text-xl text-white/90 mb-8">상담과 커뮤니티 활동으로 포인트를 모아보세요!<br />활동이 많을수록 한국과 가까워질 기회가 열립니다.</p>
                 
 
@@ -423,15 +423,15 @@ export default function Hero() {
                         <div className="w-16 h-16 bg-green-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
                           <span className="text-white text-3xl">💬</span>
                         </div>
-                        <h4 className="text-xl font-bold text-white mb-2">상담 참여</h4>
-                        <p className="text-white/80 text-sm">→ 포인트 적립</p>
+                        <h4 className="text-xl font-bold text-white mb-2">영상 소통</h4>
+                        <p className="text-white/80 text-sm">15분 당 30점 포인트 적립</p>
                       </div>
                       <div className="text-center">
                         <div className="w-16 h-16 bg-blue-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
                           <span className="text-white text-3xl">🌐</span>
                         </div>
                         <h4 className="text-xl font-bold text-white mb-2">커뮤니티 활동</h4>
-                        <p className="text-white/80 text-sm">글/댓글/좋아요 → 포인트 적립</p>
+                        <p className="text-white/80 text-sm">글/댓글/좋아요<br />하루 최대 20점 포인트 적립</p>
                       </div>
                     </div>
                   </div>
@@ -452,7 +452,7 @@ export default function Hero() {
                       </div>
                       <div className="text-center">
                         <h4 className="text-xl font-bold text-white mb-2">🌍 현지인 1등 당첨자</h4>
-                        <p className="text-white/80 text-sm">한국인 참가자에게 직접 가이드 역할까지!</p>
+                        <p className="text-white/80 text-sm">한국으로 오면 운영자가 직접 가이드!</p>
                         <p className="text-yellow-300 font-semibold">서로 만나고, 함께 문화를 경험</p>
                       </div>
                     </div>
@@ -468,7 +468,7 @@ export default function Hero() {
                 <div className="max-w-4xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Button className="bg-gradient-to-r from-green-400 to-blue-400 text-white px-8 py-4 text-lg hover:scale-105 transition-all duration-300">
-                      💬 상담 참여하고 포인트 쌓기
+                      💬 영상 소통하고 포인트 쌓기
                     </Button>
                     <Button className="bg-gradient-to-r from-purple-400 to-pink-400 text-white px-8 py-4 text-lg hover:scale-105 transition-all duration-300">
                       🌐 커뮤니티 활동하고 포인트 쌓기
@@ -500,8 +500,8 @@ export default function Hero() {
                     <span className="text-yellow-300 font-semibold text-lg">클릭하세요</span>
                     <span className="text-white text-2xl animate-pulse">→</span>
                   </div>
-                </div>
-              </div>
+            </div>
+          </div>
             </SwiperSlide>
 
           </Swiper>

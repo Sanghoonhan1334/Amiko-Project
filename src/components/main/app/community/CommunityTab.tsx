@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import VerificationGuard from '@/components/common/VerificationGuard'
 import StoryCarousel from './StoryCarousel'
+import FreeBoard from './FreeBoard'
 import { useLanguage } from '@/context/LanguageContext'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
@@ -158,14 +159,14 @@ export default function CommunityTab() {
   const searchParams = useSearchParams()
   
   // 탭 상태 관리
-  const [activeTab, setActiveTab] = useState('story')
+  const [activeTab, setActiveTab] = useState('qa')
   // 내부 커뮤니티 탭 URL 파라미터 (cTab) 사용
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedQuestion, setSelectedQuestion] = useState<typeof mockQuestions[0] | null>(null)
   const [showQuestionModal, setShowQuestionModal] = useState(false)
   const [showAnswerDrawer, setShowAnswerDrawer] = useState(false)
-
+  
   
 
   
@@ -371,7 +372,7 @@ export default function CommunityTab() {
   const getActivityDescription = (activity: string, points: number) => {
     const descriptions: Record<string, string> = {
       question: '질문 작성',
-      answer: '답변 작성',
+      answer: '답변 작성', 
       story: '스토리 작성',
       freeboard: '자유게시판 작성',
       reaction: '좋아요/댓글',
@@ -450,7 +451,42 @@ export default function CommunityTab() {
               </Badge>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {/* 포인트 획득 규칙 */}
+            <div className="bg-white/60 rounded-lg p-4 mb-4">
+              <h4 className="font-semibold text-gray-800 mb-3 text-sm">포인트 획득 규칙</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💬</span>
+                  <div>
+                    <div className="font-medium">질문 작성</div>
+                    <div className="text-blue-600">+5점</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💬</span>
+                  <div>
+                    <div className="font-medium">답변 작성</div>
+                    <div className="text-blue-600">+5점</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📖</span>
+                  <div>
+                    <div className="font-medium">스토리 작성</div>
+                    <div className="text-blue-600">+5점</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📝</span>
+                  <div>
+                    <div className="font-medium">자유게시판</div>
+                    <div className="text-blue-600">+2점</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-3 bg-white/60 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{userPoints}</div>
                 <div className="text-sm text-blue-600">총 포인트</div>
@@ -465,42 +501,6 @@ export default function CommunityTab() {
                 </div>
                 <div className="text-sm text-orange-600">남은 한도</div>
               </div>
-              <div className="text-center p-3 bg-white/60 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">4</div>
-                <div className="text-sm text-purple-600">활성 탭</div>
-              </div>
-            </div>
-            
-            {/* 탭별 포인트 안내 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-              <div className="flex items-center gap-2 p-2 bg-white/60 rounded">
-                <span className="text-base">📖</span>
-                <div>
-                  <div className="font-medium">스토리</div>
-                  <div className="text-blue-600">+5점</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-white/60 rounded">
-                <span className="text-base">💬</span>
-                <div>
-                  <div className="font-medium">Q&A</div>
-                  <div className="text-blue-600">+5점</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-white/60 rounded">
-                <span className="text-base">📝</span>
-                <div>
-                  <div className="font-medium">자유게시판</div>
-                  <div className="text-blue-600">+2점</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-white/60 rounded">
-                <span className="text-base">📰</span>
-                <div>
-                  <div className="font-medium">한국뉴스</div>
-                  <div className="text-gray-500">준비중</div>
-                </div>
-              </div>
             </div>
           </div>
         </Card>
@@ -508,20 +508,6 @@ export default function CommunityTab() {
         {/* 세그먼트 탭 네비게이션 */}
       <div className="bg-white rounded-2xl border border-gray-200 p-1 shadow-sm">
         <div className="grid grid-cols-4 gap-1">
-          <button
-            onClick={() => handleTabChange('story')}
-            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'story'
-                ? 'bg-brand-100 text-brand-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base">📖</span>
-              <span className="hidden sm:inline text-xs">{t('communityTab.story')}</span>
-            </div>
-          </button>
-          
           <button
             onClick={() => handleTabChange('qa')}
             className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -551,6 +537,20 @@ export default function CommunityTab() {
           </button>
           
           <button
+            onClick={() => handleTabChange('story')}
+            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeTab === 'story'
+                ? 'bg-brand-100 text-brand-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-base">📖</span>
+              <span className="hidden sm:inline text-xs">{t('communityTab.story')}</span>
+            </div>
+          </button>
+          
+          <button
             onClick={() => handleTabChange('news')}
             className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeTab === 'news'
@@ -572,151 +572,16 @@ export default function CommunityTab() {
           {/* 스토리 섹션 */}
           <StoryCarousel />
           
-          {/* 이번 주 라운지 미니 카드 */}
-          <Card className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 border-2 border-orange-200/50 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <span className="text-xl">🎈</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800">{t('communityTab.loungeHooks.thisWeekLounge')}</h4>
-                    <p className="text-sm text-gray-600">{t('communityTab.loungeHooks.joinSpecialTime')}</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => handleTabChange('lounge')}
-                  size="sm"
-                  className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm"
-                >
-                  {t('communityTab.loungeHooks.goToLounge')}
-                </Button>
-              </div>
-              
 
-            </div>
-          </Card>
         </div>
       )}
 
       {activeTab === 'qa' && (
         <div className="space-y-6">
 
-      {/* 포인트 규칙 안내 배너 */}
-      <Card className="p-4 sm:p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer !opacity-100 !transform-none">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 flex-1">
-            <Award className="w-5 h-5 text-yellow-600 mt-0.5" />
-            <div className="space-y-2">
-              <h4 className="font-medium text-yellow-800">{t('communityTab.pointRules')}</h4>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <span className="font-medium text-yellow-700 whitespace-nowrap">🇰🇷 {t('communityTab.koreans')}</span>
-                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300 text-xs">{t('communityTab.question')} +5 / {t('communityTab.answer')} +5</Badge>
-                  </div>
-                  <p className="text-yellow-600 text-xs">{t('communityTab.dailyLimit')}, {t('communityTab.adoptionLikeBonus')}</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <span className="font-medium text-yellow-700 whitespace-nowrap">🌎 {t('communityTab.latinUsers')}</span>
-                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300 text-xs">{t('communityTab.question')} +2 / {t('communityTab.answer')} +2</Badge>
-                  </div>
-                  <p className="text-yellow-600 text-xs">{t('communityTab.adoptionLikeBonus')}, {t('communityTab.spamCooldown')}</p>
-                </div>
-              </div>
-              
 
-            </div>
-          </div>
-        </div>
-      </Card>
 
-      {/* 포인트 현황 카드 */}
-      <Card className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer !opacity-100 !transform-none">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
-            <Star className="w-5 h-5 text-blue-600" />
-          </div>
-          <div className="flex-1 space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-blue-800">{t('pointStatus.title')}</h4>
-              <Badge className={`px-3 py-1 text-sm ${
-                currentProfile.is_korean ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-mint-100 text-mint-700 border-mint-300'
-              }`}>
-                {currentProfile.is_korean ? t('pointStatus.korean') : t('pointStatus.local')}
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{userPoints}</div>
-                <div className="text-sm text-blue-600">{t('pointStatus.totalPoints')}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{dailyPoints}</div>
-                <div className="text-sm text-green-600">{t('pointStatus.acquiredToday')}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {pointSystem[currentProfile.is_korean ? 'korean' : 'latin'].dailyLimit - dailyPoints}
-                </div>
-                <div className="text-sm text-orange-600">{t('pointStatus.remainingLimit')}</div>
-              </div>
-            </div>
-            
-            {/* 포인트 히스토리 (최근 3개) */}
-            {pointHistory.length > 0 && (
-              <div className="space-y-2">
-                <h5 className="font-medium text-blue-700 text-sm">{t('pointStatus.recentPointEarnings')}</h5>
-                <div className="space-y-1">
-                  {pointHistory.slice(0, 3).map((item) => (
-                    <div key={item.id} className="flex items-center justify-between text-xs bg-white/60 rounded px-2 py-1">
-                      <span className="text-blue-600">{item.description}</span>
-                      <span className="text-blue-500">
-                        {item.timestamp.toLocaleTimeString('ko-KR', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
 
-      {/* 오늘의 활동 카드 */}
-      <Card className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-brand-50 border border-mint-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer !opacity-100 !transform-none">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 bg-mint-100 rounded-xl flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-mint-600" />
-          </div>
-          <h4 className="font-semibold text-gray-800">{t('communityTab.todayActivity')}</h4>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-brand-600">{mockTodayActivity.questions}</div>
-            <div className="text-sm text-gray-600">{t('communityTab.myQuestions')}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-mint-600">{mockTodayActivity.answers}</div>
-            <div className="text-sm text-gray-600">{t('communityTab.myAnswers')}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">{mockTodayActivity.points}</div>
-            <div className="text-sm text-gray-600">{t('communityTab.pointsAcquired')}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{mockTodayActivity.upvotes}</div>
-            <div className="text-sm text-gray-600">{t('communityTab.upvotesReceived')}</div>
-          </div>
-        </div>
-      </Card>
 
       {/* 상단 컨트롤 */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
@@ -941,26 +806,7 @@ export default function CommunityTab() {
 
       {activeTab === 'freeboard' && (
         <div className="space-y-6">
-          {/* 자유게시판 섹션 */}
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200/50">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <span className="text-xl">📝</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800">자유게시판</h3>
-                  <p className="text-gray-600">자유롭게 게시물을 공유해주세요</p>
-                </div>
-              </div>
-              
-              <div className="text-center p-8">
-                <div className="text-4xl mb-4">🚧</div>
-                <h4 className="text-lg font-semibold text-gray-800 mb-2">준비 중입니다</h4>
-                <p className="text-gray-600">자유게시판 기능이 곧 오픈됩니다!</p>
-              </div>
-            </div>
-          </Card>
+          <FreeBoard />
         </div>
       )}
 
@@ -972,13 +818,13 @@ export default function CommunityTab() {
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
                   <span className="text-xl">📰</span>
-                </div>
+              </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-800">최신 한국 뉴스</h3>
                   <p className="text-gray-600">한국의 최신 소식을 확인해보세요</p>
+                  </div>
                 </div>
-              </div>
-              
+                
               <div className="text-center p-8">
                 <div className="text-4xl mb-4">🚧</div>
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">준비 중입니다</h4>
@@ -986,7 +832,7 @@ export default function CommunityTab() {
               </div>
             </div>
           </Card>
-        </div>
+              </div>
       )}
 
 

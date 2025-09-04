@@ -108,7 +108,6 @@ export function useNotifications() {
           icon: '/favicon.ico',
           badge: '/favicon.ico',
           tag: notification.id,
-          renotify: true,
           requireInteraction: false,
           silent: false
         })
