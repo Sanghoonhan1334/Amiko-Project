@@ -262,12 +262,6 @@ export default function Header() {
                   // 랜딩페이지 네비게이션 - 예시 사진 스타일
                   <>
                     <button 
-                      onClick={() => router.push('/main')}
-                      className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
-                    >
-                      홈
-                    </button>
-                    <button 
                       onClick={() => handleNavClick(0)}
                       className={`font-semibold transition-all duration-300 ${
                         activeSlide === 0 
@@ -275,7 +269,7 @@ export default function Header() {
                           : 'text-gray-800 hover:text-gray-600'
                       }`}
                     >
-                      회사소개
+                      홈
                     </button>
                     <button 
                       onClick={() => handleNavClick(1)}
@@ -285,12 +279,22 @@ export default function Header() {
                           : 'text-gray-800 hover:text-gray-600'
                       }`}
                     >
-                      문의
+                      회사소개
                     </button>
                     <button 
                       onClick={() => handleNavClick(2)}
                       className={`font-semibold transition-all duration-300 ${
                         activeSlide === 2 
+                          ? 'text-blue-600' 
+                          : 'text-gray-800 hover:text-gray-600'
+                      }`}
+                    >
+                      문의
+                    </button>
+                    <button 
+                      onClick={() => handleNavClick(3)}
+                      className={`font-semibold transition-all duration-300 ${
+                        activeSlide === 3 
                           ? 'text-blue-600' 
                           : 'text-gray-800 hover:text-gray-600'
                       }`}
