@@ -241,12 +241,12 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-12 z-10">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-12 z-10 pointer-events-none">
               <div className="flex items-center group">
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
-                  className="h-48 w-auto object-contain group-hover:scale-105 transition-all duration-300"
+                  className="h-48 w-auto object-contain group-hover:scale-105 transition-all duration-300 pointer-events-none"
                   style={{ 
                     maxHeight: '192px'
                   }}
