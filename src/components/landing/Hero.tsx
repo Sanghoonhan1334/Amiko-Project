@@ -172,10 +172,10 @@ export default function Hero() {
           </Swiper>
 
           {/* 커스텀 네비게이션 버튼 */}
-          <div className="home-swiper-button-prev !w-12 !h-12 !bg-transparent !border !border-gray-300 !rounded-full !text-gray-400 hover:!bg-gray-50 transition-all duration-300">
+          <div className="swiper-button-prev !w-12 !h-12 !bg-transparent !border !border-gray-300 !rounded-full !text-gray-400 hover:!bg-gray-50 transition-all duration-300 !top-1/2 !-translate-y-1/2 !left-4">
             <ChevronLeft className="w-5 h-5" />
           </div>
-          <div className="home-swiper-button-next !w-12 !h-12 !bg-transparent !border !border-gray-300 !rounded-full !text-gray-400 hover:!bg-gray-50 transition-all duration-300">
+          <div className="swiper-button-next !w-12 !h-12 !bg-transparent !border !border-gray-300 !rounded-full !text-gray-400 hover:!bg-gray-50 transition-all duration-300 !top-1/2 !-translate-y-1/2 !right-4">
             <ChevronRight className="w-5 h-5" />
           </div>
 
