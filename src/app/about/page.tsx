@@ -107,16 +107,15 @@ export default function AboutPage() {
                   </h2>
                   
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 border border-gray-200/50 shadow-lg max-w-5xl mx-auto">
-                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-8xl mb-6">🎥</div>
-                        <p className="text-gray-600 text-xl">
-                          소개 영상이 여기에 표시됩니다
-                        </p>
-                        <p className="text-gray-500 text-sm mt-3">
-                          (실제 영상 URL로 교체 예정)
-                        </p>
-                      </div>
+                    <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                      <iframe
+                        src="https://www.youtube.com/embed/6BdrKjSMBJY?autoplay=0&rel=0"
+                        title="Amiko 대표자 소개 영상"
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
                     </div>
                   </div>
                 </div>
