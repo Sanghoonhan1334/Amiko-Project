@@ -433,24 +433,24 @@ export default function CommunityTab() {
 
         {/* 통합 점수판 */}
         <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200/50 mb-6">
-          <div className="p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
                   <Star className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
+                  </div>
+                  <div>
                   <h3 className="text-lg font-semibold text-gray-800">커뮤니티 포인트</h3>
                   <p className="text-sm text-gray-600">활동으로 포인트를 모아보세요!</p>
+                  </div>
                 </div>
-              </div>
               <Badge className={`px-3 py-1 text-sm ${
                 currentProfile.is_korean ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-mint-100 text-mint-700 border-mint-300'
               }`}>
                 {currentProfile.is_korean ? '한국인' : '남미인'}
               </Badge>
-            </div>
-            
+              </div>
+              
             {/* 포인트 획득 규칙 */}
             <div className="bg-white/60 rounded-lg p-4 mb-4">
               <h4 className="font-semibold text-gray-800 mb-3 text-sm">포인트 획득 규칙</h4>
@@ -467,8 +467,8 @@ export default function CommunityTab() {
                   <div>
                     <div className="font-medium">답변 작성</div>
                     <div className="text-blue-600">+5점</div>
+                    </div>
                   </div>
-                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-base">📖</span>
                   <div>
@@ -476,14 +476,14 @@ export default function CommunityTab() {
                     <div className="text-blue-600">+5점</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                   <span className="text-base">📝</span>
-                  <div>
+                    <div>
                     <div className="font-medium">자유게시판</div>
                     <div className="text-blue-600">+2점</div>
+                    </div>
                   </div>
                 </div>
-              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -501,9 +501,9 @@ export default function CommunityTab() {
                 </div>
                 <div className="text-sm text-orange-600">남은 한도</div>
               </div>
-            </div>
           </div>
-        </Card>
+        </div>
+      </Card>
 
         {/* 세그먼트 탭 네비게이션 */}
       <div className="bg-white rounded-2xl border border-gray-200 p-1 shadow-sm">
@@ -519,7 +519,7 @@ export default function CommunityTab() {
             <div className="flex items-center justify-center gap-1">
               <span className="text-base">💬</span>
               <span className="hidden sm:inline text-xs">{t('communityTab.qa')}</span>
-            </div>
+          </div>
           </button>
           
           <button
@@ -533,7 +533,7 @@ export default function CommunityTab() {
             <div className="flex items-center justify-center gap-1">
               <span className="text-base">📝</span>
               <span className="hidden sm:inline text-xs">자유게시판</span>
-            </div>
+        </div>
           </button>
           
           <button
@@ -547,7 +547,7 @@ export default function CommunityTab() {
             <div className="flex items-center justify-center gap-1">
               <span className="text-base">📖</span>
               <span className="hidden sm:inline text-xs">{t('communityTab.story')}</span>
-            </div>
+          </div>
           </button>
           
           <button
@@ -561,10 +561,10 @@ export default function CommunityTab() {
             <div className="flex items-center justify-center gap-1">
               <span className="text-base">📰</span>
               <span className="hidden sm:inline text-xs">한국뉴스</span>
-            </div>
+          </div>
           </button>
-        </div>
-      </div>
+          </div>
+          </div>
 
       {/* 탭 컨텐츠 */}
       {activeTab === 'story' && (
@@ -807,7 +807,7 @@ export default function CommunityTab() {
       {activeTab === 'freeboard' && (
         <div className="space-y-6">
           <FreeBoard />
-        </div>
+                  </div>
       )}
 
       {activeTab === 'news' && (

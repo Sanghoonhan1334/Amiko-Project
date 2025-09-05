@@ -87,7 +87,7 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-32">
             {/* 좌측: 언어 전환 버튼 */}
             <div className="flex items-center">
               {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
@@ -124,21 +124,21 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-4 z-10 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 z-10 flex flex-col items-center">
               {/* 로고 */}
-              <div className="pointer-events-none mb-4">
+              <div className="pointer-events-none">
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
-                  className="h-32 w-auto object-contain transition-all duration-300 pointer-events-none"
+                  className="h-40 w-auto object-contain transition-all duration-300 pointer-events-none"
                   style={{ 
-                    maxHeight: '128px'
+                    maxHeight: '160px'
                   }}
                 />
               </div>
 
               {/* 네비게이션 */}
-              <nav className="flex space-x-8">
+              <nav className="flex space-x-8 -mt-10">
                 {isLandingPage ? (
                   // 랜딩페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
@@ -172,12 +172,6 @@ export default function Header() {
                     >
                       제휴문의
                     </button>
-                    <button 
-                      onClick={() => router.push('/main')}
-                      className="font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl"
-                    >
-                      시작하기
-                    </button>
                   </>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
@@ -200,7 +194,7 @@ export default function Header() {
                           : 'text-gray-800 hover:text-brand-500'
                       }`}
                     >
-                      영상소통
+                      화상대화
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('community')}
@@ -213,22 +207,64 @@ export default function Header() {
                       커뮤니티
                     </button>
                     <button 
-                      onClick={() => handleMainNavClick('me')}
+                      onClick={() => handleMainNavClick('charging')}
                       className={`font-semibold transition-all duration-300 drop-shadow-lg ${
-                        activeMainTab === 'me' 
-                          ? 'text-sky-500 scale-110' 
-                          : 'text-gray-800 hover:text-sky-500'
+                        activeMainTab === 'charging' 
+                          ? 'text-purple-500 scale-110' 
+                          : 'text-gray-800 hover:text-purple-500'
                       }`}
                     >
-                      내정보
+                      충전소
+                    </button>
+                    <button 
+                      onClick={() => handleMainNavClick('event')}
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                        activeMainTab === 'event' 
+                          ? 'text-pink-500 scale-110' 
+                          : 'text-gray-800 hover:text-pink-500'
+                      }`}
+                    >
+                      이벤트
                     </button>
                   </div>
                 ) : null}
               </nav>
             </div>
 
-            {/* 우측: 알림, 프로필, 모바일 메뉴 */}
+            {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
             <div className="flex items-center space-x-4">
+              {/* 로그아웃 버튼 - 메인페이지에서만 표시 */}
+              {isMainPage && (
+                <button 
+                  onClick={() => handleLogout()}
+                  className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500"
+                >
+                  로그아웃
+                </button>
+              )}
+              {/* 내정보 버튼 - 메인페이지에서만 표시 */}
+              {isMainPage && (
+                <button 
+                  onClick={() => handleMainNavClick('me')}
+                  className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                    activeMainTab === 'me' 
+                      ? 'text-sky-500 scale-110' 
+                      : 'text-gray-800 hover:text-sky-500'
+                  }`}
+                >
+                  내정보
+                </button>
+              )}
+              {/* 시작하기 버튼 - 랜딩페이지에서만 표시 */}
+              {isLandingPage && (
+                <button 
+                  onClick={() => router.push('/main')}
+                  className="font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl"
+                >
+                  시작하기
+                </button>
+              )}
+
               {/* 알림 버튼 - 메인페이지에서만 표시 */}
               {isMainPage && (
                 <Button

@@ -119,43 +119,106 @@ export default function Hero() {
               </div>
             </SwiperSlide>
 
-            {/* 두 번째 슬라이드 - 홈 (Amiko의 목표) */}
+            {/* 두 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide>
-              <div className="min-h-screen flex items-center justify-center py-20">
-                <div className="max-w-4xl mx-auto px-4 text-center">
-                  <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-8 border border-blue-200/30">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                    <span className="text-blue-700 font-medium text-sm">Amiko의 목표</span>
-                  </div>
-                  
-                  <h2 className="text-4xl font-bold text-gray-900 mb-8 leading-tight">
-                    언어와 문화의 장벽을 허물고<br />
-                    <span className="text-blue-600">진정한 소통</span>을 만들어갑니다
-                  </h2>
-                  
-                  <div className="grid md:grid-cols-3 gap-8 mt-12">
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg">
-                      <div className="text-4xl mb-4">🌍</div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">글로벌 커뮤니티</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        전 세계 사람들이 언어의 장벽 없이 자유롭게 소통할 수 있는 플랫폼을 제공합니다.
-                      </p>
+              <div className="min-h-screen flex flex-col py-20">
+                <div className="max-w-6xl mx-auto px-4">
+                  {/* 메인 레이아웃 */}
+                  <div className="space-y-8">
+                    {/* 왼쪽 섹션 */}
+                    <div className="space-y-8 pt-20">
+                      {/* 제목 섹션 */}
+                      <div className="text-left">
+                        <h2 className="text-3xl font-normal text-gray-900 mb-4">
+                          지구 반대편과 소통하세요.
+                        </h2>
+                        <h1 className="text-5xl font-bold text-gray-900 mb-4">
+                          Amiko 커뮤니티 서비스
+                        </h1>
+                        <div className="w-48 h-1 bg-purple-300 mb-6"></div>
+                        <p className="text-gray-600 text-lg">
+                          Amiko는 지구 반대편을 연결하는 다리입니다. 커뮤니티를 통해 서로의 문화에 더욱 가까이 다가가보세요.
+                        </p>
+                      </div>
+                      
+                      {/* 왼쪽 아래 2개 카드 */}
+                      <div className="flex flex-col md:flex-row gap-6 mt-20">
+                        {/* K-Trend 카드 */}
+                        <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100 relative w-full max-w-md h-64">
+                          <div className="absolute top-4 right-4">
+                            <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">01</span>
+                          </div>
+                          <div className="text-center">
+                            <div className="w-20 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 relative">
+                              {/* 직사각형 문서 모양 */}
+                              <div className="w-14 h-10 bg-white border-2 border-gray-800 rounded-lg relative">
+                                {/* 가로선들 */}
+                                <div className="absolute top-1 left-1 right-1 h-0.5 bg-gray-400"></div>
+                                <div className="absolute top-2 left-1 right-1 h-0.5 bg-gray-400"></div>
+                                <div className="absolute top-3 left-1 right-1 h-0.5 bg-gray-400"></div>
+                                <div className="absolute top-4 left-1 right-1 h-0.5 bg-gray-400"></div>
+                                <div className="absolute top-5 left-1 right-1 h-0.5 bg-gray-400"></div>
+                                {/* 노란색 사각형 */}
+                                <div className="absolute top-1 right-1 w-2 h-2 bg-yellow-400 rounded-sm"></div>
+                              </div>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">K-Trend</h3>
+                            <p className="text-gray-600 leading-relaxed">
+                              한국인이 직접 전하는 정확하고 빠른 K-Trend, Amiko에서 경험해보세요.
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* 자유게시판 카드 */}
+                        <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100 relative w-full max-w-md h-64">
+                          <div className="absolute top-4 right-4">
+                            <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">02</span>
+                          </div>
+                          <div className="text-center">
+                            <div className="w-20 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4 relative">
+                              {/* 직사각형 말풍선 모양 */}
+                              <div className="w-14 h-10 bg-white border-2 border-gray-800 rounded-lg relative">
+                                {/* 말풍선 안의 텍스트 라인들 */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="flex flex-col space-y-0.5">
+                                    <div className="w-6 h-0.5 bg-gray-400 rounded-full"></div>
+                                    <div className="w-4 h-0.5 bg-gray-400 rounded-full"></div>
+                                    <div className="w-5 h-0.5 bg-gray-400 rounded-full"></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">자유게시판</h3>
+                            <p className="text-gray-600 leading-relaxed">
+                              K-POP게시판, K-DRAMA게시판 여행 게시판, 자유 게시판을 통해 자유로운 소통을 경험해보세요.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg">
-                      <div className="text-4xl mb-4">🎯</div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">맞춤형 학습</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        개인의 수준과 목표에 맞는 맞춤형 커리큘럼으로 효율적인 언어 학습을 지원합니다.
-                      </p>
-                    </div>
-                    
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg">
-                      <div className="text-4xl mb-4">🤝</div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">문화 교류</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        단순한 언어 학습을 넘어 문화적 이해와 상호 존중을 바탕으로 한 진정한 교류를 추구합니다.
-                      </p>
+                    {/* Q&A 카드 */}
+                    <div className="flex justify-end">
+                      <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100 relative w-full max-w-md h-64">
+                        <div className="absolute top-4 right-4">
+                          <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">03</span>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-20 h-12 flex items-center justify-center mx-auto mb-4">
+                            {/* 검은색 테두리 말풍선 */}
+                            <div className="w-14 h-10 border-2 border-gray-800 rounded-lg relative bg-white">
+                              {/* 말풍선 꼬리 */}
+                              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-gray-800"></div>
+                              {/* 물음표 */}
+                              <div className="absolute inset-0 flex items-center justify-center text-gray-800 font-bold text-xl">?</div>
+                            </div>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-4">Q&A</h3>
+                          <p className="text-gray-600 leading-relaxed">
+                            Q&A 커뮤니티를 통해 서로에게 궁금한 점들을 질문하고 현지인에게 직접 답변을 받아보세요.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -163,18 +226,16 @@ export default function Hero() {
             </SwiperSlide>
           </Swiper>
 
-          {/* 커스텀 네비게이션 버튼 */}
+          {/* 커스텀 네비게이션 버튼 - 큰 버전 */}
           <button 
             onClick={() => {
               if (swiperRef.current && swiperRef.current.swiper) {
                 swiperRef.current.swiper.slidePrev()
               }
             }}
-            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-lg transition-all duration-300"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ChevronLeft className="w-8 h-8 group-hover:text-blue-600 transition-colors" />
           </button>
           
           <button 
@@ -183,11 +244,9 @@ export default function Hero() {
                 swiperRef.current.swiper.slideNext()
               }
             }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-lg transition-all duration-300"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ChevronRight className="w-8 h-8 group-hover:text-blue-600 transition-colors" />
           </button>
 
           {/* 커스텀 페이지네이션 */}
