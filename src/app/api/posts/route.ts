@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 댓글 수와 좋아요 수 계산
-    const postsWithCounts = posts?.map(post => ({
+    const postsWithCounts = posts?.map((post: any) => ({
       ...post,
       comment_count: post.comments?.length || 0,
       reaction_count: post.reactions?.length || 0,
