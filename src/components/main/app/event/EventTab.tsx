@@ -74,6 +74,9 @@ export default function EventTab() {
     if (isStampAnimating) return
 
     // 해당 날짜의 출석체크 기록 확인
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
     const dayDate = new Date(currentYear, currentMonth, dayNumber).toISOString().split('T')[0]
     const existingRecord = attendanceRecords.find(record => record.date === dayDate)
     
