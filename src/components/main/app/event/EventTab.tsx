@@ -298,7 +298,8 @@ export default function EventTab() {
                           return <div key={`empty-${index}`} className="h-16"></div>
                         }
                         
-                        const record = attendanceRecords.find(r => r.day === actualDay)
+                        const today = new Date(year, month - 1, actualDay).toISOString().split('T')[0]
+                        const record = attendanceRecords.find(r => r.date === today)
                         const isCompleted = !!record
                         const isToday = actualDay === currentDay
                         
