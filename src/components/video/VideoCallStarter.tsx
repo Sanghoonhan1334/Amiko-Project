@@ -28,6 +28,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [isCallActive, setIsCallActive] = useState(false)
   const [channelName, setChannelName] = useState('')
   const [showStartDialog, setShowStartDialog] = useState(false)
+  const [showOnlyKoreans, setShowOnlyKoreans] = useState(true)
 
   const handleStartCall = () => {
     if (!channelName.trim()) {
@@ -46,11 +47,21 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   }
 
   // 목업 데이터 - 실제로는 API에서 가져올 데이터
-  const availablePartners = [
-    { id: '1', name: '마리아 (멕시코)', status: 'online', language: '스페인어', interests: ['한국 드라마', 'K-pop'] },
-    { id: '2', name: '카를로스 (브라질)', status: 'online', language: '포르투갈어', interests: ['한국 요리', '태권도'] },
-    { id: '3', name: '소피아 (아르헨티나)', status: 'offline', language: '스페인어', interests: ['한국 문화', '여행'] },
+  const allPartners = [
+    { id: '1', name: '김민수', country: '한국', status: 'online', language: '한국어', interests: ['스페인어', '멕시코 문화'] },
+    { id: '2', name: '이지은', country: '한국', status: 'online', language: '한국어', interests: ['브라질 음악', '포르투갈어'] },
+    { id: '3', name: '박서준', country: '한국', status: 'offline', language: '한국어', interests: ['아르헨티나 축구', '탱고'] },
+    { id: '4', name: '최유나', country: '한국', status: 'online', language: '한국어', interests: ['콜롬비아 커피', '스페인어'] },
+    { id: '5', name: '정현우', country: '한국', status: 'online', language: '한국어', interests: ['페루 요리', '안데스 문화'] },
+    { id: '6', name: '마리아 (멕시코)', country: '멕시코', status: 'online', language: '스페인어', interests: ['한국 드라마', 'K-pop'] },
+    { id: '7', name: '카를로스 (브라질)', country: '브라질', status: 'online', language: '포르투갈어', interests: ['한국 요리', '태권도'] },
+    { id: '8', name: '소피아 (아르헨티나)', country: '아르헨티나', status: 'offline', language: '스페인어', interests: ['한국 문화', '여행'] },
   ]
+
+  // 필터링된 파트너 목록
+  const availablePartners = showOnlyKoreans 
+    ? allPartners.filter(partner => partner.country === '한국')
+    : allPartners
 
   return (
     <>
@@ -122,7 +133,24 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
         {/* 대화 상대 목록 */}
         <Card className="p-8 bg-gradient-to-br from-white to-purple-50 border border-purple-100 shadow-lg">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">대화 상대</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-gray-800">대화 상대</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">한국인만 보기</span>
+              <button
+                onClick={() => setShowOnlyKoreans(!showOnlyKoreans)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  showOnlyKoreans ? 'bg-purple-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    showOnlyKoreans ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
           <div className="space-y-4">
             {availablePartners.map((partner) => (
               <div 
@@ -139,6 +167,11 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                     <p className="text-xs text-gray-500 mt-1">
                       관심사: {partner.interests.join(', ')}
                     </p>
+                    {!showOnlyKoreans && (
+                      <p className="text-xs text-blue-600 mt-1 font-medium">
+                        {partner.country}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Button 
