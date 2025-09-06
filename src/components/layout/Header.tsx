@@ -197,6 +197,10 @@ export default function Header() {
                       문의
                     </button>
                     <button 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        router.push('/partnership')
+                      }}
                       className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
                     >
                       제휴문의
