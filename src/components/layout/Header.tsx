@@ -253,8 +253,8 @@ export default function Header() {
                       onClick={() => handleMainNavClick('event')}
                       className={`font-semibold transition-all duration-300 drop-shadow-lg ${
                         activeMainTab === 'event' 
-                          ? 'text-pink-500 scale-110' 
-                          : 'text-gray-800 hover:text-pink-500'
+                          ? 'text-red-500 scale-110' 
+                          : 'text-gray-800 hover:text-red-500'
                       }`}
                     >
                       이벤트
@@ -438,6 +438,20 @@ export default function Header() {
                   >
                     <span className="text-base">⚡</span>
                     충전소
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleMainNavClick('event')
+                      toggleMobileMenu()
+                    }}
+                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
+                      activeMainTab === 'event' 
+                        ? 'bg-red-50 text-red-600' 
+                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                    }`}
+                  >
+                    <span className="text-base">🎁</span>
+                    이벤트
                   </button>
                   <button
                     onClick={() => {

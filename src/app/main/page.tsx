@@ -7,6 +7,7 @@ import MeetTab from '@/components/main/app/meet/MeetTab'
 import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'
 import ChargingTab from '@/components/main/app/charging/ChargingTab'
+import EventTab from '@/components/main/app/event/EventTab'
 import { useLanguage } from '@/context/LanguageContext'
 
 function AppPageContent() {
@@ -26,7 +27,7 @@ function AppPageContent() {
     
     let targetTab = 'home' // 기본값
     
-    if (tabParam && ['home', 'meet', 'community', 'me', 'charging'].includes(tabParam)) {
+    if (tabParam && ['home', 'meet', 'community', 'me', 'charging', 'event'].includes(tabParam)) {
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
@@ -136,6 +137,12 @@ function AppPageContent() {
                   </div>
                 </div>
                 <ChargingTab />
+              </div>
+            )}
+
+            {activeTab === 'event' && (
+              <div className="card p-8">
+                <EventTab />
               </div>
             )}
           </div>
