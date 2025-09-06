@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
         wa_verified_at: (profile as any)?.wa_verified_at,
         sms_verified_at: (profile as any)?.sms_verified_at,
         email_verified_at: (profile as any)?.email_verified_at,
-        points: points?.total_points || 0,
-        daily_points: points?.daily_points || 0
+        points: (points as any)?.total_points || 0,
+        daily_points: (points as any)?.daily_points || 0
       },
       session: {
         access_token: session.access_token,
