@@ -64,11 +64,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        phone: user.phone,
-        created_at: user.created_at
+        id: (user as any).id,
+        email: (user as any).email,
+        name: (user as any).name,
+        phone: (user as any).phone,
+        created_at: (user as any).created_at
       },
       profile: profile || {
         user_id: userId,
