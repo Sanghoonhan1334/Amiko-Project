@@ -501,7 +501,7 @@ export default function EventTab() {
               
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800 font-medium">
-                  💡 매월 출석체크 완주자 중 추첨을 통해 선정됩니다!
+                  🏆 매월 가장 높은 점수를 받은 1등에게 지급됩니다!
                 </p>
               </div>
             </div>
@@ -542,28 +542,49 @@ export default function EventTab() {
               
               <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                 <p className="text-sm text-purple-800 font-medium">
-                  💡 매월 출석체크 완주자 중 추첨을 통해 선정됩니다!
+                  🏆 매월 가장 높은 점수를 받은 1등에게 지급됩니다!
                 </p>
               </div>
             </div>
           </div>
           
-          {/* 참여 방법 안내 */}
+          {/* 포인트 얻는 방법 */}
           <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
-            <h4 className="font-bold text-blue-800 mb-2">🎯 참여 방법</h4>
+            <h4 className="font-bold text-blue-800 mb-2">⭐ 포인트 얻는 방법</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">1</div>
-                <span className="text-blue-700">매일 출석체크 완료</span>
+              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-800">출석체크</div>
+                  <div className="text-xs text-gray-600">매일 출석체크로 포인트 획득</div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">2</div>
-                <span className="text-blue-700">한 달 완주 달성</span>
+              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">💬</span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-800">커뮤니티 참여</div>
+                  <div className="text-xs text-gray-600">게시글 작성, 댓글, 좋아요</div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</div>
-                <span className="text-blue-700">추첨을 통한 당첨</span>
+              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">📹</span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-800">화상대화 참여</div>
+                  <div className="text-xs text-gray-600">화상통화 완료 시 포인트</div>
+                </div>
               </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 font-medium text-center">
+                🏆 매월 가장 높은 점수를 받은 1등에게 특별 보상이 지급됩니다!
+              </p>
             </div>
           </div>
         </CardContent>
