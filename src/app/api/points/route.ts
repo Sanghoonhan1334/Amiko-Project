@@ -214,28 +214,28 @@ export async function POST(request: NextRequest) {
 
     // 일일 한도 확인
     const today = new Date().toISOString().split('T')[0]
-    const lastResetDate = userPoints.last_reset_date
+    const lastResetDate = (userPoints as any).last_reset_date
 
     // 날짜가 바뀌었으면 일일 포인트 리셋
     if (lastResetDate !== today) {
-      userPoints.daily_points = 0
-      userPoints.last_reset_date = today
+      (userPoints as any).daily_points = 0
+      (userPoints as any).last_reset_date = today
     }
 
     // 일일 한도 초과 확인
-    if (userPoints.daily_points + pointsToAdd > pointConfig.dailyLimit) {
+    if ((userPoints as any).daily_points + pointsToAdd > pointConfig.dailyLimit) {
       return NextResponse.json(
         { 
           error: `오늘 포인트 한도를 초과했습니다. (일일 최대 ${pointConfig.dailyLimit}점)`,
-          remainingLimit: pointConfig.dailyLimit - userPoints.daily_points
+          remainingLimit: pointConfig.dailyLimit - (userPoints as any).daily_points
         },
         { status: 400 }
       )
     }
 
     // 포인트 업데이트
-    const newTotalPoints = userPoints.total_points + pointsToAdd
-    const newDailyPoints = userPoints.daily_points + pointsToAdd
+    const newTotalPoints = (userPoints as any).total_points + pointsToAdd
+    const newDailyPoints = (userPoints as any).daily_points + pointsToAdd
 
     const { error: updateError } = await supabaseServer
       .from('user_points')
