@@ -165,11 +165,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 사용자 포인트 조회 또는 생성
-    let { data: userPoints, error: pointsError } = await supabaseServer
+    const pointsResult = await supabaseServer
       .from('user_points')
       .select('*')
       .eq('user_id', userId)
       .single()
+    
+    let userPoints = pointsResult.data
+    const pointsError = pointsResult.error
 
     if (pointsError && pointsError.code === 'PGRST116') {
       // 포인트 레코드가 없으면 생성
