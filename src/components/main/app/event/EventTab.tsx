@@ -81,7 +81,6 @@ export default function EventTab() {
     const existingRecord = attendanceRecords.find(record => record.date === dayDate)
     
     if (existingRecord) {
-      alert('이미 출석체크를 완료한 날짜입니다!')
       return
     }
 
@@ -117,14 +116,12 @@ export default function EventTab() {
       // 개근상 보상 확인 (5일마다 500점)
       if ((currentStreak + 1) % 5 === 0) {
         setTotalPoints(prev => prev + 500)
-        alert(`개근상 보상! 🎉\n${currentStreak + 1}일 연속 출석\n추가 포인트 +500점`)
       }
       
       // 보상 확인
       checkRewards(currentStreak + 1)
       
-      // 성공 메시지
-      alert(`${dayNumber}일 출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +100점`)
+      // 성공 메시지 제거
       
     }, 800)
   }
@@ -167,7 +164,7 @@ export default function EventTab() {
         rewardMessage += `\n상담쿠폰 +${reward.coupons}개`
       }
       
-      alert(rewardMessage)
+      // 보상 메시지 제거
       
       console.log(`보상 획득! ${reward.label}: 상담쿠폰 ${reward.coupons}개, 포인트 ${reward.points}점`)
     }
