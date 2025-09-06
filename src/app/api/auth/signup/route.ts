@@ -68,25 +68,7 @@ export async function POST(request: NextRequest) {
 
     const userId = authData.user.id
 
-    // 기본 사용자 정보 생성
-    const { error: userError } = await supabaseServer
-      .from('users')
-      .insert({
-        id: userId,
-        email,
-        name,
-        phone
-      })
-
-    if (userError) {
-      console.error('[SIGNUP] 사용자 정보 생성 실패:', userError)
-      // 사용자는 생성되었지만 정보 저장 실패 - 정리 필요
-      await supabaseServer.auth.admin.deleteUser(userId)
-      return NextResponse.json(
-        { error: '사용자 정보 저장에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
+    // Supabase Auth에서 사용자 정보는 자동으로 auth.users 테이블에 저장됨
 
     // 사용자 프로필 생성
     const { error: profileError } = await supabaseServer
