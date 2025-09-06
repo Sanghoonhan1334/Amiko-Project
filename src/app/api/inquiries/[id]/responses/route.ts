@@ -117,7 +117,7 @@ export async function POST(
 
     // 관리자 답변인 경우 문의 상태를 'in_progress'로 변경
     if (responderType === 'admin' && !isInternal) {
-      await supabaseServer
+      await (supabaseServer as any)
         .from('inquiries')
         .update({ status: 'in_progress' })
         .eq('id', inquiryId)
