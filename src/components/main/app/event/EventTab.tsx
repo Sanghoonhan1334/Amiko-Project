@@ -425,58 +425,6 @@ export default function EventTab() {
         </CardContent>
       </Card>
 
-      {/* 출석 기록 */}
-      <Card className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-2xl">
-            <Clock className="h-6 w-6 text-blue-500" />
-            출석 기록
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {attendanceRecords.slice(-7).reverse().map((record, index) => (
-              <div 
-                key={`attendance-${record.date}-${index}`}
-                className="flex items-center justify-between p-4 bg-white border border-blue-100 rounded-xl hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                      📅
-                    </div>
-                    {record.streak >= 3 && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs">★</span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {new Date(record.date).toLocaleDateString('ko-KR', { 
-                        month: 'long', 
-                        day: 'numeric',
-                        weekday: 'long'
-                      })}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      연속 {record.streak}일째
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {record.points > 0 && (
-                    <Badge className="bg-yellow-100 text-yellow-800">
-                      +{record.points}점
-                    </Badge>
-                  )}
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
