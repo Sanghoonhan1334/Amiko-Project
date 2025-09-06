@@ -11,8 +11,10 @@ import {
   Phone, 
   Users,
   Settings,
-  Clock
+  Clock,
+  User
 } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
@@ -63,7 +65,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '초급',
       joinDate: '2024-01-15',
       totalCalls: 12,
-      rating: 4.8
+      rating: 4.8,
+      avatar: '/profiles/kim-minsu.jpg'
     },
     { 
       id: '2', 
@@ -78,7 +81,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '중급',
       joinDate: '2024-02-03',
       totalCalls: 8,
-      rating: 4.9
+      rating: 4.9,
+      avatar: '/profiles/lee-jieun.jpg'
     },
     { 
       id: '3', 
@@ -93,7 +97,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '고급',
       joinDate: '2023-11-20',
       totalCalls: 25,
-      rating: 4.7
+      rating: 4.7,
+      avatar: '/profiles/park-seojun.jpg'
     },
     { 
       id: '4', 
@@ -108,7 +113,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '중급',
       joinDate: '2024-01-08',
       totalCalls: 15,
-      rating: 4.6
+      rating: 4.6,
+      avatar: '/profiles/choi-yuna.jpg'
     },
     { 
       id: '5', 
@@ -123,7 +129,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '고급',
       joinDate: '2023-12-10',
       totalCalls: 18,
-      rating: 4.8
+      rating: 4.8,
+      avatar: '/profiles/jung-hyunwoo.jpg'
     },
     { 
       id: '6', 
@@ -138,7 +145,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '초급',
       joinDate: '2024-02-15',
       totalCalls: 5,
-      rating: 4.5
+      rating: 4.5,
+      avatar: '/profiles/maria-mexico.jpg'
     },
     { 
       id: '7', 
@@ -153,7 +161,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '중급',
       joinDate: '2024-01-20',
       totalCalls: 10,
-      rating: 4.7
+      rating: 4.7,
+      avatar: '/profiles/carlos-brazil.jpg'
     },
     { 
       id: '8', 
@@ -168,7 +177,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       level: '중급',
       joinDate: '2024-01-05',
       totalCalls: 7,
-      rating: 4.6
+      rating: 4.6,
+      avatar: '/profiles/sofia-argentina.jpg'
     },
   ]
 
@@ -272,9 +282,20 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 className="flex items-center justify-between p-6 bg-white border border-purple-100 rounded-xl hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-4 h-4 rounded-full ${
-                    partner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                  }`} />
+                  <div className="relative">
+                    <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                      <AvatarImage 
+                        src={partner.avatar} 
+                        alt={partner.name}
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium">
+                        {partner.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                      partner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                    }`} />
+                  </div>
                   <div>
                     <h4 className="font-bold text-gray-800 text-lg">{partner.name}</h4>
                     <p className="text-sm text-purple-600 font-medium">{partner.language}</p>
@@ -406,6 +427,29 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           
           {selectedPartner && (
             <div className="space-y-6">
+              {/* 프로필 사진 및 기본 정보 */}
+              <div className="flex items-center gap-6 mb-6">
+                <div className="relative">
+                  <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
+                    <AvatarImage 
+                      src={selectedPartner.avatar} 
+                      alt={selectedPartner.name}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium text-xl">
+                      {selectedPartner.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-3 border-white ${
+                    selectedPartner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                  }`} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">{selectedPartner.name}</h3>
+                  <p className="text-lg text-purple-600 font-medium">{selectedPartner.language}</p>
+                  <p className="text-sm text-gray-500">{selectedPartner.country} • {selectedPartner.age}세 • {selectedPartner.occupation}</p>
+                </div>
+              </div>
+
               {/* 기본 정보 */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
