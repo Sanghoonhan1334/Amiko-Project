@@ -312,7 +312,12 @@ export default function EventTab() {
                                       inset 0 0 0 1px rgba(255,255,255,0.2),
                                       0 0 0 1px rgba(255,255,255,0.1),
                                       0 0 0 2px rgba(255,255,255,0.05),
-                                      inset 0 0 0 1px rgba(0,0,0,0.1)
+                                      0 0 0 3px rgba(255,255,255,0.03),
+                                      0 0 0 4px rgba(255,255,255,0.02),
+                                      0 0 0 5px rgba(255,255,255,0.01),
+                                      inset 0 0 0 1px rgba(0,0,0,0.1),
+                                      0 2px 4px rgba(0,0,0,0.1),
+                                      0 4px 8px rgba(0,0,0,0.05)
                                     `,
                                     background: `
                                       radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
@@ -323,6 +328,18 @@ export default function EventTab() {
                                 >
                                   <div className="absolute inset-0 bg-red-600 opacity-20 rounded-full"></div>
                                   <span className="relative z-10 transform rotate-12 text-xs font-bold">출석</span>
+                                  
+                                  {/* 틀 밖으로 나가는 물결 효과 */}
+                                  <div className="absolute inset-0 pointer-events-none">
+                                    <div className="absolute -top-1 -left-1 w-2 h-2 bg-red-400 rounded-full opacity-60"></div>
+                                    <div className="absolute -top-1 right-0 w-1.5 h-1.5 bg-red-400 rounded-full opacity-50"></div>
+                                    <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-red-400 rounded-full opacity-50"></div>
+                                    <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-red-400 rounded-full opacity-60"></div>
+                                    <div className="absolute top-0 -left-2 w-1 h-1 bg-red-400 rounded-full opacity-40"></div>
+                                    <div className="absolute top-0 -right-2 w-1 h-1 bg-red-400 rounded-full opacity-40"></div>
+                                    <div className="absolute bottom-0 -left-2 w-1 h-1 bg-red-400 rounded-full opacity-40"></div>
+                                    <div className="absolute bottom-0 -right-2 w-1 h-1 bg-red-400 rounded-full opacity-40"></div>
+                                  </div>
                                 </div>
                               ) : (
                                 <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs">
