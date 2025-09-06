@@ -62,6 +62,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Supabase Storage에 파일 업로드
+        if (!supabase) {
+          return NextResponse.json(
+            { message: '데이터베이스 연결이 설정되지 않았습니다.' },
+            { status: 500 }
+          )
+        }
+
         const fileExt = fileName.split('.').pop()
         const fileNameWithTimestamp = `partnership_${Date.now()}.${fileExt}`
         
@@ -93,6 +100,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 데이터베이스에 제휴 문의 저장
+    if (!supabase) {
+      return NextResponse.json(
+        { message: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
     const { data, error } = await supabase
       .from('partnership_inquiries')
       .insert([

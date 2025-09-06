@@ -33,6 +33,13 @@ export async function PATCH(
     }
 
     // 데이터베이스 업데이트
+    if (!supabase) {
+      return NextResponse.json(
+        { message: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
     const { data, error } = await supabase
       .from('partnership_inquiries')
       .update(updateData)
@@ -76,6 +83,13 @@ export async function DELETE(
     const { id } = await context.params
 
     // 데이터베이스에서 삭제
+    if (!supabase) {
+      return NextResponse.json(
+        { message: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
     const { error } = await supabase
       .from('partnership_inquiries')
       .delete()
