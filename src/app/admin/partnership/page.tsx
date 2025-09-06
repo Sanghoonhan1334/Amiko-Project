@@ -454,7 +454,7 @@ export default function PartnershipAdminPage() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">첨부파일</h3>
                       <Button
                         variant="outline"
-                        onClick={() => window.open(selectedInquiry.attachment_url, '_blank')}
+                        onClick={() => selectedInquiry.attachment_url && window.open(selectedInquiry.attachment_url, '_blank')}
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         첨부파일 보기
