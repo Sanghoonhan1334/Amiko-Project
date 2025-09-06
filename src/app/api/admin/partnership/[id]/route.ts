@@ -20,7 +20,7 @@ export async function PATCH(
     }
 
     // 업데이트할 데이터 준비
-    const updateData: any = {
+    const updateData: Record<string, any> = {
       updated_at: new Date().toISOString()
     }
 
