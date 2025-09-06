@@ -369,45 +369,6 @@ export default function EventTab() {
                 </div>
               </div>
               
-              {/* 도장판 설명 */}
-              <div className="mt-8">
-                <h3 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-4">
-                  📋 출석체크 도장판
-                </h3>
-                <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                  오른쪽의 <span className="text-red-600 font-bold">📅 도장</span>을 눌러서 매일 출석체크하세요!
-                  <br />
-                  <span className="text-red-600 font-bold text-xl">체크하고 포인트 받자!!</span> ✨
-                </p>
-                
-                {/* 출석체크 정보 */}
-                <div className="bg-gradient-to-r from-white to-red-50 rounded-2xl p-6 border-2 border-red-200 shadow-lg">
-                  <div className="space-y-3 text-sm text-gray-700">
-                    <div className="flex items-center gap-2">
-                      <span className="text-red-500">📅</span>
-                      <span>출석시간: 오전 12시 05분 ~ 오후 11시 59분</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-red-500">⭐</span>
-                      <span>출석포인트: 100점 (개근상: 5일마다 500점)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-red-500">🏆</span>
-                      <span>1등 포인트: 500점</span>
-                    </div>
-                  </div>
-                  
-                  {/* 현재 상태 */}
-                  <div className="mt-4 pt-4 border-t border-red-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-gray-800">이번 달 출석 현황</span>
-                      <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                        {attendanceRecords.length}일
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
             
             <p className="text-gray-600 mb-4">
