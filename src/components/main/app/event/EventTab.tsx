@@ -350,54 +350,6 @@ export default function EventTab() {
                     </div>
                   </div>
                   
-                  {/* 도장 찍기 버튼 - 오른쪽에 도장 모양 */}
-                  <div className="absolute top-1/2 -right-16 transform -translate-y-1/2">
-                    <Button
-                      onClick={handleAttendanceCheck}
-                      disabled={isStampAnimating}
-                      className={`w-20 h-20 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 hover:-rotate-12 ${
-                        isStampAnimating ? 'animate-pulse scale-125 rotate-6' : ''
-                      }`}
-                      style={{
-                        transform: `scale(${stampSize})`,
-                        transition: 'transform 0.3s ease-in-out'
-                      }}
-                      title="출석체크 하기"
-                    >
-                      {isStampAnimating ? (
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                      ) : (
-                        <div className="text-center">
-                          <div className="text-2xl">📅</div>
-                        </div>
-                      )}
-                    </Button>
-                    
-                    {/* 도장 찍기 안내 텍스트 */}
-                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 font-medium whitespace-nowrap">
-                      클릭해서 출석체크!
-                    </div>
-                    
-                    {/* 도장 주변 별 효과 */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute -top-2 -left-2 text-yellow-400 text-lg animate-ping">⭐</div>
-                      <div className="absolute -top-1 -right-3 text-yellow-400 text-sm animate-ping" style={{ animationDelay: '0.5s' }}>✨</div>
-                      <div className="absolute -bottom-2 -left-1 text-yellow-400 text-sm animate-ping" style={{ animationDelay: '1s' }}>✨</div>
-                      <div className="absolute -bottom-1 -right-2 text-yellow-400 text-lg animate-ping" style={{ animationDelay: '1.5s' }}>⭐</div>
-                    </div>
-                  </div>
-                  
-                  {/* 도장 찍기 애니메이션 효과 */}
-                  {isStampAnimating && (
-                    <div className="absolute inset-0 pointer-events-none z-20">
-                      <div className="absolute top-1/2 right-8 transform -translate-y-1/2">
-                        <div className="w-32 h-32 bg-red-500 rounded-full opacity-20 animate-ping"></div>
-                      </div>
-                      <div className="absolute top-1/2 right-8 transform -translate-y-1/2">
-                        <div className="w-20 h-20 bg-pink-500 rounded-full opacity-40 animate-ping" style={{ animationDelay: '0.1s' }}></div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
               
