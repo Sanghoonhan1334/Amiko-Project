@@ -341,6 +341,35 @@ export default function EventTab() {
                               )}
                             </button>
                             
+                            {/* 도장 찍기 애니메이션 */}
+                            {isStampAnimating && actualDay === clickedDay && (
+                              <div className="absolute inset-0 pointer-events-none z-20">
+                                {/* 날아오는 도장 */}
+                                <div className="absolute -top-8 -right-8 animate-bounce">
+                                  <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                                    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                      📅
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* 도장 찍히는 효과 */}
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                  <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm animate-pulse shadow-2xl">
+                                    출석
+                                  </div>
+                                </div>
+                                
+                                {/* 도장 주변 파티클 효과 */}
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                  <div className="absolute -top-2 -left-2 text-yellow-400 text-lg animate-ping">⭐</div>
+                                  <div className="absolute -top-1 -right-3 text-yellow-400 text-sm animate-ping" style={{ animationDelay: '0.5s' }}>✨</div>
+                                  <div className="absolute -bottom-2 -left-1 text-yellow-400 text-sm animate-ping" style={{ animationDelay: '1s' }}>✨</div>
+                                  <div className="absolute -bottom-1 -right-2 text-yellow-400 text-lg animate-ping" style={{ animationDelay: '1.5s' }}>⭐</div>
+                                </div>
+                              </div>
+                            )}
+                            
                           </div>
                         )
                       })}
