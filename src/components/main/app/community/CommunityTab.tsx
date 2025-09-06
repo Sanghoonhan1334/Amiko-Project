@@ -361,6 +361,7 @@ export default function CommunityTab() {
 
   // 포인트 획득 함수
   const earnPoints = (activity: 'question' | 'answer' | 'story' | 'freeboard' | 'reaction' | 'consultation') => {
+    if (!currentProfile) return
     const userType = currentProfile.is_korean ? 'korean' : 'latin'
     const points = pointSystem[userType][activity]
     const dailyLimit = pointSystem[userType].dailyLimit
