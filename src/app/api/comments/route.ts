@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     // TODO: 실제 사용자 ID 가져오기 (현재는 목업)
     const userId = 'mock-user-id'
 
-    const { data: comment, error } = await supabaseServer
+    const { data: comment, error } = await (supabaseServer as any)
       .from('comments')
       .insert({
         post_id: postId,
