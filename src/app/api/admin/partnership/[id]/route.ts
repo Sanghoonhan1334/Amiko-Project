@@ -42,7 +42,7 @@ export async function PATCH(
 
     const { data, error } = await supabase
       .from('partnership_inquiries')
-      .update(updateData)
+      .update(updateData as any)
       .eq('id', id)
       .select()
 
