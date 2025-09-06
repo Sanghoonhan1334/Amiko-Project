@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
     const newTotalPoints = userPointsObj.total_points + pointsToAdd
     const newDailyPoints = userPointsObj.daily_points + pointsToAdd
 
-    const { error: updateError } = await supabaseServer
+    const { error: updateError } = await (supabaseServer as any)
       .from('user_points')
       .update({
         total_points: newTotalPoints,
