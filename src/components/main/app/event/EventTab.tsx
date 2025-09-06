@@ -305,18 +305,23 @@ export default function EventTab() {
                             >
                               {isCompleted ? (
                                 <div 
-                                  className="w-full h-full bg-red-500 flex items-center justify-center text-white font-bold text-xs relative"
+                                  className="w-full h-full bg-red-500 flex items-center justify-center text-white font-bold text-xs relative rounded-full"
                                   style={{
-                                    clipPath: 'polygon(50% 0%, 55% 5%, 60% 2%, 65% 8%, 70% 4%, 75% 10%, 80% 6%, 85% 12%, 90% 8%, 95% 14%, 100% 10%, 100% 20%, 95% 22%, 100% 28%, 95% 32%, 100% 38%, 95% 42%, 100% 48%, 95% 52%, 100% 58%, 95% 62%, 100% 68%, 95% 72%, 100% 78%, 95% 82%, 100% 88%, 95% 92%, 100% 98%, 90% 95%, 85% 98%, 80% 94%, 75% 98%, 70% 94%, 65% 98%, 60% 94%, 55% 98%, 50% 100%, 45% 98%, 40% 94%, 35% 98%, 30% 94%, 25% 98%, 20% 94%, 15% 98%, 10% 95%, 5% 98%, 0% 98%, 5% 92%, 0% 88%, 5% 82%, 0% 78%, 5% 72%, 0% 68%, 5% 62%, 0% 58%, 5% 52%, 0% 48%, 5% 42%, 0% 38%, 5% 32%, 0% 28%, 5% 22%, 0% 20%, 0% 10%, 5% 14%, 10% 8%, 15% 12%, 20% 6%, 25% 10%, 30% 4%, 35% 8%, 40% 2%, 45% 5%)',
-                                    borderRadius: '50%'
+                                    border: '2px solid rgba(255,255,255,0.3)',
+                                    boxShadow: `
+                                      inset 0 0 0 1px rgba(255,255,255,0.2),
+                                      0 0 0 1px rgba(255,255,255,0.1),
+                                      0 0 0 2px rgba(255,255,255,0.05),
+                                      inset 0 0 0 1px rgba(0,0,0,0.1)
+                                    `,
+                                    background: `
+                                      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                                      radial-gradient(circle at 70% 70%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                                      #ef4444
+                                    `
                                   }}
                                 >
-                                  <div className="absolute inset-0 bg-red-600 opacity-20" 
-                                       style={{
-                                         clipPath: 'polygon(50% 0%, 55% 5%, 60% 2%, 65% 8%, 70% 4%, 75% 10%, 80% 6%, 85% 12%, 90% 8%, 95% 14%, 100% 10%, 100% 20%, 95% 22%, 100% 28%, 95% 32%, 100% 38%, 95% 42%, 100% 48%, 95% 52%, 100% 58%, 95% 62%, 100% 68%, 95% 72%, 100% 78%, 95% 82%, 100% 88%, 95% 92%, 100% 98%, 90% 95%, 85% 98%, 80% 94%, 75% 98%, 70% 94%, 65% 98%, 60% 94%, 55% 98%, 50% 100%, 45% 98%, 40% 94%, 35% 98%, 30% 94%, 25% 98%, 20% 94%, 15% 98%, 10% 95%, 5% 98%, 0% 98%, 5% 92%, 0% 88%, 5% 82%, 0% 78%, 5% 72%, 0% 68%, 5% 62%, 0% 58%, 5% 52%, 0% 48%, 5% 42%, 0% 38%, 5% 32%, 0% 28%, 5% 22%, 0% 20%, 0% 10%, 5% 14%, 10% 8%, 15% 12%, 20% 6%, 25% 10%, 30% 4%, 35% 8%, 40% 2%, 45% 5%)',
-                                         borderRadius: '50%'
-                                       }}>
-                                  </div>
+                                  <div className="absolute inset-0 bg-red-600 opacity-20 rounded-full"></div>
                                   <span className="relative z-10 transform rotate-12 text-xs font-bold">출석</span>
                                 </div>
                               ) : (
