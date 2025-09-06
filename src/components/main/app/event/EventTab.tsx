@@ -80,6 +80,12 @@ export default function EventTab() {
       return
     }
 
+    // 최대 8개까지만 도장 찍기 가능
+    if (attendanceRecords.length >= 8) {
+      alert('도장판이 가득 찼습니다! 새로운 도장판을 받으려면 관리자에게 문의하세요.')
+      return
+    }
+
     setIsStampAnimating(true)
     
     // 도장 소리 효과 (웹 오디오 API)
@@ -236,31 +242,34 @@ export default function EventTab() {
                   {/* 도장 자리들 - 2행 4열 */}
                   <div className="absolute inset-0 flex items-center justify-center pt-16 pb-8">
                     <div className="grid grid-cols-4 gap-8 w-full h-full px-8">
-                      {Array.from({ length: 8 }).map((_, index) => (
-                        <div key={index} className="flex items-center justify-center">
-                          <div className="relative">
-                            {attendanceRecords.length > index ? (
-                              <div className="relative">
-                                {/* 도장이 찍힌 자리 */}
-                                <div className="w-16 h-16 bg-red-500 rounded-full border-4 border-red-600 shadow-lg flex items-center justify-center text-white font-bold text-lg animate-bounce">
-                                  😊
+                      {Array.from({ length: 8 }).map((_, index) => {
+                        const record = attendanceRecords[index]
+                        return (
+                          <div key={`stamp-${index}`} className="flex items-center justify-center">
+                            <div className="relative">
+                              {record ? (
+                                <div className="relative">
+                                  {/* 도장이 찍힌 자리 */}
+                                  <div className="w-16 h-16 bg-red-500 rounded-full border-4 border-red-600 shadow-lg flex items-center justify-center text-white font-bold text-lg animate-bounce">
+                                    😊
+                                  </div>
+                                  {/* 출석완료 리본 */}
+                                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                                    출석완료
+                                  </div>
                                 </div>
-                                {/* 출석완료 리본 */}
-                                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                                  출석완료
+                              ) : (
+                                <div className="relative">
+                                  {/* 빈 도장 자리 */}
+                                  <div className="w-16 h-16 border-4 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 text-lg hover:border-gray-500 hover:text-gray-500 transition-all duration-200">
+                                    😐
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="relative">
-                                {/* 빈 도장 자리 */}
-                                <div className="w-16 h-16 border-4 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 text-lg hover:border-gray-500 hover:text-gray-500 transition-all duration-200">
-                                  😐
-                                </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                   
@@ -445,7 +454,7 @@ export default function EventTab() {
           <div className="space-y-3">
             {attendanceRecords.slice(-7).reverse().map((record, index) => (
               <div 
-                key={record.date}
+                key={`attendance-${record.date}-${index}`}
                 className="flex items-center justify-between p-4 bg-white border border-blue-100 rounded-xl hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-4">
