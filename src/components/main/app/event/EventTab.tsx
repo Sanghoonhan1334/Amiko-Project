@@ -36,13 +36,27 @@ export default function EventTab() {
   const [currentDay, setCurrentDay] = useState(new Date().getDate())
   const [clickedDay, setClickedDay] = useState<number | null>(null)
 
-  // 출석체크 보상 시스템
-  const rewards = {
-    3: { coupons: 0, points: 20, label: '3일 연속' },
-    7: { coupons: 1, points: 30, label: '7일 연속' },
-    14: { coupons: 2, points: 40, label: '14일 연속' },
-    30: { coupons: 5, points: 80, label: '30일 연속' }
+  // 출석체크 보상 시스템 (한 달 전체 기준)
+  const today = new Date()
+  const currentMonth = today.getMonth()
+  const currentYear = today.getFullYear()
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+  
+  // 월별 비례 보상 계산
+  const getRewards = () => {
+    const quarter = Math.floor(daysInMonth / 4)
+    const half = Math.floor(daysInMonth / 2)
+    const threeQuarter = Math.floor(daysInMonth * 3 / 4)
+    
+    return {
+      [quarter]: { coupons: 0, points: 20, label: `${quarter}일 연속` },
+      [half]: { coupons: 1, points: 30, label: `${half}일 연속` },
+      [threeQuarter]: { coupons: 2, points: 40, label: `${threeQuarter}일 연속` },
+      [daysInMonth]: { coupons: 5, points: 80, label: `${daysInMonth}일 연속 (한 달 완주)` }
+    }
   }
+  
+  const rewards = getRewards()
 
   useEffect(() => {
     loadAttendanceData()
@@ -226,7 +240,7 @@ export default function EventTab() {
         <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
           매일 출석체크하고 도장을 모아보세요!
           <br />
-          <span className="text-red-600 font-medium">연속 출석</span>에 따른 특별 보상을 받을 수 있습니다.
+          <span className="text-red-600 font-medium">한 달 완주</span>에 따른 특별 보상을 받을 수 있습니다.
         </p>
       </div>
 
@@ -250,7 +264,9 @@ export default function EventTab() {
                   
                   {/* 출석체크 제목 */}
                   <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-                    <h3 className="text-2xl font-bold text-gray-800">출석체크</h3>
+                    <h3 className="text-2xl font-bold text-gray-800">
+                      {currentYear}년 {currentMonth + 1}월 출석체크
+                    </h3>
                   </div>
                   
                   {/* 달력 그리드 */}
