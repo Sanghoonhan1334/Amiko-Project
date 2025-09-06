@@ -365,81 +365,57 @@ export default function EventTab() {
               
             </div>
             
-            <p className="text-gray-600 mb-4">
-              매일 출석체크하고 연속 출석 보상을 받아보세요!
-            </p>
-            
-            {nextReward && (
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
-                <p className="text-sm text-gray-700 mb-2">
-                  다음 보상까지 <span className="font-bold text-orange-600">{nextReward - currentStreak}일</span> 남았어요!
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                  <Gift className="w-4 h-4 text-orange-500" />
-                  <span className="text-sm font-medium text-orange-700">
-                    {rewards[nextReward as keyof typeof rewards].label}: 
-                    상담쿠폰 {rewards[nextReward as keyof typeof rewards].coupons}개 + 
-                    포인트 {rewards[nextReward as keyof typeof rewards].points}점
-                  </span>
-                </div>
+            {/* 보상 시스템 */}
+            <div className="mt-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
+                보상 시스템
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {Object.entries(rewards).map(([days, reward]) => (
+                  <div 
+                    key={days}
+                    className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                      currentStreak >= parseInt(days)
+                        ? 'bg-green-50 border-green-200 shadow-md'
+                        : currentStreak >= parseInt(days) - 2
+                        ? 'bg-yellow-50 border-yellow-200'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold mb-2 ${
+                        currentStreak >= parseInt(days)
+                          ? 'text-green-600'
+                          : currentStreak >= parseInt(days) - 2
+                          ? 'text-yellow-600'
+                          : 'text-gray-400'
+                      }`}>
+                        {days}일
+                      </div>
+                      <div className="space-y-2">
+                        {reward.coupons > 0 && (
+                          <div className="flex items-center justify-center gap-1">
+                            <Gift className="w-4 h-4 text-blue-500" />
+                            <span className="text-sm font-medium">쿠폰 {reward.coupons}개</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className="text-sm font-medium">포인트 {reward.points}점</span>
+                        </div>
+                      </div>
+                      {currentStreak >= parseInt(days) && (
+                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto mt-2" />
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 보상 시스템 */}
-      <Card className="bg-gradient-to-br from-white to-purple-50 border border-purple-100 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-2xl">
-            <Award className="h-6 w-6 text-purple-500" />
-            보상 시스템
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(rewards).map(([days, reward]) => (
-              <div 
-                key={days}
-                className={`p-4 rounded-xl border-2 transition-all duration-300 ${
-                  currentStreak >= parseInt(days)
-                    ? 'bg-green-50 border-green-200 shadow-md'
-                    : currentStreak >= parseInt(days) - 2
-                    ? 'bg-yellow-50 border-yellow-200'
-                    : 'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="text-center">
-                  <div className={`text-2xl font-bold mb-2 ${
-                    currentStreak >= parseInt(days)
-                      ? 'text-green-600'
-                      : currentStreak >= parseInt(days) - 2
-                      ? 'text-yellow-600'
-                      : 'text-gray-400'
-                  }`}>
-                    {days}일
-                  </div>
-                  <div className="space-y-2">
-                    {reward.coupons > 0 && (
-                      <div className="flex items-center justify-center gap-1">
-                        <Gift className="w-4 h-4 text-blue-500" />
-                        <span className="text-sm font-medium">쿠폰 {reward.coupons}개</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-500" />
-                      <span className="text-sm font-medium">포인트 {reward.points}점</span>
-                    </div>
-                  </div>
-                  {currentStreak >= parseInt(days) && (
-                    <CheckCircle className="w-6 h-6 text-green-500 mx-auto mt-2" />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
     </div>
   )
