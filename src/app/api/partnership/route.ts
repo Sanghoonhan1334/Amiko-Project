@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         const fileExt = fileName.split('.').pop()
         const fileNameWithTimestamp = `partnership_${Date.now()}.${fileExt}`
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await (supabase as any).storage
           .from('partnership-attachments')
           .upload(fileNameWithTimestamp, attachments)
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('partnership_inquiries')
       .insert([
         {
