@@ -194,7 +194,7 @@ export default function InquiryPage() {
       </section>
 
       {/* 문의 유형 섹션 */}
-      <section className="bg-white py-16" id="inquiry-types">
+      <section className="bg-white py-24" id="inquiry-types">
         <div className="container max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">문의 유형</h2>
