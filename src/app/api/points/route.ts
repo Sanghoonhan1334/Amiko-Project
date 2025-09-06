@@ -204,6 +204,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // userPoints가 null인 경우 처리
+    if (!userPoints) {
+      return NextResponse.json(
+        { error: '사용자 포인트 정보를 찾을 수 없습니다.' },
+        { status: 404 }
+      )
+    }
+
     // 일일 한도 확인
     const today = new Date().toISOString().split('T')[0]
     const lastResetDate = userPoints.last_reset_date
