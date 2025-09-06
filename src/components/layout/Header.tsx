@@ -158,7 +158,7 @@ export default function Header() {
 
               {/* 네비게이션 */}
               <nav className="flex space-x-8 -mt-10">
-                {(isLandingPage || pathname === '/inquiry') ? (
+                {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
                     <button 
@@ -289,7 +289,7 @@ export default function Header() {
                 </button>
               )}
               {/* 시작하기 버튼 - 랜딩페이지 및 문의페이지에서 표시 */}
-              {(isLandingPage || pathname === '/inquiry') && (
+              {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
                 <button 
                   onClick={(e) => {
                     e.preventDefault()
@@ -366,7 +366,7 @@ export default function Header() {
             {/* 메인 메뉴 */}
             <div className="space-y-1">
               {/* 랜딩페이지 및 문의페이지에서는 시작하기 버튼 표시 */}
-              {(isLandingPage || pathname === '/inquiry') && (
+              {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
                 <button
                   onClick={(e) => {
                     e.preventDefault()
