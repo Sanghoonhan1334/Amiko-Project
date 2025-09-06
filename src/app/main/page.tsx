@@ -6,6 +6,7 @@ import HomeTab from '@/components/main/app/home/HomeTab'
 import MeetTab from '@/components/main/app/meet/MeetTab'
 import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'
+import ChargingTab from '@/components/main/app/charging/ChargingTab'
 import { useLanguage } from '@/context/LanguageContext'
 
 function AppPageContent() {
@@ -25,7 +26,7 @@ function AppPageContent() {
     
     let targetTab = 'home' // 기본값
     
-    if (tabParam && ['home', 'meet', 'community', 'me'].includes(tabParam)) {
+    if (tabParam && ['home', 'meet', 'community', 'me', 'charging'].includes(tabParam)) {
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
@@ -120,6 +121,21 @@ function AppPageContent() {
                   </div>
                 </div>
                 <MyTab />
+              </div>
+            )}
+
+            {activeTab === 'charging' && (
+              <div className="card p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
+                    <span className="text-2xl">⚡</span>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">충전소</h2>
+                    <p className="text-gray-600">화상대화 쿠폰과 VIP 기능을 구매하세요</p>
+                  </div>
+                </div>
+                <ChargingTab />
               </div>
             )}
           </div>

@@ -116,7 +116,67 @@ src/
 
 ## 🗄️ 데이터베이스 설정
 
-### Supabase 테이블 생성
+### 1. 환경변수 설정
+`.env.local` 파일을 생성하고 다음 환경변수들을 설정하세요:
+
+```bash
+# Supabase 설정
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# 번역 서비스 설정 (하나 이상 선택)
+OPENAI_API_KEY=your_openai_api_key
+GOOGLE_TRANSLATE_API_KEY=your_google_translate_api_key
+
+# Toss Payments 설정
+TOSS_PAYMENTS_SECRET_KEY=your_toss_payments_secret_key
+TOSS_PAYMENTS_CLIENT_KEY=your_toss_payments_client_key
+
+# 푸시 알림 설정
+VAPID_PUBLIC_KEY=your_vapid_public_key
+VAPID_PRIVATE_KEY=your_vapid_private_key
+
+# 기타 설정
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+```
+
+### 2. Supabase 테이블 생성
+`supabase-schema.sql` 파일을 Supabase SQL 편집기에서 실행하세요:
+
+## 🌐 번역 기능 설정
+
+### 번역 서비스 선택
+프로젝트는 여러 번역 서비스를 지원합니다:
+
+1. **OpenAI GPT** (권장)
+   - 자연스러운 번역 품질
+   - 문화적 맥락 고려
+   - `OPENAI_API_KEY` 환경변수 설정
+
+2. **Google Translate API**
+   - 빠른 번역 속도
+   - 안정적인 서비스
+   - `GOOGLE_TRANSLATE_API_KEY` 환경변수 설정
+
+3. **Mock 번역** (개발용)
+   - API 키 없이 테스트 가능
+   - 미리 정의된 번역 데이터 사용
+
+### 번역 기능 사용법
+```typescript
+import { translateText, setTranslationProvider } from '@/lib/translation'
+
+// 번역 제공자 설정 (선택사항)
+setTranslationProvider('openai') // 'openai', 'google', 'mock'
+
+// 번역 실행
+const translated = await translateText('안녕하세요', 'es', 'ko')
+console.log(translated) // "Hola"
+```
+
+### 2. Supabase 테이블 생성
 `supabase-schema.sql` 파일을 Supabase SQL 편집기에서 실행하세요:
 
 ## 🔔 푸시 알림 시스템 설정

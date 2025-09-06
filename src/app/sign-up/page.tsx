@@ -55,16 +55,35 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
-      // TODO: 실제 회원가입 API 호출
-      console.log('회원가입 데이터:', formData)
+      // 실제 회원가입 API 호출
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          phone: formData.phone,
+          country: formData.country,
+          isKorean: selectedCountry?.isKorean || false
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '회원가입에 실패했습니다.')
+      }
+
+      console.log('회원가입 성공:', result)
+      alert('회원가입이 완료되었습니다! 이메일 인증을 진행해주세요.')
       
-      // 회원가입 성공 후 인증 페이지로 이동
-      setTimeout(() => {
-        router.push(`/verify?country=${formData.country}`)
-      }, 1000)
+      // 회원가입 성공 후 로그인 페이지로 이동
+      router.push('/sign-in')
+      
     } catch (error) {
       console.error('회원가입 오류:', error)
-      alert('회원가입 중 오류가 발생했습니다.')
+      alert(error instanceof Error ? error.message : '회원가입 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
     }

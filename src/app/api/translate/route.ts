@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
-import { translateText } from '@/lib/translation'
+import { translateText, initializeTranslationService } from '@/lib/translation'
 import crypto from 'crypto'
+
+// 번역 서비스 초기화
+initializeTranslationService()
 
 export async function POST(request: NextRequest) {
   try {

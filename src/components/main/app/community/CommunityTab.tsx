@@ -27,6 +27,7 @@ import VerificationGuard from '@/components/common/VerificationGuard'
 import StoryCarousel from './StoryCarousel'
 import FreeBoard from './FreeBoard'
 import { useLanguage } from '@/context/LanguageContext'
+import { useUser } from '@/context/UserContext'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
 
@@ -155,6 +156,7 @@ const mockTodayActivity = {
 
 export default function CommunityTab() {
   const { t } = useLanguage()
+  const { user } = useUser()
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -186,33 +188,8 @@ export default function CommunityTab() {
     content: ''
   })
 
-  // Mock user profile for testing verification guard
-  const mockUserProfile = {
-    id: 'user-1',
-    email: 'user1@example.com',
-    kakao_linked_at: null,
-    wa_verified_at: null,
-    sms_verified_at: null,
-    email_verified_at: null,
-    is_korean: false,
-    country: 'BR'
-  }
-
-  // Mock verified user profile for testing success state
-  const mockVerifiedUserProfile = {
-    id: 'user-2',
-    email: 'user2@example.com',
-    kakao_linked_at: null,
-    wa_verified_at: '2024-01-15T10:00:00Z',
-    sms_verified_at: null,
-    email_verified_at: null,
-    is_korean: false,
-    country: 'BR'
-  }
-
-  // Toggle between verified and unverified for testing
-  const [useVerifiedProfile, setUseVerifiedProfile] = useState(false)
-  const currentProfile = useVerifiedProfile ? mockVerifiedUserProfile : mockUserProfile
+  // 실제 사용자 프로필 사용
+  const currentProfile = user
 
   // URL 파라미터와 탭 상태 동기화 (cTab = story|qa|freeboard|news)
   useEffect(() => {
@@ -243,19 +220,61 @@ export default function CommunityTab() {
   })
 
   // 질문 작성 처리
-  const handleSubmitQuestion = () => {
+  const handleSubmitQuestion = async () => {
     if (!questionForm.title.trim() || !questionForm.content.trim()) {
       alert('제목과 내용을 모두 입력해주세요.')
       return
     }
 
-    // 포인트 획득 시도
-    const pointsEarned = earnPoints('question')
-    
-    if (pointsEarned) {
-      // 여기서 실제 API 호출
-      console.log('새 질문 작성:', questionForm)
-      
+    try {
+      // 게시물 생성 API 호출
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'question',
+          title: questionForm.title,
+          content: questionForm.content,
+          category: questionForm.category,
+          tags: questionForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          language: 'ko'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('게시물 생성에 실패했습니다.')
+      }
+
+      const result = await response.json()
+      console.log('새 질문 작성:', result.post)
+
+      // 포인트 획득 시도
+      if (user?.id) {
+        const pointsResponse = await fetch('/api/points', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            activityType: 'question',
+            refId: result.post.id,
+            description: '질문 작성'
+          })
+        })
+
+        if (pointsResponse.ok) {
+          const pointsResult = await pointsResponse.json()
+          alert(`질문이 등록되었습니다! +${pointsResult.pointsAdded}점 획득!`)
+          
+          // 포인트 업데이트 이벤트 발생
+          window.dispatchEvent(new CustomEvent('pointsUpdated', {
+            detail: {
+              points: pointsResult.totalPoints,
+              dailyPoints: pointsResult.dailyPoints
+            }
+          }))
+        }
+      }
+
       // 폼 초기화
       setQuestionForm({
         title: '',
@@ -265,9 +284,10 @@ export default function CommunityTab() {
       })
       
       setShowQuestionModal(false)
-      const userType = currentProfile.is_korean ? 'korean' : 'latin'
-      const points = pointSystem[userType].question
-      alert(`질문이 등록되었습니다! +${points}점 획득!`)
+      
+    } catch (error) {
+      console.error('질문 작성 실패:', error)
+      alert('질문 작성에 실패했습니다.')
     }
   }
 
@@ -382,22 +402,69 @@ export default function CommunityTab() {
   }
 
   // 답변 등록 처리
-  const handleSubmitAnswer = () => {
+  const handleSubmitAnswer = async () => {
     if (!answerForm.content.trim()) {
       alert('답변 내용을 입력해주세요.')
       return
     }
 
-    // 포인트 획득 시도
-    const pointsEarned = earnPoints('answer')
-    
-    if (pointsEarned) {
-      // 여기서 실제 API 호출
-      console.log('새 답변 작성:', answerForm.content)
-      
+    if (!selectedQuestion) {
+      alert('질문이 선택되지 않았습니다.')
+      return
+    }
+
+    try {
+      // 댓글 생성 API 호출
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postId: selectedQuestion.id,
+          content: answerForm.content,
+          language: 'ko'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('답변 생성에 실패했습니다.')
+      }
+
+      const result = await response.json()
+      console.log('새 답변 작성:', result.comment)
+
+      // 포인트 획득 시도
+      if (user?.id) {
+        const pointsResponse = await fetch('/api/points', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            activityType: 'answer',
+            refId: result.comment.id,
+            description: '답변 작성'
+          })
+        })
+
+        if (pointsResponse.ok) {
+          const pointsResult = await pointsResponse.json()
+          alert(`답변이 등록되었습니다! +${pointsResult.pointsAdded}점 획득!`)
+          
+          // 포인트 업데이트 이벤트 발생
+          window.dispatchEvent(new CustomEvent('pointsUpdated', {
+            detail: {
+              points: pointsResult.totalPoints,
+              dailyPoints: pointsResult.dailyPoints
+            }
+          }))
+        }
+      }
+
       // 폼 초기화
       setAnswerForm({ content: '' })
-      alert('답변이 등록되었습니다! +2점 획득!')
+      
+    } catch (error) {
+      console.error('답변 작성 실패:', error)
+      alert('답변 작성에 실패했습니다.')
     }
   }
 
@@ -426,7 +493,6 @@ export default function CommunityTab() {
       <div className="flex-1 space-y-6">
         {/* 인증 가드 - 커뮤니티 활동 */}
         <VerificationGuard 
-          profile={currentProfile} 
           requiredFeature="community_posting"
           className="mb-6"
         />
@@ -445,9 +511,9 @@ export default function CommunityTab() {
                   </div>
                 </div>
               <Badge className={`px-3 py-1 text-sm ${
-                currentProfile.is_korean ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-mint-100 text-mint-700 border-mint-300'
+                currentProfile?.is_korean ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-mint-100 text-mint-700 border-mint-300'
               }`}>
-                {currentProfile.is_korean ? '한국인' : '남미인'}
+                {currentProfile?.is_korean ? '한국인' : '남미인'}
               </Badge>
               </div>
               
@@ -488,16 +554,16 @@ export default function CommunityTab() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-3 bg-white/60 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{userPoints}</div>
+                <div className="text-2xl font-bold text-blue-600">{user?.points || 0}</div>
                 <div className="text-sm text-blue-600">총 포인트</div>
               </div>
               <div className="text-center p-3 bg-white/60 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">+{dailyPoints}</div>
+                <div className="text-2xl font-bold text-green-600">+{user?.daily_points || 0}</div>
                 <div className="text-sm text-green-600">오늘 획득</div>
               </div>
               <div className="text-center p-3 bg-white/60 rounded-lg">
                 <div className="text-2xl font-bold text-orange-600">
-                  {pointSystem[currentProfile.is_korean ? 'korean' : 'latin'].dailyLimit - dailyPoints}
+                  {pointSystem[currentProfile?.is_korean ? 'korean' : 'latin'].dailyLimit - (user?.daily_points || 0)}
                 </div>
                 <div className="text-sm text-orange-600">남은 한도</div>
               </div>
@@ -586,16 +652,6 @@ export default function CommunityTab() {
       {/* 상단 컨트롤 */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* 테스트용 인증 상태 토글 */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUseVerifiedProfile(!useVerifiedProfile)}
-            className="text-xs border-orange-300 text-orange-600 hover:bg-orange-50"
-          >
-            {useVerifiedProfile ? '🔒 인증됨' : '❌ 미인증'} ({t('communityTab.unverified')})
-          </Button>
-          
           <div className="relative">
             <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input

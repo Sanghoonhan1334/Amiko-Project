@@ -224,6 +224,144 @@ export default function Hero() {
                 </div>
               </div>
             </SwiperSlide>
+
+            {/* 세 번째 슬라이드 - 문의하기 */}
+            <SwiperSlide>
+              <div className="min-h-screen flex flex-col">
+                {/* 상단 메인 콘텐츠 */}
+                <div className="flex items-center justify-between py-32">
+                  {/* 왼쪽 콘텐츠 */}
+                  <div className="flex-1 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 bg-green-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-green-200/30">
+                      <span className="text-green-700 font-medium text-sm">💬 문의하기</span>
+                    </div>
+                    
+                    <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                      불편사항을<br />
+                      알려주세요
+                    </h1>
+                    
+                    <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                      사용 중 불편한 점이나 개선사항이 있다면 언제든지 문의해주세요. 
+                      빠른 시일 내에 답변드리겠습니다.
+                    </p>
+                    
+                    <div className="flex gap-4">
+                      <Button 
+                        onClick={() => router.push('/inquiry')}
+                        className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        문의하기
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => router.push('/main?tab=community')}
+                        className="border-green-600 text-green-600 hover:bg-green-50 px-8 py-3 rounded-full text-lg font-medium"
+                      >
+                        커뮤니티 보기
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 오른쪽 이미지 영역 */}
+                  <div className="flex-1 flex justify-center items-center">
+                    <div className="w-80 h-80 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center shadow-2xl">
+                      <div className="text-6xl">💬</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 하단 문의 섹션 */}
+                <div className="bg-white py-6" id="inquiry-section">
+                  <div className="container-custom max-w-6xl mx-auto px-4">
+                    <div className="text-center mb-8">
+                      <h2 className="text-3xl font-bold text-gray-900 mb-4">문의 유형</h2>
+                      <p className="text-gray-600">어떤 종류의 문의든 편하게 남겨주세요</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* 버그 신고 */}
+                      <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">🐛</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">버그 신고</h3>
+                          <p className="text-gray-600 text-sm">
+                            앱이나 웹사이트에서 발견한 오류를 신고해주세요
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 기능 제안 */}
+                      <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">💡</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">기능 제안</h3>
+                          <p className="text-gray-600 text-sm">
+                            새로운 기능이나 개선사항을 제안해주세요
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 일반 문의 */}
+                      <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">💬</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">일반 문의</h3>
+                          <p className="text-gray-600 text-sm">
+                            기타 궁금한 사항이나 도움이 필요한 내용
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 결제 문의 */}
+                      <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">💳</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">결제 문의</h3>
+                          <p className="text-gray-600 text-sm">
+                            결제 관련 문제나 환불 문의
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 계정 문의 */}
+                      <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">👤</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">계정 문의</h3>
+                          <p className="text-gray-600 text-sm">
+                            로그인, 회원가입, 계정 관련 문제
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 기타 */}
+                      <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">❓</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">기타</h3>
+                          <p className="text-gray-600 text-sm">
+                            위 카테고리에 해당하지 않는 문의
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SwiperSlide>
           </Swiper>
 
           {/* 커스텀 네비게이션 버튼 - 큰 버전 */}
@@ -264,6 +402,40 @@ export default function Hero() {
                 transform: scale(1.2) !important;
               }
             `}</style>
+          </div>
+
+          {/* 슬라이드 인디케이터 */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+            <button 
+              onClick={() => {
+                if (swiperRef.current && swiperRef.current.swiper) {
+                  swiperRef.current.swiper.slideTo(0)
+                }
+              }}
+              className={`w-3 h-3 rounded-full transition-all ${
+                activeSlide === 0 ? 'bg-blue-600 scale-125' : 'bg-gray-400'
+              }`}
+            />
+            <button 
+              onClick={() => {
+                if (swiperRef.current && swiperRef.current.swiper) {
+                  swiperRef.current.swiper.slideTo(1)
+                }
+              }}
+              className={`w-3 h-3 rounded-full transition-all ${
+                activeSlide === 1 ? 'bg-blue-600 scale-125' : 'bg-gray-400'
+              }`}
+            />
+            <button 
+              onClick={() => {
+                if (swiperRef.current && swiperRef.current.swiper) {
+                  swiperRef.current.swiper.slideTo(2)
+                }
+              }}
+              className={`w-3 h-3 rounded-full transition-all ${
+                activeSlide === 2 ? 'bg-green-600 scale-125' : 'bg-gray-400'
+              }`}
+            />
           </div>
         </div>
       </div>

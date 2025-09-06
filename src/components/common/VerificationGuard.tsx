@@ -4,24 +4,31 @@ import { useRouter } from 'next/navigation'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Shield, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react'
-import { isVerified, UserProfile } from '@/lib/auth-utils'
 import { useLanguage } from '@/context/LanguageContext'
+import { useUser } from '@/context/UserContext'
 
 interface VerificationGuardProps {
-  profile: UserProfile | null
   requiredFeature?: 'video_matching' | 'coupon_usage' | 'community_posting' | 'all'
   showSuccess?: boolean
   className?: string
 }
 
+// 인증 상태 확인 함수
+const isVerified = (user: any) => {
+  if (!user) return false
+  
+  // 최소 하나의 인증 방법이 완료되어야 함
+  return !!(user.email_verified_at || user.sms_verified_at || user.wa_verified_at || user.kakao_linked_at)
+}
+
 export default function VerificationGuard({
-  profile,
   showSuccess = false,
   className = ''
 }: VerificationGuardProps) {
   const router = useRouter()
   const { t } = useLanguage()
-  const verified = isVerified(profile)
+  const { user } = useUser()
+  const verified = isVerified(user)
 
   // 인증이 완료된 경우 성공 메시지 표시 (선택사항)
   if (verified && showSuccess) {

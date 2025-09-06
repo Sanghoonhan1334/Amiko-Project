@@ -126,16 +126,19 @@ export default function Header() {
             {/* 중앙: 로고와 네비게이션 */}
             <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 z-10 flex flex-col items-center">
               {/* 로고 */}
-              <div className="pointer-events-none">
+              <button 
+                onClick={() => router.push('/')}
+                className="cursor-pointer hover:opacity-80 transition-all duration-300"
+              >
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
-                  className="h-40 w-auto object-contain transition-all duration-300 pointer-events-none"
+                  className="h-40 w-auto object-contain transition-all duration-300"
                   style={{ 
                     maxHeight: '160px'
                   }}
                 />
-              </div>
+              </button>
 
               {/* 네비게이션 */}
               <nav className="flex space-x-8 -mt-10">
@@ -163,6 +166,7 @@ export default function Header() {
                       회사소개
                     </button>
                     <button 
+                      onClick={() => router.push('/inquiry')}
                       className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
                     >
                       문의
@@ -385,6 +389,20 @@ export default function Header() {
                   >
                     <span className="text-base">👤</span>
                     내정보
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleMainNavClick('charging')
+                      toggleMobileMenu()
+                    }}
+                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
+                      activeMainTab === 'charging' 
+                        ? 'bg-purple-50 text-purple-600' 
+                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                    }`}
+                  >
+                    <span className="text-base">⚡</span>
+                    충전소
                   </button>
                   <button
                     onClick={() => {

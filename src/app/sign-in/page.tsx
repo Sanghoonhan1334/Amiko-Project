@@ -43,22 +43,34 @@ export default function SignInPage() {
     setIsLoading(true)
 
     try {
-      // 실제 Supabase 로그인
-      const { error } = await signIn(formData.identifier, formData.password)
-      
-      if (error) {
-        console.error('로그인 실패:', error)
-        alert('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
-        return
+      // 실제 로그인 API 호출
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.identifier,
+          password: formData.password
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '로그인에 실패했습니다.')
       }
+
+      console.log('로그인 성공:', result)
       
-      console.log('로그인 성공!')
+      // 로컬 스토리지에 사용자 정보 저장
+      localStorage.setItem('amiko_user', JSON.stringify(result.user))
+      localStorage.setItem('amiko_session', JSON.stringify(result.session))
       
       // 로그인 성공 후 메인 앱으로 이동
       router.push('/main')
+      
     } catch (error) {
       console.error('로그인 오류:', error)
-      alert('로그인 중 오류가 발생했습니다.')
+      alert(error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
     }

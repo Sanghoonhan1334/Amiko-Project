@@ -299,7 +299,7 @@ export const translations = {
       lounge: '라운지',
       todayStory: '오늘의 스토리',
       uploadStory: '+ 스토리 올리기',
-      askQuestion: '+ 질문하기',
+      askQuestion: '질문하기',
       categories: {
         all: '☆ 전체',
         beauty: '뷰티',
@@ -845,7 +845,7 @@ export const translations = {
       lounge: 'Sala',
       todayStory: 'Historia de hoy',
       uploadStory: '+ Subir historia',
-      askQuestion: '+ Hacer pregunta',
+      askQuestion: 'Hacer pregunta',
       categories: {
         all: '☆ Todos',
         beauty: 'Belleza',
