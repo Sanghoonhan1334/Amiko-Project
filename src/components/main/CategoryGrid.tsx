@@ -66,38 +66,38 @@ const categories = [
 
 export default function CategoryGrid() {
   return (
-    <section className="py-16 md:py-24 bg-white">
-      <div className="container max-w-6xl mx-auto px-4">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         {/* 섹션 제목 */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-12 sm:mb-14 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
             Amiko의 특별한 서비스
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
             한국 문화와 언어를 배우는 다양한 방법을 제공합니다
           </p>
         </div>
         
         {/* 카테고리 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {categories.map((category, index) => {
             const IconComponent = category.icon
             return (
               <Card key={index} className="group hover:-translate-y-2 transition-all duration-300 hover:shadow-lg">
-                <CardHeader className="text-center pb-4">
-                  <div className={`w-16 h-16 ${category.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="w-8 h-8" />
+                <CardHeader className="text-center pb-3 sm:pb-4">
+                  <div className={`w-12 h-12 sm:w-16 sm:h-16 ${category.color} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="w-6 h-6 sm:w-8 sm:h-8" />
                   </div>
-                  <CardTitle className="text-lg font-semibold text-gray-900">
+                  <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
                     {category.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="text-gray-600 mb-3">
+                  <p className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base">
                     {category.description}
                   </p>
                   {category.badge && (
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs sm:text-sm">
                       {category.badge}
                     </Badge>
                   )}

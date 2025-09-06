@@ -49,34 +49,34 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="py-16 md:py-24 bg-gray-50">
-      <div className="container max-w-6xl mx-auto px-4">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gray-50">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         {/* 섹션 제목 */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-12 sm:mb-14 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
             왜 Amiko를 선택해야 할까요?
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
             한국과 남미를 잇는 진정한 문화 교류 플랫폼
           </p>
         </div>
         
         {/* 특징 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {features.map((feature, index) => {
             const IconComponent = feature.icon
             return (
               <Card key={index} className="group hover:-translate-y-2 transition-all duration-300 hover:shadow-lg bg-white">
-                <CardHeader className="text-center pb-4">
-                  <div className={`w-16 h-16 ${feature.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="w-8 h-8" />
+                <CardHeader className="text-center pb-3 sm:pb-4">
+                  <div className={`w-12 h-12 sm:w-16 sm:h-16 ${feature.color} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="w-6 h-6 sm:w-8 sm:h-8" />
                   </div>
-                  <CardTitle className="text-xl font-semibold text-gray-900">
+                  <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900">
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
                     {feature.description}
                   </p>
                 </CardContent>
