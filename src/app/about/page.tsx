@@ -29,7 +29,6 @@ export default function AboutPage() {
             spaceBetween={0}
             slidesPerView={1}
             speed={300}
-            lazy="true"
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
