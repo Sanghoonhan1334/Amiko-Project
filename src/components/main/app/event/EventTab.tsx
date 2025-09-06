@@ -71,6 +71,15 @@ export default function EventTab() {
   const handleAttendanceCheck = async () => {
     if (isStampAnimating) return
 
+    // 이미 오늘 출석체크를 했는지 확인
+    const today = new Date().toISOString().split('T')[0]
+    const todayRecord = attendanceRecords.find(record => record.date === today)
+    
+    if (todayRecord) {
+      alert('오늘은 이미 출석체크를 완료했습니다!')
+      return
+    }
+
     setIsStampAnimating(true)
     
     // 도장 소리 효과 (웹 오디오 API)
@@ -87,7 +96,7 @@ export default function EventTab() {
       
       // 출석체크 완료 처리
       const newRecord = {
-        date: new Date().toISOString().split('T')[0],
+        date: today,
         streak: currentStreak + 1,
         points: 0,
         stamps: 1
@@ -95,9 +104,13 @@ export default function EventTab() {
       
       setAttendanceRecords(prev => [...prev, newRecord])
       setCurrentStreak(prev => prev + 1)
+      setTotalPoints(prev => prev + 10) // 기본 포인트 10점
       
       // 보상 확인
       checkRewards(currentStreak + 1)
+      
+      // 성공 메시지
+      alert(`출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +10점`)
       
     }, 800)
   }
@@ -124,7 +137,20 @@ export default function EventTab() {
   const checkRewards = (streak: number) => {
     if (streak in rewards) {
       const reward = rewards[streak as keyof typeof rewards]
+      
       // 보상 지급 로직
+      setTotalPoints(prev => prev + reward.points)
+      
+      // 보상 알림
+      let rewardMessage = `🎉 축하합니다! ${reward.label} 달성!\n`
+      rewardMessage += `포인트 +${reward.points}점`
+      
+      if (reward.coupons > 0) {
+        rewardMessage += `\n상담쿠폰 +${reward.coupons}개`
+      }
+      
+      alert(rewardMessage)
+      
       console.log(`보상 획득! ${reward.label}: 상담쿠폰 ${reward.coupons}개, 포인트 ${reward.points}점`)
     }
   }
@@ -250,6 +276,7 @@ export default function EventTab() {
                         transform: `scale(${stampSize})`,
                         transition: 'transform 0.3s ease-in-out'
                       }}
+                      title="출석체크 하기"
                     >
                       {isStampAnimating ? (
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -259,6 +286,11 @@ export default function EventTab() {
                         </div>
                       )}
                     </Button>
+                    
+                    {/* 도장 찍기 안내 텍스트 */}
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 font-medium whitespace-nowrap">
+                      클릭해서 출석체크!
+                    </div>
                     
                     {/* 도장 주변 별 효과 */}
                     <div className="absolute inset-0 pointer-events-none">
