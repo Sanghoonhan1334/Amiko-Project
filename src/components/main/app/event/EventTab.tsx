@@ -33,6 +33,7 @@ export default function EventTab() {
   const [totalPoints, setTotalPoints] = useState(0)
   const [isStampAnimating, setIsStampAnimating] = useState(false)
   const [stampSize, setStampSize] = useState(1)
+  const [currentDay, setCurrentDay] = useState(new Date().getDate())
 
   // 출석체크 보상 시스템
   const rewards = {
@@ -68,12 +69,14 @@ export default function EventTab() {
     setStampSize(Math.min(1 + (mockData.currentStreak * 0.1), 2))
   }
 
-  const handleAttendanceCheck = async () => {
+  const handleDayClick = async (dayNumber: number) => {
     if (isStampAnimating) return
 
-    // 현재 날짜 계산
-    const today = new Date()
-    const currentDay = today.getDate()
+    // 오늘 날짜만 출석체크 가능
+    if (dayNumber !== currentDay) {
+      alert('오늘 날짜만 출석체크할 수 있습니다!')
+      return
+    }
     
     // 이미 오늘 출석체크를 했는지 확인
     const todayRecord = attendanceRecords.find(record => record.day === currentDay)
@@ -135,6 +138,10 @@ export default function EventTab() {
       alert(`${currentDay}일 출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +100점`)
       
     }, 800)
+  }
+
+  const handleAttendanceCheck = async () => {
+    await handleDayClick(currentDay)
   }
 
   const playStampSound = () => {
@@ -291,7 +298,7 @@ export default function EventTab() {
                         
                         const record = attendanceRecords.find(r => r.day === actualDay)
                         const isCompleted = !!record
-                        const isToday = actualDay === today.getDate()
+                        const isToday = actualDay === currentDay
                         
                         return (
                           <div key={`day-${actualDay}`} className="flex flex-col items-center justify-center">
@@ -300,18 +307,40 @@ export default function EventTab() {
                               {actualDay}
                             </div>
                             
-                            {/* 출석/결석 도장 */}
-                            <div className="w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm">
+                            {/* 출석/결석 도장 - 클릭 가능 */}
+                            <button
+                              onClick={() => handleDayClick(actualDay)}
+                              disabled={isCompleted || isStampAnimating}
+                              className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm transition-all duration-200 hover:scale-110 ${
+                                isCompleted 
+                                  ? 'cursor-default' 
+                                  : 'cursor-pointer hover:shadow-lg'
+                              }`}
+                            >
                               {isCompleted ? (
                                 <div className="w-full h-full bg-purple-500 rounded-full flex items-center justify-center text-white">
                                   출석
                                 </div>
                               ) : (
-                                <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-gray-600">
+                                <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-400">
                                   결석
                                 </div>
                               )}
-                            </div>
+                            </button>
+                            
+                            {/* 도장 찍기 애니메이션 */}
+                            {isStampAnimating && actualDay === currentDay && (
+                              <div className="absolute inset-0 pointer-events-none z-10">
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                  <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg animate-bounce shadow-2xl">
+                                    📅
+                                  </div>
+                                </div>
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                  <div className="w-20 h-20 bg-red-500 rounded-full opacity-30 animate-ping"></div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )
                       })}
