@@ -35,6 +35,15 @@ export default function EventTab() {
   const [stampSize, setStampSize] = useState(1)
   const [currentDay, setCurrentDay] = useState(new Date().getDate())
   const [clickedDay, setClickedDay] = useState<number | null>(null)
+  const [userType, setUserType] = useState<'local' | 'korean'>('local') // 기본값: 현지인
+
+  // 사용자 타입 감지 (실제로는 사용자 프로필에서 가져올 것)
+  const detectUserType = () => {
+    // 임시로 브라우저 언어 설정으로 판단 (실제로는 사용자 프로필 기반)
+    const browserLang = navigator.language.toLowerCase()
+    const isKorean = browserLang.includes('ko') || browserLang.includes('kr')
+    return isKorean ? 'korean' : 'local'
+  }
 
   // 출석체크 보상 시스템 (한 달 전체 기준)
   const today = new Date()
@@ -443,6 +452,122 @@ export default function EventTab() {
         </CardContent>
       </Card>
 
+      {/* 항시 이벤트 */}
+      <Card className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-2xl">
+            <Gift className="h-6 w-6 text-blue-500" />
+            항시 이벤트
+          </CardTitle>
+          <CardDescription>
+            특별한 보상을 받을 수 있는 항시 진행 이벤트입니다
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 현지인용 특별 이벤트 */}
+            <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xl">✈️</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-green-800">현지인 특별 이벤트</h3>
+                  <p className="text-sm text-green-600">한국 여행의 꿈을 이루세요!</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-green-100">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">1</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-800">1등 상품</div>
+                    <div className="text-sm text-gray-600">한국 왕복 비행기 티켓</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-green-100">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">🎯</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-800">특별 혜택</div>
+                    <div className="text-sm text-gray-600">운영자가 직접 한국 가이드</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 font-medium">
+                  💡 매월 출석체크 완주자 중 추첨을 통해 선정됩니다!
+                </p>
+              </div>
+            </div>
+
+            {/* 한국인용 특별 이벤트 */}
+            <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xl">📚</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-purple-800">한국인 특별 이벤트</h3>
+                  <p className="text-sm text-purple-600">영어 실력 향상의 기회!</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-purple-100">
+                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">TOEIC</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-800">토익 시험 지원</div>
+                    <div className="text-sm text-gray-600">시험 응시료 전액 지원</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-purple-100">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">TOEFL</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-800">토플 시험 지원</div>
+                    <div className="text-sm text-gray-600">시험 응시료 전액 지원</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-sm text-purple-800 font-medium">
+                  💡 매월 출석체크 완주자 중 추첨을 통해 선정됩니다!
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* 참여 방법 안내 */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+            <h4 className="font-bold text-blue-800 mb-2">🎯 참여 방법</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">1</div>
+                <span className="text-blue-700">매일 출석체크 완료</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">2</div>
+                <span className="text-blue-700">한 달 완주 달성</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</div>
+                <span className="text-blue-700">추첨을 통한 당첨</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
     </div>
   )
