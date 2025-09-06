@@ -71,10 +71,9 @@ export default function EventTab() {
   const handleAttendanceCheck = async () => {
     if (isStampAnimating) return
 
-    // 현재 날짜 계산 (1-28일차)
+    // 현재 날짜 계산
     const today = new Date()
-    const dayOfMonth = today.getDate()
-    const currentDay = Math.min(dayOfMonth, 28)
+    const currentDay = today.getDate()
     
     // 이미 오늘 출석체크를 했는지 확인
     const todayRecord = attendanceRecords.find(record => record.day === currentDay)
@@ -84,9 +83,15 @@ export default function EventTab() {
       return
     }
 
-    // 최대 28일까지만 출석체크 가능
-    if (attendanceRecords.length >= 28) {
-      alert('이번 달 출석체크를 모두 완료했습니다! 다음 달을 기다려주세요.')
+    // 출석체크 시간 확인 (12:05 AM ~ 11:59 PM)
+    const currentHour = today.getHours()
+    const currentMinute = today.getMinutes()
+    const currentTime = currentHour * 60 + currentMinute
+    const startTime = 0 * 60 + 5 // 12:05 AM
+    const endTime = 23 * 60 + 59 // 11:59 PM
+    
+    if (currentTime < startTime || currentTime > endTime) {
+      alert('출석체크 시간이 아닙니다!\n출석시간: 오전 12시 05분 ~ 오후 11시 59분')
       return
     }
 
@@ -109,19 +114,25 @@ export default function EventTab() {
         day: currentDay,
         date: today.toISOString().split('T')[0],
         streak: currentStreak + 1,
-        points: 10,
+        points: 100, // 기본 출석 포인트 100점
         stamps: 1
       }
       
       setAttendanceRecords(prev => [...prev, newRecord])
       setCurrentStreak(prev => prev + 1)
-      setTotalPoints(prev => prev + 10) // 기본 포인트 10점
+      setTotalPoints(prev => prev + 100) // 기본 포인트 100점
+      
+      // 개근상 보상 확인 (5일마다 500점)
+      if ((currentStreak + 1) % 5 === 0) {
+        setTotalPoints(prev => prev + 500)
+        alert(`개근상 보상! 🎉\n${currentStreak + 1}일 연속 출석\n추가 포인트 +500점`)
+      }
       
       // 보상 확인
       checkRewards(currentStreak + 1)
       
       // 성공 메시지
-      alert(`${currentDay}일차 출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +10점`)
+      alert(`${currentDay}일 출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +100점`)
       
     }, 800)
   }
@@ -249,42 +260,55 @@ export default function EventTab() {
                     <h3 className="text-2xl font-bold text-gray-800">출석체크</h3>
                   </div>
                   
-                  {/* 28일 달력 그리드 */}
+                  {/* 달력 그리드 */}
                   <div className="absolute inset-0 flex items-center justify-center pt-16 pb-8">
-                    <div className="grid grid-cols-7 gap-2 w-full h-full px-4">
-                      {Array.from({ length: 28 }).map((_, index) => {
+                    <div className="grid grid-cols-7 gap-1 w-full h-full px-4">
+                      {/* 달력 헤더 (요일) */}
+                      <div className="col-span-7 grid grid-cols-7 gap-1 mb-2">
+                        {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
+                          <div key={day} className="text-center text-xs font-bold text-gray-600 py-1">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* 달력 날짜들 */}
+                      {Array.from({ length: 35 }).map((_, index) => {
                         const dayNumber = index + 1
-                        const record = attendanceRecords.find(r => r.day === dayNumber)
+                        const today = new Date()
+                        const currentMonth = today.getMonth()
+                        const currentYear = today.getFullYear()
+                        const firstDay = new Date(currentYear, currentMonth, 1).getDay()
+                        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+                        
+                        // 실제 날짜 계산
+                        const actualDay = dayNumber - firstDay + 1
+                        const isValidDay = actualDay > 0 && actualDay <= daysInMonth
+                        
+                        if (!isValidDay) {
+                          return <div key={`empty-${index}`} className="h-16"></div>
+                        }
+                        
+                        const record = attendanceRecords.find(r => r.day === actualDay)
                         const isCompleted = !!record
+                        const isToday = actualDay === today.getDate()
                         
                         return (
-                          <div key={`day-${dayNumber}`} className="flex flex-col items-center justify-center">
-                            {/* 날짜 헤더 */}
-                            <div className="w-full bg-purple-200 text-white text-xs font-bold text-center py-1 rounded-t-lg">
-                              {dayNumber}일차
+                          <div key={`day-${actualDay}`} className="flex flex-col items-center justify-center">
+                            {/* 날짜 번호 */}
+                            <div className={`text-sm font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-gray-800'}`}>
+                              {actualDay}
                             </div>
                             
-                            {/* 도장/보상 영역 */}
-                            <div className="w-full h-16 bg-gray-100 border border-gray-300 rounded-b-lg flex items-center justify-center relative">
+                            {/* 출석/결석 도장 */}
+                            <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm">
                               {isCompleted ? (
-                                <div className="relative">
-                                  {/* 완료 도장 */}
-                                  <div className="w-12 h-12 bg-red-500 rounded-full border-2 border-red-600 shadow-lg flex items-center justify-center text-white font-bold text-lg animate-bounce">
-                                    🎯
-                                  </div>
-                                  {/* COMPLETE 텍스트 */}
-                                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-1 py-0.5 rounded font-bold">
-                                    COMPLETE
-                                  </div>
+                                <div className="w-full h-full bg-purple-500 rounded-full flex items-center justify-center text-white">
+                                  출석
                                 </div>
                               ) : (
-                                <div className="flex items-center justify-center gap-1">
-                                  {/* 보상 아이템들 */}
-                                  {getRewardItems(dayNumber).map((item, itemIndex) => (
-                                    <div key={itemIndex} className="text-lg">
-                                      {item}
-                                    </div>
-                                  ))}
+                                <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-gray-600">
+                                  결석
                                 </div>
                               )}
                             </div>
@@ -353,35 +377,34 @@ export default function EventTab() {
                 <p className="text-lg text-gray-700 mb-6 leading-relaxed">
                   오른쪽의 <span className="text-red-600 font-bold">📅 도장</span>을 눌러서 매일 출석체크하세요!
                   <br />
-                  <span className="text-red-600 font-bold text-xl">28일</span>을 모두 완료하면 특별 보상을 받을 수 있어요! ✨
+                  <span className="text-red-600 font-bold text-xl">체크하고 포인트 받자!!</span> ✨
                 </p>
                 
-                {/* 진행률 표시 - 더 예쁘게 */}
+                {/* 출석체크 정보 */}
                 <div className="bg-gradient-to-r from-white to-red-50 rounded-2xl p-6 border-2 border-red-200 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="space-y-3 text-sm text-gray-700">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-800">📋 출석체크 진행률</span>
+                      <span className="text-red-500">📅</span>
+                      <span>출석시간: 오전 12시 05분 ~ 오후 11시 59분</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                        {attendanceRecords.length}/28
+                      <span className="text-red-500">⭐</span>
+                      <span>출석포인트: 100점 (개근상: 5일마다 500점)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-500">🏆</span>
+                      <span>1등 포인트: 500점</span>
+                    </div>
+                  </div>
+                  
+                  {/* 현재 상태 */}
+                  <div className="mt-4 pt-4 border-t border-red-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-gray-800">이번 달 출석 현황</span>
+                      <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
+                        {attendanceRecords.length}일
                       </span>
-                      <span className="text-red-500 text-xl">🎯</span>
                     </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-                    <div 
-                      className="bg-gradient-to-r from-red-400 via-pink-400 to-red-500 h-4 rounded-full transition-all duration-700 shadow-lg"
-                      style={{ width: `${(attendanceRecords.length / 28) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="mt-3 text-center">
-                    <span className="text-sm text-gray-600">
-                      {attendanceRecords.length === 28 ? 
-                        '🎉 축하합니다! 이번 달 출석체크를 모두 완료했어요!' : 
-                        `${28 - attendanceRecords.length}일 더 출석하면 완성!`
-                      }
-                    </span>
                   </div>
                 </div>
               </div>
