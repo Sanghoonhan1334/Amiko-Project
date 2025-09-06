@@ -71,18 +71,22 @@ export default function EventTab() {
   const handleAttendanceCheck = async () => {
     if (isStampAnimating) return
 
+    // 현재 날짜 계산 (1-28일차)
+    const today = new Date()
+    const dayOfMonth = today.getDate()
+    const currentDay = Math.min(dayOfMonth, 28)
+    
     // 이미 오늘 출석체크를 했는지 확인
-    const today = new Date().toISOString().split('T')[0]
-    const todayRecord = attendanceRecords.find(record => record.date === today)
+    const todayRecord = attendanceRecords.find(record => record.day === currentDay)
     
     if (todayRecord) {
       alert('오늘은 이미 출석체크를 완료했습니다!')
       return
     }
 
-    // 최대 8개까지만 도장 찍기 가능
-    if (attendanceRecords.length >= 8) {
-      alert('도장판이 가득 찼습니다! 새로운 도장판을 받으려면 관리자에게 문의하세요.')
+    // 최대 28일까지만 출석체크 가능
+    if (attendanceRecords.length >= 28) {
+      alert('이번 달 출석체크를 모두 완료했습니다! 다음 달을 기다려주세요.')
       return
     }
 
@@ -102,9 +106,10 @@ export default function EventTab() {
       
       // 출석체크 완료 처리
       const newRecord = {
-        date: today,
+        day: currentDay,
+        date: today.toISOString().split('T')[0],
         streak: currentStreak + 1,
-        points: 0,
+        points: 10,
         stamps: 1
       }
       
@@ -116,7 +121,7 @@ export default function EventTab() {
       checkRewards(currentStreak + 1)
       
       // 성공 메시지
-      alert(`출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +10점`)
+      alert(`${currentDay}일차 출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +10점`)
       
     }, 800)
   }
@@ -166,6 +171,42 @@ export default function EventTab() {
     return milestones.find(milestone => milestone > currentStreak) || null
   }
 
+  // 각 날짜별 보상 아이템 생성
+  const getRewardItems = (dayNumber: number) => {
+    const rewardPatterns = [
+      ['💎', '⭐'], // 1일차
+      ['🍯', '💰'], // 2일차
+      ['🌹', '💎'], // 3일차
+      ['🥩', '⭐'], // 4일차
+      ['🍇', '💰'], // 5일차
+      ['🐒', '💎'], // 6일차
+      ['💎', '💎', '💎'], // 7일차
+      ['📜', '⭐'], // 8일차
+      ['🍩', '💰'], // 9일차
+      ['🌹', '💎'], // 10일차
+      ['🥩', '⭐'], // 11일차
+      ['🍇', '💰'], // 12일차
+      ['🐒', '🐒'], // 13일차
+      ['💎', '💎', '💎'], // 14일차
+      ['📜', '⭐'], // 15일차
+      ['🍩', '💰'], // 16일차
+      ['🌹', '💎'], // 17일차
+      ['🥩', '⭐'], // 18일차
+      ['🍇', '💰'], // 19일차
+      ['🐒', '🐒'], // 20일차
+      ['🎒', '💎'], // 21일차
+      ['📜', '⭐'], // 22일차
+      ['🍩', '💰'], // 23일차
+      ['🌹', '💎'], // 24일차
+      ['🥩', '⭐'], // 25일차
+      ['🍇', '💰'], // 26일차
+      ['🛡️', '💎'], // 27일차
+      ['📜', '⭐'], // 28일차
+    ]
+    
+    return rewardPatterns[(dayNumber - 1) % rewardPatterns.length] || ['⭐']
+  }
+
   const nextReward = getNextReward()
 
   return (
@@ -193,7 +234,7 @@ export default function EventTab() {
             {/* 출석체크 도장판 */}
             <div className="relative mb-8">
               {/* 바인더 형태의 도장판 */}
-              <div className="mx-auto w-96 h-80 relative">
+              <div className="mx-auto w-full max-w-4xl h-96 relative">
                 {/* 바인더 고리 */}
                 <div className="absolute -left-2 top-8 w-4 h-64 bg-gray-400 rounded-full shadow-lg"></div>
                 <div className="absolute -left-1 top-6 w-2 h-68 bg-gray-300 rounded-full"></div>
@@ -208,31 +249,42 @@ export default function EventTab() {
                     <h3 className="text-2xl font-bold text-gray-800">출석체크</h3>
                   </div>
                   
-                  {/* 도장 자리들 - 2행 4열 */}
+                  {/* 28일 달력 그리드 */}
                   <div className="absolute inset-0 flex items-center justify-center pt-16 pb-8">
-                    <div className="grid grid-cols-4 gap-8 w-full h-full px-8">
-                      {Array.from({ length: 8 }).map((_, index) => {
-                        const record = attendanceRecords[index]
+                    <div className="grid grid-cols-7 gap-2 w-full h-full px-4">
+                      {Array.from({ length: 28 }).map((_, index) => {
+                        const dayNumber = index + 1
+                        const record = attendanceRecords.find(r => r.day === dayNumber)
+                        const isCompleted = !!record
+                        
                         return (
-                          <div key={`stamp-${index}`} className="flex items-center justify-center">
-                            <div className="relative">
-                              {record ? (
+                          <div key={`day-${dayNumber}`} className="flex flex-col items-center justify-center">
+                            {/* 날짜 헤더 */}
+                            <div className="w-full bg-purple-200 text-white text-xs font-bold text-center py-1 rounded-t-lg">
+                              {dayNumber}일차
+                            </div>
+                            
+                            {/* 도장/보상 영역 */}
+                            <div className="w-full h-16 bg-gray-100 border border-gray-300 rounded-b-lg flex items-center justify-center relative">
+                              {isCompleted ? (
                                 <div className="relative">
-                                  {/* 도장이 찍힌 자리 */}
-                                  <div className="w-16 h-16 bg-red-500 rounded-full border-4 border-red-600 shadow-lg flex items-center justify-center text-white font-bold text-lg animate-bounce">
-                                    😊
+                                  {/* 완료 도장 */}
+                                  <div className="w-12 h-12 bg-red-500 rounded-full border-2 border-red-600 shadow-lg flex items-center justify-center text-white font-bold text-lg animate-bounce">
+                                    🎯
                                   </div>
-                                  {/* 출석완료 리본 */}
-                                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                                    출석완료
+                                  {/* COMPLETE 텍스트 */}
+                                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-1 py-0.5 rounded font-bold">
+                                    COMPLETE
                                   </div>
                                 </div>
                               ) : (
-                                <div className="relative">
-                                  {/* 빈 도장 자리 */}
-                                  <div className="w-16 h-16 border-4 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 text-lg hover:border-gray-500 hover:text-gray-500 transition-all duration-200">
-                                    😐
-                                  </div>
+                                <div className="flex items-center justify-center gap-1">
+                                  {/* 보상 아이템들 */}
+                                  {getRewardItems(dayNumber).map((item, itemIndex) => (
+                                    <div key={itemIndex} className="text-lg">
+                                      {item}
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </div>
@@ -301,7 +353,7 @@ export default function EventTab() {
                 <p className="text-lg text-gray-700 mb-6 leading-relaxed">
                   오른쪽의 <span className="text-red-600 font-bold">📅 도장</span>을 눌러서 매일 출석체크하세요!
                   <br />
-                  <span className="text-red-600 font-bold text-xl">8개 도장</span>을 모두 모으면 특별 보상을 받을 수 있어요! ✨
+                  <span className="text-red-600 font-bold text-xl">28일</span>을 모두 완료하면 특별 보상을 받을 수 있어요! ✨
                 </p>
                 
                 {/* 진행률 표시 - 더 예쁘게 */}
@@ -312,22 +364,22 @@ export default function EventTab() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                        {attendanceRecords.length}/8
+                        {attendanceRecords.length}/28
                       </span>
-                      <span className="text-red-500 text-xl">😊</span>
+                      <span className="text-red-500 text-xl">🎯</span>
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
                     <div 
                       className="bg-gradient-to-r from-red-400 via-pink-400 to-red-500 h-4 rounded-full transition-all duration-700 shadow-lg"
-                      style={{ width: `${(attendanceRecords.length / 8) * 100}%` }}
+                      style={{ width: `${(attendanceRecords.length / 28) * 100}%` }}
                     ></div>
                   </div>
                   <div className="mt-3 text-center">
                     <span className="text-sm text-gray-600">
-                      {attendanceRecords.length === 8 ? 
-                        '🎉 축하합니다! 모든 출석체크를 완료했어요!' : 
-                        `${8 - attendanceRecords.length}개 더 출석하면 완성!`
+                      {attendanceRecords.length === 28 ? 
+                        '🎉 축하합니다! 이번 달 출석체크를 모두 완료했어요!' : 
+                        `${28 - attendanceRecords.length}일 더 출석하면 완성!`
                       }
                     </span>
                   </div>
