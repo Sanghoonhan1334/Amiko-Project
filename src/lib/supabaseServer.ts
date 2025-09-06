@@ -25,3 +25,4 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANO
 }
 
 export { supabaseServer, supabaseClient }
+export { supabaseServer as supabase }
