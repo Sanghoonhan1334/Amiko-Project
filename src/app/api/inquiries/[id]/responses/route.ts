@@ -4,7 +4,7 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 특정 문의의 답변 목록 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseServer) {
@@ -14,7 +14,7 @@ export async function GET(
       )
     }
 
-    const inquiryId = params.id
+    const { id: inquiryId } = await params
 
     const { data: responses, error } = await supabaseServer
       .from('inquiry_responses')
@@ -48,7 +48,7 @@ export async function GET(
 // 문의에 답변 추가
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseServer) {
@@ -58,7 +58,7 @@ export async function POST(
       )
     }
 
-    const inquiryId = params.id
+    const { id: inquiryId } = await params
     const { responderId, responderType = 'admin', content, isInternal = false, attachments = [] } = await request.json()
 
     // 입력 검증

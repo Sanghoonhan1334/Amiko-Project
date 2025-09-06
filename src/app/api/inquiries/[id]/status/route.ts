@@ -4,7 +4,7 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 문의 상태 업데이트
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseServer) {
@@ -14,7 +14,7 @@ export async function PUT(
       )
     }
 
-    const inquiryId = params.id
+    const { id: inquiryId } = await params
     const { status } = await request.json()
 
     // 입력 검증
