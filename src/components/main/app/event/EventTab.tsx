@@ -34,6 +34,7 @@ export default function EventTab() {
   const [isStampAnimating, setIsStampAnimating] = useState(false)
   const [stampSize, setStampSize] = useState(1)
   const [currentDay, setCurrentDay] = useState(new Date().getDate())
+  const [clickedDay, setClickedDay] = useState<number | null>(null)
 
   // 출석체크 보상 시스템
   const rewards = {
@@ -72,35 +73,17 @@ export default function EventTab() {
   const handleDayClick = async (dayNumber: number) => {
     if (isStampAnimating) return
 
-    // 오늘 날짜만 출석체크 가능
-    if (dayNumber !== currentDay) {
-      alert('오늘 날짜만 출석체크할 수 있습니다!')
-      return
-    }
+    // 해당 날짜의 출석체크 기록 확인
+    const dayDate = new Date(currentYear, currentMonth, dayNumber).toISOString().split('T')[0]
+    const existingRecord = attendanceRecords.find(record => record.date === dayDate)
     
-    // 이미 오늘 출석체크를 했는지 확인
-    const today = new Date().toISOString().split('T')[0]
-    const todayRecord = attendanceRecords.find(record => record.date === today)
-    
-    if (todayRecord) {
-      alert('오늘은 이미 출석체크를 완료했습니다!')
-      return
-    }
-
-    // 출석체크 시간 확인 (12:05 AM ~ 11:59 PM)
-    const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    const currentTime = currentHour * 60 + currentMinute
-    const startTime = 0 * 60 + 5 // 12:05 AM
-    const endTime = 23 * 60 + 59 // 11:59 PM
-    
-    if (currentTime < startTime || currentTime > endTime) {
-      alert('출석체크 시간이 아닙니다!\n출석시간: 오전 12시 05분 ~ 오후 11시 59분')
+    if (existingRecord) {
+      alert('이미 출석체크를 완료한 날짜입니다!')
       return
     }
 
     setIsStampAnimating(true)
+    setClickedDay(dayNumber)
     
     // 도장 소리 효과 (웹 오디오 API)
     playStampSound()
@@ -113,11 +96,12 @@ export default function EventTab() {
     // 도장 찍기 애니메이션
     setTimeout(() => {
       setIsStampAnimating(false)
+      setClickedDay(null)
       
       // 출석체크 완료 처리
       const newRecord = {
-        day: currentDay,
-        date: new Date().toISOString().split('T')[0],
+        day: dayNumber,
+        date: dayDate,
         streak: currentStreak + 1,
         points: 100, // 기본 출석 포인트 100점
         stamps: 1
@@ -137,7 +121,7 @@ export default function EventTab() {
       checkRewards(currentStreak + 1)
       
       // 성공 메시지
-      alert(`${currentDay}일 출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +100점`)
+      alert(`${dayNumber}일 출석체크 완료! 🎉\n연속 출석: ${currentStreak + 1}일\n포인트 +100점`)
       
     }, 800)
   }
@@ -302,8 +286,6 @@ export default function EventTab() {
                         const record = attendanceRecords.find(r => r.date === dayDate)
                         const isCompleted = !!record
                         const isToday = actualDay === currentDay
-                        const isPast = actualDay < currentDay
-                        const isFuture = actualDay > currentDay
                         
                         return (
                           <div key={`day-${actualDay}`} className="flex flex-col items-center justify-center">
@@ -312,37 +294,25 @@ export default function EventTab() {
                               {actualDay}
                             </div>
                             
-                            {/* 출석/결석 도장 - 상태별 표시 */}
-                            {isFuture ? (
-                              // 미래 날짜 - 아무것도 표시하지 않음
-                              <div className="w-10 h-10 rounded-full border-2 border-gray-200 bg-gray-50"></div>
-                            ) : (
-                              // 과거/오늘 날짜 - 출석/결석 표시
-                              <button
-                                onClick={() => handleDayClick(actualDay)}
-                                disabled={isCompleted || isStampAnimating || isPast}
-                                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm transition-all duration-200 ${
-                                  isCompleted 
-                                    ? 'cursor-default bg-purple-500 text-white' 
-                                    : isPast
-                                    ? 'cursor-default bg-red-300 text-red-700'
-                                    : 'cursor-pointer hover:shadow-lg bg-gray-300 text-gray-600 hover:bg-gray-400'
-                                }`}
-                              >
-                                {isCompleted ? (
-                                  <div className="w-full h-full bg-purple-500 rounded-full flex items-center justify-center text-white">
-                                    출석
-                                  </div>
-                                ) : (
-                                  <div className="w-full h-full bg-red-300 rounded-full flex items-center justify-center text-red-700">
-                                    결석
-                                  </div>
-                                )}
-                              </button>
-                            )}
+                            {/* 도장 찍기 버튼 - 모든 날짜 클릭 가능 */}
+                            <button
+                              onClick={() => handleDayClick(actualDay)}
+                              disabled={isStampAnimating}
+                              className="w-10 h-10 rounded-full border-2 border-gray-300 bg-white hover:bg-gray-50 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-110"
+                            >
+                              {isCompleted ? (
+                                <div className="w-full h-full bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                                  📅
+                                </div>
+                              ) : (
+                                <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs">
+                                  ?
+                                </div>
+                              )}
+                            </button>
                             
                             {/* 도장 찍기 애니메이션 */}
-                            {isStampAnimating && actualDay === currentDay && (
+                            {isStampAnimating && actualDay === clickedDay && (
                               <div className="absolute inset-0 pointer-events-none z-10">
                                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                                   <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg animate-bounce shadow-2xl">
