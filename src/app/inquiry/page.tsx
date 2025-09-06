@@ -162,7 +162,7 @@ export default function InquiryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
       {/* Hero 섹션 */}
-      <section className="pt-32 pb-20 md:pt-36 md:pb-28 bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <section className="pt-40 pb-20 md:pt-48 md:pb-28 bg-gradient-to-br from-green-50 via-white to-emerald-50">
         <div className="container max-w-6xl mx-auto px-4 text-center">
           {/* 상단 라벨 */}
           <div className="inline-flex items-center gap-2 bg-green-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-green-200/30">
