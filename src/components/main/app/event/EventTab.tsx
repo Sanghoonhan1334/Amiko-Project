@@ -123,7 +123,7 @@ export default function EventTab() {
       
       // 성공 메시지 제거
       
-    }, 800)
+    }, 200)
   }
 
   const handleAttendanceCheck = async () => {
