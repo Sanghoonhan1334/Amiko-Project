@@ -185,37 +185,6 @@ export default function EventTab() {
         </p>
       </div>
 
-      {/* 현재 상태 */}
-      <Card className="bg-gradient-to-br from-white to-red-50 border border-red-100 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-2xl">
-            <Trophy className="h-6 w-6 text-red-500" />
-            현재 상태
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-white rounded-xl border border-red-100 shadow-sm">
-              <div className="text-3xl font-bold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent mb-2">
-                {currentStreak}일
-              </div>
-              <div className="text-sm text-gray-600 font-medium">연속 출석</div>
-            </div>
-            <div className="text-center p-6 bg-white rounded-xl border border-red-100 shadow-sm">
-              <div className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent mb-2">
-                {totalPoints}점
-              </div>
-              <div className="text-sm text-gray-600 font-medium">총 포인트</div>
-            </div>
-            <div className="text-center p-6 bg-white rounded-xl border border-red-100 shadow-sm">
-              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent mb-2">
-                {attendanceRecords.length}개
-              </div>
-              <div className="text-sm text-gray-600 font-medium">수집한 도장</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* 도장 찍기 판 */}
       <Card className="bg-gradient-to-br from-white to-pink-50 border border-pink-100 shadow-lg">
