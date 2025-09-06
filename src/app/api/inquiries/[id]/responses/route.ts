@@ -91,7 +91,7 @@ export async function POST(
     }
 
     // 답변 생성
-    const { data: response, error } = await supabaseServer
+    const { data: response, error } = await (supabaseServer as any)
       .from('inquiry_responses')
       .insert({
         inquiry_id: inquiryId,
