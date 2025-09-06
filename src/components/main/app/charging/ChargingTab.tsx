@@ -19,17 +19,17 @@ export default function ChargingTab() {
   const [, setSelectedVipPlan] = useState('')
 
   const couponPackages = [
-    { count: 1, price: 0.99, discount: 0, popular: false },
-    { count: 5, price: 3.99, discount: 20, popular: true },
-    { count: 10, price: 6.99, discount: 30, popular: false },
-    { count: 20, price: 11.99, discount: 40, popular: false },
+    { count: 1, price: 1.99, discount: 0, popular: false },
+    { count: 5, price: 8.99, discount: 10, popular: true },
+    { count: 10, price: 15.99, discount: 20, popular: false },
+    { count: 20, price: 29.99, discount: 25, popular: false },
   ]
 
   const vipPlans = [
     {
       id: 'daily',
       name: '일일 VIP',
-      price: 0.99,
+      price: 2.99,
       period: '1일',
       features: ['뷰티 기능', '실시간 통역', '고화질 화상'],
       icon: Zap,
@@ -38,7 +38,7 @@ export default function ChargingTab() {
     {
       id: 'monthly',
       name: '월간 VIP',
-      price: 4.99,
+      price: 19.99,
       period: '1개월',
       features: ['뷰티 기능', '실시간 통역', '고화질 화상', '무제한 사용'],
       icon: Crown,
@@ -48,7 +48,7 @@ export default function ChargingTab() {
     {
       id: 'yearly',
       name: '연간 VIP',
-      price: 39.99,
+      price: 199.99,
       period: '1년',
       features: ['뷰티 기능', '실시간 통역', '고화질 화상', '무제한 사용', '우선 지원'],
       icon: Star,
@@ -79,7 +79,7 @@ export default function ChargingTab() {
             화상대화 쿠폰
           </CardTitle>
           <CardDescription>
-            1개당 $0.99로 화상대화를 즐기세요. 여러 개 구매 시 할인 혜택!
+            1개당 $1.99로 화상대화를 즐기세요. 여러 개 구매 시 할인 혜택!
           </CardDescription>
         </CardHeader>
         <CardContent>
