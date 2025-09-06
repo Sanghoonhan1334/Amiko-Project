@@ -314,19 +314,6 @@ export default function EventTab() {
                               )}
                             </button>
                             
-                            {/* 도장 찍기 애니메이션 */}
-                            {isStampAnimating && actualDay === clickedDay && (
-                              <div className="absolute inset-0 pointer-events-none z-10">
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                  <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg animate-bounce shadow-2xl">
-                                    📅
-                                  </div>
-                                </div>
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                  <div className="w-20 h-20 bg-red-500 rounded-full opacity-30 animate-ping"></div>
-                                </div>
-                              </div>
-                            )}
                           </div>
                         )
                       })}
