@@ -501,7 +501,7 @@ export default function EventTab() {
               
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800 font-medium">
-                  🏆 매월 가장 높은 점수를 받은 1등에게 지급됩니다!
+                  🏆 6~12월 가장 높은 점수를 받은 1등에게 지급됩니다!
                 </p>
               </div>
             </div>
@@ -540,11 +540,6 @@ export default function EventTab() {
                 </div>
               </div>
               
-              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p className="text-sm text-purple-800 font-medium">
-                  🏆 매월 가장 높은 점수를 받은 1등에게 지급됩니다!
-                </p>
-              </div>
             </div>
           </div>
           
