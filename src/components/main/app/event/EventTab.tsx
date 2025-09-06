@@ -170,6 +170,32 @@ export default function EventTab() {
       // 보상 지급 로직
       setTotalPoints(prev => prev + reward.points)
       
+      // 보상 달성 시 해당 날짜에 자동 도장 찍기
+      const today = new Date()
+      const currentMonth = today.getMonth()
+      const currentYear = today.getFullYear()
+      const todayDate = today.toISOString().split('T')[0]
+      
+      // 해당 날짜에 도장 찍기 애니메이션
+      setTimeout(() => {
+        setClickedDay(today.getDate())
+        setIsStampAnimating(true)
+        
+        // 도장 찍기 사운드
+        playStampSound()
+        
+        // 모바일 진동
+        if (navigator.vibrate) {
+          navigator.vibrate([100, 50, 100])
+        }
+        
+        // 애니메이션 종료
+        setTimeout(() => {
+          setIsStampAnimating(false)
+          setClickedDay(null)
+        }, 200)
+      }, 100)
+      
       // 보상 알림
       let rewardMessage = `🎉 축하합니다! ${reward.label} 달성!\n`
       rewardMessage += `포인트 +${reward.points}점`
@@ -177,8 +203,6 @@ export default function EventTab() {
       if (reward.coupons > 0) {
         rewardMessage += `\n상담쿠폰 +${reward.coupons}개`
       }
-      
-      // 보상 메시지 제거
       
       console.log(`보상 획득! ${reward.label}: 상담쿠폰 ${reward.coupons}개, 포인트 ${reward.points}점`)
     }
@@ -374,23 +398,32 @@ export default function EventTab() {
                 {Object.entries(rewards).map(([days, reward]) => (
                   <div 
                     key={days}
-                    className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                    className={`p-4 rounded-xl border-2 transition-all duration-300 relative ${
                       currentStreak >= parseInt(days)
-                        ? 'bg-green-50 border-green-200 shadow-md'
+                        ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 shadow-lg ring-2 ring-green-200'
                         : currentStreak >= parseInt(days) - 2
                         ? 'bg-yellow-50 border-yellow-200'
                         : 'bg-gray-50 border-gray-200'
                     }`}
                   >
+                    {/* 달성 시 특별 효과 */}
+                    {currentStreak >= parseInt(days) && (
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                        <span className="text-white text-xs font-bold">✓</span>
+                      </div>
+                    )}
                     <div className="text-center">
                       <div className={`text-2xl font-bold mb-2 ${
                         currentStreak >= parseInt(days)
-                          ? 'text-green-600'
+                          ? 'text-green-600 animate-bounce'
                           : currentStreak >= parseInt(days) - 2
                           ? 'text-yellow-600'
                           : 'text-gray-400'
                       }`}>
                         {days}일
+                        {currentStreak >= parseInt(days) && (
+                          <span className="ml-1 text-lg">🎉</span>
+                        )}
                       </div>
                       <div className="space-y-2">
                         {reward.coupons > 0 && (
