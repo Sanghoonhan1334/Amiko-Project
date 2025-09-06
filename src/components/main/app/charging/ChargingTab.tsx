@@ -19,28 +19,19 @@ export default function ChargingTab() {
   const [, setSelectedVipPlan] = useState('')
 
   const couponPackages = [
-    { count: 1, price: 1.99, discount: 0, popular: false },
-    { count: 5, price: 8.99, discount: 10, popular: true },
-    { count: 10, price: 15.99, discount: 20, popular: false },
-    { count: 20, price: 29.99, discount: 25, popular: false },
+    { count: 1, price: 2.49, discount: 0, popular: false },
+    { count: 5, price: 11.20, discount: 10, popular: true },
+    { count: 10, price: 21.20, discount: 15, popular: false },
+    { count: 20, price: 39.80, discount: 20, popular: false },
   ]
 
   const vipPlans = [
     {
-      id: 'daily',
-      name: '일일 VIP',
-      price: 2.99,
-      period: '1일',
-      features: ['뷰티 기능', '실시간 통역', '고화질 화상'],
-      icon: Zap,
-      color: 'bg-yellow-100 text-yellow-700 border-yellow-300'
-    },
-    {
       id: 'monthly',
       name: '월간 VIP',
-      price: 19.99,
+      price: 9.99,
       period: '1개월',
-      features: ['뷰티 기능', '실시간 통역', '고화질 화상', '무제한 사용'],
+      features: ['뷰티 필터', '커뮤니티 뱃지', '광고 제거', '동시통역 기능'],
       icon: Crown,
       color: 'bg-purple-100 text-purple-700 border-purple-300',
       popular: true
@@ -48,12 +39,12 @@ export default function ChargingTab() {
     {
       id: 'yearly',
       name: '연간 VIP',
-      price: 199.99,
+      price: 80.00,
       period: '1년',
-      features: ['뷰티 기능', '실시간 통역', '고화질 화상', '무제한 사용', '우선 지원'],
+      features: ['뷰티 필터', '커뮤니티 뱃지', '광고 제거', '동시통역 기능', '월 $6.7 수준'],
       icon: Star,
       color: 'bg-gold-100 text-gold-700 border-gold-300',
-      discount: '2개월 무료'
+      discount: '월 $3.3 절약'
     }
   ]
 
@@ -79,7 +70,7 @@ export default function ChargingTab() {
             화상대화 쿠폰
           </CardTitle>
           <CardDescription>
-            1개당 $1.99로 화상대화를 즐기세요. 여러 개 구매 시 할인 혜택!
+            20분 영상상담 쿠폰 1개당 $2.49. 여러 개 구매 시 할인 혜택!
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -143,7 +134,7 @@ export default function ChargingTab() {
             VIP 기능
           </CardTitle>
           <CardDescription>
-            뷰티 기능과 실시간 통역을 포함한 프리미엄 서비스
+            뷰티 필터, 커뮤니티 뱃지, 광고 제거, 동시통역 기능을 포함한 프리미엄 서비스
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -228,9 +219,33 @@ export default function ChargingTab() {
                 <span className="text-pink-600">✨</span>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">뷰티 기능</h4>
+                <h4 className="font-semibold text-gray-800">뷰티 필터</h4>
                 <p className="text-sm text-gray-600">
-                  실시간 얼굴 보정, 피부톤 개선, 눈 크기 조정 등 다양한 뷰티 효과
+                  영상 통화 시 실시간 얼굴 보정으로 더 아름다운 모습으로 대화하세요
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <Crown className="w-4 h-4 text-purple-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">커뮤니티 뱃지</h4>
+                <p className="text-sm text-gray-600">
+                  프리미엄 멤버 표시로 특별한 지위를 나타내세요
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600">🚫</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">광고 제거</h4>
+                <p className="text-sm text-gray-600">
+                  앱 내 배너와 팝업 광고 없이 깔끔한 환경에서 이용하세요
                 </p>
               </div>
             </div>
@@ -240,21 +255,9 @@ export default function ChargingTab() {
                 <Globe className="w-4 h-4 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-800">실시간 통역</h4>
+                <h4 className="font-semibold text-gray-800">동시통역 기능</h4>
                 <p className="text-sm text-gray-600">
-                  고품질 AI 통역으로 언어 장벽 없이 소통하세요
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <Video className="w-4 h-4 text-green-600" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800">고화질 화상</h4>
-                <p className="text-sm text-gray-600">
-                  최고 품질의 화상 통화로 더 선명한 대화를 즐기세요
+                  자막/음성 지원으로 기본 번역보다 빠르고 자연스러운 소통
                 </p>
               </div>
             </div>
