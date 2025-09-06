@@ -63,27 +63,32 @@ export default function EventTab() {
   }, [])
 
   const loadAttendanceData = () => {
-    // 실제로는 API에서 데이터를 가져올 것
-    const mockData = {
-      totalPoints: 120,
-      records: [
-        { date: '2024-01-15', streak: 1, points: 0, stamps: 1 },
-        { date: '2024-01-16', streak: 2, points: 0, stamps: 1 },
-        { date: '2024-01-17', streak: 3, points: 20, stamps: 1 },
-        { date: '2024-01-18', streak: 4, points: 0, stamps: 1 },
-        { date: '2024-01-19', streak: 5, points: 0, stamps: 1 },
-      ]
+    // localStorage에서 실제 출석체크 기록 불러오기
+    const savedRecords = localStorage.getItem('attendanceRecords')
+    const savedPoints = localStorage.getItem('totalPoints')
+    
+    if (savedRecords) {
+      const records = JSON.parse(savedRecords)
+      setAttendanceRecords(records)
+      
+      // 실제 출석체크 기록을 기반으로 연속 일수 계산
+      const actualStreak = records.length
+      setCurrentStreak(actualStreak)
+      
+      // 연속 출석일수에 따른 도장 크기 계산
+      setStampSize(Math.min(1 + (actualStreak * 0.1), 2))
+    } else {
+      // 처음 사용하는 경우 빈 배열로 시작
+      setAttendanceRecords([])
+      setCurrentStreak(0)
+      setStampSize(1)
     }
     
-    setTotalPoints(mockData.totalPoints)
-    setAttendanceRecords(mockData.records)
-    
-    // 실제 출석체크 기록을 기반으로 연속 일수 계산
-    const actualStreak = mockData.records.length
-    setCurrentStreak(actualStreak)
-    
-    // 연속 출석일수에 따른 도장 크기 계산
-    setStampSize(Math.min(1 + (actualStreak * 0.1), 2))
+    if (savedPoints) {
+      setTotalPoints(parseInt(savedPoints))
+    } else {
+      setTotalPoints(0)
+    }
   }
 
   const handleDayClick = async (dayNumber: number) => {
@@ -128,14 +133,23 @@ export default function EventTab() {
       const updatedRecords = [...attendanceRecords, newRecord]
       setAttendanceRecords(updatedRecords)
       
+      // localStorage에 출석체크 기록 저장
+      localStorage.setItem('attendanceRecords', JSON.stringify(updatedRecords))
+      
       // 실제 출석체크 기록을 기반으로 연속 일수 업데이트
       const actualStreak = updatedRecords.length
       setCurrentStreak(actualStreak)
-      setTotalPoints(prev => prev + 100) // 기본 포인트 100점
+      
+      const newTotalPoints = totalPoints + 100
+      setTotalPoints(newTotalPoints)
       
       // 개근상 보상 확인 (5일마다 500점)
       if (actualStreak % 5 === 0) {
-        setTotalPoints(prev => prev + 500)
+        const bonusPoints = newTotalPoints + 500
+        setTotalPoints(bonusPoints)
+        localStorage.setItem('totalPoints', bonusPoints.toString())
+      } else {
+        localStorage.setItem('totalPoints', newTotalPoints.toString())
       }
       
       // 보상 확인
