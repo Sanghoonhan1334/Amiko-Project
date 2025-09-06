@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const isKorean = profile?.is_korean || false
+    const isKorean = (profile as any)?.is_korean || false
     const pointConfig = POINT_SYSTEM[isKorean ? 'korean' : 'latin']
 
     return NextResponse.json({
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const isKorean = profile?.is_korean || false
+    const isKorean = (profile as any)?.is_korean || false
     const pointConfig = POINT_SYSTEM[isKorean ? 'korean' : 'latin']
     const pointsToAdd = pointConfig[activityType as keyof typeof pointConfig]
 
