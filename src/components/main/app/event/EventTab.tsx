@@ -520,8 +520,8 @@ export default function EventTab() {
               
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-purple-100">
-                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">TOEIC</span>
+                  <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">TOEIC</span>
                   </div>
                   <div>
                     <div className="font-semibold text-gray-800">토익 시험 응시료 지원</div>
@@ -530,8 +530,8 @@ export default function EventTab() {
                 </div>
                 
                 <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-purple-100">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">TOEFL</span>
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">TOEFL</span>
                   </div>
                   <div>
                     <div className="font-semibold text-gray-800">토플 시험 응시료 지원</div>
