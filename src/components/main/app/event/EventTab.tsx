@@ -307,11 +307,10 @@ export default function EventTab() {
                                 <div className="w-full h-full flex items-center justify-center relative">
                                   {/* 빨간 도장 (회색 틀보다 조금 더 큼) */}
                                   <div 
-                                    className="absolute bg-red-500 flex items-center justify-center text-white font-bold text-xs"
+                                    className="absolute bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs"
                                     style={{
                                       width: '44px',
                                       height: '44px',
-                                      clipPath: 'polygon(50% 0%, 60% 5%, 70% 2%, 80% 8%, 90% 4%, 100% 10%, 100% 20%, 95% 25%, 100% 35%, 95% 40%, 100% 50%, 95% 60%, 100% 70%, 95% 75%, 100% 85%, 95% 90%, 100% 100%, 90% 95%, 80% 98%, 70% 92%, 60% 95%, 50% 100%, 40% 95%, 30% 98%, 20% 92%, 10% 95%, 0% 100%, 5% 90%, 0% 85%, 5% 75%, 0% 70%, 5% 60%, 0% 50%, 5% 40%, 0% 35%, 5% 25%, 0% 20%, 0% 10%, 10% 4%, 20% 8%, 30% 2%, 40% 5%)',
                                       boxShadow: `
                                         inset 0 0 0 1px rgba(255,255,255,0.2),
                                         0 0 0 1px rgba(255,255,255,0.1),
@@ -327,11 +326,7 @@ export default function EventTab() {
                                       `
                                     }}
                                   >
-                                    <div className="absolute inset-0 bg-red-600 opacity-20" 
-                                         style={{
-                                           clipPath: 'polygon(50% 0%, 60% 5%, 70% 2%, 80% 8%, 90% 4%, 100% 10%, 100% 20%, 95% 25%, 100% 35%, 95% 40%, 100% 50%, 95% 60%, 100% 70%, 95% 75%, 100% 85%, 95% 90%, 100% 100%, 90% 95%, 80% 98%, 70% 92%, 60% 95%, 50% 100%, 40% 95%, 30% 98%, 20% 92%, 10% 95%, 0% 100%, 5% 90%, 0% 85%, 5% 75%, 0% 70%, 5% 60%, 0% 50%, 5% 40%, 0% 35%, 5% 25%, 0% 20%, 0% 10%, 10% 4%, 20% 8%, 30% 2%, 40% 5%)'
-                                         }}>
-                                    </div>
+                                    <div className="absolute inset-0 bg-red-600 opacity-20 rounded-full"></div>
                                     <span className="relative z-10 transform rotate-12 text-xs font-bold">출석</span>
                                   </div>
                                 </div>
