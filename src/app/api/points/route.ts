@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 포인트 히스토리 추가
-    const { error: historyError } = await supabaseServer
+    const { error: historyError } = await (supabaseServer as any)
       .from('point_history')
       .insert({
         user_id: userId,
