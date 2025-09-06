@@ -117,7 +117,7 @@ export default function EventTab() {
       // 출석체크 완료 처리
       const newRecord = {
         day: currentDay,
-        date: today.toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0],
         streak: currentStreak + 1,
         points: 100, // 기본 출석 포인트 100점
         stamps: 1
