@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 사용자 포인트 조회 또는 생성
-    const { data: userPoints, error: pointsError } = await supabaseServer
+    let { data: userPoints, error: pointsError } = await supabaseServer
       .from('user_points')
       .select('*')
       .eq('user_id', userId)
