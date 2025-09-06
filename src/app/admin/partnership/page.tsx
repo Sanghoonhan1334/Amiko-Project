@@ -289,7 +289,7 @@ export default function PartnershipAdminPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(inquiry.attachment_url, '_blank')}
+                          onClick={() => inquiry.attachment_url && window.open(inquiry.attachment_url, '_blank')}
                         >
                           <FileText className="h-4 w-4 mr-1" />
                           첨부파일
