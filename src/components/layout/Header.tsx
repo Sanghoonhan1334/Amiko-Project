@@ -87,7 +87,7 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20 sm:h-24 md:h-28 lg:h-32">
+          <div className="flex justify-between items-center h-32">
             {/* 좌측: 언어 전환 버튼 */}
             <div className="flex items-center">
               {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
@@ -124,40 +124,62 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-4 sm:-top-6 md:-top-8 z-10 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 z-10 flex flex-col items-center">
               {/* 로고 */}
-              <button 
-                onClick={() => router.push('/')}
-                className="cursor-pointer hover:opacity-80 transition-all duration-300"
-              >
-                <img 
-                  src="/amiko-foto.png" 
-                  alt="Amiko" 
-                  className="h-20 sm:h-24 md:h-32 lg:h-40 w-auto object-contain transition-all duration-300"
-                  style={{ 
-                    maxHeight: '80px'
+              {isLandingPage ? (
+                <div className="cursor-default">
+                  <img 
+                    src="/amiko-foto.png" 
+                    alt="Amiko" 
+                    className="h-40 w-auto object-contain transition-all duration-300"
+                    style={{ 
+                      maxHeight: '160px'
+                    }}
+                  />
+                </div>
+              ) : (
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault()
+                    router.push('/')
                   }}
-                />
-              </button>
+                  className="cursor-pointer hover:opacity-80 transition-all duration-300"
+                >
+                  <img 
+                    src="/amiko-foto.png" 
+                    alt="Amiko" 
+                    className="h-40 w-auto object-contain transition-all duration-300"
+                    style={{ 
+                      maxHeight: '160px'
+                    }}
+                  />
+                </button>
+              )}
 
               {/* 네비게이션 */}
-              <nav className="flex space-x-4 sm:space-x-6 md:space-x-8 -mt-6 sm:-mt-8 md:-mt-10">
-                {isLandingPage ? (
-                  // 랜딩페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
+              <nav className="flex space-x-8 -mt-10">
+                {(isLandingPage || pathname === '/inquiry') ? (
+                  // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
                     <button 
-                      onClick={() => router.push('/')}
-                      className={`font-semibold transition-all duration-300 text-sm sm:text-base ${
-                        pathname === '/' 
-                          ? 'text-blue-600' 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        router.push('/')
+                      }}
+                      className={`font-semibold transition-all duration-300 ${
+                        pathname === '/'
+                          ? 'text-blue-600'
                           : 'text-gray-800 hover:text-gray-600'
                       }`}
                     >
                       홈
                     </button>
                     <button 
-                      onClick={() => router.push('/about')}
-                      className={`font-semibold transition-all duration-300 text-sm sm:text-base ${
+                      onClick={(e) => {
+                        e.preventDefault()
+                        router.push('/about')
+                      }}
+                      className={`font-semibold transition-all duration-300 ${
                         pathname === '/about' 
                           ? 'text-blue-600' 
                           : 'text-gray-800 hover:text-gray-600'
@@ -166,23 +188,26 @@ export default function Header() {
                       회사소개
                     </button>
                     <button 
-                      onClick={() => router.push('/inquiry')}
-                      className="font-semibold transition-all duration-300 text-sm sm:text-base text-gray-800 hover:text-gray-600"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        router.push('/inquiry')
+                      }}
+                      className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
                     >
                       문의
                     </button>
                     <button 
-                      className="font-semibold transition-all duration-300 text-sm sm:text-base text-gray-800 hover:text-gray-600"
+                      className="font-semibold transition-all duration-300 text-gray-800 hover:text-gray-600"
                     >
                       제휴문의
                     </button>
                   </>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
-                  <div className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-8">
+                  <div className="hidden md:flex space-x-8">
                     <button 
                       onClick={() => handleMainNavClick('home')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg text-sm lg:text-base ${
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
                         activeMainTab === 'home' 
                           ? 'text-orange-500 scale-110' 
                           : 'text-gray-800 hover:text-orange-500'
@@ -192,7 +217,7 @@ export default function Header() {
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('meet')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg text-sm lg:text-base ${
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
                         activeMainTab === 'meet' 
                           ? 'text-brand-500 scale-110' 
                           : 'text-gray-800 hover:text-brand-500'
@@ -202,7 +227,7 @@ export default function Header() {
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('community')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg text-sm lg:text-base ${
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
                         activeMainTab === 'community' 
                           ? 'text-mint-500 scale-110' 
                           : 'text-gray-800 hover:text-mint-500'
@@ -212,7 +237,7 @@ export default function Header() {
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('charging')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg text-sm lg:text-base ${
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
                         activeMainTab === 'charging' 
                           ? 'text-purple-500 scale-110' 
                           : 'text-gray-800 hover:text-purple-500'
@@ -222,7 +247,7 @@ export default function Header() {
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('event')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg text-sm lg:text-base ${
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
                         activeMainTab === 'event' 
                           ? 'text-pink-500 scale-110' 
                           : 'text-gray-800 hover:text-pink-500'
@@ -236,12 +261,12 @@ export default function Header() {
             </div>
 
             {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
-            <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+            <div className="flex items-center space-x-4">
               {/* 로그아웃 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
               {isMainPage && (
                 <button 
                   onClick={() => handleLogout()}
-                  className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 text-sm"
+                  className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500"
                 >
                   로그아웃
                 </button>
@@ -250,7 +275,7 @@ export default function Header() {
               {isMainPage && (
                 <button 
                   onClick={() => handleMainNavClick('me')}
-                  className={`hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-sm ${
+                  className={`hidden md:block font-semibold transition-all duration-300 drop-shadow-lg ${
                     activeMainTab === 'me' 
                       ? 'text-sky-500 scale-110' 
                       : 'text-gray-800 hover:text-sky-500'
@@ -259,11 +284,14 @@ export default function Header() {
                   내정보
                 </button>
               )}
-              {/* 시작하기 버튼 - 랜딩페이지에서만 표시 */}
-              {isLandingPage && (
+              {/* 시작하기 버튼 - 랜딩페이지 및 문의페이지에서 표시 */}
+              {(isLandingPage || pathname === '/inquiry') && (
                 <button 
-                  onClick={() => router.push('/main')}
-                  className="font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-lg shadow-lg hover:shadow-xl text-xs sm:text-sm"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    router.push('/main')
+                  }}
+                  className="font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl"
                 >
                   시작하기
                 </button>
@@ -300,12 +328,12 @@ export default function Header() {
                   variant="ghost"
                   size="sm"
                   onClick={toggleMobileMenu}
-                  className="md:hidden p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
+                  className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
                 >
                   {isMobileMenuOpen ? (
-                    <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                    <X className="w-5 h-5 text-gray-600" />
                   ) : (
-                    <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                    <Menu className="w-5 h-5 text-gray-600" />
                   )}
                 </Button>
               )}
@@ -333,10 +361,11 @@ export default function Header() {
           <div className="pt-6 px-4 pb-4 space-y-2 max-h-96 overflow-y-auto">
             {/* 메인 메뉴 */}
             <div className="space-y-1">
-              {/* 랜딩페이지에서는 시작하기 버튼 표시 */}
-              {isLandingPage && (
+              {/* 랜딩페이지 및 문의페이지에서는 시작하기 버튼 표시 */}
+              {(isLandingPage || pathname === '/inquiry') && (
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault()
                     router.push('/main')
                     toggleMobileMenu()
                   }}

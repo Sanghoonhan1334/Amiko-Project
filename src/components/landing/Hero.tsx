@@ -19,7 +19,7 @@ export default function Hero() {
   const [showVideo, setShowVideo] = useState(false)
 
   return (
-    <section className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50">
+    <section className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 z-0 pointer-events-none">
       {/* 배경 장식 요소들 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-blue-100/30 rounded-full blur-3xl"></div>
@@ -27,7 +27,7 @@ export default function Hero() {
         <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-blue-100/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container-custom relative z-10 flex items-center justify-center min-h-screen px-4 pt-20">
+      <div className="container-custom relative z-0 flex items-center justify-center min-h-screen px-4 pt-20">
         <div className="w-full max-w-6xl">
 
           {/* 슬라이더 */}
@@ -46,7 +46,7 @@ export default function Hero() {
               bulletClass: 'swiper-pagination-bullet',
               bulletActiveClass: 'swiper-pagination-bullet-active'
             }}
-            className="w-full relative z-10"
+            className="w-full relative z-0 pointer-events-auto"
             onInit={(swiper) => {
               ;(window as any).swiperInstance = swiper
             }}
@@ -59,7 +59,7 @@ export default function Hero() {
             }}
           >
             {/* 첫 번째 슬라이드 - 홈 (사진과 동일하게) */}
-            <SwiperSlide>
+            <SwiperSlide className="pointer-events-auto">
               <div className="min-h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
                 <div className="flex flex-col lg:flex-row items-center justify-between py-16 sm:py-20 md:py-24 lg:py-32 gap-8 lg:gap-12">
@@ -118,7 +118,7 @@ export default function Hero() {
             </SwiperSlide>
 
             {/* 두 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
-            <SwiperSlide>
+            <SwiperSlide className="pointer-events-auto">
               <div className="min-h-screen flex flex-col py-12 sm:py-16 md:py-20">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6">
                   {/* 메인 레이아웃 */}
@@ -223,143 +223,6 @@ export default function Hero() {
               </div>
             </SwiperSlide>
 
-            {/* 세 번째 슬라이드 - 문의하기 */}
-            <SwiperSlide>
-              <div className="min-h-screen flex flex-col">
-                {/* 상단 메인 콘텐츠 */}
-                <div className="flex flex-col lg:flex-row items-center justify-between py-16 sm:py-20 md:py-24 lg:py-32 gap-8 lg:gap-12">
-                  {/* 왼쪽 콘텐츠 */}
-                  <div className="flex-1 max-w-2xl text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 bg-green-100/50 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6 border border-green-200/30">
-                      <span className="text-green-700 font-medium text-xs sm:text-sm">💬 문의하기</span>
-                    </div>
-                    
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-                      불편사항을<br />
-                      알려주세요
-                    </h1>
-                    
-                    <p className="text-gray-600 text-base sm:text-lg leading-relaxed mb-6 sm:mb-8">
-                      사용 중 불편한 점이나 개선사항이 있다면 언제든지 문의해주세요. 
-                      빠른 시일 내에 답변드리겠습니다.
-                    </p>
-                    
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                      <Button 
-                        onClick={() => router.push('/inquiry')}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
-                      >
-                        문의하기
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        onClick={() => router.push('/main?tab=community')}
-                        className="border-green-600 text-green-600 hover:bg-green-50 px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-medium w-full sm:w-auto"
-                      >
-                        커뮤니티 보기
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* 오른쪽 이미지 영역 */}
-                  <div className="flex-1 flex justify-center items-center">
-                    <div className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center shadow-2xl">
-                      <div className="text-4xl sm:text-5xl md:text-6xl">💬</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 하단 문의 섹션 */}
-                <div className="bg-white py-6 sm:py-8" id="inquiry-section">
-                  <div className="container-custom max-w-6xl mx-auto px-4 sm:px-6">
-                    <div className="text-center mb-6 sm:mb-8">
-                      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">문의 유형</h2>
-                      <p className="text-gray-600 text-sm sm:text-base">어떤 종류의 문의든 편하게 남겨주세요</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                      {/* 버그 신고 */}
-                      <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                        <div className="text-center">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                            <span className="text-xl sm:text-2xl">🐛</span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">버그 신고</h3>
-                          <p className="text-gray-600 text-xs sm:text-sm">
-                            앱이나 웹사이트에서 발견한 오류를 신고해주세요
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 기능 제안 */}
-                      <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                        <div className="text-center">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                            <span className="text-xl sm:text-2xl">💡</span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">기능 제안</h3>
-                          <p className="text-gray-600 text-xs sm:text-sm">
-                            새로운 기능이나 개선사항을 제안해주세요
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 일반 문의 */}
-                      <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                        <div className="text-center">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                            <span className="text-xl sm:text-2xl">💬</span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">일반 문의</h3>
-                          <p className="text-gray-600 text-xs sm:text-sm">
-                            기타 궁금한 사항이나 도움이 필요한 내용
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 결제 문의 */}
-                      <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                        <div className="text-center">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                            <span className="text-xl sm:text-2xl">💳</span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">결제 문의</h3>
-                          <p className="text-gray-600 text-xs sm:text-sm">
-                            결제 관련 문제나 환불 문의
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 계정 문의 */}
-                      <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                        <div className="text-center">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                            <span className="text-xl sm:text-2xl">👤</span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">계정 문의</h3>
-                          <p className="text-gray-600 text-xs sm:text-sm">
-                            로그인, 회원가입, 계정 관련 문제
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 기타 */}
-                      <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                        <div className="text-center">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                            <span className="text-xl sm:text-2xl">❓</span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">기타</h3>
-                          <p className="text-gray-600 text-xs sm:text-sm">
-                            위 카테고리에 해당하지 않는 문의
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </SwiperSlide>
           </Swiper>
 
           {/* 커스텀 네비게이션 버튼 - 큰 버전 */}
@@ -369,7 +232,7 @@ export default function Hero() {
                 swiperRef.current.swiper.slidePrev()
               }
             }}
-            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 sm:w-16 sm:h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-0 w-12 h-12 sm:w-16 sm:h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group pointer-events-auto"
           >
             <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 group-hover:text-blue-600 transition-colors" />
           </button>
@@ -380,7 +243,7 @@ export default function Hero() {
                 swiperRef.current.swiper.slideNext()
               }
             }}
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 sm:w-16 sm:h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-0 w-12 h-12 sm:w-16 sm:h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group pointer-events-auto"
           >
             <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 group-hover:text-blue-600 transition-colors" />
           </button>
@@ -403,7 +266,7 @@ export default function Hero() {
           </div>
 
           {/* 슬라이드 인디케이터 */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-0 pointer-events-auto">
             <button 
               onClick={() => {
                 if (swiperRef.current && swiperRef.current.swiper) {
@@ -422,16 +285,6 @@ export default function Hero() {
               }}
               className={`w-3 h-3 rounded-full transition-all ${
                 activeSlide === 1 ? 'bg-blue-600 scale-125' : 'bg-gray-400'
-              }`}
-            />
-            <button 
-              onClick={() => {
-                if (swiperRef.current && swiperRef.current.swiper) {
-                  swiperRef.current.swiper.slideTo(2)
-                }
-              }}
-              className={`w-3 h-3 rounded-full transition-all ${
-                activeSlide === 2 ? 'bg-green-600 scale-125' : 'bg-gray-400'
               }`}
             />
           </div>

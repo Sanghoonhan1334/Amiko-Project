@@ -28,6 +28,8 @@ export default function AboutPage() {
             modules={[Navigation, Pagination]}
             spaceBetween={0}
             slidesPerView={1}
+            speed={300}
+            lazy="true"
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
@@ -55,9 +57,11 @@ export default function AboutPage() {
                           src="/1.png" 
                           alt="AMIKO Logo 1" 
                           className="w-72 h-72 object-contain -mb-20 -mt-12"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <p className="text-gray-700 text-lg">
-                          : AMI(America) KO(Korea)를 잇다.
+                          : Amigo(친구)+Korean
                         </p>
                       </div>
                     </div>
@@ -69,6 +73,8 @@ export default function AboutPage() {
                           src="/2.png" 
                           alt="AMIKO Logo 2" 
                           className="w-72 h-72 object-contain -mb-20 -mt-12"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <p className="text-gray-700 text-lg">
                           : <span className="text-red-500">AM</span>erica와 <span className="text-blue-500">KO</span>rea를 이어주는 다리
@@ -83,6 +89,8 @@ export default function AboutPage() {
                           src="/3.png" 
                           alt="AMIKO Logo 3" 
                           className="w-72 h-72 object-contain -mb-20 -mt-12"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <p className="text-gray-700 text-lg">
                           : A mí(나에게) Korea를 더 가깝게
@@ -95,7 +103,7 @@ export default function AboutPage() {
             </SwiperSlide>
 
             {/* 소개 영상 슬라이드 */}
-            <SwiperSlide>
+            <SwiperSlide className="swiper-slide-no-lazy">
               <div className="min-h-screen flex items-start justify-center pt-28 bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="w-full max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl mx-auto px-4 text-center">
                   <h2 className="text-4xl font-bold text-gray-900 mb-8 leading-tight">
@@ -105,12 +113,14 @@ export default function AboutPage() {
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
-                        src="https://www.youtube.com/embed/6BdrKjSMBJY?autoplay=0&rel=0"
+                        src="https://www.youtube.com/embed/6BdrKjSMBJY?autoplay=0&rel=0&modestbranding=1&fs=1&enablejsapi=1"
                         title="Amiko 대표자 소개 영상"
                         className="w-full h-full"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
+                        onLoad={() => console.log('YouTube video loaded')}
+                        onError={() => console.log('YouTube video failed to load')}
                       />
                     </div>
                   </div>
@@ -181,7 +191,7 @@ export default function AboutPage() {
                 swiperRef.current.swiper.slidePrev()
               }
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-200 group"
           >
             <svg className="w-8 h-8 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -194,7 +204,7 @@ export default function AboutPage() {
                 swiperRef.current.swiper.slideNext()
               }
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-2xl hover:scale-110 transition-all duration-300 group"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-200 group"
           >
             <svg className="w-8 h-8 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
