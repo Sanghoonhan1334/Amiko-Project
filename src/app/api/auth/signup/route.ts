@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     // Supabase Auth에서 사용자 정보는 자동으로 auth.users 테이블에 저장됨
 
     // 사용자 프로필 생성
-    const { error: profileError } = await supabaseServer
+    const { error: profileError } = await (supabaseServer as any)
       .from('user_profiles')
       .insert({
         user_id: userId,
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 포인트 시스템 초기화
-    const { error: pointsError } = await supabaseServer
+    const { error: pointsError } = await (supabaseServer as any)
       .from('user_points')
       .insert({
         user_id: userId,
