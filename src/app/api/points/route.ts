@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
 
     if (pointsError && pointsError.code === 'PGRST116') {
       // 포인트 레코드가 없으면 생성
-      const { data: newPoints, error: createError } = await supabaseServer
+      const { data: newPoints, error: createError } = await (supabaseServer as any)
         .from('user_points')
         .insert({
           user_id: userId,
