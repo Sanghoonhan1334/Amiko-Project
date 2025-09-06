@@ -245,7 +245,7 @@ export default function EventTab() {
             {/* 출석체크 도장판 */}
             <div className="relative mb-8">
               {/* 바인더 형태의 도장판 */}
-              <div className="mx-auto w-full max-w-4xl h-96 relative">
+              <div className="mx-auto w-full max-w-5xl h-[500px] relative">
                 {/* 바인더 고리 */}
                 <div className="absolute -left-2 top-8 w-4 h-64 bg-gray-400 rounded-full shadow-lg"></div>
                 <div className="absolute -left-1 top-6 w-2 h-68 bg-gray-300 rounded-full"></div>
@@ -262,9 +262,9 @@ export default function EventTab() {
                   
                   {/* 달력 그리드 */}
                   <div className="absolute inset-0 flex items-center justify-center pt-16 pb-8">
-                    <div className="grid grid-cols-7 gap-1 w-full h-full px-4">
+                    <div className="grid grid-cols-7 gap-2 w-full h-full px-6">
                       {/* 달력 헤더 (요일) */}
-                      <div className="col-span-7 grid grid-cols-7 gap-1 mb-2">
+                      <div className="col-span-7 grid grid-cols-7 gap-2 mb-2">
                         {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
                           <div key={day} className="text-center text-xs font-bold text-gray-600 py-1">
                             {day}
@@ -301,7 +301,7 @@ export default function EventTab() {
                             </div>
                             
                             {/* 출석/결석 도장 */}
-                            <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm">
+                            <div className="w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm">
                               {isCompleted ? (
                                 <div className="w-full h-full bg-purple-500 rounded-full flex items-center justify-center text-white">
                                   출석
