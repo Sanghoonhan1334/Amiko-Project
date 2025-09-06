@@ -185,43 +185,100 @@ export default function EventTab() {
         </CardContent>
       </Card>
 
-      {/* 출석체크 버튼 */}
+      {/* 도장 찍기 판 */}
       <Card className="bg-gradient-to-br from-white to-pink-50 border border-pink-100 shadow-lg">
         <CardContent className="p-8">
           <div className="text-center">
-            <div className="relative mb-6">
-              <Button
-                onClick={handleAttendanceCheck}
-                disabled={isStampAnimating}
-                className={`bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-12 py-6 text-xl rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
-                  isStampAnimating ? 'animate-pulse' : ''
-                }`}
-                style={{
-                  transform: `scale(${stampSize})`,
-                  transition: 'transform 0.3s ease-in-out'
-                }}
-              >
-                {isStampAnimating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                    도장 찍는 중...
-                  </>
-                ) : (
-                  <>
-                    <Calendar className="w-6 h-6 mr-3" />
-                    오늘 출석체크 하기
-                  </>
-                )}
-              </Button>
-              
-              {/* 도장 애니메이션 효과 */}
-              {isStampAnimating && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-16 h-16 bg-red-500 rounded-full opacity-50 animate-ping"></div>
+            {/* 도장판 */}
+            <div className="relative mb-8">
+              <div className="mx-auto w-80 h-80 bg-gradient-to-br from-red-100 to-pink-100 rounded-full border-8 border-red-200 shadow-2xl flex items-center justify-center relative overflow-hidden hover:shadow-3xl transition-all duration-300">
+                {/* 도장판 배경 패턴 */}
+                <div className="absolute inset-4 bg-white rounded-full border-4 border-red-300 shadow-inner"></div>
+                
+                {/* 도장판 장식 요소 */}
+                <div className="absolute top-8 left-8 w-4 h-4 bg-red-300 rounded-full opacity-60"></div>
+                <div className="absolute top-8 right-8 w-4 h-4 bg-pink-300 rounded-full opacity-60"></div>
+                <div className="absolute bottom-8 left-8 w-4 h-4 bg-pink-300 rounded-full opacity-60"></div>
+                <div className="absolute bottom-8 right-8 w-4 h-4 bg-red-300 rounded-full opacity-60"></div>
+                
+                {/* 도장 찍힌 자리들 */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="grid grid-cols-3 gap-8 p-8">
+                    {Array.from({ length: 9 }).map((_, index) => (
+                      <div key={index} className="w-16 h-16 relative">
+                        {attendanceRecords.length > index ? (
+                          <div className="w-full h-full bg-gradient-to-br from-red-500 to-pink-500 rounded-full shadow-lg flex items-center justify-center text-white font-bold text-lg animate-bounce hover:scale-110 transition-transform duration-200">
+                            📅
+                          </div>
+                        ) : (
+                          <div className="w-full h-full border-2 border-dashed border-red-300 rounded-full flex items-center justify-center text-red-300 text-lg hover:border-red-400 hover:text-red-400 transition-colors duration-200">
+                            ○
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
+                
+                {/* 중앙 도장 찍기 버튼 */}
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <Button
+                    onClick={handleAttendanceCheck}
+                    disabled={isStampAnimating}
+                    className={`w-24 h-24 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 ${
+                      isStampAnimating ? 'animate-pulse scale-125' : ''
+                    }`}
+                    style={{
+                      transform: `scale(${stampSize})`,
+                      transition: 'transform 0.3s ease-in-out'
+                    }}
+                  >
+                    {isStampAnimating ? (
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    ) : (
+                      <Calendar className="w-8 h-8" />
+                    )}
+                  </Button>
+                </div>
+                
+                {/* 도장 찍기 애니메이션 효과 */}
+                {isStampAnimating && (
+                  <div className="absolute inset-0 pointer-events-none z-20">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-32 h-32 bg-red-500 rounded-full opacity-30 animate-ping"></div>
+                    </div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-20 h-20 bg-pink-500 rounded-full opacity-50 animate-ping" style={{ animationDelay: '0.1s' }}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* 도장판 설명 */}
+              <div className="mt-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">출석체크 도장판</h3>
+                <p className="text-gray-600 mb-4">
+                  중앙의 도장을 눌러서 매일 출석체크하세요!
+                  <br />
+                  <span className="text-red-600 font-medium">9개 도장</span>을 모두 모으면 특별 보상을 받을 수 있어요.
+                </p>
+                
+                {/* 진행률 표시 */}
+                <div className="bg-white rounded-xl p-4 border border-red-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">도장 수집 진행률</span>
+                    <span className="text-sm font-bold text-red-600">
+                      {attendanceRecords.length}/9
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-red-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${(attendanceRecords.length / 9) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <p className="text-gray-600 mb-4">
