@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 답변 수 계산
-    const inquiriesWithCounts = inquiries?.map(inquiry => ({
+    const inquiriesWithCounts = inquiries?.map((inquiry: any) => ({
       ...inquiry,
       response_count: inquiry.inquiry_responses?.length || 0,
       inquiry_responses: undefined // 원본 데이터에서 제거
