@@ -88,8 +88,9 @@ export default function EventTab() {
     }
 
     // 출석체크 시간 확인 (12:05 AM ~ 11:59 PM)
-    const currentHour = today.getHours()
-    const currentMinute = today.getMinutes()
+    const now = new Date()
+    const currentHour = now.getHours()
+    const currentMinute = now.getMinutes()
     const currentTime = currentHour * 60 + currentMinute
     const startTime = 0 * 60 + 5 // 12:05 AM
     const endTime = 23 * 60 + 59 // 11:59 PM
