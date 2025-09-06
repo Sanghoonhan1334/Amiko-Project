@@ -170,32 +170,6 @@ export default function EventTab() {
       // 보상 지급 로직
       setTotalPoints(prev => prev + reward.points)
       
-      // 보상 달성 시 해당 날짜에 자동 도장 찍기
-      const today = new Date()
-      const currentMonth = today.getMonth()
-      const currentYear = today.getFullYear()
-      const todayDate = today.toISOString().split('T')[0]
-      
-      // 해당 날짜에 도장 찍기 애니메이션
-      setTimeout(() => {
-        setClickedDay(today.getDate())
-        setIsStampAnimating(true)
-        
-        // 도장 찍기 사운드
-        playStampSound()
-        
-        // 모바일 진동
-        if (navigator.vibrate) {
-          navigator.vibrate([100, 50, 100])
-        }
-        
-        // 애니메이션 종료
-        setTimeout(() => {
-          setIsStampAnimating(false)
-          setClickedDay(null)
-        }, 200)
-      }, 100)
-      
       // 보상 알림
       let rewardMessage = `🎉 축하합니다! ${reward.label} 달성!\n`
       rewardMessage += `포인트 +${reward.points}점`
