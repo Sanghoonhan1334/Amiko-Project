@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 좋아요 수 계산
-    const commentsWithCounts = comments?.map(comment => ({
+    const commentsWithCounts = comments?.map((comment: any) => ({
       ...comment,
       reaction_count: comment.reactions?.length || 0,
       reactions: undefined // 원본 데이터에서 제거
