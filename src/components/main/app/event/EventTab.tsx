@@ -304,8 +304,20 @@ export default function EventTab() {
                               className="w-10 h-10 rounded-full border-2 border-gray-300 bg-white hover:bg-gray-50 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-110"
                             >
                               {isCompleted ? (
-                                <div className="w-full h-full bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                                  📅
+                                <div 
+                                  className="w-full h-full bg-red-500 flex items-center justify-center text-white font-bold text-xs relative"
+                                  style={{
+                                    clipPath: 'polygon(50% 0%, 100% 15%, 100% 85%, 50% 100%, 0% 85%, 0% 15%)',
+                                    borderRadius: '50%'
+                                  }}
+                                >
+                                  <div className="absolute inset-0 bg-red-600 opacity-30" 
+                                       style={{
+                                         clipPath: 'polygon(50% 0%, 100% 15%, 100% 85%, 50% 100%, 0% 85%, 0% 15%)',
+                                         borderRadius: '50%'
+                                       }}>
+                                  </div>
+                                  <span className="relative z-10 transform rotate-12 text-xs font-bold">출석</span>
                                 </div>
                               ) : (
                                 <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs">
