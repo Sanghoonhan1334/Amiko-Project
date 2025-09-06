@@ -41,7 +41,7 @@ export default function EventTab() {
     3: { coupons: 0, points: 20, label: '3일 연속' },
     7: { coupons: 1, points: 30, label: '7일 연속' },
     14: { coupons: 2, points: 40, label: '14일 연속' },
-    30: { coupons: 3, points: 50, label: '30일 연속' }
+    30: { coupons: 5, points: 80, label: '30일 연속' }
   }
 
   useEffect(() => {
