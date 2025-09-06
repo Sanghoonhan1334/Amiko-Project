@@ -162,7 +162,14 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const offset = (page - 1) * limit
 
-    let query = supabase
+    if (!supabase) {
+      return NextResponse.json(
+        { message: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
+    let query = (supabase as any)
       .from('partnership_inquiries')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
