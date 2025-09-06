@@ -29,6 +29,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [channelName, setChannelName] = useState('')
   const [showStartDialog, setShowStartDialog] = useState(false)
   const [showOnlyKoreans, setShowOnlyKoreans] = useState(true)
+  const [selectedPartner, setSelectedPartner] = useState<any>(null)
+  const [showProfileDialog, setShowProfileDialog] = useState(false)
 
   const handleStartCall = () => {
     if (!channelName.trim()) {
@@ -48,14 +50,126 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
   // 목업 데이터 - 실제로는 API에서 가져올 데이터
   const allPartners = [
-    { id: '1', name: '김민수', country: '한국', status: 'online', language: '한국어', interests: ['스페인어', '멕시코 문화'] },
-    { id: '2', name: '이지은', country: '한국', status: 'online', language: '한국어', interests: ['브라질 음악', '포르투갈어'] },
-    { id: '3', name: '박서준', country: '한국', status: 'offline', language: '한국어', interests: ['아르헨티나 축구', '탱고'] },
-    { id: '4', name: '최유나', country: '한국', status: 'online', language: '한국어', interests: ['콜롬비아 커피', '스페인어'] },
-    { id: '5', name: '정현우', country: '한국', status: 'online', language: '한국어', interests: ['페루 요리', '안데스 문화'] },
-    { id: '6', name: '마리아 (멕시코)', country: '멕시코', status: 'online', language: '스페인어', interests: ['한국 드라마', 'K-pop'] },
-    { id: '7', name: '카를로스 (브라질)', country: '브라질', status: 'online', language: '포르투갈어', interests: ['한국 요리', '태권도'] },
-    { id: '8', name: '소피아 (아르헨티나)', country: '아르헨티나', status: 'offline', language: '스페인어', interests: ['한국 문화', '여행'] },
+    { 
+      id: '1', 
+      name: '김민수', 
+      country: '한국', 
+      status: 'online', 
+      language: '한국어', 
+      interests: ['스페인어', '멕시코 문화'],
+      bio: '멕시코 문화에 관심이 많은 대학생입니다. 스페인어를 배우고 싶어요!',
+      age: 23,
+      occupation: '대학생',
+      level: '초급',
+      joinDate: '2024-01-15',
+      totalCalls: 12,
+      rating: 4.8
+    },
+    { 
+      id: '2', 
+      name: '이지은', 
+      country: '한국', 
+      status: 'online', 
+      language: '한국어', 
+      interests: ['브라질 음악', '포르투갈어'],
+      bio: '브라질 보사노바를 좋아하는 음악학과 학생입니다.',
+      age: 21,
+      occupation: '대학생',
+      level: '중급',
+      joinDate: '2024-02-03',
+      totalCalls: 8,
+      rating: 4.9
+    },
+    { 
+      id: '3', 
+      name: '박서준', 
+      country: '한국', 
+      status: 'offline', 
+      language: '한국어', 
+      interests: ['아르헨티나 축구', '탱고'],
+      bio: '축구와 탱고를 사랑하는 직장인입니다.',
+      age: 28,
+      occupation: '회사원',
+      level: '고급',
+      joinDate: '2023-11-20',
+      totalCalls: 25,
+      rating: 4.7
+    },
+    { 
+      id: '4', 
+      name: '최유나', 
+      country: '한국', 
+      status: 'online', 
+      language: '한국어', 
+      interests: ['콜롬비아 커피', '스페인어'],
+      bio: '콜롬비아 커피를 좋아하는 바리스타입니다.',
+      age: 25,
+      occupation: '바리스타',
+      level: '중급',
+      joinDate: '2024-01-08',
+      totalCalls: 15,
+      rating: 4.6
+    },
+    { 
+      id: '5', 
+      name: '정현우', 
+      country: '한국', 
+      status: 'online', 
+      language: '한국어', 
+      interests: ['페루 요리', '안데스 문화'],
+      bio: '페루 요리를 배우고 싶은 요리사입니다.',
+      age: 30,
+      occupation: '요리사',
+      level: '고급',
+      joinDate: '2023-12-10',
+      totalCalls: 18,
+      rating: 4.8
+    },
+    { 
+      id: '6', 
+      name: '마리아 (멕시코)', 
+      country: '멕시코', 
+      status: 'online', 
+      language: '스페인어', 
+      interests: ['한국 드라마', 'K-pop'],
+      bio: '한국 드라마를 좋아하는 멕시코 대학생입니다.',
+      age: 22,
+      occupation: '대학생',
+      level: '초급',
+      joinDate: '2024-02-15',
+      totalCalls: 5,
+      rating: 4.5
+    },
+    { 
+      id: '7', 
+      name: '카를로스 (브라질)', 
+      country: '브라질', 
+      status: 'online', 
+      language: '포르투갈어', 
+      interests: ['한국 요리', '태권도'],
+      bio: '한국 요리와 태권도에 관심이 많은 브라질인입니다.',
+      age: 26,
+      occupation: '엔지니어',
+      level: '중급',
+      joinDate: '2024-01-20',
+      totalCalls: 10,
+      rating: 4.7
+    },
+    { 
+      id: '8', 
+      name: '소피아 (아르헨티나)', 
+      country: '아르헨티나', 
+      status: 'offline', 
+      language: '스페인어', 
+      interests: ['한국 문화', '여행'],
+      bio: '한국 문화를 사랑하는 아르헨티나 여행가입니다.',
+      age: 24,
+      occupation: '여행가',
+      level: '중급',
+      joinDate: '2024-01-05',
+      totalCalls: 7,
+      rating: 4.6
+    },
   ]
 
   // 필터링된 파트너 목록
@@ -167,6 +281,9 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                     <p className="text-xs text-gray-500 mt-1">
                       관심사: {partner.interests.join(', ')}
                     </p>
+                    <p className="text-xs text-gray-600 mt-1 italic">
+                      "{partner.bio}"
+                    </p>
                     {!showOnlyKoreans && (
                       <p className="text-xs text-blue-600 mt-1 font-medium">
                         {partner.country}
@@ -174,17 +291,30 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                     )}
                   </div>
                 </div>
-                <Button 
-                  variant={partner.status === 'online' ? 'default' : 'outline'}
-                  size="sm"
-                  disabled={partner.status === 'offline'}
-                  className={partner.status === 'online' 
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
-                    : ''
-                  }
-                >
-                  {partner.status === 'online' ? '대화 시작' : '오프라인'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPartner(partner)
+                      setShowProfileDialog(true)
+                    }}
+                    className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                  >
+                    정보보기
+                  </Button>
+                  <Button 
+                    variant={partner.status === 'online' ? 'default' : 'outline'}
+                    size="sm"
+                    disabled={partner.status === 'offline'}
+                    className={partner.status === 'online' 
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
+                      : ''
+                    }
+                  >
+                    {partner.status === 'online' ? '대화 시작' : '오프라인'}
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -259,6 +389,135 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 프로필 상세보기 다이얼로그 */}
+      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-white to-purple-50 border border-purple-200">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+              <div className={`w-4 h-4 rounded-full ${
+                selectedPartner?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+              }`} />
+              {selectedPartner?.name} 프로필
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedPartner && (
+            <div className="space-y-6">
+              {/* 기본 정보 */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">이름</label>
+                    <p className="text-gray-900 font-medium">{selectedPartner.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">국가</label>
+                    <p className="text-gray-900">{selectedPartner.country}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">나이</label>
+                    <p className="text-gray-900">{selectedPartner.age}세</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">직업</label>
+                    <p className="text-gray-900">{selectedPartner.occupation}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">언어</label>
+                    <p className="text-gray-900">{selectedPartner.language}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">레벨</label>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedPartner.level === '초급' ? 'bg-green-100 text-green-800' :
+                      selectedPartner.level === '중급' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedPartner.level}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">평점</label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-yellow-500">★</span>
+                      <span className="text-gray-900 font-medium">{selectedPartner.rating}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">가입일</label>
+                    <p className="text-gray-900">{selectedPartner.joinDate}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 한줄소개 */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">한줄소개</label>
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <p className="text-gray-800 italic">"{selectedPartner.bio}"</p>
+                </div>
+              </div>
+
+              {/* 관심사 */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">관심사</label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPartner.interests.map((interest: string, index: number) => (
+                    <span 
+                      key={index}
+                      className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* 통계 */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">통화 통계</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-purple-100 text-center">
+                    <div className="text-2xl font-bold text-purple-600">{selectedPartner.totalCalls}</div>
+                    <div className="text-sm text-gray-600">총 통화 횟수</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border border-purple-100 text-center">
+                    <div className="text-2xl font-bold text-purple-600">{selectedPartner.rating}</div>
+                    <div className="text-sm text-gray-600">평균 평점</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 액션 버튼 */}
+              <div className="flex gap-3 justify-end pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowProfileDialog(false)}
+                  className="border-2 border-gray-300 hover:border-gray-400"
+                >
+                  닫기
+                </Button>
+                {selectedPartner.status === 'online' && (
+                  <Button 
+                    onClick={() => {
+                      setShowProfileDialog(false)
+                      setShowStartDialog(true)
+                    }}
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    대화 시작
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
