@@ -57,6 +57,7 @@ export default function SignUpPage() {
 
     try {
       // 실제 회원가입 API 호출
+      const selectedCountry = countries.find(c => c.code === formData.country)
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
