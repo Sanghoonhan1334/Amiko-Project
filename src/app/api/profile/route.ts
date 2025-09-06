@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       },
       profile: profile || {
         user_id: userId,
-        display_name: user.name,
+        display_name: (user as any).name,
         bio: '',
         avatar_url: null,
         country: 'KR',
