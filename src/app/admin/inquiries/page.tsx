@@ -74,7 +74,7 @@ export default function AdminInquiriesPage() {
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [responses, setResponses] = useState<Response[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [, setError] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [responseText, setResponseText] = useState('')

@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  CreditCard, 
   Star, 
   Video, 
   Sparkles, 
@@ -16,8 +15,8 @@ import {
 } from 'lucide-react'
 
 export default function ChargingTab() {
-  const [selectedCoupons, setSelectedCoupons] = useState(1)
-  const [selectedVipPlan, setSelectedVipPlan] = useState('')
+  const [, setSelectedCoupons] = useState(1)
+  const [, setSelectedVipPlan] = useState('')
 
   const couponPackages = [
     { count: 1, price: 1.99, discount: 0, popular: false },

@@ -11,8 +11,7 @@ import {
   AlertCircle, 
   XCircle,
   Eye,
-  Calendar,
-  User
+  Calendar
 } from 'lucide-react'
 
 interface Inquiry {

@@ -15,7 +15,7 @@ export async function PUT(
     }
 
     const inquiryId = params.id
-    const { status, reason } = await request.json()
+    const { status } = await request.json()
 
     // 입력 검증
     if (!status) {
