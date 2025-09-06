@@ -302,6 +302,8 @@ export default function EventTab() {
                         const record = attendanceRecords.find(r => r.date === dayDate)
                         const isCompleted = !!record
                         const isToday = actualDay === currentDay
+                        const isPast = actualDay < currentDay
+                        const isFuture = actualDay > currentDay
                         
                         return (
                           <div key={`day-${actualDay}`} className="flex flex-col items-center justify-center">
@@ -310,26 +312,34 @@ export default function EventTab() {
                               {actualDay}
                             </div>
                             
-                            {/* 출석/결석 도장 - 클릭 가능 */}
-                            <button
-                              onClick={() => handleDayClick(actualDay)}
-                              disabled={isCompleted || isStampAnimating}
-                              className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm transition-all duration-200 hover:scale-110 ${
-                                isCompleted 
-                                  ? 'cursor-default' 
-                                  : 'cursor-pointer hover:shadow-lg'
-                              }`}
-                            >
-                              {isCompleted ? (
-                                <div className="w-full h-full bg-purple-500 rounded-full flex items-center justify-center text-white">
-                                  출석
-                                </div>
-                              ) : (
-                                <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-400">
-                                  결석
-                                </div>
-                              )}
-                            </button>
+                            {/* 출석/결석 도장 - 상태별 표시 */}
+                            {isFuture ? (
+                              // 미래 날짜 - 아무것도 표시하지 않음
+                              <div className="w-10 h-10 rounded-full border-2 border-gray-200 bg-gray-50"></div>
+                            ) : (
+                              // 과거/오늘 날짜 - 출석/결석 표시
+                              <button
+                                onClick={() => handleDayClick(actualDay)}
+                                disabled={isCompleted || isStampAnimating || isPast}
+                                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-sm transition-all duration-200 ${
+                                  isCompleted 
+                                    ? 'cursor-default bg-purple-500 text-white' 
+                                    : isPast
+                                    ? 'cursor-default bg-red-300 text-red-700'
+                                    : 'cursor-pointer hover:shadow-lg bg-gray-300 text-gray-600 hover:bg-gray-400'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <div className="w-full h-full bg-purple-500 rounded-full flex items-center justify-center text-white">
+                                    출석
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-full bg-red-300 rounded-full flex items-center justify-center text-red-700">
+                                    결석
+                                  </div>
+                                )}
+                              </button>
+                            )}
                             
                             {/* 도장 찍기 애니메이션 */}
                             {isStampAnimating && actualDay === currentDay && (
