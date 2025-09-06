@@ -524,7 +524,7 @@ export default function EventTab() {
                     <span className="text-white text-sm font-bold">TOEIC</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">토익 시험 지원</div>
+                    <div className="font-semibold text-gray-800">토익 시험 응시료 지원</div>
                     <div className="text-sm text-gray-600">시험 응시료 전액 지원</div>
                   </div>
                 </div>
@@ -534,7 +534,7 @@ export default function EventTab() {
                     <span className="text-white text-sm font-bold">TOEFL</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">토플 시험 지원</div>
+                    <div className="font-semibold text-gray-800">토플 시험 응시료 지원</div>
                     <div className="text-sm text-gray-600">시험 응시료 전액 지원</div>
                   </div>
                 </div>
