@@ -47,7 +47,7 @@ export async function PUT(
     }
 
     // 상태 업데이트
-    const { data: updatedInquiry, error } = await supabaseServer
+    const { data: updatedInquiry, error } = await (supabaseServer as any)
       .from('inquiries')
       .update({ 
         status,
