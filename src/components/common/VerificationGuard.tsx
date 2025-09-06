@@ -84,14 +84,14 @@ export default function VerificationGuard({
 }
 
 // 특정 기능별 인증 가드 컴포넌트들
-export function VideoMatchingGuard({ profile, ...props }: Omit<VerificationGuardProps, 'requiredFeature'>) {
-  return <VerificationGuard profile={profile} requiredFeature="video_matching" {...props} />
+export function VideoMatchingGuard(props: Omit<VerificationGuardProps, 'requiredFeature'>) {
+  return <VerificationGuard requiredFeature="video_matching" {...props} />
 }
 
-export function CouponUsageGuard({ profile, ...props }: Omit<VerificationGuardProps, 'requiredFeature'>) {
-  return <VerificationGuard profile={profile} requiredFeature="coupon_usage" {...props} />
+export function CouponUsageGuard(props: Omit<VerificationGuardProps, 'requiredFeature'>) {
+  return <VerificationGuard requiredFeature="coupon_usage" {...props} />
 }
 
-export function CommunityPostingGuard({ profile, ...props }: Omit<VerificationGuardProps, 'requiredFeature'>) {
-  return <VerificationGuard profile={profile} requiredFeature="community_posting" {...props} />
+export function CommunityPostingGuard(props: Omit<VerificationGuardProps, 'requiredFeature'>) {
+  return <VerificationGuard requiredFeature="community_posting" {...props} />
 }
