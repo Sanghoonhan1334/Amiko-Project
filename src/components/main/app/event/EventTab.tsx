@@ -79,7 +79,8 @@ export default function EventTab() {
     }
     
     // 이미 오늘 출석체크를 했는지 확인
-    const todayRecord = attendanceRecords.find(record => record.day === currentDay)
+    const today = new Date().toISOString().split('T')[0]
+    const todayRecord = attendanceRecords.find(record => record.date === today)
     
     if (todayRecord) {
       alert('오늘은 이미 출석체크를 완료했습니다!')
