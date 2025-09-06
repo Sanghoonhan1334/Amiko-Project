@@ -270,7 +270,6 @@ export default function MyTab() {
     <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
       {/* 인증 가드 - 전체 서비스 이용 */}
       <VerificationGuard 
-        profile={currentProfileForGuard} 
         requiredFeature="all"
         className="mb-6"
       />
