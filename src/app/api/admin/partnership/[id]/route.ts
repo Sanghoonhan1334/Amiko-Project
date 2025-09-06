@@ -40,9 +40,9 @@ export async function PATCH(
       )
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('partnership_inquiries')
-      .update(updateData as any)
+      .update(updateData)
       .eq('id', id)
       .select()
 
