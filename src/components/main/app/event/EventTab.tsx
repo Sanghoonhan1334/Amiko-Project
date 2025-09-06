@@ -65,7 +65,6 @@ export default function EventTab() {
   const loadAttendanceData = () => {
     // 실제로는 API에서 데이터를 가져올 것
     const mockData = {
-      currentStreak: 5,
       totalPoints: 120,
       records: [
         { date: '2024-01-15', streak: 1, points: 0, stamps: 1 },
@@ -76,12 +75,15 @@ export default function EventTab() {
       ]
     }
     
-    setCurrentStreak(mockData.currentStreak)
     setTotalPoints(mockData.totalPoints)
     setAttendanceRecords(mockData.records)
     
+    // 실제 출석체크 기록을 기반으로 연속 일수 계산
+    const actualStreak = mockData.records.length
+    setCurrentStreak(actualStreak)
+    
     // 연속 출석일수에 따른 도장 크기 계산
-    setStampSize(Math.min(1 + (mockData.currentStreak * 0.1), 2))
+    setStampSize(Math.min(1 + (actualStreak * 0.1), 2))
   }
 
   const handleDayClick = async (dayNumber: number) => {
@@ -118,22 +120,26 @@ export default function EventTab() {
       const newRecord = {
         day: dayNumber,
         date: dayDate,
-        streak: currentStreak + 1,
+        streak: attendanceRecords.length + 1,
         points: 100, // 기본 출석 포인트 100점
         stamps: 1
       }
       
-      setAttendanceRecords(prev => [...prev, newRecord])
-      setCurrentStreak(prev => prev + 1)
+      const updatedRecords = [...attendanceRecords, newRecord]
+      setAttendanceRecords(updatedRecords)
+      
+      // 실제 출석체크 기록을 기반으로 연속 일수 업데이트
+      const actualStreak = updatedRecords.length
+      setCurrentStreak(actualStreak)
       setTotalPoints(prev => prev + 100) // 기본 포인트 100점
       
       // 개근상 보상 확인 (5일마다 500점)
-      if ((currentStreak + 1) % 5 === 0) {
+      if (actualStreak % 5 === 0) {
         setTotalPoints(prev => prev + 500)
       }
       
       // 보상 확인
-      checkRewards(currentStreak + 1)
+      checkRewards(actualStreak)
       
       // 성공 메시지 제거
       
