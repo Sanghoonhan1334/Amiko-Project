@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
-      setSupabase(client)
+      setSupabase(client as any)
     } catch (err) {
       console.error('[AUTH] Supabase 클라이언트 생성 실패:', err)
       setError('Supabase 클라이언트를 초기화할 수 없습니다.')

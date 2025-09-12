@@ -121,10 +121,10 @@ export async function GET(request: NextRequest) {
     // 작성자 정보 디버깅 로그
     if (posts && posts.length > 0) {
       console.log('[POST_LIST] 첫 번째 게시글 작성자 정보:', {
-        postId: posts[0].id,
-        authorId: posts[0].author?.id,
-        authorName: posts[0].author?.full_name,
-        authorProfileImage: posts[0].author?.profile_image
+        postId: (posts[0] as any).id,
+        authorId: (posts[0] as any).author?.id,
+        authorName: (posts[0] as any).author?.full_name,
+        authorProfileImage: (posts[0] as any).author?.profile_image
       })
     }
 
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('[POSTS_LIST] 게시글 목록 조회 실패:', error)
       return NextResponse.json(
-        { error: `게시글 목록을 불러오는데 실패했습니다: ${error.message}` },
+        { error: `게시글 목록을 불러오는데 실패했습니다: ${(error as any).message}` },
         { status: 500 }
       )
     }
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       console.log('[POSTS_CREATE] 카테고리 조회 결과:', { category, categoryError })
-      category_id = category?.id || null
+      category_id = (category as any)?.id || null
     }
 
     // 게시글 생성
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
       status: 'published'
     })
 
-    const { data: post, error } = await supabaseServer
+    const { data: post, error } = await (supabaseServer as any)
       .from('posts')
       .insert({
         title,
@@ -328,10 +328,10 @@ export async function POST(request: NextRequest) {
     if (is_survey && survey_options && survey_options.length > 0) {
       try {
         // 설문조사 생성
-        const { data: survey, error: surveyError } = await supabaseServer
+        const { data: survey, error: surveyError } = await (supabaseServer as any)
           .from('surveys')
           .insert({
-            post_id: post.id,
+            post_id: (post as any).id,
             title: title,
             description: content,
             is_multiple_choice: false,
@@ -396,10 +396,10 @@ export async function POST(request: NextRequest) {
               console.log('[POST_CREATE] 파일 업로드 성공:', uploadData.path)
               
               // 파일 정보를 데이터베이스에 저장
-              const { error: fileError } = await supabaseServer
+              const { error: fileError } = await (supabaseServer as any)
                 .from('post_attachments')
                 .insert({
-                  post_id: post.id,
+                  post_id: (post as any).id,
                   file_name: file.name,
                   file_path: uploadData.path,
                   file_size: file.size,

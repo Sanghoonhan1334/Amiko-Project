@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         // 포인트 데이터가 없으면 기본 데이터 생성
         console.log('[POINTS API] 포인트 데이터가 없음, 기본 데이터 생성')
         
-        const { data: newUserPoints, error: insertError } = await supabaseServer
+        const { data: newUserPoints, error: insertError } = await (supabaseServer as any)
           .from('user_points')
           .insert({
             user_id: userId,
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 포인트 히스토리 조회
-    let pointHistory = []
+    let pointHistory: any[] = []
     try {
       const { data: historyData, error: historyError } = await supabaseServer
         .from('point_history')
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (adminError || !adminUser?.is_admin) {
+    if (adminError || !(adminUser as any)?.is_admin) {
       return NextResponse.json(
         { error: '관리자 권한이 필요합니다.' },
         { status: 403 }
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 포인트 적립 함수 호출
-    const { error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+    const { error: pointError } = await (supabaseServer as any).rpc('add_points_with_limit', {
       p_user_id: userId,
       p_type: type,
       p_amount: amount,

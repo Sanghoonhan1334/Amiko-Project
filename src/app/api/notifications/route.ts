@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 알림 생성
-    const { data: notification, error } = await supabaseServer
+    const { data: notification, error } = await (supabaseServer as any)
       .from('notifications')
       .insert({
         user_id: userId,

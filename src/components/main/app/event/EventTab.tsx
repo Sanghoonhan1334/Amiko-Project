@@ -171,7 +171,6 @@ export default function EventTab() {
       attendance: attendancePoints,
       community: communityPoints,
       total: total,
-      rank: 15, // 예시 랭킹
       coupons: Math.floor(total / 100) // 100점마다 쿠폰 1개
     })
   }

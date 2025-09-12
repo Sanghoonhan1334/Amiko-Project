@@ -49,7 +49,7 @@ export async function PUT(request: NextRequest) {
       updateData.main_profile_image = main_profile_image
     }
 
-    const { data: user, error: userError } = await supabaseServer
+    const { data: user, error: userError } = await (supabaseServer as any)
       .from('users')
       .update(updateData)
       .eq('id', userId)
@@ -172,9 +172,9 @@ export async function GET(request: NextRequest) {
           error: '사용자 프로필이 설정되지 않았습니다. 인증을 완료해주세요.',
           needsVerification: true,
           authUser: {
-            id: authUser.id,
-            email: authUser.email,
-            user_metadata: authUser.user_metadata
+            id: (authUser as any).id,
+            email: (authUser as any).email,
+            user_metadata: (authUser as any).user_metadata
           }
         }, { status: 404 })
       }
@@ -234,41 +234,41 @@ export async function GET(request: NextRequest) {
     }
 
     // 사용자 타입 결정
-    const userType = userPreferences?.user_type || 'student'
+    const userType = (userPreferences as any)?.user_type || 'student'
     
     return NextResponse.json({
       user: {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        phone: user.phone,
-        one_line_intro: user.one_line_intro,
-        language: user.language,
-        avatar_url: user.avatar_url,
-        is_admin: user.is_admin,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
+        id: (user as any).id,
+        email: (user as any).email,
+        full_name: (user as any).full_name,
+        phone: (user as any).phone,
+        one_line_intro: (user as any).one_line_intro,
+        language: (user as any).language,
+        avatar_url: (user as any).avatar_url,
+        is_admin: (user as any).is_admin,
+        created_at: (user as any).created_at,
+        updated_at: (user as any).updated_at,
         user_type: userType
       },
       profile: {
         user_id: userId,
-        display_name: user.full_name,
-        bio: user.one_line_intro,
-        avatar_url: user.avatar_url,
+        display_name: (user as any).full_name,
+        bio: (user as any).one_line_intro,
+        avatar_url: (user as any).avatar_url,
         country: 'KR',
-        native_language: user.language,
-        is_korean: user.language === 'ko',
+        native_language: (user as any).language,
+        is_korean: (user as any).language === 'ko',
         user_type: userType,
-        university: studentInfo?.university || null,
-        major: studentInfo?.major || null,
-        grade: studentInfo?.grade || null,
-        occupation: generalInfo?.occupation || null,
-        company: generalInfo?.company || null,
-        work_experience: generalInfo?.work_experience || null,
+        university: (studentInfo as any)?.university || null,
+        major: (studentInfo as any)?.major || null,
+        grade: (studentInfo as any)?.grade || null,
+        occupation: (generalInfo as any)?.occupation || null,
+        company: (generalInfo as any)?.company || null,
+        work_experience: (generalInfo as any)?.work_experience || null,
         kakao_linked_at: null,
         wa_verified_at: null,
         sms_verified_at: null,
-        email_verified_at: user.email_verified_at
+        email_verified_at: (user as any).email_verified_at
       },
       points: points || {
         total_points: 0,

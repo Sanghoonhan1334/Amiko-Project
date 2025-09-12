@@ -32,13 +32,13 @@ export async function POST(request: NextRequest) {
     }
 
     // public.users에 기본 프로필 생성
-    const { data: user, error: userError } = await supabaseServer
+    const { data: user, error: userError } = await (supabaseServer as any)
       .from('users')
       .upsert({
         id: userId,
-        email: authUser.email,
-        full_name: authUser.user_metadata?.name || '사용자',
-        phone: authUser.user_metadata?.phone || '',
+        email: (authUser as any).email,
+        full_name: (authUser as any).user_metadata?.name || '사용자',
+        phone: (authUser as any).user_metadata?.phone || '',
         one_line_intro: '안녕하세요! 새로운 사용자입니다.',
         language: 'ko',
         is_admin: false

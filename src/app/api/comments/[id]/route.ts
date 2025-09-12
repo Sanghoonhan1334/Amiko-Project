@@ -37,7 +37,7 @@ export async function PUT(
     }
 
     // 댓글 수정
-    const { data: comment, error } = await supabaseServer
+    const { data: comment, error } = await (supabaseServer as any)
       .from('comments')
       .update({ content })
       .eq('id', id)
@@ -103,7 +103,7 @@ export async function DELETE(
     }
 
     // 댓글 소프트 삭제 (대댓글도 함께 삭제)
-    const { error } = await supabaseServer.rpc('delete_comment_with_replies', {
+    const { error } = await (supabaseServer as any).rpc('delete_comment_with_replies', {
       comment_id: id
     })
 

@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       .single();
 
     const isVip = vipSubscription && 
-      (!vipSubscription.end_date || new Date(vipSubscription.end_date) > new Date());
+      (!(vipSubscription as any).end_date || new Date((vipSubscription as any).end_date) > new Date());
 
     // 쿠폰 사용 가능 여부 확인
     const { data: coupons } = await supabase
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       .eq('is_active', true)
       .gt('minutes_remaining', 0);
 
-    const totalMinutes = coupons?.reduce((sum, coupon) => {
+    const totalMinutes = coupons?.reduce((sum: number, coupon: any) => {
       if (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) {
         return sum + coupon.minutes_remaining;
       }
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 한국 사용자 특별 처리
-    if (profile.language === 'ko') {
+    if ((profile as any).language === 'ko') {
       return NextResponse.json({
         userType: 'korean',
         canCall: true,
@@ -116,8 +116,8 @@ export async function GET(request: NextRequest) {
     }
 
     // VIP 사용자 기능 적용
-    if (isVip && vipSubscription.features) {
-      const vipFeaturesData = vipSubscription.features;
+    if (isVip && (vipSubscription as any).features) {
+      const vipFeaturesData = (vipSubscription as any).features;
       
       vipFeatures.beautyFilter = vipFeaturesData.beauty_filter === true;
       vipFeatures.communityBadge = vipFeaturesData.community_badge === true;
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
       hasCoupon: true,
       isVip,
       totalMinutes,
-      vipPlan: isVip ? vipSubscription.plan_type : null,
+      vipPlan: isVip ? (vipSubscription as any).plan_type : null,
       features: {
         ...baseFeatures,
         ...vipFeatures

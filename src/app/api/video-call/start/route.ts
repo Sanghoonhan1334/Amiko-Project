@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 한국 사용자는 쿠폰 차감 없이 통화 시작
-    if (profile.language === 'ko') {
+    if ((profile as any).language === 'ko') {
       // 예약 생성 (한국 사용자용)
-      const { data: booking, error: bookingError } = await supabase
+      const { data: booking, error: bookingError } = await (supabase as any)
         .from('bookings')
         .insert({
           user_id: user.id,
@@ -97,12 +97,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 사용 가능한 쿠폰 필터링
-    const availableCoupons = coupons?.filter(coupon => 
+    const availableCoupons = coupons?.filter((coupon: any) => 
       !coupon.expires_at || new Date(coupon.expires_at) > new Date()
     ) || [];
 
     const totalAvailableMinutes = availableCoupons.reduce(
-      (sum, coupon) => sum + coupon.minutes_remaining, 
+      (sum: number, coupon: any) => sum + coupon.minutes_remaining, 
       0
     );
 
@@ -124,16 +124,16 @@ export async function POST(request: NextRequest) {
     for (const coupon of availableCoupons) {
       if (remainingDuration <= 0) break;
 
-      const useFromThisCoupon = Math.min(remainingDuration, coupon.minutes_remaining);
+      const useFromThisCoupon = Math.min(remainingDuration, (coupon as any).minutes_remaining);
       
       // 쿠폰 사용량 업데이트
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('coupons')
         .update({
-          minutes_remaining: coupon.minutes_remaining - useFromThisCoupon,
-          used_amount: coupon.used_amount + Math.ceil(useFromThisCoupon / 20)
+          minutes_remaining: (coupon as any).minutes_remaining - useFromThisCoupon,
+          used_amount: (coupon as any).used_amount + Math.ceil(useFromThisCoupon / 20)
         })
-        .eq('id', coupon.id);
+        .eq('id', (coupon as any).id);
 
       if (updateError) {
         console.error('쿠폰 사용 실패:', updateError);
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       }
 
       usedCoupons.push({
-        couponId: coupon.id,
+        couponId: (coupon as any).id,
         usedMinutes: useFromThisCoupon
       });
 
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 예약 생성
-    const { data: booking, error: bookingError } = await supabase
+    const { data: booking, error: bookingError } = await (supabase as any)
       .from('bookings')
       .insert({
         user_id: user.id,
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 쿠폰 사용 기록 생성
-    const { error: usageError } = await supabase
+    const { error: usageError } = await (supabase as any)
       .from('coupon_usage')
       .insert({
         user_id: user.id,
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     const isVip = vipSubscription && 
-      (!vipSubscription.end_date || new Date(vipSubscription.end_date) > new Date());
+      (!(vipSubscription as any).end_date || new Date((vipSubscription as any).end_date) > new Date());
 
     // 기본 기능
     const baseFeatures = {
@@ -217,8 +217,8 @@ export async function POST(request: NextRequest) {
     };
 
     // VIP 사용자 기능 적용
-    if (isVip && vipSubscription.features) {
-      const vipFeaturesData = vipSubscription.features;
+    if (isVip && (vipSubscription as any).features) {
+      const vipFeaturesData = (vipSubscription as any).features;
       
       vipFeatures.beautyFilter = vipFeaturesData.beauty_filter === true;
       vipFeatures.communityBadge = vipFeaturesData.community_badge === true;
@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
       },
       userType: 'global',
       isVip,
-      vipPlan: isVip ? vipSubscription.plan_type : null,
+      vipPlan: isVip ? (vipSubscription as any).plan_type : null,
       usedMinutes: duration,
       remainingMinutes: totalAvailableMinutes - duration,
       usedCoupons

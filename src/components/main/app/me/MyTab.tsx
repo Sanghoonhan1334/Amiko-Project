@@ -768,7 +768,7 @@ export default function MyTab() {
                       onClick={() => {
                         const currentInterests = profile?.interests || []
                         const newInterests = currentInterests.includes(interest)
-                          ? currentInterests.filter(i => i !== interest)
+                          ? currentInterests.filter((i: string) => i !== interest)
                           : [...currentInterests, interest]
                         setProfile({ ...profile, interests: newInterests })
                       }}
@@ -784,7 +784,7 @@ export default function MyTab() {
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {profile.interests && profile.interests.length > 0 ? (
-                    profile.interests.map((interest) => (
+                    profile.interests.map((interest: string) => (
                       <Badge key={interest} className="bg-mint-100 text-mint-700 border-mint-300">
                         <Heart className="w-3 h-3 mr-1" />
                         {translateInterestTag(interest)}
@@ -805,7 +805,9 @@ export default function MyTab() {
       <VerificationGuard 
         requiredFeature="all"
         className="mb-6"
-      />
+      >
+        <div></div>
+      </VerificationGuard>
 
 
       {/* 현지인 전용: 나의 쿠폰/구매내역 리스트 */}
@@ -821,7 +823,7 @@ export default function MyTab() {
             </div>
             
             <div className="space-y-3">
-              {(profile?.coupons || []).map((coupon) => (
+              {(profile?.coupons || []).map((coupon: any) => (
                 <div key={coupon.id} className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-brand-200">
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${coupon.isUsed ? 'bg-gray-300' : 'bg-brand-500'}`} />
@@ -851,7 +853,7 @@ export default function MyTab() {
             </div>
             
             <div className="space-y-3">
-              {(profile?.purchaseHistory || []).map((purchase) => (
+              {(profile?.purchaseHistory || []).map((purchase: any) => (
                 <div key={purchase.id} className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-mint-200">
                   <div>
                     <div className="font-medium text-gray-800">

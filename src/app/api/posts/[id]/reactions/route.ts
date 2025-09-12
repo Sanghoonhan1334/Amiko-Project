@@ -82,9 +82,9 @@ export async function POST(
     }
 
     if (existingReaction) {
-      console.log('[POST_REACTION] 기존 반응 발견:', existingReaction.reaction_type)
+      console.log('[POST_REACTION] 기존 반응 발견:', (existingReaction as any).reaction_type)
       
-      if (existingReaction.reaction_type === reaction_type) {
+      if ((existingReaction as any).reaction_type === reaction_type) {
         // 같은 반응이면 제거
         console.log('[POST_REACTION] 같은 반응 제거 중...')
         const { error: deleteError } = await supabaseServer
@@ -106,8 +106,8 @@ export async function POST(
         console.log('[POST_REACTION] 반응 제거 완료')
       } else {
         // 다른 반응이면 업데이트
-        console.log('[POST_REACTION] 반응 변경 중:', existingReaction.reaction_type, '->', reaction_type)
-        const { error: updateError } = await supabaseServer
+        console.log('[POST_REACTION] 반응 변경 중:', (existingReaction as any).reaction_type, '->', reaction_type)
+        const { error: updateError } = await (supabaseServer as any)
           .from('post_reactions')
           .update({ reaction_type })
           .eq('post_id', postId)
@@ -127,7 +127,7 @@ export async function POST(
     } else {
       // 새로운 반응 추가
       console.log('[POST_REACTION] 새로운 반응 추가 중:', reaction_type)
-      const { error: insertError } = await supabaseServer
+      const { error: insertError } = await (supabaseServer as any)
         .from('post_reactions')
         .insert({
           post_id: postId,
@@ -171,7 +171,7 @@ export async function POST(
 
     // 게시글 테이블의 카운트도 업데이트
     // Update post table counts as well
-    await supabaseServer
+    await (supabaseServer as any)
       .from('posts')
       .update({
         like_count: actualLikeCount,
@@ -248,7 +248,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      user_reaction: reaction?.reaction_type || null
+      user_reaction: (reaction as any)?.reaction_type || null
     })
 
   } catch (error) {

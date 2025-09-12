@@ -4,7 +4,7 @@ export async function GET(request: NextRequest) {
   try {
     // IP 주소에서 국가 확인
     const forwarded = request.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : request.ip || '127.0.0.1';
+    const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
     
     // 개발 환경에서는 기본값 반환
     if (process.env.NODE_ENV === 'development') {

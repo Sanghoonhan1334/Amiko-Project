@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 한국 사용자는 쿠폰 없이도 통화 가능
-    if (profile.language === 'ko') {
+    if ((profile as any).language === 'ko') {
       return NextResponse.json({
         canCall: true,
         hasCoupon: true,
@@ -89,16 +89,16 @@ export async function GET(request: NextRequest) {
       .single();
 
     const isVip = vipSubscription && 
-      (!vipSubscription.end_date || new Date(vipSubscription.end_date) > new Date());
+      (!(vipSubscription as any).end_date || new Date((vipSubscription as any).end_date) > new Date());
 
     return NextResponse.json({
       canCall,
       hasCoupon,
       totalMinutes,
       availableCoupons,
-      userType: profile.language === 'ko' ? 'korean' : 'global',
+      userType: (profile as any).language === 'ko' ? 'korean' : 'global',
       isVip,
-      vipFeatures: isVip ? vipSubscription.features : null,
+      vipFeatures: isVip ? (vipSubscription as any).features : null,
       message: canCall 
         ? (isVip ? 'VIP 사용자로 통화가 가능합니다.' : '쿠폰이 있어 통화가 가능합니다.')
         : '쿠폰을 구매해야 통화가 가능합니다.'

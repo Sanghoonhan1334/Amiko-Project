@@ -10,7 +10,7 @@ import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
 
 interface VerificationGuardProps {
   children: React.ReactNode
-  requiredFeature?: 'all' | 'consultation' | 'community'
+  requiredFeature?: 'all' | 'consultation' | 'community' | 'community_posting'
   className?: string
 }
 

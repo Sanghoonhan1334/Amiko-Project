@@ -76,13 +76,13 @@ export async function POST(request: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
-        name: user.user_metadata?.name || profile?.full_name,
+        name: user.user_metadata?.name || (profile as any)?.full_name,
         country: user.user_metadata?.country,
         is_korean: user.user_metadata?.is_korean || false,
-        avatar_url: profile?.avatar_url,
-        bio: profile?.one_line_intro,
-        language: profile?.language || 'ko',
-        phone: profile?.phone,
+        avatar_url: (profile as any)?.avatar_url,
+        bio: (profile as any)?.one_line_intro,
+        language: (profile as any)?.language || 'ko',
+        phone: (profile as any)?.phone,
         points: points.total_points,
         level: points.level,
         experience_points: points.experience_points

@@ -69,10 +69,10 @@ export async function GET(
     // 댓글 작성자 정보 디버깅 로그
     if (comments && comments.length > 0) {
       console.log('[COMMENTS_LIST] 첫 번째 댓글 작성자 정보:', {
-        commentId: comments[0].id,
-        authorId: comments[0].author?.id,
-        authorFullName: comments[0].author?.full_name,
-        authorProfileImage: comments[0].author?.profile_image
+        commentId: (comments[0] as any).id,
+        authorId: (comments[0] as any).author?.id,
+        authorFullName: (comments[0] as any).author?.full_name,
+        authorProfileImage: (comments[0] as any).author?.profile_image
       })
     }
 
@@ -199,7 +199,7 @@ export async function POST(
     }
 
     // 댓글 생성
-    const { data: comment, error } = await supabaseServer
+    const { data: comment, error } = await (supabaseServer as any)
       .from('comments')
       .insert({
         post_id: postId,

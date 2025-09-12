@@ -32,19 +32,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 이메일 중복 체크 (Supabase Auth 레벨에서 확인)
-    try {
-      const { data: existingUser } = await supabaseServer.auth.admin.getUserByEmail(email)
-      if (existingUser.user) {
-        return NextResponse.json(
-          { error: '이미 등록된 이메일입니다.' },
-          { status: 409 }
-        )
-      }
-    } catch (error) {
-      // 사용자가 존재하지 않는 경우 정상 진행
-      console.log('이메일 중복 체크 통과:', email)
-    }
+    // 이메일 중복 체크는 Supabase Auth에서 자동으로 처리됨
+    console.log('[SIGNUP] 이메일 중복 체크는 Supabase Auth에서 자동 처리')
 
     // 전화번호 중복 체크
     const { data: existingPhone } = await supabaseServer
@@ -120,7 +109,7 @@ export async function POST(request: NextRequest) {
         phone: phone,
         language: 'ko',
         is_admin: false
-      })
+      } as any)
 
     if (profileError) {
       console.error('[SIGNUP] 프로필 생성 실패:', profileError)

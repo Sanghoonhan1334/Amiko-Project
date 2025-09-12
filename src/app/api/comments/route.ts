@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 댓글 생성
-    const { data: comment, error } = await supabaseServer
+    const { data: comment, error } = await (supabaseServer as any)
       .from('comments')
       .insert({
         post_id: postId,
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 포인트 적립 (댓글 작성)
-    const { error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+    const { error: pointError } = await (supabaseServer as any).rpc('add_points_with_limit', {
       p_user_id: user.id,
       p_type: 'comment',
       p_amount: 5,

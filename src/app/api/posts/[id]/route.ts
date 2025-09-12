@@ -70,7 +70,7 @@ export async function GET(
     }
 
     // 조회수 증가 함수 호출
-    await supabaseServer.rpc('increment_post_view_count', {
+    await (supabaseServer as any).rpc('increment_post_view_count', {
       post_uuid: postId,
       user_uuid: userId,
       user_ip: clientIp
@@ -139,7 +139,7 @@ export async function PUT(
       )
     }
 
-    if (existingPost.author_id !== user.id) {
+    if ((existingPost as any).author_id !== user.id) {
       return NextResponse.json(
         { error: '게시글을 수정할 권한이 없습니다.' },
         { status: 403 }
@@ -178,11 +178,11 @@ export async function PUT(
         .eq('is_active', true)
         .single()
 
-      category_id = category?.id || null
+      category_id = (category as any)?.id || null
     }
 
     // 게시글 수정
-    const { data: post, error } = await supabaseServer
+    const { data: post, error } = await (supabaseServer as any)
       .from('posts')
       .update({
         title,
@@ -291,7 +291,7 @@ export async function DELETE(
       )
     }
 
-    if (existingPost.author_id !== user.id) {
+    if ((existingPost as any).author_id !== user.id) {
       return NextResponse.json(
         { error: '게시글을 삭제할 권한이 없습니다.' },
         { status: 403 }
@@ -299,7 +299,7 @@ export async function DELETE(
     }
 
     // 게시글 삭제 (소프트 삭제)
-    const { error } = await supabaseServer
+    const { error } = await (supabaseServer as any)
       .from('posts')
       .update({ status: 'deleted' })
       .eq('id', postId)

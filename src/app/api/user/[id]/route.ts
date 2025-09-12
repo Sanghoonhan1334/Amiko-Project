@@ -16,6 +16,13 @@ export async function GET(
       )
     }
 
+    if (!supabaseServer) {
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
     // 사용자 기본 정보 가져오기
     const { data: user, error: userError } = await supabaseServer
       .from('users')
@@ -54,27 +61,27 @@ export async function GET(
 
     // 프로필 데이터 조합
     const profile = {
-      id: user.id,
-      full_name: user.full_name,
-      email: user.email,
-      profile_image: user.profile_image,
-      bio: user.bio,
-      location: user.location,
-      is_korean: user.is_korean,
-      user_type: preferences?.user_type || 'student',
-      university: studentInfo?.university,
-      major: studentInfo?.major,
-      grade: studentInfo?.grade,
-      occupation: generalInfo?.occupation,
-      company: generalInfo?.company,
-      work_experience: generalInfo?.work_experience,
-      interests: preferences?.interests || [],
+      id: (user as any).id,
+      full_name: (user as any).full_name,
+      email: (user as any).email,
+      profile_image: (user as any).profile_image,
+      bio: (user as any).bio,
+      location: (user as any).location,
+      is_korean: (user as any).is_korean,
+      user_type: (preferences as any)?.user_type || 'student',
+      university: (studentInfo as any)?.university,
+      major: (studentInfo as any)?.major,
+      grade: (studentInfo as any)?.grade,
+      occupation: (generalInfo as any)?.occupation,
+      company: (generalInfo as any)?.company,
+      work_experience: (generalInfo as any)?.work_experience,
+      interests: (preferences as any)?.interests || [],
       language_levels: {
-        korean: preferences?.korean_level,
-        english: preferences?.english_level,
-        spanish: preferences?.spanish_level,
+        korean: (preferences as any)?.korean_level,
+        english: (preferences as any)?.english_level,
+        spanish: (preferences as any)?.spanish_level,
       },
-      created_at: user.created_at,
+      created_at: (user as any).created_at,
     }
 
     return NextResponse.json({ profile })

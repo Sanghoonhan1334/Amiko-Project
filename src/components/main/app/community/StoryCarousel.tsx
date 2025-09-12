@@ -74,7 +74,7 @@ export default function StoryCarousel() {
   const { t } = useLanguage()
   
   // 사용자 이름 가져오기
-  const userName = user?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '한상훈'
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '한상훈'
   const mockStories = getMockStories(userName)
   
   // 상태 관리
@@ -299,7 +299,7 @@ export default function StoryCarousel() {
     const newComment: Comment = {
       id: Date.now().toString(),
       storyId,
-      author: user?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '익명',
+      author: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '익명',
       authorId: user?.id,
       content: commentText,
       createdAt: new Date(),

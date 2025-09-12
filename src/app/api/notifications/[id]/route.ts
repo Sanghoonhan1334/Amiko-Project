@@ -44,7 +44,7 @@ export async function PUT(
     }
 
     // 알림 읽음 처리
-    const { data: notification, error } = await supabaseServer
+    const { data: notification, error } = await (supabaseServer as any)
       .from('notifications')
       .update({ is_read: true })
       .eq('id', notificationId)

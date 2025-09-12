@@ -281,7 +281,7 @@ export default function CommunityTab() {
     } catch (err) {
       console.error('답변 로딩 실패:', err)
       // 에러 시 목업 데이터 사용
-      setAnswers(mockAnswers.filter(answer => answer.questionId === questionId))
+      setAnswers(mockAnswers.filter(answer => answer.questionId === parseInt(questionId)))
     }
   }
 
@@ -735,7 +735,9 @@ export default function CommunityTab() {
         <VerificationGuard 
           requiredFeature="community_posting"
           className="mb-6"
-        />
+        >
+          <div></div>
+        </VerificationGuard>
 
 
 
@@ -1148,7 +1150,7 @@ export default function CommunityTab() {
                             <div className="flex-1">
                               <p className="text-gray-700 mb-2">{answer.content}</p>
                               <div className="flex items-center gap-3 text-sm text-gray-500">
-                                <span>{answer.author?.full_name || answer.author || '익명'}</span>
+                                <span>{answer.author || '익명'}</span>
                                 <span>{formatTime(answer.createdAt)}</span>
                                 {answer.isAccepted && (
                                   <Badge className="bg-green-100 text-green-700 border-green-300">

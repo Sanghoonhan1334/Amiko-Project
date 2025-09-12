@@ -1,11 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 // 환경변수가 없으면 빌드 시점에 오류를 방지하기 위해 조건부로 생성
-let supabaseServer: ReturnType<typeof createClient> | null = null
-let supabaseClient: ReturnType<typeof createClient> | null = null
+let supabaseServer: ReturnType<typeof createSupabaseClient> | null = null
+let supabaseClient: ReturnType<typeof createSupabaseClient> | null = null
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  supabaseServer = createClient(
+  supabaseServer = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   )
@@ -15,7 +15,7 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KE
 }
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  supabaseClient = createClient(
+  supabaseClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   )

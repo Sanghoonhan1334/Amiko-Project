@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 반응 추가/수정
-    const { error } = await supabaseServer.rpc('add_or_update_reaction', {
+    const { error } = await (supabaseServer as any).rpc('add_or_update_reaction', {
       p_user_id: user.id,
       p_post_id: postId || null,
       p_comment_id: commentId || null,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
           .select('user_id')
           .eq('id', postId)
           .single()
-        targetUserId = post?.user_id
+        targetUserId = (post as any)?.user_id
       } else if (commentId) {
         // 댓글 작성자 찾기
         const { data: comment } = await supabaseServer
@@ -82,12 +82,12 @@ export async function POST(request: NextRequest) {
           .select('user_id')
           .eq('id', commentId)
           .single()
-        targetUserId = comment?.user_id
+        targetUserId = (comment as any)?.user_id
       }
 
       if (targetUserId && targetUserId !== user.id) {
         // 본인이 아닌 경우에만 포인트 적립
-        const { error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+        const { error: pointError } = await (supabaseServer as any).rpc('add_points_with_limit', {
           p_user_id: targetUserId,
           p_type: 'reaction_received',
           p_amount: 2,
@@ -155,7 +155,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 반응 삭제
-    const { error } = await supabaseServer.rpc('remove_reaction', {
+    const { error } = await (supabaseServer as any).rpc('remove_reaction', {
       p_user_id: user.id,
       p_post_id: postId || null,
       p_comment_id: commentId || null
