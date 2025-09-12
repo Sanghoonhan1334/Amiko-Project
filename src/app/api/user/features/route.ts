@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabaseServer';
+import { supabaseClient } from '@/lib/supabaseServer';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      );
+    }
+    const supabase = supabaseClient;
     
     // 현재 사용자 정보 가져오기
     const { data: { user }, error: authError } = await supabase.auth.getUser();

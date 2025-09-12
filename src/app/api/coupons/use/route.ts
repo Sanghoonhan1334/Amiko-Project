@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabaseServer';
+import { supabaseClient } from '@/lib/supabaseServer';
 
 export async function POST(request: NextRequest) {
   try {
     const { duration = 20 } = await request.json(); // 기본 20분
-    const supabase = createClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      );
+    }
+    const supabase = supabaseClient;
     
     // 현재 사용자 정보 가져오기
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -57,13 +63,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 사용 가능한 쿠폰 필터링 (만료되지 않은 것만)
-    const availableCoupons = coupons?.filter(coupon => 
+    const availableCoupons = coupons?.filter((coupon: any) => 
       !coupon.expires_at || new Date(coupon.expires_at) > new Date()
     ) || [];
 
     // 총 사용 가능한 분수 계산
     const totalAvailableMinutes = availableCoupons.reduce(
-      (sum, coupon) => sum + coupon.minutes_remaining, 
+      (sum: number, coupon: any) => sum + coupon.minutes_remaining, 
       0
     );
 

@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 알림 읽음 처리
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -80,8 +81,9 @@ export async function PUT(
 // 알림 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(

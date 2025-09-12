@@ -26,3 +26,11 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANO
 
 export { supabaseServer, supabaseClient }
 export { supabaseServer as supabase }
+
+// createClient 함수를 export하여 기존 코드와의 호환성 유지
+export const createClient = () => {
+  if (!supabaseClient) {
+    throw new Error('Supabase 클라이언트가 초기화되지 않았습니다.')
+  }
+  return supabaseClient
+}

@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 게시글 좋아요/싫어요 토글
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -200,8 +201,9 @@ export async function POST(
 // 사용자의 게시글 반응 상태 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(

@@ -141,8 +141,8 @@ export async function GET(request: NextRequest) {
     // 오늘 적립된 포인트 계산
     const today = new Date().toISOString().split('T')[0]
     const todayPoints = pointHistory
-      ?.filter(point => point.created_at.startsWith(today) && point.points > 0)
-      .reduce((sum, point) => sum + point.points, 0) || 0
+      ?.filter((point: any) => point.created_at.startsWith(today) && point.points > 0)
+      .reduce((sum: number, point: any) => sum + point.points, 0) || 0
 
     const isKorean = profile?.is_korean || false
     const pointConfig = POINT_SYSTEM[isKorean ? 'korean' : 'latin']

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabaseServer';
+import { supabaseClient } from '@/lib/supabaseServer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +24,13 @@ export async function POST(request: NextRequest) {
     }
 
     const paymentId = resource.id;
-    const supabase = createClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      );
+    }
+    const supabase = supabaseClient;
 
     // 구매 기록 조회
     const { data: purchase, error: purchaseError } = await supabase

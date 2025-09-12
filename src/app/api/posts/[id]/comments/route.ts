@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 댓글 목록 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -115,8 +116,9 @@ export async function GET(
 // 댓글 작성
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(

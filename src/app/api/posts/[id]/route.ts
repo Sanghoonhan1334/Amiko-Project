@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 개별 게시글 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -89,8 +90,9 @@ export async function GET(
 // 게시글 수정
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -242,8 +244,9 @@ export async function PUT(
 // 게시글 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
