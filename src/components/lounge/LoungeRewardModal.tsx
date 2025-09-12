@@ -10,7 +10,7 @@ import {
   Star, 
   Users, 
   MessageSquare, 
-  Award,
+  Trophy,
   Sparkles,
   CheckCircle 
 } from 'lucide-react'
@@ -127,7 +127,7 @@ export default function LoungeRewardModal({
           <>
             <DialogHeader className="text-center pb-4">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-4">
-                <Award className="w-8 h-8 text-blue-600" />
+                <Trophy className="w-8 h-8 text-blue-600" />
               </div>
               <DialogTitle className="text-xl font-bold text-gray-800">
                 {t('loungeReward.quickGuide')}

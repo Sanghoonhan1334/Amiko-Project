@@ -24,9 +24,9 @@ const steps = [
   {
     step: 3,
     icon: Video,
-    title: '화상 상담',
-    description: '실시간 1:1 화상 상담',
-    details: 'Zoom을 통해 고화질 화상 상담을 진행하며, 화면 공유와 채팅 기능을 제공합니다.',
+    title: 'AI 화상 채팅',
+    description: '실시간 1:1 AI 화상 채팅',
+    details: '고화질 AI 화상 채팅을 진행하며, 화면 공유와 채팅 기능을 제공합니다.',
     color: 'bg-purple-100 text-purple-600',
     badge: '30분'
   }

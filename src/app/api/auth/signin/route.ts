@@ -36,12 +36,13 @@ export async function POST(request: NextRequest) {
         )
       }
       
-      if (authError.message.includes('Email not confirmed')) {
-        return NextResponse.json(
-          { error: '이메일 인증이 필요합니다.' },
-          { status: 401 }
-        )
-      }
+      // 이메일 인증 체크 제거 (개발용)
+      // if (authError.message.includes('Email not confirmed')) {
+      //   return NextResponse.json(
+      //     { error: '계정이 활성화되지 않았습니다. 관리자에게 문의하세요.' },
+      //     { status: 401 }
+      //   )
+      // }
       
       return NextResponse.json(
         { error: '로그인에 실패했습니다.' },
@@ -54,24 +55,20 @@ export async function POST(request: NextRequest) {
 
     // 사용자 프로필 정보 가져오기
     const { data: profile, error: profileError } = await supabaseServer
-      .from('user_profiles')
+      .from('users')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single()
 
     if (profileError) {
       console.error('[SIGNIN] 프로필 조회 실패:', profileError)
     }
 
-    // 포인트 정보 가져오기
-    const { data: points, error: pointsError } = await supabaseServer
-      .from('user_points')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (pointsError) {
-      console.error('[SIGNIN] 포인트 조회 실패:', pointsError)
+    // 포인트 정보는 기본값으로 설정 (나중에 포인트 시스템 구현 시 추가)
+    const points = {
+      total_points: 0,
+      level: 1,
+      experience_points: 0
     }
 
     return NextResponse.json({
@@ -79,18 +76,16 @@ export async function POST(request: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
-        name: user.user_metadata?.name || (profile as any)?.display_name,
-        country: user.user_metadata?.country || (profile as any)?.country,
-        is_korean: user.user_metadata?.is_korean || (profile as any)?.is_korean,
-        avatar_url: (profile as any)?.avatar_url,
-        bio: (profile as any)?.bio,
-        native_language: (profile as any)?.native_language,
-        kakao_linked_at: (profile as any)?.kakao_linked_at,
-        wa_verified_at: (profile as any)?.wa_verified_at,
-        sms_verified_at: (profile as any)?.sms_verified_at,
-        email_verified_at: (profile as any)?.email_verified_at,
-        points: (points as any)?.total_points || 0,
-        daily_points: (points as any)?.daily_points || 0
+        name: user.user_metadata?.name || profile?.full_name,
+        country: user.user_metadata?.country,
+        is_korean: user.user_metadata?.is_korean || false,
+        avatar_url: profile?.avatar_url,
+        bio: profile?.one_line_intro,
+        language: profile?.language || 'ko',
+        phone: profile?.phone,
+        points: points.total_points,
+        level: points.level,
+        experience_points: points.experience_points
       },
       session: {
         access_token: session.access_token,

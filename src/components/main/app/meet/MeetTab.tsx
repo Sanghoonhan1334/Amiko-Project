@@ -6,7 +6,7 @@ import { useLanguage } from '@/context/LanguageContext'
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCallStarter = dynamic(() => import('@/components/video/VideoCallStarter'), {
   ssr: false,
-  loading: () => <div className="p-6">영상소통 로딩 중...</div>
+  loading: () => <div className="p-6">AI 화상 채팅 로딩 중...</div>
 })
 
 

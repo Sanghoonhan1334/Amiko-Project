@@ -6,14 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { 
-  Calendar, 
   Gift, 
   Star, 
   Trophy, 
   Zap,
-  CheckCircle,
-  Clock,
-  Award
+  CheckCircle
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -35,6 +32,79 @@ export default function EventTab() {
   const [stampSize, setStampSize] = useState(1)
   const [clickedDay, setClickedDay] = useState<number | null>(null)
   const [userType, setUserType] = useState<'local' | 'korean'>('local') // 기본값: 현지인
+  
+  // 포인트 데이터 상태
+  const [pointsData, setPointsData] = useState({
+    total: 0,
+    attendance: 0,
+    community: 0,
+    coupons: 0
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // 포인트 데이터 가져오기
+  useEffect(() => {
+    const fetchPointsData = async () => {
+      if (!user?.id) {
+        // 로그인하지 않은 사용자에게는 기본값 표시
+        setPointsData({
+          total: 0,
+          attendance: 0,
+          community: 0,
+          coupons: 0
+        })
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+
+        // 포인트 API 호출
+        const response = await fetch(`/api/points?userId=${user.id}`)
+        
+        if (!response.ok) {
+          // API 에러 시 기본값 사용
+          console.warn('[EventTab] 포인트 API 호출 실패, 기본값 사용')
+          setPointsData({
+            total: 35,
+            attendance: 10,
+            community: 25,
+            coupons: 0
+          })
+          return
+        }
+
+        const result = await response.json()
+
+        // 포인트 데이터 설정
+        const totalPoints = result.points?.total_points || 0
+        setPointsData({
+          total: totalPoints,
+          attendance: Math.floor(totalPoints * 0.3), // 출석 포인트 추정
+          community: Math.floor(totalPoints * 0.7), // 커뮤니티 포인트 추정
+          coupons: Math.floor(totalPoints / 100) // 100점마다 쿠폰 1개
+        })
+
+      } catch (error) {
+        console.error('[EventTab] 포인트 데이터 로드 실패:', error)
+        
+        // 네트워크 에러나 기타 에러 시 기본값 설정
+        setPointsData({
+          total: 35,
+          attendance: 10,
+          community: 25,
+          coupons: 0
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPointsData()
+  }, [user?.id])
 
   // 언어에 따른 요일 배열
   const daysOfWeek = language === 'es' 
@@ -66,13 +136,13 @@ export default function EventTab() {
     }
 
     return {
-      3: { coupons: 1, points: 10, label: consecutiveDaysText(3), special: false },
-      7: { coupons: 1, points: 20, label: consecutiveDaysText(7), special: false },
-      10: { coupons: 1, points: 30, label: consecutiveDaysText(10), special: false },
-      15: { coupons: 2, points: 40, label: consecutiveDaysText(15), special: false },
-      22: { coupons: 2, points: 50, label: consecutiveDaysText(22), special: false },
-      25: { coupons: 1, points: 30, label: consecutiveDaysText(25), special: false },
-      30: { coupons: 3, points: 80, label: consecutiveDaysText(30), special: true, specialReward: language === 'es' ? 'VIP 15 días' : 'VIP 15일권' }
+      3: { points: 20, label: consecutiveDaysText(3) },
+      7: { points: 30, label: consecutiveDaysText(7) },
+      10: { points: 40, label: consecutiveDaysText(10) },
+      15: { points: 60, label: consecutiveDaysText(15) },
+      22: { points: 70, label: consecutiveDaysText(22) },
+      25: { points: 80, label: consecutiveDaysText(25) },
+      30: { points: 100, label: consecutiveDaysText(30) }
     }
   }
   
@@ -80,11 +150,39 @@ export default function EventTab() {
 
   useEffect(() => {
     loadAttendanceData()
-    checkFirstTimeUser()
-  }, [])
+    loadPointsData()
+    // 사용자가 로그인된 경우에만 쿠폰 지급 확인
+    if (user?.id) {
+      checkFirstTimeUser()
+    }
+  }, [user?.id])
 
-  // 최초 가입자 확인 및 쿠폰 지급
+  // 포인트 데이터 로드
+  const loadPointsData = () => {
+    // 출석체크 포인트 (자동 10점, 접속 시 자동 반영)
+    const attendancePoints = 10 // 기본 접속 포인트
+
+    // 커뮤니티 포인트 (새로운 체계)
+    const communityPoints = 25 // 예시: 질문 2개(10) + 답변 2개(10) + 스토리 1개(5)
+
+    const total = attendancePoints + communityPoints
+
+    setPointsData({
+      attendance: attendancePoints,
+      community: communityPoints,
+      total: total,
+      rank: 15, // 예시 랭킹
+      coupons: Math.floor(total / 100) // 100점마다 쿠폰 1개
+    })
+  }
+
+  // 최초 가입자 확인 및 쿠폰 지급 (로그인된 사용자만)
   const checkFirstTimeUser = () => {
+    // 로그인된 사용자만 쿠폰 지급
+    if (!user?.id) {
+      return
+    }
+    
     const isFirstTime = !localStorage.getItem('hasReceivedWelcomeCoupon')
     if (isFirstTime) {
       // 최초 가입자에게 쿠폰 1개 지급
@@ -165,7 +263,7 @@ export default function EventTab() {
         day: dayNumber,
         date: dayDate,
         streak: attendanceRecords.length + 1,
-        points: 100, // 기본 출석 포인트 100점
+        points: 0, // 기본 출석 포인트는 0점 (연속 출석 보상만)
         stamps: 1
       }
       
@@ -179,19 +277,7 @@ export default function EventTab() {
       const actualStreak = updatedRecords.length
       setCurrentStreak(actualStreak)
       
-      const newTotalPoints = totalPoints + 100
-      setTotalPoints(newTotalPoints)
-      
-      // 개근상 보상 확인 (5일마다 500점)
-      if (actualStreak % 5 === 0) {
-        const bonusPoints = newTotalPoints + 500
-        setTotalPoints(bonusPoints)
-        localStorage.setItem('totalPoints', bonusPoints.toString())
-      } else {
-        localStorage.setItem('totalPoints', newTotalPoints.toString())
-      }
-      
-      // 보상 확인
+      // 연속 출석 보상 확인 (기본 출석 포인트는 없음)
       checkRewards(actualStreak)
       
       // 성공 메시지 제거
@@ -226,23 +312,16 @@ export default function EventTab() {
     if (streak in rewards) {
       const reward = rewards[streak as keyof typeof rewards]
       
-      // 보상 지급 로직
+      // 보상 지급 로직 (연속 출석 보상만)
       setTotalPoints(prev => prev + reward.points)
+      localStorage.setItem('totalPoints', (totalPoints + reward.points).toString())
       
       // 보상 알림
       let rewardMessage = `🎉 축하합니다! ${reward.label} 달성!\n`
       rewardMessage += `포인트 +${reward.points}점`
       
-      if (reward.coupons > 0) {
-        rewardMessage += `\n쿠폰 +${reward.coupons}개`
-      }
-      
-      if (reward.special && reward.specialReward) {
-        rewardMessage += `\n🎁 특별 보상: ${reward.specialReward}`
-      }
-      
       alert(rewardMessage)
-      console.log(`보상 획득! ${reward.label}: 쿠폰 ${reward.coupons}개, 포인트 ${reward.points}점${reward.special ? `, 특별보상: ${reward.specialReward}` : ''}`)
+      console.log(`보상 획득! ${reward.label}: 포인트 ${reward.points}점`)
     }
   }
 
@@ -291,227 +370,8 @@ export default function EventTab() {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mb-6 shadow-lg">
-          <Calendar className="w-10 h-10 text-white" />
-        </div>
-        <h2 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-4">
-          {t('eventTab.attendanceCheck.eventTitle')}
-        </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          {t('eventTab.attendanceCheck.subtitle')}
-          <br />
-          <span className="text-red-600 font-medium">{t('eventTab.attendanceCheck.monthCompletion')}</span>{t('eventTab.attendanceCheck.monthCompletionDescription')}
-        </p>
-      </div>
-
-
-      {/* 도장 찍기 판 */}
-      <Card className="bg-gradient-to-br from-white to-pink-50 border border-pink-100 shadow-lg">
-        <CardContent className="p-8">
-          <div className="text-center">
-            {/* 출석체크 도장판 */}
-            <div className="relative mb-8">
-              {/* 바인더 형태의 도장판 */}
-              <div className="mx-auto w-full max-w-5xl h-[500px] relative">
-                {/* 바인더 고리 */}
-                <div className="absolute -left-2 top-8 w-4 h-64 bg-gray-400 rounded-full shadow-lg"></div>
-                <div className="absolute -left-1 top-6 w-2 h-68 bg-gray-300 rounded-full"></div>
-                
-                {/* 종이 도장판 */}
-                <div className="w-full h-full bg-white border-2 border-gray-300 shadow-2xl relative overflow-hidden">
-                  {/* 종이 질감 효과 */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white opacity-50"></div>
-                  
-                  {/* 출석체크 제목 */}
-                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-                    <h3 className="text-2xl font-bold text-gray-800">
-                      {t('eventTab.attendanceCheck.yearMonthFormat').replace('{year}', currentYear.toString()).replace('{month}', (currentMonth + 1).toString())} {t('eventTab.attendanceCheck.calendarTitle')}
-                    </h3>
-                  </div>
-                  
-                  {/* 달력 그리드 */}
-                  <div className="absolute inset-0 flex items-center justify-center pt-16 pb-8">
-                    <div className="grid grid-cols-7 gap-2 w-full h-full px-6">
-                      {/* 달력 헤더 (요일) */}
-                      <div className="col-span-7 grid grid-cols-7 gap-2 mb-2">
-                        {daysOfWeek.map((day, index) => (
-                          <div key={day} className="text-center text-xs font-bold text-gray-600 py-1">
-                            {day}
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* 달력 날짜들 */}
-                      {Array.from({ length: 35 }).map((_, index) => {
-                        const dayNumber = index + 1
-                        const today = new Date()
-                        const currentMonth = today.getMonth()
-                        const currentYear = today.getFullYear()
-                        const firstDay = new Date(currentYear, currentMonth, 1).getDay()
-                        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-                        
-                        // 실제 날짜 계산
-                        const actualDay = dayNumber - firstDay + 1
-                        const isValidDay = actualDay > 0 && actualDay <= daysInMonth
-                        
-                        if (!isValidDay) {
-                          return <div key={`empty-${index}`} className="h-16"></div>
-                        }
-                        
-                        const dayDate = new Date(currentYear, currentMonth, actualDay).toISOString().split('T')[0]
-                        const record = attendanceRecords.find(r => r.date === dayDate)
-                        const isCompleted = !!record
-                        const isToday = actualDay === currentDay
-                        
-                        return (
-                          <div key={`day-${actualDay}`} className="flex flex-col items-center justify-center">
-                            {/* 날짜 번호 */}
-                            <div className={`text-sm font-bold mb-1 ${isToday ? 'text-orange-600' : 'text-gray-800'}`}>
-                              {actualDay}
-                            </div>
-                            
-                            {/* 도장 찍기 버튼 - 모든 날짜 클릭 가능 */}
-                            <button
-                              onClick={() => handleDayClick(actualDay)}
-                              disabled={isStampAnimating}
-                              className="w-10 h-10 rounded-full border-2 border-gray-300 bg-white hover:bg-gray-50 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-110"
-                            >
-                              {isCompleted ? (
-                                <div className="w-full h-full flex items-center justify-center relative">
-                                  {/* 빨간 도장 (회색 틀보다 조금 더 큼) */}
-                                  <div 
-                                    className="absolute bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs"
-                                    style={{
-                                      width: '44px',
-                                      height: '44px',
-                                      border: '2px solid rgba(255,255,255,0.3)',
-                                      boxShadow: `
-                                        inset 0 0 0 1px rgba(255,255,255,0.2),
-                                        0 0 0 1px rgba(255,255,255,0.1),
-                                        0 0 0 2px rgba(255,255,255,0.05),
-                                        0 0 0 3px rgba(255,255,255,0.03),
-                                        0 0 0 4px rgba(255,255,255,0.02),
-                                        0 0 0 5px rgba(255,255,255,0.01),
-                                        inset 0 0 0 1px rgba(0,0,0,0.1),
-                                        0 2px 4px rgba(0,0,0,0.1),
-                                        0 4px 8px rgba(0,0,0,0.05)
-                                      `,
-                                      background: `
-                                        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                                        radial-gradient(circle at 70% 70%, rgba(255,255,255,0.05) 0%, transparent 50%),
-                                        #ef4444
-                                      `
-                                    }}
-                                  >
-                                    <div className="absolute inset-0 bg-red-600 opacity-20 rounded-full"></div>
-                                    <span className="relative z-10 transform rotate-12 text-lg font-bold">OK</span>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs">
-                                  ?
-                                </div>
-                              )}
-                            </button>
-                            
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  
-                </div>
-              </div>
-              
-            </div>
-            
-            {/* 보상 시스템 */}
-            <div className="mt-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
-                {t('eventTab.attendanceCheck.rewardSystem')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {Object.entries(rewards).map(([days, reward]) => (
-                  <div 
-                    key={days}
-                    className={`p-4 rounded-xl border-2 transition-all duration-300 relative ${
-                      currentStreak >= parseInt(days)
-                        ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 shadow-lg ring-2 ring-green-200'
-                        : currentStreak >= parseInt(days) - 2
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    {/* 달성 시 특별 효과 */}
-                    {currentStreak >= parseInt(days) && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                        <span className="text-white text-xs font-bold">✓</span>
-                      </div>
-                    )}
-                    
-                    {/* 특별 보상 표시 */}
-                    {reward.special && (
-                      <div className="absolute -top-1 -left-1 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                        <span className="text-white text-xs">🎁</span>
-                      </div>
-                    )}
-                    
-                    <div className="text-center">
-                      <div className={`text-2xl font-bold mb-2 ${
-                        currentStreak >= parseInt(days)
-                          ? 'text-green-600 animate-bounce'
-                          : currentStreak >= parseInt(days) - 2
-                          ? 'text-yellow-600'
-                          : 'text-gray-400'
-                      }`}>
-                        {days}{t('eventTab.attendanceCheck.days')}
-                        {currentStreak >= parseInt(days) && (
-                          <span className="ml-1 text-lg">🎉</span>
-                        )}
-                      </div>
-                      
-                      <div className="text-xs text-gray-600 mb-3 font-medium">
-                        {reward.label}
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {reward.coupons > 0 && (
-                          <div className="flex items-center justify-center gap-1">
-                            <Gift className="w-4 h-4 text-blue-500" />
-                            <span className="text-sm font-medium">{t('eventTab.attendanceCheck.coupons')} {reward.coupons}{t('eventTab.attendanceCheck.couponUnit')}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-500" />
-                          <span className="text-sm font-medium">{t('eventTab.attendanceCheck.points')} {reward.points}{t('eventTab.attendanceCheck.pointUnit')}</span>
-                        </div>
-                        
-                        {/* 특별 보상 표시 */}
-                        {reward.special && reward.specialReward && (
-                          <div className="mt-2 p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg border border-purple-200">
-                            <div className="text-xs font-bold text-purple-700">
-                              🎁 {reward.specialReward}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {currentStreak >= parseInt(days) && (
-                        <CheckCircle className="w-6 h-6 text-green-500 mx-auto mt-2" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* 특별 이벤트 */}
-      <Card className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg">
+      <Card className="bg-white border border-gray-200 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-2xl">
             <Gift className="h-6 w-6 text-blue-500" />
@@ -521,75 +381,68 @@ export default function EventTab() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 현지인용 특별 이벤트 */}
-            <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+            <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xl">✈️</span>
+                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
+                  <img 
+                    src="/airport.jpeg" 
+                    alt="Airport" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-green-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
-                  <p className="text-sm text-green-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
+                  <h3 className="text-xl font-bold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
+                  <p className="text-sm text-blue-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
                 </div>
               </div>
               
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-green-100">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">1</span>
-                  </div>
-                  <div>
+                <div className="p-4 bg-white rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">1</span>
+                    </div>
                     <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
-                    <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.reward')}</div>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-green-100">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">🎯</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.specialBenefitTitle')}</div>
-                    <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.specialBenefit')}</div>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div>• 한국 왕복 항공권</div>
+                    <div>• 가이드 서비스</div>
+                    <div>• 숙소 제공 (2주)</div>
                   </div>
                 </div>
               </div>
               
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800 font-medium">
+              <div className="mt-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
+                <p className="text-sm text-gray-700 font-medium">
                   🏆 {t('eventTab.attendanceCheck.specialEvents.localEvent.period')}
                 </p>
               </div>
             </div>
 
             {/* 한국인용 특별 이벤트 */}
-            <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xl">📚</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-purple-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
-                  <p className="text-sm text-purple-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
-                </div>
+            <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-green-800 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
+                <p className="text-sm text-green-600">스페인어 실력 향상을 위한 시험 지원</p>
               </div>
               
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-purple-100">
-                  <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">TOEIC</span>
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">DELE</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.toeic')}</div>
+                    <div className="font-semibold text-gray-800">DELE 시험 응시료 지원</div>
                     <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-purple-100">
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
                   <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">TOEFL</span>
+                    <span className="text-white text-xs font-bold">SIELE</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.toefl')}</div>
+                    <div className="font-semibold text-gray-800">SIELE 시험 응시료 지원</div>
                     <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                   </div>
                 </div>
@@ -598,39 +451,224 @@ export default function EventTab() {
             </div>
           </div>
           
-          {/* 포인트 얻는 방법 */}
-          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
-            <h4 className="font-bold text-blue-800 mb-2">⭐ {t('eventTab.attendanceCheck.pointMethods.title')}</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-white" />
+          {/* 포인트 시스템 상세 정보 */}
+          <div className="mt-6 space-y-6">
+
+            {/* 보상 체계 */}
+            <div className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl">
+              <h4 className="font-bold text-orange-800 mb-4 flex items-center gap-2">
+                <Trophy className="w-5 h-5" />
+                보상 체계
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 랭킹 보상 */}
+                <div className="p-4 bg-white rounded-lg border border-orange-200 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-md">
+                      <Trophy className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-800">누적 점수 랭킹 1위</div>
+                      <div className="text-sm text-orange-600 font-bold">비행기 티켓 리워드</div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    전체 사용자 중 누적 점수 1위 달성 시
+                  </div>
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.title')}</div>
-                  <div className="text-xs text-gray-600">{t('eventTab.attendanceCheck.pointMethods.attendanceDescription')}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">💬</span>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.pointMethods.community')}</div>
-                  <div className="text-xs text-gray-600">{t('eventTab.attendanceCheck.pointMethods.communityDescription')}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">📹</span>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.pointMethods.videoCall')}</div>
-                  <div className="text-xs text-gray-600">{t('eventTab.attendanceCheck.pointMethods.videoCallDescription')}</div>
+
+                {/* 쿠폰 지급 */}
+                <div className="p-4 bg-white rounded-lg border border-orange-200 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+                      <Gift className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-800">100점 달성 시</div>
+                      <div className="text-sm text-green-600 font-bold">쿠폰 1개 자동 지급</div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    100점을 달성할 때마다 쿠폰이 자동으로 지급됩니다
+                  </div>
                 </div>
               </div>
             </div>
-            
+
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 간소화된 포인트 시스템 안내 */}
+      <Card className="bg-white border border-gray-200 shadow-lg">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full">
+              <Zap className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 font-['Inter']">포인트 규칙</h3>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* 자동 출석체크 */}
+            <div className="flex-1 p-4 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-green-800 font-['Inter']">자동 출석체크</h4>
+                  <p className="text-sm text-green-600 font-['Inter']">접속 시 자동으로 10점 지급</p>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 font-['Inter']">
+                별도의 출석체크 버튼 없이 앱에 접속하면 자동으로 포인트가 지급됩니다.
+              </div>
+            </div>
+
+            {/* 커뮤니티 활동 */}
+            <div className="flex-1 p-4 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                  <span className="text-white text-lg">💬</span>
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-blue-800 font-['Inter']">커뮤니티 활동</h4>
+                  <p className="text-sm text-blue-600 font-['Inter']">하루 최대 20점 획득 가능</p>
+                </div>
+              </div>
+              <div className="space-y-1 text-sm text-gray-600 font-['Inter']">
+                <div>• 질문 작성: +5점</div>
+                <div>• 답변 작성: +5점</div>
+                <div>• 스토리 작성: +5점</div>
+                <div>• 자유게시판: +2점</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 내 포인트 섹션 */}
+      <Card className="bg-white border border-gray-200 shadow-lg">
+        <CardContent className="p-8">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600 text-center">
+                포인트 데이터를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.
+              </p>
+            </div>
+          )}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <Star className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 font-['Inter']">내 포인트</h3>
+            <div className="px-3 py-1 bg-blue-500 rounded-full">
+              {loading ? (
+                <span className="text-lg font-bold text-white font-['Inter']">...</span>
+              ) : error ? (
+                <span className="text-lg font-bold text-white font-['Inter']">오류</span>
+              ) : (
+                <span className="text-lg font-bold text-white font-['Inter']">{pointsData.total}</span>
+              )}
+            </div>
+          </div>
+
+
+          {/* 포인트 세부 내역 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* 출석 포인트 */}
+            <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                <span className="text-2xl">📅</span>
+              </div>
+              <h5 className="font-bold text-green-800 mb-3 text-lg">출석 포인트</h5>
+              <p className="text-2xl font-bold text-green-600 mb-2">
+                {loading ? '...' : error ? '오류' : pointsData.attendance}
+              </p>
+              <p className="text-sm text-gray-600">자동 지급</p>
+            </div>
+
+            {/* 커뮤니티 포인트 */}
+            <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                <span className="text-2xl">💬</span>
+              </div>
+              <h5 className="font-bold text-blue-800 mb-3 text-lg">커뮤니티 활동</h5>
+              <p className="text-2xl font-bold text-blue-600 mb-2">
+                {loading ? '...' : error ? '오류' : pointsData.community}
+              </p>
+              <p className="text-sm text-gray-600">포인트</p>
+            </div>
+
+            {/* 쿠폰 */}
+            <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                <Gift className="w-6 h-6 text-white" />
+              </div>
+              <h5 className="font-bold text-orange-800 mb-3 text-lg">보유 쿠폰</h5>
+              <p className="text-2xl font-bold text-orange-600 mb-2">
+                {loading ? '...' : error ? '오류' : `${pointsData.coupons}개`}
+              </p>
+              <p className="text-sm text-gray-600">100점마다 지급</p>
+            </div>
+          </div>
+
+          {/* 포인트 랭킹 */}
+          <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+            <h4 className="font-bold text-gray-800 mb-6 text-center flex items-center justify-center gap-3">
+              <Trophy className="w-6 h-6 text-yellow-500" />
+              <span className="text-xl">포인트 랭킹 TOP 10</span>
+            </h4>
+            <div className="space-y-2">
+              {[
+                { rank: 1, name: '김민수', points: 1250, isCurrentUser: false },
+                { rank: 2, name: '이지은', points: 1180, isCurrentUser: false },
+                { rank: 3, name: '박서준', points: 1100, isCurrentUser: false },
+                { rank: 4, name: '최유진', points: 980, isCurrentUser: false },
+                { rank: 5, name: '정호영', points: 920, isCurrentUser: false },
+                { rank: 6, name: '한소영', points: 850, isCurrentUser: false },
+                { rank: 7, name: '윤태현', points: 780, isCurrentUser: false },
+                { rank: 8, name: '강미래', points: 720, isCurrentUser: false },
+                { rank: 9, name: '조성민', points: 680, isCurrentUser: false },
+                { rank: 10, name: '나현재', points: 650, isCurrentUser: true }
+              ].map((user) => (
+                <div
+                  key={user.rank}
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    user.isCurrentUser
+                      ? 'bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-blue-300'
+                      : 'bg-white border border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                      user.rank <= 3 
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' 
+                        : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {user.rank}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="font-semibold text-gray-800">
+                        {user.name}
+                        {user.isCurrentUser && <span className="ml-2 text-blue-600 text-sm">(나)</span>}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {user.points.toLocaleString()}점
+                      </div>
+                    </div>
+                  </div>
+                  {user.rank <= 3 && (
+                    <div className="text-3xl">
+                      {user.rank === 1 && '🥇'}
+                      {user.rank === 2 && '🥈'}
+                      {user.rank === 3 && '🥉'}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

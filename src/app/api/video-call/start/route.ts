@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('영상통화 시작 실패:', error);
+    console.error('AI 화상 채팅 시작 실패:', error);
     return NextResponse.json(
       { error: '서버 오류가 발생했습니다.' },
       { status: 500 }

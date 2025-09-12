@@ -40,7 +40,7 @@ const categories = [
   },
   {
     icon: Camera,
-    title: '화상 상담',
+    title: 'AI 화상 채팅',
     description: '언제 어디서나 편리하게',
     color: 'bg-pink-100 text-pink-600'
   },

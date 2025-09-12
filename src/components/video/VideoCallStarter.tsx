@@ -20,7 +20,7 @@ import { useLanguage } from '@/context/LanguageContext'
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
   ssr: false,
-  loading: () => <div className="flex items-center justify-center h-64">영상통화 로딩 중...</div>
+  loading: () => <div className="flex items-center justify-center h-64">AI 화상 채팅 로딩 중...</div>
 })
 
 interface VideoCallStarterProps {
@@ -191,7 +191,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
   return (
     <>
-      {/* 영상통화 화면 */}
+      {/* AI 화상 채팅 화면 */}
       {isCallActive && (
         <VideoCall 
           channelName={channelName} 
@@ -343,28 +343,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           </div>
         </Card>
 
-        {/* 통계 */}
-        <Card className="p-8 bg-gradient-to-br from-white to-green-50 border border-green-100 shadow-lg">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">{t('videoCallStats.title')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center p-4 bg-white rounded-xl border border-green-100 shadow-sm">
-              <div className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent mb-2">12</div>
-              <div className="text-sm text-gray-600 font-medium">{t('videoCallStats.totalCalls')}</div>
-            </div>
-            <div className="text-center p-4 bg-white rounded-xl border border-green-100 shadow-sm">
-              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent mb-2">180</div>
-              <div className="text-sm text-gray-600 font-medium">{t('videoCallStats.totalTime')}</div>
-            </div>
-            <div className="text-center p-4 bg-white rounded-xl border border-green-100 shadow-sm">
-              <div className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">5</div>
-              <div className="text-sm text-gray-600 font-medium">{t('videoCallStats.conversationPartners')}</div>
-            </div>
-            <div className="text-center p-4 bg-white rounded-xl border border-green-100 shadow-sm">
-              <div className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent mb-2">360</div>
-              <div className="text-sm text-gray-600 font-medium">{t('videoCallStats.earnedPoints')}</div>
-            </div>
-          </div>
-        </Card>
       </div>
 
       {/* 통화 시작 다이얼로그 */}
@@ -375,7 +353,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                 <Video className="w-4 h-4 text-white" />
               </div>
-              영상통화 시작
+              AI 화상 채팅 시작
             </DialogTitle>
           </DialogHeader>
           

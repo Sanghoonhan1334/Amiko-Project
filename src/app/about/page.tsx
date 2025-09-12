@@ -56,11 +56,11 @@ export default function AboutPage() {
             <SwiperSlide className="swiper-slide-no-lazy">
               <div className="min-h-screen flex items-start justify-center pt-28 bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="w-full max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl mx-auto px-4 text-center">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-8 leading-tight">
+                  <h2 className="text-4xl font-bold text-gray-900 mb-0 leading-tight -mt-2">
                     대표자 소개영상
                   </h2>
                   
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full mt-2">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
                         src="https://www.youtube.com/embed/6BdrKjSMBJY"

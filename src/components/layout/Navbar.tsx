@@ -22,9 +22,9 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await signOut()
-      router.push('/')
-      alert('로그아웃되었습니다.')
-    } catch {
+      // signOut 함수에서 이미 페이지 이동을 처리함
+    } catch (error) {
+      console.error('로그아웃 오류:', error)
       alert('로그아웃 중 오류가 발생했습니다.')
     }
   }

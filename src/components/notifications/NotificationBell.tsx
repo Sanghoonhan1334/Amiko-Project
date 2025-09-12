@@ -1,87 +1,105 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Bell, BellOff } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Bell, X, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { useAuth } from '@/context/AuthContext'
-import { Notification } from '@/lib/notifications'
 
-interface NotificationBellProps {
-  className?: string
+interface Notification {
+  id: string
+  type: 'comment' | 'like' | 'answer_accepted' | 'story_comment' | 'story_like'
+  title: string
+  message: string
+  data?: any
+  is_read: boolean
+  created_at: string
 }
 
-export default function NotificationBell({ className }: NotificationBellProps) {
-  const { user } = useAuth()
+interface NotificationResponse {
+  notifications: Notification[]
+  unreadCount: number
+  hasMore: boolean
+}
+
+export default function NotificationBell() {
+  const { token } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // 알림 목록 조회
-  const fetchNotifications = useCallback(async () => {
-    if (!user) return
+  const fetchNotifications = async () => {
+    if (!token) {
+      console.log('토큰이 없어서 알림 조회 건너뜀')
+      return
+    }
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/notifications?userId=${user.id}&limit=5&unreadOnly=true`)
+      console.log('알림 API 호출 시작:', { token: !!token })
       
-      if (response.ok) {
-        const data = await response.json()
-        setNotifications(data.notifications || [])
-        setUnreadCount(data.unreadCount || 0)
-      } else {
-        // 에러 응답 처리
-        const errorData = await response.json()
-        console.warn('[NOTIFICATION] API 응답 에러:', errorData)
-        
-        // 테이블이 없는 경우 등은 빈 목록으로 처리
-        if (errorData.message && errorData.message.includes('테이블이 아직 생성되지 않았습니다')) {
-          setNotifications([])
-          setUnreadCount(0)
-          return
+      const response = await fetch('/api/notifications?limit=10', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-        
-        // 다른 에러는 무시하고 빈 목록 표시
+      })
+
+      console.log('알림 API 응답:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok 
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('알림 API 에러 응답:', errorData)
+        throw new Error(`알림을 불러오는데 실패했습니다. (${response.status})`)
+      }
+
+      const data: NotificationResponse = await response.json()
+      console.log('알림 데이터 수신:', { 
+        notificationsCount: data.notifications?.length || 0,
+        unreadCount: data.unreadCount 
+      })
+      
+      setNotifications(data.notifications)
+      setUnreadCount(data.unreadCount)
+    } catch (error) {
+      console.error('알림 조회 실패:', error)
+      // 네트워크 에러인 경우 더 자세한 정보 출력
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('네트워크 에러 - 서버 연결을 확인해주세요')
+        // Supabase 환경변수가 설정되지 않은 경우를 위한 fallback
         setNotifications([])
         setUnreadCount(0)
       }
-    } catch (error) {
-      console.error('알림 조회 실패:', error)
-      // 네트워크 에러 등은 무시하고 빈 목록 표시
-      setNotifications([])
-      setUnreadCount(0)
     } finally {
       setLoading(false)
     }
-  }, [user])
-
-  // 컴포넌트 마운트 시 알림 조회
-  useEffect(() => {
-    fetchNotifications()
-    
-    // 30초마다 알림 새로고침
-    const interval = setInterval(fetchNotifications, 30000)
-    
-    return () => clearInterval(interval)
-  }, [user, fetchNotifications])
+  }
 
   // 알림 읽음 처리
   const markAsRead = async (notificationId: string) => {
+    if (!token) return
+
     try {
       const response = await fetch(`/api/notifications/${notificationId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isRead: true })
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
 
       if (response.ok) {
-        // 로컬 상태 업데이트
         setNotifications(prev => 
-          prev.map(n => 
-            n.id === notificationId 
-              ? { ...n, is_read: true, read_at: new Date().toISOString() }
-              : n
+          prev.map(notification => 
+            notification.id === notificationId 
+              ? { ...notification, is_read: true }
+              : notification
           )
         )
         setUnreadCount(prev => Math.max(0, prev - 1))
@@ -91,49 +109,114 @@ export default function NotificationBell({ className }: NotificationBellProps) {
     }
   }
 
-  // 모든 알림 읽음 처리
-  const markAllAsRead = async () => {
-    if (!user) return
+  // 알림 삭제
+  const deleteNotification = async (notificationId: string) => {
+    if (!token) return
 
     try {
-      const response = await fetch('/api/notifications/read-all', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
+      const response = await fetch(`/api/notifications/${notificationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
 
       if (response.ok) {
-        setNotifications([])
-        setUnreadCount(0)
+        setNotifications(prev => prev.filter(n => n.id !== notificationId))
+        setUnreadCount(prev => Math.max(0, prev - 1))
       }
     } catch (error) {
-      console.error('전체 알림 읽음 처리 실패:', error)
+      console.error('알림 삭제 실패:', error)
     }
   }
 
-  if (!user) return null
+  // 모든 알림 읽음 처리
+  const markAllAsRead = async () => {
+    if (!token) return
+
+    try {
+      const unreadNotifications = notifications.filter(n => !n.is_read)
+      await Promise.all(unreadNotifications.map(n => markAsRead(n.id)))
+    } catch (error) {
+      console.error('모든 알림 읽음 처리 실패:', error)
+    }
+  }
+
+  // 알림 타입별 아이콘
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'comment':
+      case 'story_comment':
+        return '💬'
+      case 'like':
+      case 'story_like':
+        return '❤️'
+      case 'answer_accepted':
+        return '✅'
+      default:
+        return '🔔'
+    }
+  }
+
+  // 알림 타입별 색상
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'comment':
+      case 'story_comment':
+        return 'text-blue-600'
+      case 'like':
+      case 'story_like':
+        return 'text-red-600'
+      case 'answer_accepted':
+        return 'text-green-600'
+      default:
+        return 'text-gray-600'
+    }
+  }
+
+  // 시간 포맷팅
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    
+    const minutes = Math.floor(diff / (1000 * 60))
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+    if (minutes < 1) return '방금 전'
+    if (minutes < 60) return `${minutes}분 전`
+    if (hours < 24) return `${hours}시간 전`
+    if (days < 7) return `${days}일 전`
+    
+    return date.toLocaleDateString('ko-KR')
+  }
+
+  // 컴포넌트 마운트 시 알림 조회
+  useEffect(() => {
+    if (token) {
+      fetchNotifications()
+      
+      // 30초마다 알림 새로고침
+      const interval = setInterval(fetchNotifications, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [token])
 
   return (
-    <div className={`relative ${className}`}>
+    <div className="relative">
       {/* 알림 벨 버튼 */}
       <Button
         variant="ghost"
         size="sm"
-        className="relative p-2"
         onClick={() => setIsOpen(!isOpen)}
-        disabled={loading}
+        className="relative p-2 hover:bg-gray-100"
       >
-        {unreadCount > 0 ? (
-          <Bell className="h-5 w-5 text-blue-600" />
-        ) : (
-          <BellOff className="h-5 w-5 text-gray-400" />
-        )}
-        
-        {/* 읽지 않은 알림 개수 배지 */}
+        <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
           <Badge 
             variant="destructive" 
-            className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </Badge>
@@ -142,99 +225,115 @@ export default function NotificationBell({ className }: NotificationBellProps) {
 
       {/* 알림 드롭다운 */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           {/* 헤더 */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">알림</h3>
-            {unreadCount > 0 && (
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-800">알림</h3>
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  className="text-xs text-blue-600 hover:text-blue-700"
+                >
+                  모두 읽음
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={markAllAsRead}
-                className="text-sm text-blue-600 hover:text-blue-700"
+                onClick={() => setIsOpen(false)}
+                className="p-1"
               >
-                모두 읽음
+                <X className="w-4 h-4" />
               </Button>
-            )}
+            </div>
           </div>
 
           {/* 알림 목록 */}
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
               <div className="p-4 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2">알림 불러오는 중...</p>
+                알림을 불러오는 중...
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
-                <BellOff className="h-8 w-8 mx-auto text-gray-300 mb-2" />
-                <p>새로운 알림이 없습니다</p>
+                새로운 알림이 없습니다.
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                      !notification.isRead ? 'bg-blue-50' : ''
-                    }`}
-                    onClick={() => markAsRead(notification.id)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${
-                          !notification.isRead ? 'text-gray-900' : 'text-gray-700'
-                        }`}>
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 border-b border-gray-50 hover:bg-gray-50 ${
+                    !notification.is_read ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-lg">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className={`font-medium text-sm ${getNotificationColor(notification.type)}`}>
                           {notification.title}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {new Date(notification.createdAt).toLocaleString('ko-KR', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
+                        </h4>
+                        {!notification.is_read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
                       </div>
-                      
-                      {/* 읽지 않은 알림 표시 */}
-                      {!notification.isRead && (
-                        <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></div>
-                      )}
+                      <p className="text-sm text-gray-700 mb-2">
+                        {notification.message}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {formatTime(notification.created_at)}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {!notification.is_read && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => markAsRead(notification.id)}
+                              className="p-1 h-6 w-6"
+                            >
+                              <Check className="w-3 h-3" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteNotification(notification.id)}
+                            className="p-1 h-6 w-6 text-gray-400 hover:text-red-500"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             )}
           </div>
 
           {/* 푸터 */}
-          <div className="p-3 border-t border-gray-200 bg-gray-50">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-sm text-gray-600 hover:text-gray-800"
-              onClick={() => {
-                setIsOpen(false)
-                // 알림 페이지로 이동
-                window.location.href = '/notifications'
-              }}
-            >
-              모든 알림 보기
-            </Button>
-          </div>
+          {notifications.length > 0 && (
+            <div className="p-3 border-t border-gray-100 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => {
+                  // 전체 알림 페이지로 이동
+                  window.location.href = '/notifications'
+                }}
+              >
+                모든 알림 보기
+              </Button>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* 드롭다운 외부 클릭 시 닫기 */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsOpen(false)}
-        />
       )}
     </div>
   )

@@ -12,11 +12,7 @@ import {
   User, 
   Lock, 
   Eye, 
-  EyeOff, 
-  MessageCircle,
-  Mail,
-  Apple,
-  ArrowLeft
+  EyeOff
 } from 'lucide-react'
 
 export default function SignInPage() {
@@ -61,44 +57,46 @@ export default function SignInPage() {
 
       console.log('로그인 성공:', result)
       
-      // 로컬 스토리지에 사용자 정보 저장
-      localStorage.setItem('amiko_user', JSON.stringify(result.user))
-      localStorage.setItem('amiko_session', JSON.stringify(result.session))
+      // AuthContext의 signIn 함수 사용하여 세션 업데이트
+      const { error: signInError } = await signIn(formData.identifier, formData.password)
+      
+      if (signInError) {
+        throw new Error('세션 업데이트에 실패했습니다.')
+      }
       
       // 로그인 성공 후 메인 앱으로 이동
       router.push('/main')
       
     } catch (error) {
       console.error('로그인 오류:', error)
-      alert(error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.')
+      
+      // 사용자에게 더 친화적인 메시지 표시
+      const errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.'
+      
+      if (errorMessage.includes('이메일 또는 비밀번호가 올바르지 않습니다')) {
+        alert('입력하신 이메일 또는 비밀번호를 다시 확인해주세요.\n\n• 이메일 주소가 정확한지 확인\n• 비밀번호가 올바른지 확인\n• 대소문자 구분 확인')
+      } else {
+        alert(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSocialLogin = (provider: string) => {
-    // TODO: 소셜 로그인 구현
-    alert(`${provider} 로그인 기능은 준비 중입니다!`)
-  }
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-2 border-brand-200/50 shadow-xl">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">
-              Amiko
-            </div>
-            <div className="text-xl animate-pulse">✨</div>
-          </div>
-          <CardTitle className="text-2xl font-bold text-gray-800">
+    <div className="min-h-screen bg-slate-50 p-4 pt-44">
+      <div className="flex justify-center">
+      <Card className="w-full max-w-md bg-white border shadow-lg">
+        <CardHeader className="text-center space-y-4 pb-6">
+          <CardTitle className="text-2xl font-semibold text-slate-900">
             로그인
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-slate-600">
             계정에 로그인하고 한국 문화 교류를 시작하세요!
           </CardDescription>
         </CardHeader>
@@ -106,42 +104,42 @@ export default function SignInPage() {
         <CardContent className="space-y-6">
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identifier" className="text-sm text-gray-600">
+              <Label htmlFor="identifier" className="text-sm font-medium text-slate-700">
                 이메일 또는 전화번호
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   id="identifier"
                   type="text"
                   placeholder="example@email.com 또는 +82-10-1234-5678"
                   value={formData.identifier}
                   onChange={(e) => handleInputChange('identifier', e.target.value)}
-                  className="pl-10 border-brand-200 focus:border-brand-500 focus:ring-brand-500"
+                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm text-gray-600">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
                 비밀번호
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="비밀번호를 입력하세요"
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="pl-10 pr-10 border-brand-200 focus:border-brand-500 focus:ring-brand-500"
+                  className="pl-10 pr-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                   required
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -150,7 +148,7 @@ export default function SignInPage() {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-brand-500 to-mint-500 hover:from-brand-600 hover:to-mint-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 py-3 text-lg"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 text-lg font-medium transition-colors"
               disabled={isLoading || !formData.identifier || !formData.password}
             >
               {isLoading ? (
@@ -168,74 +166,30 @@ export default function SignInPage() {
           </form>
 
           {/* 소셜 로그인 */}
-          <div className="space-y-3">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">또는</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin('Kakao')}
-                className="bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin('Google')}
-                className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
-              >
-                <Mail className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin('Apple')}
-                className="bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100"
-              >
-                <Apple className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
 
           {/* 추가 링크 */}
           <div className="space-y-3 text-center">
             <div className="flex items-center justify-center gap-4 text-sm">
-              <a href="#" className="text-brand-600 hover:text-brand-700 font-medium">
+              <a href="/forgot-password" className="text-slate-900 hover:text-slate-700 font-medium">
                 비밀번호 찾기
               </a>
-              <span className="text-gray-400">•</span>
-              <a href="#" className="text-brand-600 hover:text-brand-700 font-medium">
+              <span className="text-slate-400">•</span>
+              <a href="#" className="text-slate-900 hover:text-slate-700 font-medium">
                 도움말
               </a>
             </div>
             
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               계정이 없으신가요?{' '}
-              <a href="/sign-up" className="text-brand-600 hover:text-brand-700 font-medium">
+              <a href="/sign-up" className="text-slate-900 hover:text-slate-700 font-medium">
                 회원가입하기
               </a>
             </p>
           </div>
 
-          {/* 뒤로가기 */}
-          <div className="text-center">
-            <Button
-              variant="ghost"
-              onClick={() => router.back()}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              뒤로가기
-            </Button>
-          </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

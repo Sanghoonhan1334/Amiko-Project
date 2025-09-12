@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { headers } from 'next/headers'
 
-// 게시물 목록 조회
+// 게시글 목록 조회
 export async function GET(request: NextRequest) {
   try {
     if (!supabaseServer) {
@@ -12,76 +13,144 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type') // question, story, freeboard, news
     const category = searchParams.get('category')
-    const language = searchParams.get('language')
-    const sort = searchParams.get('sort') || 'latest' // latest, popular, views
+    const search = searchParams.get('search')
+    const sort = searchParams.get('sort') || 'latest'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = (page - 1) * limit
 
+    // 기본 쿼리 구성
     let query = supabaseServer
       .from('posts')
       .select(`
-        *,
-        user_profiles!inner(display_name, avatar_url, is_korean, level, badges)
+        id,
+        title,
+        content,
+        is_notice,
+        is_survey,
+        is_verified,
+        is_pinned,
+        view_count,
+        like_count,
+        dislike_count,
+        comment_count,
+        created_at,
+        updated_at,
+        author:users!posts_author_id_fkey (
+          id,
+          full_name,
+          profile_image
+        ),
+        category:board_categories!posts_category_id_fkey (
+          id,
+          name
+        )
       `)
+      .eq('status', 'published')
 
-    // 필터 적용
-    if (type) {
-      query = query.eq('type', type)
-    }
-    if (category) {
-      query = query.eq('category', category)
-    }
-    if (language) {
-      query = query.eq('language', language)
+    console.log('[POSTS_LIST] 초기 쿼리 구성 완료, 카테고리:', category)
+
+    // 카테고리 필터
+    if (category && category !== 'all') {
+      console.log('[POSTS_LIST] 카테고리 필터 적용:', category)
+      if (category === 'notice') {
+        // 공지사항 (운영자 글만)
+        console.log('[POSTS_LIST] 공지 필터 적용')
+        query = query.eq('is_notice', true)
+      } else if (category === 'survey') {
+        // 설문조사
+        console.log('[POSTS_LIST] 설문조사 필터 적용')
+        query = query.eq('is_survey', true)
+      } else if (category === '자유게시판') {
+        // 자유게시판 (일반 글만 - 공지, 설문조사 제외)
+        console.log('[POSTS_LIST] 자유게시판 필터 적용')
+        query = query.eq('is_notice', false).eq('is_survey', false)
+      } else {
+        console.log('[POSTS_LIST] 카테고리명 필터 적용:', category)
+        query = query.eq('category.name', category)
+      }
+    } else {
+      console.log('[POSTS_LIST] 전체글 - 카테고리 필터 없음')
     }
 
-    // 정렬 적용
+    // 검색 필터
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,author:users.full_name.ilike.%${search}%`)
+    }
+
+    // 정렬
     switch (sort) {
       case 'latest':
-        query = query.order('created_at', { ascending: false })
+        query = query.order('is_pinned', { ascending: false })
+                   .order('created_at', { ascending: false })
         break
       case 'popular':
-        query = query.order('like_count', { ascending: false })
+        query = query.order('is_pinned', { ascending: false })
+                   .order('view_count', { ascending: false })
         break
-      case 'views':
-        query = query.order('view_count', { ascending: false })
+      case 'likes':
+        query = query.order('is_pinned', { ascending: false })
+                   .order('like_count', { ascending: false })
         break
       case 'comments':
-        query = query.order('comment_count', { ascending: false })
+        query = query.order('is_pinned', { ascending: false })
+                   .order('comment_count', { ascending: false })
         break
-      default:
-        query = query.order('created_at', { ascending: false })
     }
 
-    // 페이지네이션 적용
+    // 페이지네이션
     query = query.range(offset, offset + limit - 1)
 
-    const { data: posts, error } = await query
+    console.log('[POSTS_LIST] 쿼리 실행 전')
+    const { data: posts, error, count } = await query
+    console.log('[POSTS_LIST] 쿼리 실행 결과:', { 
+      postsCount: posts?.length || 0, 
+      error: error?.message || 'none',
+      count 
+    })
 
     if (error) {
-      console.error('[POSTS API] 조회 실패:', error)
+      console.error('[POSTS_LIST] 쿼리 실행 에러:', error)
       return NextResponse.json(
-        { error: '게시물 조회에 실패했습니다.' },
+        { error: '게시글을 불러오는데 실패했습니다.' },
         { status: 500 }
       )
     }
 
-    // 총 게시물 수 조회 (페이지네이션용)
-    let countQuery = supabaseServer
+    // 작성자 정보 디버깅 로그
+    if (posts && posts.length > 0) {
+      console.log('[POST_LIST] 첫 번째 게시글 작성자 정보:', {
+        postId: posts[0].id,
+        authorId: posts[0].author?.id,
+        authorName: posts[0].author?.full_name,
+        authorProfileImage: posts[0].author?.profile_image
+      })
+    }
+
+    // 전체 게시글 수 확인 (디버깅용)
+    const { count: totalPostsCount } = await supabaseServer
       .from('posts')
-      .select('id', { count: 'exact', head: true })
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'published')
 
-    if (type) countQuery = countQuery.eq('type', type)
-    if (category) countQuery = countQuery.eq('category', category)
-    if (language) countQuery = countQuery.eq('language', language)
+    console.log('[POSTS_LIST] 쿼리 결과:', {
+      category,
+      search,
+      sort,
+      page,
+      limit,
+      postsCount: posts?.length || 0,
+      totalCount: count,
+      totalPostsInDB: totalPostsCount
+    })
 
-    const { count, error: countError } = await countQuery
-
-    if (countError) {
-      console.error('[POSTS API] 카운트 조회 실패:', countError)
+    if (error) {
+      console.error('[POSTS_LIST] 게시글 목록 조회 실패:', error)
+      return NextResponse.json(
+        { error: `게시글 목록을 불러오는데 실패했습니다: ${error.message}` },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({
@@ -90,21 +159,20 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
-        hasMore: (count || 0) > offset + limit
+        totalPages: Math.ceil((count || 0) / limit)
       }
     })
 
   } catch (error) {
-    console.error('[POSTS API] 오류:', error)
+    console.error('[POSTS_LIST] 서버 에러:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: '서버 에러가 발생했습니다.' },
       { status: 500 }
     )
   }
 }
 
-// 새 게시물 생성
+// 게시글 작성
 export async function POST(request: NextRequest) {
   try {
     if (!supabaseServer) {
@@ -114,24 +182,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { type, title, content, category, tags, language = 'ko' } = await request.json()
+    // FormData 처리
+    const formData = await request.formData()
+    const title = formData.get('title') as string
+    const content = formData.get('content') as string
+    const category_name = formData.get('category_name') as string
+    const is_notice = formData.get('is_notice') === 'true'
+    const is_survey = formData.get('is_survey') === 'true'
+    const survey_options = is_survey ? JSON.parse(formData.get('survey_options') as string || '[]') : []
+    const files = formData.getAll('files') as File[]
 
-    // 입력 검증
-    if (!type || !title || !content) {
-      return NextResponse.json(
-        { error: '필수 필드가 누락되었습니다.' },
-        { status: 400 }
-      )
-    }
-
-    if (!['question', 'story', 'freeboard', 'news'].includes(type)) {
-      return NextResponse.json(
-        { error: '잘못된 게시물 타입입니다.' },
-        { status: 400 }
-      )
-    }
-
-    // 실제 사용자 ID 가져오기 (Supabase Auth에서)
+    // 인증 확인
     const authHeader = request.headers.get('authorization')
     if (!authHeader) {
       return NextResponse.json(
@@ -145,70 +206,227 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: '유효하지 않은 인증입니다.' },
+        { error: '인증에 실패했습니다.' },
         { status: 401 }
       )
     }
 
-    // 게시물 생성
+    // 입력 검증
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: '제목과 내용을 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 공지사항 작성 권한 확인 (운영자만 가능)
+    if (is_notice) {
+      const isAdmin = user.email?.includes('admin') || user.email?.includes('@amiko.com')
+      if (!isAdmin) {
+        return NextResponse.json(
+          { error: '공지사항은 운영자만 작성할 수 있습니다.' },
+          { status: 403 }
+        )
+      }
+    }
+
+    if (title.length > 200) {
+      return NextResponse.json(
+        { error: '제목은 200자 이하로 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    if (content.length > 10000) {
+      return NextResponse.json(
+        { error: '내용은 10,000자 이하로 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 카테고리 ID 조회
+    let category_id = null
+    if (category_name) {
+      console.log('[POSTS_CREATE] 카테고리 조회:', category_name)
+      const { data: category, error: categoryError } = await supabaseServer
+        .from('board_categories')
+        .select('id')
+        .eq('name', category_name)
+        .eq('is_active', true)
+        .single()
+
+      console.log('[POSTS_CREATE] 카테고리 조회 결과:', { category, categoryError })
+      category_id = category?.id || null
+    }
+
+    // 게시글 생성
+    console.log('[POSTS_CREATE] 게시글 생성 데이터:', {
+      title,
+      content: content.substring(0, 50) + '...',
+      category_id,
+      author_id: user.id,
+      is_notice: is_notice || false,
+      is_survey: is_survey || false,
+      status: 'published'
+    })
+
     const { data: post, error } = await supabaseServer
       .from('posts')
       .insert({
-        user_id: user.id,
-        type,
         title,
         content,
-        category,
-        tags: tags || [],
-        language
+        category_id,
+        author_id: user.id,
+        is_notice: is_notice || false,
+        is_survey: is_survey || false,
+        status: 'published'
       })
       .select(`
-        *,
-        user_profiles!inner(display_name, avatar_url, is_korean, level, badges)
+        id,
+        title,
+        content,
+        is_notice,
+        is_survey,
+        is_verified,
+        is_pinned,
+        view_count,
+        like_count,
+        dislike_count,
+        comment_count,
+        created_at,
+        author:users!posts_author_id_fkey (
+          id,
+          full_name,
+          profile_image
+        ),
+        category:board_categories!posts_category_id_fkey (
+          id,
+          name
+        )
       `)
       .single()
 
+    console.log('[POSTS_CREATE] 게시글 생성 결과:', { post, error })
+
     if (error) {
-      console.error('[POSTS API] 생성 실패:', error)
+      console.error('[POST_CREATE] 게시글 생성 실패:', error)
       return NextResponse.json(
-        { error: '게시물 생성에 실패했습니다.' },
+        { error: '게시글 작성에 실패했습니다.' },
         { status: 500 }
       )
     }
 
-    // 포인트 적립 (게시물 타입별로 다른 포인트)
-    const pointAmount = type === 'freeboard' ? 2 : 5
-    const pointDescription = type === 'freeboard' ? '자유게시판 게시물 작성' : 
-                           type === 'question' ? '질문 게시물 작성' :
-                           type === 'story' ? '스토리 게시물 작성' : '뉴스 게시물 작성'
-
-    // 포인트 적립 함수 호출
-    const { error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
-      p_user_id: user.id,
-      p_type: `${type}_post`,
-      p_amount: pointAmount,
-      p_description: pointDescription,
-      p_related_id: post.id,
-      p_related_type: 'post'
+    // 작성된 게시글의 작성자 정보 로그
+    console.log('[POST_CREATE] 작성된 게시글 정보:', {
+      postId: post.id,
+      authorId: post.author?.id,
+      authorName: post.author?.full_name,
+      authorProfileImage: post.author?.profile_image
     })
 
-    if (pointError) {
-      console.error('[POSTS API] 포인트 적립 실패:', pointError)
-      // 포인트 적립 실패해도 게시물은 생성됨
+    // 설문조사인 경우 설문 데이터 생성
+    if (is_survey && survey_options && survey_options.length > 0) {
+      try {
+        // 설문조사 생성
+        const { data: survey, error: surveyError } = await supabaseServer
+          .from('surveys')
+          .insert({
+            post_id: post.id,
+            title: title,
+            description: content,
+            is_multiple_choice: false,
+            is_anonymous: true,
+            is_active: true
+          })
+          .select()
+          .single()
+
+        if (surveyError) {
+          console.error('[POST_CREATE] 설문조사 생성 실패:', surveyError)
+        } else {
+          // 설문조사 선택지 생성
+          const optionsData = survey_options.map((option: string, index: number) => ({
+            survey_id: survey.id,
+            option_text: option.trim(),
+            option_order: index + 1
+          }))
+
+          const { error: optionsError } = await supabaseServer
+            .from('survey_options')
+            .insert(optionsData)
+
+          if (optionsError) {
+            console.error('[POST_CREATE] 설문조사 선택지 생성 실패:', optionsError)
+          } else {
+            console.log('[POST_CREATE] 설문조사 생성 완료:', survey.id)
+          }
+        }
+      } catch (surveyErr) {
+        console.error('[POST_CREATE] 설문조사 처리 중 오류:', surveyErr)
+      }
+    }
+
+    // 파일 업로드 처리
+    if (files && files.length > 0) {
+      try {
+        console.log('[POST_CREATE] 파일 업로드 시작:', files.length, '개 파일')
+        
+        for (const file of files) {
+          if (file.size > 0) {
+            // 파일을 바이트 배열로 변환
+            const bytes = await file.arrayBuffer()
+            const buffer = Buffer.from(bytes)
+            
+            // 파일명 생성 (타임스탬프 + 원본 파일명)
+            const timestamp = Date.now()
+            const fileExtension = file.name.split('.').pop()
+            const fileName = `${post.id}_${timestamp}.${fileExtension}`
+            
+            // Supabase Storage에 파일 업로드
+            const { data: uploadData, error: uploadError } = await supabaseServer.storage
+              .from('post-attachments')
+              .upload(`posts/${post.id}/${fileName}`, buffer, {
+                contentType: file.type,
+                cacheControl: '3600'
+              })
+            
+            if (uploadError) {
+              console.error('[POST_CREATE] 파일 업로드 실패:', uploadError)
+            } else {
+              console.log('[POST_CREATE] 파일 업로드 성공:', uploadData.path)
+              
+              // 파일 정보를 데이터베이스에 저장
+              const { error: fileError } = await supabaseServer
+                .from('post_attachments')
+                .insert({
+                  post_id: post.id,
+                  file_name: file.name,
+                  file_path: uploadData.path,
+                  file_size: file.size,
+                  file_type: file.type,
+                  uploaded_by: user.id
+                })
+              
+              if (fileError) {
+                console.error('[POST_CREATE] 파일 정보 저장 실패:', fileError)
+              }
+            }
+          }
+        }
+      } catch (fileErr) {
+        console.error('[POST_CREATE] 파일 업로드 처리 중 오류:', fileErr)
+      }
     }
 
     return NextResponse.json({
-      post: {
-        ...post,
-        comment_count: 0,
-        like_count: 0
-      }
+      message: '게시글이 성공적으로 작성되었습니다.',
+      post
     }, { status: 201 })
 
   } catch (error) {
-    console.error('[POSTS API] 오류:', error)
+    console.error('[POST_CREATE] 서버 에러:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: '서버 에러가 발생했습니다.' },
       { status: 500 }
     )
   }

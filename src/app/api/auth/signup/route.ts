@@ -10,13 +10,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, password, name, phone, country, isKorean } = await request.json()
+    const { 
+      email, 
+      password, 
+      name, 
+      phone, 
+      country, 
+      isKorean
+    } = await request.json()
+    
+    // IP 주소 가져오기
+    const ip = request.headers.get('x-forwarded-for') || 
+               request.headers.get('x-real-ip') || 
+               '127.0.0.1'
 
     // 입력 검증
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !phone) {
       return NextResponse.json(
         { error: '필수 필드가 누락되었습니다.' },
         { status: 400 }
+      )
+    }
+
+    // 이메일 중복 체크 (Supabase Auth 레벨에서 확인)
+    try {
+      const { data: existingUser } = await supabaseServer.auth.admin.getUserByEmail(email)
+      if (existingUser.user) {
+        return NextResponse.json(
+          { error: '이미 등록된 이메일입니다.' },
+          { status: 409 }
+        )
+      }
+    } catch (error) {
+      // 사용자가 존재하지 않는 경우 정상 진행
+      console.log('이메일 중복 체크 통과:', email)
+    }
+
+    // 전화번호 중복 체크
+    const { data: existingPhone } = await supabaseServer
+      .from('users')
+      .select('id')
+      .eq('phone', phone)
+      .single()
+
+    if (existingPhone) {
+      return NextResponse.json(
+        { error: '이미 등록된 전화번호입니다. 한 번의 계정만 생성할 수 있습니다.' },
+        { status: 409 }
       )
     }
 
@@ -41,7 +81,7 @@ export async function POST(request: NextRequest) {
     const { data: authData, error: authError } = await supabaseServer.auth.admin.createUser({
       email,
       password,
-      email_confirm: false, // 이메일 인증 필요
+      email_confirm: true, // 이메일 인증 비활성화 (자동 인증)
       user_metadata: {
         name,
         phone,
@@ -53,7 +93,7 @@ export async function POST(request: NextRequest) {
     if (authError) {
       console.error('[SIGNUP] 사용자 생성 실패:', authError)
       
-      if (authError.message.includes('already registered')) {
+      if (authError.message.includes('already registered') || authError.code === 'email_exists') {
         return NextResponse.json(
           { error: '이미 등록된 이메일입니다.' },
           { status: 409 }
@@ -61,7 +101,7 @@ export async function POST(request: NextRequest) {
       }
       
       return NextResponse.json(
-        { error: '회원가입에 실패했습니다.' },
+        { error: `회원가입에 실패했습니다: ${authError.message}` },
         { status: 500 }
       )
     }
@@ -70,15 +110,16 @@ export async function POST(request: NextRequest) {
 
     // Supabase Auth에서 사용자 정보는 자동으로 auth.users 테이블에 저장됨
 
-    // 사용자 프로필 생성
-    const { error: profileError } = await (supabaseServer as any)
-      .from('user_profiles')
+    // 사용자 프로필 생성 (users 테이블에 직접 저장)
+    const { error: profileError } = await supabaseServer
+      .from('users')
       .insert({
-        user_id: userId,
-        display_name: name,
-        country: country || 'KR',
-        native_language: isKorean ? 'ko' : 'es',
-        is_korean: isKorean || false
+        id: userId,
+        email: email,
+        full_name: name,
+        phone: phone,
+        language: 'ko',
+        is_admin: false
       })
 
     if (profileError) {
@@ -86,19 +127,7 @@ export async function POST(request: NextRequest) {
       // 프로필 생성 실패해도 사용자는 생성됨
     }
 
-    // 포인트 시스템 초기화
-    const { error: pointsError } = await (supabaseServer as any)
-      .from('user_points')
-      .insert({
-        user_id: userId,
-        total_points: 0,
-        daily_points: 0,
-        last_reset_date: new Date().toISOString().split('T')[0]
-      })
-
-    if (pointsError) {
-      console.error('[SIGNUP] 포인트 초기화 실패:', pointsError)
-    }
+    // 포인트 시스템은 나중에 구현
 
     return NextResponse.json({
       success: true,
@@ -106,10 +135,11 @@ export async function POST(request: NextRequest) {
         id: userId,
         email,
         name,
+        phone,
         country,
         is_korean: isKorean || false
       },
-      message: '회원가입이 완료되었습니다. 이메일 인증을 진행해주세요.'
+      message: '회원가입이 완료되었습니다. 바로 로그인하실 수 있습니다.'
     }, { status: 201 })
 
   } catch (error) {

@@ -17,6 +17,7 @@ interface UserSettings {
   displayName?: string
 }
 
+
 // 주요 시간대 목록
 const TIMEZONES = [
   { value: 'Asia/Seoul', label: '한국 (UTC+9)', offset: '+09:00' },
@@ -66,6 +67,7 @@ export default function ProfileSettingsPage() {
   })
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+  
 
   // 현재 시간대 감지
   useEffect(() => {
@@ -78,6 +80,7 @@ export default function ProfileSettingsPage() {
       country: detectedCountry
     }))
   }, [])
+
 
   // 설정 저장
   const handleSave = async () => {
@@ -128,6 +131,7 @@ export default function ProfileSettingsPage() {
         <h1 className="text-3xl font-bold text-gray-900">{t('profileSettings.title')}</h1>
         <p className="text-gray-600">{t('profileSettings.subtitle')}</p>
       </div>
+
 
       {/* 시간대 설정 */}
       <Card>

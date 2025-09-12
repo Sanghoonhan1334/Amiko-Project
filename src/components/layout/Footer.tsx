@@ -3,14 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { 
-  Heart, 
-  Globe, 
-  Mail, 
-  MessageSquare, 
-  Trophy,
-  Instagram,
-  Facebook,
-  Youtube
+  Heart
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -20,75 +13,53 @@ export default function Footer() {
 
   return (
     <footer className="bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 border-t border-brand-200/50">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8">
         {/* 메인 푸터 콘텐츠 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-                     {/* 브랜드 섹션 */}
-           <div>
-             <div className="flex items-end gap-2 -mt-8 mb-0">
-               <div className="flex items-center gap-2">
-                 <img 
-                   src="/amiko-foto.png" 
-                   alt="Amiko" 
-                   className="h-32 w-auto object-contain"
-                   style={{ maxHeight: '128px' }}
-                 />
-               </div>
-             </div>
-             <p className="text-gray-600 text-sm leading-relaxed -mt-8">
-               {t('footer.description')}
-             </p>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Heart className="w-4 h-4 text-pink-500" />
-              <span>{t('footer.madeWithLove')}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          {/* 브랜드 섹션 */}
+          <div>
+            <div className="flex items-end gap-2 -mt-8 mb-0">
+              <div className="flex items-center gap-2">
+                <img 
+                  src="/amiko-foto.png" 
+                  alt="Amiko" 
+                  className="h-32 w-auto object-contain"
+                  style={{ maxHeight: '128px' }}
+                />
+              </div>
             </div>
+            <p className="text-gray-700 text-base leading-relaxed -mt-8 font-['Inter'] font-semibold">
+              한국과 남미를 잇는 다리, AMIKO
+            </p>
           </div>
 
           {/* 지원 링크 */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-800 text-lg">{t('footer.support')}</h4>
+            <h4 className="font-bold text-gray-800 text-lg font-['Inter']">{t('footer.support')}</h4>
             <div className="space-y-2">
               <Link 
                 href="/help" 
-                className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
+                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
               >
-                <Globe className="w-4 h-4" />
                 {t('footer.help')}
               </Link>
               <Link 
                 href="/faq" 
-                className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
+                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
               >
-                <MessageSquare className="w-4 h-4" />
                 {t('footer.faq')}
               </Link>
               <Link 
                 href="/contact" 
-                className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
+                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
               >
-                <Mail className="w-4 h-4" />
                 {t('footer.contact')}
               </Link>
               <Link 
                 href="/feedback" 
-                className="flex items-center gap-2 text-gray-600 hover:text-mint-600 transition-colors duration-300 text-sm"
+                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
               >
-                <Trophy className="w-4 h-4" />
                 {t('footer.feedback')}
-              </Link>
-            </div>
-          </div>
-
-          {/* 회사 정보 */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-gray-800 text-lg">{t('footer.company')}</h4>
-            <div className="space-y-2">
-              <Link 
-                href="/about" 
-                className="flex items-center gap-2 text-gray-600 hover:text-yellow-600 transition-colors duration-300 text-sm"
-              >
-                <Heart className="w-4 h-4" />
-                {t('footer.about')}
               </Link>
             </div>
           </div>
@@ -101,7 +72,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* 저작권 */}
           <div className="text-center md:text-left">
-            <p className="text-gray-600 text-sm flex items-center gap-2 justify-center md:justify-start">
+            <p className="text-gray-700 text-sm flex items-center gap-2 justify-center md:justify-start font-['Inter'] font-medium">
               <span>© {currentYear}</span>
               <img 
                 src="/amiko-foto.png" 
@@ -111,7 +82,7 @@ export default function Footer() {
               />
               <span>. {t('footer.copyright').replace('© 2025 Amiko. ', '')}</span>
             </p>
-            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+            <div className="flex items-center gap-4 mt-2 text-xs text-gray-600 font-['Inter'] font-medium">
               <Link href="/privacy" className="hover:text-brand-600 transition-colors duration-300">
                 {t('footer.privacy')}
               </Link>
@@ -127,37 +98,49 @@ export default function Footer() {
           </div>
 
           {/* 소셜 미디어 아이콘 */}
-          <div className="flex items-center gap-4">
-            <h5 className="text-sm font-medium text-gray-700 mr-2">{t('footer.followUs')}</h5>
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
+            <h5 className="text-lg font-bold text-gray-800 mr-4 font-['Inter']">AMIKO 공식 SNS</h5>
+            <div className="flex items-center gap-4">
+              {/* TikTok */}
+              <Button
+                variant="ghost"
+                size="lg"
+                className="w-16 h-16 p-0 rounded-xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                onClick={() => window.open('https://tiktok.com', '_blank')}
+              >
+                <img 
+                  src="/tictok.png" 
+                  alt="TikTok" 
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              </Button>
+
               {/* Instagram */}
               <Button
                 variant="ghost"
-                size="sm"
-                className="w-10 h-10 p-0 rounded-full bg-gradient-to-r from-pink-100 to-purple-100 hover:from-pink-200 hover:to-purple-200 text-pink-600 hover:text-pink-700 border border-pink-200 hover:border-pink-300 transition-all duration-300"
+                size="lg"
+                className="w-16 h-16 p-0 rounded-xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                 onClick={() => window.open('https://instagram.com', '_blank')}
               >
-                <Instagram className="w-4 h-4" />
-              </Button>
-
-              {/* Facebook */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-10 h-10 p-0 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 transition-all duration-300"
-                onClick={() => window.open('https://facebook.com', '_blank')}
-              >
-                <Facebook className="w-4 h-4" />
+                <img 
+                  src="/instagram.jpeg" 
+                  alt="Instagram" 
+                  className="w-full h-full object-contain rounded-xl"
+                />
               </Button>
 
               {/* YouTube */}
               <Button
                 variant="ghost"
-                size="sm"
-                className="w-10 h-10 p-0 rounded-full bg-gradient-to-r from-red-100 to-pink-100 hover:from-red-200 hover:to-pink-200 text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 transition-all duration-300"
+                size="lg"
+                className="w-16 h-16 p-0 rounded-xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                 onClick={() => window.open('https://youtube.com', '_blank')}
               >
-                <Youtube className="w-4 h-4" />
+                <img 
+                  src="/youtube.png" 
+                  alt="YouTube" 
+                  className="w-full h-full object-contain rounded-xl"
+                />
               </Button>
             </div>
           </div>
@@ -166,8 +149,8 @@ export default function Footer() {
         {/* 추가 정보 */}
         <div className="mt-8 pt-6 border-t border-brand-200/30">
           <div className="text-center">
-            <p className="text-xs text-gray-400">
-              {t('footer.globalMessage')}
+            <p className="text-base text-gray-700 font-['Inter'] font-bold">
+              Amiko
             </p>
           </div>
         </div>

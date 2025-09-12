@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 
-// 특정 게시물 조회 (조회수 증가 포함)
+// 개별 게시글 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     if (!supabaseServer) {
@@ -14,51 +14,82 @@ export async function GET(
       )
     }
 
-    const { id } = await params
+    const postId = params.id
 
-    // 게시물 조회
+    // 게시글 조회
     const { data: post, error } = await supabaseServer
       .from('posts')
       .select(`
-        *,
-        user_profiles!inner(display_name, avatar_url, is_korean, level, badges)
+        id,
+        title,
+        content,
+        is_notice,
+        is_survey,
+        is_verified,
+        is_pinned,
+        view_count,
+        like_count,
+        dislike_count,
+        comment_count,
+        created_at,
+        updated_at,
+        author:users!posts_author_id_fkey (
+          id,
+          name,
+          profile_image
+        ),
+        category:board_categories!posts_category_id_fkey (
+          id,
+          name
+        )
       `)
-      .eq('id', id)
+      .eq('id', postId)
+      .eq('status', 'published')
       .single()
 
-    if (error) {
-      console.error('[POSTS API] 게시물 조회 실패:', error)
+    if (error || !post) {
       return NextResponse.json(
-        { error: '게시물을 찾을 수 없습니다.' },
+        { error: '게시글을 찾을 수 없습니다.' },
         { status: 404 }
       )
     }
 
-    // 조회수 증가
-    const { error: viewError } = await supabaseServer.rpc('increment_post_view_count', {
-      post_id: id
-    })
-
-    if (viewError) {
-      console.error('[POSTS API] 조회수 증가 실패:', viewError)
-      // 조회수 증가 실패해도 게시물은 반환
+    // 조회수 증가 (비동기)
+    const clientIp = request.headers.get('x-forwarded-for') || 
+                   request.headers.get('x-real-ip') || 
+                   '127.0.0.1'
+    
+    // 인증된 사용자인지 확인
+    const authHeader = request.headers.get('authorization')
+    let userId = null
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user } } = await supabaseServer.auth.getUser(token)
+      userId = user?.id || null
     }
+
+    // 조회수 증가 함수 호출
+    await supabaseServer.rpc('increment_post_view_count', {
+      post_uuid: postId,
+      user_uuid: userId,
+      user_ip: clientIp
+    })
 
     return NextResponse.json({ post })
 
   } catch (error) {
-    console.error('[POSTS API] 오류:', error)
+    console.error('[POST_GET] 서버 에러:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: '서버 에러가 발생했습니다.' },
       { status: 500 }
     )
   }
 }
 
-// 게시물 수정
+// 게시글 수정
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     if (!supabaseServer) {
@@ -68,8 +99,9 @@ export async function PUT(
       )
     }
 
-    const { id } = await params
-    const { title, content, category, tags } = await request.json()
+    const postId = params.id
+    const body = await request.json()
+    const { title, content, category_name, is_notice, is_survey } = body
 
     // 인증 확인
     const authHeader = request.headers.get('authorization')
@@ -85,51 +117,132 @@ export async function PUT(
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: '유효하지 않은 인증입니다.' },
+        { error: '인증에 실패했습니다.' },
         { status: 401 }
       )
     }
 
-    // 게시물 수정
+    // 게시글 존재 및 권한 확인
+    const { data: existingPost, error: fetchError } = await supabaseServer
+      .from('posts')
+      .select('author_id')
+      .eq('id', postId)
+      .eq('status', 'published')
+      .single()
+
+    if (fetchError || !existingPost) {
+      return NextResponse.json(
+        { error: '게시글을 찾을 수 없습니다.' },
+        { status: 404 }
+      )
+    }
+
+    if (existingPost.author_id !== user.id) {
+      return NextResponse.json(
+        { error: '게시글을 수정할 권한이 없습니다.' },
+        { status: 403 }
+      )
+    }
+
+    // 입력 검증
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: '제목과 내용을 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    if (title.length > 200) {
+      return NextResponse.json(
+        { error: '제목은 200자 이하로 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    if (content.length > 10000) {
+      return NextResponse.json(
+        { error: '내용은 10,000자 이하로 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 카테고리 ID 조회
+    let category_id = null
+    if (category_name) {
+      const { data: category } = await supabaseServer
+        .from('board_categories')
+        .select('id')
+        .eq('name', category_name)
+        .eq('is_active', true)
+        .single()
+
+      category_id = category?.id || null
+    }
+
+    // 게시글 수정
     const { data: post, error } = await supabaseServer
       .from('posts')
       .update({
         title,
         content,
-        category,
-        tags: tags || []
+        category_id,
+        is_notice: is_notice || false,
+        is_survey: is_survey || false,
+        updated_at: new Date().toISOString()
       })
-      .eq('id', id)
-      .eq('user_id', user.id) // 작성자만 수정 가능
+      .eq('id', postId)
       .select(`
-        *,
-        user_profiles!inner(display_name, avatar_url, is_korean, level, badges)
+        id,
+        title,
+        content,
+        is_notice,
+        is_survey,
+        is_verified,
+        is_pinned,
+        view_count,
+        like_count,
+        dislike_count,
+        comment_count,
+        created_at,
+        updated_at,
+        author:users!posts_author_id_fkey (
+          id,
+          name,
+          profile_image
+        ),
+        category:board_categories!posts_category_id_fkey (
+          id,
+          name
+        )
       `)
       .single()
 
     if (error) {
-      console.error('[POSTS API] 수정 실패:', error)
+      console.error('[POST_UPDATE] 게시글 수정 실패:', error)
       return NextResponse.json(
-        { error: '게시물 수정에 실패했습니다.' },
+        { error: '게시글 수정에 실패했습니다.' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({ post })
+    return NextResponse.json({
+      message: '게시글이 성공적으로 수정되었습니다.',
+      post
+    })
 
   } catch (error) {
-    console.error('[POSTS API] 오류:', error)
+    console.error('[POST_UPDATE] 서버 에러:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: '서버 에러가 발생했습니다.' },
       { status: 500 }
     )
   }
 }
 
-// 게시물 삭제
+// 게시글 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     if (!supabaseServer) {
@@ -139,7 +252,7 @@ export async function DELETE(
       )
     }
 
-    const { id } = await params
+    const postId = params.id
 
     // 인증 확인
     const authHeader = request.headers.get('authorization')
@@ -155,32 +268,55 @@ export async function DELETE(
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: '유효하지 않은 인증입니다.' },
+        { error: '인증에 실패했습니다.' },
         { status: 401 }
       )
     }
 
-    // 게시물 삭제
+    // 게시글 존재 및 권한 확인
+    const { data: existingPost, error: fetchError } = await supabaseServer
+      .from('posts')
+      .select('author_id')
+      .eq('id', postId)
+      .eq('status', 'published')
+      .single()
+
+    if (fetchError || !existingPost) {
+      return NextResponse.json(
+        { error: '게시글을 찾을 수 없습니다.' },
+        { status: 404 }
+      )
+    }
+
+    if (existingPost.author_id !== user.id) {
+      return NextResponse.json(
+        { error: '게시글을 삭제할 권한이 없습니다.' },
+        { status: 403 }
+      )
+    }
+
+    // 게시글 삭제 (소프트 삭제)
     const { error } = await supabaseServer
       .from('posts')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id) // 작성자만 삭제 가능
+      .update({ status: 'deleted' })
+      .eq('id', postId)
 
     if (error) {
-      console.error('[POSTS API] 삭제 실패:', error)
+      console.error('[POST_DELETE] 게시글 삭제 실패:', error)
       return NextResponse.json(
-        { error: '게시물 삭제에 실패했습니다.' },
+        { error: '게시글 삭제에 실패했습니다.' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({ message: '게시물이 삭제되었습니다.' })
+    return NextResponse.json({
+      message: '게시글이 성공적으로 삭제되었습니다.'
+    })
 
   } catch (error) {
-    console.error('[POSTS API] 오류:', error)
+    console.error('[POST_DELETE] 서버 에러:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: '서버 에러가 발생했습니다.' },
       { status: 500 }
     )
   }

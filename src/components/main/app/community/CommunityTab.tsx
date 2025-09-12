@@ -10,24 +10,21 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { 
   Plus, 
   MessageSquare, 
   ThumbsUp, 
   User, 
   Clock, 
-  Award,
-  TrendingUp,
   Star,
   Eye,
   Target
 } from 'lucide-react'
 import VerificationGuard from '@/components/common/VerificationGuard'
-import StoryCarousel from './StoryCarousel'
 import FreeBoard from './FreeBoard'
 import { useLanguage } from '@/context/LanguageContext'
 import { useUser } from '@/context/UserContext'
+import { useAuth } from '@/context/AuthContext'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
 
@@ -155,9 +152,17 @@ const mockTodayActivity = {
 }
 
 export default function CommunityTab() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const { user } = useUser()
+  const { token } = useAuth()
   const router = useRouter()
+  
+  // 언어 설정 디버깅
+  console.log('현재 언어 설정:', language)
+  console.log('스토리 번역:', t('community.story'))
+  
+  // 사용자 상태 디버깅
+  console.log('사용자 상태:', { user: !!user, userId: user?.id, token: !!token })
   const searchParams = useSearchParams()
   
   // 탭 상태 관리
@@ -204,23 +209,56 @@ export default function CommunityTab() {
 
   // 데이터 로딩 함수들
   const loadQuestions = async () => {
-    if (!user) return
+    console.log('loadQuestions 호출됨:', { user: !!user, token: !!token, activeTab })
+    if (!user && !token) {
+      console.log('사용자와 토큰이 모두 없어서 loadQuestions 건너뜀')
+      return
+    }
     
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch(`/api/posts?type=question&category=${activeCategory}&language=${t('language')}`)
-      const data = await response.json()
+      // 질문 목록 조회 (자유게시판 카테고리)
+      const category = encodeURIComponent('자유게시판')
+      const url = `/api/posts?category=${category}&sort=latest&limit=20`
+      console.log('API 호출 URL:', url)
+      
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      console.log('질문 목록 API 응답:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok 
+      })
       
       if (!response.ok) {
-        throw new Error(data.error || '질문을 불러오는데 실패했습니다.')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('질문 목록 API 에러 응답:', errorData)
+        throw new Error(errorData.error || `질문을 불러오는데 실패했습니다. (${response.status})`)
       }
       
+      const data = await response.json()
+      console.log('질문 목록 조회 응답:', { 
+        data,
+        postsCount: data.posts?.length || 0
+      })
+      
       setQuestions(data.posts || [])
+      console.log('질문 목록 설정 완료:', data.posts?.length || 0, '개')
     } catch (err) {
       console.error('질문 로딩 실패:', err)
-      setError(err instanceof Error ? err.message : '질문을 불러오는데 실패했습니다.')
+      // 네트워크 에러인 경우 더 자세한 정보 출력
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+        console.error('네트워크 에러 - 서버 연결을 확인해주세요')
+        setError('서버 연결에 실패했습니다. 네트워크를 확인해주세요.')
+      } else {
+        setError(err instanceof Error ? err.message : '질문을 불러오는데 실패했습니다.')
+      }
       // 에러 시 목업 데이터 사용
       setQuestions(mockQuestions)
     } finally {
@@ -247,54 +285,6 @@ export default function CommunityTab() {
     }
   }
 
-  // 질문 작성 함수
-  const handleQuestionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
-    
-    setLoading(true)
-    
-    try {
-      const token = localStorage.getItem('amiko_session')
-      if (!token) {
-        throw new Error('인증 토큰이 없습니다.')
-      }
-
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${JSON.parse(token).access_token}`
-        },
-        body: JSON.stringify({
-          type: 'question',
-          title: questionForm.title,
-          content: questionForm.content,
-          category: questionForm.category,
-          tags: questionForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          language: t('language')
-        })
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.error || '질문 작성에 실패했습니다.')
-      }
-
-      // 성공 시 폼 초기화 및 목록 새로고침
-      setQuestionForm({ title: '', content: '', category: 'free', tags: '' })
-      setShowQuestionModal(false)
-      await loadQuestions()
-      
-      toast.success('질문이 성공적으로 작성되었습니다!')
-    } catch (err) {
-      console.error('질문 작성 실패:', err)
-      toast.error(err instanceof Error ? err.message : '질문 작성에 실패했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   // 답변 작성 함수
   const handleAnswerSubmit = async (e: React.FormEvent) => {
@@ -350,10 +340,12 @@ export default function CommunityTab() {
 
   // 초기 데이터 로딩
   useEffect(() => {
-    if (user && activeTab === 'qa') {
+    console.log('초기 데이터 로딩 useEffect:', { user: !!user, token: !!token, activeTab })
+    if ((user || token) && activeTab === 'qa') {
+      console.log('초기 데이터 로딩 시작')
       loadQuestions()
     }
-  }, [user, activeTab, activeCategory])
+  }, [user, token, activeTab, activeCategory])
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: string) => {
@@ -369,10 +361,16 @@ export default function CommunityTab() {
   const filteredQuestions = questions.filter(question => {
     const matchesCategory = activeCategory === 'all' || question.category === activeCategory
     const matchesSearch = question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         question.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (question.tags && question.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+                         question.content.toLowerCase().includes(searchTerm.toLowerCase())
     
     return matchesCategory && matchesSearch
+  })
+
+  console.log('질문 목록 상태:', { 
+    totalQuestions: questions.length, 
+    filteredQuestions: filteredQuestions.length, 
+    activeCategory, 
+    searchTerm 
   })
 
   // 질문 작성 처리
@@ -383,22 +381,49 @@ export default function CommunityTab() {
     }
 
     try {
+      // 토큰 확인 및 가져오기
+      let currentToken = token
+      
+      if (!currentToken) {
+        // localStorage에서 토큰 가져오기 시도
+        try {
+          const storedSession = localStorage.getItem('amiko_session')
+          if (storedSession) {
+            const sessionData = JSON.parse(storedSession)
+            currentToken = sessionData.access_token
+          }
+        } catch (error) {
+          console.error('토큰 파싱 실패:', error)
+        }
+      }
+      
+      if (!currentToken) {
+        alert('로그인이 필요합니다.')
+        return
+      }
+
+      console.log('질문 작성 시도:', { title: questionForm.title, token: !!currentToken })
+
       // 게시물 생성 API 호출
       const response = await fetch('/api/posts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentToken}`
+        },
         body: JSON.stringify({
-          type: 'question',
           title: questionForm.title,
           content: questionForm.content,
-          category: questionForm.category,
-          tags: questionForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          language: 'ko'
+          category_name: '자유게시판', // 질문은 자유게시판에 작성
+          is_notice: false,
+          is_survey: false
         })
       })
 
       if (!response.ok) {
-        throw new Error('게시물 생성에 실패했습니다.')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('게시물 생성 API 오류:', response.status, errorData)
+        throw new Error(`게시물 생성에 실패했습니다. (${response.status}: ${errorData.error || 'Unknown error'})`)
       }
 
       const result = await response.json()
@@ -406,6 +431,8 @@ export default function CommunityTab() {
 
       // 포인트 획득 시도
       if (user?.id) {
+        console.log('포인트 획득 시도:', { userId: user.id, postId: result.post.id })
+        
         const pointsResponse = await fetch('/api/points', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -417,9 +444,15 @@ export default function CommunityTab() {
           })
         })
 
+        console.log('포인트 API 응답:', { status: pointsResponse.status, statusText: pointsResponse.statusText })
+
         if (pointsResponse.ok) {
           const pointsResult = await pointsResponse.json()
+          console.log('포인트 획득 성공:', pointsResult)
           alert(`질문이 등록되었습니다! +${pointsResult.pointsAdded}점 획득!`)
+          
+          // 질문 목록 새로고침
+          await loadQuestions()
           
           // 포인트 업데이트 이벤트 발생
           window.dispatchEvent(new CustomEvent('pointsUpdated', {
@@ -428,6 +461,24 @@ export default function CommunityTab() {
               dailyPoints: pointsResult.dailyPoints
             }
           }))
+        } else {
+          const errorData = await pointsResponse.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('포인트 획득 실패:', errorData)
+          alert('질문이 등록되었습니다! (포인트 획득 실패)')
+          
+          // 포인트 획득 실패해도 질문은 등록되었으므로 목록 새로고침
+          await loadQuestions()
+        }
+      } else {
+        console.log('사용자 ID가 없어서 포인트 획득 건너뜀')
+        alert('질문이 등록되었습니다!')
+        console.log('질문 작성 후 목록 새로고침 시작')
+        // 토큰이 있으면 목록 새로고침
+        if (token) {
+          await loadQuestions()
+          console.log('질문 작성 후 목록 새로고침 완료')
+        } else {
+          console.log('토큰이 없어서 목록 새로고침 건너뜀')
         }
       }
 
@@ -572,14 +623,38 @@ export default function CommunityTab() {
     }
 
     try {
+      // 토큰 확인 및 가져오기
+      let currentToken = token
+      
+      if (!currentToken) {
+        // localStorage에서 토큰 가져오기 시도
+        try {
+          const storedSession = localStorage.getItem('amiko_session')
+          if (storedSession) {
+            const sessionData = JSON.parse(storedSession)
+            currentToken = sessionData.access_token
+          }
+        } catch (error) {
+          console.error('토큰 파싱 실패:', error)
+        }
+      }
+      
+      if (!currentToken) {
+        alert('로그인이 필요합니다.')
+        return
+      }
+
+      console.log('답변 작성 시도:', { questionId: selectedQuestion.id, token: !!currentToken })
+
       // 댓글 생성 API 호출
-      const response = await fetch('/api/comments', {
+      const response = await fetch(`/api/posts/${selectedQuestion.id}/comments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentToken}`
+        },
         body: JSON.stringify({
-          postId: selectedQuestion.id,
-          content: answerForm.content,
-          language: 'ko'
+          content: answerForm.content
         })
       })
 
@@ -607,6 +682,9 @@ export default function CommunityTab() {
           const pointsResult = await pointsResponse.json()
           alert(`답변이 등록되었습니다! +${pointsResult.pointsAdded}점 획득!`)
           
+          // 답변 목록 새로고침
+          await loadAnswers(selectedQuestion.id)
+          
           // 포인트 업데이트 이벤트 발생
           window.dispatchEvent(new CustomEvent('pointsUpdated', {
             detail: {
@@ -615,6 +693,10 @@ export default function CommunityTab() {
             }
           }))
         }
+      } else {
+        // 포인트 획득 실패해도 답변은 등록되었으므로 목록 새로고침
+        alert('답변이 등록되었습니다!')
+        await loadAnswers(selectedQuestion.id)
       }
 
       // 폼 초기화
@@ -655,83 +737,55 @@ export default function CommunityTab() {
           className="mb-6"
         />
 
-        {/* 통합 점수판 */}
-        <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200/50 mb-6 shadow-lg">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Star className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                  <h3 className="text-lg font-semibold text-gray-800">{t('community.title')}</h3>
-                  <p className="text-sm text-gray-600">{t('community.subtitle')}</p>
+
+
+      {/* 오늘의 스토리 섹션 */}
+      <div className="mt-8 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-red-500" />
+            <h2 className="text-lg font-bold text-gray-800 font-['Inter']">오늘의 스토리</h2>
+          </div>
+          <Button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm font-['Inter']">
+            + 스토리 올리기
+          </Button>
+        </div>
+        
+        {/* 스토리 캐러셀 */}
+        <div className="overflow-x-auto">
+          <div className="flex gap-4 pb-4" style={{ width: 'max-content' }}>
+            {/* 스토리 카드들 */}
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="flex-shrink-0 w-48 bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="relative h-32 bg-gradient-to-br from-purple-100 to-pink-100">
+                  <div className="absolute top-2 right-2 bg-black/20 text-white text-xs px-2 py-1 rounded-full">
+                    {24 - item}시간
                   </div>
                 </div>
-              <Badge className={`px-3 py-1 text-sm ${
-                currentProfile?.is_korean ? 'bg-purple-100 text-purple-700 border-purple-300' : 'bg-pink-100 text-pink-700 border-pink-300'
-              }`}>
-                {currentProfile?.is_korean ? t('community.userType.korean') : t('community.userType.latin')}
-              </Badge>
+                <div className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full"></div>
+                    <span className="text-sm font-medium text-gray-800">사용자{item}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-2">스토리 내용...</p>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>오후 02:20</span>
+                    <span>24시간 후 삭제</span>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Button variant="ghost" size="sm" className="text-xs h-6">좋아요</Button>
+                    <Button variant="ghost" size="sm" className="text-xs h-6">댓글</Button>
+                  </div>
+                </div>
               </div>
-              
-            {/* 포인트 획득 규칙 */}
-            <div className="bg-white/60 rounded-lg p-4 mb-4">
-              <h4 className="font-semibold text-gray-800 mb-3 text-sm">{t('community.pointRules')}</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">💬</span>
-                  <div>
-                    <div className="font-medium">{t('community.askQuestion')}</div>
-                    <div className="text-purple-600">+5{t('community.points')}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-base">💬</span>
-                  <div>
-                    <div className="font-medium">{t('community.writeAnswer')}</div>
-                    <div className="text-purple-600">+5{t('community.points')}</div>
-                    </div>
-                  </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-base">📖</span>
-                  <div>
-                    <div className="font-medium">{t('community.writeStory')}</div>
-                    <div className="text-purple-600">+5{t('community.points')}</div>
-                  </div>
-                </div>
-                  <div className="flex items-center gap-2">
-                  <span className="text-base">📝</span>
-                    <div>
-                    <div className="font-medium">{t('community.freeBoard')}</div>
-                    <div className="text-purple-600">+2{t('community.points')}</div>
-                    </div>
-                  </div>
-                </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-3 bg-white/60 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{user?.points || 0}</div>
-                <div className="text-sm text-purple-600">{t('community.totalPoints')}</div>
-              </div>
-              <div className="text-center p-3 bg-white/60 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">+{user?.daily_points || 0}</div>
-                <div className="text-sm text-green-600">{t('community.todayAcquisition')}</div>
-              </div>
-              <div className="text-center p-3 bg-white/60 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
-                  {pointSystem[currentProfile?.is_korean ? 'korean' : 'latin'].dailyLimit - (user?.daily_points || 0)}
-                </div>
-                <div className="text-sm text-orange-600">{t('community.remainingLimit')}</div>
-              </div>
+            ))}
           </div>
         </div>
-      </Card>
+      </div>
 
-        {/* 세그먼트 탭 네비게이션 */}
-      <div className="bg-white rounded-2xl p-1 shadow-lg">
-        <div className="grid grid-cols-4 gap-1">
+      {/* 세그먼트 탭 네비게이션 */}
+      <div className="bg-white rounded-2xl p-1 shadow-lg mb-6">
+        <div className="grid grid-cols-3 gap-1">
           <button
             onClick={() => handleTabChange('qa')}
             className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -761,20 +815,6 @@ export default function CommunityTab() {
           </button>
           
           <button
-            onClick={() => handleTabChange('story')}
-            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'story'
-                ? 'bg-purple-100 text-purple-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base">📖</span>
-              <span className="hidden sm:inline text-xs">{t('community.story')}</span>
-          </div>
-          </button>
-          
-          <button
             onClick={() => handleTabChange('news')}
             className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeTab === 'news'
@@ -791,14 +831,6 @@ export default function CommunityTab() {
           </div>
 
       {/* 탭 컨텐츠 */}
-      {activeTab === 'story' && (
-        <div className="space-y-6">
-          {/* 스토리 섹션 */}
-          <StoryCarousel />
-          
-
-        </div>
-      )}
 
       {activeTab === 'qa' && (
         <div className="space-y-6">
@@ -950,20 +982,22 @@ export default function CommunityTab() {
                       
                       <p className="text-gray-600 mb-3 line-clamp-2">{question.preview}</p>
                       
-                      {/* 태그 */}
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {question.tags.map((tag, tagIndex) => (
-                          <Badge key={tagIndex} variant="outline" className="text-xs border-purple-200 text-purple-700">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+                      {/* 태그 - 현재 비활성화 */}
+                      {/* {question.tags && question.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {question.tags.map((tag, tagIndex) => (
+                            <Badge key={tagIndex} variant="outline" className="text-xs border-purple-200 text-purple-700">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )} */}
                       
                       {/* 메타 정보 */}
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
                           <User className="w-4 h-4" />
-                          <span>{question.author}</span>
+                          <span>{question.author?.full_name || question.author || '익명'}</span>
                           <Badge className={`ml-2 text-xs ${
                             question.authorType === 'korean' 
                               ? 'bg-purple-100 text-purple-700 border-purple-300' 
@@ -1079,7 +1113,7 @@ export default function CommunityTab() {
                   <div className="p-4 bg-gray-50 rounded-lg !opacity-100">
                     <p className="text-gray-700 mb-3">{selectedQuestion.preview}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span>{selectedQuestion.author}</span>
+                      <span>{selectedQuestion.author?.full_name || selectedQuestion.author || '익명'}</span>
                       <span>{formatTime(selectedQuestion.createdAt)}</span>
                       <span>{selectedQuestion.views} 조회</span>
                     </div>
@@ -1114,7 +1148,7 @@ export default function CommunityTab() {
                             <div className="flex-1">
                               <p className="text-gray-700 mb-2">{answer.content}</p>
                               <div className="flex items-center gap-3 text-sm text-gray-500">
-                                <span>{answer.author}</span>
+                                <span>{answer.author?.full_name || answer.author || '익명'}</span>
                                 <span>{formatTime(answer.createdAt)}</span>
                                 {answer.isAccepted && (
                                   <Badge className="bg-green-100 text-green-700 border-green-300">

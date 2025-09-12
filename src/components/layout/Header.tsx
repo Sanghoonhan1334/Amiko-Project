@@ -5,9 +5,10 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Globe, LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings } from 'lucide-react'
+import { LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import NotificationBell from '@/components/notifications/NotificationBell'
 
 export default function Header() {
   const router = useRouter()
@@ -23,6 +24,12 @@ export default function Header() {
   
   // 네비게이션 활성 상태 관리
   const [activeNavItem, setActiveNavItem] = useState(pathname)
+
+  // 인증 상태 관리
+  const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
+  
+  // 포인트 상태 관리
+  const [userPoints, setUserPoints] = useState(0)
 
   // 랜딩페이지와 메인페이지 구분
   const isLandingPage = pathname === '/' || pathname === '/about'
@@ -53,6 +60,42 @@ export default function Header() {
       return () => clearTimeout(timer)
     }
   }, [isLandingPage])
+
+  // 인증 상태 및 포인트 확인
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      if (!user?.id) {
+        setVerificationStatus('unverified')
+        setUserPoints(0)
+        return
+      }
+
+      try {
+        // 인증 상태 확인
+        const verificationResponse = await fetch(`/api/verification?userId=${user.id}`)
+        const verificationResult = await verificationResponse.json()
+
+        if (verificationResponse.ok && verificationResult.verification?.status === 'approved') {
+          setVerificationStatus('verified')
+        } else {
+          setVerificationStatus('unverified')
+        }
+
+        // 포인트 정보 가져오기
+        const pointsResponse = await fetch(`/api/points?userId=${user.id}`)
+        if (pointsResponse.ok) {
+          const pointsData = await pointsResponse.json()
+          setUserPoints(pointsData.totalPoints || 0)
+        }
+      } catch (error) {
+        console.error('인증 상태 및 포인트 확인 오류:', error)
+        setVerificationStatus('unverified')
+        setUserPoints(0)
+      }
+    }
+
+    checkVerificationStatus()
+  }, [user?.id])
 
   // 모바일 메뉴 토글
   const toggleMobileMenu = () => {
@@ -85,7 +128,7 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await signOut()
-      router.push('/')
+      // signOut 함수에서 이미 페이지 이동을 처리함
     } catch (error) {
       console.error('로그아웃 오류:', error)
     }
@@ -107,7 +150,6 @@ export default function Header() {
                   className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
                   title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
                 >
-                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
                   <span className="text-xs md:text-sm font-medium">
                     {language === 'ko' ? t('korean') : t('spanish')}
                   </span>
@@ -123,7 +165,6 @@ export default function Header() {
                   className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
                   title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
                 >
-                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-gray-600" />
                   <span className="text-xs md:text-sm font-medium">
                     {language === 'ko' ? t('korean') : t('spanish')}
                   </span>
@@ -132,47 +173,24 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 z-10 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 z-0 flex flex-col items-center">
               {/* 로고 */}
-              {isLandingPage ? (
-                <div className="cursor-default">
-                  <img 
-                    src="/amiko-foto.png" 
-                    alt="Amiko" 
-                    className="h-40 w-auto object-contain transition-all duration-300"
-                    style={{ 
-                      maxHeight: '160px'
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="relative">
-                  <img 
-                    src="/amiko-foto.png" 
-                    alt="Amiko" 
-                    className="h-40 w-auto object-contain transition-all duration-300"
-                    style={{ 
-                      maxHeight: '160px'
-                    }}
-                  />
-                  {/* 작은 클릭 영역만 버튼으로 만들기 */}
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault()
-                      router.push('/')
-                    }}
-                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-transparent hover:bg-black hover:bg-opacity-10 rounded-full transition-all duration-300 cursor-pointer"
-                    title="홈으로 이동"
-                  >
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                  </button>
-                </div>
-              )}
+              <div 
+                className="cursor-pointer hover:opacity-80 transition-all duration-300"
+                onClick={() => router.push('/')}
+              >
+                <img 
+                  src="/amiko-foto.png" 
+                  alt="Amiko" 
+                  className="h-40 w-auto object-contain transition-all duration-300"
+                  style={{ 
+                    maxHeight: '160px'
+                  }}
+                />
+              </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex space-x-8 -mt-10">
+              <nav className="hidden md:flex space-x-8 -mt-10 relative z-20">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
@@ -182,7 +200,7 @@ export default function Header() {
                         setActiveNavItem('/')
                         router.push('/')
                       }}
-                      className={`font-semibold transition-all duration-300 ${
+                      className={`font-semibold transition-all duration-300 relative z-30 ${
                         activeNavItem === '/'
                           ? 'text-blue-600 scale-110'
                           : 'text-gray-800 hover:text-gray-600'
@@ -196,7 +214,7 @@ export default function Header() {
                         setActiveNavItem('/about')
                         router.push('/about')
                       }}
-                      className={`font-semibold transition-all duration-300 ${
+                      className={`font-semibold transition-all duration-300 relative z-30 ${
                         activeNavItem === '/about' 
                           ? 'text-blue-600 scale-110' 
                           : 'text-gray-800 hover:text-gray-600'
@@ -210,7 +228,7 @@ export default function Header() {
                         setActiveNavItem('/inquiry')
                         router.push('/inquiry')
                       }}
-                      className={`font-semibold transition-all duration-300 ${
+                      className={`font-semibold transition-all duration-300 relative z-30 ${
                         activeNavItem === '/inquiry' 
                           ? 'text-blue-600 scale-110' 
                           : 'text-gray-800 hover:text-gray-600'
@@ -224,7 +242,7 @@ export default function Header() {
                         setActiveNavItem('/partnership')
                         router.push('/partnership')
                       }}
-                      className={`font-semibold transition-all duration-300 ${
+                      className={`font-semibold transition-all duration-300 relative z-30 ${
                         activeNavItem === '/partnership' 
                           ? 'text-blue-600 scale-110' 
                           : 'text-gray-800 hover:text-gray-600'
@@ -294,52 +312,93 @@ export default function Header() {
 
             {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
             <div className="flex items-center space-x-4">
-              {/* 로그아웃 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
+              {/* 로그인/로그아웃 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
               {isMainPage && (
-                <button 
-                  onClick={() => handleLogout()}
-                  className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500"
-                >
-                  {t('headerNav.logout')}
-                </button>
-              )}
-              {/* 내정보 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
-              {isMainPage && (
-                <button 
-                  onClick={() => handleMainNavClick('me')}
-                  className={`hidden md:block font-semibold transition-all duration-300 drop-shadow-lg ${
-                    activeMainTab === 'me' 
-                      ? 'text-sky-500 scale-110' 
-                      : 'text-gray-800 hover:text-sky-500'
-                  }`}
-                >
-                  {t('headerNav.myInfo')}
-                </button>
+                <>
+                  {user ? (
+                    <button 
+                      onClick={() => handleLogout()}
+                      className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500"
+                    >
+                      {t('headerNav.logout')}
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => router.push('/sign-in')}
+                      className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-blue-500"
+                    >
+                      로그인
+                    </button>
+                  )}
+                </>
               )}
 
-              {/* 알림 버튼 - 메인페이지에서만 표시 (모든 화면 크기) */}
-              {isMainPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
-                >
-                  <Bell className="w-5 h-5 text-gray-600" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-                    3
-                  </Badge>
-                </Button>
-              )}
-
-              {/* 프로필 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
+              {/* 우측 상단 영역 - 세로 배치 */}
               {isMainPage && user && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden md:block p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
-                >
-                  <Users className="w-5 h-5 text-gray-600" />
-                </Button>
+                <div className="hidden md:flex flex-col items-end gap-1">
+                  {/* 포인트 표시 - 최상단 */}
+                  {verificationStatus === 'verified' && (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 shadow-sm mb-1">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-white font-bold font-['Inter']">★</span>
+                      </div>
+                      <span className="text-xs text-purple-700 font-medium">{userPoints}P</span>
+                    </div>
+                  )}
+                  
+                  {/* 상단 버튼들 - 가로 배치 */}
+                  <div className="flex items-center gap-1">
+                    {/* 알림 버튼 */}
+                    <NotificationBell />
+                    
+                    {/* 프로필 버튼 */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleMainNavClick('me')}
+                      className={`p-2 rounded-full hover:bg-gray-100 transition-all duration-300 ${
+                        activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
+                      }`}
+                    >
+                      <Users className="w-5 h-5 text-gray-600" />
+                    </Button>
+                  </div>
+                  
+                  {/* 인증 상태 표시 */}
+                  <div className="flex items-center gap-2">
+                    {verificationStatus === 'loading' ? (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-full border border-gray-200">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-gray-600 font-medium">확인 중...</span>
+                      </div>
+                    ) : verificationStatus === 'verified' ? (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-emerald-50 to-green-50 rounded-full border border-emerald-200 shadow-sm">
+                        <div className="flex items-center justify-center w-3 h-3 bg-emerald-500 rounded-full">
+                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-xs text-emerald-700 font-medium">인증 완료</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-full border border-amber-200">
+                        <div className="flex items-center justify-center w-3 h-3 bg-amber-500 rounded-full">
+                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-xs text-amber-700 font-medium">인증 필요</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 모바일용 알림 버튼 - 모바일에서만 표시 */}
+              {isMainPage && (
+                <div className="md:hidden">
+                  <NotificationBell />
+                </div>
               )}
 
               {/* 모바일 메뉴 버튼 - 모든 페이지에서 표시 */}
@@ -521,7 +580,7 @@ export default function Header() {
                     }`}
                   >
                     <span className="text-base">👤</span>
-                    {t('headerNav.myInfo')}
+                    내 정보
                   </button>
                   <button
                     onClick={() => {
@@ -576,15 +635,13 @@ export default function Header() {
             {/* 알림과 프로필 - 메인페이지에서만 표시 */}
             {isMainPage && (
               <div className="space-y-1">
-                <button
-                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full text-left"
-                >
+                <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full">
                   <Bell className="w-5 h-5" />
                   알림
-                  <Badge className="ml-auto h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-                    3
-                  </Badge>
-                </button>
+                  <div className="ml-auto">
+                    <NotificationBell />
+                  </div>
+                </div>
                 {user && (
                   <button
                     className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full text-left"
@@ -605,7 +662,6 @@ export default function Header() {
                 onClick={toggleLanguage}
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full text-left"
               >
-                <Globe className="w-5 h-5" />
                 {language === 'ko' ? t('korean') : t('spanish')}
               </button>
             </div>

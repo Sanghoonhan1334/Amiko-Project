@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -16,539 +16,802 @@ import {
   Eye,
   User,
   Clock,
-  Award,
+  Trophy,
   TrendingUp,
   Star,
   Search,
-  Filter,
-  Edit,
-  Trash2,
-  Flag,
   Pin
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { createClientComponentClient } from '@/lib/supabase'
 import PostDetail from './PostDetail'
 
 // 게시글 타입 정의
 interface Post {
-  id: number
+  id: string
   title: string
   content: string
-  author: string
-  authorType: 'korean' | 'latin'
-  category: string
-  views: number
-  likes: number
-  dislikes: number
-  comments: number
-  createdAt: string
-  isNotice: boolean
-  isBest: boolean
-  isSurvey: boolean
-  isVerified: boolean
-  tags: string[]
+  is_notice: boolean
+  is_survey: boolean
+  is_verified: boolean
+  is_pinned: boolean
+  view_count: number
+  like_count: number
+  dislike_count: number
+  comment_count: number
+  created_at: string
+  updated_at: string
+  author: {
+    id: string
+    full_name: string
+    profile_image?: string
+  }
+  category?: {
+    id: string
+    name: string
+  }
 }
 
-// 목업 데이터
-const mockPosts: Post[] = [
-  {
-    id: 929,
-    title: '여러분이 가장 좋아하는 K-pop 그룹은? 💕',
-    content: '안녕하세요! K-pop 팬 여러분들~ 저는 블랙핑크를 가장 좋아하는데, 여러분은 어떤 그룹을 가장 좋아하시나요? 그리고 그 이유도 함께 공유해주세요! 저는 블핑의 무대 매너와 퍼포먼스가 정말 대박이라고 생각해요 ✨',
-    author: '블핑러버',
-    authorType: 'korean',
-    category: 'survey',
-    views: 156,
-    likes: 23,
-    dislikes: 2,
-    comments: 45,
-    createdAt: '2024-09-01T10:30:00Z',
-    isNotice: false,
-    isBest: true,
-    isSurvey: true,
-    isVerified: true,
-    tags: ['설문', 'K-pop', '블랙핑크']
-  },
-  {
-    id: 928,
-    title: '뉴진스 하니의 새 앨범 너무 좋아요! [4]',
-    content: '뉴진스 하니의 솔로 앨범 나왔는데 정말 너무 좋아요! 특히 타이틀곡이 너무 예뻐서 계속 듣고 있어요. 다들 어떻게 생각하시나요? 🎵',
-    author: '뉴진스팬',
-    authorType: 'korean',
-    category: 'entertainment',
-    views: 89,
-    likes: 12,
-    dislikes: 1,
-    comments: 4,
-    createdAt: '2024-08-31T15:20:00Z',
-    isNotice: false,
-    isBest: false,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['뉴진스', '하니', '솔로앨범']
-  },
-  {
-    id: 927,
-    title: 'BTS 콘서트 티켓 예매 성공했어요! 🎉',
-    content: '드디어 BTS 콘서트 티켓 예매에 성공했어요! 정말 너무 기뻐서 소리질렀어요 ㅠㅠ 다들 응원해주세요! 어떤 곡을 가장 기대하시나요?',
-    author: '아미',
-    authorType: 'latin',
-    category: 'entertainment',
-    views: 67,
-    likes: 8,
-    dislikes: 0,
-    comments: 12,
-    createdAt: '2024-08-31T12:15:00Z',
-    isNotice: false,
-    isBest: false,
-    isSurvey: false,
-    isVerified: true,
-    tags: ['BTS', '콘서트', '티켓']
-  },
-  {
-    id: 926,
-    title: '아이브 안유진이 정말 예뻐요 💖',
-    content: '아이브 안유진이 정말 너무 예쁘고 귀여워요! 특히 최근 뮤직뱅크 MC하면서 보여준 모습이 정말 대박이었어요. 다들 어떻게 생각하시나요?',
-    author: '아이브러버',
-    authorType: 'korean',
-    category: 'entertainment',
-    views: 234,
-    likes: 45,
-    dislikes: 3,
-    comments: 23,
-    createdAt: '2024-08-31T09:45:00Z',
-    isNotice: false,
-    isBest: true,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['아이브', '안유진', 'MC']
-  },
-  {
-    id: 925,
-    title: '르세라핌 카즈하 한국어 실력 대박! 🇯🇵',
-    content: '르세라핌 카즈하가 한국어를 정말 잘하네요! 최근 인터뷰에서 보여준 한국어 실력이 정말 대단해요. 일본인인데 한국어를 이렇게 잘할 수 있다니... 정말 존경스러워요!',
-    author: '르세라핌팬',
-    authorType: 'korean',
-    category: 'entertainment',
-    views: 189,
-    likes: 34,
-    dislikes: 1,
-    comments: 8,
-    createdAt: '2024-08-30T16:30:00Z',
-    isNotice: false,
-    isBest: true,
-    isSurvey: false,
-    isVerified: true,
-    tags: ['르세라핌', '카즈하', '한국어']
-  },
-  {
-    id: 924,
-    title: '세븐틴 호시 댄스 실력 정말 대단해요! 💃',
-    content: '세븐틴 호시의 댄스 실력이 정말 대단해요! 특히 최근 무대에서 보여준 퍼포먼스가 정말 압도적이었어요. 다들 어떻게 생각하시나요?',
-    author: '캐럿',
-    authorType: 'korean',
-    category: 'entertainment',
-    views: 445,
-    likes: 67,
-    dislikes: 12,
-    comments: 89,
-    createdAt: '2024-08-30T14:20:00Z',
-    isNotice: false,
-    isBest: true,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['세븐틴', '호시', '댄스']
-  },
-  {
-    id: 923,
-    title: '투모로우바이투게더 콘서트 후기 🎤',
-    content: '어제 투모로우바이투게더 콘서트 다녀왔어요! 정말 너무 좋았고, 특히 마지막 앵콜 무대가 정말 감동적이었어요. 다들 꼭 가보시길 추천드려요!',
-    author: '모아',
-    authorType: 'korean',
-    category: 'entertainment',
-    views: 567,
-    likes: 89,
-    dislikes: 23,
-    comments: 156,
-    createdAt: '2024-08-30T11:10:00Z',
-    isNotice: false,
-    isBest: true,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['투모로우바이투게더', '콘서트', '후기']
-  },
-  {
-    id: 922,
-    title: '에스파 윈터 새 드라마 너무 기대돼요! [1]',
-    content: '에스파 윈터가 새 드라마에 출연한다고 하네요! 정말 너무 기대돼요. 어떤 역할을 맡을지 궁금해요. 다들 어떻게 생각하시나요?',
-    author: '마이',
-    authorType: 'latin',
-    category: 'entertainment',
-    views: 78,
-    likes: 15,
-    dislikes: 0,
-    comments: 1,
-    createdAt: '2024-08-30T09:30:00Z',
-    isNotice: false,
-    isBest: false,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['에스파', '윈터', '드라마']
-  },
-  {
-    id: 921,
-    title: '새벽에 K-pop 노래 들으면서 공부 중 📚',
-    content: '새벽에 K-pop 노래 들으면서 공부하고 있어요. 특히 BTS의 "Butter"가 정말 좋아요! 다들 어떤 곡 들으면서 공부하시나요?',
-    author: '공부하는팬',
-    authorType: 'korean',
-    category: 'daily',
-    views: 45,
-    likes: 7,
-    dislikes: 0,
-    comments: 3,
-    createdAt: '2024-08-28T01:47:00Z',
-    isNotice: false,
-    isBest: false,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['K-pop', '공부', 'BTS']
-  },
-  {
-    id: 920,
-    title: 'K-pop 팬 여러분들! 팬미팅 꿈꿔보신 적 있나요? 💭',
-    content: 'K-pop 팬 여러분들! 혹시 본인이 좋아하는 아이돌과 팬미팅을 할 수 있다면 어떤 말을 하고 싶으신가요? 저는 정말 궁금해요!',
-    author: '꿈꾸는팬',
-    authorType: 'korean',
-    category: 'daily',
-    views: 234,
-    likes: 56,
-    dislikes: 2,
-    comments: 34,
-    createdAt: '2024-08-27T20:15:00Z',
-    isNotice: false,
-    isBest: true,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['K-pop', '팬미팅', '꿈']
-  },
-  {
-    id: 919,
-    title: 'K-pop이 제일 좋아요! 🌟',
-    content: 'K-pop이 정말 세계 최고라고 생각해요! 특히 한국 아이돌들의 실력과 열정이 정말 대단해요. 다들 어떻게 생각하시나요?',
-    author: 'K-pop러버',
-    authorType: 'korean',
-    category: 'entertainment',
-    views: 678,
-    likes: 123,
-    dislikes: 45,
-    comments: 234,
-    createdAt: '2024-08-27T18:30:00Z',
-    isNotice: false,
-    isBest: true,
-    isSurvey: false,
-    isVerified: false,
-    tags: ['K-pop', '아이돌', '열정']
+interface PostListResponse {
+  posts: Post[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
   }
-]
+}
 
 export default function FreeBoard() {
-  const { user } = useAuth()
+  const { user, session, token } = useAuth()
   const { t } = useLanguage()
+  const supabase = createClientComponentClient()
   
   // 상태 관리
-  const [activeTab, setActiveTab] = useState<'all' | 'best' | 'notice'>('all')
   const [posts, setPosts] = useState<Post[]>([])
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [postsPerPage] = useState(20)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<'date' | 'views' | 'likes'>('date')
-  const [showWriteModal, setShowWriteModal] = useState(false)
-  const [newPost, setNewPost] = useState({
-    title: '',
-    content: '',
-    category: 'daily'
-  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const [showPostDetail, setShowPostDetail] = useState(false)
+  const [showWriteDialog, setShowWriteDialog] = useState(false)
+  
+  // 필터 및 검색
+  const [currentCategory, setCurrentCategory] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('latest')
+  const [currentPage, setCurrentPage] = useState(1)
+  
+  // 게시글 작성
+  const [writeTitle, setWriteTitle] = useState('')
+  const [writeContent, setWriteContent] = useState('')
+  const [writeCategory, setWriteCategory] = useState('자유게시판')
+  const [writeIsNotice, setWriteIsNotice] = useState(false)
+  const [writeIsSurvey, setWriteIsSurvey] = useState(false)
+  const [writeSurveyOptions, setWriteSurveyOptions] = useState(['', ''])
+  const [writeLoading, setWriteLoading] = useState(false)
+  
+  // 파일 첨부
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
+  const [filePreviews, setFilePreviews] = useState<string[]>([])
 
-  // 초기 데이터 로드
-  useEffect(() => {
-    setPosts(mockPosts)
-  }, [])
+  // 파일 첨부 핸들러
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
 
-  // 필터링 및 정렬
-  useEffect(() => {
-    let filtered = [...posts]
-
-    // 탭별 필터링
-    if (activeTab === 'best') {
-      filtered = filtered.filter(post => post.isBest)
-    } else if (activeTab === 'notice') {
-      filtered = filtered.filter(post => post.isNotice)
-    }
-
-    // 검색 필터링
-    if (searchTerm) {
-      filtered = filtered.filter(post => 
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.author.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-
-    // 정렬
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'date':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        case 'views':
-          return b.views - a.views
-        case 'likes':
-          return b.likes - a.likes
-        default:
-          return 0
+    // 파일 크기 제한 (10MB)
+    const maxSize = 10 * 1024 * 1024
+    const validFiles = files.filter(file => {
+      if (file.size > maxSize) {
+        alert(`${file.name}은(는) 10MB를 초과합니다.`)
+        return false
       }
+      return true
     })
 
-    setFilteredPosts(filtered)
-    setCurrentPage(1)
-  }, [posts, activeTab, searchTerm, sortBy])
+    if (validFiles.length === 0) return
 
-  // 페이지네이션
-  const indexOfLastPost = currentPage * postsPerPage
-  const indexOfFirstPost = indexOfLastPost - postsPerPage
-  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost)
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage)
-
-  // 글쓰기 처리
-  const handleWritePost = () => {
-    if (!newPost.title.trim() || !newPost.content.trim()) {
-      alert('제목과 내용을 모두 입력해주세요.')
+    // 최대 5개 파일 제한
+    if (attachedFiles.length + validFiles.length > 5) {
+      alert('최대 5개까지 파일을 첨부할 수 있습니다.')
       return
     }
 
-    const post: Post = {
-      id: Math.max(...posts.map(p => p.id)) + 1,
-      title: newPost.title,
-      content: newPost.content,
-      author: user?.user_metadata?.full_name || '익명',
-      authorType: user?.user_metadata?.is_korean ? 'korean' : 'latin',
-      category: newPost.category,
-      views: 0,
-      likes: 0,
-      dislikes: 0,
-      comments: 0,
-      createdAt: new Date().toISOString(),
-      isNotice: false,
-      isBest: false,
-      isSurvey: false,
-      isVerified: false,
-      tags: []
+    setAttachedFiles(prev => [...prev, ...validFiles])
+    
+    // 이미지 미리보기 생성
+    validFiles.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          setFilePreviews(prev => [...prev, e.target?.result as string])
+        }
+        reader.readAsDataURL(file)
+      } else {
+        setFilePreviews(prev => [...prev, ''])
+      }
+    })
+  }
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index))
+    setFilePreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) return '🖼️'
+    if (file.type.startsWith('video/')) return '🎥'
+    if (file.type.includes('pdf')) return '📄'
+    if (file.type.includes('word') || file.type.includes('document')) return '📝'
+    if (file.type.includes('excel') || file.type.includes('spreadsheet')) return '📊'
+    if (file.type.includes('powerpoint') || file.type.includes('presentation')) return '📈'
+    return '📎'
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  // 게시글 목록 조회
+  const fetchPosts = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10',
+        sort: sortBy
+      })
+
+      if (currentCategory !== 'all') {
+        params.append('category', encodeURIComponent(currentCategory))
+      }
+
+      if (searchQuery.trim()) {
+        params.append('search', searchQuery.trim())
+      }
+
+      console.log('게시글 목록 요청:', {
+        currentCategory,
+        searchQuery,
+        sortBy,
+        currentPage,
+        url: `/api/posts?${params}`
+      })
+
+      const response = await fetch(`/api/posts?${params}`)
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('API Error:', response.status, errorData)
+        throw new Error(`게시글 목록을 불러오는데 실패했습니다. (${response.status}: ${errorData.error || 'Unknown error'})`)
+      }
+
+      const data: PostListResponse = await response.json()
+      console.log('게시글 목록 응답:', data)
+      console.log('첫 번째 게시글의 작성자 정보:', data.posts[0]?.author)
+      setPosts(data.posts)
+    } catch (err) {
+      console.error('게시글 목록 조회 실패:', err)
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 게시글 작성
+  const handleWritePost = async () => {
+    if (!user) {
+      setError('로그인이 필요합니다.')
+      return
     }
 
-    setPosts(prev => [post, ...prev])
-    setNewPost({ title: '', content: '', category: 'daily' })
-    setShowWriteModal(false)
+    if (!writeTitle.trim() || !writeContent.trim()) {
+      setError('제목과 내용을 입력해주세요.')
+      return
+    }
+
+    // 공지사항 작성 권한 체크 (임시로 이메일로 확인)
+    if (writeIsNotice) {
+      const userEmail = user.email || ''
+      const isAdmin = userEmail.includes('admin') || userEmail.includes('@amiko.com')
+      if (!isAdmin) {
+        setError('공지사항은 운영자만 작성할 수 있습니다.')
+        return
+      }
+    }
+
+    // 설문조사 선택지 검증
+    if (writeIsSurvey) {
+      const validOptions = writeSurveyOptions.filter(option => option.trim())
+      if (validOptions.length < 2) {
+        setError('설문조사는 최소 2개의 선택지가 필요합니다.')
+        return
+      }
+      if (validOptions.length > 10) {
+        setError('설문조사는 최대 10개의 선택지만 가능합니다.')
+        return
+      }
+    }
+
+    try {
+      setWriteLoading(true)
+      setError(null)
+
+      console.log('게시글 작성 시작:', { writeTitle, writeContent, writeCategory, writeIsNotice, writeIsSurvey })
+
+      // AuthContext에서 토큰 가져오기
+      let currentToken = token
+      
+      // AuthContext에 토큰이 없으면 직접 가져오기
+      if (!currentToken) {
+        try {
+          const { data: { session: directSession }, error } = await supabase.auth.getSession()
+          if (error) {
+            console.error('세션 가져오기 실패:', error)
+          } else {
+            currentToken = directSession?.access_token
+          }
+        } catch (error) {
+          console.error('세션 조회 중 오류:', error)
+        }
+      }
+      
+      // 토큰이 없으면 새로고침 시도
+      if (!currentToken) {
+        try {
+          const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession()
+          if (error) {
+            console.error('세션 새로고침 실패:', error)
+          } else {
+            currentToken = refreshedSession?.access_token
+          }
+        } catch (error) {
+          console.error('세션 새로고침 중 오류:', error)
+        }
+      }
+      
+      console.log('토큰 정보:', { 
+        authContextToken: !!token, 
+        currentToken: !!currentToken, 
+        user: !!user 
+      })
+      
+      if (!currentToken) {
+        console.log('토큰이 없습니다. 에러 설정')
+        setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
+        return
+      }
+      
+      console.log('토큰 확인 완료, 요청 데이터 준비 중')
+      
+      // 카테고리 자동 설정
+      let category_name = '자유게시판' // 기본값
+      if (writeIsNotice) {
+        category_name = '공지'
+      } else if (writeIsSurvey) {
+        category_name = '설문조사'
+      }
+
+      // FormData 생성
+      const formData = new FormData()
+      formData.append('title', writeTitle.trim())
+      formData.append('content', writeContent.trim())
+      formData.append('category_name', category_name)
+      formData.append('is_notice', writeIsNotice.toString())
+      formData.append('is_survey', writeIsSurvey.toString())
+      
+      if (writeIsSurvey) {
+        formData.append('survey_options', JSON.stringify(writeSurveyOptions.filter(option => option.trim())))
+      }
+      
+      // 파일 첨부
+      attachedFiles.forEach((file, index) => {
+        formData.append(`files`, file)
+      })
+      
+      console.log('요청 데이터:', { 
+        title: writeTitle.trim(),
+        content: writeContent.trim(),
+        category_name,
+        is_notice: writeIsNotice,
+        is_survey: writeIsSurvey,
+        fileCount: attachedFiles.length
+      })
+      console.log('API 요청 시작')
+      
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`
+        },
+        body: formData
+      })
+
+      console.log('응답 상태:', response.status, response.statusText)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('API 에러:', errorData)
+        throw new Error(errorData.error || '게시글 작성에 실패했습니다.')
+      }
+
+      const responseData = await response.json()
+      console.log('작성 성공:', responseData)
+      console.log('작성된 게시글의 작성자 정보:', responseData.post?.author)
+
+      // 작성 성공
+      setWriteTitle('')
+      setWriteContent('')
+      setWriteIsNotice(false)
+      setWriteIsSurvey(false)
+      setWriteSurveyOptions(['', ''])
+      setAttachedFiles([])
+      setFilePreviews([])
+      setShowWriteDialog(false)
+      
+      // 목록 새로고침
+      await fetchPosts()
+    } catch (err) {
+      console.error('게시글 작성 실패:', err)
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+    } finally {
+      setWriteLoading(false)
+    }
   }
 
-  // 좋아요/싫어요 처리
-  const handleLike = (postId: number) => {
-    setPosts(prev => prev.map(post => 
-      post.id === postId ? { ...post, likes: post.likes + 1 } : post
-    ))
-  }
-
-  const handleDislike = (postId: number) => {
-    setPosts(prev => prev.map(post => 
-      post.id === postId ? { ...post, dislikes: post.dislikes + 1 } : post
-    ))
-  }
-
-  // 게시글 상세보기
-  const handleViewPost = (postId: number) => {
-    const post = posts.find(p => p.id === postId)
-    if (post) {
-      setPosts(prev => prev.map(p => 
-        p.id === postId ? { ...p, views: p.views + 1 } : p
-      ))
+  // 게시글 클릭
+  const handlePostClick = (post: Post) => {
       setSelectedPost(post)
+    setShowPostDetail(true)
+  }
+
+  // 좋아요/싫어요 토글
+  const handleReaction = async (postId: string, reactionType: 'like' | 'dislike') => {
+    if (!user) {
+      setError('로그인이 필요합니다.')
+      return
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      
+      if (!token) {
+        setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
+        return
+      }
+      
+      const response = await fetch(`/api/posts/${postId}/reactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ reaction_type: reactionType })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '반응 처리에 실패했습니다.')
+      }
+
+      // 목록 새로고침
+      await fetchPosts()
+    } catch (err) {
+      console.error('반응 처리 실패:', err)
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     }
   }
 
-  // 목록으로 돌아가기
-  const handleBackToList = () => {
-    setSelectedPost(null)
+  // 검색 실행
+  const handleSearch = () => {
+    console.log('검색 실행:', searchQuery)
+    setCurrentPage(1)
   }
 
-  // 시간 포맷팅
-  const formatTime = (dateString: string) => {
+  // 카테고리 변경
+  const handleCategoryChange = (category: string) => {
+    console.log('카테고리 변경:', category)
+    setCurrentCategory(category)
+    setCurrentPage(1)
+  }
+
+  // 정렬 변경
+  const handleSortChange = (sort: string) => {
+    console.log('정렬 변경:', sort)
+    setSortBy(sort)
+    setCurrentPage(1)
+  }
+
+  // 초기 로드 및 의존성 변경 시 재조회
+  useEffect(() => {
+    console.log('FreeBoard 마운트됨, 사용자 상태:', { user: !!user })
+    fetchPosts()
+  }, [currentPage, user])
+
+  // 카테고리, 정렬, 검색어 변경 시 재조회
+  useEffect(() => {
+    console.log('필터 변경 감지:', { currentCategory, sortBy, searchQuery })
+    fetchPosts()
+  }, [currentCategory, sortBy, searchQuery])
+
+  // 아이콘 렌더링
+  const getPostIcon = (post: Post) => {
+    if (post.is_notice) return <Pin className="w-4 h-4 text-red-500" />
+    if (post.is_survey) return <Trophy className="w-4 h-4 text-green-500" />
+    if (post.is_verified) return <Star className="w-4 h-4 text-blue-500" />
+    return <MessageSquare className="w-4 h-4 text-gray-400" />
+  }
+
+  // 날짜 포맷팅
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    
-    const minutes = Math.floor(diff / (1000 * 60))
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-    
-    if (minutes < 60) return `${minutes}분 전`
-    if (hours < 24) return `${hours}시간 전`
-    if (days < 7) return `${days}일 전`
-    
     return date.toLocaleDateString('ko-KR', { 
       month: '2-digit', 
       day: '2-digit' 
     })
   }
 
-  // 아이콘 렌더링
-  const getPostIcon = (post: Post) => {
-    if (post.isNotice) return <Pin className="w-4 h-4 text-red-500" />
-    if (post.isSurvey) return <Award className="w-4 h-4 text-green-500" />
-    if (post.isVerified) return <Star className="w-4 h-4 text-blue-500" />
-    return <MessageSquare className="w-4 h-4 text-gray-400" />
-  }
+  // 카테고리 옵션
+  const categoryOptions = [
+    { value: 'all', label: '전체글' },
+    { value: 'notice', label: '공지' },
+    { value: '자유게시판', label: '자유게시판' },
+    { value: 'survey', label: '설문조사' }
+  ]
 
-  // 게시글 상세보기 모드
-  if (selectedPost) {
+  // 정렬 옵션
+  const sortOptions = [
+    { value: 'latest', label: '최신순' },
+    { value: 'popular', label: '인기순' },
+    { value: 'likes', label: '추천순' },
+    { value: 'comments', label: '댓글순' }
+  ]
+
+  if (loading && posts.length === 0) {
     return (
-      <PostDetail
-        post={selectedPost}
-        onBack={handleBackToList}
-        onLike={handleLike}
-        onDislike={handleDislike}
-      />
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">게시글을 불러오는 중...</p>
+        </div>
+      </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">자유게시판</h2>
+      {/* 에러 메시지 */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
+
+      {/* 검색 바 */}
+      <div className="flex gap-4 items-center">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="제목, 내용, 작성자로 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            className="pl-10"
+          />
+        </div>
+        <Button onClick={handleSearch} variant="outline">
+          검색
+        </Button>
+      </div>
+
+      {/* 필터 및 정렬 */}
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          {categoryOptions.map((option) => (
+            <Button
+              key={option.value}
+              variant={currentCategory === option.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleCategoryChange(option.value)}
+              className={`transition-all duration-200 ${
+                currentCategory === option.value 
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                  : 'hover:bg-blue-50 hover:text-blue-600'
+              } active:scale-95 active:bg-blue-200 active:text-blue-800`}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
+        
         <div className="flex items-center gap-2">
-          <Select value={sortBy} onValueChange={(value: 'date' | 'views' | 'likes') => setSortBy(value)}>
+          <Select value={sortBy} onValueChange={handleSortChange}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date">최신순</SelectItem>
-              <SelectItem value="views">조회순</SelectItem>
-              <SelectItem value="likes">추천순</SelectItem>
+              {sortOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           
-          <Dialog open={showWriteModal} onOpenChange={setShowWriteModal}>
+          <Dialog open={showWriteDialog} onOpenChange={setShowWriteDialog}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-blue-400 hover:bg-blue-500 text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 글쓰기
               </Button>
             </DialogTrigger>
-            
-            <DialogContent className="max-w-2xl">
+            <DialogContent 
+              className="max-w-2xl bg-white border border-gray-200 shadow-xl"
+              style={{ 
+                backgroundColor: 'white',
+                opacity: 1
+              }}
+            >
               <DialogHeader>
-                <DialogTitle>새 글 작성</DialogTitle>
+                <DialogTitle>게시글 작성</DialogTitle>
+                <DialogDescription>
+                  새로운 게시글을 작성해주세요. 제목과 내용을 입력하고 카테고리를 선택하세요.
+                </DialogDescription>
               </DialogHeader>
-              
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">제목</label>
+                  <label className="block text-sm font-medium mb-2">제목</label>
                   <Input
                     placeholder="제목을 입력하세요"
-                    value={newPost.title}
-                    onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                    value={writeTitle}
+                    onChange={(e) => setWriteTitle(e.target.value)}
                   />
                 </div>
                 
+                
+                <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">카테고리</label>
-                  <Select value={newPost.category} onValueChange={(value) => setNewPost({ ...newPost, category: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">일상</SelectItem>
-                      <SelectItem value="entertainment">연예</SelectItem>
-                      <SelectItem value="politics">정치</SelectItem>
-                      <SelectItem value="travel">여행</SelectItem>
-                      <SelectItem value="food">음식</SelectItem>
-                      <SelectItem value="finance">금융</SelectItem>
-                      <SelectItem value="history">역사</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <label className="block text-sm font-medium mb-2">게시글 유형</label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="postType"
+                          value="normal"
+                          checked={!writeIsNotice && !writeIsSurvey}
+                          onChange={() => {
+                            setWriteIsNotice(false)
+                            setWriteIsSurvey(false)
+                            setWriteSurveyOptions(['', ''])
+                          }}
+                          className="mr-2"
+                        />
+                        일반 게시글
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="postType"
+                          value="survey"
+                          checked={writeIsSurvey}
+                          onChange={() => {
+                            setWriteIsNotice(false)
+                            setWriteIsSurvey(true)
+                            setWriteSurveyOptions(['', ''])
+                          }}
+                          className="mr-2"
+                        />
+                        설문조사
+                      </label>
+                      {(user?.email?.includes('admin') || user?.email?.includes('@amiko.com')) && (
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="postType"
+                            value="notice"
+                            checked={writeIsNotice}
+                            onChange={() => {
+                              setWriteIsNotice(true)
+                              setWriteIsSurvey(false)
+                              setWriteSurveyOptions(['', ''])
+                            }}
+                            className="mr-2"
+                          />
+                          공지사항 (운영자만)
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {writeIsSurvey && (
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-800 mb-2">
+                        💡 설문조사 게시글 작성 팁:
+                      </p>
+                      <ul className="text-xs text-blue-700 space-y-1">
+                        <li>• 질문을 명확하게 작성해주세요</li>
+                        <li>• 여러 선택지를 제공하면 더 좋습니다</li>
+                        <li>• 예: "가장 좋아하는 K-pop 그룹은? 1) BTS 2) BLACKPINK 3) NewJeans 4) 기타"</li>
+                      </ul>
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium mb-2">설문 선택지</label>
+                        <div className="space-y-2">
+                          {writeSurveyOptions.map((option, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500 w-8">{index + 1}.</span>
+                              <Input
+                                placeholder={`선택지 ${index + 1}`}
+                                value={option}
+                                onChange={(e) => {
+                                  const newOptions = [...writeSurveyOptions]
+                                  newOptions[index] = e.target.value
+                                  setWriteSurveyOptions(newOptions)
+                                }}
+                                className="text-sm"
+                              />
+                              {writeSurveyOptions.length > 2 && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newOptions = writeSurveyOptions.filter((_, i) => i !== index)
+                                    setWriteSurveyOptions(newOptions)
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  삭제
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (writeSurveyOptions.length < 10) {
+                                setWriteSurveyOptions([...writeSurveyOptions, ''])
+                              }
+                            }}
+                            disabled={writeSurveyOptions.length >= 10}
+                            className="text-sm"
+                          >
+                            + 선택지 추가
+                          </Button>
+                          <span className="text-xs text-gray-500">
+                            {writeSurveyOptions.length}/10
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          최소 2개, 최대 10개까지 가능합니다.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {writeIsNotice && (
+                    <div className="bg-yellow-50 p-3 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ 공지사항은 중요한 안내사항에만 사용해주세요
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">내용</label>
+                  <label className="block text-sm font-medium mb-2">내용</label>
                   <Textarea
                     placeholder="내용을 입력하세요"
-                    value={newPost.content}
-                    onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                    value={writeContent}
+                    onChange={(e) => setWriteContent(e.target.value)}
                     rows={8}
                   />
                 </div>
                 
+                {/* 파일 첨부 섹션 */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">파일 첨부</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="cursor-pointer flex flex-col items-center justify-center py-4 text-gray-600 hover:text-gray-800"
+                    >
+                      <div className="text-4xl mb-2">📎</div>
+                      <div className="text-sm font-medium">파일을 선택하거나 여기에 드래그하세요</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        이미지, 동영상, 문서 파일 (최대 5개, 각 10MB 이하)
+                      </div>
+                    </label>
+                  </div>
+                  
+                  {/* 첨부된 파일 목록 */}
+                  {attachedFiles.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <div className="text-sm font-medium text-gray-700">첨부된 파일 ({attachedFiles.length}/5)</div>
+                      {attachedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{getFileIcon(file)}</span>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{file.name}</div>
+                              <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* 이미지 미리보기 */}
+                  {filePreviews.some(preview => preview) && (
+                    <div className="mt-3">
+                      <div className="text-sm font-medium text-gray-700 mb-2">이미지 미리보기</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {filePreviews.map((preview, index) => (
+                          preview && (
+                            <div key={index} className="relative">
+                              <img
+                                src={preview}
+                                alt={`미리보기 ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg border"
+                              />
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setShowWriteModal(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowWriteDialog(false)}
+                  >
                     취소
                   </Button>
-                  <Button onClick={handleWritePost}>
-                    글쓰기
+                  <Button
+                    onClick={() => {
+                      console.log('작성 버튼 클릭됨')
+                      handleWritePost()
+                    }}
+                    disabled={writeLoading}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {writeLoading ? '작성 중...' : '작성'}
                   </Button>
                 </div>
               </div>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
-
-      {/* 검색 */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="제목, 내용, 작성자로 검색"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {/* 탭 네비게이션 */}
-      <div className="border-b border-gray-200">
-        <div className="flex space-x-8">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`pb-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'all'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            전체글 ({filteredPosts.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('best')}
-            className={`pb-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'best'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            개념글 ({posts.filter(p => p.isBest).length})
-          </button>
-          <button
-            onClick={() => setActiveTab('notice')}
-            className={`pb-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'notice'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            공지 ({posts.filter(p => p.isNotice).length})
-          </button>
         </div>
       </div>
 
@@ -558,34 +821,28 @@ export default function FreeBoard() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                  번호
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  제목
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                  글쓴이
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                  작성일
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                  조회
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                  추천
-                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">번호</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">제목</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">글쓴이</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">작성일</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">조회</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">추천</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleViewPost(post.id)}>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                    {post.isNotice ? (
-                      <Badge variant="destructive" className="text-xs">공지</Badge>
+            <tbody className="divide-y divide-gray-200">
+              {posts.map((post, index) => (
+                <tr
+                  key={post.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handlePostClick(post)}
+                >
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {post.is_pinned ? (
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                        고정
+                      </Badge>
                     ) : (
-                      post.id
+                      posts.length - index
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -594,36 +851,32 @@ export default function FreeBoard() {
                       <span className="text-sm font-medium text-gray-900">
                         {post.title}
                       </span>
-                      {post.comments > 0 && (
-                        <Badge variant="secondary" className="text-xs">
-                          [{post.comments}]
-                        </Badge>
+                      {post.comment_count > 0 && (
+                        <span className="text-xs text-gray-500">
+                          [{post.comment_count}]
+                        </span>
                       )}
-                      {post.isBest && (
-                        <Badge variant="default" className="text-xs bg-yellow-100 text-yellow-800">
+                      {post.is_pinned && (
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
                           개념글
                         </Badge>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {post.author?.full_name || '익명'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {formatDate(post.created_at)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {post.view_count}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-1">
-                      <span>{post.author}</span>
-                      {post.isVerified && (
-                        <Star className="w-3 h-3 text-blue-500" />
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {formatTime(post.createdAt)}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {post.views}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <span className="text-green-600">{post.likes}</span>
-                      <span className="text-red-600">-{post.dislikes}</span>
+                      <span className="text-green-600">{post.like_count}</span>
+                      <span className="text-gray-400">-</span>
+                      <span className="text-red-600">{post.dislike_count}</span>
                     </div>
                   </td>
                 </tr>
@@ -631,45 +884,21 @@ export default function FreeBoard() {
             </tbody>
           </table>
         </div>
+        
+        {posts.length === 0 && !loading && (
+          <div className="text-center py-8 text-gray-500">
+            게시글이 없습니다.
+          </div>
+        )}
       </Card>
 
-      {/* 페이지네이션 */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              이전
-            </Button>
-            
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const page = i + 1
-              return (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </Button>
-              )
-            })}
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              다음
-            </Button>
-          </div>
-        </div>
+      {/* 게시글 상세보기 */}
+      {showPostDetail && selectedPost && (
+        <PostDetail
+          post={selectedPost}
+          onClose={() => setShowPostDetail(false)}
+          onUpdate={fetchPosts}
+        />
       )}
     </div>
   )

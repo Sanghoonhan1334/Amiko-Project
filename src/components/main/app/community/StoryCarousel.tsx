@@ -25,12 +25,14 @@ import {
   Send
 } from 'lucide-react'
 import { Story, StoryForm } from '@/types/story'
+import UserProfileModal from '@/components/common/UserProfileModal'
 
 // 댓글 타입 정의
 interface Comment {
   id: string
   storyId: string
   author: string
+  authorId?: string
   content: string
   createdAt: Date
   likes: number
@@ -39,13 +41,14 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 
 // 목업 스토리 데이터 (24시간 이내, 공개된 것만)
-const mockStories: Story[] = [
+// 실제 스토리 데이터 (사용자 이름으로 2개만)
+const getMockStories = (userName: string = '한상훈'): Story[] => [
   {
     id: '1',
-    userId: 'user1',
-    userName: '김민지',
-    userAvatar: '/avatars/user1.jpg',
-    imageUrl: '/stories/story1.jpg',
+    userId: 'current-user',
+    userName: userName,
+    userAvatar: '/amiko-foto.png',
+    imageUrl: '/hanok-bg.png',
     text: '오늘 한국 전통 한복을 입어봤어요! 너무 예뻐서 기분이 좋았습니다 💕',
     isPublic: true,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2시간 전
@@ -54,134 +57,14 @@ const mockStories: Story[] = [
   },
   {
     id: '2',
-    userId: 'user2',
-    userName: '마리아',
-    userAvatar: '/avatars/user2.jpg',
-    imageUrl: '/stories/story2.jpg',
+    userId: 'current-user',
+    userName: userName,
+    userAvatar: '/amiko-foto.png',
+    imageUrl: '/zep.jpg',
     text: '한국 화장품으로 메이크업 연습 중이에요. 어떤가요? 😊',
     isPublic: true,
     createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4시간 전
     expiresAt: new Date(Date.now() + 20 * 60 * 60 * 1000), // 20시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '3',
-    userId: 'user3',
-    userName: '카를로스',
-    userAvatar: '/avatars/user3.jpg',
-    imageUrl: '/stories/story3.jpg',
-    text: '서울에서 맛있는 떡볶이를 먹었어요! 매운맛이 정말 대박이었습니다 🔥',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6시간 전
-    expiresAt: new Date(Date.now() + 18 * 60 * 60 * 1000), // 18시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '4',
-    userId: 'user4',
-    userName: '소피아',
-    userAvatar: '/avatars/user4.jpg',
-    imageUrl: '/stories/story4.jpg',
-    text: '한국 드라마 보면서 한국어 공부하고 있어요. 진짜 재미있어요! 📺',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8시간 전
-    expiresAt: new Date(Date.now() + 16 * 60 * 60 * 1000), // 16시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '5',
-    userId: 'user5',
-    userName: '김준호',
-    userAvatar: '/avatars/user5.jpg',
-    imageUrl: '/stories/story5.jpg',
-    text: '라틴 음악에 빠져서 스페인어를 배우기 시작했어요! 🎵',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 10 * 60 * 60 * 1000), // 10시간 전
-    expiresAt: new Date(Date.now() + 14 * 60 * 60 * 1000), // 14시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '6',
-    userId: 'user6',
-    userName: '이수진',
-    userAvatar: '/avatars/user6.jpg',
-    imageUrl: '/stories/story6.jpg',
-    text: '멕시코 타코를 직접 만들어봤어요. 정말 맛있었습니다! 🌮',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12시간 전
-    expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '7',
-    userId: 'user7',
-    userName: '안드레스',
-    userAvatar: '/avatars/user7.jpg',
-    imageUrl: '/stories/story7.jpg',
-    text: '한국 김치를 처음 먹어봤어요! 매운맛이 정말 대박이었습니다 🔥',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 14 * 60 * 60 * 1000), // 14시간 전
-    expiresAt: new Date(Date.now() + 10 * 60 * 60 * 1000), // 10시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '8',
-    userId: 'user8',
-    userName: '박지영',
-    userAvatar: '/avatars/user8.jpg',
-    imageUrl: '/stories/story8.jpg',
-    text: '스페인어 수업에서 배운 표현들을 실생활에서 써봤어요! 🗣️',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 16 * 60 * 60 * 1000), // 16시간 전
-    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '9',
-    userId: 'user9',
-    userName: '카르멘',
-    userAvatar: '/avatars/user9.jpg',
-    imageUrl: '/stories/story9.jpg',
-    text: '한국 드라마 OST를 들으면서 한국어 공부하고 있어요 🎵',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000), // 18시간 전
-    expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '10',
-    userId: 'user10',
-    userName: '김현우',
-    userAvatar: '/avatars/user10.jpg',
-    imageUrl: '/stories/story10.jpg',
-    text: '스페인 친구와 함께 한국 요리를 만들어봤어요! 🍜',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 20 * 60 * 60 * 1000), // 20시간 전
-    expiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '11',
-    userId: 'user11',
-    userName: '소피아',
-    userAvatar: '/avatars/user11.jpg',
-    imageUrl: '/stories/story11.jpg',
-    text: '한국 전통 한복을 입어보고 싶어요! 너무 예쁘네요 💕',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 22 * 60 * 60 * 1000), // 22시간 전
-    expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '12',
-    userId: 'user12',
-    userName: '이민수',
-    userAvatar: '/avatars/user12.jpg',
-    imageUrl: '/stories/story12.jpg',
-    text: '스페인 여행 계획을 세우고 있어요! 추천 장소 있나요? ✈️',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 23 * 60 * 60 * 1000), // 23시간 전
-    expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1시간 후 만료
     isExpired: false
   }
 ]
@@ -189,6 +72,10 @@ const mockStories: Story[] = [
 export default function StoryCarousel() {
   const { user } = useAuth()
   const { t } = useLanguage()
+  
+  // 사용자 이름 가져오기
+  const userName = user?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '한상훈'
+  const mockStories = getMockStories(userName)
   
   // 상태 관리
   const [viewMode, setViewMode] = useState<'collapsed' | 'expanded' | 'compact'>('collapsed')
@@ -207,6 +94,8 @@ export default function StoryCarousel() {
          isPublic: true
        })
          const [isUploading, setIsUploading] = useState(false)
+         const [imagePreview, setImagePreview] = useState<string | null>(null)
+         const [imageFile, setImageFile] = useState<File | null>(null)
   
   // 좋아요 상태 관리
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
@@ -215,6 +104,10 @@ export default function StoryCarousel() {
   const [showCommentModal, setShowCommentModal] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
   const [storyComments, setStoryComments] = useState<Record<string, Comment[]>>({})
+  
+  // 프로필 모달 상태
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // refs
   const containerRef = useRef<HTMLDivElement>(null)
@@ -406,7 +299,8 @@ export default function StoryCarousel() {
     const newComment: Comment = {
       id: Date.now().toString(),
       storyId,
-      author: user?.user_metadata?.full_name || '익명',
+      author: user?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '익명',
+      authorId: user?.id,
       content: commentText,
       createdAt: new Date(),
       likes: 0
@@ -431,6 +325,82 @@ export default function StoryCarousel() {
           : comment
       ) || []
     }))
+  }
+
+  // 프로필 보기
+  const handleViewProfile = (userId: string) => {
+    setSelectedUserId(userId)
+    setShowProfileModal(true)
+  }
+
+  // 이미지 파일을 Base64로 변환
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
+  }
+
+  // 파일 선택 처리
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file)
+      try {
+        const base64 = await convertToBase64(file)
+        setImagePreview(base64)
+        setStoryForm({ ...storyForm, imageUrl: base64 })
+      } catch (error) {
+        console.error('이미지 변환 실패:', error)
+        alert('이미지 변환에 실패했습니다.')
+      }
+    } else {
+      alert('이미지 파일만 선택해주세요.')
+    }
+  }
+
+  // 붙여넣기 처리
+  const handlePaste = async (event: React.ClipboardEvent) => {
+    const items = event.clipboardData.items
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile()
+        if (file) {
+          setImageFile(file)
+          try {
+            const base64 = await convertToBase64(file)
+            setImagePreview(base64)
+            setStoryForm({ ...storyForm, imageUrl: base64 })
+          } catch (error) {
+            console.error('이미지 변환 실패:', error)
+            alert('이미지 변환에 실패했습니다.')
+          }
+        }
+        break
+      }
+    }
+  }
+
+  // 이미지 미리보기 제거
+  const clearImage = () => {
+    setImagePreview(null)
+    setImageFile(null)
+    setStoryForm({ ...storyForm, imageUrl: '' })
+  }
+
+  // 모달 닫기 시 상태 초기화
+  const handleModalClose = () => {
+    setShowUploadModal(false)
+    setImagePreview(null)
+    setImageFile(null)
+    setStoryForm({
+      imageUrl: '',
+      text: '',
+      isPublic: true
+    })
   }
        
        // 스토리 업로드 처리
@@ -498,9 +468,16 @@ export default function StoryCarousel() {
         
         <div className="flex items-center gap-2">
           {/* 스토리 업로드 버튼 */}
-          <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
+          <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md">
+              <Button 
+                size="sm" 
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md"
+                onClick={() => {
+                  console.log('스토리 올리기 버튼 클릭됨')
+                  setShowUploadModal(true)
+                }}
+              >
                 <Plus className="w-4 h-4 mr-1" />
                 {t('communityTab.uploadStory')}
               </Button>
@@ -511,26 +488,95 @@ export default function StoryCarousel() {
                 <DialogTitle className="text-xl font-semibold text-gray-900">새 스토리 작성</DialogTitle>
               </DialogHeader>
               
-              <div className="space-y-4">
+              <div className="space-y-4" onPaste={handlePaste}>
                 <div>
-                  <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-700 mb-2 block">
-                    사진 URL
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    사진 업로드
                   </Label>
-                  <div className="flex gap-2">
+                  
+                  {/* 이미지 미리보기 */}
+                  {imagePreview && (
+                    <div className="mb-3 relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="미리보기" 
+                        className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                      />
+                      <button
+                        onClick={clearImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* 파일 선택 버튼들 */}
+                  <div className="space-y-2">
+                    {/* 갤러리에서 선택 */}
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="imageUploadGallery"
+                      />
+                      <label
+                        htmlFor="imageUploadGallery"
+                        className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition-colors text-center"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <ImageIcon className="w-6 h-6 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            {imagePreview ? '다른 사진 선택' : '📱 갤러리에서 선택'}
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    {/* 카메라로 촬영 */}
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="imageUploadCamera"
+                        capture="environment"
+                      />
+                      <label
+                        htmlFor="imageUploadCamera"
+                        className="flex-1 px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <span className="text-2xl">📷</span>
+                          <span className="text-sm text-blue-600">
+                            📸 카메라로 촬영
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                    
+                  </div>
+                  
+                  {/* 붙여넣기 안내 */}
+                  <p className="text-xs text-gray-500 mt-2">
+                    💡 이미지를 복사한 후 이 영역에 붙여넣기(Ctrl+V)도 가능합니다
+                  </p>
+                  
+                  {/* URL 입력 (고급 사용자용) */}
+                  <div className="mt-3">
+                    <Label htmlFor="imageUrl" className="text-xs text-gray-500 mb-1 block">
+                      또는 이미지 URL 직접 입력
+                    </Label>
                     <Input
                       id="imageUrl"
                       placeholder="https://example.com/image.jpg"
-                      value={storyForm.imageUrl}
+                      value={storyForm.imageUrl.startsWith('data:') ? '' : storyForm.imageUrl}
                       onChange={(e) => setStoryForm({ ...storyForm, imageUrl: e.target.value })}
-                      className="border-2 border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+                      className="border border-gray-300 focus:border-brand-500 text-sm"
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setStoryForm({ ...storyForm, imageUrl: 'https://picsum.photos/400/500?random=' + Date.now() })}
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                    </Button>
                   </div>
                 </div>
                 
@@ -548,26 +594,36 @@ export default function StoryCarousel() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="isPublic"
-                      checked={storyForm.isPublic}
-                      onCheckedChange={(checked) => setStoryForm({ ...storyForm, isPublic: checked })}
-                    />
-                    <Label htmlFor="isPublic" className="text-sm text-gray-700">
-                      공개하기
-                    </Label>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        id="isPublic"
+                        checked={storyForm.isPublic}
+                        onCheckedChange={(checked) => setStoryForm({ ...storyForm, isPublic: checked })}
+                      />
+                      <Label htmlFor="isPublic" className="text-sm font-medium text-gray-800">
+                        {storyForm.isPublic ? '🌍 공개 스토리' : '🔒 비공개 스토리'}
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+                      <Clock className="w-3 h-3" />
+                      24시간 후 자동 삭제
+                    </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Clock className="w-3 h-3" />
-                    24시간 후 자동 삭제
+                  <div className="text-xs text-gray-600">
+                    {storyForm.isPublic ? (
+                      <span className="text-green-600">✅ 다른 사용자들이 이 스토리를 볼 수 있습니다</span>
+                    ) : (
+                      <span className="text-gray-500">🔒 이 스토리는 비공개로 저장됩니다</span>
+                    )}
                   </div>
                 </div>
                 
                 <div className="flex gap-3 justify-end pt-2">
-                  <Button variant="outline" onClick={() => setShowUploadModal(false)}>
+                  <Button variant="outline" onClick={handleModalClose}>
                     취소
                   </Button>
                   <Button 
@@ -575,7 +631,7 @@ export default function StoryCarousel() {
                     disabled={isUploading || !storyForm.imageUrl.trim() || !storyForm.text.trim()}
                     className="bg-brand-500 hover:bg-brand-600"
                   >
-                    {isUploading ? '업로드 중...' : '스토리 올리기'}
+                    {isUploading ? '업로드 중...' : t('communityTab.uploadStory')}
                   </Button>
                 </div>
               </div>
@@ -746,9 +802,15 @@ export default function StoryCarousel() {
                 <p className="text-gray-600 mb-4">
                   오늘은 아직 새로운 스토리가 없어요. 첫 번째 스토리를 올려보세요!
                 </p>
-                <Button onClick={() => setShowUploadModal(true)} className="bg-brand-500 hover:bg-brand-600">
+                <Button 
+                  onClick={() => {
+                    console.log('빈 상태 스토리 올리기 버튼 클릭됨')
+                    setShowUploadModal(true)
+                  }} 
+                  className="bg-brand-500 hover:bg-brand-600"
+                >
                   <Plus className="w-4 h-4 mr-2" />
-                  스토리 올리기
+                  {t('communityTab.uploadStory')}
                 </Button>
               </Card>
             )}
@@ -777,7 +839,7 @@ export default function StoryCarousel() {
 
       {/* 댓글 모달 */}
       <Dialog open={!!showCommentModal} onOpenChange={() => setShowCommentModal(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-white border border-gray-200 shadow-xl" style={{ backgroundColor: 'white', opacity: 1 }}>
           <DialogHeader>
             <DialogTitle>댓글</DialogTitle>
           </DialogHeader>
@@ -790,7 +852,16 @@ export default function StoryCarousel() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">{comment.author}</span>
+                        {comment.authorId ? (
+                          <button
+                            onClick={() => handleViewProfile(comment.authorId!)}
+                            className="font-medium text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                          >
+                            {comment.author}
+                          </button>
+                        ) : (
+                          <span className="font-medium text-sm">{comment.author}</span>
+                        )}
                         <span className="text-xs text-gray-500">
                           {comment.createdAt.toLocaleTimeString('ko-KR', { 
                             hour: '2-digit', 
@@ -842,6 +913,16 @@ export default function StoryCarousel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 사용자 프로필 모달 */}
+      <UserProfileModal
+        userId={selectedUserId}
+        isOpen={showProfileModal}
+        onClose={() => {
+          setShowProfileModal(false)
+          setSelectedUserId(null)
+        }}
+      />
     </div>
   )
 }

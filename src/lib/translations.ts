@@ -12,7 +12,6 @@ export const translations = {
     changeToKorean: '한국어로 변경',
     
     // 메뉴
-    community: '커뮤니티',
     profileMenu: '프로필',
     settings: '설정',
     
@@ -65,9 +64,20 @@ export const translations = {
     // 랜딩페이지 슬라이드
     heroSlides: {
       slide1: {
+        badge: 'Amiko와 함께',
+        title: 'Global Community를\n경험해보세요',
+        description: '한국과 남미를 사랑하는 당신을 위한 글로벌 소통공간',
+        subtitle: '전 세계 사용자들과\n함께하는 특별한 경험',
+        features: {
+          curriculum: '다양한 문화와 언어를 배울 수 있는 글로벌 커뮤니티',
+          education: '실시간 소통을 통한 생생한 문화 교류 경험',
+          experience: '전 세계 친구들과 함께하는 특별한 학습 여정'
+        }
+      },
+      slide2: {
         badge: 'Amiko에 탑재된 AI 통역과 함께',
         title: '화상으로 소통하세요',
-        description: '자체 플랫폼을 통한 1:1 화상 미팅 시스템과 AI 통역 서비스로 막힘없이, 간편하게, 서로의 문화와 언어를 교류할 수 있습니다.',
+        description: '자체 플랫폼을 통한 1:1 AI 화상 채팅 시스템과\nAI 통역 서비스로 막힘없이, 간편하게,\n서로의 문화와 언어를 교류할 수 있습니다.',
         subtitle: '검증된 한국인 튜터들이\n여러분들과 함께합니다.',
         features: {
           curriculum: '한국어를 배우고 싶은 외국인들을 위한 맞춤형 커리큘럼',
@@ -75,7 +85,7 @@ export const translations = {
           experience: '실시간 화상 통화를 통한 생생한 한국어 학습 경험'
         }
       },
-      slide2: {
+      slide3: {
         subtitle: '지구 반대편과 소통하세요.',
         title: 'Amiko 커뮤니티 서비스',
         description: 'Amiko는 지구 반대편을 연결하는 다리입니다. 커뮤니티를 통해 서로의 문화에 더욱 가까이 다가가보세요.',
@@ -111,18 +121,11 @@ export const translations = {
     // 기능 카드들
     features: {
       meeting: {
-        title: '영상소통 (Video llamada)',
+        title: 'AI 화상 채팅 (Video llamada)',
         description: '한국인 친구와 15분 무료 상담으로 가볍게 시작할 수 있어요',
-        videoSupport: '화상 상담 지원',
+        videoSupport: 'AI 화상 채팅 지원',
         verifiedFriends: '검증된 한국인 친구',
         button: '쿠폰 받기'
-      },
-      community: {
-        title: '커뮤니티 (Q&A)',
-        description: '질문하고 답변하며 포인트를 모아 특별한 혜택을 받아보세요',
-        categories: '5개 카테고리',
-        dailyLimit: '일일 포인트 상한',
-        button: '커뮤니티 가기'
       },
       loungePage: {
         title: 'ZEP 라운지',
@@ -142,10 +145,10 @@ export const translations = {
     
     // 메인페이지
     main: {
-      meet: '영상소통',
+      meet: 'AI 화상 채팅',
       community: '커뮤니티',
       me: '내 정보',
-      meetDescription: '한국인 친구와 화상 상담을 통해 한국 문화를 배워보세요',
+      meetDescription: '한국인 친구와 AI 화상 채팅을 통해 한국 문화를 배워보세요',
       communityDescription: '질문하고 답변하며 포인트를 모아 특별한 혜택을 받아보세요',
       meDescription: '프로필, 포인트, 쿠폰 등 개인 정보를 관리하세요',
       weekendLounge: '주말 라운지',
@@ -312,10 +315,10 @@ export const translations = {
       qa: 'Q&A',
       lounge: '라운지',
       todayStory: '오늘의 스토리',
-      uploadStory: '+ 스토리 올리기',
+      uploadStory: '스토리 올리기',
       askQuestion: '질문하기',
       categories: {
-        all: '☆ 전체',
+        all: '전체',
         beauty: '뷰티',
         fashion: '코디',
         travel: '한국여행',
@@ -421,9 +424,9 @@ export const translations = {
       myPoints: '내 포인트',
       thisMonthPoints: '이번 달 포인트',
       consecutiveDays: '연속 출석',
-      exchangeCount: '영상소통 횟수',
+      exchangeCount: 'AI 화상 채팅 횟수',
       totalCases: '총 {count}건 진행',
-              successfulExchanges: '성공적인 영상소통',
+              successfulExchanges: '성공적인 AI 화상 채팅',
       myCoupons: '내 쿠폰',
       expirationDate: '만료일',
       noExpiration: '무기한',
@@ -581,21 +584,21 @@ export const translations = {
     // 제휴 문의 페이지
     partnership: {
       title: '제휴 문의',
-      subtitle: '비즈니스 파트너십과 협업 기회를 제안해주세요',
-      benefitsTitle: '제휴의 장점',
-      benefitsSubtitle: '함께하면 더 큰 시너지를 만들 수 있습니다',
+      subtitle: '비즈니스 파트너십 제안',
+      benefitsTitle: '파트너십을 통해 더 큰 가치를 만들어보세요.',
+      benefitsSubtitle: 'AMIKO와 함께, 세계와 함께.',
       benefits: {
         brandExpansion: {
-          title: '브랜드 확장',
-          description: '상호 브랜드 인지도를 높이고 새로운 고객층을 확보할 수 있습니다.'
+          title: '브랜드 홍보',
+          description: 'Amiko 커뮤니티를 통해 파트너사의 브랜드가\n젊은 글로벌 고객층에 더 넓고 자연스럽게 확산되도록 돕습니다.'
         },
         customerExpansion: {
-          title: '고객 확장',
-          description: '파트너의 고객 기반을 활용하여 시장 진출을 가속화할 수 있습니다.'
+          title: '새로운 시장',
+          description: 'Amiko의 한국-남미 고객층을 통해\n파트너사의 브랜드를 양 대륙에 연결합니다.'
         },
         revenueIncrease: {
-          title: '수익 증대',
-          description: '협업을 통해 비용을 절감하고 새로운 수익원을 창출할 수 있습니다.'
+          title: '신규 고객',
+          description: 'Amiko 플랫폼을 통해 파트너사의 브랜드와 서비스가\n새로운 글로벌 고객층에 도달할 수 있도록 지원합니다.'
         }
       },
       companyName: '회사명',
@@ -650,7 +653,7 @@ export const translations = {
     // 메인페이지 헤더
     mainHeader: {
       home: '홈',
-      videoCall: '화상대화',
+      videoCall: 'AI 화상 채팅',
       community: '커뮤니티',
       charging: '충전소',
       event: '이벤트',
@@ -676,15 +679,15 @@ export const translations = {
     // 메인페이지
     mainPage: {
       title: '다양하게 즐기세요',
-      videoCall: '화상대화',
-      videoCallDescription: '출석체크에 참여하고, 내가 원하는 한국인과 AKO로 대화해보세요.',
+      videoCall: 'AI 화상 채팅',
+      videoCallDescription: '출석체크에 참여하고, 내가 원하는 한국인과 AKO로 AI 화상 채팅해보세요.',
       community: '커뮤니티',
       communityDescription: '커뮤니티를 통해 서로 소통해보세요.',
       openEvent: '오픈 기념 이벤트',
       openEventDescription: '11월까지 회원가입하면 3 AKO 지급!',
       openEventNote: '*자세한 내용은 이벤트 페이지 참고',
-      cbtBadge: '10월 CBT 예정',
-      cbtText: '10월 CBT 예정',
+      cbtBadge: '10월 오픈 예정',
+      cbtText: '10월 오픈 예정',
       eventBadge: 'EVENT',
       chargingStation: '충전소',
       chargingStationDescription: 'AKO 쿠폰과 VIP 기능을 구매하세요',
@@ -694,7 +697,7 @@ export const translations = {
       communityPoints: '커뮤니티',
       videoCallPoints: 'AKO',
       points: '포인트',
-      akoExplanation: '1 AKO = 영상통화 1회 (20분)'
+      akoExplanation: '1 AKO = AI 화상 채팅 1회 (20분)'
     },
 
     // 커뮤니티
@@ -711,11 +714,11 @@ export const translations = {
       remainingLimit: '남은 한도',
       points: '포인트',
       qa: 'P&R',
-      story: 'Historia',
+      story: '스토리',
       koreanNews: '한국뉴스',
       userType: {
         korean: '한국인',
-        latin: '남미인'
+        latin: '현지인'
       }
     },
 
@@ -750,10 +753,8 @@ export const translations = {
           title: '포인트 얻는 방법',
           attendance: '출석체크',
           community: '커뮤니티 참여',
-          videoCall: '화상통화 참여',
           attendanceDescription: '출석체크로 포인트 획득',
-          communityDescription: '게시글 작성, 댓글, 좋아요',
-          videoCallDescription: '화상통화 완료 시 포인트'
+          communityDescription: '게시글 작성, 댓글, 좋아요'
         },
         specialEvents: {
           title: '특별 이벤트',
@@ -780,7 +781,6 @@ export const translations = {
           coupon: '쿠폰 1개',
           points: '포인트 50점'
         },
-        consecutiveDays: '{days}일 연속',
         specialReward: 'VIP 15일권'
       }
     },
@@ -788,7 +788,7 @@ export const translations = {
     // 헤더 네비게이션
     headerNav: {
       home: '홈',
-      videoCall: '화상대화',
+      videoCall: 'AI 화상 채팅',
       community: '커뮤니티',
       chargingStation: '충전소',
       chargingStationShort: '충전소',
@@ -896,7 +896,7 @@ export const translations = {
     chargingTab: {
       coupons: {
         title: 'AKO 쿠폰',
-        subtitle: 'AKO 쿠폰을 구매하여 영상통화를 즐기세요',
+        subtitle: 'AKO 쿠폰을 구매하여 AI 화상 채팅을 즐기세요',
         popular: '인기',
         discount: '할인',
         perUnit: '개당',
@@ -927,7 +927,7 @@ export const translations = {
           simultaneousInterpretation: '동시통역 기능'
         },
         featureDescriptions: {
-          beautyFilter: '영상 통화 시 실시간 얼굴 보정으로 더 아름다운 모습으로 대화하세요',
+          beautyFilter: 'AI 화상 채팅 시 실시간 얼굴 보정으로 더 아름다운 모습으로 대화하세요',
           communityBadge: '프리미엄 멤버 표시로 특별한 지위를 나타내세요',
           adRemoval: '앱 내 배너와 팝업 광고 없이 깔끔한 환경에서 이용하세요',
           simultaneousInterpretation: '자막/음성 지원으로 기본 번역보다 빠르고 자연스러운 소통'
@@ -937,26 +937,27 @@ export const translations = {
       }
     },
 
-    // 화상대화
+    // AI 화상 채팅
     videoCall: {
-      title: '영상소통',
-      subtitle: '한국과 남미를 잇는 실시간 영상통화',
+      title: 'AI 화상 채팅',
+      subtitle: '한국과 남미를 잇는 실시간 AI 화상 채팅',
       description: '언어 교환 파트너와 함께 한국어와 스페인어를 배워보세요!',
       quickStart: '빠른 시작',
       quickStartDescription: '언어 교환 파트너와 바로 연결하세요',
       startCall: '통화 시작',
-      oneOnOne: '1:1 영상통화',
+      startConversation: '대화 시작',
+      offline: '오프라인',
+      oneOnOne: '1:1 AI 화상 채팅',
       oneOnOneDescription: '개인 맞춤 대화',
       languageExchange: '언어 교환',
       languageExchangeDescription: '한국어 ↔ 스페인어',
-      sessionTime: '15분 세션',
+      sessionTime: '20분 세션',
       sessionTimeDescription: '효율적인 학습',
       enterChannelName: '채널명을 입력해주세요.',
-      loading: '영상소통 로딩 중...',
-      callLoading: '영상통화 로딩 중...',
+      loading: 'AI 화상 채팅 로딩 중...',
+      callLoading: 'AI 화상 채팅 로딩 중...',
       onlyKoreans: '한국인만 보기',
       viewInfo: '정보보기',
-      startConversation: '대화 시작',
       partners: '파트너 목록',
       noPartners: '현재 사용 가능한 파트너가 없습니다.',
       profile: '프로필 정보',
@@ -975,8 +976,8 @@ export const translations = {
       openEvent: 'Evento de apertura',
       openEventDescription: '¡Si te registras hasta noviembre, recibirás 3 AKO!',
       openEventNote: '*Para más detalles, consulta la página del evento',
-      cbtBadge: 'CBT programado para octubre',
-      cbtText: 'CBT programado para octubre',
+      cbtBadge: 'Apertura programada para octubre',
+      cbtText: 'Apertura programada para octubre',
       eventBadge: 'EVENTO',
       chargingStation: 'Estación de carga',
       chargingStationDescription: 'Compra cupones AKO y funciones VIP',
@@ -1048,12 +1049,16 @@ export const translations = {
       cameraOn: 'Encender cámara',
       endCall: 'Terminar llamada',
       waitingForOpponent: 'Esperando al oponente...',
+      startConversation: 'Iniciar conversación',
+      offline: 'Desconectado',
       waitingMessage: 'Se conectará automáticamente cuando otro usuario se una al mismo canal',
       connecting: 'Conectando...',
       startCall: 'Iniciar llamada',
       cameraOffMessage: 'La cámara está apagada',
       cameraOffSubtitle: 'Enciende la cámara para comunicarte con el oponente'
     },
+
+
     
     // 랜딩페이지
     landing: {
@@ -1066,37 +1071,6 @@ export const translations = {
       signupMessage: 'Regístrate y conoce nuevos amigos'
     },
 
-    // 랜딩페이지 슬라이드 (스페인어)
-    heroSlides: {
-      slide1: {
-        badge: 'Con traducción AI integrada en Amiko',
-        title: 'Comunícate por video',
-        description: 'A través de nuestro sistema de videollamadas 1:1 y servicio de traducción AI, puedes intercambiar culturas e idiomas sin barreras, de manera simple y conveniente.',
-        subtitle: 'Tutores coreanos verificados\nestán contigo.',
-        features: {
-          curriculum: 'Currículo personalizado para extranjeros que quieren aprender coreano',
-          education: 'Sistema educativo sistemático que aprende cultura y idioma coreano juntos',
-          experience: 'Experiencia de aprendizaje de coreano vívida a través de videollamadas en tiempo real'
-        }
-      },
-      slide2: {
-        subtitle: 'Comunícate con el otro lado del mundo.',
-        title: 'Servicio de Comunidad Amiko',
-        description: 'Amiko es un puente que conecta el otro lado del mundo. Acércate más a las culturas mutuas a través de la comunidad.',
-        ktrend: {
-          title: 'K-Trend',
-          description: 'Experimenta K-Trend preciso y rápido transmitido directamente por coreanos en Amiko.'
-        },
-        freeboard: {
-          title: 'Foro Libre',
-          description: 'Experimenta comunicación libre a través de foros de K-POP, K-DRAMA, viajes y foros libres.'
-        },
-        qna: {
-          title: 'P&R',
-          description: 'Haz preguntas sobre lo que te interesa mutuamente a través de la comunidad P&R y recibe respuestas directamente de locales.'
-        }
-      }
-    },
     
     hero: {
       title: 'Aprende cultura coreana y\nhaz nuevos amigos',
@@ -1120,13 +1094,6 @@ export const translations = {
         videoSupport: 'Soporte de consulta por video',
         verifiedFriends: 'Amigos coreanos verificados',
         button: 'Obtener cupón'
-      },
-      community: {
-        title: 'Comunidad (P&R)',
-        description: 'Haz preguntas y responde, recolecta puntos y recibe beneficios especiales',
-        categories: '5 categorías',
-        dailyLimit: 'Límite diario de puntos',
-        button: 'Ir a la comunidad'
       },
       loungePage: {
         title: 'Sala ZEP',
@@ -1310,27 +1277,6 @@ export const translations = {
       weekendSpecial: 'Operación especial de fin de semana'
     },
     
-    // 커뮤니티
-    community: {
-      title: 'Puntos de Comunidad',
-      subtitle: '¡Acumula puntos con actividades!',
-      pointRules: 'Reglas de obtención de puntos',
-      askQuestion: 'Hacer pregunta',
-      writeAnswer: 'Escribir respuesta',
-      writeStory: 'Escribir historia',
-      freeBoard: 'Tablero libre',
-      totalPoints: 'Puntos totales',
-      todayAcquisition: 'Obtenido hoy',
-      remainingLimit: 'Límite restante',
-      points: 'puntos',
-      qa: 'P&R',
-      story: 'Historia',
-      koreanNews: 'Noticias coreanas',
-      userType: {
-        korean: 'Coreano',
-        latin: 'Latino'
-      }
-    },
     
     // 커뮤니티 탭
     communityTab: {
@@ -1341,7 +1287,7 @@ export const translations = {
       uploadStory: '+ Subir historia',
       askQuestion: 'Hacer pregunta',
       categories: {
-        all: '☆ Todos',
+        all: 'Todos',
         beauty: 'Belleza',
         fashion: 'Moda',
         travel: 'Viaje a Corea',
@@ -1605,21 +1551,21 @@ export const translations = {
     // 제휴 문의 페이지
     partnership: {
       title: 'Consultas de Alianza',
-      subtitle: 'Propón oportunidades de asociación comercial y colaboración',
-      benefitsTitle: 'Ventajas de la Alianza',
-      benefitsSubtitle: 'Juntos podemos crear una mayor sinergia',
+      subtitle: 'Propuesta de Asociación Comercial',
+      benefitsTitle: 'Creemos mayor valor a través de la asociación.',
+      benefitsSubtitle: 'Con AMIKO, con el mundo.',
       benefits: {
         brandExpansion: {
-          title: 'Expansión de Marca',
-          description: 'Podemos aumentar el reconocimiento mutuo de la marca y asegurar nuevos segmentos de clientes.'
+          title: 'Promoción de Marca',
+          description: 'Ayudamos a que la marca del socio se difunda de manera más amplia y natural\nentre los jóvenes clientes globales a través de la comunidad Amiko.'
         },
         customerExpansion: {
-          title: 'Expansión de Clientes',
-          description: 'Podemos acelerar la entrada al mercado utilizando la base de clientes del socio.'
+          title: 'Nuevo Mercado',
+          description: 'Conectamos la marca del socio en ambos continentes\na través de la base de clientes Corea-América Latina de Amiko.'
         },
         revenueIncrease: {
-          title: 'Aumento de Ingresos',
-          description: 'Podemos reducir costos y generar nuevas fuentes de ingresos a través de la colaboración.'
+          title: 'Nuevos Clientes',
+          description: 'Apoyamos para que las marcas y servicios del socio\npuedan llegar a nuevos clientes globales a través de la plataforma Amiko.'
         }
       },
       companyName: 'Nombre de la empresa',
@@ -1730,10 +1676,8 @@ export const translations = {
           title: 'Cómo obtener puntos',
           attendance: 'Registro de asistencia',
           community: 'Participación en comunidad',
-          videoCall: 'Participación en videollamada',
           attendanceDescription: 'Obtén puntos con el registro de asistencia',
-          communityDescription: 'Escribir publicaciones, comentarios, dar me gusta',
-          videoCallDescription: 'Puntos al completar videollamada'
+          communityDescription: 'Escribir publicaciones, comentarios, dar me gusta'
         },
         specialEvents: {
           title: 'Eventos especiales',
@@ -1760,7 +1704,6 @@ export const translations = {
           coupon: '1 cupón',
           points: '50 puntos'
         },
-        consecutiveDays: '{days} días consecutivos',
         specialReward: 'VIP 15 días'
       }
     },

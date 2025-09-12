@@ -4,7 +4,7 @@ import {
   Clock, 
   Users, 
   Globe,
-  Award,
+  Trophy,
   Zap
 } from 'lucide-react'
 
@@ -12,7 +12,7 @@ const features = [
   {
     icon: Shield,
     title: '안전한 환경',
-    description: '검증된 멘토와 안전한 화상 상담 환경을 제공합니다',
+    description: '검증된 멘토와 안전한 AI 화상 채팅 환경을 제공합니다',
     color: 'bg-green-100 text-green-600'
   },
   {
@@ -34,7 +34,7 @@ const features = [
     color: 'bg-orange-100 text-orange-600'
   },
   {
-    icon: Award,
+    icon: Trophy,
     title: '인증된 서비스',
     description: '품질이 검증된 교육 서비스로 만족도를 보장합니다',
     color: 'bg-pink-100 text-pink-600'
@@ -53,7 +53,7 @@ export default function Features() {
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         {/* 섹션 제목 */}
         <div className="text-center mb-12 sm:mb-14 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 font-['Inter']">
             왜 Amiko를 선택해야 할까요?
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
@@ -88,7 +88,7 @@ export default function Features() {
         {/* 추가 정보 */}
         <div className="mt-16 text-center">
           <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-8 shadow-lg max-w-4xl mx-auto text-white">
-            <h3 className="text-2xl font-bold mb-4">
+            <h3 className="text-2xl font-bold mb-4 font-['Inter']">
               지금 시작해보세요
             </h3>
             <p className="text-white/90 text-lg">

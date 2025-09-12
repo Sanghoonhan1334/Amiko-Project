@@ -2,10 +2,12 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { createClientComponentClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
+  session: Session | null
+  token: string | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: unknown }>
   signUp: (email: string, password: string) => Promise<{ error: unknown }>
@@ -20,12 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [supabase, setSupabase] = useState<ReturnType<typeof createClientComponentClient> | null>(null)
+  const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null)
   
   // 클라이언트에서만 Supabase 클라이언트 생성
   useEffect(() => {
     try {
-      const client = createClientComponentClient()
+      const client = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
       setSupabase(client)
     } catch (err) {
       console.error('[AUTH] Supabase 클라이언트 생성 실패:', err)
@@ -214,20 +219,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    if (!supabase) {
-      console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
-      return;
+    console.log('[AUTH] 로그아웃 시작')
+    
+    // Supabase 로그아웃 먼저 실행
+    if (supabase) {
+      try {
+        await supabase.auth.signOut()
+        console.log('[AUTH] Supabase 로그아웃 완료')
+      } catch (error) {
+        console.error('[AUTH] Supabase 로그아웃 오류:', error)
+      }
     }
     
-    try {
-      await supabase.auth.signOut()
-      // 로컬 스토리지에서 세션 제거
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('amiko_session')
-      }
-      console.log('[AUTH] 로그아웃 완료')
-    } catch (error) {
-      console.error('[AUTH] 로그아웃 실패:', error)
+    // 사용자 상태 초기화
+    setUser(null)
+    setSession(null)
+    setLoading(false)
+    
+    // 모든 스토리지 정리
+    if (typeof window !== 'undefined') {
+      localStorage.clear()
+      sessionStorage.clear()
+    }
+    
+    console.log('[AUTH] 로그아웃 완료, 상태 초기화됨')
+    
+    // 페이지 새로고침으로 상태 완전 초기화
+    if (typeof window !== 'undefined') {
+      window.location.reload()
     }
   }
 
@@ -262,6 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     user,
     session,
+    token: session?.access_token || null,
     loading,
     error,
     signIn,

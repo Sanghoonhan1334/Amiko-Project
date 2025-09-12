@@ -177,7 +177,7 @@ export default function ChargingTab() {
 
   return (
     <div className="space-y-6">
-      {/* 화상대화 쿠폰 섹션 */}
+      {/* AI 화상 채팅 쿠폰 섹션 */}
       <Card className="bg-white shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

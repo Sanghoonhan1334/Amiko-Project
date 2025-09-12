@@ -1,219 +1,136 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// 알림 생성
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { userId, type, title, message, data } = body
-
-    // 유효성 검사
-    if (!userId || !type || !title || !message) {
-      return NextResponse.json(
-        { success: false, error: '필수 필드가 누락되었습니다.' },
-        { status: 400 }
-      )
-    }
-
-    // 알림 타입 검증
-    const validTypes: string[] = [
-      'booking_created',
-      'payment_confirmed',
-      'consultation_reminder',
-      'consultation_completed',
-      'review_reminder',
-      'system'
-    ]
-
-    if (!validTypes.includes(type)) {
-      return NextResponse.json(
-        { success: false, error: '유효하지 않은 알림 타입입니다.' },
-        { status: 400 }
-      )
-    }
-
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
-    // 알림 생성
-    const { data: notification, error: insertError } = await supabase
-      .from('notifications')
-      .insert({
-        user_id: userId,
-        title,
-        message,
-        type,
-        data: data || {},
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single()
-
-    if (insertError) {
-      console.error('❌ 알림 생성 실패:', insertError)
-      return NextResponse.json(
-        { success: false, error: '알림 생성에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    // 알림 로그 생성 (선택적)
-    try {
-      await supabase
-        .from('notification_logs')
-        .insert({
-          notification_id: notification.id,
-          user_id: userId,
-          type,
-          channel: 'in_app',
-          status: 'sent'
-        })
-    } catch (logError) {
-      console.warn('[NOTIFICATION] 로그 생성 실패 (무시됨):', logError)
-    }
-
-    return NextResponse.json({
-      success: true,
-      notification,
-      message: '알림이 생성되었습니다.'
-    })
-
-  } catch (error) {
-    console.error('알림 생성 실패:', error)
-    return NextResponse.json(
-      { success: false, error: '알림 생성에 실패했습니다.' },
-      { status: 500 }
-    )
-  }
-}
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabaseServer'
 
 // 알림 목록 조회
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    if (!supabaseServer) {
+      console.error('[NOTIFICATIONS API] Supabase 서버 클라이언트가 설정되지 않았습니다.')
+      return NextResponse.json({
+        notifications: [],
+        unreadCount: 0,
+        hasMore: false
+      })
+    }
+
+    // 인증 확인
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '인증에 실패했습니다.' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
     const unreadOnly = searchParams.get('unreadOnly') === 'true'
-    
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
-      )
-    }
 
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
-    // 테이블 존재 여부 확인
-    const { data: tableCheck } = await supabase
-      .from('notifications')
-      .select('id')
-      .limit(1)
-
-    if (!tableCheck) {
-      return NextResponse.json(
-        { success: false, error: 'notifications 테이블이 존재하지 않습니다.' },
-        { status: 500 }
-      )
-    }
-
-    // 쿼리 구성
-    let query = supabase
+    // 알림 조회 쿼리 구성
+    let query = supabaseServer
       .from('notifications')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
+    // 읽지 않은 알림만 조회하는 경우
     if (unreadOnly) {
       query = query.eq('is_read', false)
     }
 
-    // 알림 목록 조회
-    const { data: notifications, error: fetchError } = await query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+    const { data: notifications, error } = await query
 
-    if (fetchError) {
-      console.error('❌ 알림 조회 실패:', fetchError)
+    if (error) {
+      console.error('알림 조회 실패:', error)
       return NextResponse.json(
-        { success: false, error: '알림 목록 조회에 실패했습니다.' },
+        { error: '알림을 불러오는데 실패했습니다.' },
         { status: 500 }
       )
     }
 
     // 읽지 않은 알림 개수 조회
-    let unreadCount = 0
-    try {
-      const { count } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('is_read', false)
-
-      unreadCount = count || 0
-    } catch (countError) {
-      console.warn('[NOTIFICATION] 읽지 않은 알림 개수 조회 실패 (무시됨):', countError)
-    }
+    const { count: unreadCount } = await supabaseServer
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false)
 
     return NextResponse.json({
-      success: true,
       notifications: notifications || [],
-      unreadCount,
-      pagination: {
-        limit,
-        offset,
-        total: notifications?.length || 0
-      }
+      unreadCount: unreadCount || 0,
+      hasMore: notifications && notifications.length === limit
     })
 
   } catch (error) {
-    console.error('알림 목록 조회 실패:', error)
+    console.error('알림 조회 중 오류:', error)
     return NextResponse.json(
-      { success: false, error: '알림 목록 조회에 실패했습니다.' },
+      { error: '알림을 불러오는데 실패했습니다.' },
       { status: 500 }
     )
   }
 }
 
-// 알림 삭제
-export async function DELETE(request: Request) {
+// 알림 생성 (시스템용)
+export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id')
-    const userId = searchParams.get('userId')
-    
-    if (!id || !userId) {
+    if (!supabaseServer) {
+      console.error('[NOTIFICATIONS API] Supabase 서버 클라이언트가 설정되지 않았습니다.')
       return NextResponse.json(
-        { success: false, error: '알림 ID와 사용자 ID가 필요합니다.' },
-        { status: 400 }
-      )
-    }
-
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
-    // 알림 삭제
-    const { error: deleteError } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId)
-
-    if (deleteError) {
-      console.error('❌ 알림 삭제 실패:', deleteError)
-      return NextResponse.json(
-        { success: false, error: '알림 삭제에 실패했습니다.' },
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({
-      success: true,
-      message: '알림이 삭제되었습니다.'
-    })
+    const body = await request.json()
+    const { userId, type, title, message, data } = body
+
+    // 입력 검증
+    if (!userId || !type || !title || !message) {
+      return NextResponse.json(
+        { error: '필수 필드가 누락되었습니다.' },
+        { status: 400 }
+      )
+    }
+
+    // 알림 생성
+    const { data: notification, error } = await supabaseServer
+      .from('notifications')
+      .insert({
+        user_id: userId,
+        type,
+        title,
+        message,
+        data: data || null
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('알림 생성 실패:', error)
+      return NextResponse.json(
+        { error: '알림 생성에 실패했습니다.' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ notification })
 
   } catch (error) {
-    console.error('알림 삭제 실패:', error)
+    console.error('알림 생성 중 오류:', error)
     return NextResponse.json(
-      { success: false, error: '알림 삭제에 실패했습니다.' },
+      { error: '알림 생성에 실패했습니다.' },
       { status: 500 }
     )
   }
