@@ -36,13 +36,28 @@ export default function Header() {
     if (!user?.id) return
 
     try {
+      console.log('헤더 포인트 로딩 시작:', user.id)
       const response = await fetch(`/api/points?userId=${user.id}`)
+      console.log('헤더 포인트 API 응답:', response.status)
+      
       if (response.ok) {
         const data = await response.json()
-        setUserPoints(data.userPoints?.available_points || 0)
+        console.log('헤더 포인트 데이터:', data)
+        
+        // 다양한 포인트 필드 확인
+        const points = data.userPoints?.available_points || 
+                      data.userPoints?.total_points || 
+                      data.totalPoints || 
+                      data.availablePoints || 
+                      0
+        
+        console.log('설정할 포인트:', points)
+        setUserPoints(points)
+      } else {
+        console.error('헤더 포인트 API 오류:', response.status)
       }
     } catch (error) {
-      console.error('포인트 로딩 실패:', error)
+      console.error('헤더 포인트 로딩 실패:', error)
     }
   }
 
