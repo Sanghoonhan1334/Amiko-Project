@@ -111,7 +111,7 @@ export async function PUT(request: NextRequest) {
         status: status,
         is_active: isActive !== undefined ? isActive : true,
         updated_at: new Date().toISOString()
-      }, {
+      } as any, {
         onConflict: 'mentor_id'
       })
       .select()

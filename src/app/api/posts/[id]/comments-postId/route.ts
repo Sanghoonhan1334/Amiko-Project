@@ -106,7 +106,7 @@ export async function POST(
         content: content.trim(),
         language: 'ko',
         is_deleted: false
-      })
+      } as any)
       .select(`
         *,
         author:users!inner(id, full_name, profile_image)

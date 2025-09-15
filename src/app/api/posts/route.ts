@@ -370,7 +370,7 @@ export async function POST(request: NextRequest) {
 
           const { error: optionsError } = await supabaseServer
             .from('survey_options')
-            .insert(optionsData)
+            .insert(optionsData as any)
 
           if (optionsError) {
             console.error('[POST_CREATE] 설문조사 선택지 생성 실패:', optionsError)

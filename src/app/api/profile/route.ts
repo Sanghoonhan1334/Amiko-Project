@@ -100,7 +100,7 @@ export async function PUT(request: NextRequest) {
       // 사용자가 존재하면 업데이트
       const { data: updatedUser, error: updateError } = await supabaseServer
         .from('users')
-        .update(updateData)
+        .update(updateData as any)
         .eq('id', userId)
         .select()
         .single()

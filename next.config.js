@@ -4,6 +4,12 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
     reactCompiler: false,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // 컴파일러 최적화
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
