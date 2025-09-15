@@ -1197,22 +1197,7 @@ export default function CommunityTab() {
                 </div>
               </div>
             </div>
-          ) : (
-            /* 스토리가 없을 때 메시지 */
-            <div className="flex justify-center">
-              <div className="w-full max-w-md">
-                <div className="bg-white rounded-lg shadow-md overflow-hidden p-8 text-center">
-                  <div className="w-16 h-16 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white text-2xl">📸</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center">스토리가 없습니다</h3>
-                  <p className="text-gray-600 text-center">
-                    첫 번째 스토리를 올려보세요!
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
 
