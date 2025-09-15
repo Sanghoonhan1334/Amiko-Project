@@ -114,8 +114,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // 포인트 업데이트 이벤트 리스너
   useEffect(() => {
     const handlePointsUpdate = (event: CustomEvent) => {
-      const { points, dailyPoints } = event.detail
-      updateUser({ points, daily_points: dailyPoints })
+      // 이벤트 detail이 있는 경우에만 처리
+      if (event.detail) {
+        const { points, dailyPoints } = event.detail
+        updateUser({ points, daily_points: dailyPoints })
+      }
+      // detail이 없는 경우 (MyTab에서 발생한 이벤트)는 무시
     }
 
     window.addEventListener('pointsUpdated', handlePointsUpdate as EventListener)
