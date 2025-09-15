@@ -130,12 +130,7 @@ export default function Header() {
           setVerificationStatus('unverified')
         }
 
-        // 포인트 정보 가져오기
-        const pointsResponse = await fetch(`/api/points?userId=${user.id}`)
-        if (pointsResponse.ok) {
-          const pointsData = await pointsResponse.json()
-          setUserPoints(pointsData.totalPoints || 0)
-        }
+        // 포인트는 별도 로딩 함수에서 처리
       } catch (error) {
         console.error('인증 상태 및 포인트 확인 오류:', error)
         setVerificationStatus('unverified')
