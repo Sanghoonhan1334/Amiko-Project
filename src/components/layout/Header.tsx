@@ -115,7 +115,7 @@ export default function Header() {
     const checkVerificationStatus = async () => {
       if (!user?.id) {
         setVerificationStatus('unverified')
-        setUserPoints(0)
+        // 포인트는 별도로 로딩하므로 여기서 리셋하지 않음
         return
       }
 
@@ -139,7 +139,7 @@ export default function Header() {
       } catch (error) {
         console.error('인증 상태 및 포인트 확인 오류:', error)
         setVerificationStatus('unverified')
-        setUserPoints(0)
+        // 포인트는 별도로 로딩하므로 여기서 리셋하지 않음
       }
     }
 
