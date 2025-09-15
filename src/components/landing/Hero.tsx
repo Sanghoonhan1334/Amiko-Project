@@ -166,109 +166,109 @@ export default function Hero() {
 
             {/* 세 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col py-8 sm:py-12 md:py-16">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6">
+              <div className="min-h-screen flex flex-col py-12 sm:py-16 md:py-20">
+                <div className="max-w-3xl mx-auto px-4 sm:px-6">
                   {/* 메인 레이아웃 */}
-                  <div className="space-y-4 sm:space-y-6">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* 왼쪽 섹션 */}
-                    <div className="space-y-4 sm:space-y-6 pt-8 sm:pt-12 md:pt-16">
+                    <div className="space-y-3 sm:space-y-4 pt-16 sm:pt-20 md:pt-24">
                       {/* 제목 섹션 */}
                       <div className="text-center lg:text-left">
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 mb-2 sm:mb-3">
+                        <h2 className="text-base sm:text-lg md:text-xl font-normal text-gray-900 mb-1 sm:mb-2">
                           {t('heroSlides.slide3.subtitle')}
                         </h2>
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 font-['Inter']">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">
                           {t('heroSlides.slide3.title')}
                         </h1>
-                        <div className="w-24 sm:w-32 md:w-40 h-1 bg-purple-300 mb-3 sm:mb-4 mx-auto lg:mx-0"></div>
-                        <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto lg:mx-0">
+                        <div className="w-20 sm:w-24 md:w-28 h-0.5 bg-purple-300 mb-2 sm:mb-3 mx-auto lg:mx-0"></div>
+                        <p className="text-gray-600 text-xs sm:text-sm max-w-2xl mx-auto lg:mx-0">
                           {t('heroSlides.slide3.description')}
                         </p>
                       </div>
                       
                       {/* 4개 카드 그리드 */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-12 md:mt-16">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 mt-4 sm:mt-6 md:mt-8">
                         {/* 주제별 게시판 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow-lg border border-gray-100 relative w-full max-w-md mx-auto md:mx-0">
-                          <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
-                            <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">01</span>
+                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">01</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-16 h-10 sm:w-20 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4 relative">
+                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
                               {/* 음악 노트 아이콘 */}
-                              <div className="w-12 h-8 sm:w-14 sm:h-10 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
-                                <span className="text-gray-800 font-bold text-lg sm:text-xl">🎵</span>
+                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
+                                <span className="text-gray-800 font-bold text-sm sm:text-base">🎵</span>
                               </div>
                             </div>
-                            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3 font-['Inter']">주제별 게시판</h3>
-                            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">주제별 게시판</h3>
+                            <p className="text-gray-600 text-xs leading-relaxed">
                               K-POP, K-DRAMA, K-뷰티, 트랜드, 여행 등 다양한 주제를 자유롭게 소통해보세요.
                             </p>
                           </div>
                         </div>
                         
                         {/* 자유게시판 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow-lg border border-gray-100 relative w-full max-w-md mx-auto md:mx-0">
-                          <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
-                            <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">02</span>
+                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">02</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-16 h-10 sm:w-20 sm:h-12 bg-pink-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4 relative">
+                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-pink-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
                               {/* 직사각형 말풍선 모양 */}
-                              <div className="w-12 h-8 sm:w-14 sm:h-10 bg-white border-2 border-gray-800 rounded-lg relative">
+                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative">
                                 {/* 말풍선 안의 텍스트 라인들 */}
                                 <div className="absolute inset-0 flex items-center justify-center">
                                   <div className="flex flex-col space-y-0.5">
-                                    <div className="w-6 h-0.5 bg-gray-400 rounded-full"></div>
                                     <div className="w-4 h-0.5 bg-gray-400 rounded-full"></div>
-                                    <div className="w-5 h-0.5 bg-gray-400 rounded-full"></div>
+                                    <div className="w-3 h-0.5 bg-gray-400 rounded-full"></div>
+                                    <div className="w-3.5 h-0.5 bg-gray-400 rounded-full"></div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3 font-['Inter']">자유게시판</h3>
-                            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">자유게시판</h3>
+                            <p className="text-gray-600 text-xs leading-relaxed">
                               자유로운 주제로 자유롭게 지구 반대편과 소통해보세요.
                             </p>
                           </div>
                         </div>
                         
                         {/* 스토리 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow-lg border border-gray-100 relative w-full max-w-md mx-auto md:mx-0">
-                          <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
-                            <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">03</span>
+                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">03</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-16 h-10 sm:w-20 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4 relative">
+                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
                               {/* 책 아이콘 */}
-                              <div className="w-12 h-8 sm:w-14 sm:h-10 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
-                                <span className="text-gray-800 font-bold text-lg sm:text-xl">📖</span>
+                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
+                                <span className="text-gray-800 font-bold text-sm sm:text-base">📖</span>
                               </div>
                             </div>
-                            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3 font-['Inter']">스토리</h3>
-                            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">스토리</h3>
+                            <p className="text-gray-600 text-xs leading-relaxed">
                               나의 일상을 공유하고 일상에 대해서 대화해보세요.
                             </p>
                           </div>
                         </div>
                         
                         {/* Q&A 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow-lg border border-gray-100 relative w-full max-w-md mx-auto md:mx-0">
-                          <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
-                            <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">04</span>
+                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">04</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-16 h-10 sm:w-20 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3">
                               {/* 검은색 테두리 말풍선 */}
-                              <div className="w-12 h-8 sm:w-14 sm:h-10 border-2 border-gray-800 rounded-lg relative bg-white">
+                              <div className="w-10 h-6 sm:w-12 sm:h-8 border-2 border-gray-800 rounded-lg relative bg-white">
                                 {/* 말풍선 꼬리 */}
-                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-gray-800"></div>
+                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-800"></div>
                                 {/* 물음표 */}
-                                <div className="absolute inset-0 flex items-center justify-center text-gray-800 font-bold text-lg sm:text-xl">?</div>
+                                <div className="absolute inset-0 flex items-center justify-center text-gray-800 font-bold text-sm sm:text-base">?</div>
                               </div>
                             </div>
-                            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3 font-['Inter']">Q&A</h3>
-                            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">Q&A</h3>
+                            <p className="text-gray-600 text-xs leading-relaxed">
                               Q&A 커뮤니티를 통해 서로에게 궁금한 점을 질문하고 직접 답변을 받아보세요.
                             </p>
                           </div>

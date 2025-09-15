@@ -94,13 +94,21 @@ export const createLocalTracks = async () => {
     // 실제 카메라 사용
     console.log('[AGORA] Creating real camera tracks...')
     
-    // 사용 가능한 카메라 목록 확인
-    const devices = await AgoraRTC.getCameras()
-    console.log('사용 가능한 카메라:', devices.map(d => d.label))
+    // 사용 가능한 카메라 목록 확인 (선택사항)
+    try {
+      const devices = await AgoraRTC.getCameras()
+      console.log('사용 가능한 카메라:', devices.map(d => d.label))
+    } catch (error) {
+      console.log('카메라 목록을 가져올 수 없습니다:', error)
+    }
     
-    // 사용 가능한 마이크 목록 확인
-    const mics = await AgoraRTC.getMicrophones()
-    console.log('사용 가능한 마이크:', mics.map(m => m.label))
+    // 사용 가능한 마이크 목록 확인 (선택사항)
+    try {
+      const mics = await AgoraRTC.getMicrophones()
+      console.log('사용 가능한 마이크:', mics.map(m => m.label))
+    } catch (error) {
+      console.log('마이크 목록을 가져올 수 없습니다:', error)
+    }
     
     const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks()
     

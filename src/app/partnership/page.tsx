@@ -146,26 +146,26 @@ export default function PartnershipPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
-      <section className="pt-40 pb-20 md:pt-48 md:pb-28">
+      <section className="pt-40 pb-16 md:pt-48 md:pb-20">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg">
-                <Handshake className="h-12 w-12 text-white" />
+          <div className="text-center max-w-3xl mx-auto">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                <Handshake className="h-8 w-8 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               {t('partnership.title')}
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-600 mb-6 leading-relaxed">
               {t('partnership.subtitle')}
             </p>
             <Button 
               onClick={() => setIsPartnershipModalOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 text-base font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              <Handshake className="mr-2 h-5 w-5" />
+              <Handshake className="mr-2 h-4 w-4" />
               {t('partnership.submit')}
             </Button>
           </div>
@@ -173,44 +173,44 @@ export default function PartnershipPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
               {t('partnership.benefitsTitle')}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base text-gray-600 max-w-2xl mx-auto">
               {t('partnership.benefitsSubtitle')}
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100">
-              <div className="p-4 bg-blue-500 rounded-2xl w-fit mx-auto mb-6">
-                <Building2 className="h-8 w-8 text-white" />
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100">
+              <div className="p-3 bg-blue-500 rounded-xl w-fit mx-auto mb-4">
+                <Building2 className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">{t('partnership.benefits.brandExpansion.title')}</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('partnership.benefits.brandExpansion.title')}</h3>
+              <p className="text-sm text-gray-600">
                 {t('partnership.benefits.brandExpansion.description')}
               </p>
             </div>
             
-            <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100">
-              <div className="p-4 bg-purple-500 rounded-2xl w-fit mx-auto mb-6">
-                <Users className="h-8 w-8 text-white" />
+            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100">
+              <div className="p-3 bg-purple-500 rounded-xl w-fit mx-auto mb-4">
+                <Users className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">{t('partnership.benefits.customerExpansion.title')}</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('partnership.benefits.customerExpansion.title')}</h3>
+              <p className="text-sm text-gray-600">
                 {t('partnership.benefits.customerExpansion.description')}
               </p>
             </div>
             
-            <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-green-50 to-green-100">
-              <div className="p-4 bg-green-500 rounded-2xl w-fit mx-auto mb-6">
-                <DollarSign className="h-8 w-8 text-white" />
+            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-green-50 to-green-100">
+              <div className="p-3 bg-green-500 rounded-xl w-fit mx-auto mb-4">
+                <DollarSign className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">{t('partnership.benefits.revenueIncrease.title')}</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('partnership.benefits.revenueIncrease.title')}</h3>
+              <p className="text-sm text-gray-600">
                 {t('partnership.benefits.revenueIncrease.description')}
               </p>
             </div>
@@ -220,21 +220,21 @@ export default function PartnershipPage() {
 
       {/* Partnership Modal */}
       <Dialog open={isPartnershipModalOpen} onOpenChange={setIsPartnershipModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center text-gray-900 mb-6">
-              <Handshake className="h-8 w-8 inline mr-2 text-blue-500" />
+            <DialogTitle className="text-xl font-bold text-center text-gray-900 mb-4">
+              <Handshake className="h-6 w-6 inline mr-2 text-blue-500" />
               제휴 문의
             </DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* 회사 정보 */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
                 회사 정보
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     회사명 *
@@ -300,11 +300,11 @@ export default function PartnershipPage() {
             </div>
 
             {/* 사업 정보 */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
                 사업 정보
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     사업 분야 *
@@ -349,11 +349,11 @@ export default function PartnershipPage() {
             </div>
 
             {/* 제휴 정보 */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
                 제휴 정보
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     제휴 유형 *
@@ -403,15 +403,15 @@ export default function PartnershipPage() {
                   value={formData.expectedEffect}
                   onChange={(e) => handleInputChange('expectedEffect', e.target.value)}
                   placeholder="제휴를 통해 기대하는 효과나 목표를 자세히 설명해주세요"
-                  rows={3}
+                  rows={2}
                   className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
                 />
               </div>
             </div>
 
             {/* 상세 내용 */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
                 상세 내용
               </h3>
               <div>
@@ -422,7 +422,7 @@ export default function PartnershipPage() {
                   value={formData.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   placeholder="구체적인 제휴 제안 내용을 자세히 작성해주세요"
-                  rows={5}
+                  rows={3}
                   className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
                   required
                 />
@@ -462,7 +462,7 @@ export default function PartnershipPage() {
             )}
 
             {/* 제출 버튼 */}
-            <div className="flex justify-end space-x-4 pt-6">
+            <div className="flex justify-end space-x-3 pt-4">
               <Button
                 type="button"
                 variant="outline"

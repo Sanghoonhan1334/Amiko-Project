@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { 
-  ArrowLeft, 
   ThumbsUp, 
   ThumbsDown,
   MessageSquare,
@@ -503,16 +502,6 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
 
   return (
     <div className="space-y-6">
-      {/* 뒤로가기 버튼 */}
-      <Button
-        variant="outline"
-        onClick={onClose}
-        className="flex items-center gap-2"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        목록으로
-      </Button>
-
       {/* 에러 메시지 */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -585,28 +574,6 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
             <div className="whitespace-pre-wrap text-gray-800">
               {postData.content}
             </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* 댓글 작성 */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">댓글 작성</h3>
-        <div className="space-y-4">
-          <Textarea
-            placeholder="댓글을 입력하세요..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            rows={3}
-          />
-          <div className="flex justify-end">
-            <Button
-              onClick={handleCommentSubmit}
-              disabled={commentLoading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {commentLoading ? '작성 중...' : '댓글 작성'}
-            </Button>
           </div>
         </div>
       </Card>
@@ -727,6 +694,29 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
           )}
         </div>
       </Card>
+
+      {/* 댓글 작성 */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">댓글 작성</h3>
+        <div className="space-y-4">
+          <Textarea
+            placeholder="댓글을 입력하세요..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            rows={3}
+          />
+          <div className="flex justify-end">
+            <Button
+              onClick={handleCommentSubmit}
+              disabled={commentLoading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {commentLoading ? '작성 중...' : '댓글 작성'}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       {/* 사용자 프로필 모달 */}
       <UserProfileModal
         userId={selectedUserId}

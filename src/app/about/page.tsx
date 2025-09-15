@@ -63,7 +63,7 @@ export default function AboutPage() {
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full mt-2">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
-                        src="https://www.youtube.com/embed/6BdrKjSMBJY"
+                        src="https://www.youtube.com/embed/2tDHgOhdCqY"
                         title="Amiko 대표자 소개 영상"
                         className="w-full h-full"
                         frameBorder="0"
@@ -87,7 +87,7 @@ export default function AboutPage() {
                         <img 
                           src="/1.png" 
                           alt="AMIKO Logo 1" 
-                          className="w-72 h-72 object-contain -mb-20 -mt-12"
+                          className="w-64 h-64 object-contain -mb-16 -mt-20"
                           loading="lazy"
                           decoding="async"
                         />
@@ -103,7 +103,7 @@ export default function AboutPage() {
                         <img 
                           src="/2.png" 
                           alt="AMIKO Logo 2" 
-                          className="w-72 h-72 object-contain -mb-20 -mt-12"
+                          className="w-64 h-64 object-contain -mb-16 -mt-20"
                           loading="lazy"
                           decoding="async"
                         />
@@ -128,7 +128,7 @@ export default function AboutPage() {
                         <img 
                           src="/3.png" 
                           alt="AMIKO Logo 3" 
-                          className="w-72 h-72 object-contain -mb-20 -mt-12"
+                          className="w-64 h-64 object-contain -mb-16 -mt-20"
                           loading="lazy"
                           decoding="async"
                         />

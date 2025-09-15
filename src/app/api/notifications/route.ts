@@ -4,18 +4,24 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 알림 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    console.log('[NOTIFICATIONS API] GET 요청 시작')
+    
     if (!supabaseServer) {
       console.error('[NOTIFICATIONS API] Supabase 서버 클라이언트가 설정되지 않았습니다.')
       return NextResponse.json({
         notifications: [],
         unreadCount: 0,
-        hasMore: false
-      })
+        hasMore: false,
+        error: '데이터베이스 연결이 설정되지 않았습니다.'
+      }, { status: 500 })
     }
 
     // 인증 확인
     const authHeader = request.headers.get('authorization')
+    console.log('[NOTIFICATIONS API] 인증 헤더:', authHeader ? '존재' : '없음')
+    
     if (!authHeader) {
+      console.log('[NOTIFICATIONS API] 인증 헤더가 없음')
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
@@ -23,9 +29,13 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '')
+    console.log('[NOTIFICATIONS API] 토큰 추출:', token ? '성공' : '실패')
+    
     const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+    console.log('[NOTIFICATIONS API] 사용자 인증:', { user: user?.id, error: authError?.message })
 
     if (authError || !user) {
+      console.log('[NOTIFICATIONS API] 인증 실패:', authError?.message)
       return NextResponse.json(
         { error: '인증에 실패했습니다.' },
         { status: 401 }
@@ -36,6 +46,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
     const unreadOnly = searchParams.get('unreadOnly') === 'true'
+
+    console.log('[NOTIFICATIONS API] 쿼리 파라미터:', { limit, offset, unreadOnly })
 
     // 알림 조회 쿼리 구성
     let query = supabaseServer
@@ -50,28 +62,42 @@ export async function GET(request: NextRequest) {
       query = query.eq('is_read', false)
     }
 
+    console.log('[NOTIFICATIONS API] 알림 조회 쿼리 실행 중...')
     const { data: notifications, error } = await query
+    console.log('[NOTIFICATIONS API] 알림 조회 결과:', { 
+      notificationsCount: notifications?.length || 0, 
+      error: error?.message 
+    })
 
     if (error) {
-      console.error('알림 조회 실패:', error)
+      console.error('[NOTIFICATIONS API] 알림 조회 실패:', error)
       return NextResponse.json(
-        { error: '알림을 불러오는데 실패했습니다.' },
+        { error: '알림을 불러오는데 실패했습니다.', details: error.message },
         { status: 500 }
       )
     }
 
     // 읽지 않은 알림 개수 조회
-    const { count: unreadCount } = await supabaseServer
+    console.log('[NOTIFICATIONS API] 읽지 않은 알림 개수 조회 중...')
+    const { count: unreadCount, error: countError } = await supabaseServer
       .from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('is_read', false)
 
-    return NextResponse.json({
+    console.log('[NOTIFICATIONS API] 읽지 않은 알림 개수:', { 
+      unreadCount, 
+      countError: countError?.message 
+    })
+
+    const response = {
       notifications: notifications || [],
       unreadCount: unreadCount || 0,
       hasMore: notifications && notifications.length === limit
-    })
+    }
+    
+    console.log('[NOTIFICATIONS API] 최종 응답:', response)
+    return NextResponse.json(response)
 
   } catch (error) {
     console.error('알림 조회 중 오류:', error)

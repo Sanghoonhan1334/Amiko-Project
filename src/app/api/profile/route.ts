@@ -12,9 +12,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('[PROFILE] 요청 데이터:', body)
     const { full_name, phone, one_line_intro, language, profile_image, profile_images, main_profile_image, user_type, university, major, grade, occupation, company, work_experience } = body
 
-    // Authorization 헤더에서 사용자 ID 추출 (임시)
+    // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
     if (!authHeader) {
       return NextResponse.json(
@@ -23,7 +24,20 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const userId = authHeader.replace('Bearer ', '')
+    const token = authHeader.replace('Bearer ', '')
+    
+    // 토큰에서 사용자 정보 추출
+    const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(token)
+    
+    if (authError || !authUser) {
+      return NextResponse.json(
+        { error: '인증에 실패했습니다.' },
+        { status: 401 }
+      )
+    }
+
+    const userId = authUser.id
+    console.log('[PROFILE] 사용자 ID:', userId)
 
     // 사용자 기본 정보 업데이트
     const updateData: any = {
@@ -49,19 +63,57 @@ export async function PUT(request: NextRequest) {
       updateData.main_profile_image = main_profile_image
     }
 
-    const { data: user, error: userError } = await (supabaseServer as any)
+    // 먼저 사용자가 users 테이블에 존재하는지 확인
+    console.log('[PROFILE] 사용자 존재 여부 확인 중...')
+    const { data: existingUser, error: checkError } = await supabaseServer
       .from('users')
-      .update(updateData)
+      .select('id')
       .eq('id', userId)
-      .select()
       .single()
+    
+    console.log('[PROFILE] 사용자 존재 확인 결과:', { existingUser, checkError })
 
-    if (userError) {
-      console.error('[PROFILE] 사용자 업데이트 실패:', userError)
-      return NextResponse.json(
-        { error: '사용자 정보 업데이트에 실패했습니다.' },
-        { status: 500 }
-      )
+    let user
+    if (checkError && checkError.code === 'PGRST116') {
+      // 사용자가 존재하지 않으면 새로 생성
+      console.log('[PROFILE] 사용자가 존재하지 않아 새로 생성합니다.')
+      const { data: newUser, error: createError } = await supabaseServer
+        .from('users')
+        .insert({
+          id: userId,
+          email: authUser.email,
+          ...updateData
+        })
+        .select()
+        .single()
+
+      if (createError) {
+        console.error('[PROFILE] 사용자 생성 실패:', createError)
+        return NextResponse.json(
+          { error: '사용자 생성에 실패했습니다.' },
+          { status: 500 }
+        )
+      }
+      user = newUser
+      console.log('[PROFILE] 사용자 생성 성공:', newUser)
+    } else {
+      // 사용자가 존재하면 업데이트
+      const { data: updatedUser, error: updateError } = await supabaseServer
+        .from('users')
+        .update(updateData)
+        .eq('id', userId)
+        .select()
+        .single()
+
+      if (updateError) {
+        console.error('[PROFILE] 사용자 업데이트 실패:', updateError)
+        return NextResponse.json(
+          { error: '사용자 정보 업데이트에 실패했습니다.' },
+          { status: 500 }
+        )
+      }
+      user = updatedUser
+      console.log('[PROFILE] 사용자 업데이트 성공:', updatedUser)
     }
 
     // 사용자 타입 업데이트

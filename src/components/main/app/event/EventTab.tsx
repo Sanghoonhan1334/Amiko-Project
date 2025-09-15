@@ -10,7 +10,8 @@ import {
   Star, 
   Trophy, 
   Zap,
-  CheckCircle
+  CheckCircle,
+  Video
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -36,9 +37,14 @@ export default function EventTab() {
   // 포인트 데이터 상태
   const [pointsData, setPointsData] = useState({
     total: 0,
-    attendance: 0,
+    available: 0,
     community: 0,
-    coupons: 0
+    videoCall: 0
+  })
+  const [rankingData, setRankingData] = useState({
+    ranking: [],
+    userRank: null,
+    totalUsers: 0
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,9 +56,14 @@ export default function EventTab() {
         // 로그인하지 않은 사용자에게는 기본값 표시
         setPointsData({
           total: 0,
-          attendance: 0,
+          available: 0,
           community: 0,
-          coupons: 0
+          videoCall: 0
+        })
+        setRankingData({
+          ranking: [],
+          userRank: null,
+          totalUsers: 0
         })
         setLoading(false)
         return
@@ -62,30 +73,48 @@ export default function EventTab() {
         setLoading(true)
         setError(null)
 
-        // 포인트 API 호출
-        const response = await fetch(`/api/points?userId=${user.id}`)
+        // 포인트 및 랭킹 데이터 병렬 호출
+        const [pointsResponse, rankingResponse] = await Promise.all([
+          fetch(`/api/points?userId=${user.id}`),
+          fetch(`/api/points/ranking?userId=${user.id}&limit=10`)
+        ])
         
-        if (!response.ok) {
+        if (!pointsResponse.ok || !rankingResponse.ok) {
           // API 에러 시 기본값 사용
-          console.warn('[EventTab] 포인트 API 호출 실패, 기본값 사용')
+          console.warn('[EventTab] 포인트/랭킹 API 호출 실패, 기본값 사용')
           setPointsData({
-            total: 35,
-            attendance: 10,
-            community: 25,
-            coupons: 0
+            total: 0,
+            available: 0,
+            community: 0,
+            videoCall: 0
+          })
+          setRankingData({
+            ranking: [],
+            userRank: null,
+            totalUsers: 0
           })
           return
         }
 
-        const result = await response.json()
+        const [pointsResult, rankingResult] = await Promise.all([
+          pointsResponse.json(),
+          rankingResponse.json()
+        ])
 
         // 포인트 데이터 설정
-        const totalPoints = result.points?.total_points || 0
+        const userPoints = pointsResult.userPoints
         setPointsData({
-          total: totalPoints,
-          attendance: Math.floor(totalPoints * 0.3), // 출석 포인트 추정
-          community: Math.floor(totalPoints * 0.7), // 커뮤니티 포인트 추정
-          coupons: Math.floor(totalPoints / 100) // 100점마다 쿠폰 1개
+          total: userPoints?.total_points || 0,
+          available: userPoints?.available_points || 0,
+          community: 0, // 히스토리에서 계산
+          videoCall: 0  // 히스토리에서 계산
+        })
+
+        // 랭킹 데이터 설정
+        setRankingData({
+          ranking: rankingResult.ranking || [],
+          userRank: rankingResult.userRank,
+          totalUsers: rankingResult.totalUsers || 0
         })
 
       } catch (error) {
@@ -93,10 +122,15 @@ export default function EventTab() {
         
         // 네트워크 에러나 기타 에러 시 기본값 설정
         setPointsData({
-          total: 35,
-          attendance: 10,
-          community: 25,
-          coupons: 0
+          total: 0,
+          available: 0,
+          community: 0,
+          videoCall: 0
+        })
+        setRankingData({
+          ranking: [],
+          userRank: null,
+          totalUsers: 0
         })
       } finally {
         setLoading(false)
@@ -157,21 +191,22 @@ export default function EventTab() {
     }
   }, [user?.id])
 
-  // 포인트 데이터 로드
+  // 포인트 데이터 로드 (새로운 규칙)
   const loadPointsData = () => {
-    // 출석체크 포인트 (자동 10점, 접속 시 자동 반영)
-    const attendancePoints = 10 // 기본 접속 포인트
+    // 커뮤니티 활동 포인트 (하루 최대 +20점)
+    const communityPoints = 15 // 예시: 질문 1개(5) + 답변 1개(5) + 스토리 1개(5)
 
-    // 커뮤니티 포인트 (새로운 체계)
-    const communityPoints = 25 // 예시: 질문 2개(10) + 답변 2개(10) + 스토리 1개(5)
+    // 영상통화 포인트 (1회 완료 시 +40점)
+    const videoCallPoints = 40 // 영상통화 완료 시
 
-    const total = attendancePoints + communityPoints
+    const total = communityPoints + videoCallPoints
 
     setPointsData({
-      attendance: attendancePoints,
+      attendance: 0, // 출석체크 포인트 제거
       community: communityPoints,
+      videoCall: videoCallPoints,
       total: total,
-      coupons: Math.floor(total / 100) // 100점마다 쿠폰 1개
+      coupons: 0 // 포인트로 쿠폰 구매 불가
     })
   }
 
@@ -453,48 +488,96 @@ export default function EventTab() {
           {/* 포인트 시스템 상세 정보 */}
           <div className="mt-6 space-y-6">
 
-            {/* 보상 체계 */}
-            <div className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl">
-              <h4 className="font-bold text-orange-800 mb-4 flex items-center gap-2">
-                <Trophy className="w-5 h-5" />
-                보상 체계
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 랭킹 보상 */}
-                <div className="p-4 bg-white rounded-lg border border-orange-200 shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-md">
-                      <Trophy className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-800">누적 점수 랭킹 1위</div>
-                      <div className="text-sm text-orange-600 font-bold">비행기 티켓 리워드</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    전체 사용자 중 누적 점수 1위 달성 시
-                  </div>
-                </div>
-
-                {/* 쿠폰 지급 */}
-                <div className="p-4 bg-white rounded-lg border border-orange-200 shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
-                      <Gift className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-800">100점 달성 시</div>
-                      <div className="text-sm text-green-600 font-bold">쿠폰 1개 자동 지급</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    100점을 달성할 때마다 쿠폰이 자동으로 지급됩니다
-                  </div>
-                </div>
-              </div>
-            </div>
 
           </div>
+        </CardContent>
+      </Card>
+
+      {/* 포인트 랭킹 */}
+      <Card className="bg-white border border-gray-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-2xl">
+            <Trophy className="h-6 w-6 text-yellow-500" />
+            포인트 랭킹
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+              <p className="mt-2 text-gray-600">랭킹 로딩 중...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* 내 랭킹 */}
+              {rankingData.userRank && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">
+                          {rankingData.userRank.position}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-800">나의 순위</h4>
+                        <p className="text-sm text-gray-600">
+                          총 {rankingData.userRank.total_points}포인트
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {rankingData.userRank.position}등
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        전체 {rankingData.totalUsers}명 중
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 상위 랭킹 */}
+              {rankingData.ranking.length > 0 ? (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800 mb-3">🏆 상위 랭킹</h4>
+                  {rankingData.ranking.slice(0, 5).map((user: any, index: number) => (
+                    <div key={user.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                          index === 0 ? 'bg-yellow-500' : 
+                          index === 1 ? 'bg-gray-400' : 
+                          index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-800">
+                            {user.userName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {user.totalPoints}포인트
+                          </div>
+                        </div>
+                      </div>
+                      {index < 3 && (
+                        <div className="text-2xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Trophy className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>아직 랭킹 데이터가 없습니다.</p>
+                  <p className="text-sm">커뮤니티 활동을 시작해보세요!</p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -508,169 +591,28 @@ export default function EventTab() {
             <h3 className="text-xl font-bold text-gray-800 font-['Inter']">포인트 규칙</h3>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* 자동 출석체크 */}
-            <div className="flex-1 p-4 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
-                  <CheckCircle className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-green-800 font-['Inter']">자동 출석체크</h4>
-                  <p className="text-sm text-green-600 font-['Inter']">접속 시 자동으로 10점 지급</p>
-                </div>
-              </div>
-              <div className="text-sm text-gray-600 font-['Inter']">
-                별도의 출석체크 버튼 없이 앱에 접속하면 자동으로 포인트가 지급됩니다.
-              </div>
-            </div>
-
-            {/* 커뮤니티 활동 */}
-            <div className="flex-1 p-4 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                  <span className="text-white text-lg">💬</span>
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-blue-800 font-['Inter']">커뮤니티 활동</h4>
-                  <p className="text-sm text-blue-600 font-['Inter']">하루 최대 20점 획득 가능</p>
-                </div>
-              </div>
-              <div className="space-y-1 text-sm text-gray-600 font-['Inter']">
-                <div>• 질문 작성: +5점</div>
-                <div>• 답변 작성: +5점</div>
-                <div>• 스토리 작성: +5점</div>
-                <div>• 자유게시판: +2점</div>
-              </div>
-            </div>
+          <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+            <div className="text-4xl mb-4">🎯</div>
+            <h4 className="text-lg font-bold text-gray-800 mb-2">포인트 획득 규칙</h4>
+            <p className="text-gray-600 mb-4">
+              상점 탭에서 자세한 포인트 획득 방법을 확인하세요!
+            </p>
+            <Button 
+              onClick={() => {
+                // 상점 탭으로 이동
+                if (typeof window !== 'undefined') {
+                  (window as any).changeMainTab?.('store')
+                }
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              상점으로 이동
+            </Button>
           </div>
+
         </CardContent>
       </Card>
 
-      {/* 내 포인트 섹션 */}
-      <Card className="bg-white border border-gray-200 shadow-lg">
-        <CardContent className="p-8">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 text-center">
-                포인트 데이터를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.
-              </p>
-            </div>
-          )}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <Star className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 font-['Inter']">내 포인트</h3>
-            <div className="px-3 py-1 bg-blue-500 rounded-full">
-              {loading ? (
-                <span className="text-lg font-bold text-white font-['Inter']">...</span>
-              ) : error ? (
-                <span className="text-lg font-bold text-white font-['Inter']">오류</span>
-              ) : (
-                <span className="text-lg font-bold text-white font-['Inter']">{pointsData.total}</span>
-              )}
-            </div>
-          </div>
-
-
-          {/* 포인트 세부 내역 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* 출석 포인트 */}
-            <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-                <span className="text-2xl">📅</span>
-              </div>
-              <h5 className="font-bold text-green-800 mb-3 text-lg">출석 포인트</h5>
-              <p className="text-2xl font-bold text-green-600 mb-2">
-                {loading ? '...' : error ? '오류' : pointsData.attendance}
-              </p>
-              <p className="text-sm text-gray-600">자동 지급</p>
-            </div>
-
-            {/* 커뮤니티 포인트 */}
-            <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-                <span className="text-2xl">💬</span>
-              </div>
-              <h5 className="font-bold text-blue-800 mb-3 text-lg">커뮤니티 활동</h5>
-              <p className="text-2xl font-bold text-blue-600 mb-2">
-                {loading ? '...' : error ? '오류' : pointsData.community}
-              </p>
-              <p className="text-sm text-gray-600">포인트</p>
-            </div>
-
-            {/* 쿠폰 */}
-            <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-                <Gift className="w-6 h-6 text-white" />
-              </div>
-              <h5 className="font-bold text-orange-800 mb-3 text-lg">보유 쿠폰</h5>
-              <p className="text-2xl font-bold text-orange-600 mb-2">
-                {loading ? '...' : error ? '오류' : `${pointsData.coupons}개`}
-              </p>
-              <p className="text-sm text-gray-600">100점마다 지급</p>
-            </div>
-          </div>
-
-          {/* 포인트 랭킹 */}
-          <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-            <h4 className="font-bold text-gray-800 mb-6 text-center flex items-center justify-center gap-3">
-              <Trophy className="w-6 h-6 text-yellow-500" />
-              <span className="text-xl">포인트 랭킹 TOP 10</span>
-            </h4>
-            <div className="space-y-2">
-              {[
-                { rank: 1, name: '김민수', points: 1250, isCurrentUser: false },
-                { rank: 2, name: '이지은', points: 1180, isCurrentUser: false },
-                { rank: 3, name: '박서준', points: 1100, isCurrentUser: false },
-                { rank: 4, name: '최유진', points: 980, isCurrentUser: false },
-                { rank: 5, name: '정호영', points: 920, isCurrentUser: false },
-                { rank: 6, name: '한소영', points: 850, isCurrentUser: false },
-                { rank: 7, name: '윤태현', points: 780, isCurrentUser: false },
-                { rank: 8, name: '강미래', points: 720, isCurrentUser: false },
-                { rank: 9, name: '조성민', points: 680, isCurrentUser: false },
-                { rank: 10, name: '나현재', points: 650, isCurrentUser: true }
-              ].map((user) => (
-                <div
-                  key={user.rank}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    user.isCurrentUser
-                      ? 'bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-blue-300'
-                      : 'bg-white border border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                      user.rank <= 3 
-                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' 
-                        : 'bg-gray-200 text-gray-700'
-                    }`}>
-                      {user.rank}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="font-semibold text-gray-800">
-                        {user.name}
-                        {user.isCurrentUser && <span className="ml-2 text-blue-600 text-sm">(나)</span>}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {user.points.toLocaleString()}점
-                      </div>
-                    </div>
-                  </div>
-                  {user.rank <= 3 && (
-                    <div className="text-3xl">
-                      {user.rank === 1 && '🥇'}
-                      {user.rank === 2 && '🥈'}
-                      {user.rank === 3 && '🥉'}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
     </div>
   )

@@ -164,15 +164,15 @@ export default function InquiryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
       {/* Hero 섹션 */}
-      <section className="pt-40 pb-20 md:pt-48 md:pb-28 bg-gradient-to-br from-green-50 via-white to-emerald-50">
-        <div className="container max-w-6xl mx-auto px-4 text-center">
+      <section className="pt-40 pb-16 md:pt-48 md:pb-20 bg-gradient-to-br from-green-50 via-white to-emerald-50">
+        <div className="container max-w-4xl mx-auto px-4 text-center">
           {/* 상단 라벨 */}
-          <div className="inline-flex items-center gap-2 bg-green-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-green-200/30">
-            <span className="text-green-700 font-medium text-sm">💬 {t('inquiry.submit')}</span>
+          <div className="inline-flex items-center gap-2 bg-green-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-4 border border-green-200/30">
+            <span className="text-green-700 font-medium text-xs">💬 {t('inquiry.submit')}</span>
           </div>
           
           {/* 메인 타이틀 */}
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
             {t('inquiry.heroTitle').split('\n').map((line, index) => (
               <span key={index}>
                 {line}
@@ -182,7 +182,7 @@ export default function InquiryPage() {
           </h1>
           
           {/* 서브 텍스트 */}
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-12">
+          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
             {t('inquiry.heroSubtitle').split('\n').map((line, index) => (
               <span key={index}>
                 {line}
@@ -195,7 +195,7 @@ export default function InquiryPage() {
           <div className="flex justify-center items-center">
             <Button
               onClick={() => setIsInquiryModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg rounded-xl"
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base rounded-lg"
             >
               {t('inquiry.submit')}
             </Button>
@@ -204,21 +204,21 @@ export default function InquiryPage() {
       </section>
 
       {/* 문의 유형 섹션 */}
-      <section className="bg-white py-24" id="inquiry-types">
-        <div className="container max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('inquiry.inquiryType')}</h2>
-            <p className="text-xl text-gray-600">{t('inquiry.inquiryTypeSubtitle')}</p>
+      <section className="bg-white py-12" id="inquiry-types">
+        <div className="container max-w-5xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('inquiry.inquiryType')}</h2>
+            <p className="text-lg text-gray-600">{t('inquiry.inquiryTypeSubtitle')}</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {inquiryTypes.map((type) => (
-              <div key={type.value} className="bg-white rounded-lg p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div key={type.value} className="bg-white rounded-lg p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
                 <div className="text-center">
-                  <div className={`w-16 h-16 ${type.bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                    <span className="text-2xl">{type.icon}</span>
+                  <div className={`w-12 h-12 ${type.bgColor} rounded-full flex items-center justify-center mx-auto mb-3`}>
+                    <span className="text-xl">{type.icon}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{type.label}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{type.label}</h3>
                   <p className="text-gray-600 text-sm">
                     {type.description}
                   </p>
@@ -232,17 +232,17 @@ export default function InquiryPage() {
 
       {/* 문의 모달 */}
       <Dialog open={isInquiryModalOpen} onOpenChange={setIsInquiryModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-green-600" />
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="w-4 h-4 text-green-600" />
               {t('inquiry.submit')}
             </DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* 문의 유형 선택 */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">{t('inquiry.inquiryType')}</label>
               <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
                 <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
@@ -262,7 +262,7 @@ export default function InquiryPage() {
             </div>
 
             {/* 우선순위 선택 */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">{t('inquiry.priority')}</label>
               <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
                 <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
@@ -279,7 +279,7 @@ export default function InquiryPage() {
             </div>
 
             {/* 제목 */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">{t('inquiry.subject')}</label>
               <Input
                 placeholder="문의 제목을 입력해주세요"
@@ -291,14 +291,14 @@ export default function InquiryPage() {
             </div>
 
             {/* 내용 */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">{t('inquiry.message')}</label>
               <Textarea
                 placeholder="문의 내용을 자세히 입력해주세요"
                 value={formData.content}
                 onChange={(e) => handleInputChange('content', e.target.value)}
                 className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
-                rows={6}
+                rows={4}
                 required
               />
               {selectedType && (
@@ -327,7 +327,7 @@ export default function InquiryPage() {
             )}
 
             {/* 버튼 */}
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-2 justify-end pt-2">
               <Button 
                 type="button" 
                 variant="outline"

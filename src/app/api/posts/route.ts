@@ -20,6 +20,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = (page - 1) * limit
 
+    console.log('[POSTS_LIST] 요청 파라미터:', { category, search, sort, page, limit, offset })
+    console.log('[POSTS_LIST] 카테고리 타입:', typeof category, '값:', category)
+
     // 기본 쿼리 구성
     let query = supabaseServer
       .from('posts')
@@ -46,13 +49,13 @@ export async function GET(request: NextRequest) {
           id,
           name
         )
-      `)
+      `, { count: 'exact' })
       .eq('status', 'published')
 
     console.log('[POSTS_LIST] 초기 쿼리 구성 완료, 카테고리:', category)
 
     // 카테고리 필터
-    if (category && category !== 'all') {
+    if (category && category !== 'all' && category !== '자유게시판') {
       console.log('[POSTS_LIST] 카테고리 필터 적용:', category)
       if (category === 'notice') {
         // 공지사항 (운영자 글만)
@@ -62,16 +65,12 @@ export async function GET(request: NextRequest) {
         // 설문조사
         console.log('[POSTS_LIST] 설문조사 필터 적용')
         query = query.eq('is_survey', true)
-      } else if (category === '자유게시판') {
-        // 자유게시판 (일반 글만 - 공지, 설문조사 제외)
-        console.log('[POSTS_LIST] 자유게시판 필터 적용')
-        query = query.eq('is_notice', false).eq('is_survey', false)
       } else {
         console.log('[POSTS_LIST] 카테고리명 필터 적용:', category)
         query = query.eq('category.name', category)
       }
     } else {
-      console.log('[POSTS_LIST] 전체글 - 카테고리 필터 없음')
+      console.log('[POSTS_LIST] 전체글 또는 자유게시판 - 카테고리 필터 없음')
     }
 
     // 검색 필터
@@ -176,21 +175,39 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     if (!supabaseServer) {
+      console.error('[POST_CREATE] Supabase 서버 클라이언트가 설정되지 않았습니다.')
       return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { error: '데이터베이스 연결이 설정되지 않았습니다. 관리자에게 문의하세요.' },
         { status: 500 }
       )
     }
 
-    // FormData 처리
-    const formData = await request.formData()
-    const title = formData.get('title') as string
-    const content = formData.get('content') as string
-    const category_name = formData.get('category_name') as string
-    const is_notice = formData.get('is_notice') === 'true'
-    const is_survey = formData.get('is_survey') === 'true'
-    const survey_options = is_survey ? JSON.parse(formData.get('survey_options') as string || '[]') : []
-    const files = formData.getAll('files') as File[]
+    // 요청 데이터 처리 (JSON 또는 FormData)
+    let title: string, content: string, category_name: string, is_notice: boolean, is_survey: boolean, survey_options: any[], files: File[]
+    
+    const contentType = request.headers.get('content-type')
+    
+    if (contentType?.includes('application/json')) {
+      // JSON 형식 처리
+      const body = await request.json()
+      title = body.title
+      content = body.content
+      category_name = body.category_name
+      is_notice = body.is_notice || false
+      is_survey = body.is_survey || false
+      survey_options = body.survey_options || []
+      files = []
+    } else {
+      // FormData 형식 처리
+      const formData = await request.formData()
+      title = formData.get('title') as string
+      content = formData.get('content') as string
+      category_name = formData.get('category_name') as string
+      is_notice = formData.get('is_notice') === 'true'
+      is_survey = formData.get('is_survey') === 'true'
+      survey_options = is_survey ? JSON.parse(formData.get('survey_options') as string || '[]') : []
+      files = formData.getAll('files') as File[]
+    }
 
     // 인증 확인
     const authHeader = request.headers.get('authorization')
@@ -311,7 +328,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('[POST_CREATE] 게시글 생성 실패:', error)
       return NextResponse.json(
-        { error: '게시글 작성에 실패했습니다.' },
+        { error: `게시글 작성에 실패했습니다: ${error.message}` },
         { status: 500 }
       )
     }

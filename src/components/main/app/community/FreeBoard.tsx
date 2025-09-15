@@ -20,12 +20,14 @@ import {
   TrendingUp,
   Star,
   Search,
-  Pin
+  Pin,
+  ArrowLeft
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { createClientComponentClient } from '@/lib/supabase'
 import PostDetail from './PostDetail'
+import { CardGridSkeleton } from '@/components/ui/skeleton'
 
 // 게시글 타입 정의
 interface Post {
@@ -81,6 +83,12 @@ export default function FreeBoard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('latest')
   const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+    currentPage: 1,
+    limit: 10
+  })
   
   // 게시글 작성
   const [writeTitle, setWriteTitle] = useState('')
@@ -170,7 +178,7 @@ export default function FreeBoard() {
       })
 
       if (currentCategory !== 'all') {
-        params.append('category', encodeURIComponent(currentCategory))
+        params.append('category', currentCategory)
       }
 
       if (searchQuery.trim()) {
@@ -197,6 +205,14 @@ export default function FreeBoard() {
       console.log('게시글 목록 응답:', data)
       console.log('첫 번째 게시글의 작성자 정보:', data.posts[0]?.author)
       setPosts(data.posts)
+      
+      // 페이지네이션 정보 업데이트
+      setPagination({
+        total: data.pagination?.total || 0,
+        totalPages: data.pagination?.totalPages || 0,
+        currentPage: currentPage,
+        limit: 10
+      })
     } catch (err) {
       console.error('게시글 목록 조회 실패:', err)
       setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
@@ -337,14 +353,55 @@ export default function FreeBoard() {
       console.log('응답 상태:', response.status, response.statusText)
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('API 에러:', errorData)
+        
+        // 데이터베이스 연결 문제인 경우 사용자 친화적인 메시지 표시
+        if (response.status === 500) {
+          // 빈 객체이거나 데이터베이스 관련 에러인 경우
+          if (!errorData.error || errorData.error.includes('데이터베이스') || errorData.error.includes('연결')) {
+            alert('시스템 점검 중입니다. 잠시 후 다시 시도해주세요.')
+            return
+          }
+        }
+        
         throw new Error(errorData.error || '게시글 작성에 실패했습니다.')
       }
 
       const responseData = await response.json()
       console.log('작성 성공:', responseData)
       console.log('작성된 게시글의 작성자 정보:', responseData.post?.author)
+
+      // 포인트 획득 시도 (자유게시판 작성)
+      if (user?.id && !writeIsNotice) {
+        try {
+          const pointsResponse = await fetch('/api/community/points', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              activityType: 'freeboard_post',
+              postId: responseData.post.id,
+              title: writeTitle
+            })
+          })
+
+          if (pointsResponse.ok) {
+            const pointsResult = await pointsResponse.json()
+            console.log('포인트 획득 성공:', pointsResult)
+            // 포인트 획득 알림은 toast로 표시
+            if (typeof window !== 'undefined' && (window as any).toast) {
+              (window as any).toast.success(`게시글이 작성되었습니다! +${pointsResult.points}점 획득!`)
+            }
+          } else {
+            const errorData = await pointsResponse.json()
+            console.warn('포인트 획득 실패:', errorData)
+          }
+        } catch (pointsError) {
+          console.error('포인트 API 호출 실패:', pointsError)
+          // 포인트 지급 실패해도 게시글 작성은 성공으로 처리
+        }
+      }
 
       // 작성 성공
       setWriteTitle('')
@@ -478,10 +535,7 @@ export default function FreeBoard() {
   if (loading && posts.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">게시글을 불러오는 중...</p>
-        </div>
+        <CardGridSkeleton count={6} />
       </div>
     )
   }
@@ -815,90 +869,160 @@ export default function FreeBoard() {
         </div>
       </div>
 
-      {/* 게시글 목록 */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">번호</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">제목</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">글쓴이</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">작성일</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">조회</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">추천</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {posts.map((post, index) => (
-                <tr
-                  key={post.id}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handlePostClick(post)}
-                >
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {post.is_pinned ? (
-                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                        고정
-                      </Badge>
-                    ) : (
-                      posts.length - index
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      {getPostIcon(post)}
-                      <span className="text-sm font-medium text-gray-900">
-                        {post.title}
-                      </span>
-                      {post.comment_count > 0 && (
-                        <span className="text-xs text-gray-500">
-                          [{post.comment_count}]
-                        </span>
-                      )}
-                      {post.is_pinned && (
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                          개념글
-                        </Badge>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {post.author?.full_name || '익명'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {formatDate(post.created_at)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {post.view_count}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex items-center gap-1">
-                      <span className="text-green-600">{post.like_count}</span>
-                      <span className="text-gray-400">-</span>
-                      <span className="text-red-600">{post.dislike_count}</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {posts.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-500">
-            게시글이 없습니다.
-          </div>
-        )}
-      </Card>
 
       {/* 게시글 상세보기 */}
-      {showPostDetail && selectedPost && (
-        <PostDetail
-          post={selectedPost}
-          onClose={() => setShowPostDetail(false)}
-          onUpdate={fetchPosts}
-        />
+      {showPostDetail && selectedPost ? (
+        <div className="space-y-4">
+          {/* 목록으로 돌아가기 버튼 */}
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowPostDetail(false)}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              목록으로
+            </Button>
+          </div>
+          
+          {/* 게시글 상세 내용 */}
+          <PostDetail
+            post={selectedPost}
+            onClose={() => setShowPostDetail(false)}
+            onUpdate={fetchPosts}
+          />
+        </div>
+      ) : (
+        /* 게시글 목록 */
+        <Card>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">게시글을 불러오는 중...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600">{error}</p>
+              <Button onClick={fetchPosts} className="mt-2">다시 시도</Button>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600">게시글이 없습니다.</p>
+            </div>
+          ) : (
+            <>
+              {/* 게시글 목록 테이블 */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">제목</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">글쓴이</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">작성일</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">조회</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">추천</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {posts.map((post, index) => (
+                      <tr
+                        key={post.id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handlePostClick(post)}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {getPostIcon(post)}
+                            <span className="text-sm font-medium text-gray-900">
+                              {post.title}
+                            </span>
+                            {post.comment_count > 0 && (
+                              <span className="text-xs text-gray-500">
+                                [{post.comment_count}]
+                              </span>
+                            )}
+                            {post.is_pinned && (
+                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                개념글
+                              </Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {post.author?.full_name || '익명'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {formatDate(post.created_at)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {post.view_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="flex items-center gap-1">
+                            <span className="text-green-600">{post.like_count}</span>
+                            <span className="text-gray-400">-</span>
+                            <span className="text-red-600">{post.dislike_count}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* 페이지네이션 */}
+              {pagination.totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 p-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    이전
+                  </Button>
+                  
+                  {/* 페이지 번호들 */}
+                  <div className="flex gap-1">
+                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (pagination.totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= pagination.totalPages - 2) {
+                        pageNum = pagination.totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="min-w-[32px]"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                    disabled={currentPage === pagination.totalPages}
+                  >
+                    다음
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </Card>
       )}
     </div>
   )

@@ -175,10 +175,7 @@ export default function Header() {
             {/* 중앙: 로고와 네비게이션 */}
             <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 z-0 flex flex-col items-center">
               {/* 로고 */}
-              <div 
-                className="cursor-pointer hover:opacity-80 transition-all duration-300"
-                onClick={() => router.push('/')}
-              >
+              <div className="relative">
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
@@ -187,6 +184,25 @@ export default function Header() {
                     maxHeight: '160px'
                   }}
                 />
+                {/* 로고 중앙 부분만 클릭 가능하도록 작은 클릭 영역 추가 */}
+                <div 
+                  className="absolute inset-0 flex items-center justify-center cursor-pointer hover:opacity-80 transition-all duration-300"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    router.push('/')
+                  }}
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    borderRadius: '50%'
+                  }}
+                >
+                  {/* 시각적 피드백을 위한 투명한 원 */}
+                  <div className="w-full h-full bg-transparent hover:bg-blue-100/20 rounded-full transition-all duration-300"></div>
+                </div>
               </div>
 
               {/* 네비게이션 */}
@@ -283,6 +299,17 @@ export default function Header() {
                       }`}
                     >
                       {t('headerNav.community')}
+                    </button>
+                    <button 
+                      onClick={() => handleMainNavClick('store')}
+                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                        activeMainTab === 'store' 
+                          ? 'text-green-500 scale-110' 
+                          : 'text-gray-800 hover:text-green-500'
+                      }`}
+                    >
+                      <span className="hidden lg:inline">{t('headerNav.store')}</span>
+                      <span className="lg:hidden">{t('headerNav.storeShort')}</span>
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('charging')}

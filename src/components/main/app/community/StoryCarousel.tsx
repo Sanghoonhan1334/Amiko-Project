@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { Story, StoryForm } from '@/types/story'
 import UserProfileModal from '@/components/common/UserProfileModal'
+import { StoryCarouselSkeleton } from '@/components/ui/skeleton'
 
 // 댓글 타입 정의
 interface Comment {
@@ -40,37 +41,11 @@ interface Comment {
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 
-// 목업 스토리 데이터 (24시간 이내, 공개된 것만)
-// 실제 스토리 데이터 (사용자 이름으로 2개만)
-const getMockStories = (userName: string = '한상훈'): Story[] => [
-  {
-    id: '1',
-    userId: 'current-user',
-    userName: userName,
-    userAvatar: '/amiko-foto.png',
-    imageUrl: '/hanok-bg.png',
-    text: '오늘 한국 전통 한복을 입어봤어요! 너무 예뻐서 기분이 좋았습니다 💕',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2시간 전
-    expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000), // 22시간 후 만료
-    isExpired: false
-  },
-  {
-    id: '2',
-    userId: 'current-user',
-    userName: userName,
-    userAvatar: '/amiko-foto.png',
-    imageUrl: '/zep.jpg',
-    text: '한국 화장품으로 메이크업 연습 중이에요. 어떤가요? 😊',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4시간 전
-    expiresAt: new Date(Date.now() + 20 * 60 * 60 * 1000), // 20시간 후 만료
-    isExpired: false
-  }
-]
+// 실제 스토리 데이터는 API에서 가져올 예정
+const getMockStories = (userName: string = '한상훈'): Story[] => []
 
 export default function StoryCarousel() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const { t } = useLanguage()
   
   // 사용자 이름 가져오기
@@ -151,9 +126,45 @@ export default function StoryCarousel() {
 
     setIsLoadingMore(true)
     try {
-      // 실제로는 API 호출: cursor 기반으로 다음 페이지
-      await new Promise(resolve => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+      // 스토리 API 호출
+      const response = await fetch(`/api/stories?isPublic=true&limit=3&offset=${stories.length}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('스토리 목록 API 오류:', response.status, errorData)
+        throw new Error(`스토리를 불러오는데 실패했습니다. (${response.status})`)
+      }
+
+      const data = await response.json()
+      const nextStories = data.stories || []
       
+      if (nextStories.length > 0) {
+        // API 응답을 Story 타입으로 변환
+        const convertedStories: Story[] = nextStories.map((story: any) => ({
+          id: story.id,
+          userId: story.user_id,
+          userName: user?.user_metadata?.full_name || '사용자',
+          imageUrl: story.image_url,
+          text: story.text_content,
+          isPublic: story.is_public,
+          createdAt: new Date(story.created_at),
+          expiresAt: new Date(story.expires_at),
+          isExpired: story.is_expired
+        }))
+        
+        setStories(prev => [...prev, ...convertedStories])
+        setHasMore(data.pagination.hasMore)
+      } else {
+        setHasMore(false)
+      }
+    } catch (error) {
+      console.error('추가 스토리 로드 실패:', error)
+      // 에러 시 목업 데이터 사용
       const currentCount = stories.length
       const nextStories = mockStories.slice(currentCount, currentCount + 3)
       
@@ -163,12 +174,10 @@ export default function StoryCarousel() {
       } else {
         setHasMore(false)
       }
-    } catch (error) {
-      console.error('추가 스토리 로드 실패:', error)
     } finally {
       setIsLoadingMore(false)
     }
-  }, [isLoadingMore, hasMore, stories.length])
+  }, [isLoadingMore, hasMore, stories.length, mockStories, token, user])
 
   // 무한 스크롤 감지 (가로 스크롤)
   useEffect(() => {
@@ -193,12 +202,118 @@ export default function StoryCarousel() {
   // 초기 스토리 로드 (모든 스토리)
   const loadInitialStories = async () => {
     setIsLoading(true)
+    
+    // 최소 로딩 시간 보장 (스켈레톤을 확실히 보이게 하기 위해)
+    const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1500))
+    
     try {
-      // 실제로는 API 호출: 모든 스토리 로드
-      setStories(mockStories)
-      setHasMore(false) // 모든 스토리를 로드했으므로 더 이상 없음
+      // 스토리 API 호출과 최소 로딩 시간을 동시에 실행
+      const [apiResponse] = await Promise.all([
+        fetch('/api/stories?isPublic=true&limit=10', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }),
+        minLoadingTime
+      ])
+
+      if (!apiResponse.ok) {
+        const errorData = await apiResponse.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('스토리 목록 API 오류:', apiResponse.status, errorData)
+        throw new Error(`스토리를 불러오는데 실패했습니다. (${apiResponse.status})`)
+      }
+
+      const data = await apiResponse.json()
+      const stories = data.stories || []
+      
+      console.log('스토리 API 응답:', { 
+        storiesCount: stories.length, 
+        totalCount: data.pagination?.total || 0,
+        hasMore: data.pagination?.hasMore || false,
+        rawData: data,
+        apiUrl: '/api/stories?isPublic=true&limit=10',
+        token: token ? '있음' : '없음'
+      })
+      
+      // 원본 스토리 데이터 로그
+      if (stories.length > 0) {
+        console.log('첫 번째 스토리 원본 데이터:', stories[0])
+      }
+      
+      // API 응답을 Story 타입으로 변환
+      const convertedStories: Story[] = stories.map((story: any) => ({
+        id: story.id,
+        userId: story.user_id,
+        userName: story.user_name || '익명',
+        imageUrl: story.image_url,
+        text: story.text_content,
+        isPublic: story.is_public,
+        createdAt: new Date(story.created_at),
+        expiresAt: new Date(story.expires_at),
+        isExpired: story.is_expired
+      }))
+      
+      console.log('변환된 스토리 데이터:', {
+        convertedCount: convertedStories.length,
+        firstStory: convertedStories[0]
+      })
+      
+      // 임시로 목업 데이터 추가 (테스트용)
+      if (convertedStories.length === 0) {
+        console.log('스토리가 없어서 목업 데이터 추가')
+        console.log('데이터베이스에 스토리가 없습니다. 테스트용 스토리를 생성합니다.')
+        
+        // 실제 데이터베이스에 스토리 생성 시도
+        try {
+          const createResponse = await fetch('/api/stories', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              imageUrl: 'https://picsum.photos/400/400?random=1',
+              text: '안녕하세요! 첫 번째 스토리입니다! 🎉',
+              isPublic: true,
+              userId: user?.id
+            })
+          })
+          
+          if (createResponse.ok) {
+            console.log('테스트 스토리 생성 성공!')
+            // 생성된 스토리로 다시 로드
+            loadInitialStories()
+            return
+          } else {
+            console.log('테스트 스토리 생성 실패, 목업 데이터 사용')
+          }
+        } catch (createError) {
+          console.log('테스트 스토리 생성 중 오류:', createError)
+        }
+        
+        const mockStory: Story = {
+          id: 'mock-1',
+          userId: user?.id || 'mock-user',
+          userName: user?.user_metadata?.full_name || '한상훈',
+          imageUrl: 'https://picsum.photos/400/400?random=1',
+          text: '테스트 스토리입니다!',
+          isPublic: true,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          isExpired: false
+        }
+        setStories([mockStory])
+        setHasMore(false)
+      } else {
+        setStories(convertedStories)
+        setHasMore(data.pagination?.hasMore || false)
+      }
     } catch (error) {
       console.error('초기 스토리 로드 실패:', error)
+      // 에러 시 빈 배열로 설정 (목업 데이터 사용하지 않음)
+      setStories([])
+      setHasMore(false)
     } finally {
       setIsLoading(false)
     }
@@ -219,7 +334,7 @@ export default function StoryCarousel() {
   const resetToCollapsed = () => {
     setViewMode('collapsed')
     setCurrentIndex(0)
-    setStories(mockStories) // 모든 스토리 유지
+    // 실제 로드된 스토리를 유지 (mockStories 대신 현재 stories 상태 유지)
     setHasMore(false) // 모든 스토리를 로드했으므로 더 이상 없음
     
     // 스크롤 위치도 초기화
@@ -413,19 +528,82 @@ export default function StoryCarousel() {
          setIsUploading(true)
          
          try {
-           // 실제로는 API 호출
-           const newStory: Story = {
-             id: Date.now().toString(),
-             userId: user?.id || 'anonymous',
-             userName: user?.user_metadata?.full_name || '사용자',
-             imageUrl: storyForm.imageUrl,
-             text: storyForm.text,
-             isPublic: storyForm.isPublic,
-             createdAt: new Date(),
-             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24시간 후 만료
-             isExpired: false
+           // 스토리 API 호출
+           const response = await fetch('/api/stories', {
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json',
+               'Authorization': `Bearer ${token}`
+             },
+             body: JSON.stringify({
+               imageUrl: storyForm.imageUrl,
+               text: storyForm.text,
+               isPublic: storyForm.isPublic
+             })
+           })
+
+           if (!response.ok) {
+             const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+             console.error('스토리 생성 API 오류:', response.status, errorData)
+             
+             // 데이터베이스 연결 문제인 경우 사용자 친화적인 메시지 표시
+             if (response.status === 500) {
+               if (!errorData.error || errorData.error.includes('데이터베이스') || errorData.error.includes('연결')) {
+                 alert('시스템 점검 중입니다. 잠시 후 다시 시도해주세요.')
+                 return
+               }
+             }
+             
+             throw new Error(`스토리 생성에 실패했습니다. (${response.status}: ${errorData.error || 'Unknown error'})`)
            }
-     
+
+           const result = await response.json()
+           console.log('새 스토리 작성:', result.story)
+
+           // API에서 받은 스토리 데이터를 로컬 상태에 추가
+           const newStory: Story = {
+             id: result.story.id,
+             userId: result.story.user_id,
+             userName: user?.user_metadata?.full_name || '사용자',
+             imageUrl: result.story.image_url,
+             text: result.story.text_content,
+             isPublic: result.story.is_public,
+             createdAt: new Date(result.story.created_at),
+             expiresAt: new Date(result.story.expires_at),
+             isExpired: result.story.is_expired
+           }
+
+           // 포인트 획득 시도 (스토리 작성)
+           if (user?.id) {
+             try {
+               const pointsResponse = await fetch('/api/community/points', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({
+                   userId: user.id,
+                   activityType: 'story_post',
+                   postId: newStory.id,
+                   title: `스토리: ${storyForm.text.substring(0, 20)}...`
+                 })
+               })
+
+               if (pointsResponse.ok) {
+                 const pointsResult = await pointsResponse.json()
+                 console.log('포인트 획득 성공:', pointsResult)
+                 alert(`스토리가 업로드되었습니다! +${pointsResult.points}점 획득!`)
+               } else {
+                 const errorData = await pointsResponse.json()
+                 console.warn('포인트 획득 실패:', errorData)
+                 alert('스토리가 업로드되었습니다!')
+               }
+             } catch (pointsError) {
+               console.error('포인트 API 호출 실패:', pointsError)
+               alert('스토리가 업로드되었습니다!')
+             }
+           } else {
+             alert('스토리가 업로드되었습니다!')
+           }
+
            // 새 스토리를 맨 앞에 추가
            setStories(prev => [newStory, ...prev])
            setStoryForm({ imageUrl: '', text: '', isPublic: true })
@@ -642,10 +820,10 @@ export default function StoryCarousel() {
         </div>
       </div>
 
-      {/* 로딩 상태 */}
+      {/* 로딩 상태 - 스켈레톤 */}
       {isLoading && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+        <div className="py-4">
+          <StoryCarouselSkeleton />
         </div>
       )}
 
@@ -655,8 +833,16 @@ export default function StoryCarousel() {
 
           {/* 스크롤 가능한 스토리 그리드 */}
           <div className="overflow-y-auto pr-2">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {stories.map((story) => (
+            {(() => {
+              console.log('스토리 렌더링 조건 확인:', {
+                storiesLength: stories.length,
+                stories: stories,
+                isLoading: isLoading
+              })
+              return stories.length > 0
+            })() ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {stories.map((story) => (
                 <div
                   key={story.id}
                   className="relative"
@@ -792,10 +978,8 @@ export default function StoryCarousel() {
                   </Card>
                 </div>
               ))}
-            </div>
-            
-            {/* 스토리가 없을 때 */}
-            {stories.length === 0 && (
+              </div>
+            ) : (
               <Card className="p-8 text-center">
                 <div className="text-4xl mb-4">📖</div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">오늘 올라온 스토리가 없습니다</h3>

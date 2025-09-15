@@ -1,0 +1,191 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabaseServer'
+
+// 스토리 목록 조회
+export async function GET(request: NextRequest) {
+  try {
+    if (!supabaseServer) {
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+    const isPublic = searchParams.get('isPublic')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const offset = parseInt(searchParams.get('offset') || '0')
+
+    let query = supabaseServer
+      .from('stories')
+      .select(`
+        id,
+        image_url,
+        text_content,
+        is_public,
+        is_expired,
+        expires_at,
+        created_at,
+        user_id
+      `)
+      .eq('is_expired', false)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    // 특정 사용자의 스토리만 조회
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    // 공개 스토리만 조회
+    if (isPublic === 'true') {
+      query = query.eq('is_public', true)
+    }
+
+    const { data: stories, error, count } = await query
+
+    if (error) {
+      console.error('[STORIES_LIST] 쿼리 실행 에러:', error)
+      return NextResponse.json(
+        { error: `스토리를 불러오는데 실패했습니다: ${error.message}` },
+        { status: 500 }
+      )
+    }
+
+    // 사용자 정보를 별도로 가져오기
+    const storiesWithUsers = await Promise.all(
+      (stories || []).map(async (story) => {
+        try {
+          const { data: userData, error: userError } = await supabaseServer
+            .from('users')
+            .select('id, full_name, email')
+            .eq('id', story.user_id)
+            .single()
+
+          if (userError) {
+            console.error(`[STORIES_LIST] 사용자 정보 조회 실패 (${story.user_id}):`, userError)
+            return {
+              ...story,
+              user_name: '익명',
+              user_email: null
+            }
+          }
+
+          return {
+            ...story,
+            user_name: userData?.full_name || userData?.email?.split('@')[0] || '익명',
+            user_email: userData?.email || null
+          }
+        } catch (err) {
+          console.error(`[STORIES_LIST] 사용자 정보 처리 실패 (${story.user_id}):`, err)
+          return {
+            ...story,
+            user_name: '익명',
+            user_email: null
+          }
+        }
+      })
+    )
+
+    return NextResponse.json({
+      stories: storiesWithUsers,
+      pagination: {
+        offset,
+        limit,
+        total: count || 0,
+        hasMore: (count || 0) > offset + limit
+      }
+    })
+
+  } catch (error) {
+    console.error('[STORIES_LIST] 서버 에러:', error)
+    return NextResponse.json(
+      { error: '서버 에러가 발생했습니다.' },
+      { status: 500 }
+    )
+  }
+}
+
+// 스토리 생성
+export async function POST(request: NextRequest) {
+  try {
+    if (!supabaseServer) {
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
+    const body = await request.json()
+    const { imageUrl, text, isPublic = true } = body
+
+    // 임시로 인증 없이 진행 (실제로는 사용자 ID를 받아야 함)
+    const userId = body.userId || 'a0df2c5d-00bf-4a16-a62a-8a7f7679f506' // 실제 사용자 ID 사용
+    
+    console.log('[STORIES_CREATE] 요청 데이터:', { imageUrl, text, isPublic, userId })
+
+    // 입력 검증
+    if (!imageUrl || !text) {
+      return NextResponse.json(
+        { error: '이미지와 텍스트를 모두 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    if (text.length > 500) {
+      return NextResponse.json(
+        { error: '텍스트는 500자 이하로 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 스토리 생성
+    const { data: story, error } = await supabaseServer
+      .from('stories')
+      .insert({
+        user_id: userId,
+        image_url: imageUrl,
+        text_content: text,
+        is_public: isPublic,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24시간 후 만료
+      })
+      .select(`
+        id,
+        image_url,
+        text_content,
+        is_public,
+        is_expired,
+        expires_at,
+        created_at,
+        user_id
+      `)
+      .single()
+
+    if (error) {
+      console.error('[STORIES_CREATE] 스토리 생성 실패:', error)
+      console.error('[STORIES_CREATE] 에러 상세:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      return NextResponse.json(
+        { error: `스토리 작성에 실패했습니다: ${error.message}` },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      message: '스토리가 성공적으로 작성되었습니다.',
+      story
+    }, { status: 201 })
+
+  } catch (error) {
+    console.error('[STORIES_CREATE] 서버 에러:', error)
+    return NextResponse.json(
+      { error: '서버 에러가 발생했습니다.' },
+      { status: 500 }
+    )
+  }
+}

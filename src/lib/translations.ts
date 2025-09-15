@@ -713,7 +713,7 @@ export const translations = {
       todayAcquisition: '오늘 획득',
       remainingLimit: '남은 한도',
       points: '포인트',
-      qa: 'P&R',
+      qa: '질문답변',
       story: '스토리',
       koreanNews: '한국뉴스',
       userType: {
@@ -751,10 +751,12 @@ export const translations = {
         monthCompletionReward: '한 달 완주',
         pointMethods: {
           title: '포인트 얻는 방법',
-          attendance: '출석체크',
-          community: '커뮤니티 참여',
-          attendanceDescription: '출석체크로 포인트 획득',
-          communityDescription: '게시글 작성, 댓글, 좋아요'
+          community: '커뮤니티 활동',
+          videoCall: '영상통화',
+          communityDescription: '하루 최대 +20점 (게시글 작성, 댓글, 좋아요)',
+          videoCallDescription: '1회 완료 시 +40점',
+          chatExtension: '포인트는 채팅 연장에만 사용됩니다',
+          noVideoCoupon: '포인트로 영상통화권은 구매할 수 없습니다'
         },
         specialEvents: {
           title: '특별 이벤트',
@@ -788,8 +790,10 @@ export const translations = {
     // 헤더 네비게이션
     headerNav: {
       home: '홈',
-      videoCall: 'AI 화상 채팅',
+      videoCall: '화상 채팅',
       community: '커뮤니티',
+      store: '상점',
+      storeShort: '상점',
       chargingStation: '충전소',
       chargingStationShort: '충전소',
       event: '이벤트',
@@ -890,6 +894,79 @@ export const translations = {
         deleteConfirm: '정말로 이 스토리를 삭제하시겠습니까?',
         storyImage: '스토리 이미지'
       }
+    },
+
+    // 채팅 관련
+    chat: {
+      rulesModal: {
+        title: '📌 Amiko 채팅 규칙 안내',
+        mentorRules: {
+          title: '멘토 운영 규칙',
+          description: '멘토들은 Amiko 플랫폼 내에서만 활동하며, 스펙과 리워드를 받습니다.'
+        },
+        noContactExchange: {
+          title: '개인 연락처 교환 금지',
+          description: '개인 연락처나 SNS 정보 교환은 절대 불가합니다.'
+        },
+        amikoServices: {
+          title: 'Amiko의 서비스',
+          description: 'Amiko는 번역, 포인트, 안전한 환경을 제공합니다. 모든 대화는 Amiko 내에서만 이루어져야 합니다.'
+        },
+        agreement: '☑ 위 내용을 이해했고 동의합니다.',
+        cancel: '취소',
+        agreeAndEnter: '동의 후 입장'
+      },
+      room: {
+        welcomeMessage: 'Amiko 채팅방에 오신 것을 환영합니다! 안전하고 즐거운 대화를 나누세요.',
+        noContactBanner: '번호 교환은 불가합니다 🙏 Amiko 안에서만 대화하세요.',
+        mentorStatus: {
+          online: '온라인 상태입니다.',
+          busy: '현재 다른 상담 중입니다. 잠시 후 다시 시도해주세요.',
+          offline: '현재 오프라인입니다. 접속 시 알림을 받습니다.'
+        },
+        messagePlaceholder: '메시지를 입력하세요...',
+        disabledPlaceholder: '채팅 규칙에 동의한 후 사용 가능합니다'
+      }
+    },
+
+    // 상점
+    storeTab: {
+      title: '상점',
+      subtitle: '포인트로 다양한 리워드를 구매하세요',
+      myPoints: '내 포인트 현황',
+      availablePoints: '사용 가능한 포인트',
+      totalPoints: '누적 포인트',
+      shopPurchase: '상점 구매용',
+      rankingEvent: '랭킹/이벤트용',
+      items: {
+        chatExtension: {
+          name: '채팅 연장권',
+          description: '모든 멘토와 채팅 연장 (6시간)',
+          price: '100점'
+        },
+        amikoMerchandise: {
+          name: 'Amiko 굿즈',
+          description: 'Amiko 브랜드 굿즈 (머그컵, 스티커 등)',
+          price: '500점'
+        },
+        kBeautyTicket: {
+          name: 'K-뷰티 체험권',
+          description: '한국 뷰티 체험 및 상품 제공',
+          price: '1000점'
+        },
+        specialEventTicket: {
+          name: '스페셜 이벤트 응모권',
+          description: '특별 이벤트 참여 기회',
+          price: '2000점'
+        }
+      },
+      comingSoon: 'Coming Soon',
+      buyNow: '구매하기',
+      preparing: '준비 중',
+      howToEarn: '포인트 획득 방법',
+      communityActivity: '커뮤니티 활동',
+      videoCall: '영상통화',
+      footerMessage: '✨ 앞으로 더 많은 리워드가 추가될 예정입니다! 포인트를 모아두세요 🙌'
     },
 
     // 충전소
@@ -1858,6 +1935,39 @@ export const translations = {
         delete: 'Eliminar',
         deleteConfirm: '¿Realmente quieres eliminar esta historia?',
         storyImage: 'Imagen de historia'
+      }
+    },
+
+    // 채팅 관련
+    chat: {
+      rulesModal: {
+        title: '📌 Guía de Reglas de Chat de Amiko',
+        mentorRules: {
+          title: 'Reglas de Operación de Mentores',
+          description: 'Los mentores solo operan dentro de la plataforma Amiko y reciben especificaciones y recompensas.'
+        },
+        noContactExchange: {
+          title: 'Prohibición de Intercambio de Contactos Personales',
+          description: 'El intercambio de contactos personales o información de redes sociales está absolutamente prohibido.'
+        },
+        amikoServices: {
+          title: 'Servicios de Amiko',
+          description: 'Amiko proporciona traducción, puntos y un entorno seguro. Todas las conversaciones deben tener lugar solo dentro de Amiko.'
+        },
+        agreement: '☑ Entiendo y acepto el contenido anterior.',
+        cancel: 'Cancelar',
+        agreeAndEnter: 'Aceptar y Entrar'
+      },
+      room: {
+        welcomeMessage: '¡Bienvenido a la sala de chat de Amiko! Ten conversaciones seguras y agradables.',
+        noContactBanner: 'El intercambio de números está prohibido 🙏 Chatea solo dentro de Amiko.',
+        mentorStatus: {
+          online: 'Estado en línea.',
+          busy: 'Actualmente en otra consulta. Inténtalo de nuevo más tarde.',
+          offline: 'Actualmente fuera de línea. Recibirás una notificación cuando se conecte.'
+        },
+        messagePlaceholder: 'Escribe un mensaje...',
+        disabledPlaceholder: 'Disponible después de aceptar las reglas de chat'
       }
     }
   }

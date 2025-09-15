@@ -211,4 +211,27 @@
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
+  
+  /* 스토리 컨테이너 반응형 너비 */
+  .story-container {
+    width: calc(200px * 1 + 12px * 0); /* 매우 작은 화면: 1개 */
+  }
+  
+  @media (min-width: 480px) {
+    .story-container {
+      width: calc(200px * 2 + 12px * 1); /* 작은 화면: 2개 */
+    }
+  }
+  
+  @media (min-width: 800px) {
+    .story-container {
+      width: calc(200px * 3 + 12px * 2); /* 중간 화면: 3개 */
+    }
+  }
+  
+  @media (min-width: 900px) {
+    .story-container {
+      width: calc(200px * 4 + 12px * 3); /* 현재 화면: 4개 (최대) */
+    }
+  }
 }

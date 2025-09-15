@@ -80,6 +80,30 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-hide': {
+          /* IE and Edge */
+          '-ms-overflow-style': 'none',
+          /* Firefox */
+          'scrollbar-width': 'none',
+          /* Safari and Chrome */
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        },
+        '.scroll-smooth': {
+          'scroll-behavior': 'smooth'
+        },
+        '.scroll-snap-x': {
+          'scroll-snap-type': 'x mandatory'
+        },
+        '.scroll-snap-start': {
+          'scroll-snap-align': 'start'
+        }
+      })
+    }
+  ],
 }
 

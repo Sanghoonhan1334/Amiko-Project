@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { ProfileSkeleton } from '@/components/ui/skeleton'
 
 import { 
   Edit3, 
@@ -167,7 +168,7 @@ const mockNotificationSettings = {
 
 export default function MyTab() {
   const { t } = useLanguage()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState<any>(null)
   const [notificationSettings, setNotificationSettings] = useState(mockNotificationSettings)
@@ -175,25 +176,50 @@ export default function MyTab() {
   const [profileImages, setProfileImages] = useState<File[]>([])
   const [mainProfileImage, setMainProfileImage] = useState<string | null>(null)
   
-  // 실제 사용자 데이터 로드
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!user?.id) {
-        setLoading(false)
+  // 실제 사용자 데이터 로드 함수
+  const loadUserProfile = async (showLoading = true) => {
+      if (!user?.id || !token) {
+        console.log('사용자 ID 또는 토큰이 없어서 프로필 로드 건너뜀')
+        if (showLoading) setLoading(false)
         return
       }
 
       try {
-        const response = await fetch(`/api/profile?userId=${user.id}`)
+        if (showLoading) setLoading(true)
+        console.log('프로필 로드 시작:', { userId: user.id, token: !!token })
+        
+        const response = await fetch(`/api/profile?userId=${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        console.log('프로필 로드 응답:', { 
+          status: response.status, 
+          statusText: response.statusText,
+          ok: response.ok 
+        })
+
         const result = await response.json()
+        console.log('프로필 로드 데이터:', result)
 
         if (response.ok) {
-          setProfile({
+          const newProfile = {
             ...result.user,
             ...result.profile,
             points: result.points?.total_points || 0,
             daily_points: result.points?.daily_points || 0
+          }
+          console.log('설정할 프로필 데이터:', newProfile)
+          console.log('프로필 이미지 데이터 확인:', {
+            profile_images: newProfile.profile_images,
+            profile_images_length: newProfile.profile_images?.length,
+            profile_images_first: newProfile.profile_images?.[0]?.substring(0, 50) + '...',
+            profile_image: newProfile.profile_image,
+            main_profile_image: newProfile.main_profile_image
           })
+          setProfile(newProfile)
         } else {
           console.error('프로필 로드 실패:', result.error)
           console.error('응답 상태:', response.status)
@@ -209,14 +235,19 @@ export default function MyTab() {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${user.id}`
+                  'Authorization': `Bearer ${token}`
                 }
               })
               
               if (initResponse.ok) {
                 console.log('기본 프로필이 생성되었습니다.')
                 // 프로필 다시 로드
-                const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
+                const profileResponse = await fetch(`/api/profile?userId=${user.id}`, {
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                })
                 const profileResult = await profileResponse.json()
                 
                 if (profileResponse.ok) {
@@ -241,10 +272,12 @@ export default function MyTab() {
       } catch (error) {
         console.error('프로필 로드 오류:', error)
       } finally {
-        setLoading(false)
+        if (showLoading) setLoading(false)
       }
-    }
+  }
 
+  // 실제 사용자 데이터 로드
+  useEffect(() => {
     loadUserProfile()
   }, [user?.id])
   
@@ -340,28 +373,48 @@ export default function MyTab() {
         )
       }
 
+      const requestData = {
+        ...profile,
+        profile_images: profileImagesBase64,
+        main_profile_image: mainProfileImage
+      }
+      
+      console.log('프로필 저장 요청 데이터:', {
+        profile_images_count: profileImagesBase64.length,
+        main_profile_image: mainProfileImage ? '있음' : '없음',
+        profile_images_preview: profileImagesBase64.length > 0 ? 'Base64 데이터 있음' : '없음'
+      })
+
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.id}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...profile,
-          profile_images: profileImagesBase64,
-          main_profile_image: mainProfileImage
-        })
+        body: JSON.stringify(requestData)
       })
+
+      console.log('프로필 저장 응답:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
+
+      const responseData = await response.json()
+      console.log('프로필 저장 응답 데이터:', responseData)
+      console.log('프로필 저장 성공 여부:', response.ok)
+      console.log('저장된 사용자 데이터:', responseData.user)
 
       if (response.ok) {
         setIsEditing(false)
         setProfileImages([]) // 업로드 후 초기화
         setMainProfileImage(null)
         alert('프로필이 저장되었습니다!')
-        // 프로필 다시 로드
-        window.location.reload()
+        // 프로필 다시 로드 (페이지 새로고침 대신 상태 업데이트)
+        await loadUserProfile(false)
       } else {
-        alert('프로필 저장에 실패했습니다.')
+        console.error('프로필 저장 실패:', responseData)
+        alert(`프로필 저장에 실패했습니다: ${responseData.error || '알 수 없는 오류'}`)
       }
     } catch (error) {
       console.error('프로필 저장 오류:', error)
@@ -417,12 +470,7 @@ export default function MyTab() {
   if (loading) {
     return (
       <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 font-['Inter']">프로필을 불러오는 중...</p>
-          </div>
-        </div>
+        <ProfileSkeleton />
       </div>
     )
   }
@@ -453,21 +501,55 @@ export default function MyTab() {
             {/* 대표 프로필 사진 */}
             <div className="relative">
               <div className="w-32 h-32 bg-gradient-to-br from-brand-100 to-mint-100 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 border-white overflow-hidden">
-                {mainProfileImage ? (
-                  <img 
-                    src={mainProfileImage} 
-                    alt="대표 프로필 사진" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : profile?.profile_image ? (
-                  <img 
-                    src={profile.profile_image} 
-                    alt="프로필 사진" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  profile?.avatar || '👤'
-                )}
+                {(() => {
+                  console.log('이미지 표시 로직 확인:', {
+                    mainProfileImage: !!mainProfileImage,
+                    profile_images_exists: !!profile?.profile_images,
+                    profile_images_length: profile?.profile_images?.length,
+                    profile_image_exists: !!profile?.profile_image,
+                    avatar_exists: !!profile?.avatar
+                  })
+                  
+                  if (mainProfileImage) {
+                    console.log('mainProfileImage 사용')
+                    return (
+                      <img 
+                        src={mainProfileImage} 
+                        alt="대표 프로필 사진" 
+                        className="w-full h-full object-cover"
+                      />
+                    )
+                  } else if (profile?.profile_images && Array.isArray(profile.profile_images) && profile.profile_images.length > 0) {
+                    console.log('profile.profile_images[0] 사용:', profile.profile_images[0]?.substring(0, 50) + '...')
+                    return (
+                      <img 
+                        src={profile.profile_images[0]} 
+                        alt="프로필 사진" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('이미지 로드 실패:', e)
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    )
+                  } else if (profile?.profile_image) {
+                    console.log('profile.profile_image 사용')
+                    return (
+                      <img 
+                        src={profile.profile_image} 
+                        alt="프로필 사진" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('이미지 로드 실패:', e)
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    )
+                  } else {
+                    console.log('기본 아바타 사용')
+                    return profile?.avatar || '👤'
+                  }
+                })()}
               </div>
               
               {/* 편집 모드일 때 프로필 사진 업로드 버튼 */}

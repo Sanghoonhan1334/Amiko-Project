@@ -20,7 +20,7 @@ import { useLanguage } from '@/context/LanguageContext'
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
   ssr: false,
-  loading: () => <div className="flex items-center justify-center h-64">AI 화상 채팅 로딩 중...</div>
+  loading: () => <div className="flex items-center justify-center h-64">화상 채팅 로딩 중...</div>
 })
 
 interface VideoCallStarterProps {
@@ -52,137 +52,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
     setChannelName('')
   }
 
-  // 목업 데이터 - 실제로는 API에서 가져올 데이터
-  const allPartners = [
-    { 
-      id: '1', 
-      name: '김민수', 
-      country: '한국', 
-      status: 'online', 
-      language: '한국어', 
-      interests: ['스페인어', '멕시코 문화'],
-      bio: '멕시코 문화에 관심이 많은 대학생입니다. 스페인어를 배우고 싶어요!',
-      age: 23,
-      occupation: '대학생',
-      level: '초급',
-      joinDate: '2024-01-15',
-      totalCalls: 12,
-      rating: 4.8,
-      avatar: '/profiles/kim-minsu.jpg'
-    },
-    { 
-      id: '2', 
-      name: '이지은', 
-      country: '한국', 
-      status: 'online', 
-      language: '한국어', 
-      interests: ['브라질 음악', '포르투갈어'],
-      bio: '브라질 보사노바를 좋아하는 음악학과 학생입니다.',
-      age: 21,
-      occupation: '대학생',
-      level: '중급',
-      joinDate: '2024-02-03',
-      totalCalls: 8,
-      rating: 4.9,
-      avatar: '/profiles/lee-jieun.jpg'
-    },
-    { 
-      id: '3', 
-      name: '박서준', 
-      country: '한국', 
-      status: 'offline', 
-      language: '한국어', 
-      interests: ['아르헨티나 축구', '탱고'],
-      bio: '축구와 탱고를 사랑하는 직장인입니다.',
-      age: 28,
-      occupation: '회사원',
-      level: '고급',
-      joinDate: '2023-11-20',
-      totalCalls: 25,
-      rating: 4.7,
-      avatar: '/profiles/park-seojun.jpg'
-    },
-    { 
-      id: '4', 
-      name: '최유나', 
-      country: '한국', 
-      status: 'online', 
-      language: '한국어', 
-      interests: ['콜롬비아 커피', '스페인어'],
-      bio: '콜롬비아 커피를 좋아하는 바리스타입니다.',
-      age: 25,
-      occupation: '바리스타',
-      level: '중급',
-      joinDate: '2024-01-08',
-      totalCalls: 15,
-      rating: 4.6,
-      avatar: '/profiles/choi-yuna.jpg'
-    },
-    { 
-      id: '5', 
-      name: '정현우', 
-      country: '한국', 
-      status: 'online', 
-      language: '한국어', 
-      interests: ['페루 요리', '안데스 문화'],
-      bio: '페루 요리를 배우고 싶은 요리사입니다.',
-      age: 30,
-      occupation: '요리사',
-      level: '고급',
-      joinDate: '2023-12-10',
-      totalCalls: 18,
-      rating: 4.8,
-      avatar: '/profiles/jung-hyunwoo.jpg'
-    },
-    { 
-      id: '6', 
-      name: '마리아 (멕시코)', 
-      country: '멕시코', 
-      status: 'online', 
-      language: '스페인어', 
-      interests: ['한국 드라마', 'K-pop'],
-      bio: '한국 드라마를 좋아하는 멕시코 대학생입니다.',
-      age: 22,
-      occupation: '대학생',
-      level: '초급',
-      joinDate: '2024-02-15',
-      totalCalls: 5,
-      rating: 4.5,
-      avatar: '/profiles/maria-mexico.jpg'
-    },
-    { 
-      id: '7', 
-      name: '카를로스 (브라질)', 
-      country: '브라질', 
-      status: 'online', 
-      language: '포르투갈어', 
-      interests: ['한국 요리', '태권도'],
-      bio: '한국 요리와 태권도에 관심이 많은 브라질인입니다.',
-      age: 26,
-      occupation: '엔지니어',
-      level: '중급',
-      joinDate: '2024-01-20',
-      totalCalls: 10,
-      rating: 4.7,
-      avatar: '/profiles/carlos-brazil.jpg'
-    },
-    { 
-      id: '8', 
-      name: '소피아 (아르헨티나)', 
-      country: '아르헨티나', 
-      status: 'offline', 
-      language: '스페인어', 
-      interests: ['한국 문화', '여행'],
-      bio: '한국 문화를 사랑하는 아르헨티나 여행가입니다.',
-      age: 24,
-      occupation: '여행가',
-      level: '중급',
-      joinDate: '2024-01-05',
-      totalCalls: 7,
-      rating: 4.6,
-      avatar: '/profiles/sofia-argentina.jpg'
-    },
-  ]
+  // 실제 파트너 데이터는 API에서 가져올 예정
+  const allPartners: any[] = []
 
   // 필터링된 파트너 목록
   const availablePartners = showOnlyKoreans 
@@ -278,68 +149,74 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
             </div>
           </div>
           <div className="space-y-4">
-            {availablePartners.map((partner) => (
-              <div 
-                key={partner.id}
-                className="flex items-center justify-between p-6 bg-white border border-purple-100 rounded-xl hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Avatar className="w-12 h-12 border-2 border-white shadow-md">
-                      <AvatarImage 
-                        src={partner.avatar} 
-                        alt={partner.name}
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium">
-                        {partner.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                      partner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                    }`} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-800 text-lg">{partner.name}</h4>
-                    <p className="text-sm text-purple-600 font-medium">{partner.language}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      관심사: {partner.interests.join(', ')}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1 italic">
-                      "{partner.bio}"
-                    </p>
-                    {!showOnlyKoreans && (
-                      <p className="text-xs text-blue-600 mt-1 font-medium">
-                        {partner.country}
+            {availablePartners.length > 0 ? (
+              availablePartners.map((partner) => (
+                <div 
+                  key={partner.id}
+                  className="flex items-center justify-between p-6 bg-white border border-purple-100 rounded-xl hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                        <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium">
+                          {partner.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                        partner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                      }`} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-lg">{partner.name}</h4>
+                      <p className="text-sm text-purple-600 font-medium">{partner.language}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        관심사: {partner.interests.join(', ')}
                       </p>
-                    )}
+                      <p className="text-xs text-gray-600 mt-1 italic">
+                        "{partner.bio}"
+                      </p>
+                      {!showOnlyKoreans && (
+                        <p className="text-xs text-blue-600 mt-1 font-medium">
+                          {partner.country}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPartner(partner)
+                        setShowProfileDialog(true)
+                      }}
+                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                    >
+                      {t('videoCall.viewInfo')}
+                    </Button>
+                    <Button 
+                      variant={partner.status === 'online' ? 'default' : 'outline'}
+                      size="sm"
+                      disabled={partner.status === 'offline'}
+                      className={partner.status === 'online' 
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
+                        : ''
+                      }
+                    >
+                      {partner.status === 'online' ? t('videoCall.startConversation') : t('videoCall.offline')}
+                    </Button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedPartner(partner)
-                      setShowProfileDialog(true)
-                    }}
-                    className="border-purple-200 text-purple-600 hover:bg-purple-50"
-                  >
-                    {t('videoCall.viewInfo')}
-                  </Button>
-                  <Button 
-                    variant={partner.status === 'online' ? 'default' : 'outline'}
-                    size="sm"
-                    disabled={partner.status === 'offline'}
-                    className={partner.status === 'online' 
-                      ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
-                      : ''
-                    }
-                  >
-                    {partner.status === 'online' ? t('videoCall.startConversation') : t('videoCall.offline')}
-                  </Button>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-gray-400" />
                 </div>
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">파트너가 없습니다</h3>
+                <p className="text-gray-500">현재 등록된 파트너가 없습니다. 곧 새로운 파트너들이 추가될 예정입니다.</p>
               </div>
-            ))}
+            )}
           </div>
         </Card>
 
@@ -411,10 +288,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               <div className="flex items-center gap-6 mb-6">
                 <div className="relative">
                   <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
-                    <AvatarImage 
-                      src={selectedPartner.avatar} 
-                      alt={selectedPartner.name}
-                    />
                     <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium text-xl">
                       {selectedPartner.name.charAt(0)}
                     </AvatarFallback>
