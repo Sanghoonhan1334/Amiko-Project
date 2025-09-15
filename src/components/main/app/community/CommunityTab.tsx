@@ -284,8 +284,8 @@ export default function CommunityTab() {
       } else {
         setError(err instanceof Error ? err.message : '질문을 불러오는데 실패했습니다.')
       }
-      // 에러 시 목업 데이터 사용
-      setQuestions(mockQuestions)
+      // 에러 시 빈 배열 사용
+      setQuestions([])
     } finally {
       setLoading(false)
     }
@@ -305,8 +305,8 @@ export default function CommunityTab() {
       setAnswers(data.comments || [])
     } catch (err) {
       console.error('답변 로딩 실패:', err)
-      // 에러 시 목업 데이터 사용
-      setAnswers(mockAnswers.filter(answer => answer.questionId === parseInt(questionId)))
+      // 에러 시 빈 배열 사용
+      setAnswers([])
     }
   }
 
@@ -1197,7 +1197,11 @@ export default function CommunityTab() {
                 </div>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>스토리가 없습니다</p>
+            </div>
+          )}
         </div>
       </div>
 

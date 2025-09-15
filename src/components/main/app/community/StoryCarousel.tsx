@@ -987,7 +987,11 @@ export default function StoryCarousel() {
                 </div>
               ))}
               </div>
-            ) : null}
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>스토리가 없습니다</p>
+              </div>
+            )}
           </div>
         </div>
       )}
