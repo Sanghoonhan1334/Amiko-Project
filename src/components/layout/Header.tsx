@@ -31,6 +31,40 @@ export default function Header() {
   // 포인트 상태 관리
   const [userPoints, setUserPoints] = useState(0)
 
+  // 포인트 로딩 함수
+  const loadUserPoints = async () => {
+    if (!user?.id) return
+
+    try {
+      const response = await fetch(`/api/points?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setUserPoints(data.userPoints?.available_points || 0)
+      }
+    } catch (error) {
+      console.error('포인트 로딩 실패:', error)
+    }
+  }
+
+  // 사용자 로그인 시 포인트 로딩
+  useEffect(() => {
+    if (user?.id) {
+      loadUserPoints()
+    }
+  }, [user?.id])
+
+  // 포인트 업데이트 이벤트 리스너
+  useEffect(() => {
+    const handlePointsUpdate = () => {
+      loadUserPoints()
+    }
+
+    window.addEventListener('pointsUpdated', handlePointsUpdate)
+    return () => {
+      window.removeEventListener('pointsUpdated', handlePointsUpdate)
+    }
+  }, [user?.id])
+
   // 랜딩페이지와 메인페이지 구분
   const isLandingPage = pathname === '/' || pathname === '/about'
   const isMainPage = pathname.startsWith('/main') || pathname.startsWith('/lounge')

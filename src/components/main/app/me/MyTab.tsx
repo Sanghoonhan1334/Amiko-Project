@@ -220,6 +220,9 @@ export default function MyTab() {
             main_profile_image: newProfile.main_profile_image
           })
           setProfile(newProfile)
+          
+          // 헤더 포인트 업데이트 이벤트 발생
+          window.dispatchEvent(new CustomEvent('pointsUpdated'))
         } else {
           console.error('프로필 로드 실패:', result.error)
           console.error('응답 상태:', response.status)
