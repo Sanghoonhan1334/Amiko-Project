@@ -987,25 +987,7 @@ export default function StoryCarousel() {
                 </div>
               ))}
               </div>
-            ) : (
-              <Card className="p-8 text-center">
-                <div className="text-4xl mb-4">📖</div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">오늘 올라온 스토리가 없습니다</h3>
-                <p className="text-gray-600 mb-4">
-                  오늘은 아직 새로운 스토리가 없어요. 첫 번째 스토리를 올려보세요!
-                </p>
-                <Button 
-                  onClick={() => {
-                    console.log('빈 상태 스토리 올리기 버튼 클릭됨')
-                    setShowUploadModal(true)
-                  }} 
-                  className="bg-brand-500 hover:bg-brand-600"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('communityTab.uploadStory')}
-                </Button>
-              </Card>
-            )}
+            ) : null}
           </div>
         </div>
       )}
