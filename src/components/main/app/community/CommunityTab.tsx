@@ -985,6 +985,14 @@ export default function CommunityTab() {
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap"
             onClick={() => {
               console.log('헤더 스토리 올리기 버튼 클릭됨')
+              
+              // 로그인 체크
+              if (!user) {
+                console.log('로그인 필요 - 로그인 페이지로 이동')
+                window.location.href = '/sign-in'
+                return
+              }
+              
               setShowStoryUploadModal(true)
             }}
           >
