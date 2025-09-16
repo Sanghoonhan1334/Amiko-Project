@@ -61,8 +61,8 @@ export default function StoreTab() {
   const storeItems = [
     {
       id: 'chat_extension',
-      name: '채팅 연장권',
-      description: '모든 멘토와 채팅 연장 (6시간)',
+      name: t('storeTab.items.chatExtension.name'),
+      description: t('storeTab.items.chatExtension.description'),
       price: 100,
       icon: '💬',
       available: true,
@@ -70,8 +70,8 @@ export default function StoreTab() {
     },
     {
       id: 'amiko_merchandise',
-      name: 'Amiko 굿즈',
-      description: 'Amiko 브랜드 굿즈 (머그컵, 스티커 등)',
+      name: t('storeTab.items.amikoMerchandise.name'),
+      description: t('storeTab.items.amikoMerchandise.description'),
       price: 500,
       icon: '🎁',
       available: false,
@@ -79,8 +79,8 @@ export default function StoreTab() {
     },
     {
       id: 'k_beauty_ticket',
-      name: 'K-뷰티 체험권',
-      description: '한국 뷰티 체험 및 상품 제공',
+      name: t('storeTab.items.kBeautyTicket.name'),
+      description: t('storeTab.items.kBeautyTicket.description'),
       price: 1000,
       icon: '💄',
       available: false,
@@ -88,8 +88,8 @@ export default function StoreTab() {
     },
     {
       id: 'special_event_ticket',
-      name: '스페셜 이벤트 응모권',
-      description: '특별 이벤트 참여 기회',
+      name: t('storeTab.items.specialEventTicket.name'),
+      description: t('storeTab.items.specialEventTicket.description'),
       price: 2000,
       icon: '🎫',
       available: false,
@@ -102,9 +102,9 @@ export default function StoreTab() {
     if (availablePoints >= 100) {
       setAvailablePoints(availablePoints - 100)
       // 실제로는 API 호출하여 채팅 연장 처리
-      alert('채팅 연장권이 구매되었습니다! 모든 멘토와 6시간 동안 채팅할 수 있습니다.')
+      alert(t('storeTab.messages.purchaseSuccess'))
     } else {
-      alert('포인트가 부족합니다. 더 많은 포인트를 모아주세요!')
+      alert(t('storeTab.messages.insufficientPoints'))
     }
   }
 
@@ -115,7 +115,7 @@ export default function StoreTab() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-800">
             <Star className="w-6 h-6" />
-            내 포인트 현황
+            {t('storeTab.pointStatus.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -124,15 +124,15 @@ export default function StoreTab() {
               <div className="text-2xl font-bold text-blue-600">
                 {loading ? '...' : availablePoints}
               </div>
-              <div className="text-sm text-gray-600">사용 가능한 포인트</div>
-              <div className="text-xs text-gray-500 mt-1">상점 구매용</div>
+              <div className="text-sm text-gray-600">{t('storeTab.pointStatus.availablePoints')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.availablePointsDesc')}</div>
             </div>
             <div className="text-center p-4 bg-white rounded-lg border border-purple-200">
               <div className="text-2xl font-bold text-purple-600">
                 {loading ? '...' : totalPoints}
               </div>
-              <div className="text-sm text-gray-600">누적 포인트</div>
-              <div className="text-xs text-gray-500 mt-1">랭킹/이벤트용</div>
+              <div className="text-sm text-gray-600">{t('storeTab.pointStatus.totalPoints')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.totalPointsDesc')}</div>
             </div>
           </div>
         </CardContent>
@@ -161,7 +161,7 @@ export default function StoreTab() {
                 {!item.available && (
                   <Badge variant="secondary" className="bg-gray-200 text-gray-600">
                     <Lock className="w-3 h-3 mr-1" />
-                    Coming Soon
+                    {t('storeTab.comingSoon')}
                   </Badge>
                 )}
               </div>
@@ -169,7 +169,7 @@ export default function StoreTab() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-xl font-bold text-blue-600">
-                  {item.price}점
+                  {item.price}{t('storeTab.points')}
                 </div>
                 {item.available ? (
                   <Button 
@@ -178,12 +178,12 @@ export default function StoreTab() {
                     className="bg-blue-500 hover:bg-blue-600 text-white"
                   >
                     <ShoppingBag className="w-4 h-4 mr-2" />
-                    구매하기
+                    {t('storeTab.buy')}
                   </Button>
                 ) : (
                   <Button disabled variant="outline" className="text-gray-400">
                     <Lock className="w-4 h-4 mr-2" />
-                    준비 중
+                    {t('storeTab.preparing')}
                   </Button>
                 )}
               </div>
@@ -197,7 +197,7 @@ export default function StoreTab() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Sparkles className="w-6 h-6" />
-            포인트 획득 방법
+            {t('storeTab.pointEarning.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -209,15 +209,15 @@ export default function StoreTab() {
                   <span className="text-white text-lg">💬</span>
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-blue-800">커뮤니티 활동</h4>
-                  <p className="text-sm text-blue-600">하루 최대 +20점</p>
+                  <h4 className="text-base font-bold text-blue-800">{t('storeTab.pointEarning.community.title')}</h4>
+                  <p className="text-sm text-blue-600">{t('storeTab.pointEarning.community.maxDaily')}</p>
                 </div>
               </div>
               <div className="space-y-1 text-sm text-gray-600">
-                <div>• 질문 작성: +5점</div>
-                <div>• 답변 작성: +5점</div>
-                <div>• 스토리 작성: +5점</div>
-                <div>• 자유게시판: +2점</div>
+                <div>• {t('storeTab.pointEarning.community.question')}</div>
+                <div>• {t('storeTab.pointEarning.community.answer')}</div>
+                <div>• {t('storeTab.pointEarning.community.story')}</div>
+                <div>• {t('storeTab.pointEarning.community.freeboard')}</div>
               </div>
             </div>
 
@@ -228,14 +228,14 @@ export default function StoreTab() {
                   <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-purple-800">영상통화</h4>
-                  <p className="text-sm text-purple-600">1회 완료 시 +40점</p>
+                  <h4 className="text-base font-bold text-purple-800">{t('storeTab.pointEarning.videoCall.title')}</h4>
+                  <p className="text-sm text-purple-600">{t('storeTab.pointEarning.videoCall.perCall')}</p>
                 </div>
               </div>
               <div className="space-y-1 text-sm text-gray-600">
-                <div>• 화상채팅 완료: +40점</div>
-                <div>• 채팅 자동 활성화</div>
-                <div>• 6시간 채팅 연장</div>
+                <div>• {t('storeTab.pointEarning.videoCall.completion')}</div>
+                <div>• {t('storeTab.pointEarning.videoCall.autoActivation')}</div>
+                <div>• {t('storeTab.pointEarning.videoCall.extension')}</div>
               </div>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function StoreTab() {
       <div className="text-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
         <div className="flex items-center justify-center gap-2 text-orange-600 font-medium">
           <Gift className="w-5 h-5" />
-          <span>✨ 앞으로 더 많은 리워드가 추가될 예정입니다! 포인트를 모아두세요 🙌</span>
+          <span>{t('storeTab.footerMessage')}</span>
         </div>
       </div>
     </div>

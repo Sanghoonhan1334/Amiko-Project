@@ -1188,6 +1188,198 @@ export const translations = {
       footerMessage: '✨ 앞으로 더 많은 리워드가 추가될 예정입니다! 포인트를 모아두세요 🙌'
     },
 
+    // 상점 탭
+    storeTab: {
+      pointStatus: {
+        title: '내 포인트 현황',
+        availablePoints: '사용 가능한 포인트',
+        availablePointsDesc: '상점 구매용',
+        totalPoints: '누적 포인트',
+        totalPointsDesc: '랭킹/이벤트용'
+      },
+      items: {
+        chatExtension: {
+          name: '채팅 연장권',
+          description: '모든 멘토와 채팅 연장 (6시간)'
+        },
+        amikoMerchandise: {
+          name: 'Amiko 굿즈',
+          description: 'Amiko 브랜드 굿즈 (머그컵, 스티커 등)'
+        },
+        kBeautyTicket: {
+          name: 'K-뷰티 체험권',
+          description: '한국 뷰티 체험 및 상품 제공'
+        },
+        specialEventTicket: {
+          name: '스페셜 이벤트 응모권',
+          description: '특별 이벤트 참여 기회'
+        }
+      },
+      messages: {
+        purchaseSuccess: '채팅 연장권이 구매되었습니다! 모든 멘토와 6시간 동안 채팅할 수 있습니다.',
+        insufficientPoints: '포인트가 부족합니다. 더 많은 포인트를 모아주세요!'
+      },
+      comingSoon: 'Coming Soon',
+      points: '점',
+      buy: '구매하기',
+      preparing: '준비 중',
+      pointEarning: {
+        title: '포인트 획득 방법',
+        community: {
+          title: '커뮤니티 활동',
+          maxDaily: '하루 최대 +20점',
+          question: '질문 작성: +5점',
+          answer: '답변 작성: +5점',
+          story: '스토리 작성: +5점',
+          freeboard: '자유게시판: +2점'
+        },
+        videoCall: {
+          title: '영상통화',
+          perCall: '1회 완료 시 +40점',
+          completion: '화상채팅 완료: +40점',
+          autoActivation: '채팅 자동 활성화',
+          extension: '6시간 채팅 연장'
+        }
+      },
+      footerMessage: '✨ 앞으로 더 많은 리워드가 추가될 예정입니다! 포인트를 모아두세요 🙌'
+    },
+    
+    // 상점 탭
+    storeTab: {
+      pointStatus: {
+        title: 'Mi estado de puntos',
+        availablePoints: 'Puntos disponibles',
+        availablePointsDesc: 'Para compras en la tienda',
+        totalPoints: 'Puntos acumulados',
+        totalPointsDesc: 'Para ranking/eventos'
+      },
+      items: {
+        chatExtension: {
+          name: 'Extensión de chat',
+          description: 'Extensión de chat con todos los mentores (6 horas)'
+        },
+        amikoMerchandise: {
+          name: 'Productos Amiko',
+          description: 'Productos de marca Amiko (tazas, pegatinas, etc.)'
+        },
+        kBeautyTicket: {
+          name: 'Boleto de experiencia K-Beauty',
+          description: 'Experiencia de belleza coreana y productos'
+        },
+        specialEventTicket: {
+          name: 'Boleto de evento especial',
+          description: 'Oportunidad de participar en eventos especiales'
+        }
+      },
+      messages: {
+        purchaseSuccess: '¡Extensión de chat comprada! Puedes chatear con todos los mentores durante 6 horas.',
+        insufficientPoints: 'Puntos insuficientes. ¡Acumula más puntos!'
+      },
+      comingSoon: 'Próximamente',
+      points: 'puntos',
+      buy: 'Comprar',
+      preparing: 'Preparando',
+      pointEarning: {
+        title: 'Cómo obtener puntos',
+        community: {
+          title: 'Actividad comunitaria',
+          maxDaily: 'Máximo +20 puntos por día',
+          question: 'Hacer pregunta: +5 puntos',
+          answer: 'Responder: +5 puntos',
+          story: 'Escribir historia: +5 puntos',
+          freeboard: 'Foro libre: +2 puntos'
+        },
+        videoCall: {
+          title: 'Videollamada',
+          perCall: 'Por llamada completada: +40 puntos',
+          completion: 'Videollamada completada: +40 puntos',
+          autoActivation: 'Activación automática de chat',
+          extension: 'Extensión de chat de 6 horas'
+        }
+      },
+      footerMessage: '✨ ¡Se agregarán más recompensas en el futuro! Acumula puntos 🙌'
+    },
+
+    // 이벤트 탭
+    eventTab: {
+      rewardAchieved: '축하합니다!',
+      pointsEarned: '포인트',
+      rewardObtained: '보상 획득!',
+      points: '점',
+      pointRanking: {
+        title: '포인트 랭킹',
+        loading: '랭킹 로딩 중...',
+        myRank: '나의 순위',
+        totalPoints: '총',
+        rank: '등',
+        outOf: '전체',
+        users: '명 중',
+        topRanking: '상위 랭킹',
+        noData: '아직 랭킹 데이터가 없습니다.',
+        startActivity: '커뮤니티 활동을 시작해보세요!'
+      },
+      pointRules: {
+        title: '포인트 규칙',
+        subtitle: '포인트 획득 규칙',
+        description: '상점 탭에서 자세한 포인트 획득 방법을 확인하세요!',
+        goToStore: '상점으로 이동'
+      },
+      attendanceCheck: {
+        specialEvents: {
+          koreanEvent: {
+            description: '스페인어 실력 향상을 위한 시험 지원',
+            dele: 'DELE 시험 응시료 지원',
+            siele: 'SIELE 시험 응시료 지원'
+          },
+          localEvent: {
+            flightTicket: '한국 왕복 항공권',
+            guideService: '가이드 서비스',
+            accommodation: '숙소 제공 (2주)'
+          }
+        }
+      }
+    },
+    
+    // 이벤트 탭
+    eventTab: {
+      rewardAchieved: '¡Felicidades!',
+      pointsEarned: 'Puntos',
+      rewardObtained: '¡Recompensa obtenida!',
+      points: 'puntos',
+      pointRanking: {
+        title: 'Ranking de puntos',
+        loading: 'Cargando ranking...',
+        myRank: 'Mi ranking',
+        totalPoints: 'Total',
+        rank: 'º',
+        outOf: 'de',
+        users: 'usuarios',
+        topRanking: 'Ranking superior',
+        noData: 'Aún no hay datos de ranking.',
+        startActivity: '¡Comienza la actividad comunitaria!'
+      },
+      pointRules: {
+        title: 'Reglas de puntos',
+        subtitle: 'Reglas de obtención de puntos',
+        description: '¡Consulta la tienda para ver métodos detallados de obtención de puntos!',
+        goToStore: 'Ir a la tienda'
+      },
+      attendanceCheck: {
+        specialEvents: {
+          koreanEvent: {
+            description: 'Apoyo para exámenes de mejora del español',
+            dele: 'Apoyo para examen DELE',
+            siele: 'Apoyo para examen SIELE'
+          },
+          localEvent: {
+            flightTicket: 'Boleto de avión de ida y vuelta a Corea',
+            guideService: 'Servicio de guía',
+            accommodation: 'Alojamiento proporcionado (2 semanas)'
+          }
+        }
+      }
+    },
+    
     // 충전소
     chargingTab: {
       coupons: {

@@ -351,11 +351,11 @@ export default function EventTab() {
       localStorage.setItem('totalPoints', (totalPoints + reward.points).toString())
       
       // 보상 알림
-      let rewardMessage = `🎉 축하합니다! ${reward.label} 달성!\n`
-      rewardMessage += `포인트 +${reward.points}점`
+      let rewardMessage = `🎉 ${t('eventTab.rewardAchieved')} ${reward.label}!\n`
+      rewardMessage += `${t('eventTab.pointsEarned')} +${reward.points}${t('eventTab.points')}`
       
       alert(rewardMessage)
-      console.log(`보상 획득! ${reward.label}: 포인트 ${reward.points}점`)
+      console.log(`${t('eventTab.rewardObtained')} ${reward.label}: ${t('eventTab.points')} ${reward.points}${t('eventTab.points')}`)
     }
   }
 
@@ -439,9 +439,9 @@ export default function EventTab() {
                     <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
                   </div>
                   <div className="space-y-2 text-sm text-gray-600">
-                    <div>• 한국 왕복 항공권</div>
-                    <div>• 가이드 서비스</div>
-                    <div>• 숙소 제공 (2주)</div>
+                    <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.flightTicket')}</div>
+                    <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.guideService')}</div>
+                    <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.accommodation')}</div>
                   </div>
                 </div>
               </div>
@@ -457,7 +457,7 @@ export default function EventTab() {
             <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
               <div className="mb-4">
                 <h3 className="text-xl font-bold text-green-800 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
-                <p className="text-sm text-green-600">스페인어 실력 향상을 위한 시험 지원</p>
+                <p className="text-sm text-green-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
               </div>
               
               <div className="space-y-3">
@@ -466,7 +466,7 @@ export default function EventTab() {
                     <span className="text-white text-xs font-bold">DELE</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">DELE 시험 응시료 지원</div>
+                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
                     <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                   </div>
                 </div>
@@ -476,7 +476,7 @@ export default function EventTab() {
                     <span className="text-white text-xs font-bold">SIELE</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">SIELE 시험 응시료 지원</div>
+                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.siele')}</div>
                     <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                   </div>
                 </div>
@@ -498,14 +498,14 @@ export default function EventTab() {
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-2xl">
             <Trophy className="h-6 w-6 text-yellow-500" />
-            포인트 랭킹
+            {t('eventTab.pointRanking.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-2 text-gray-600">랭킹 로딩 중...</p>
+              <p className="mt-2 text-gray-600">{t('eventTab.pointRanking.loading')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -520,18 +520,18 @@ export default function EventTab() {
                         </span>
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-800">나의 순위</h4>
+                        <h4 className="font-bold text-gray-800">{t('eventTab.pointRanking.myRank')}</h4>
                         <p className="text-sm text-gray-600">
-                          총 {rankingData.userRank.total_points}포인트
+                          {t('eventTab.pointRanking.totalPoints')} {rankingData.userRank.total_points}{t('eventTab.points')}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-blue-600">
-                        {rankingData.userRank.position}등
+                        {rankingData.userRank.position}{t('eventTab.pointRanking.rank')}
                       </div>
                       <div className="text-sm text-gray-500">
-                        전체 {rankingData.totalUsers}명 중
+                        {t('eventTab.pointRanking.outOf')} {rankingData.totalUsers}{t('eventTab.pointRanking.users')}
                       </div>
                     </div>
                   </div>
@@ -541,7 +541,7 @@ export default function EventTab() {
               {/* 상위 랭킹 */}
               {rankingData.ranking.length > 0 ? (
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-800 mb-3">🏆 상위 랭킹</h4>
+                  <h4 className="font-semibold text-gray-800 mb-3">🏆 {t('eventTab.pointRanking.topRanking')}</h4>
                   {rankingData.ranking.slice(0, 5).map((user: any, index: number) => (
                     <div key={user.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
@@ -557,7 +557,7 @@ export default function EventTab() {
                             {user.userName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {user.totalPoints}포인트
+                            {user.totalPoints}{t('eventTab.points')}
                           </div>
                         </div>
                       </div>
@@ -572,8 +572,8 @@ export default function EventTab() {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Trophy className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>아직 랭킹 데이터가 없습니다.</p>
-                  <p className="text-sm">커뮤니티 활동을 시작해보세요!</p>
+                  <p>{t('eventTab.pointRanking.noData')}</p>
+                  <p className="text-sm">{t('eventTab.pointRanking.startActivity')}</p>
                 </div>
               )}
             </div>
@@ -588,14 +588,14 @@ export default function EventTab() {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full">
               <Zap className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800 font-['Inter']">포인트 규칙</h3>
+            <h3 className="text-xl font-bold text-gray-800 font-['Inter']">{t('eventTab.pointRules.title')}</h3>
           </div>
 
           <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
             <div className="text-4xl mb-4">🎯</div>
-            <h4 className="text-lg font-bold text-gray-800 mb-2">포인트 획득 규칙</h4>
+            <h4 className="text-lg font-bold text-gray-800 mb-2">{t('eventTab.pointRules.subtitle')}</h4>
             <p className="text-gray-600 mb-4">
-              상점 탭에서 자세한 포인트 획득 방법을 확인하세요!
+              {t('eventTab.pointRules.description')}
             </p>
             <Button 
               onClick={() => {
@@ -606,7 +606,7 @@ export default function EventTab() {
               }}
               className="bg-blue-500 hover:bg-blue-600 text-white"
             >
-              상점으로 이동
+              {t('eventTab.pointRules.goToStore')}
             </Button>
           </div>
 
