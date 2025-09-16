@@ -200,9 +200,9 @@ export default function Hero() {
                                 <span className="text-gray-800 font-bold text-sm sm:text-base">🎵</span>
                               </div>
                             </div>
-                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">주제별 게시판</h3>
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.topicBoard.title')}</h3>
                             <p className="text-gray-600 text-xs leading-relaxed">
-                              K-POP, K-DRAMA, K-뷰티, 트랜드, 여행 등 다양한 주제를 자유롭게 소통해보세요.
+                              {t('heroSlides.slide3.cards.topicBoard.description')}
                             </p>
                           </div>
                         </div>
@@ -226,9 +226,9 @@ export default function Hero() {
                                 </div>
                               </div>
                             </div>
-                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">자유게시판</h3>
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.freeBoard.title')}</h3>
                             <p className="text-gray-600 text-xs leading-relaxed">
-                              자유로운 주제로 자유롭게 지구 반대편과 소통해보세요.
+                              {t('heroSlides.slide3.cards.freeBoard.description')}
                             </p>
                           </div>
                         </div>
@@ -245,9 +245,9 @@ export default function Hero() {
                                 <span className="text-gray-800 font-bold text-sm sm:text-base">📖</span>
                               </div>
                             </div>
-                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">스토리</h3>
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.story.title')}</h3>
                             <p className="text-gray-600 text-xs leading-relaxed">
-                              나의 일상을 공유하고 일상에 대해서 대화해보세요.
+                              {t('heroSlides.slide3.cards.story.description')}
                             </p>
                           </div>
                         </div>
@@ -267,9 +267,9 @@ export default function Hero() {
                                 <div className="absolute inset-0 flex items-center justify-center text-gray-800 font-bold text-sm sm:text-base">?</div>
                               </div>
                             </div>
-                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">Q&A</h3>
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.qna.title')}</h3>
                             <p className="text-gray-600 text-xs leading-relaxed">
-                              Q&A 커뮤니티를 통해 서로에게 궁금한 점을 질문하고 직접 답변을 받아보세요.
+                              {t('heroSlides.slide3.cards.qna.description')}
                             </p>
                           </div>
                         </div>

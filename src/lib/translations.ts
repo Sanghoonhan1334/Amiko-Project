@@ -248,6 +248,24 @@ export const translations = {
         subtitle: '지구 반대편과 소통하세요.',
         title: 'Amiko 커뮤니티 서비스',
         description: 'Amiko는 지구 반대편을 연결하는 다리입니다. 커뮤니티를 통해 서로의 문화에 더욱 가까이 다가가보세요.',
+        cards: {
+          topicBoard: {
+            title: '주제별 게시판',
+            description: 'K-POP, K-DRAMA, K-뷰티, 트랜드, 여행 등 다양한 주제를 자유롭게 소통해보세요.'
+          },
+          freeBoard: {
+            title: '자유게시판',
+            description: '자유로운 주제로 자유롭게 지구 반대편과 소통해보세요.'
+          },
+          story: {
+            title: '스토리',
+            description: '나의 일상을 공유하고 일상에 대해서 대화해보세요.'
+          },
+          qna: {
+            title: 'Q&A',
+            description: 'Q&A 커뮤니티를 통해 서로에게 궁금한 점을 질문하고 직접 답변을 받아보세요.'
+          }
+        },
         ktrend: {
           title: 'K-Trend',
           description: '한국인이 직접 전하는 정확하고 빠른 K-Trend, Amiko에서 경험해보세요.'
@@ -1793,6 +1811,24 @@ export const translations = {
         subtitle: 'Comunícate con el otro lado del mundo.',
         title: 'Servicio de Comunidad Amiko',
         description: 'Amiko es un puente que conecta el otro lado del mundo. Acércate más a las culturas mutuas a través de la comunidad.',
+        cards: {
+          topicBoard: {
+            title: 'Foro por Temas',
+            description: 'Comunícate libremente sobre diversos temas como K-POP, K-DRAMA, K-Beauty, tendencias, viajes, etc.'
+          },
+          freeBoard: {
+            title: 'Foro Libre',
+            description: 'Comunícate libremente con el otro lado del mundo sobre temas libres.'
+          },
+          story: {
+            title: 'Historia',
+            description: 'Comparte tu vida diaria y conversa sobre la vida cotidiana.'
+          },
+          qna: {
+            title: 'P&R',
+            description: 'Haz preguntas sobre lo que te interesa mutuamente a través de la comunidad P&R y recibe respuestas directamente.'
+          }
+        },
         ktrend: {
           title: 'K-Trend',
           description: 'Experimenta K-Trend preciso y rápido transmitido directamente por coreanos en Amiko.'
