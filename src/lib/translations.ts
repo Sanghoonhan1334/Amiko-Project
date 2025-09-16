@@ -29,6 +29,13 @@ export const translations = {
       deleting: '삭제 중...'
     },
     
+    // 인증 관련
+    auth: {
+      forgotPassword: '비밀번호 찾기',
+      signUp: '회원가입하기',
+      signIn: '로그인하기'
+    },
+    
     // 메뉴
     profileMenu: '프로필',
     settings: '설정',
@@ -1158,6 +1165,13 @@ export const translations = {
       saving: 'Guardando...',
       writing: 'Escribiendo...',
       deleting: 'Eliminando...'
+    },
+    
+    // 인증 관련
+    auth: {
+      forgotPassword: 'Recuperar contraseña',
+      signUp: 'Registrarse',
+      signIn: 'Iniciar sesión'
     },
     
     // 메뉴

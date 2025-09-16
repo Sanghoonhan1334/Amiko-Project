@@ -169,13 +169,13 @@ export default function SignInPage() {
 
           {/* 추가 링크 */}
           <div className="space-y-3 text-center">
-            <div className="flex items-center justify-center gap-4 text-sm">
-              <a href="/forgot-password" className="text-slate-900 hover:text-slate-700 font-medium">
-                비밀번호 찾기
+            <div className="flex items-center justify-center gap-6 text-sm">
+              <a href="/forgot-password" className="text-slate-900 hover:text-slate-700 font-medium transition-colors">
+                {t('auth.forgotPassword')}
               </a>
               <span className="text-slate-400">•</span>
-              <a href="#" className="text-slate-900 hover:text-slate-700 font-medium">
-                도움말
+              <a href="/help" className="text-slate-900 hover:text-slate-700 font-medium transition-colors">
+                {t('footer.help')}
               </a>
             </div>
             

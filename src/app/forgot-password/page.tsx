@@ -137,9 +137,17 @@ export default function ForgotPasswordPage() {
             </form>
 
             <div className="space-y-3 text-center">
-              <div className="flex items-center justify-center gap-4 text-sm">
-                <a href="#" className="text-slate-900 hover:text-slate-700 font-medium">
-                  도움말
+              <div className="flex items-center justify-center gap-6 text-sm">
+                <a href="/help" className="text-slate-900 hover:text-slate-700 font-medium transition-colors">
+                  {t('footer.help')}
+                </a>
+                <span className="text-slate-400">•</span>
+                <a href="/faq" className="text-slate-900 hover:text-slate-700 font-medium transition-colors">
+                  {t('footer.faq')}
+                </a>
+                <span className="text-slate-400">•</span>
+                <a href="/contact" className="text-slate-900 hover:text-slate-700 font-medium transition-colors">
+                  {t('footer.contact')}
                 </a>
               </div>
               <p className="text-sm text-slate-600">
