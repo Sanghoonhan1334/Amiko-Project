@@ -1192,6 +1192,8 @@ export const translations = {
 
     // 상점 탭
     storeTab: {
+      title: '상점',
+      subtitle: '포인트로 다양한 혜택을 받아보세요',
       pointStatus: {
         title: '내 포인트 현황',
         availablePoints: '사용 가능한 포인트',
@@ -1248,6 +1250,8 @@ export const translations = {
     
     // 상점 탭
     storeTab: {
+      title: 'Tienda',
+      subtitle: 'Recibe varios beneficios con puntos',
       pointStatus: {
         title: 'Mi estado de puntos',
         availablePoints: 'Puntos disponibles',
