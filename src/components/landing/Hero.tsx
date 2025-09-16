@@ -149,13 +149,13 @@ export default function Hero() {
                       {/* 오른쪽: 작은 텍스트들 */}
                       <div className="flex-1 flex flex-col gap-1 sm:gap-2 justify-center">
                         <p className="text-gray-600 text-xs leading-tight text-left whitespace-nowrap pl-0 pr-24">
-                          서로의 나라에 대한 좋은 이미지를 가지고 그들을 만나기 위해 AI 화상 채팅 어플을 사용했던 경험이 있으신가요?
+                          {t('heroSlides.slide2.experience1')}
                         </p>
                         <p className="text-gray-600 text-xs leading-tight text-left whitespace-nowrap pl-0 pr-24">
-                          혹시 그 경험이 당신에게 실망으로 다가오시지는 않으셨나요?
+                          {t('heroSlides.slide2.experience2')}
                         </p>
                         <p className="text-gray-600 text-xs leading-tight text-left whitespace-nowrap pl-0 pr-24">
-                          Amiko는 검증된 한국인 튜터들과 별점 시스템을 통해 좋은 경험을 여러분들께 선사합니다.
+                          {t('heroSlides.slide2.experience3')}
                         </p>
                       </div>
                     </div>

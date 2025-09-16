@@ -235,6 +235,9 @@ export const translations = {
         title: '화상으로 소통하세요',
         description: '자체 플랫폼을 통한 1:1 AI 화상 채팅 시스템과\nAI 통역 서비스로 막힘없이, 간편하게,\n서로의 문화와 언어를 교류할 수 있습니다.',
         subtitle: '검증된 한국인 튜터들이\n여러분들과 함께합니다.',
+        experience1: '서로의 나라에 대한 좋은 이미지를 가지고 그들을 만나기 위해 AI 화상 채팅 어플을 사용했던 경험이 있으신가요?',
+        experience2: '혹시 그 경험이 당신에게 실망으로 다가오시지는 않으셨나요?',
+        experience3: 'Amiko는 검증된 한국인 튜터들과 별점 시스템을 통해 좋은 경험을 여러분들께 선사합니다.',
         features: {
           curriculum: '한국어를 배우고 싶은 외국인들을 위한 맞춤형 커리큘럼',
           education: '한국 문화와 언어를 함께 배우는 체계적인 교육 시스템',
@@ -1777,6 +1780,9 @@ export const translations = {
         title: 'Comunícate por video',
         description: 'A través de nuestro sistema de videollamadas 1:1 y servicio de traducción AI,\npuedes intercambiar culturas e idiomas sin barreras, de manera simple y conveniente.',
         subtitle: 'Tutores coreanos verificados\nestán contigo.',
+        experience1: '¿Has tenido experiencia usando aplicaciones de videollamadas con IA para conocer personas con buenas imágenes de sus países?',
+        experience2: '¿Acaso esa experiencia no te llegó como una decepción?',
+        experience3: 'Amiko te ofrece una buena experiencia a través de tutores coreanos verificados y un sistema de calificaciones.',
         features: {
           curriculum: 'Currículo personalizado para extranjeros que quieren aprender coreano',
           education: 'Sistema educativo sistemático que aprende cultura e idioma coreano juntos',
