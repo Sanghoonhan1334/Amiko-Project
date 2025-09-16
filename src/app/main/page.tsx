@@ -172,7 +172,7 @@ function AppPageContent() {
 
 export default function AppPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen body-gradient pt-40 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen body-gradient pt-40 flex items-center justify-center">{t('buttons.loading')}</div>}>
       <AppPageContent />
     </Suspense>
   )
