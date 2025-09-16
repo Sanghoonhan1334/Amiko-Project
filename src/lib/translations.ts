@@ -2357,6 +2357,28 @@ export const translations = {
       cancelled: 'Cancelado'
     },
     
+    // 커뮤니티
+    community: {
+      title: 'Puntos de Comunidad',
+      subtitle: '¡Acumula puntos con actividades!',
+      pointRules: 'Reglas de obtención de puntos',
+      askQuestion: 'Hacer pregunta',
+      writeAnswer: 'Escribir respuesta',
+      writeStory: 'Escribir historia',
+      freeBoard: 'Foro libre',
+      totalPoints: 'Total de puntos',
+      todayAcquisition: 'Obtenido hoy',
+      remainingLimit: 'Límite restante',
+      points: 'puntos',
+      qa: 'P&R',
+      story: 'Historia',
+      koreanNews: 'Noticias coreanas',
+      userType: {
+        korean: 'Coreano',
+        latin: 'Local'
+      }
+    },
+    
     // 스토리 설정
     
     // 푸터
