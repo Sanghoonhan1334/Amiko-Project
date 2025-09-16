@@ -969,14 +969,14 @@ export default function CommunityTab() {
             <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
               <span className="text-white text-xs">📸</span>
             </div>
-            <h2 className="text-lg font-bold text-gray-800 font-['Inter']">스토리</h2>
+            <h2 className="text-lg font-bold text-gray-800 font-['Inter']">{t('communityTab.story')}</h2>
             {stories.length > 1 && (
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full hidden sm:inline">
                   ← 좌우로 슬라이드 (마우스 휠/드래그)
                 </span>
                 <span className="text-xs text-blue-500 font-medium">
-                  {stories.length}개 스토리
+                  {stories.length} {t('communityTab.story')}
                 </span>
               </div>
             )}
@@ -996,8 +996,8 @@ export default function CommunityTab() {
               setShowStoryUploadModal(true)
             }}
           >
-            <span className="hidden sm:inline">+ 스토리 올리기</span>
-            <span className="sm:hidden">+ 올리기</span>
+            <span className="hidden sm:inline">+ {t('communityTab.uploadStory')}</span>
+            <span className="sm:hidden">+ {t('buttons.upload')}</span>
           </Button>
         </div>
         
@@ -1199,7 +1199,7 @@ export default function CommunityTab() {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
-              <p>스토리가 없습니다</p>
+              <p>{t('communityTab.noStories')}</p>
             </div>
           )}
         </div>
@@ -1286,14 +1286,14 @@ export default function CommunityTab() {
           
           <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
             <DialogHeader className="pb-4 border-b border-gray-200">
-              <DialogTitle className="text-xl font-semibold text-gray-900">새로운 질문 작성</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newQuestion')}</DialogTitle>
             </DialogHeader>
             
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">제목</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.title')}</label>
                 <Input
-                  placeholder="질문의 제목을 입력하세요"
+                  placeholder={t('communityTab.titlePlaceholder')}
                   value={questionForm.title}
                   onChange={(e) => setQuestionForm({ ...questionForm, title: e.target.value })}
                   className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
@@ -1301,7 +1301,7 @@ export default function CommunityTab() {
               </div>
               
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">카테고리</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.category')}</label>
                 <select
                   value={questionForm.category}
                   onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
@@ -1316,9 +1316,9 @@ export default function CommunityTab() {
               </div>
               
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">태그 (쉼표로 구분)</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.tags')}</label>
                 <Input
-                  placeholder="예: 화장품, 민감성피부, 추천"
+                  placeholder={t('communityTab.tagsPlaceholder')}
                   value={questionForm.tags}
                   onChange={(e) => setQuestionForm({ ...questionForm, tags: e.target.value })}
                   className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
@@ -1326,9 +1326,9 @@ export default function CommunityTab() {
               </div>
               
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">질문 내용</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.questionContent')}</label>
                 <Textarea
-                  placeholder="질문의 자세한 내용을 입력하세요..."
+                  placeholder={t('communityTab.questionContentPlaceholder')}
                   value={questionForm.content}
                   onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
                   rows={6}
@@ -1338,10 +1338,10 @@ export default function CommunityTab() {
               
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={() => setShowQuestionModal(false)}>
-                  취소
+                  {t('buttons.cancel')}
                 </Button>
                 <Button onClick={handleSubmitQuestion}>
-                  질문 등록
+                  {t('communityTab.registerQuestion')}
                 </Button>
               </div>
             </div>
