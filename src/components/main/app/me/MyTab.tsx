@@ -316,13 +316,13 @@ export default function MyTab() {
       Array.from(files).forEach(file => {
         // 파일 크기 체크 (5MB 제한)
         if (file.size > 5 * 1024 * 1024) {
-          alert(`${file.name}: 파일 크기는 5MB 이하여야 합니다.`)
+          alert(`${file.name}: ${t('myTab.fileSizeLimit')}`)
           return
         }
         
         // 파일 타입 체크
         if (!file.type.startsWith('image/')) {
-          alert(`${file.name}: 이미지 파일만 업로드 가능합니다.`)
+          alert(`${file.name}: ${t('myTab.imageOnly')}`)
           return
         }
         
@@ -412,16 +412,16 @@ export default function MyTab() {
         setIsEditing(false)
         setProfileImages([]) // 업로드 후 초기화
         setMainProfileImage(null)
-        alert('프로필이 저장되었습니다!')
+        alert(t('myTab.profileSaved'))
         // 프로필 다시 로드 (페이지 새로고침 대신 상태 업데이트)
         await loadUserProfile(false)
       } else {
         console.error('프로필 저장 실패:', responseData)
-        alert(`프로필 저장에 실패했습니다: ${responseData.error || '알 수 없는 오류'}`)
+        alert(`${t('myTab.profileSaveFailed')}: ${responseData.error || t('myTab.unknownError')}`)
       }
     } catch (error) {
       console.error('프로필 저장 오류:', error)
-      alert('프로필 저장 중 오류가 발생했습니다.')
+      alert(t('myTab.profileSaveError'))
     }
   }
 
@@ -484,9 +484,9 @@ export default function MyTab() {
       <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <p className="text-gray-600 mb-4 font-['Inter']">프로필 정보를 불러올 수 없습니다.</p>
+            <p className="text-gray-600 mb-4 font-['Inter']">{t('myTab.profileLoadFailed')}</p>
             <Button onClick={() => window.location.reload()}>
-              다시 시도
+              {t('buttons.retry')}
             </Button>
           </div>
         </div>
@@ -579,7 +579,7 @@ export default function MyTab() {
             {/* 프로필 사진 목록 (편집 모드일 때만) */}
             {isEditing && profileImages.length > 0 && (
               <div className="w-full max-w-xs">
-                <p className="text-xs text-gray-600 mb-2 text-center font-['Inter']">업로드된 사진들 (클릭하여 대표 사진 설정)</p>
+                <p className="text-xs text-gray-600 mb-2 text-center font-['Inter']">{t('myTab.uploadedPhotos')}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {profileImages.map((file, index) => (
                     <div key={index} className="relative">
@@ -593,7 +593,7 @@ export default function MyTab() {
                       >
                         <img 
                           src={URL.createObjectURL(file)} 
-                          alt={`프로필 사진 ${index + 1}`}
+                          alt={`${t('myTab.profilePhoto')} ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -619,7 +619,7 @@ export default function MyTab() {
             <div className="text-center">
               <p className="text-xs text-gray-500 font-['Inter']">{t('profile.joinDate')}: {profile?.joinDate || 'N/A'}</p>
               {isEditing && (
-                <p className="text-xs text-blue-500 mt-1 font-['Inter']">여러 사진을 선택하고 대표 사진을 설정하세요</p>
+                <p className="text-xs text-blue-500 mt-1 font-['Inter']">{t('myTab.photoSelectionTip')}</p>
               )}
             </div>
           </div>
@@ -634,7 +634,7 @@ export default function MyTab() {
                   variant="outline"
                   className="text-xs border-blue-300 text-blue-600"
                 >
-                  {profile.is_korean ? '🇰🇷 한국인' : '🌎 현지인'}
+                  {profile.is_korean ? `🇰🇷 ${t('myTab.korean')}` : `🌎 ${t('myTab.local')}`}
                 </Badge>
                 
                 {/* 직장인/학생 구분 표시 및 편집 */}
@@ -647,8 +647,8 @@ export default function MyTab() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="student">🎓 학생</SelectItem>
-                    <SelectItem value="professional">💼 직장인</SelectItem>
+                    <SelectItem value="student">🎓 {t('myTab.student')}</SelectItem>
+                    <SelectItem value="professional">💼 {t('myTab.professional')}</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (
@@ -656,7 +656,7 @@ export default function MyTab() {
                   variant="outline"
                   className="text-xs border-purple-300 text-purple-600"
                 >
-                  {profile.user_type === 'professional' ? '💼 직장인' : '🎓 학생'}
+                  {profile.user_type === 'professional' ? `💼 ${t('myTab.professional')}` : `🎓 ${t('myTab.student')}`}
                 </Badge>
               )}
                 
@@ -665,7 +665,7 @@ export default function MyTab() {
                   variant="outline"
                   className="text-xs border-green-300 text-green-600"
                 >
-                  🔒 인증됨
+                  🔒 {t('myTab.verified')}
                 </Badge>
                 
                 {isEditing ? (
@@ -676,7 +676,7 @@ export default function MyTab() {
                       className="bg-brand-500 hover:bg-brand-600"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      저장
+                      {t('buttons.save')}
                     </Button>
                     <Button 
                       size="sm" 
@@ -684,7 +684,7 @@ export default function MyTab() {
                       onClick={handleCancelEdit}
                     >
                       <X className="w-4 h-4 mr-2" />
-                      취소
+                      {t('buttons.cancel')}
                     </Button>
                   </>
                 ) : (
@@ -712,7 +712,7 @@ export default function MyTab() {
                     className="border-brand-200 focus:border-brand-500"
                   />
                 ) : (
-                  <p className="text-gray-800 font-medium">{profile.full_name || profile.name || '이름 없음'}</p>
+                  <p className="text-gray-800 font-medium">{profile.full_name || profile.name || t('myTab.noName')}</p>
                 )}
               </div>
               
@@ -726,10 +726,10 @@ export default function MyTab() {
                         value={profile.university || ''}
                         onChange={(e) => setProfile({ ...profile, university: e.target.value })}
                         className="border-brand-200 focus:border-brand-500"
-                        placeholder="대학교명을 입력하세요"
+                        placeholder={t('myTab.universityPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.university || '대학교 정보 없음'}</p>
+                      <p className="text-gray-800 font-medium">{profile.university || t('myTab.noUniversity')}</p>
                     )}
                   </div>
                   
@@ -740,10 +740,10 @@ export default function MyTab() {
                         value={profile.major || ''}
                         onChange={(e) => setProfile({ ...profile, major: e.target.value })}
                         className="border-brand-200 focus:border-brand-500"
-                        placeholder="전공을 입력하세요"
+                        placeholder={t('myTab.majorPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.major || '전공 정보 없음'}</p>
+                      <p className="text-gray-800 font-medium">{profile.major || t('myTab.noMajor')}</p>
                     )}
                   </div>
                 </>
@@ -753,30 +753,30 @@ export default function MyTab() {
               {profile.user_type === 'professional' && (
                 <>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 block">직업</label>
+                    <label className="text-sm font-medium text-gray-700 block">{t('myTab.occupation')}</label>
                     {isEditing ? (
                       <Input
                         value={profile.occupation || ''}
                         onChange={(e) => setProfile({ ...profile, occupation: e.target.value })}
                         className="border-brand-200 focus:border-brand-500"
-                        placeholder="직업을 입력하세요"
+                        placeholder={t('myTab.occupationPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.occupation || '직업 정보 없음'}</p>
+                      <p className="text-gray-800 font-medium">{profile.occupation || t('myTab.noOccupation')}</p>
                     )}
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 block">회사명</label>
+                    <label className="text-sm font-medium text-gray-700 block">{t('myTab.company')}</label>
                     {isEditing ? (
                       <Input
                         value={profile.company || ''}
                         onChange={(e) => setProfile({ ...profile, company: e.target.value })}
                         className="border-brand-200 focus:border-brand-500"
-                        placeholder="회사명을 입력하세요"
+                        placeholder={t('myTab.companyPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.company || '회사 정보 없음'}</p>
+                      <p className="text-gray-800 font-medium">{profile.company || t('myTab.noCompany')}</p>
                     )}
                   </div>
                 </>
@@ -789,18 +789,18 @@ export default function MyTab() {
                   {isEditing ? (
                     <Select value={profile.grade || ''} onValueChange={(value) => setProfile({ ...profile, grade: value })}>
                       <SelectTrigger className="border-brand-200 focus:border-brand-500">
-                        <SelectValue placeholder="학년을 선택하세요" />
+                        <SelectValue placeholder={t('myTab.gradePlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1학년">1학년</SelectItem>
-                        <SelectItem value="2학년">2학년</SelectItem>
-                        <SelectItem value="3학년">3학년</SelectItem>
-                        <SelectItem value="4학년">4학년</SelectItem>
-                        <SelectItem value="대학원">대학원</SelectItem>
+                        <SelectItem value="1학년">{t('myTab.grade1')}</SelectItem>
+                        <SelectItem value="2학년">{t('myTab.grade2')}</SelectItem>
+                        <SelectItem value="3학년">{t('myTab.grade3')}</SelectItem>
+                        <SelectItem value="4학년">{t('myTab.grade4')}</SelectItem>
+                        <SelectItem value="대학원">{t('myTab.graduate')}</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
-                    <p className="text-gray-800 font-medium">{profile.grade || '학년 정보 없음'}</p>
+                    <p className="text-gray-800 font-medium">{profile.grade || t('myTab.noGrade')}</p>
                   )}
                 </div>
               )}
@@ -808,16 +808,16 @@ export default function MyTab() {
               {/* 직장인인 경우 경력 표시 */}
               {profile.user_type === 'professional' && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 block">경력</label>
+                  <label className="text-sm font-medium text-gray-700 block">{t('myTab.experience')}</label>
                   {isEditing ? (
                     <Input
                       value={profile.work_experience || ''}
                       onChange={(e) => setProfile({ ...profile, work_experience: e.target.value })}
                       className="border-brand-200 focus:border-brand-500"
-                      placeholder="경력을 입력하세요 (예: 3년차)"
+                      placeholder={t('myTab.experiencePlaceholder')}
                     />
                   ) : (
-                    <p className="text-gray-800 font-medium">{profile.work_experience || '경력 정보 없음'}</p>
+                    <p className="text-gray-800 font-medium">{profile.work_experience || t('myTab.noExperience')}</p>
                   )}
                 </div>
               )}
@@ -832,10 +832,10 @@ export default function MyTab() {
                   onChange={(e) => setProfile({ ...profile, one_line_intro: e.target.value })}
                   rows={3}
                   className="border-brand-200 focus:border-brand-500"
-                  placeholder="자기소개를 입력하세요"
+                  placeholder={t('myTab.introductionPlaceholder')}
                 />
               ) : (
-                <p className="text-gray-700 leading-relaxed">{profile.one_line_intro || profile.introduction || '자기소개가 없습니다.'}</p>
+                <p className="text-gray-700 leading-relaxed">{profile.one_line_intro || profile.introduction || t('myTab.noIntroduction')}</p>
               )}
             </div>
 
@@ -876,7 +876,7 @@ export default function MyTab() {
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-gray-500 text-sm">설정된 관심사가 없습니다</span>
+                    <span className="text-gray-500 text-sm">{t('myTab.noInterests')}</span>
                   )}
                 </div>
               )}
@@ -942,7 +942,7 @@ export default function MyTab() {
                 <div key={purchase.id} className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-mint-200">
                   <div>
                     <div className="font-medium text-gray-800">
-                      {purchase.item === '15분 상담 쿠폰 2장' ? t('profile.purchaseItems.consultation15min2') : purchase.item}
+                      {purchase.item === '15분 상담 쿠폰 2장' ? t('myTab.consultation15min2') : purchase.item}
                     </div>
                     <div className="text-sm text-gray-600">{purchase.date}</div>
                   </div>
