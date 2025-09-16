@@ -29,7 +29,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-700 text-base leading-relaxed -mt-8 font-['Inter'] font-semibold">
-              한국과 남미를 잇는 다리, AMIKO
+              {t('footer.bridgeDescription')}
             </p>
           </div>
 

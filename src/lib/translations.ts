@@ -770,7 +770,8 @@ export const translations = {
       company: '회사',
       about: '회사 소개',
       followUs: '팔로우하기',
-      globalMessage: 'Made with ❤️ and ✨ for global community'
+      globalMessage: 'Made with ❤️ and ✨ for global community',
+      bridgeDescription: '한국과 남미를 잇는 다리, AMIKO'
     },
 
     // 새로 추가된 섹션들
@@ -2346,7 +2347,8 @@ export const translations = {
       company: 'Empresa',
       about: 'Acerca de',
       followUs: 'Síguenos',
-      globalMessage: 'Hecho con ❤️ y ✨ para una comunidad global'
+      globalMessage: 'Hecho con ❤️ y ✨ para una comunidad global',
+      bridgeDescription: 'Un puente que conecta Corea y América Latina, AMIKO'
     },
 
     // 새로 추가된 섹션들 (스페인어)
