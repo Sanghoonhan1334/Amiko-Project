@@ -263,9 +263,9 @@ export default function VerificationPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle>로그인이 필요합니다</CardTitle>
+            <CardTitle>{t('verification.loginRequired')}</CardTitle>
             <CardDescription>
-              인증을 위해서는 먼저 로그인해주세요.
+              {t('verification.loginRequiredDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -273,7 +273,7 @@ export default function VerificationPage() {
               onClick={() => router.push('/sign-in')}
               className="w-full"
             >
-              로그인하기
+              {t('auth.signIn')}
             </Button>
           </CardContent>
         </Card>
@@ -294,17 +294,17 @@ export default function VerificationPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">사용자 인증</h1>
-            <p className="text-gray-600">상담 서비스 이용을 위한 인증 정보를 입력해주세요</p>
+            <h1 className="text-2xl font-bold text-gray-800">{t('verification.title')}</h1>
+            <p className="text-gray-600">{t('verification.subtitle')}</p>
           </div>
         </div>
 
         {/* 정보 공개/비공개 안내 */}
         <Card className="mb-6 bg-blue-50 border-blue-200">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-blue-800">📋 정보 수집 안내</CardTitle>
+            <CardTitle className="text-lg text-blue-800">{t('verification.infoCollectionGuide')}</CardTitle>
             <CardDescription className="text-blue-700">
-              이 정보 수집은 빠른 매칭과 안전을 위한 검증 절차입니다.
+              {t('verification.infoCollectionDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -313,17 +313,17 @@ export default function VerificationPage() {
               <div className="space-y-2">
                 <h4 className="font-semibold text-green-700 flex items-center gap-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  공개되는 정보
+                  {t('verification.publicInfo')}
                 </h4>
                 <ul className="text-sm text-green-600 space-y-1">
-                  <li>• 이름</li>
-                  <li>• 전공 (대학생인 경우)</li>
-                  <li>• 언어 수준</li>
-                  <li>• 관심 분야</li>
-                  <li>• 자기소개</li>
+                  <li>• {t('verification.name')}</li>
+                  <li>• {t('verification.major')}</li>
+                  <li>• {t('verification.languageLevel')}</li>
+                  <li>• {t('verification.interests')}</li>
+                  <li>• {t('verification.introduction')}</li>
                 </ul>
                 <p className="text-xs text-green-600 mt-2">
-                  다른 사용자들이 볼 수 있는 기본 프로필 정보입니다.
+                  {t('verification.publicInfoDescription')}
                 </p>
               </div>
 
@@ -331,18 +331,18 @@ export default function VerificationPage() {
               <div className="space-y-2">
                 <h4 className="font-semibold text-red-700 flex items-center gap-2">
                   <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                  비공개 정보
+                  {t('verification.privateInfo')}
                 </h4>
                 <ul className="text-sm text-red-600 space-y-1">
-                  <li>• 전화번호</li>
-                  <li>• 대학교명</li>
-                  <li>• 학번</li>
-                  <li>• 직업/회사명</li>
-                  <li>• 경력</li>
-                  <li>• 가능한 시간</li>
+                  <li>• {t('verification.phone')}</li>
+                  <li>• {t('verification.university')}</li>
+                  <li>• {t('verification.studentId')}</li>
+                  <li>• {t('verification.occupation')}</li>
+                  <li>• {t('verification.experience')}</li>
+                  <li>• {t('verification.availableTime')}</li>
                 </ul>
                 <p className="text-xs text-red-600 mt-2">
-                  사용자들의 안전을 위한 내부 검증용으로만 사용됩니다.
+                  {t('verification.privateInfoDescription')}
                 </p>
               </div>
             </div>
@@ -376,12 +376,12 @@ export default function VerificationPage() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>
-              {step === 1 && '기본 정보 입력'}
-              {step === 2 && '매칭 방식 선택'}
+              {step === 1 && t('verification.basicInfoStep')}
+              {step === 2 && t('verification.matchingStep')}
             </CardTitle>
             <CardDescription>
-              {step === 1 && '본인의 기본 정보와 관심 분야를 입력해주세요.'}
-              {step === 2 && '원하는 매칭 방식을 선택해주세요.'}
+              {step === 1 && t('verification.basicInfoDescription')}
+              {step === 2 && t('verification.matchingDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -390,7 +390,7 @@ export default function VerificationPage() {
               <div className="space-y-6">
                 {/* 사용자 유형 선택 */}
                 <div className="space-y-4">
-                  <Label>사용자 유형 *</Label>
+                  <Label>{t('verification.userType')} *</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div 
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
@@ -402,8 +402,8 @@ export default function VerificationPage() {
                     >
                       <div className="text-center">
                         <div className="text-2xl mb-2">🎓</div>
-                        <h3 className="font-semibold">대학생</h3>
-                        <p className="text-sm text-gray-600">현재 대학교에 재학 중인 학생</p>
+                        <h3 className="font-semibold">{t('verification.student')}</h3>
+                        <p className="text-sm text-gray-600">{t('verification.studentDescription')}</p>
                       </div>
                     </div>
                     
@@ -417,8 +417,8 @@ export default function VerificationPage() {
                     >
                       <div className="text-center">
                         <div className="text-2xl mb-2">👔</div>
-                        <h3 className="font-semibold">일반인</h3>
-                        <p className="text-sm text-gray-600">직장인, 자영업자, 기타</p>
+                        <h3 className="font-semibold">{t('verification.general')}</h3>
+                        <p className="text-sm text-gray-600">{t('verification.generalDescription')}</p>
                       </div>
                     </div>
                   </div>
@@ -426,7 +426,7 @@ export default function VerificationPage() {
 
                 {/* 한국인/비한국인 선택 */}
                 <div className="space-y-4">
-                  <Label>국적 *</Label>
+                  <Label>{t('verification.nationality')} *</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div 
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
@@ -438,8 +438,8 @@ export default function VerificationPage() {
                     >
                       <div className="text-center">
                         <div className="text-2xl mb-2">🇰🇷</div>
-                        <h3 className="font-semibold">한국인</h3>
-                        <p className="text-sm text-gray-600">한국 국적자</p>
+                        <h3 className="font-semibold">{t('verification.korean')}</h3>
+                        <p className="text-sm text-gray-600">{t('verification.koreanDescription')}</p>
                       </div>
                     </div>
                     
@@ -453,8 +453,8 @@ export default function VerificationPage() {
                     >
                       <div className="text-center">
                         <div className="text-2xl mb-2">🌍</div>
-                        <h3 className="font-semibold">비한국인</h3>
-                        <p className="text-sm text-gray-600">외국 국적자</p>
+                        <h3 className="font-semibold">{t('verification.nonKorean')}</h3>
+                        <p className="text-sm text-gray-600">{t('verification.nonKoreanDescription')}</p>
                       </div>
                     </div>
                   </div>
@@ -462,14 +462,14 @@ export default function VerificationPage() {
 
                 {/* 프로필 사진 업로드 */}
                 <div className="space-y-4">
-                  <Label>프로필 사진</Label>
+                  <Label>{t('verification.profilePhoto')}</Label>
                   <div className="flex items-center gap-4">
                     {/* 미리보기 */}
                     <div className="w-20 h-20 rounded-full border-2 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
                       {getImagePreview() ? (
                         <img 
                           src={getImagePreview()!} 
-                          alt="프로필 미리보기" 
+                          alt={t('verification.profilePreview')} 
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -490,9 +490,9 @@ export default function VerificationPage() {
                         htmlFor="profile-image-upload"
                         className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
                       >
-                        📷 사진 선택
+                        📷 {t('verification.selectPhoto')}
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">JPG, PNG 파일만 가능 (최대 5MB)</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('verification.photoRequirements')}</p>
                     </div>
                   </div>
                 </div>
@@ -500,23 +500,23 @@ export default function VerificationPage() {
                 {/* 기본 정보 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="full_name">이름 *</Label>
+                    <Label htmlFor="full_name">{t('verification.name')} *</Label>
                     <Input
                       id="full_name"
                       value={formData.full_name}
                       onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                      placeholder="실명을 입력해주세요"
+                      placeholder={t('verification.namePlaceholder')}
                     />
                     {errors.full_name && <p className="text-sm text-red-500">{errors.full_name}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">전화번호 *</Label>
+                    <Label htmlFor="phone">{t('verification.phone')} *</Label>
                     <Input
                       id="phone"
                       value={formData.phone}
                       onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="010-1234-5678"
+                      placeholder={t('verification.phonePlaceholder')}
                     />
                     {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
                   </div>
@@ -525,32 +525,32 @@ export default function VerificationPage() {
                   {formData.user_type === 'student' && (
                     <>
                       <div className="space-y-2">
-                        <Label htmlFor="university">대학교 *</Label>
+                        <Label htmlFor="university">{t('verification.university')} *</Label>
                         <Input
                           id="university"
                           value={formData.university}
                           onChange={(e) => setFormData(prev => ({ ...prev, university: e.target.value }))}
-                          placeholder="서울대학교"
+                          placeholder={t('verification.universityPlaceholder')}
                         />
                         {errors.university && <p className="text-sm text-red-500">{errors.university}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="major">전공 *</Label>
+                        <Label htmlFor="major">{t('verification.major')} *</Label>
                         <Input
                           id="major"
                           value={formData.major}
                           onChange={(e) => setFormData(prev => ({ ...prev, major: e.target.value }))}
-                          placeholder="한국어교육학과"
+                          placeholder={t('verification.majorPlaceholder')}
                         />
                         {errors.major && <p className="text-sm text-red-500">{errors.major}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="grade">학년 *</Label>
+                        <Label htmlFor="grade">{t('verification.grade')} *</Label>
                         <Select value={formData.grade} onValueChange={(value) => setFormData(prev => ({ ...prev, grade: value }))}>
                           <SelectTrigger>
-                            <SelectValue placeholder="학년을 선택하세요" />
+                            <SelectValue placeholder={t('verification.gradePlaceholder')} />
                           </SelectTrigger>
                           <SelectContent>
                             {gradeOptions.map(grade => (
