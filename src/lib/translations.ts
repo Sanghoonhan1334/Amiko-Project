@@ -11,6 +11,24 @@ export const translations = {
     changeToSpanish: 'Cambiar a Español',
     changeToKorean: '한국어로 변경',
     
+    // 공통 버튼
+    buttons: {
+      upload: '업로드',
+      register: '등록',
+      write: '작성',
+      delete: '삭제',
+      confirm: '확인',
+      cancel: '취소',
+      save: '저장',
+      edit: '수정',
+      submit: '제출',
+      loading: '로딩 중...',
+      uploading: '업로드 중...',
+      saving: '저장 중...',
+      writing: '작성 중...',
+      deleting: '삭제 중...'
+    },
+    
     // 메뉴
     profileMenu: '프로필',
     settings: '설정',
@@ -317,6 +335,17 @@ export const translations = {
       todayStory: '오늘의 스토리',
       uploadStory: '스토리 올리기',
       askQuestion: '질문하기',
+      noStories: '스토리가 없습니다',
+      newStory: '새 스토리 작성',
+      storyText: '스토리 텍스트',
+      photoUpload: '사진 업로드',
+      publicStory: '공개 스토리',
+      privateStory: '비공개 스토리',
+      autoDelete: '24시간 후 자동 삭제',
+      like: '좋아요',
+      comment: '댓글',
+      writeComment: '댓글을 입력하세요...',
+      noComments: '아직 댓글이 없습니다.',
       categories: {
         all: '전체',
         beauty: '뷰티',
@@ -1076,6 +1105,24 @@ export const translations = {
     changeToSpanish: 'Cambiar a Español',
     changeToKorean: '한국어로 변경',
     
+    // 공통 버튼
+    buttons: {
+      upload: 'Subir',
+      register: 'Registrar',
+      write: 'Escribir',
+      delete: 'Eliminar',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      save: 'Guardar',
+      edit: 'Editar',
+      submit: 'Enviar',
+      loading: 'Cargando...',
+      uploading: 'Subiendo...',
+      saving: 'Guardando...',
+      writing: 'Escribiendo...',
+      deleting: 'Eliminando...'
+    },
+    
     // 메뉴
     community: 'Comunidad',
     profileMenu: 'Perfil',
@@ -1363,6 +1410,17 @@ export const translations = {
       todayStory: 'Historia de hoy',
       uploadStory: '+ Subir historia',
       askQuestion: 'Hacer pregunta',
+      noStories: 'No hay historias',
+      newStory: 'Nueva historia',
+      storyText: 'Texto de la historia',
+      photoUpload: 'Subir foto',
+      publicStory: 'Historia pública',
+      privateStory: 'Historia privada',
+      autoDelete: 'Se elimina automáticamente en 24 horas',
+      like: 'Me gusta',
+      comment: 'Comentario',
+      writeComment: 'Escribe un comentario...',
+      noComments: 'Aún no hay comentarios.',
       categories: {
         all: 'Todos',
         beauty: 'Belleza',
