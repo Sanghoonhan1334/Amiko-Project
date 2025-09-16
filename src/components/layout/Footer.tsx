@@ -36,28 +36,28 @@ export default function Footer() {
           {/* 지원 링크 */}
           <div className="space-y-4">
             <h4 className="font-bold text-gray-800 text-lg font-['Inter']">{t('footer.support')}</h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Link 
                 href="/help" 
-                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
+                className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
               >
                 {t('footer.help')}
               </Link>
               <Link 
                 href="/faq" 
-                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
+                className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
               >
                 {t('footer.faq')}
               </Link>
               <Link 
                 href="/contact" 
-                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
+                className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
               >
                 {t('footer.contact')}
               </Link>
               <Link 
                 href="/feedback" 
-                className="text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium"
+                className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
               >
                 {t('footer.feedback')}
               </Link>
