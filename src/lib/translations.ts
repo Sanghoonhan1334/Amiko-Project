@@ -1257,7 +1257,9 @@ export const translations = {
       partners: '파트너 목록',
       noPartners: '현재 사용 가능한 파트너가 없습니다.',
       profile: '프로필 정보',
-      close: '닫기'
+      close: '닫기',
+      channelName: '채널명',
+      channelShareTip: '채널명을 상대방과 공유하여 같은 방에 입장할 수 있습니다.'
     }
   },
   
@@ -1763,7 +1765,31 @@ export const translations = {
     
     // 영상통화
     videoCall: {
-      title: 'Videollamada',
+      title: 'AI Videollamada',
+      subtitle: 'AI Videollamada en tiempo real conectando Corea y América Latina',
+      description: '¡Aprende coreano y español con un compañero de intercambio de idiomas!',
+      quickStart: 'Inicio rápido',
+      quickStartDescription: 'Conecta directamente con un compañero de intercambio de idiomas',
+      startCall: 'Iniciar llamada',
+      startConversation: 'Iniciar conversación',
+      offline: 'Desconectado',
+      oneOnOne: 'AI Videollamada 1:1',
+      oneOnOneDescription: 'Conversación personalizada',
+      languageExchange: 'Intercambio de idiomas',
+      languageExchangeDescription: 'Coreano ↔ Español',
+      sessionTime: 'Sesión de 20 min',
+      sessionTimeDescription: 'Aprendizaje eficiente',
+      enterChannelName: 'Por favor ingresa el nombre del canal.',
+      loading: 'Cargando AI videollamada...',
+      callLoading: 'Cargando AI videollamada...',
+      onlyKoreans: 'Solo coreanos',
+      viewInfo: 'Ver información',
+      partners: 'Lista de compañeros',
+      noPartners: 'No hay compañeros disponibles actualmente.',
+      profile: 'Información del perfil',
+      close: 'Cerrar',
+      channelName: 'Nombre del canal',
+      channelShareTip: 'Comparte el nombre del canal con tu compañero para entrar a la misma sala.',
       participants: 'Participantes',
       me: 'Yo (Local)',
       opponent: 'Oponente',
@@ -1773,11 +1799,8 @@ export const translations = {
       cameraOn: 'Encender cámara',
       endCall: 'Terminar llamada',
       waitingForOpponent: 'Esperando al oponente...',
-      startConversation: 'Iniciar conversación',
-      offline: 'Desconectado',
       waitingMessage: 'Se conectará automáticamente cuando otro usuario se una al mismo canal',
       connecting: 'Conectando...',
-      startCall: 'Iniciar llamada',
       cameraOffMessage: 'La cámara está apagada',
       cameraOffSubtitle: 'Enciende la cámara para comunicarte con el oponente'
     },

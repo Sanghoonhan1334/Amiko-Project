@@ -20,7 +20,7 @@ import { useLanguage } from '@/context/LanguageContext'
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
   ssr: false,
-  loading: () => <div className="flex items-center justify-center h-64">화상 채팅 로딩 중...</div>
+  loading: () => <div className="flex items-center justify-center h-64">AI 화상 채팅 로딩 중...</div>
 })
 
 interface VideoCallStarterProps {
@@ -230,13 +230,13 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                 <Video className="w-4 h-4 text-white" />
               </div>
-              AI 화상 채팅 시작
+{t('videoCall.startCall')}
             </DialogTitle>
           </DialogHeader>
           
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">채널명</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">{t('videoCall.channelName')}</label>
               <Input
                 placeholder="예: korea-mexico-001"
                 value={channelName}
@@ -247,7 +247,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
             
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-200">
               <p className="text-sm text-blue-800 font-medium">
-                💡 채널명을 상대방과 공유하여 같은 방에 입장할 수 있습니다.
+                💡 {t('videoCall.channelShareTip')}
               </p>
             </div>
             
