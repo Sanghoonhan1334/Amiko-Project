@@ -171,6 +171,8 @@ function AppPageContent() {
 }
 
 export default function AppPage() {
+  const { t } = useLanguage()
+  
   return (
     <Suspense fallback={<div className="min-h-screen body-gradient pt-40 flex items-center justify-center">{t('buttons.loading')}</div>}>
       <AppPageContent />
