@@ -1517,6 +1517,38 @@ export const translations = {
       community: 'Comunidad'
     },
     
+    // About 페이지 관련
+    about: {
+      introVideo: '대표자 소개영상',
+      introVideoTitle: 'Amiko 대표자 소개 영상',
+      greeting: '안녕하세요.',
+      thankYou: 'Amiko를 찾아주셔서 감사합니다.',
+      teamIntroduction: 'Amiko의 CTO 한상훈(Samuel), CMO 박겸(Pablo)입니다.',
+      latinAmericaExperience: '저희는 여러 남미 국가에서 살며 그들의 문화와 사람들을 진심으로 사랑하게 되었습니다.',
+      koreanInterest: '최근 한국의 다양한 매체를 통해 남미의 아름다움이 소개되면서, 많은 한국인들이 점차 지구 반대편의 매력적인 대륙에 대해 알아가고 있습니다.',
+      culturalExchange: '이러한 경험을 통해 한국과 남미를 더욱 가깝게 연결할 수 있는 문화 교류와 커뮤니티의 필요성을 깊이 느끼게 되었습니다.',
+      bridgePromise: '그래서 다짐했습니다. 한국과 남미를 이어주는 다리를 만들자.',
+      platformDescription: 'Amiko는 화상 통화와 커뮤니티 서비스를 기반으로, 철저히 검증된 멤버십을 통해 신뢰할 수 있는 플랫폼을 제공합니다.',
+      communityVision: '단순한 소통을 넘어 한국의 트렌드, 패션, K-POP, 라이프스타일까지 공유할 수 있는 커뮤니티로 발전해 나가겠습니다.',
+      finalMessage: 'Amiko를 통해 서로에게 가까이 다가가보세요.'
+    },
+    
+    // About 페이지 관련 (스페인어)
+    about: {
+      introVideo: 'Video de presentación del CEO',
+      introVideoTitle: 'Video de presentación del CEO de Amiko',
+      greeting: 'Hola.',
+      thankYou: 'Gracias por visitar Amiko.',
+      teamIntroduction: 'Somos Samuel (CTO) y Pablo (CMO) de Amiko.',
+      latinAmericaExperience: 'Hemos vivido en varios países de América Latina y nos enamoramos sinceramente de su cultura y su gente.',
+      koreanInterest: 'Recientemente, a través de varios medios coreanos, se ha introducido la belleza de América Latina, y muchos coreanos están aprendiendo gradualmente sobre el atractivo continente al otro lado del mundo.',
+      culturalExchange: 'A través de estas experiencias, sentimos profundamente la necesidad de intercambio cultural y comunidad que pueda conectar más estrechamente Corea y América Latina.',
+      bridgePromise: 'Por eso nos comprometimos. Hagamos un puente que conecte Corea y América Latina.',
+      platformDescription: 'Amiko proporciona una plataforma confiable basada en servicios de videollamadas y comunidad, a través de membresías completamente verificadas.',
+      communityVision: 'Más allá de la simple comunicación, desarrollaremos una comunidad donde se puedan compartir las tendencias, moda, K-POP y estilo de vida de Corea.',
+      finalMessage: 'Acérquense unos a otros a través de Amiko.'
+    },
+    
     // FAQ 페이지 관련
     faq: {
       title: 'Preguntas Frecuentes',
