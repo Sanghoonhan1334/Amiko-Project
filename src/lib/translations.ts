@@ -1505,6 +1505,18 @@ export const translations = {
       marketingDescription: 'Recibe información sobre eventos y promociones'
     },
     
+    // HomeTab 컴포넌트 관련
+    homeTab: {
+      openingOctober: '10월 오픈 예정',
+      community: '커뮤니티'
+    },
+    
+    // HomeTab 컴포넌트 관련 (스페인어)
+    homeTab: {
+      openingOctober: 'Apertura en octubre',
+      community: 'Comunidad'
+    },
+    
     // FAQ 페이지 관련
     faq: {
       title: 'Preguntas Frecuentes',

@@ -61,7 +61,7 @@ export default function HomeTab() {
             <p className="text-sm text-gray-600 -mt-1 font-['Inter']">{t('mainPage.videoCallDescription')}</p>
             <div className="mt-2">
               <Badge className="bg-blue-500 text-white border-blue-500 text-xs">
-                10월 오픈 예정
+{t('homeTab.openingOctober')}
               </Badge>
             </div>
           </Card>
@@ -78,7 +78,7 @@ export default function HomeTab() {
                 />
               </div>
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-0 mt-1 font-['Inter']">커뮤니티</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-0 mt-1 font-['Inter']">{t('homeTab.community')}</h3>
             <p className="text-sm text-gray-600 -mt-1 font-['Inter']">{t('mainPage.communityDescription')}</p>
           </Card>
 
