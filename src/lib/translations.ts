@@ -1759,6 +1759,49 @@ export const translations = {
     },
 
     
+    // 랜딩페이지 슬라이드
+    heroSlides: {
+      slide1: {
+        badge: 'Con Amiko',
+        title: 'Experimenta\nGlobal Community',
+        description: 'Espacio de comunicación global para ti que amas Corea y América Latina',
+        subtitle: 'Experiencia especial\ncon usuarios de todo el mundo',
+        features: {
+          curriculum: 'Comunidad global donde puedes aprender diversas culturas e idiomas',
+          education: 'Experiencia vívida de intercambio cultural a través de comunicación en tiempo real',
+          experience: 'Viaje de aprendizaje especial con amigos de todo el mundo'
+        }
+      },
+      slide2: {
+        badge: 'Con traducción AI integrada en Amiko',
+        title: 'Comunícate por video',
+        description: 'A través de nuestro sistema de videollamadas 1:1 y servicio de traducción AI,\npuedes intercambiar culturas e idiomas sin barreras, de manera simple y conveniente.',
+        subtitle: 'Tutores coreanos verificados\nestán contigo.',
+        features: {
+          curriculum: 'Currículo personalizado para extranjeros que quieren aprender coreano',
+          education: 'Sistema educativo sistemático que aprende cultura e idioma coreano juntos',
+          experience: 'Experiencia de aprendizaje de coreano vívida a través de videollamadas en tiempo real'
+        }
+      },
+      slide3: {
+        subtitle: 'Comunícate con el otro lado del mundo.',
+        title: 'Servicio de Comunidad Amiko',
+        description: 'Amiko es un puente que conecta el otro lado del mundo. Acércate más a las culturas mutuas a través de la comunidad.',
+        ktrend: {
+          title: 'K-Trend',
+          description: 'Experimenta K-Trend preciso y rápido transmitido directamente por coreanos en Amiko.'
+        },
+        freeboard: {
+          title: 'Foro Libre',
+          description: 'Experimenta comunicación libre a través de foros de K-POP, K-DRAMA, viajes y foros libres.'
+        },
+        qna: {
+          title: 'P&R',
+          description: 'Haz preguntas sobre lo que te interesa mutuamente a través de la comunidad P&R y recibe respuestas directamente de locales.'
+        }
+      }
+    },
+    
     hero: {
       title: 'Aprende cultura coreana y\nhaz nuevos amigos',
       subtitle: 'Experimenta la cultura coreana sin barreras lingüísticas y comunícate con personas de todo el mundo',
@@ -2638,6 +2681,145 @@ export const translations = {
         },
         messagePlaceholder: 'Escribe un mensaje...',
         disabledPlaceholder: 'Disponible después de aceptar las reglas de chat'
+      }
+    },
+
+    // Reset Password 페이지
+    resetPassword: {
+      passwordMismatch: 'Las contraseñas no coinciden',
+      passwordRequirements: 'La contraseña debe cumplir con todos los requisitos',
+      resetFailed: 'Error al restablecer la contraseña',
+      resetError: 'Error al restablecer la contraseña',
+      passwordChanged: 'Contraseña cambiada exitosamente',
+      loginWithNewPassword: 'Inicia sesión con tu nueva contraseña',
+      login: 'Iniciar sesión',
+      setNewPassword: 'Establecer nueva contraseña',
+      enterNewPassword: 'Ingresa tu nueva contraseña',
+      newPassword: 'Nueva contraseña',
+      newPasswordPlaceholder: 'Ingresa tu nueva contraseña',
+      confirmPassword: 'Confirmar contraseña',
+      confirmPasswordPlaceholder: 'Confirma tu nueva contraseña',
+      resetting: 'Restableciendo...',
+      resetPassword: 'Restablecer contraseña',
+      rememberAccount: '¿Recuerdas tu cuenta?',
+      loginLink: 'Iniciar sesión',
+      minLength: 'Mínimo 8 caracteres',
+      hasNumber: 'Debe contener un número',
+      hasSpecial: 'Debe contener un carácter especial',
+      noRepeated: 'No debe tener caracteres repetidos consecutivos'
+    },
+
+    // Admin Inquiries 페이지
+    adminInquiries: {
+      title: 'Gestión de Consultas',
+      subtitle: 'Revisa y responde las consultas de los usuarios',
+      loading: 'Cargando lista de consultas...',
+      filter: 'Filtro',
+      all: 'Todos',
+      count: '개',
+      inquiryList: 'Lista de Consultas',
+      inquiryDetail: 'Detalles de la Consulta',
+      subject: 'Asunto',
+      content: 'Contenido',
+      author: 'Autor',
+      responseList: 'Lista de Respuestas',
+      writeResponse: 'Escribir Respuesta',
+      responsePlaceholder: 'Ingresa tu respuesta...',
+      submitResponse: 'Enviar Respuesta',
+      submittingResponse: 'Enviando respuesta...',
+      selectInquiry: 'Selecciona una consulta',
+      selectInquiryDescription: 'Selecciona una consulta del lado izquierdo para ver los detalles y respuestas.',
+      noResponses: 'Aún no hay respuestas.',
+      admin: 'Administrador',
+      user: 'Usuario',
+      status: {
+        placeholder: 'Estado',
+        pending: 'Pendiente',
+        inProgress: 'En Proceso',
+        resolved: 'Resuelto',
+        closed: 'Cerrado'
+      },
+      priority: {
+        low: 'Bajo',
+        medium: 'Medio',
+        high: 'Alto',
+        urgent: 'Urgente'
+      },
+      type: {
+        placeholder: 'Tipo',
+        bug: 'Reporte de Error',
+        feature: 'Sugerencia de Función',
+        general: 'Consulta General',
+        payment: 'Consulta de Pago',
+        account: 'Consulta de Cuenta',
+        other: 'Otro'
+      },
+      errors: {
+        fetchInquiries: 'No se pudo obtener la lista de consultas',
+        fetchResponses: 'No se pudo obtener las respuestas',
+        updateStatus: 'Error al actualizar el estado',
+        submitResponse: 'Error al enviar la respuesta'
+      },
+      success: {
+        submitResponse: 'Respuesta enviada exitosamente'
+      }
+    },
+
+    // Landing FAQ 컴포넌트
+    landingFaq: {
+      title: 'Preguntas Frecuentes',
+      description: 'Hemos recopilado preguntas frecuentes sobre Amiko.\nSi necesitas información más detallada, contáctanos en cualquier momento.',
+      moreQuestions: '¿Tienes más preguntas?',
+      moreQuestionsDescription: 'Si no encontraste la respuesta arriba,\n¡contáctanos en cualquier momento!',
+      contactUs: 'Contactar',
+      questions: {
+        safety: '¿Es seguro Amiko?',
+        howToStart: '¿Cómo empezar?',
+        availability: '¿Puedo usarlo en cualquier momento?',
+        community: '¿Qué puedo hacer en la comunidad?',
+        verification: '¿Cómo verifico mi cuenta?'
+      },
+      answers: {
+        safety: 'Sí, es muy seguro. Todos los usuarios comienzan como estudiantes universitarios verificados, y si hacen algo malo, pueden ser atrapados con la información de verificación, por lo que las personas malas no pueden entrar. Un sistema de verificación perfecto garantiza un ambiente seguro.',
+        howToStart: '¡Es simple! Primero regístrate y completa la verificación, luego puedes comenzar fácilmente con una consulta gratuita de 15 minutos. Experimenta la especialidad de Amiko a través del primer encuentro con un amigo coreano.',
+        availability: 'Sí, está disponible las 24 horas del día. Puedes reservar y realizar consultas en el momento que desees, lo que es muy conveniente.',
+        community: 'Puedes hacer preguntas, responder y ganar puntos. Comunícate sobre diversos temas en 5 categorías y recibe beneficios especiales.',
+        verification: 'Puedes completar la verificación con tu tarjeta de estudiante o documento de identidad. Solo los usuarios verificados pueden usar el servicio, lo que lo hace seguro.'
+      },
+      categories: {
+        safety: 'Seguridad',
+        usage: 'Uso',
+        time: 'Tiempo',
+        community: 'Comunidad'
+      }
+    },
+
+    // Main FAQ 컴포넌트
+    mainFaq: {
+      title: 'Preguntas Frecuentes',
+      subtitle: 'Revisa las preguntas frecuentes sobre el servicio Amiko',
+      moreQuestions: 'Si tienes más preguntas, contáctanos en cualquier momento',
+      emailContact: 'Consulta por Email',
+      phoneContact: 'Consulta por Teléfono',
+      questions: {
+        service: '¿Qué servicios ofrece Amiko?',
+        mentorSelection: '¿Cómo se seleccionan los mentores?',
+        classFormat: '¿Cómo se realizan las clases?',
+        scheduling: '¿Puedo reservar clases en cualquier momento?',
+        beginner: '¿Puedo tomar clases sin saber coreano?',
+        pricing: '¿Cuánto cuestan las clases?',
+        reviews: '¿Puedo dejar reseñas después de las clases?',
+        refund: '¿Cuál es la política de reembolso?'
+      },
+      answers: {
+        service: 'Amiko es una plataforma de mentoría en línea para estudiantes de todo el mundo que quieren aprender cultura e idioma coreano. Ofrecemos diversos servicios como encuentros 1:1 por video, corrección de pronunciación e intercambio cultural.',
+        mentorSelection: 'Todos los mentores son seleccionados a través de un proceso de evaluación estricto. Evaluamos integralmente certificaciones de enseñanza de coreano, experiencia y carácter para garantizar la mejor calidad.',
+        classFormat: 'Se realiza a través de chat de video con IA. Puedes aprender efectivamente utilizando varias funciones como compartir pantalla, chat y grabación.',
+        scheduling: 'Sí, puedes reservar las 24 horas del día. Puedes reservar clases en el momento que desees según el horario del mentor.',
+        beginner: '¡Por supuesto! Ofrecemos currículos para todos los niveles, desde cursos básicos para principiantes hasta cursos avanzados. Las explicaciones están disponibles en varios idiomas como inglés, japonés y chino.',
+        pricing: 'Se aplica diferencialmente según el tiempo de clase y la experiencia del mentor. Comienza con clases básicas de 30 minutos y también ofrecemos descuentos por paquetes. Puedes verificar el precio exacto al hacer la reserva.',
+        reviews: 'Sí, puedes dejar reseñas y calificaciones sobre el mentor y la calidad de la clase después de la clase. Esto ayuda a otros estudiantes a referenciar y mejora la calidad del servicio.',
+        refund: 'Es posible un reembolso del 100% hasta 24 horas antes del inicio de la clase. Después del inicio de la clase, se puede considerar un reembolso parcial según las circunstancias. Para más detalles, contacta el servicio al cliente.'
       }
     }
   }
