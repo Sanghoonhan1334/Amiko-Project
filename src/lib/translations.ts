@@ -1549,6 +1549,36 @@ export const translations = {
       finalMessage: 'Acérquense unos a otros a través de Amiko.'
     },
     
+    // Inquiry 페이지 관련
+    inquiry: {
+      loginRequired: '로그인이 필요합니다.',
+      submitFailed: '문의 제출에 실패했습니다.',
+      submitError: '문의 제출 중 오류가 발생했습니다.',
+      goToCommunity: '커뮤니티로 이동',
+      selectInquiryType: '문의 유형을 선택해주세요',
+      selectPriority: '우선순위를 선택해주세요',
+      subjectPlaceholder: '문의 제목을 입력해주세요',
+      messagePlaceholder: '문의 내용을 자세히 입력해주세요',
+      submitSuccessMessage: '문의가 성공적으로 제출되었습니다. 빠른 시일 내에 답변드리겠습니다.',
+      submitting: '제출 중...',
+      submitInquiry: '문의 제출'
+    },
+    
+    // Inquiry 페이지 관련 (스페인어)
+    inquiry: {
+      loginRequired: 'Se requiere inicio de sesión.',
+      submitFailed: 'Error al enviar la consulta.',
+      submitError: 'Ocurrió un error al enviar la consulta.',
+      goToCommunity: 'Ir a la comunidad',
+      selectInquiryType: 'Selecciona el tipo de consulta',
+      selectPriority: 'Selecciona la prioridad',
+      subjectPlaceholder: 'Ingresa el asunto de la consulta',
+      messagePlaceholder: 'Ingresa el contenido de la consulta en detalle',
+      submitSuccessMessage: 'La consulta se envió exitosamente. Te responderemos pronto.',
+      submitting: 'Enviando...',
+      submitInquiry: 'Enviar consulta'
+    },
+    
     // FAQ 페이지 관련
     faq: {
       title: 'Preguntas Frecuentes',

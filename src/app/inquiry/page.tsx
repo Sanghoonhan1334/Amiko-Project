@@ -59,7 +59,7 @@ export default function InquiryPage() {
       // 사용자 ID 가져오기 (로컬 스토리지에서)
       const storedUser = localStorage.getItem('amiko_user')
       if (!storedUser) {
-        throw new Error('로그인이 필요합니다.')
+        throw new Error(t('inquiry.loginRequired'))
       }
 
       const user = JSON.parse(storedUser)
@@ -80,7 +80,7 @@ export default function InquiryPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || '문의 제출에 실패했습니다.')
+        throw new Error(result.error || t('inquiry.submitFailed'))
       }
 
       setSubmitStatus('success')
@@ -102,7 +102,7 @@ export default function InquiryPage() {
     } catch (error) {
       console.error('문의 제출 오류:', error)
       setSubmitStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : '문의 제출 중 오류가 발생했습니다.')
+      setErrorMessage(error instanceof Error ? error.message : t('inquiry.submitError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -150,7 +150,7 @@ export default function InquiryPage() {
                     onClick={() => router.push('/main?tab=community')}
                     className="bg-brand-600 hover:bg-brand-700 text-white"
                   >
-                    커뮤니티로 이동
+{t('inquiry.goToCommunity')}
                   </Button>
                 </div>
               </div>
@@ -246,7 +246,7 @@ export default function InquiryPage() {
               <label className="text-sm font-medium text-gray-700">{t('inquiry.inquiryType')}</label>
               <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
                 <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
-                  <SelectValue placeholder="문의 유형을 선택해주세요" />
+                  <SelectValue placeholder={t('inquiry.selectInquiryType')} />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-300">
                   {inquiryTypes.map((type) => (
@@ -266,7 +266,7 @@ export default function InquiryPage() {
               <label className="text-sm font-medium text-gray-700">{t('inquiry.priority')}</label>
               <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
                 <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
-                  <SelectValue placeholder="우선순위를 선택해주세요" />
+                  <SelectValue placeholder={t('inquiry.selectPriority')} />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-300">
                   {priorityLevels.map((priority) => (
@@ -282,7 +282,7 @@ export default function InquiryPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">{t('inquiry.subject')}</label>
               <Input
-                placeholder="문의 제목을 입력해주세요"
+                placeholder={t('inquiry.subjectPlaceholder')}
                 value={formData.subject}
                 onChange={(e) => handleInputChange('subject', e.target.value)}
                 className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
@@ -294,7 +294,7 @@ export default function InquiryPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">{t('inquiry.message')}</label>
               <Textarea
-                placeholder="문의 내용을 자세히 입력해주세요"
+                placeholder={t('inquiry.messagePlaceholder')}
                 value={formData.content}
                 onChange={(e) => handleInputChange('content', e.target.value)}
                 className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
@@ -321,7 +321,7 @@ export default function InquiryPage() {
               <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  문의가 성공적으로 제출되었습니다. 빠른 시일 내에 답변드리겠습니다.
+{t('inquiry.submitSuccessMessage')}
                 </AlertDescription>
               </Alert>
             )}
@@ -333,18 +333,18 @@ export default function InquiryPage() {
                 variant="outline"
                 onClick={() => setIsInquiryModalOpen(false)}
               >
-                취소
+{t('buttons.cancel')}
               </Button>
               <Button type="submit" disabled={isSubmitting || !formData.type || !formData.subject || !formData.content}>
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    제출 중...
+{t('inquiry.submitting')}
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    문의 제출
+{t('inquiry.submitInquiry')}
                   </>
                 )}
               </Button>
