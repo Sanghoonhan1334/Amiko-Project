@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowRight, User, Mail, Lock, Phone, Globe } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function SignUpPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -100,18 +102,18 @@ export default function SignUpPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || '회원가입에 실패했습니다.')
+        throw new Error(result.error || t('auth.signUpFailed'))
       }
 
       console.log('회원가입 성공:', result)
-      alert('회원가입이 완료되었습니다! 바로 로그인하실 수 있습니다.')
+      alert(t('auth.signUpSuccess'))
       
       // 회원가입 성공 후 로그인 페이지로 이동
       router.push('/sign-in')
       
     } catch (error) {
       console.error('회원가입 오류:', error)
-      alert(error instanceof Error ? error.message : '회원가입 중 오류가 발생했습니다.')
+      alert(error instanceof Error ? error.message : t('auth.signUpError'))
     } finally {
       setIsLoading(false)
     }
@@ -123,10 +125,10 @@ export default function SignUpPage() {
       <Card className="w-full max-w-md bg-white border shadow-lg">
         <CardHeader className="text-center space-y-4 pb-6">
           <CardTitle className="text-2xl font-semibold text-slate-900">
-            회원가입
+            {t('auth.signUp')}
           </CardTitle>
           <CardDescription className="text-slate-600">
-            한국 문화 교류 플랫폼에 가입하고 새로운 경험을 시작하세요!
+            {t('auth.signUpDescription')}
           </CardDescription>
         </CardHeader>
 
@@ -134,14 +136,14 @@ export default function SignUpPage() {
           <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium text-slate-700">
-                이름
+                {t('auth.name')}
               </Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   id="name"
                   type="text"
-                  placeholder="이름을 입력하세요"
+                  placeholder={t('auth.namePlaceholder')}
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
@@ -152,7 +154,7 @@ export default function SignUpPage() {
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                이메일
+                {t('auth.email')}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -170,14 +172,14 @@ export default function SignUpPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-                비밀번호
+                {t('auth.password')}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   id="password"
                   type="password"
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder={t('auth.passwordPlaceholder')}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   className={`pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
@@ -192,19 +194,19 @@ export default function SignUpPage() {
                 <div className="space-y-1 text-xs">
                   <div className={`flex items-center gap-2 ${passwordChecks.length ? 'text-green-600' : 'text-red-500'}`}>
                     <div className={`w-2 h-2 rounded-full ${passwordChecks.length ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    8자 이상
+                    {t('auth.passwordMinLength')}
                   </div>
                   <div className={`flex items-center gap-2 ${passwordChecks.hasNumber ? 'text-green-600' : 'text-red-500'}`}>
                     <div className={`w-2 h-2 rounded-full ${passwordChecks.hasNumber ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    숫자 포함
+                    {t('auth.passwordHasNumber')}
                   </div>
                   <div className={`flex items-center gap-2 ${passwordChecks.hasSpecial ? 'text-green-600' : 'text-red-500'}`}>
                     <div className={`w-2 h-2 rounded-full ${passwordChecks.hasSpecial ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    특수문자 포함
+                    {t('auth.passwordHasSpecial')}
                   </div>
                   <div className={`flex items-center gap-2 ${passwordChecks.noRepeated ? 'text-green-600' : 'text-red-500'}`}>
                     <div className={`w-2 h-2 rounded-full ${passwordChecks.noRepeated ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    연속된 문자 없음
+                    {t('auth.passwordNoRepeated')}
                   </div>
                 </div>
               )}
@@ -212,14 +214,14 @@ export default function SignUpPage() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
-                비밀번호 확인
+                {t('auth.confirmPassword')}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="비밀번호를 다시 입력하세요"
+                  placeholder={t('auth.confirmPasswordPlaceholder')}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   className={`pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
@@ -229,18 +231,18 @@ export default function SignUpPage() {
                 />
               </div>
               {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다</p>
+                <p className="text-xs text-red-500">{t('auth.passwordMismatch')}</p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
-                전화번호
+                {t('auth.phone')}
               </Label>
               <div className="flex gap-2">
                 <Select value={formData.country} onValueChange={handleCountryChange} required>
                   <SelectTrigger className="w-32 border-slate-200 focus:border-slate-400 focus:ring-slate-400">
-                    <SelectValue placeholder="국가번호" />
+                    <SelectValue placeholder={t('auth.countryCode')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-slate-200 rounded-md shadow-lg z-50">
                     {countries.map((country) => (
@@ -267,13 +269,13 @@ export default function SignUpPage() {
 
             <div className="space-y-2">
               <Label htmlFor="country" className="text-sm font-medium text-slate-700">
-                국가
+                {t('auth.country')}
               </Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Select value={formData.country} onValueChange={handleCountryChange} required>
                   <SelectTrigger className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400">
-                    <SelectValue placeholder="국가를 선택하세요" />
+                    <SelectValue placeholder={t('auth.selectCountry')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-slate-200 rounded-md shadow-lg z-50">
                     {countries.map((country) => (
@@ -294,11 +296,11 @@ export default function SignUpPage() {
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  가입 중...
+                  {t('auth.signingUp')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span>회원가입</span>
+                  <span>{t('auth.signUp')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               )}
@@ -308,9 +310,9 @@ export default function SignUpPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-600">
-              이미 계정이 있으신가요?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <a href="/sign-in" className="text-slate-900 hover:text-slate-700 font-medium">
-                로그인하기
+                {t('auth.signIn')}
               </a>
             </p>
           </div>

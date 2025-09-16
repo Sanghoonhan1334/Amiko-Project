@@ -33,7 +33,29 @@ export const translations = {
     auth: {
       forgotPassword: '비밀번호 찾기',
       signUp: '회원가입하기',
-      signIn: '로그인하기'
+      signIn: '로그인하기',
+      signUpDescription: '한국 문화 교류 플랫폼에 가입하고 새로운 경험을 시작하세요!',
+      name: '이름',
+      namePlaceholder: '이름을 입력하세요',
+      email: '이메일',
+      password: '비밀번호',
+      passwordPlaceholder: '비밀번호를 입력하세요',
+      passwordMinLength: '8자 이상',
+      passwordHasNumber: '숫자 포함',
+      passwordHasSpecial: '특수문자 포함',
+      passwordNoRepeated: '연속된 문자 없음',
+      confirmPassword: '비밀번호 확인',
+      confirmPasswordPlaceholder: '비밀번호를 다시 입력하세요',
+      passwordMismatch: '비밀번호가 일치하지 않습니다',
+      phone: '전화번호',
+      countryCode: '국가번호',
+      country: '국가',
+      selectCountry: '국가를 선택하세요',
+      signingUp: '가입 중...',
+      alreadyHaveAccount: '이미 계정이 있으신가요?',
+      signUpSuccess: '회원가입이 완료되었습니다! 바로 로그인하실 수 있습니다.',
+      signUpFailed: '회원가입에 실패했습니다.',
+      signUpError: '회원가입 중 오류가 발생했습니다.'
     },
     
     // 메뉴
@@ -1183,7 +1205,29 @@ export const translations = {
     auth: {
       forgotPassword: 'Recuperar contraseña',
       signUp: 'Registrarse',
-      signIn: 'Iniciar sesión'
+      signIn: 'Iniciar sesión',
+      signUpDescription: '¡Únete a la plataforma de intercambio cultural coreana y comienza una nueva experiencia!',
+      name: 'Nombre',
+      namePlaceholder: 'Ingresa tu nombre',
+      email: 'Email',
+      password: 'Contraseña',
+      passwordPlaceholder: 'Ingresa tu contraseña',
+      passwordMinLength: 'Mínimo 8 caracteres',
+      passwordHasNumber: 'Incluir números',
+      passwordHasSpecial: 'Incluir caracteres especiales',
+      passwordNoRepeated: 'Sin caracteres repetidos',
+      confirmPassword: 'Confirmar contraseña',
+      confirmPasswordPlaceholder: 'Ingresa tu contraseña nuevamente',
+      passwordMismatch: 'Las contraseñas no coinciden',
+      phone: 'Teléfono',
+      countryCode: 'Código de país',
+      country: 'País',
+      selectCountry: 'Selecciona tu país',
+      signingUp: 'Registrando...',
+      alreadyHaveAccount: '¿Ya tienes una cuenta?',
+      signUpSuccess: '¡Registro completado! Ya puedes iniciar sesión.',
+      signUpFailed: 'El registro falló.',
+      signUpError: 'Ocurrió un error durante el registro.'
     },
     
     // 메뉴
