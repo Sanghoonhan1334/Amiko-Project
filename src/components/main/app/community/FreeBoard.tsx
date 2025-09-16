@@ -518,18 +518,18 @@ export default function FreeBoard() {
 
   // 카테고리 옵션
   const categoryOptions = [
-    { value: 'all', label: '전체글' },
-    { value: 'notice', label: '공지' },
-    { value: '자유게시판', label: '자유게시판' },
-    { value: 'survey', label: '설문조사' }
+    { value: 'all', label: t('freeboard.allPosts') },
+    { value: 'notice', label: t('freeboard.notice') },
+    { value: '자유게시판', label: t('freeboard.freeBoard') },
+    { value: 'survey', label: t('freeboard.survey') }
   ]
 
   // 정렬 옵션
   const sortOptions = [
-    { value: 'latest', label: '최신순' },
-    { value: 'popular', label: '인기순' },
-    { value: 'likes', label: '추천순' },
-    { value: 'comments', label: '댓글순' }
+    { value: 'latest', label: t('freeboard.latest') },
+    { value: 'popular', label: t('freeboard.popular') },
+    { value: 'likes', label: t('freeboard.likes') },
+    { value: 'comments', label: t('freeboard.comments') }
   ]
 
   if (loading && posts.length === 0) {
@@ -554,7 +554,7 @@ export default function FreeBoard() {
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="제목, 내용, 작성자로 검색"
+            placeholder={t('freeboard.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -604,7 +604,7 @@ export default function FreeBoard() {
             <DialogTrigger asChild>
               <Button className="bg-blue-400 hover:bg-blue-500 text-white">
                 <Plus className="w-4 h-4 mr-2" />
-                글쓰기
+{t('buttons.write')}
               </Button>
             </DialogTrigger>
             <DialogContent 
@@ -615,16 +615,16 @@ export default function FreeBoard() {
               }}
             >
               <DialogHeader>
-                <DialogTitle>게시글 작성</DialogTitle>
+                <DialogTitle>{t('freeboard.writePost')}</DialogTitle>
                 <DialogDescription>
-                  새로운 게시글을 작성해주세요. 제목과 내용을 입력하고 카테고리를 선택하세요.
+{t('freeboard.writePostDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">제목</label>
+                  <label className="block text-sm font-medium mb-2">{t('communityTab.title')}</label>
                   <Input
-                    placeholder="제목을 입력하세요"
+                    placeholder={t('freeboard.titlePlaceholder')}
                     value={writeTitle}
                     onChange={(e) => setWriteTitle(e.target.value)}
                   />
@@ -633,7 +633,7 @@ export default function FreeBoard() {
                 
                 <div className="space-y-3">
                 <div>
-                    <label className="block text-sm font-medium mb-2">게시글 유형</label>
+                    <label className="block text-sm font-medium mb-2">{t('freeboard.postType')}</label>
                     <div className="flex gap-4">
                       <label className="flex items-center">
                         <input
@@ -648,7 +648,7 @@ export default function FreeBoard() {
                           }}
                           className="mr-2"
                         />
-                        일반 게시글
+{t('freeboard.normalPost')}
                       </label>
                       <label className="flex items-center">
                         <input
@@ -663,7 +663,7 @@ export default function FreeBoard() {
                           }}
                           className="mr-2"
                         />
-                        설문조사
+{t('freeboard.survey')}
                       </label>
                       {(user?.email?.includes('admin') || user?.email?.includes('@amiko.com')) && (
                         <label className="flex items-center">
@@ -679,7 +679,7 @@ export default function FreeBoard() {
                             }}
                             className="mr-2"
                           />
-                          공지사항 (운영자만)
+{t('freeboard.notice')}
                         </label>
                       )}
                     </div>
@@ -688,15 +688,15 @@ export default function FreeBoard() {
                   {writeIsSurvey && (
                     <div className="bg-blue-50 p-3 rounded-lg">
                       <p className="text-sm text-blue-800 mb-2">
-                        💡 설문조사 게시글 작성 팁:
+💡 {t('freeboard.surveyTips')}
                       </p>
                       <ul className="text-xs text-blue-700 space-y-1">
-                        <li>• 질문을 명확하게 작성해주세요</li>
-                        <li>• 여러 선택지를 제공하면 더 좋습니다</li>
-                        <li>• 예: "가장 좋아하는 K-pop 그룹은? 1) BTS 2) BLACKPINK 3) NewJeans 4) 기타"</li>
+                        <li>• {t('freeboard.surveyTip1')}</li>
+                        <li>• {t('freeboard.surveyTip2')}</li>
+                        <li>• {t('freeboard.surveyTip3')}</li>
                       </ul>
                       <div className="mt-3">
-                        <label className="block text-sm font-medium mb-2">설문 선택지</label>
+                        <label className="block text-sm font-medium mb-2">{t('freeboard.surveyOptions')}</label>
                         <div className="space-y-2">
                           {writeSurveyOptions.map((option, index) => (
                             <div key={index} className="flex items-center gap-2">
@@ -722,7 +722,7 @@ export default function FreeBoard() {
                                   }}
                                   className="text-red-500 hover:text-red-700"
                                 >
-                                  삭제
+{t('buttons.delete')}
                                 </Button>
                               )}
                             </div>
@@ -850,7 +850,7 @@ export default function FreeBoard() {
                     variant="outline"
                     onClick={() => setShowWriteDialog(false)}
                   >
-                    취소
+{t('buttons.cancel')}
                   </Button>
                   <Button
                     onClick={() => {
@@ -860,7 +860,7 @@ export default function FreeBoard() {
                     disabled={writeLoading}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {writeLoading ? '작성 중...' : '작성'}
+{writeLoading ? t('buttons.writing') : t('buttons.write')}
                   </Button>
                 </div>
               </div>
@@ -898,16 +898,16 @@ export default function FreeBoard() {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">게시글을 불러오는 중...</p>
+              <p className="mt-2 text-gray-600">{t('freeboard.loadingPosts')}</p>
             </div>
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-red-600">{error}</p>
-              <Button onClick={fetchPosts} className="mt-2">다시 시도</Button>
+              <Button onClick={fetchPosts} className="mt-2">{t('freeboard.retry')}</Button>
             </div>
           ) : posts.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">게시글이 없습니다.</p>
+              <p className="text-gray-600">{t('freeboard.noPosts')}</p>
             </div>
           ) : (
             <>
@@ -916,11 +916,11 @@ export default function FreeBoard() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">제목</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">글쓴이</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">작성일</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">조회</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">추천</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('communityTab.title')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.author')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.createdAt')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.views')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.likes')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
