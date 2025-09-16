@@ -64,7 +64,9 @@ export const translations = {
       signInFailed: '로그인에 실패했습니다.',
       sessionUpdateFailed: '세션 업데이트에 실패했습니다.',
       signInError: '로그인 중 오류가 발생했습니다.',
-      credentialsCheckMessage: '입력하신 이메일 또는 비밀번호를 다시 확인해주세요.\n\n• 이메일 주소가 정확한지 확인\n• 비밀번호가 올바른지 확인\n• 대소문자 구분 확인'
+      credentialsCheckMessage: '입력하신 이메일 또는 비밀번호를 다시 확인해주세요.\n\n• 이메일 주소가 정확한지 확인\n• 비밀번호가 올바른지 확인\n• 대소문자 구분 확인',
+      verifying: '인증 확인 중...',
+      pleaseWait: '잠시만 기다려주세요.'
     },
     
     // 인증 페이지 관련
@@ -1544,7 +1546,9 @@ export const translations = {
       signInFailed: 'El inicio de sesión falló.',
       sessionUpdateFailed: 'Falló la actualización de la sesión.',
       signInError: 'Ocurrió un error durante el inicio de sesión.',
-      credentialsCheckMessage: 'Por favor, verifica nuevamente tu email o contraseña.\n\n• Verifica que la dirección de email sea correcta\n• Verifica que la contraseña sea correcta\n• Verifica la distinción entre mayúsculas y minúsculas'
+      credentialsCheckMessage: 'Por favor, verifica nuevamente tu email o contraseña.\n\n• Verifica que la dirección de email sea correcta\n• Verifica que la contraseña sea correcta\n• Verifica la distinción entre mayúsculas y minúsculas',
+      verifying: 'Verificando autenticación...',
+      pleaseWait: 'Por favor espera un momento.'
     },
     
     // 인증 페이지 관련

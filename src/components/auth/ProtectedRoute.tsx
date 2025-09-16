@@ -3,6 +3,7 @@
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -15,6 +16,7 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -28,8 +30,8 @@ export default function ProtectedRoute({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h1 className="text-xl font-semibold mb-2">인증 확인 중...</h1>
-          <p className="text-gray-600">잠시만 기다려주세요.</p>
+          <h1 className="text-xl font-semibold mb-2">{t('auth.verifying')}</h1>
+          <p className="text-gray-600">{t('auth.pleaseWait')}</p>
         </div>
       </div>
     )
