@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isEmailSent, setIsEmailSent] = useState(false)
@@ -28,13 +30,13 @@ export default function ForgotPasswordPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || '비밀번호 재설정 요청에 실패했습니다.')
+        throw new Error(result.error || t('forgotPassword.requestFailed'))
       }
 
       setIsEmailSent(true)
     } catch (error) {
       console.error('비밀번호 재설정 오류:', error)
-      alert(error instanceof Error ? error.message : '비밀번호 재설정 중 오류가 발생했습니다.')
+      alert(error instanceof Error ? error.message : t('forgotPassword.resetError'))
     } finally {
       setIsLoading(false)
     }
@@ -50,16 +52,16 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                이메일을 확인하세요
+                {t('forgotPassword.checkEmail')}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                비밀번호 재설정 링크를 {email}로 보내드렸습니다.
+                {t('forgotPassword.emailSent', { email })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center space-y-4">
                 <p className="text-sm text-slate-600">
-                  이메일을 받지 못하셨나요? 스팸 폴더를 확인해보세요.
+                  {t('forgotPassword.checkSpam')}
                 </p>
                 <div className="space-y-3">
                   <Button
@@ -70,13 +72,13 @@ export default function ForgotPasswordPage() {
                     variant="outline"
                     className="w-full"
                   >
-                    다른 이메일로 다시 시도
+{t('forgotPassword.tryAgain')}
                   </Button>
                   <Button
                     onClick={() => router.push('/sign-in')}
                     className="w-full bg-slate-900 hover:bg-slate-800 text-white"
                   >
-                    로그인 페이지로 돌아가기
+{t('forgotPassword.backToLogin')}
                   </Button>
                 </div>
               </div>
@@ -93,18 +95,17 @@ export default function ForgotPasswordPage() {
         <Card className="w-full max-w-md bg-white border shadow-lg">
           <CardHeader className="text-center space-y-4 pb-6">
             <CardTitle className="text-2xl font-semibold text-slate-900">
-              비밀번호 찾기
+              {t('forgotPassword.title')}
             </CardTitle>
             <CardDescription className="text-slate-600">
-              가입하신 이메일 주소를 입력하시면<br />
-              비밀번호 재설정 링크를 보내드립니다.
+              {t('forgotPassword.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                  이메일 주소
+                  {t('forgotPassword.emailAddress')}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -128,10 +129,10 @@ export default function ForgotPasswordPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    전송 중...
+{t('forgotPassword.sending')}
                   </div>
                 ) : (
-                  '비밀번호 재설정 링크 보내기'
+t('forgotPassword.sendResetLink')
                 )}
               </Button>
             </form>
@@ -151,9 +152,9 @@ export default function ForgotPasswordPage() {
                 </a>
               </div>
               <p className="text-sm text-slate-600">
-                계정이 기억나셨나요?{' '}
+                {t('forgotPassword.rememberAccount')}{' '}
                 <a href="/sign-in" className="text-slate-900 hover:text-slate-700 font-medium">
-                  로그인하기
+                  {t('forgotPassword.login')}
                 </a>
               </p>
             </div>

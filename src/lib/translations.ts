@@ -1599,6 +1599,42 @@ export const translations = {
       companyNamePlaceholder: 'Ingresa el nombre de la empresa'
     },
     
+    // Forgot Password 페이지 관련
+    forgotPassword: {
+      requestFailed: '비밀번호 재설정 요청에 실패했습니다.',
+      resetError: '비밀번호 재설정 중 오류가 발생했습니다.',
+      checkEmail: '이메일을 확인하세요',
+      emailSent: '비밀번호 재설정 링크를 {email}로 보내드렸습니다.',
+      checkSpam: '이메일을 받지 못하셨나요? 스팸 폴더를 확인해보세요.',
+      tryAgain: '다른 이메일로 다시 시도',
+      backToLogin: '로그인 페이지로 돌아가기',
+      title: '비밀번호 찾기',
+      description: '가입하신 이메일 주소를 입력하시면\n비밀번호 재설정 링크를 보내드립니다.',
+      emailAddress: '이메일 주소',
+      sending: '전송 중...',
+      sendResetLink: '비밀번호 재설정 링크 보내기',
+      rememberAccount: '계정이 기억나셨나요?',
+      login: '로그인하기'
+    },
+    
+    // Forgot Password 페이지 관련 (스페인어)
+    forgotPassword: {
+      requestFailed: 'Error al solicitar restablecimiento de contraseña.',
+      resetError: 'Ocurrió un error al restablecer la contraseña.',
+      checkEmail: 'Revisa tu email',
+      emailSent: 'Hemos enviado un enlace de restablecimiento de contraseña a {email}.',
+      checkSpam: '¿No recibiste el email? Revisa tu carpeta de spam.',
+      tryAgain: 'Intentar con otro email',
+      backToLogin: 'Volver a la página de inicio de sesión',
+      title: 'Recuperar contraseña',
+      description: 'Ingresa tu dirección de email registrada\npara enviarte un enlace de restablecimiento de contraseña.',
+      emailAddress: 'Dirección de email',
+      sending: 'Enviando...',
+      sendResetLink: 'Enviar enlace de restablecimiento',
+      rememberAccount: '¿Recordaste tu cuenta?',
+      login: 'Iniciar sesión'
+    },
+    
     // FAQ 페이지 관련
     faq: {
       title: 'Preguntas Frecuentes',
