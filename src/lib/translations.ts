@@ -866,26 +866,6 @@ export const translations = {
       submitError: '제휴 문의 전송 중 오류가 발생했습니다'
     },
 
-    // 회사소개 페이지
-    about: {
-      title: '회사소개',
-      subtitle: 'Amiko와 함께하는 한국 문화 교류의 여정',
-      companyName: 'Amiko',
-      companyDescription: 'Amigo(친구) + Korea',
-      bridgeDescription: '이어주는 다리',
-      closerDescription: 'A mí(나에게) Korea를 더 가깝게',
-      mission: '미션',
-      missionDescription: '한국 문화를 사랑하는 전 세계 사람들을 연결하여 의미 있는 교류를 만들어갑니다',
-      vision: '비전',
-      visionDescription: '언어와 문화의 장벽을 넘어 진정한 글로벌 커뮤니티를 구축합니다',
-      values: '핵심 가치',
-      valuesList: {
-        connection: '연결',
-        culture: '문화',
-        community: '커뮤니티',
-        communication: '소통'
-      }
-    },
 
     // 메인페이지 헤더
     mainHeader: {
@@ -1540,6 +1520,23 @@ export const translations = {
     
     // About 페이지 관련
     about: {
+      title: '회사소개',
+      subtitle: 'Amiko와 함께하는 한국 문화 교류의 여정',
+      companyName: 'Amiko',
+      companyDescription: 'Amigo(친구) + Korea',
+      bridgeDescription: '이어주는 다리',
+      closerDescription: 'A mí(나에게) Korea를 더 가깝게',
+      mission: '미션',
+      missionDescription: '한국 문화를 사랑하는 전 세계 사람들을 연결하여 의미 있는 교류를 만들어갑니다',
+      vision: '비전',
+      visionDescription: '언어와 문화의 장벽을 넘어 진정한 글로벌 커뮤니티를 구축합니다',
+      values: '핵심 가치',
+      valuesList: {
+        connection: '연결',
+        culture: '문화',
+        community: '커뮤니티',
+        communication: '소통'
+      },
       introVideo: '대표자 소개영상',
       introVideoTitle: 'Amiko 대표자 소개 영상',
       greeting: '안녕하세요.',
@@ -1556,6 +1553,23 @@ export const translations = {
     
     // About 페이지 관련 (스페인어)
     about: {
+      title: 'Acerca de la Empresa',
+      subtitle: 'El viaje del intercambio cultural coreano con Amiko',
+      companyName: 'Amiko',
+      companyDescription: 'Amigo(친구) + Korea',
+      bridgeDescription: 'Un puente que conecta entre AMerica y KOrea',
+      closerDescription: 'Más cerca Korea a mí',
+      mission: 'Misión',
+      missionDescription: 'Conectamos a personas de todo el mundo que aman la cultura coreana para crear intercambios significativos',
+      vision: 'Visión',
+      visionDescription: 'Construimos una verdadera comunidad global superando las barreras del idioma y la cultura',
+      values: 'Valores fundamentales',
+      valuesList: {
+        connection: 'Conexión',
+        culture: 'Cultura',
+        community: 'Comunidad',
+        communication: 'Comunicación'
+      },
       introVideo: 'Video de presentación del CEO',
       introVideoTitle: 'Video de presentación del CEO de Amiko',
       greeting: 'Hola.',
@@ -2428,26 +2442,6 @@ export const translations = {
       submitError: 'Ocurrió un error al enviar la consulta de alianza'
     },
 
-    // 회사소개 페이지
-    about: {
-      title: 'Acerca de la Empresa',
-      subtitle: 'El viaje del intercambio cultural coreano con Amiko',
-      companyName: 'Amiko',
-      companyDescription: 'Amigo(친구) + Korea',
-      bridgeDescription: 'Un puente que conecta entre AMerica y KOrea',
-      closerDescription: 'Más cerca Korea a mí',
-      mission: 'Misión',
-      missionDescription: 'Conectamos a personas de todo el mundo que aman la cultura coreana para crear intercambios significativos',
-      vision: 'Visión',
-      visionDescription: 'Construimos una verdadera comunidad global superando las barreras del idioma y la cultura',
-      values: 'Valores fundamentales',
-      valuesList: {
-        connection: 'Conexión',
-        culture: 'Cultura',
-        community: 'Comunidad',
-        communication: 'Comunicación'
-      }
-    },
 
     // 메인페이지 헤더
     mainHeader: {
