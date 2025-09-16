@@ -1150,46 +1150,6 @@ export const translations = {
       }
     },
 
-    // 상점
-    storeTab: {
-      title: '상점',
-      subtitle: '포인트로 다양한 리워드를 구매하세요',
-      myPoints: '내 포인트 현황',
-      availablePoints: '사용 가능한 포인트',
-      totalPoints: '누적 포인트',
-      shopPurchase: '상점 구매용',
-      rankingEvent: '랭킹/이벤트용',
-      items: {
-        chatExtension: {
-          name: '채팅 연장권',
-          description: '모든 멘토와 채팅 연장 (6시간)',
-          price: '100점'
-        },
-        amikoMerchandise: {
-          name: 'Amiko 굿즈',
-          description: 'Amiko 브랜드 굿즈 (머그컵, 스티커 등)',
-          price: '500점'
-        },
-        kBeautyTicket: {
-          name: 'K-뷰티 체험권',
-          description: '한국 뷰티 체험 및 상품 제공',
-          price: '1000점'
-        },
-        specialEventTicket: {
-          name: '스페셜 이벤트 응모권',
-          description: '특별 이벤트 참여 기회',
-          price: '2000점'
-        }
-      },
-      comingSoon: 'Coming Soon',
-      buyNow: '구매하기',
-      preparing: '준비 중',
-      howToEarn: '포인트 획득 방법',
-      communityActivity: '커뮤니티 활동',
-      videoCall: '영상통화',
-      footerMessage: '✨ 앞으로 더 많은 리워드가 추가될 예정입니다! 포인트를 모아두세요 🙌'
-    },
-
     // 상점 탭
     storeTab: {
       title: '상점',
