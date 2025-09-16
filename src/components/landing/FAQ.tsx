@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useLanguage } from '@/hooks/useLanguage'
 import { ChevronDown, Shield, Users, Clock, MessageCircle, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
@@ -12,41 +13,41 @@ interface FAQItem {
   category: string
 }
 
-const faqData: FAQItem[] = [
+const getFaqData = (t: any): FAQItem[] => [
   {
-    question: "Amiko는 안전한가요?",
-    answer: "네, 매우 안전합니다. 모든 사용자는 인증된 대학생들로 시작하며, 나쁜 짓을 하면 인증 정보로 잡을 수 있어서 나쁜 사람들은 들어올 수 없습니다. 완벽한 인증 시스템으로 안전한 환경을 보장합니다.",
+    question: t('landingFaq.questions.safety'),
+    answer: t('landingFaq.answers.safety'),
     icon: <Shield className="w-5 h-5" />,
-    category: "안전성"
+    category: t('landingFaq.categories.safety')
   },
   {
-    question: "어떻게 시작하나요?",
-    answer: "간단합니다! 먼저 회원가입 후 인증을 완료하시면, 15분 무료 상담으로 가볍게 시작할 수 있습니다. 한국인 친구와의 첫 만남을 통해 Amiko의 특별함을 경험해보세요.",
+    question: t('landingFaq.questions.howToStart'),
+    answer: t('landingFaq.answers.howToStart'),
     icon: <Users className="w-5 h-5" />,
-    category: "사용법"
+    category: t('landingFaq.categories.usage')
   },
   {
-    question: "언제든지 이용할 수 있나요?",
-    answer: "네, 24시간 언제든지 이용 가능합니다. 원하는 시간에 상담을 예약하고 진행할 수 있어서 편리합니다.",
+    question: t('landingFaq.questions.availability'),
+    answer: t('landingFaq.answers.availability'),
     icon: <Clock className="w-5 h-5" />,
-    category: "이용시간"
+    category: t('landingFaq.categories.time')
   },
   {
-    question: "커뮤니티에서는 무엇을 할 수 있나요?",
-    answer: "질문하고 답변하며 포인트를 모을 수 있습니다. 5개 카테고리에서 다양한 주제로 소통하며 특별한 혜택을 받아보세요.",
+    question: t('landingFaq.questions.community'),
+    answer: t('landingFaq.answers.community'),
     icon: <MessageCircle className="w-5 h-5" />,
-    category: "커뮤니티"
+    category: t('landingFaq.categories.community')
   },
-
   {
-    question: "인증은 어떻게 하나요?",
-    answer: "대학생증이나 신분증을 통해 인증을 완료하시면 됩니다. 인증된 사용자만 서비스를 이용할 수 있어 안전합니다.",
+    question: t('landingFaq.questions.verification'),
+    answer: t('landingFaq.answers.verification'),
     icon: <Shield className="w-5 h-5" />,
-    category: "안전성"
+    category: t('landingFaq.categories.safety')
   }
 ]
 
 export default function FAQ() {
+  const { t } = useLanguage()
   const [openItems, setOpenItems] = useState<number[]>([])
   const router = useRouter()
 
@@ -58,6 +59,7 @@ export default function FAQ() {
     )
   }
 
+  const faqData = getFaqData(t)
   const categories = Array.from(new Set(faqData.map(item => item.category)))
 
   return (
@@ -65,12 +67,10 @@ export default function FAQ() {
       <div className="container-custom">
         <div className="text-center mb-16">
           <h2 className="heading-primary mb-6">
-            자주 묻는 질문
+            {t('landingFaq.title')}
           </h2>
           <p className="text-body text-lg max-w-3xl mx-auto">
-            Amiko에 대해 궁금한 점들을 모았습니다. 
-            <br />
-            더 자세한 정보가 필요하시면 언제든 문의해주세요.
+            {t('landingFaq.description')}
           </p>
         </div>
 
@@ -130,19 +130,17 @@ export default function FAQ() {
         <div className="text-center mt-16">
           <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-3xl p-8 max-w-2xl mx-auto text-white">
             <h3 className="text-2xl font-bold mb-4">
-              더 궁금한 점이 있으신가요?
+              {t('landingFaq.moreQuestions')}
             </h3>
             <p className="text-white/90 text-lg mb-6">
-              위에서 답변을 찾지 못하셨다면, 
-              <br />
-              언제든지 문의해주세요!
+              {t('landingFaq.moreQuestionsDescription')}
             </p>
             <Button 
               variant="outline" 
               className="border-white text-white hover:bg-white hover:text-brand-600 transition-all duration-300"
               onClick={() => router.push('/main')}
             >
-              문의하기
+              {t('landingFaq.contactUs')}
             </Button>
           </div>
         </div>

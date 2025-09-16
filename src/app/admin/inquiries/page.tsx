@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLanguage } from '@/hooks/useLanguage'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -46,30 +47,31 @@ interface Response {
   }
 }
 
-const statusConfig = {
-  pending: { label: '대기중', icon: Clock, color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  in_progress: { label: '처리중', icon: AlertCircle, color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  resolved: { label: '해결됨', icon: CheckCircle, color: 'bg-green-100 text-green-700 border-green-300' },
-  closed: { label: '종료됨', icon: XCircle, color: 'bg-gray-100 text-gray-700 border-gray-300' }
-}
+const getStatusConfig = (t: any) => ({
+  pending: { label: t('adminInquiries.status.pending'), icon: Clock, color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  in_progress: { label: t('adminInquiries.status.inProgress'), icon: AlertCircle, color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  resolved: { label: t('adminInquiries.status.resolved'), icon: CheckCircle, color: 'bg-green-100 text-green-700 border-green-300' },
+  closed: { label: t('adminInquiries.status.closed'), icon: XCircle, color: 'bg-gray-100 text-gray-700 border-gray-300' }
+})
 
-const priorityConfig = {
-  low: { label: '낮음', color: 'text-gray-600' },
-  medium: { label: '보통', color: 'text-blue-600' },
-  high: { label: '높음', color: 'text-orange-600' },
-  urgent: { label: '긴급', color: 'text-red-600' }
-}
+const getPriorityConfig = (t: any) => ({
+  low: { label: t('adminInquiries.priority.low'), color: 'text-gray-600' },
+  medium: { label: t('adminInquiries.priority.medium'), color: 'text-blue-600' },
+  high: { label: t('adminInquiries.priority.high'), color: 'text-orange-600' },
+  urgent: { label: t('adminInquiries.priority.urgent'), color: 'text-red-600' }
+})
 
-const typeConfig = {
-  bug: { label: '버그 신고', color: 'bg-red-100 text-red-700 border-red-300' },
-  feature: { label: '기능 제안', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  general: { label: '일반 문의', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  payment: { label: '결제 문의', color: 'bg-green-100 text-green-700 border-green-300' },
-  account: { label: '계정 문의', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-  other: { label: '기타', color: 'bg-gray-100 text-gray-700 border-gray-300' }
-}
+const getTypeConfig = (t: any) => ({
+  bug: { label: t('adminInquiries.type.bug'), color: 'bg-red-100 text-red-700 border-red-300' },
+  feature: { label: t('adminInquiries.type.feature'), color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  general: { label: t('adminInquiries.type.general'), color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  payment: { label: t('adminInquiries.type.payment'), color: 'bg-green-100 text-green-700 border-green-300' },
+  account: { label: t('adminInquiries.type.account'), color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  other: { label: t('adminInquiries.type.other'), color: 'bg-gray-100 text-gray-700 border-gray-300' }
+})
 
 export default function AdminInquiriesPage() {
+  const { t } = useLanguage()
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [responses, setResponses] = useState<Response[]>([])
@@ -91,13 +93,13 @@ export default function AdminInquiriesPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || '문의 목록을 가져올 수 없습니다.')
+        throw new Error(result.error || t('adminInquiries.errors.fetchInquiries'))
       }
 
       setInquiries(result.inquiries || [])
     } catch (error) {
       console.error('문의 목록 조회 오류:', error)
-      setError(error instanceof Error ? error.message : '문의 목록을 가져올 수 없습니다.')
+      setError(error instanceof Error ? error.message : t('adminInquiries.errors.fetchInquiries'))
     } finally {
       setLoading(false)
     }
@@ -109,7 +111,7 @@ export default function AdminInquiriesPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || '답변을 가져올 수 없습니다.')
+        throw new Error(result.error || t('adminInquiries.errors.fetchResponses'))
       }
 
       setResponses(result.responses || [])
@@ -127,7 +129,7 @@ export default function AdminInquiriesPage() {
       })
 
       if (!response.ok) {
-        throw new Error('상태 업데이트에 실패했습니다.')
+        throw new Error(t('adminInquiries.errors.updateStatus'))
       }
 
       // 목록 새로고침
@@ -137,7 +139,7 @@ export default function AdminInquiriesPage() {
       }
     } catch (error) {
       console.error('상태 업데이트 오류:', error)
-      alert('상태 업데이트에 실패했습니다.')
+      alert(t('adminInquiries.errors.updateStatus'))
     }
   }
 
@@ -162,15 +164,15 @@ export default function AdminInquiriesPage() {
       })
 
       if (!response.ok) {
-        throw new Error('답변 제출에 실패했습니다.')
+        throw new Error(t('adminInquiries.errors.submitResponse'))
       }
 
       setResponseText('')
       fetchResponses(selectedInquiry.id)
-      alert('답변이 성공적으로 제출되었습니다.')
+      alert(t('adminInquiries.success.submitResponse'))
     } catch (error) {
       console.error('답변 제출 오류:', error)
-      alert('답변 제출에 실패했습니다.')
+      alert(t('adminInquiries.errors.submitResponse'))
     } finally {
       setIsSubmittingResponse(false)
     }
@@ -198,15 +200,18 @@ export default function AdminInquiriesPage() {
   }
 
   const getStatusConfig = (status: string) => {
-    return statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
+    const config = getStatusConfig(t)
+    return config[status as keyof typeof config] || config.pending
   }
 
   const getPriorityConfig = (priority: string) => {
-    return priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.medium
+    const config = getPriorityConfig(t)
+    return config[priority as keyof typeof config] || config.medium
   }
 
   const getTypeConfig = (type: string) => {
-    return typeConfig[type as keyof typeof typeConfig] || typeConfig.general
+    const config = getTypeConfig(t)
+    return config[type as keyof typeof config] || config.general
   }
 
   if (loading) {
@@ -215,7 +220,7 @@ export default function AdminInquiriesPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-8">
             <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">문의 목록을 불러오는 중...</p>
+            <p className="text-gray-600">{t('adminInquiries.loading')}</p>
           </div>
         </div>
       </div>
@@ -226,8 +231,8 @@ export default function AdminInquiriesPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">문의 관리</h1>
-          <p className="text-gray-600">사용자 문의를 확인하고 답변하세요</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('adminInquiries.title')}</h1>
+          <p className="text-gray-600">{t('adminInquiries.subtitle')}</p>
         </div>
 
         {/* 필터 */}
@@ -236,32 +241,32 @@ export default function AdminInquiriesPage() {
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">필터:</span>
+                <span className="text-sm font-medium text-gray-700">{t('adminInquiries.filter')}:</span>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="상태" />
+                  <SelectValue placeholder={t('adminInquiries.status.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="pending">대기중</SelectItem>
-                  <SelectItem value="in_progress">처리중</SelectItem>
-                  <SelectItem value="resolved">해결됨</SelectItem>
-                  <SelectItem value="closed">종료됨</SelectItem>
+                  <SelectItem value="all">{t('adminInquiries.all')}</SelectItem>
+                  <SelectItem value="pending">{t('adminInquiries.status.pending')}</SelectItem>
+                  <SelectItem value="in_progress">{t('adminInquiries.status.inProgress')}</SelectItem>
+                  <SelectItem value="resolved">{t('adminInquiries.status.resolved')}</SelectItem>
+                  <SelectItem value="closed">{t('adminInquiries.status.closed')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="유형" />
+                  <SelectValue placeholder={t('adminInquiries.type.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="bug">버그 신고</SelectItem>
-                  <SelectItem value="feature">기능 제안</SelectItem>
-                  <SelectItem value="general">일반 문의</SelectItem>
-                  <SelectItem value="payment">결제 문의</SelectItem>
-                  <SelectItem value="account">계정 문의</SelectItem>
-                  <SelectItem value="other">기타</SelectItem>
+                  <SelectItem value="all">{t('adminInquiries.all')}</SelectItem>
+                  <SelectItem value="bug">{t('adminInquiries.type.bug')}</SelectItem>
+                  <SelectItem value="feature">{t('adminInquiries.type.feature')}</SelectItem>
+                  <SelectItem value="general">{t('adminInquiries.type.general')}</SelectItem>
+                  <SelectItem value="payment">{t('adminInquiries.type.payment')}</SelectItem>
+                  <SelectItem value="account">{t('adminInquiries.type.account')}</SelectItem>
+                  <SelectItem value="other">{t('adminInquiries.type.other')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -271,7 +276,7 @@ export default function AdminInquiriesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 문의 목록 */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">문의 목록 ({inquiries.length}개)</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('adminInquiries.inquiryList')} ({inquiries.length}{t('adminInquiries.count')})</h2>
             {inquiries.map((inquiry) => {
               const statusInfo = getStatusConfig(inquiry.status)
               const priorityInfo = getPriorityConfig(inquiry.priority)
@@ -326,7 +331,7 @@ export default function AdminInquiriesPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <MessageSquare className="w-4 h-4" />
-                        {inquiry.response_count}개
+                        {inquiry.response_count}{t('adminInquiries.count')}
                       </div>
                     </div>
                   </CardContent>
@@ -342,7 +347,7 @@ export default function AdminInquiriesPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                      문의 상세
+                      {t('adminInquiries.inquiryDetail')}
                       <div className="flex gap-2">
                         <Select 
                           value={selectedInquiry.status} 
@@ -352,10 +357,10 @@ export default function AdminInquiriesPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">대기중</SelectItem>
-                            <SelectItem value="in_progress">처리중</SelectItem>
-                            <SelectItem value="resolved">해결됨</SelectItem>
-                            <SelectItem value="closed">종료됨</SelectItem>
+                            <SelectItem value="pending">{t('adminInquiries.status.pending')}</SelectItem>
+                            <SelectItem value="in_progress">{t('adminInquiries.status.inProgress')}</SelectItem>
+                            <SelectItem value="resolved">{t('adminInquiries.status.resolved')}</SelectItem>
+                            <SelectItem value="closed">{t('adminInquiries.status.closed')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -364,15 +369,15 @@ export default function AdminInquiriesPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">제목</h4>
+                        <h4 className="font-semibold text-gray-800 mb-2">{t('adminInquiries.subject')}</h4>
                         <p className="text-gray-700">{selectedInquiry.subject}</p>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">내용</h4>
+                        <h4 className="font-semibold text-gray-800 mb-2">{t('adminInquiries.content')}</h4>
                         <p className="text-gray-700 whitespace-pre-wrap">{selectedInquiry.content}</p>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">작성자</h4>
+                        <h4 className="font-semibold text-gray-800 mb-2">{t('adminInquiries.author')}</h4>
                         <p className="text-gray-700">{selectedInquiry.users.name} ({selectedInquiry.users.email})</p>
                       </div>
                     </div>
@@ -382,7 +387,7 @@ export default function AdminInquiriesPage() {
                 {/* 답변 목록 */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>답변 목록</CardTitle>
+                    <CardTitle>{t('adminInquiries.responseList')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -390,7 +395,7 @@ export default function AdminInquiriesPage() {
                         <div key={response.id} className="border-l-4 border-brand-500 pl-4">
                           <div className="flex items-center gap-2 mb-2">
                             <Badge variant="outline">
-                              {response.responder_type === 'admin' ? '관리자' : '사용자'}
+                              {response.responder_type === 'admin' ? t('adminInquiries.admin') : t('adminInquiries.user')}
                             </Badge>
                             <span className="text-sm text-gray-500">
                               {formatDate(response.created_at)}
@@ -400,7 +405,7 @@ export default function AdminInquiriesPage() {
                         </div>
                       ))}
                       {responses.length === 0 && (
-                        <p className="text-gray-500 text-center py-4">아직 답변이 없습니다.</p>
+                        <p className="text-gray-500 text-center py-4">{t('adminInquiries.noResponses')}</p>
                       )}
                     </div>
                   </CardContent>
@@ -409,12 +414,12 @@ export default function AdminInquiriesPage() {
                 {/* 답변 작성 */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>답변 작성</CardTitle>
+                    <CardTitle>{t('adminInquiries.writeResponse')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <Textarea
-                        placeholder="답변을 입력하세요..."
+                        placeholder={t('adminInquiries.responsePlaceholder')}
                         value={responseText}
                         onChange={(e) => setResponseText(e.target.value)}
                         rows={4}
@@ -427,12 +432,12 @@ export default function AdminInquiriesPage() {
                         {isSubmittingResponse ? (
                           <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            답변 제출 중...
+                            {t('adminInquiries.submittingResponse')}
                           </>
                         ) : (
                           <>
                             <Send className="w-4 h-4 mr-2" />
-                            답변 제출
+                            {t('adminInquiries.submitResponse')}
                           </>
                         )}
                       </Button>
@@ -445,8 +450,8 @@ export default function AdminInquiriesPage() {
                 <CardContent className="pt-6">
                   <div className="text-center py-8">
                     <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">문의를 선택하세요</h3>
-                    <p className="text-gray-600">왼쪽에서 문의를 선택하면 상세 내용과 답변을 확인할 수 있습니다.</p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('adminInquiries.selectInquiry')}</h3>
+                    <p className="text-gray-600">{t('adminInquiries.selectInquiryDescription')}</p>
                   </div>
                 </CardContent>
               </Card>

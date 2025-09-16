@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
+import { useLanguage } from '@/context/LanguageContext'
 
 function ResetPasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -56,12 +58,12 @@ function ResetPasswordForm() {
 
     try {
       if (password !== confirmPassword) {
-        alert('비밀번호가 일치하지 않습니다.')
+        alert(t('resetPassword.passwordMismatch'))
         return
       }
 
       if (!isPasswordValid) {
-        alert('비밀번호 요구사항을 모두 충족해주세요.')
+        alert(t('resetPassword.passwordRequirements'))
         return
       }
 
@@ -72,7 +74,7 @@ function ResetPasswordForm() {
       })
 
       if (error) {
-        throw new Error(error.message || '비밀번호 재설정에 실패했습니다.')
+        throw new Error(error.message || t('resetPassword.resetFailed'))
       }
 
       setIsSuccess(true)
@@ -83,7 +85,7 @@ function ResetPasswordForm() {
       }, 2000)
     } catch (error) {
       console.error('비밀번호 재설정 오류:', error)
-      alert(error instanceof Error ? error.message : '비밀번호 재설정 중 오류가 발생했습니다.')
+      alert(error instanceof Error ? error.message : t('resetPassword.resetError'))
     } finally {
       setIsLoading(false)
     }
@@ -99,11 +101,10 @@ function ResetPasswordForm() {
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                비밀번호가 변경되었습니다
+                {t('resetPassword.passwordChanged')}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                새로운 비밀번호로 로그인하실 수 있습니다.<br />
-                잠시 후 로그인 페이지로 이동합니다...
+                {t('resetPassword.loginWithNewPassword')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -111,7 +112,7 @@ function ResetPasswordForm() {
                 onClick={() => router.push('/sign-in')}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white"
               >
-                로그인하기
+{t('resetPassword.login')}
               </Button>
             </CardContent>
           </Card>
@@ -126,24 +127,24 @@ function ResetPasswordForm() {
         <Card className="w-full max-w-md bg-white border shadow-lg">
           <CardHeader className="text-center space-y-4 pb-6">
             <CardTitle className="text-2xl font-semibold text-slate-900">
-              새 비밀번호 설정
+              {t('resetPassword.setNewPassword')}
             </CardTitle>
             <CardDescription className="text-slate-600">
-              새로운 비밀번호를 입력해주세요.
+              {t('resetPassword.enterNewPassword')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-                  새 비밀번호
+                  {t('resetPassword.newPassword')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="새 비밀번호를 입력하세요"
+                    placeholder={t('resetPassword.newPasswordPlaceholder')}
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value)
@@ -168,19 +169,19 @@ function ResetPasswordForm() {
                   <div className="space-y-1 text-xs">
                     <div className={`flex items-center gap-2 ${passwordChecks.length ? 'text-green-600' : 'text-red-500'}`}>
                       <div className={`w-2 h-2 rounded-full ${passwordChecks.length ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      8자 이상
+{t('resetPassword.minLength')}
                     </div>
                     <div className={`flex items-center gap-2 ${passwordChecks.hasNumber ? 'text-green-600' : 'text-red-500'}`}>
                       <div className={`w-2 h-2 rounded-full ${passwordChecks.hasNumber ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      숫자 포함
+{t('resetPassword.hasNumber')}
                     </div>
                     <div className={`flex items-center gap-2 ${passwordChecks.hasSpecial ? 'text-green-600' : 'text-red-500'}`}>
                       <div className={`w-2 h-2 rounded-full ${passwordChecks.hasSpecial ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      특수문자 포함
+{t('resetPassword.hasSpecial')}
                     </div>
                     <div className={`flex items-center gap-2 ${passwordChecks.noRepeated ? 'text-green-600' : 'text-red-500'}`}>
                       <div className={`w-2 h-2 rounded-full ${passwordChecks.noRepeated ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      연속된 문자 없음
+{t('resetPassword.noRepeated')}
                     </div>
                   </div>
                 )}
@@ -188,14 +189,14 @@ function ResetPasswordForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
-                  비밀번호 확인
+                  {t('resetPassword.confirmPassword')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="비밀번호를 다시 입력하세요"
+                    placeholder={t('resetPassword.confirmPasswordPlaceholder')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className={`pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
@@ -212,7 +213,7 @@ function ResetPasswordForm() {
                   </button>
                 </div>
                 {confirmPassword && password !== confirmPassword && (
-                  <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다</p>
+                  <p className="text-xs text-red-500">{t('resetPassword.passwordMismatch')}</p>
                 )}
               </div>
 
@@ -224,10 +225,10 @@ function ResetPasswordForm() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    변경 중...
+                    {t('resetPassword.resetting')}
                   </div>
                 ) : (
-                  '비밀번호 변경하기'
+                  t('resetPassword.resetPassword')
                 )}
               </Button>
             </form>
@@ -246,7 +247,7 @@ export default function ResetPasswordPage() {
           <Card className="w-full max-w-md bg-white border shadow-lg">
             <CardHeader className="text-center space-y-4 pb-6">
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                로딩 중...
+                {t('buttons.loading')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
