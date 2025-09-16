@@ -55,7 +55,16 @@ export const translations = {
       alreadyHaveAccount: '이미 계정이 있으신가요?',
       signUpSuccess: '회원가입이 완료되었습니다! 바로 로그인하실 수 있습니다.',
       signUpFailed: '회원가입에 실패했습니다.',
-      signUpError: '회원가입 중 오류가 발생했습니다.'
+      signUpError: '회원가입 중 오류가 발생했습니다.',
+      signInDescription: '계정에 로그인하고 한국 문화 교류를 시작하세요!',
+      emailOrPhone: '이메일 또는 전화번호',
+      emailOrPhonePlaceholder: 'example@email.com 또는 +82-10-1234-5678',
+      signingIn: '로그인 중...',
+      noAccount: '계정이 없으신가요?',
+      signInFailed: '로그인에 실패했습니다.',
+      sessionUpdateFailed: '세션 업데이트에 실패했습니다.',
+      signInError: '로그인 중 오류가 발생했습니다.',
+      credentialsCheckMessage: '입력하신 이메일 또는 비밀번호를 다시 확인해주세요.\n\n• 이메일 주소가 정확한지 확인\n• 비밀번호가 올바른지 확인\n• 대소문자 구분 확인'
     },
     
     // 메뉴
@@ -1227,7 +1236,16 @@ export const translations = {
       alreadyHaveAccount: '¿Ya tienes una cuenta?',
       signUpSuccess: '¡Registro completado! Ya puedes iniciar sesión.',
       signUpFailed: 'El registro falló.',
-      signUpError: 'Ocurrió un error durante el registro.'
+      signUpError: 'Ocurrió un error durante el registro.',
+      signInDescription: '¡Inicia sesión en tu cuenta y comienza el intercambio cultural coreano!',
+      emailOrPhone: 'Email o teléfono',
+      emailOrPhonePlaceholder: 'example@email.com o +82-10-1234-5678',
+      signingIn: 'Iniciando sesión...',
+      noAccount: '¿No tienes una cuenta?',
+      signInFailed: 'El inicio de sesión falló.',
+      sessionUpdateFailed: 'Falló la actualización de la sesión.',
+      signInError: 'Ocurrió un error durante el inicio de sesión.',
+      credentialsCheckMessage: 'Por favor, verifica nuevamente tu email o contraseña.\n\n• Verifica que la dirección de email sea correcta\n• Verifica que la contraseña sea correcta\n• Verifica la distinción entre mayúsculas y minúsculas'
     },
     
     // 메뉴
