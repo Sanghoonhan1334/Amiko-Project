@@ -99,7 +99,7 @@ export default function Footer() {
 
           {/* 소셜 미디어 아이콘 */}
           <div className="flex items-center gap-6">
-            <h5 className="text-lg font-bold text-gray-800 mr-4 font-['Inter']">AMIKO 공식 SNS</h5>
+            <h5 className="text-lg font-bold text-gray-800 mr-4 font-['Inter']">{t('footer.officialSns')}</h5>
             <div className="flex items-center gap-4">
               {/* TikTok */}
               <Button
