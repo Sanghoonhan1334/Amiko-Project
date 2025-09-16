@@ -1579,6 +1579,26 @@ export const translations = {
       submitInquiry: 'Enviar consulta'
     },
     
+    // Partnership 페이지 관련
+    partnership: {
+      submitError: '제휴 문의 제출 중 오류가 발생했습니다.',
+      networkError: '네트워크 오류가 발생했습니다. 다시 시도해주세요.',
+      partnershipInquiry: '제휴 문의',
+      companyInfo: '회사 정보',
+      companyName: '회사명',
+      companyNamePlaceholder: '회사명을 입력해주세요'
+    },
+    
+    // Partnership 페이지 관련 (스페인어)
+    partnership: {
+      submitError: 'Ocurrió un error al enviar la consulta de asociación.',
+      networkError: 'Ocurrió un error de red. Por favor, inténtalo de nuevo.',
+      partnershipInquiry: 'Consulta de asociación',
+      companyInfo: 'Información de la empresa',
+      companyName: 'Nombre de la empresa',
+      companyNamePlaceholder: 'Ingresa el nombre de la empresa'
+    },
+    
     // FAQ 페이지 관련
     faq: {
       title: 'Preguntas Frecuentes',

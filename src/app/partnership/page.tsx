@@ -133,11 +133,11 @@ export default function PartnershipPage() {
       } else {
         const errorData = await response.json()
         setSubmitStatus('error')
-        setErrorMessage(errorData.message || '제휴 문의 제출 중 오류가 발생했습니다.')
+        setErrorMessage(errorData.message || t('partnership.submitError'))
       }
     } catch (error) {
       setSubmitStatus('error')
-      setErrorMessage('네트워크 오류가 발생했습니다. 다시 시도해주세요.')
+      setErrorMessage(t('partnership.networkError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -224,7 +224,7 @@ export default function PartnershipPage() {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-center text-gray-900 mb-4">
               <Handshake className="h-6 w-6 inline mr-2 text-blue-500" />
-              제휴 문의
+              {t('partnership.partnershipInquiry')}
             </DialogTitle>
           </DialogHeader>
           
@@ -232,17 +232,17 @@ export default function PartnershipPage() {
             {/* 회사 정보 */}
             <div className="space-y-3">
               <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
-                회사 정보
+                {t('partnership.companyInfo')}
               </h3>
               <div className="grid md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    회사명 *
+                    {t('partnership.companyName')} *
                   </label>
                   <Input
                     value={formData.companyName}
                     onChange={(e) => handleInputChange('companyName', e.target.value)}
-                    placeholder="회사명을 입력해주세요"
+                    placeholder={t('partnership.companyNamePlaceholder')}
                     className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
                     required
                   />
