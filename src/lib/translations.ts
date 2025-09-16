@@ -116,6 +116,57 @@ export const translations = {
       gradePlaceholder: '학년을 선택하세요'
     },
     
+    // FAQ 페이지 관련
+    faq: {
+      title: '자주 묻는 질문',
+      subtitle: 'Amiko 서비스에 대한 궁금한 점들을 모았습니다',
+      totalQuestions: '총 {count}개의 질문',
+      moreQuestions: '더 궁금한 점이 있나요?',
+      moreQuestionsDescription: 'FAQ에서 답을 찾지 못했다면 언제든 문의해주세요',
+      emailInquiry: '이메일 문의',
+      customerService: '고객센터',
+      categories: {
+        lounge: 'ZEP 라운지',
+        meeting: '만남 (영상)',
+        community: '커뮤니티',
+        account: '계정 및 인증'
+      },
+      lounge: {
+        whatDoWeDo: 'ZEP 라운지에서는 무엇을 하나요?',
+        whatDoWeDoAnswer: '한국 문화에 대한 자유로운 대화, 문화 체험, 특별 이벤트 등 다양한 활동을 할 수 있습니다. 매주 토요일 저녁에 운영자와 함께 즐거운 시간을 보냅니다.',
+        pointsAvailable: '포인트도 받을 수 있나요?',
+        pointsAvailableAnswer: '네! 라운지 참여 시 포인트를 받을 수 있으며, 특별 이벤트 참여 시 추가 포인트를 제공합니다. 정기 참여자에게는 특별 혜택도 있습니다.',
+        whenOpen: '언제 열리나요?',
+        whenOpenAnswer: '매주 토요일 저녁 8시(KST)에 정기적으로 열립니다. 특별 이벤트는 별도 공지되며, 원하는 날에 자유롭게 참여할 수 있습니다.',
+        differentLanguages: '언어가 달라도 참여할 수 있나요?',
+        differentLanguagesAnswer: '네! 한국어, 영어, 스페인어, 포르투갈어 등 다양한 언어로 소통할 수 있습니다. 언어 장벽 없이 한국 문화를 즐길 수 있어요.'
+      },
+      meeting: {
+        howToMeet: '한국인 친구와 어떻게 만나나요?',
+        howToMeetAnswer: '앱에서 한국인 친구를 선택하고 15분 무료 화상 만남을 예약할 수 있습니다. 통역 모드를 켜면 언어 장벽 없이 대화할 수 있어요.',
+        translationMode: '통역 모드가 무엇인가요?',
+        translationModeAnswer: '통역 모드를 켜면 실시간으로 한국어를 번역해드립니다. 끄면 보너스 포인트를 받을 수 있어요. 본인 인증이 완료되어야 이용 가능합니다.',
+        howToUseCoupons: '쿠폰은 어떻게 사용하나요?',
+        howToUseCouponsAnswer: '15분 만남 쿠폰을 구매하여 사용할 수 있습니다. 1장, 2장, 3장 묶음으로 구매 가능하며, 포인트로도 구매할 수 있어요.'
+      },
+      community: {
+        howToGetPoints: '포인트는 어떻게 얻나요?',
+        howToGetPointsAnswer: '질문 작성 시 +3점, 답변 작성 시 +3점을 받을 수 있습니다. 한국인은 더 많은 포인트를 받으며, 채택이나 좋아요를 받으면 추가 포인트를 받을 수 있어요.',
+        dailyPointLimit: '일일 포인트 상한이 있나요?',
+        dailyPointLimitAnswer: '네, 스팸 방지를 위해 일일 포인트 획득 상한이 있습니다. 한국인과 라틴 사용자에게는 다른 상한이 적용됩니다.',
+        communityRules: '커뮤니티 규칙이 있나요?',
+        communityRulesAnswer: '친근하고 존중하는 분위기에서 활동해주세요. 부적절한 내용이나 스팸은 제재를 받을 수 있으며, 쿨타임이 적용됩니다.'
+      },
+      account: {
+        whyVerificationNeeded: '본인 인증이 왜 필요한가요?',
+        whyVerificationNeededAnswer: '안전하고 신뢰할 수 있는 서비스를 위해 필요합니다. 인증 완료 시 영상 매칭, 쿠폰 사용, 커뮤니티 활동이 모두 가능해집니다.',
+        verificationMethods: '인증 방법은 어떤 것이 있나요?',
+        verificationMethodsAnswer: '한국인은 카카오 연동과 SMS 인증, 다른 국가 사용자는 WhatsApp, SMS, 이메일 인증을 선택할 수 있습니다.',
+        verificationFailed: '인증이 안 되면 어떻게 하나요?',
+        verificationFailedAnswer: '인증 코드 123456을 사용하여 테스트할 수 있습니다. 문제가 지속되면 고객센터에 문의해주세요.'
+      }
+    },
+    
     // 메뉴
     profileMenu: '프로필',
     settings: '설정',
@@ -1344,6 +1395,57 @@ export const translations = {
       majorPlaceholder: 'Departamento de Educación en Coreano',
       grade: 'Año',
       gradePlaceholder: 'Selecciona tu año'
+    },
+    
+    // FAQ 페이지 관련
+    faq: {
+      title: 'Preguntas Frecuentes',
+      subtitle: 'Hemos recopilado preguntas curiosas sobre el servicio Amiko',
+      totalQuestions: 'Total de {count} preguntas',
+      moreQuestions: '¿Tienes más preguntas?',
+      moreQuestionsDescription: 'Si no encuentras la respuesta en las FAQ, contáctanos en cualquier momento',
+      emailInquiry: 'Consulta por email',
+      customerService: 'Servicio al cliente',
+      categories: {
+        lounge: 'Sala ZEP',
+        meeting: 'Encuentros (Video)',
+        community: 'Comunidad',
+        account: 'Cuenta y Verificación'
+      },
+      lounge: {
+        whatDoWeDo: '¿Qué hacemos en la Sala ZEP?',
+        whatDoWeDoAnswer: 'Puedes realizar diversas actividades como conversaciones libres sobre cultura coreana, experiencias culturales, eventos especiales, etc. Pasamos tiempo agradable con los operadores todos los sábados por la noche.',
+        pointsAvailable: '¿También puedo recibir puntos?',
+        pointsAvailableAnswer: '¡Sí! Puedes recibir puntos al participar en la sala, y se proporcionan puntos adicionales al participar en eventos especiales. También hay beneficios especiales para participantes regulares.',
+        whenOpen: '¿Cuándo está abierta?',
+        whenOpenAnswer: 'Se abre regularmente todos los sábados por la noche a las 8 PM (KST). Los eventos especiales se anuncian por separado y puedes participar libremente en el día que desees.',
+        differentLanguages: '¿Puedo participar aunque el idioma sea diferente?',
+        differentLanguagesAnswer: '¡Sí! Puedes comunicarte en varios idiomas como coreano, inglés, español, portugués, etc. Puedes disfrutar de la cultura coreana sin barreras idiomáticas.'
+      },
+      meeting: {
+        howToMeet: '¿Cómo puedo conocer amigos coreanos?',
+        howToMeetAnswer: 'Puedes seleccionar amigos coreanos en la app y reservar un encuentro de video gratuito de 15 minutos. Si activas el modo de traducción, puedes conversar sin barreras idiomáticas.',
+        translationMode: '¿Qué es el modo de traducción?',
+        translationModeAnswer: 'Cuando activas el modo de traducción, traduce el coreano en tiempo real. Si lo desactivas, puedes recibir puntos de bonificación. Debe completarse la verificación de identidad para usar esta función.',
+        howToUseCoupons: '¿Cómo uso los cupones?',
+        howToUseCouponsAnswer: 'Puedes comprar y usar cupones de encuentro de 15 minutos. Puedes comprarlos en paquetes de 1, 2 o 3 cupones, y también puedes comprarlos con puntos.'
+      },
+      community: {
+        howToGetPoints: '¿Cómo obtengo puntos?',
+        howToGetPointsAnswer: 'Puedes recibir +3 puntos al escribir preguntas y +3 puntos al escribir respuestas. Los coreanos reciben más puntos, y puedes recibir puntos adicionales cuando recibes adopción o me gusta.',
+        dailyPointLimit: '¿Hay un límite diario de puntos?',
+        dailyPointLimitAnswer: 'Sí, hay un límite diario de obtención de puntos para prevenir spam. Se aplican diferentes límites para usuarios coreanos y latinos.',
+        communityRules: '¿Hay reglas de la comunidad?',
+        communityRulesAnswer: 'Por favor, participa en un ambiente amigable y respetuoso. El contenido inapropiado o spam puede resultar en sanciones, y se aplica un tiempo de espera.'
+      },
+      account: {
+        whyVerificationNeeded: '¿Por qué es necesaria la verificación de identidad?',
+        whyVerificationNeededAnswer: 'Es necesaria para un servicio seguro y confiable. Una vez completada la verificación, puedes usar emparejamiento de video, usar cupones y participar en actividades de la comunidad.',
+        verificationMethods: '¿Qué métodos de verificación hay?',
+        verificationMethodsAnswer: 'Los coreanos pueden elegir vinculación con Kakao y verificación SMS, y los usuarios de otros países pueden elegir verificación por WhatsApp, SMS o email.',
+        verificationFailed: '¿Qué hago si la verificación falla?',
+        verificationFailedAnswer: 'Puedes probar usando el código de verificación 123456. Si el problema persiste, contacta al servicio al cliente.'
+      }
     },
     
     // 메뉴
