@@ -2541,6 +2541,8 @@ export const translations = {
       home: 'Inicio',
       videoCall: 'Videollamada',
       community: 'Comunidad',
+      store: 'Tienda',
+      storeShort: 'Tienda',
       chargingStation: 'Estación de carga',
       chargingStationShort: 'Carga',
       event: 'Eventos',
