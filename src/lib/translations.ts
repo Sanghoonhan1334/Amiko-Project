@@ -1259,7 +1259,9 @@ export const translations = {
       profile: '프로필 정보',
       close: '닫기',
       channelName: '채널명',
-      channelShareTip: '채널명을 상대방과 공유하여 같은 방에 입장할 수 있습니다.'
+      channelShareTip: '채널명을 상대방과 공유하여 같은 방에 입장할 수 있습니다.',
+      noPartnersTitle: '파트너가 없습니다',
+      noPartnersDescription: '현재 등록된 파트너가 없습니다. 곧 새로운 파트너들이 추가될 예정입니다.'
     }
   },
   
@@ -1790,6 +1792,8 @@ export const translations = {
       close: 'Cerrar',
       channelName: 'Nombre del canal',
       channelShareTip: 'Comparte el nombre del canal con tu compañero para entrar a la misma sala.',
+      noPartnersTitle: 'No hay compañeros',
+      noPartnersDescription: 'Actualmente no hay compañeros registrados. Pronto se agregarán nuevos compañeros.',
       participants: 'Participantes',
       me: 'Yo (Local)',
       opponent: 'Oponente',

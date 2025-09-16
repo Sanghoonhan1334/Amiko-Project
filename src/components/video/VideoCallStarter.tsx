@@ -213,8 +213,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">파트너가 없습니다</h3>
-                <p className="text-gray-500">현재 등록된 파트너가 없습니다. 곧 새로운 파트너들이 추가될 예정입니다.</p>
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">{t('videoCall.noPartnersTitle')}</h3>
+                <p className="text-gray-500">{t('videoCall.noPartnersDescription')}</p>
               </div>
             )}
           </div>
