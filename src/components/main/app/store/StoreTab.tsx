@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,8 +16,14 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 
 export default function StoreTab() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const { user } = useAuth()
+  
+  // 디버깅: 번역 키 확인
+  console.log('StoreTab - Current language:', language)
+  console.log('StoreTab - storeTab.title:', t('storeTab.title'))
+  console.log('StoreTab - storeTab.pointStatus.title:', t('storeTab.pointStatus.title'))
+  console.log('StoreTab - storeTab.points:', t('storeTab.points'))
   
   // 사용자 포인트 상태
   const [availablePoints, setAvailablePoints] = useState(0) // 사용 가능한 포인트
@@ -58,7 +64,7 @@ export default function StoreTab() {
   }, [user?.id])
 
   // 상점 아이템들
-  const storeItems = [
+  const storeItems = useMemo(() => [
     {
       id: 'chat_extension',
       name: t('storeTab.items.chatExtension.name'),
@@ -95,7 +101,7 @@ export default function StoreTab() {
       available: false,
       category: 'event'
     }
-  ]
+  ], [t])
 
   // 채팅 연장권 구매 함수
   const handlePurchaseChatExtension = () => {
