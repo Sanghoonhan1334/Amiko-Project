@@ -390,6 +390,18 @@ export const translations = {
         popular: '인기순',
         comments: '댓글순'
       },
+      // 게시글 상세
+      postDetail: {
+        loadingPost: '게시글을 불러오는 중...',
+        views: '조회',
+        comments: '댓글',
+        reply: '답글',
+        replyPlaceholder: '답글을 입력하세요...',
+        writeReply: '답글 작성',
+        noComments: '아직 댓글이 없습니다.',
+        writeComment: '댓글 작성',
+        commentPlaceholder: '댓글을 입력하세요...'
+      },
       categories: {
         all: '전체',
         beauty: '뷰티',
@@ -1508,6 +1520,18 @@ export const translations = {
         latest: 'Más recientes',
         popular: 'Más populares',
         comments: 'Más comentados'
+      },
+      // 게시글 상세
+      postDetail: {
+        loadingPost: 'Cargando publicación...',
+        views: 'Vistas',
+        comments: 'Comentarios',
+        reply: 'Responder',
+        replyPlaceholder: 'Escribe tu respuesta...',
+        writeReply: 'Escribir respuesta',
+        noComments: 'Aún no hay comentarios.',
+        writeComment: 'Escribir comentario',
+        commentPlaceholder: 'Escribe tu comentario...'
       },
       categories: {
         all: 'Todos',

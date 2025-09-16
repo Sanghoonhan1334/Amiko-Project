@@ -494,7 +494,7 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">게시글을 불러오는 중...</p>
+          <p className="mt-2 text-gray-600">{t('postDetail.loadingPost')}</p>
         </div>
       </div>
     )
@@ -532,7 +532,7 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
               </div>
               <div className="flex items-center gap-1">
                 <MessageSquare className="w-4 h-4" />
-                조회 {postData.view_count}
+{t('postDetail.views')} {postData.view_count}
               </div>
             </div>
           </div>
@@ -581,7 +581,7 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
       {/* 댓글 목록 */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">
-          댓글 ({postData.comment_count})
+{t('postDetail.comments')} ({postData.comment_count})
         </h3>
         <div className="space-y-4">
           {comments.map((comment) => (
@@ -613,7 +613,7 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
                       size="sm"
                       onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
                     >
-                      답글
+                      {t('postDetail.reply')}
                     </Button>
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <ThumbsUp className="w-3 h-3" />
@@ -627,7 +627,7 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
                   {replyTo === comment.id && (
                     <div className="mt-3 pl-4 border-l-2 border-gray-200">
                       <Textarea
-                        placeholder="답글을 입력하세요..."
+                        placeholder={t('postDetail.replyPlaceholder')}
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
                         rows={2}
@@ -639,14 +639,14 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
                           onClick={() => handleReplySubmit(comment.id)}
                           disabled={commentLoading}
                         >
-                          답글 작성
+{t('postDetail.writeReply')}
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => setReplyTo(null)}
                         >
-                          취소
+{t('buttons.cancel')}
                         </Button>
                       </div>
                     </div>
@@ -689,7 +689,7 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
           
           {comments.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              아직 댓글이 없습니다.
+{t('postDetail.noComments')}
             </div>
           )}
         </div>
@@ -697,10 +697,10 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
 
       {/* 댓글 작성 */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">댓글 작성</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('postDetail.writeComment')}</h3>
         <div className="space-y-4">
           <Textarea
-            placeholder="댓글을 입력하세요..."
+            placeholder={t('postDetail.commentPlaceholder')}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             rows={3}
@@ -711,7 +711,7 @@ export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps)
               disabled={commentLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {commentLoading ? '작성 중...' : '댓글 작성'}
+{commentLoading ? t('buttons.writing') : t('postDetail.writeComment')}
             </Button>
           </div>
         </div>
