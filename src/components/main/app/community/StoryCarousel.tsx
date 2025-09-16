@@ -671,13 +671,13 @@ export default function StoryCarousel() {
             
             <DialogContent className="max-w-md bg-white border-2 border-gray-200 shadow-xl">
               <DialogHeader className="pb-4 border-b border-gray-200">
-                <DialogTitle className="text-xl font-semibold text-gray-900">새 스토리 작성</DialogTitle>
+                <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newStory')}</DialogTitle>
               </DialogHeader>
               
               <div className="space-y-4" onPaste={handlePaste}>
                 <div>
                   <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                    사진 업로드
+                    {t('communityTab.photoUpload')}
                   </Label>
                   
                   {/* 이미지 미리보기 */}
@@ -768,7 +768,7 @@ export default function StoryCarousel() {
                 
                 <div>
                   <Label htmlFor="text" className="text-sm font-medium text-gray-700 mb-2 block">
-                    스토리 텍스트
+                    {t('communityTab.storyText')}
                   </Label>
                   <Textarea
                     id="text"
@@ -789,13 +789,13 @@ export default function StoryCarousel() {
                         onCheckedChange={(checked) => setStoryForm({ ...storyForm, isPublic: checked })}
                       />
                       <Label htmlFor="isPublic" className="text-sm font-medium text-gray-800">
-                        {storyForm.isPublic ? '🌍 공개 스토리' : '🔒 비공개 스토리'}
+                        {storyForm.isPublic ? `🌍 ${t('communityTab.publicStory')}` : `🔒 ${t('communityTab.privateStory')}`}
                       </Label>
                     </div>
                     
                     <div className="flex items-center gap-2 text-xs text-gray-500 bg-white px-2 py-1 rounded border">
                       <Clock className="w-3 h-3" />
-                      24시간 후 자동 삭제
+                      {t('communityTab.autoDelete')}
                     </div>
                   </div>
                   
@@ -810,14 +810,14 @@ export default function StoryCarousel() {
                 
                 <div className="flex gap-3 justify-end pt-2">
                   <Button variant="outline" onClick={handleModalClose}>
-                    취소
+                    {t('buttons.cancel')}
                   </Button>
                   <Button 
                     onClick={handleStoryUpload}
                     disabled={isUploading || !storyForm.imageUrl.trim() || !storyForm.text.trim()}
                     className="bg-brand-500 hover:bg-brand-600"
                   >
-                    {isUploading ? '업로드 중...' : t('communityTab.uploadStory')}
+                    {isUploading ? t('buttons.uploading') : t('communityTab.uploadStory')}
                   </Button>
                 </div>
               </div>
@@ -967,7 +967,7 @@ export default function StoryCarousel() {
                             ) : (
                               <Heart className="w-4 h-4" />
                             )}
-                            <span>좋아요</span>
+                            <span>{t('communityTab.like')}</span>
                           </button>
                           
                           <button
@@ -978,7 +978,7 @@ export default function StoryCarousel() {
                             className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
                           >
                             <MessageSquare className="w-4 h-4" />
-                            <span>댓글</span>
+                            <span>{t('communityTab.comment')}</span>
                           </button>
                         </div>
                       </div>
@@ -989,7 +989,7 @@ export default function StoryCarousel() {
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
-                <p>스토리가 없습니다</p>
+                <p>{t('communityTab.noStories')}</p>
               </div>
             )}
           </div>
@@ -1019,7 +1019,7 @@ export default function StoryCarousel() {
       <Dialog open={!!showCommentModal} onOpenChange={() => setShowCommentModal(null)}>
         <DialogContent className="max-w-md bg-white border border-gray-200 shadow-xl" style={{ backgroundColor: 'white', opacity: 1 }}>
           <DialogHeader>
-            <DialogTitle>댓글</DialogTitle>
+            <DialogTitle>{t('communityTab.comment')}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -1062,7 +1062,7 @@ export default function StoryCarousel() {
               
               {showCommentModal && (!storyComments[showCommentModal] || storyComments[showCommentModal].length === 0) && (
                 <div className="text-center py-8 text-gray-500">
-                  아직 댓글이 없습니다.
+                  {t('communityTab.noComments')}
                 </div>
               )}
             </div>
@@ -1070,7 +1070,7 @@ export default function StoryCarousel() {
             {/* 댓글 작성 */}
             <div className="flex gap-2">
               <Input
-                placeholder="댓글을 입력하세요..."
+                placeholder={t('communityTab.writeComment')}
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 onKeyPress={(e) => {
