@@ -122,6 +122,12 @@ export default function StoreTab() {
 
   return (
     <div className="space-y-6">
+      {/* 제목 섹션 */}
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('storeTab.title')}</h2>
+        <p className="text-gray-600">{t('storeTab.subtitle')}</p>
+      </div>
+
       {/* 포인트 현황 */}
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
         <CardHeader>
