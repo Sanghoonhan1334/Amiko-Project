@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { translations } from '@/lib/translations'
 
 export default function StoreTab() {
   const { t, language } = useLanguage()
@@ -24,6 +25,11 @@ export default function StoreTab() {
   console.log('StoreTab - storeTab.title:', t('storeTab.title'))
   console.log('StoreTab - storeTab.pointStatus.title:', t('storeTab.pointStatus.title'))
   console.log('StoreTab - storeTab.points:', t('storeTab.points'))
+  console.log('StoreTab - storeTab.items.chatExtension.name:', t('storeTab.items.chatExtension.name'))
+  console.log('StoreTab - storeTab.buy:', t('storeTab.buy'))
+  
+  // 번역 파일 구조 확인
+  console.log('StoreTab - translations structure:', translations[language])
   
   // 사용자 포인트 상태
   const [availablePoints, setAvailablePoints] = useState(0) // 사용 가능한 포인트

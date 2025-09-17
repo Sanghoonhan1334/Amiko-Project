@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings } from 'lucide-react'
+import { LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings, Clock } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
@@ -30,6 +30,35 @@ export default function Header() {
   
   // 포인트 상태 관리
   const [userPoints, setUserPoints] = useState(0)
+  
+  // 시계 상태 관리
+  const [koreanTime, setKoreanTime] = useState('')
+  const [localTime, setLocalTime] = useState('')
+  const [showTimeDetails, setShowTimeDetails] = useState(false)
+
+  // 시계 업데이트 함수
+  const updateClock = () => {
+    const now = new Date()
+    
+    // 한국 시간
+    const koreanTimeStr = now.toLocaleString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
+    
+    // 멕시코 시간
+    const mexicoTimeStr = now.toLocaleString('ko-KR', {
+      timeZone: 'America/Mexico_City',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
+    
+    setKoreanTime(koreanTimeStr)
+    setLocalTime(mexicoTimeStr)
+  }
 
   // 포인트 로딩 함수
   const loadUserPoints = async () => {
@@ -67,6 +96,29 @@ export default function Header() {
       loadUserPoints()
     }
   }, [user?.id])
+
+  // 시계 초기화 및 주기적 업데이트
+  useEffect(() => {
+    updateClock() // 즉시 업데이트
+    const timer = setInterval(updateClock, 1000) // 1초마다 업데이트
+    
+    return () => clearInterval(timer)
+  }, [])
+
+  // 시계 드롭다운 외부 클릭으로 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showTimeDetails) {
+        const target = event.target as Element
+        if (!target.closest('.time-dropdown')) {
+          setShowTimeDetails(false)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showTimeDetails])
 
   // 포인트 업데이트 이벤트 리스너
   useEffect(() => {
@@ -183,37 +235,137 @@ export default function Header() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-36">
-            {/* 좌측: 언어 전환 버튼 */}
-            <div className="flex items-center">
-              {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
-              {isLandingPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLanguage}
-                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
-                >
-                  <span className="text-xs md:text-sm font-medium">
-                    {language === 'ko' ? t('korean') : t('spanish')}
-                  </span>
-                </Button>
-              )}
+            {/* 좌측: 시계 및 언어 전환 버튼 */}
+            <div className="flex flex-col items-start gap-2">
+              {/* 시계 표시 - 번역 버튼 위에 */}
+              <div 
+                className="relative cursor-pointer group time-dropdown"
+                onClick={() => setShowTimeDetails(!showTimeDetails)}
+              >
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+                  <Clock className="w-3 h-3 text-blue-600" />
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <span className="text-blue-700">🇰🇷 {koreanTime}</span>
+                    <span className="text-gray-400">|</span>
+                    <span className="text-indigo-700">🇲🇽 {localTime}</span>
+                  </div>
+                </div>
+                
+                {/* 상세 시간 정보 드롭다운 */}
+                {showTimeDetails && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-gray-800">🌏 세계 시간</span>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowTimeDetails(false)
+                          }}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                          <span className="text-sm font-medium text-red-800">🇰🇷 한국</span>
+                          <span className="text-sm font-mono text-red-700">
+                            {new Date().toLocaleString('ko-KR', { 
+                              timeZone: 'Asia/Seoul',
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              weekday: 'short'
+                            })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                          <span className="text-sm font-medium text-blue-800">🇲🇽 멕시코</span>
+                          <span className="text-sm font-mono text-blue-700">
+                            {new Date().toLocaleString('ko-KR', {
+                              timeZone: 'America/Mexico_City',
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              weekday: 'short'
+                            })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                          <span className="text-sm font-medium text-green-800">🇵🇪 페루</span>
+                          <span className="text-sm font-mono text-green-700">
+                            {new Date().toLocaleString('ko-KR', { 
+                              timeZone: 'America/Lima',
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              weekday: 'short'
+                            })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
+                          <span className="text-sm font-medium text-purple-800">🇨🇴 콜롬비아</span>
+                          <span className="text-sm font-mono text-purple-700">
+                            {new Date().toLocaleString('ko-KR', { 
+                              timeZone: 'America/Bogota',
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              weekday: 'short'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
               
-              {/* 언어 전환 버튼 - 랜딩페이지가 아닐 때만 표시 */}
-              {!isLandingPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLanguage}
-                  className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                  title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
-                >
-                  <span className="text-xs md:text-sm font-medium">
-                    {language === 'ko' ? t('korean') : t('spanish')}
-                  </span>
-                </Button>
-              )}
+              {/* 언어 전환 버튼들 */}
+              <div className="flex items-center">
+                {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
+                {isLandingPage && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleLanguage}
+                    className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                    title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
+                  >
+                    <span className="text-xs md:text-sm font-medium">
+                      {language === 'ko' ? t('korean') : t('spanish')}
+                    </span>
+                  </Button>
+                )}
+                
+                {/* 언어 전환 버튼 - 랜딩페이지가 아닐 때만 표시 */}
+                {!isLandingPage && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleLanguage}
+                    className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                    title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
+                  >
+                    <span className="text-xs md:text-sm font-medium">
+                      {language === 'ko' ? t('korean') : t('spanish')}
+                    </span>
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
@@ -465,7 +617,7 @@ export default function Header() {
                 </div>
               )}
 
-              {/* 모바일용 알림 버튼 - 모바일에서만 표시 */}
+              {/* 모바일용 알림 - 모바일에서만 표시 */}
               {isMainPage && (
                 <div className="md:hidden">
                   <NotificationBell />

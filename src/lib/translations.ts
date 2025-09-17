@@ -1678,12 +1678,6 @@ export const translations = {
       community: '커뮤니티'
     },
     
-    // HomeTab 컴포넌트 관련 (스페인어)
-    homeTab: {
-      openingOctober: 'Apertura en octubre',
-      community: 'Comunidad'
-    },
-    
     // About 페이지 관련
     about: {
       title: '회사소개',
@@ -3072,6 +3066,12 @@ export const translations = {
         reviews: 'Sí, puedes dejar reseñas y calificaciones sobre el mentor y la calidad de la clase después de la clase. Esto ayuda a otros estudiantes a referenciar y mejora la calidad del servicio.',
         refund: 'Es posible un reembolso del 100% hasta 24 horas antes del inicio de la clase. Después del inicio de la clase, se puede considerar un reembolso parcial según las circunstancias. Para más detalles, contacta el servicio al cliente.'
       }
+    },
+
+    // HomeTab 컴포넌트 관련
+    homeTab: {
+      openingOctober: 'Apertura en octubre',
+      community: 'Comunidad'
     }
   }
 }
