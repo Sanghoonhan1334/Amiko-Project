@@ -11,7 +11,10 @@ import {
   Globe,
   Crown,
   Zap,
-  Gift
+  Gift,
+  ShoppingBag,
+  Clock,
+  Lock
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -19,6 +22,11 @@ export default function ChargingTab() {
   const { t } = useLanguage()
   const [, setSelectedCoupons] = useState(1)
   const [, setSelectedVipPlan] = useState('')
+  
+  // 포인트 현황 상태
+  const [availablePoints, setAvailablePoints] = useState(0)
+  const [totalPoints, setTotalPoints] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   const couponPackages = [
     { 
@@ -79,6 +87,28 @@ export default function ChargingTab() {
       icon: Star,
       color: 'bg-gold-100 text-gold-700 border-gold-300',
       discount: t('chargingTab.vip.monthlySavings')
+    }
+  ]
+
+  // 상점 아이템들
+  const storeItems = [
+    {
+      id: 'chat_extension',
+      name: t('storeTab.items.chatExtension.name'),
+      description: t('storeTab.items.chatExtension.description'),
+      price: 100,
+      icon: '💬',
+      available: true,
+      category: 'utility'
+    },
+    {
+      id: 'special_event_ticket',
+      name: t('storeTab.items.specialEventTicket.name'),
+      description: t('storeTab.items.specialEventTicket.description'),
+      price: 2000,
+      icon: '🎫',
+      available: false,
+      category: 'event'
     }
   ]
 
@@ -175,8 +205,122 @@ export default function ChargingTab() {
     }
   }
 
+  // 상점 아이템 구매 함수
+  const handleStoreItemPurchase = (item: any) => {
+    if (availablePoints >= item.price) {
+      setAvailablePoints(availablePoints - item.price)
+      alert(t('storeTab.messages.purchaseSuccess'))
+    } else {
+      alert(t('storeTab.messages.insufficientPoints'))
+    }
+  }
+
   return (
     <div className="space-y-6">
+      {/* 포인트 현황 */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Star className="w-6 h-6" />
+            {t('storeTab.pointStatus.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-2xl font-bold text-blue-600">
+                {loading ? '...' : availablePoints}
+              </div>
+              <div className="text-sm text-gray-600">{t('storeTab.pointStatus.availablePoints')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.availablePointsDesc')}</div>
+            </div>
+            <div className="text-center p-4 bg-white rounded-lg border border-purple-200">
+              <div className="text-2xl font-bold text-purple-600">
+                {loading ? '...' : totalPoints}
+              </div>
+              <div className="text-sm text-gray-600">{t('storeTab.pointStatus.totalPoints')}</div>
+              <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.totalPointsDesc')}</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 포인트 상점 */}
+      <Card className="bg-white shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5 text-green-500" />
+            {t('storeTab.subtitle')}
+          </CardTitle>
+          <CardDescription>
+            {t('storeTab.pointEarning.title')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {storeItems.map((item) => (
+              <Card 
+                key={item.id}
+                className={`cursor-pointer transition-all ${
+                  item.available 
+                    ? 'hover:shadow-md' 
+                    : 'opacity-50 cursor-not-allowed'
+                }`}
+                onClick={() => item.available && handleStoreItemPurchase(item)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-2xl">{item.icon}</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg">{item.name}</h3>
+                      <p className="text-sm text-gray-600">{item.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-green-600">
+                        {item.price}{t('storeTab.points')}
+                      </div>
+                      {!item.available && (
+                        <div className="text-xs text-gray-500">
+                          {t('storeTab.comingSoon')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {item.available && (
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleStoreItemPurchase(item)
+                      }}
+                    >
+                      {t('storeTab.buy')}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {/* 포인트 획득 방법 */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-semibold text-gray-800 mb-3">{t('storeTab.pointEarning.title')}</h4>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Sparkles className="w-4 h-4 text-blue-500" />
+                <span>{t('storeTab.pointEarning.communityActivities')}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Video className="w-4 h-4 text-purple-500" />
+                <span>{t('storeTab.pointEarning.videoCalls')}</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">{t('storeTab.footerMessage')}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* AI 화상 채팅 쿠폰 섹션 */}
       <Card className="bg-white shadow-lg">
         <CardHeader>

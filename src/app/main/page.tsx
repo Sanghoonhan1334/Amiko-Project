@@ -6,7 +6,6 @@ import HomeTab from '@/components/main/app/home/HomeTab'
 import MeetTab from '@/components/main/app/meet/MeetTab'
 import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'
-import StoreTab from '@/components/main/app/store/StoreTab'
 import ChargingTab from '@/components/main/app/charging/ChargingTab'
 import EventTab from '@/components/main/app/event/EventTab'
 import { useLanguage } from '@/context/LanguageContext'
@@ -28,7 +27,7 @@ function AppPageContent() {
     
     let targetTab = 'home' // 기본값
     
-    if (tabParam && ['home', 'meet', 'community', 'me', 'store', 'charging', 'event'].includes(tabParam)) {
+    if (tabParam && ['home', 'meet', 'community', 'me', 'charging', 'event'].includes(tabParam)) {
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
@@ -127,20 +126,6 @@ function AppPageContent() {
               </div>
             )}
 
-            {activeTab === 'store' && (
-              <div className="card p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-green-100 rounded-3xl flex items-center justify-center">
-                    <span className="text-2xl">🛒</span>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{t('storeTab.title')}</h2>
-                    <p className="text-gray-600">{t('storeTab.subtitle')}</p>
-                  </div>
-                </div>
-                <StoreTab />
-              </div>
-            )}
 
             {activeTab === 'charging' && (
               <div className="card p-8">
@@ -149,8 +134,8 @@ function AppPageContent() {
                     <span className="text-2xl">⚡</span>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{t('mainPage.chargingStation')}</h2>
-                    <p className="text-gray-600">{t('mainPage.chargingStationDescription')}</p>
+                    <h2 className="text-2xl font-bold text-gray-800">{t('storeTab.title')}</h2>
+                    <p className="text-gray-600">{t('storeTab.subtitle')}</p>
                     <p className="text-sm text-purple-600 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
                   </div>
                 </div>

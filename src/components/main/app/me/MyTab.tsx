@@ -168,13 +168,44 @@ const mockNotificationSettings = {
 
 export default function MyTab() {
   const { t } = useLanguage()
-  const { user, token } = useAuth()
+  const { user, token, refreshSession } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState<any>(null)
   const [notificationSettings, setNotificationSettings] = useState(mockNotificationSettings)
   const [loading, setLoading] = useState(true)
   const [profileImages, setProfileImages] = useState<File[]>([])
   const [mainProfileImage, setMainProfileImage] = useState<string | null>(null)
+  
+  // 현재 메인 프로필 이미지를 가져오는 함수 (서버 데이터 우선)
+  const getCurrentMainImage = () => {
+    console.log('[PROFILE] getCurrentMainImage 호출:', {
+      profile_main_profile_image: !!profile?.main_profile_image,
+      profile_profile_images_length: profile?.profile_images?.length,
+      profile_profile_image: !!profile?.profile_image,
+      mainProfileImage: !!mainProfileImage
+    })
+    
+    // 서버 데이터를 우선으로 확인
+    if (profile?.main_profile_image && profile.main_profile_image.trim() !== '') {
+      console.log('[PROFILE] main_profile_image 사용:', profile.main_profile_image.substring(0, 50) + '...')
+      return profile.main_profile_image
+    }
+    if (profile?.profile_images && profile.profile_images.length > 0 && profile.profile_images[0] && profile.profile_images[0].trim() !== '') {
+      console.log('[PROFILE] profile_images[0] 사용:', profile.profile_images[0].substring(0, 50) + '...')
+      return profile.profile_images[0]
+    }
+    if (profile?.profile_image && profile.profile_image.trim() !== '') {
+      console.log('[PROFILE] profile_image 사용:', profile.profile_image.substring(0, 50) + '...')
+      return profile.profile_image
+    }
+    // 서버 데이터가 없을 때만 로컬 상태 사용
+    if (mainProfileImage && mainProfileImage.trim() !== '') {
+      console.log('[PROFILE] mainProfileImage 사용:', mainProfileImage.substring(0, 50) + '...')
+      return mainProfileImage
+    }
+    console.log('[PROFILE] 이미지 없음')
+    return null
+  }
   
   // 실제 사용자 데이터 로드 함수
   const loadUserProfile = async (showLoading = true) => {
@@ -221,6 +252,18 @@ export default function MyTab() {
           })
           setProfile(newProfile)
           
+          // 프로필 이미지 설정 (서버 데이터로 복원)
+          if (newProfile.profile_images && newProfile.profile_images.length > 0) {
+            setMainProfileImage(newProfile.main_profile_image || newProfile.profile_images[0])
+            console.log('[PROFILE] 프로필 이미지 설정됨:', newProfile.main_profile_image || newProfile.profile_images[0])
+          } else if (newProfile.profile_image) {
+            setMainProfileImage(newProfile.profile_image)
+            console.log('[PROFILE] 단일 프로필 이미지 설정됨:', newProfile.profile_image)
+          } else {
+            // 서버에 이미지가 없을 때는 기존 상태 유지
+            console.log('[PROFILE] 서버에 프로필 이미지 없음, 기존 상태 유지')
+          }
+          
           // 헤더 포인트 업데이트 이벤트 발생
           window.dispatchEvent(new CustomEvent('pointsUpdated'))
         } else {
@@ -254,12 +297,24 @@ export default function MyTab() {
                 const profileResult = await profileResponse.json()
                 
                 if (profileResponse.ok) {
-                  setProfile({
+                  const newProfile = {
                     ...profileResult.user,
                     ...profileResult.profile,
                     points: profileResult.points?.total_points || 0,
                     daily_points: profileResult.points?.daily_points || 0
-                  })
+                  }
+                  setProfile(newProfile)
+                  
+                  // 프로필 이미지 설정 (서버 데이터로 복원)
+                  if (newProfile.profile_images && newProfile.profile_images.length > 0) {
+                    setMainProfileImage(newProfile.main_profile_image || newProfile.profile_images[0])
+                    console.log('[PROFILE] 초기화 시 프로필 이미지 설정됨:', newProfile.main_profile_image || newProfile.profile_images[0])
+                  } else if (newProfile.profile_image) {
+                    setMainProfileImage(newProfile.profile_image)
+                    console.log('[PROFILE] 초기화 시 단일 프로필 이미지 설정됨:', newProfile.profile_image)
+                  } else {
+                    console.log('[PROFILE] 초기화 시 서버에 프로필 이미지 없음, 기존 상태 유지')
+                  }
                 }
               } else {
                 console.log('프로필 생성 실패. 인증 페이지로 이동합니다.')
@@ -331,9 +386,16 @@ export default function MyTab() {
       
       if (newFiles.length > 0) {
         setProfileImages(prev => [...prev, ...newFiles])
-        // 첫 번째 사진을 대표 사진으로 설정
+        
+        // 첫 번째 사진을 Base64로 변환하여 대표 사진으로 설정
         if (profileImages.length === 0 && newFiles.length > 0) {
-          setMainProfileImage(URL.createObjectURL(newFiles[0]))
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            const base64String = e.target?.result as string
+            setMainProfileImage(base64String)
+            console.log('[PROFILE] 첫 번째 이미지를 Base64로 설정:', base64String.substring(0, 50) + '...')
+          }
+          reader.readAsDataURL(newFiles[0])
         }
       }
     }
@@ -341,7 +403,23 @@ export default function MyTab() {
 
   // 대표 프로필 사진 설정
   const setMainImage = (imageUrl: string) => {
-    setMainProfileImage(imageUrl)
+    // blob URL인 경우 Base64로 변환
+    if (imageUrl.startsWith('blob:')) {
+      // blob URL에서 File 객체를 찾아서 Base64로 변환
+      const fileIndex = profileImages.findIndex(file => URL.createObjectURL(file) === imageUrl)
+      if (fileIndex !== -1) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const base64String = e.target?.result as string
+          setMainProfileImage(base64String)
+          console.log('[PROFILE] blob URL을 Base64로 변환:', base64String.substring(0, 50) + '...')
+        }
+        reader.readAsDataURL(profileImages[fileIndex])
+      }
+    } else {
+      // 이미 Base64인 경우 그대로 사용
+      setMainProfileImage(imageUrl)
+    }
   }
 
   // 프로필 사진 삭제
@@ -349,7 +427,7 @@ export default function MyTab() {
     setProfileImages(prev => {
       const newImages = prev.filter((_, i) => i !== index)
       // 대표 사진이 삭제된 경우 첫 번째 사진을 대표로 설정
-      if (mainProfileImage === URL.createObjectURL(prev[index]) && newImages.length > 0) {
+      if (getCurrentMainImage() === URL.createObjectURL(prev[index]) && newImages.length > 0) {
         setMainProfileImage(URL.createObjectURL(newImages[0]))
       } else if (newImages.length === 0) {
         setMainProfileImage(null)
@@ -376,19 +454,25 @@ export default function MyTab() {
         )
       }
 
+      // 기존 프로필 이미지들과 새로 업로드된 이미지들을 합치기
+      const existingImages = profile?.profile_images || []
+      const allProfileImages = [...existingImages, ...profileImagesBase64]
+      
       const requestData = {
         ...profile,
-        profile_images: profileImagesBase64,
-        main_profile_image: mainProfileImage
+        profile_images: allProfileImages,
+        main_profile_image: getCurrentMainImage()
       }
       
       console.log('프로필 저장 요청 데이터:', {
-        profile_images_count: profileImagesBase64.length,
-        main_profile_image: mainProfileImage ? '있음' : '없음',
-        profile_images_preview: profileImagesBase64.length > 0 ? 'Base64 데이터 있음' : '없음'
+        existing_images_count: existingImages.length,
+        new_images_count: profileImagesBase64.length,
+        total_images_count: allProfileImages.length,
+        main_profile_image: getCurrentMainImage() ? '있음' : '없음',
+        main_profile_image_preview: getCurrentMainImage()?.substring(0, 50) + '...'
       })
 
-      const response = await fetch('/api/profile', {
+      let response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -396,6 +480,23 @@ export default function MyTab() {
         },
         body: JSON.stringify(requestData)
       })
+
+      // 인증 실패 시 토큰 갱신 시도
+      if (response.status === 401) {
+        console.log('[PROFILE] 인증 실패, 토큰 갱신 시도')
+        const refreshSuccess = await refreshSession()
+        if (refreshSuccess) {
+          // 갱신된 토큰으로 다시 시도
+          response = await fetch('/api/profile', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(requestData)
+          })
+        }
+      }
 
       console.log('프로필 저장 응답:', {
         status: response.status,
@@ -411,10 +512,25 @@ export default function MyTab() {
       if (response.ok) {
         setIsEditing(false)
         setProfileImages([]) // 업로드 후 초기화
-        setMainProfileImage(null)
+        
+        // 저장된 데이터로 프로필 상태 직접 업데이트
+        if (responseData.user) {
+          const updatedProfile = {
+            ...responseData.user,
+            profile_images: allProfileImages,
+            main_profile_image: getCurrentMainImage(),
+            points: profile.points || 0,
+            daily_points: profile.daily_points || 0
+          }
+          setProfile(updatedProfile)
+          
+          // 메인 프로필 이미지도 업데이트
+          if (getCurrentMainImage()) {
+            setMainProfileImage(getCurrentMainImage())
+          }
+        }
+        
         alert(t('myTab.profileSaved'))
-        // 프로필 다시 로드 (페이지 새로고침 대신 상태 업데이트)
-        await loadUserProfile(false)
       } else {
         console.error('프로필 저장 실패:', responseData)
         alert(`${t('myTab.profileSaveFailed')}: ${responseData.error || t('myTab.unknownError')}`)
@@ -434,12 +550,24 @@ export default function MyTab() {
           const response = await fetch(`/api/profile?userId=${user.id}`)
           const result = await response.json()
           if (response.ok) {
-            setProfile({
+            const newProfile = {
               ...result.user,
               ...result.profile,
               points: result.points?.total_points || 0,
               daily_points: result.points?.daily_points || 0
-            })
+            }
+            setProfile(newProfile)
+            
+            // 프로필 이미지 설정 (서버 데이터로 복원)
+            if (newProfile.profile_images && newProfile.profile_images.length > 0) {
+              setMainProfileImage(newProfile.main_profile_image || newProfile.profile_images[0])
+              console.log('[PROFILE] 취소 시 프로필 이미지 설정됨:', newProfile.main_profile_image || newProfile.profile_images[0])
+            } else if (newProfile.profile_image) {
+              setMainProfileImage(newProfile.profile_image)
+              console.log('[PROFILE] 취소 시 단일 프로필 이미지 설정됨:', newProfile.profile_image)
+            } else {
+              console.log('[PROFILE] 취소 시 서버에 프로필 이미지 없음, 기존 상태 유지')
+            }
           }
         } catch (error) {
           console.error('프로필 로드 오류:', error)
@@ -505,42 +633,22 @@ export default function MyTab() {
             <div className="relative">
               <div className="w-32 h-32 bg-gradient-to-br from-brand-100 to-mint-100 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 border-white overflow-hidden">
                 {(() => {
+                  const currentImage = getCurrentMainImage()
                   console.log('이미지 표시 로직 확인:', {
+                    currentImage: !!currentImage,
                     mainProfileImage: !!mainProfileImage,
                     profile_images_exists: !!profile?.profile_images,
                     profile_images_length: profile?.profile_images?.length,
                     profile_image_exists: !!profile?.profile_image,
-                    avatar_exists: !!profile?.avatar
+                    main_profile_image_exists: !!profile?.main_profile_image
                   })
                   
-                  if (mainProfileImage) {
-                    console.log('mainProfileImage 사용')
+                  if (currentImage && currentImage.trim() !== '') {
+                    console.log('현재 이미지 사용:', currentImage.substring(0, 50) + '...')
                     return (
                       <img 
-                        src={mainProfileImage} 
+                        src={currentImage} 
                         alt="대표 프로필 사진" 
-                        className="w-full h-full object-cover"
-                      />
-                    )
-                  } else if (profile?.profile_images && Array.isArray(profile.profile_images) && profile.profile_images.length > 0) {
-                    console.log('profile.profile_images[0] 사용:', profile.profile_images[0]?.substring(0, 50) + '...')
-                    return (
-                      <img 
-                        src={profile.profile_images[0]} 
-                        alt="프로필 사진" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.error('이미지 로드 실패:', e)
-                          e.currentTarget.style.display = 'none'
-                        }}
-                      />
-                    )
-                  } else if (profile?.profile_image) {
-                    console.log('profile.profile_image 사용')
-                    return (
-                      <img 
-                        src={profile.profile_image} 
-                        alt="프로필 사진" 
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           console.error('이미지 로드 실패:', e)
@@ -549,8 +657,15 @@ export default function MyTab() {
                       />
                     )
                   } else {
-                    console.log('기본 아바타 사용')
-                    return profile?.avatar || '👤'
+                    console.log('기본 텍스트 표시 - currentImage:', currentImage)
+                    return (
+                      <div className="flex flex-col items-center justify-center text-center p-4">
+                        <div className="text-2xl mb-2">📷</div>
+                        <div className="text-sm text-gray-600 font-medium leading-tight">
+                          {t('myTab.addProfilePhoto')}
+                        </div>
+                      </div>
+                    )
                   }
                 })()}
               </div>
@@ -585,11 +700,19 @@ export default function MyTab() {
                     <div key={index} className="relative">
                       <div 
                         className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-                          mainProfileImage === URL.createObjectURL(file) 
+                          getCurrentMainImage() === URL.createObjectURL(file) 
                             ? 'border-blue-500 ring-2 ring-blue-200' 
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
-                        onClick={() => setMainImage(URL.createObjectURL(file))}
+                        onClick={() => {
+                          const reader = new FileReader()
+                          reader.onload = (e) => {
+                            const base64String = e.target?.result as string
+                            setMainProfileImage(base64String)
+                            console.log('[PROFILE] 히스토리에서 Base64로 설정:', base64String.substring(0, 50) + '...')
+                          }
+                          reader.readAsDataURL(file)
+                        }}
                       >
                         <img 
                           src={URL.createObjectURL(file)} 
@@ -605,7 +728,7 @@ export default function MyTab() {
                         ×
                       </button>
                       {/* 대표 사진 표시 */}
-                      {mainProfileImage === URL.createObjectURL(file) && (
+                      {getCurrentMainImage() === URL.createObjectURL(file) && (
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center">
                           ★
                         </div>
@@ -617,7 +740,7 @@ export default function MyTab() {
             )}
 
             <div className="text-center">
-              <p className="text-xs text-gray-500 font-['Inter']">{t('profile.joinDate')}: {profile?.joinDate || 'N/A'}</p>
+              <p className="text-xs text-gray-500 font-['Inter']">{t('profile.joinDate')}: {profile?.joinDate || user?.created_at ? new Date(user.created_at).toLocaleDateString('ko-KR') : 'N/A'}</p>
               {isEditing && (
                 <p className="text-xs text-blue-500 mt-1 font-['Inter']">{t('myTab.photoSelectionTip')}</p>
               )}

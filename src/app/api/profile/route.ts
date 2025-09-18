@@ -27,17 +27,48 @@ export async function PUT(request: NextRequest) {
     const token = authHeader.replace('Bearer ', '')
     
     // 토큰에서 사용자 정보 추출
-    const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(token)
+    let authUser = null
+    let userId = null
     
-    if (authError || !authUser) {
-      return NextResponse.json(
-        { error: '인증에 실패했습니다.' },
-        { status: 401 }
-      )
+    const { data: { user: initialUser }, error: authError } = await supabaseServer.auth.getUser(token)
+    
+    if (authError || !initialUser) {
+      console.error('[PROFILE] 인증 실패:', authError)
+      
+      // 토큰 갱신 시도
+      try {
+        const { data: { session }, error: refreshError } = await supabaseServer.auth.refreshSession()
+        if (session && !refreshError) {
+          console.log('[PROFILE] 토큰 갱신 성공, 다시 시도')
+          const { data: { user: refreshedUser }, error: retryError } = await supabaseServer.auth.getUser(session.access_token)
+          if (refreshedUser && !retryError) {
+            authUser = refreshedUser
+            userId = refreshedUser.id
+            console.log('[PROFILE] 갱신된 사용자 ID:', userId)
+          } else {
+            return NextResponse.json(
+              { error: '인증에 실패했습니다. 다시 로그인해주세요.' },
+              { status: 401 }
+            )
+          }
+        } else {
+          return NextResponse.json(
+            { error: '인증에 실패했습니다. 다시 로그인해주세요.' },
+            { status: 401 }
+          )
+        }
+      } catch (refreshError) {
+        console.error('[PROFILE] 토큰 갱신 실패:', refreshError)
+        return NextResponse.json(
+          { error: '인증에 실패했습니다. 다시 로그인해주세요.' },
+          { status: 401 }
+        )
+      }
+    } else {
+      authUser = initialUser
+      userId = authUser.id
+      console.log('[PROFILE] 사용자 ID:', userId)
     }
-
-    const userId = authUser.id
-    console.log('[PROFILE] 사용자 ID:', userId)
 
     // 사용자 기본 정보 업데이트
     const updateData: any = {
@@ -165,9 +196,27 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // 업데이트된 사용자 정보를 다시 조회하여 최신 데이터 반환
+    const { data: finalUser, error: finalError } = await supabaseServer
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (finalError) {
+      console.error('[PROFILE] 최종 사용자 조회 실패:', finalError)
+      return NextResponse.json({
+        success: true,
+        user,
+        message: '프로필이 성공적으로 업데이트되었습니다.'
+      })
+    }
+
+    console.log('[PROFILE] 최종 사용자 데이터:', finalUser)
+
     return NextResponse.json({
       success: true,
-      user,
+      user: finalUser,
       message: '프로필이 성공적으로 업데이트되었습니다.'
     })
 
@@ -297,6 +346,9 @@ export async function GET(request: NextRequest) {
         one_line_intro: (user as any).one_line_intro,
         language: (user as any).language,
         avatar_url: (user as any).avatar_url,
+        profile_image: (user as any).profile_image,
+        profile_images: (user as any).profile_images,
+        main_profile_image: (user as any).main_profile_image,
         is_admin: (user as any).is_admin,
         created_at: (user as any).created_at,
         updated_at: (user as any).updated_at,
