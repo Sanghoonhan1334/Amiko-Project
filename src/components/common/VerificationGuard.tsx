@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { useUser } from '@/context/UserContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -27,20 +29,23 @@ export default function VerificationGuard({
   requiredFeature = 'all',
   className = ''
 }: VerificationGuardProps) {
-  const { user } = useAuth()
+  const { user } = useUser()
+  const { user: authUser } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const checkVerificationStatus = async () => {
-      if (!user?.id) {
+      const currentUser = user || authUser
+      if (!currentUser?.id) {
         setLoading(false)
         return
       }
 
       try {
-        const response = await fetch(`/api/verification?userId=${user.id}`)
+        const response = await fetch(`/api/verification?userId=${currentUser.id}`)
         const result = await response.json()
 
         if (response.ok) {
@@ -66,14 +71,15 @@ export default function VerificationGuard({
       <div className={`flex items-center justify-center p-8 ${className}`}>
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">인증 상태를 확인하는 중...</p>
+          <p className="text-gray-600">{t('auth.checkingVerificationStatus')}</p>
         </div>
       </div>
     )
   }
 
   // 로그인하지 않은 경우
-  if (!user) {
+  const currentUser = user || authUser
+  if (!currentUser) {
     return (
       <div className={`flex items-center justify-center p-8 ${className}`}>
         <Card className="w-full max-w-md">
@@ -146,7 +152,7 @@ export default function VerificationGuard({
         return {
           icon: <AlertTriangle className="w-8 h-8 text-gray-500" />,
           title: '인증 상태를 확인할 수 없습니다',
-          description: '인증 상태를 확인하는 중 오류가 발생했습니다.',
+          description: t('auth.verificationStatusError'),
           badge: <Badge variant="outline" className="text-gray-600 border-gray-300">상태 불명</Badge>,
           buttonText: '인증하기',
           buttonAction: () => router.push('/verification')

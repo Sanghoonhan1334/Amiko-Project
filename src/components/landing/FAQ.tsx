@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useLanguage } from '@/hooks/useLanguage'
+import { useLanguage } from '@/context/LanguageContext'
 import { ChevronDown, Shield, Users, Clock, MessageCircle, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'

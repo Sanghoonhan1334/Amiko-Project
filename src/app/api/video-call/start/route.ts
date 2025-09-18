@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 한국 사용자는 쿠폰 차감 없이 통화 시작
+    // 한국 사용자는 쿠폰 차감 없이 채팅 시작
     if ((profile as any).language === 'ko') {
       // 예약 생성 (한국 사용자용)
       const { data: booking, error: bookingError } = await (supabase as any)
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         bookingId: booking.id,
-        message: '한국 사용자로 무료 통화가 시작됩니다.',
+        message: '한국 사용자로 무료 채팅가 시작됩니다.',
         features: {
           beautyFilter: true,
           communityBadge: true,
@@ -233,8 +233,8 @@ export async function POST(request: NextRequest) {
       success: true,
       bookingId: booking.id,
       message: isVip 
-        ? 'VIP 사용자로 프리미엄 기능과 함께 통화가 시작됩니다.'
-        : '일반 사용자로 기본 기능과 함께 통화가 시작됩니다.',
+        ? 'VIP 사용자로 프리미엄 기능과 함께 채팅가 시작됩니다.'
+        : '일반 사용자로 기본 기능과 함께 채팅가 시작됩니다.',
       features: {
         ...baseFeatures,
         ...vipFeatures

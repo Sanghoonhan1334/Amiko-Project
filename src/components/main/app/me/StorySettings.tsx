@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -15,38 +15,13 @@ import {
 } from 'lucide-react'
 import { Story } from '@/types/story'
 import { useLanguage } from '@/context/LanguageContext'
-
-// 목업 스토리 데이터
-const mockMyStories: Story[] = [
-  {
-    id: '1',
-    userId: 'user1',
-    userName: '김민지',
-    userAvatar: 'https://picsum.photos/48/48?random=1',
-    imageUrl: 'https://picsum.photos/400/300?random=1',
-    text: '오늘 한국 전통 한복을 입어봤어요! 너무 예뻐서 기분이 좋았습니다 💕',
-    isPublic: true,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000),
-    isExpired: false
-  },
-  {
-    id: '2',
-    userId: 'user1',
-    userName: '김민지',
-    userAvatar: 'https://picsum.photos/48/48?random=2',
-    imageUrl: 'https://picsum.photos/400/300?random=2',
-    text: '한국 화장품으로 메이크업 연습 중이에요. 어떤가요? 😊',
-    isPublic: false,
-    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    expiresAt: new Date(Date.now() + 20 * 60 * 60 * 1000),
-    isExpired: false
-  }
-]
+import { useAuth } from '@/context/AuthContext'
 
 export default function StorySettings() {
   const { t } = useLanguage()
-  const [stories, setStories] = useState<Story[]>(mockMyStories)
+  const { user, token } = useAuth()
+  const [stories, setStories] = useState<Story[]>([])
+  const [loading, setLoading] = useState(true)
   const [globalStorySettings, setGlobalStorySettings] = useState({
     autoPublic: true,
     showInProfile: true
@@ -77,20 +52,110 @@ export default function StorySettings() {
     allowReposts: true
   })
 
+  // 사용자 스토리 로드
+  const loadUserStories = async () => {
+    if (!user || !token) {
+      setLoading(false)
+      return
+    }
 
+    try {
+      setLoading(true)
+      const response = await fetch('/api/stories?userId=' + user.id, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // API 응답 데이터를 Story 타입에 맞게 매핑
+        const mappedStories = (data.stories || []).map((story: any) => ({
+          id: story.id,
+          userId: story.user_id,
+          userName: story.user_name || '익명',
+          imageUrl: story.image_url,
+          text: story.text_content || '',
+          isPublic: story.is_public,
+          createdAt: story.created_at ? new Date(story.created_at) : new Date(),
+          expiresAt: story.expires_at ? new Date(story.expires_at) : new Date(),
+          isExpired: story.is_expired || false
+        }))
+        setStories(mappedStories)
+      } else {
+        console.error('스토리 로드 실패:', response.status)
+        setStories([])
+      }
+    } catch (error) {
+      console.error('스토리 로드 중 오류:', error)
+      setStories([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 컴포넌트 마운트 시 스토리 로드
+  useEffect(() => {
+    loadUserStories()
+  }, [user, token])
 
   // 스토리 삭제
-  const deleteStory = (storyId: string) => {
-    if (confirm(t('storySettings.individualSettings.deleteConfirm'))) {
-      setStories(prev => prev.filter(story => story.id !== storyId))
+  const deleteStory = async (storyId: string) => {
+    if (!confirm('정말로 이 스토리를 삭제하시겠습니까?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/stories/${storyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        setStories(prev => prev.filter(story => story.id !== storyId))
+      } else {
+        console.error('스토리 삭제 실패:', response.status)
+        alert('스토리 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('스토리 삭제 중 오류:', error)
+      alert('스토리 삭제 중 오류가 발생했습니다.')
     }
   }
 
   // 스토리 가시성 변경
-  const toggleStoryVisibility = (storyId: string) => {
-    setStories(prev => prev.map(story => 
-      story.id === storyId ? { ...story, isPublic: !story.isPublic } : story
-    ))
+  const toggleStoryVisibility = async (storyId: string) => {
+    try {
+      const story = stories.find(s => s.id === storyId)
+      if (!story) return
+
+      const response = await fetch(`/api/stories/${storyId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          isPublic: !story.isPublic
+        })
+      })
+
+      if (response.ok) {
+        setStories(prev => prev.map(s => 
+          s.id === storyId ? { ...s, isPublic: !s.isPublic } : s
+        ))
+      } else {
+        console.error('스토리 가시성 변경 실패:', response.status)
+        alert('스토리 가시성 변경에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('스토리 가시성 변경 중 오류:', error)
+      alert('스토리 가시성 변경 중 오류가 발생했습니다.')
+    }
   }
 
   return (
@@ -174,8 +239,19 @@ export default function StorySettings() {
           <CardTitle>{t('storySettings.individualSettings.title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {stories.map((story) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-gray-500">스토리를 불러오는 중...</div>
+            </div>
+          ) : stories.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+              <div className="text-lg mb-2">📸</div>
+              <div className="text-sm">아직 업로드한 스토리가 없습니다.</div>
+              <div className="text-xs mt-1">첫 번째 스토리를 업로드해보세요!</div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {stories.map((story) => (
               <div key={story.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <img
@@ -188,9 +264,9 @@ export default function StorySettings() {
                     }}
                   />
                   <div>
-                    <p className="font-medium text-sm">{story.text.substring(0, 50)}...</p>
+                    <p className="font-medium text-sm">{story.text ? story.text.substring(0, 50) + '...' : '내용 없음'}</p>
                     <p className="text-xs text-gray-500">
-                      {story.createdAt.toLocaleDateString()} {story.createdAt.toLocaleTimeString()}
+                      {story.createdAt ? `${story.createdAt.toLocaleDateString()} ${story.createdAt.toLocaleTimeString()}` : '날짜 정보 없음'}
                     </p>
                   </div>
                 </div>
@@ -224,8 +300,9 @@ export default function StorySettings() {
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

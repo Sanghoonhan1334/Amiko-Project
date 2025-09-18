@@ -16,19 +16,91 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     
+    console.log('[POINTS_API] 요청 받음:', { userId })
+    
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
     // 사용자 포인트 조회
+    console.log('[POINTS_API] user_points 테이블 조회 시작')
     const { data: userPoints, error: pointsError } = await supabase
       .from('user_points')
       .select('*')
       .eq('user_id', userId)
       .single()
+    
+    console.log('[POINTS_API] user_points 조회 결과:', { userPoints, pointsError })
 
     if (pointsError && pointsError.code !== 'PGRST116') {
       throw pointsError
+    }
+
+    // 사용자 포인트가 없으면 다른 테이블에서 확인
+    if (!userPoints && pointsError?.code === 'PGRST116') {
+      console.log('[POINTS_API] user_points 테이블에 데이터 없음, 다른 테이블 확인')
+      
+      // 1. user_profiles 테이블에서 포인트 확인
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('total_points')
+        .eq('user_id', userId)
+        .single()
+      
+      console.log('[POINTS_API] user_profiles 조회 결과:', { profileData, profileError })
+      
+      if (profileData && profileData.total_points) {
+        return NextResponse.json({
+          userPoints: {
+            available_points: profileData.total_points,
+            total_points: profileData.total_points
+          },
+          pointsHistory: [],
+          ranking: {
+            position: 0,
+            totalUsers: 0
+          }
+        })
+      }
+      
+      // 2. points 테이블에서 총 포인트 계산
+      const { data: pointsData, error: pointsDataError } = await supabase
+        .from('points')
+        .select('points')
+        .eq('user_id', userId)
+      
+      console.log('[POINTS_API] points 테이블 조회 결과:', { pointsData, pointsDataError })
+      
+      if (pointsData && pointsData.length > 0) {
+        const totalPoints = pointsData.reduce((sum, point) => sum + point.points, 0)
+        console.log('[POINTS_API] 계산된 총 포인트:', totalPoints)
+        
+        return NextResponse.json({
+          userPoints: {
+            available_points: totalPoints,
+            total_points: totalPoints
+          },
+          pointsHistory: pointsData.slice(0, 10),
+          ranking: {
+            position: 0,
+            totalUsers: 0
+          }
+        })
+      }
+      
+      // 3. 모든 테이블에 데이터가 없으면 0 반환
+      console.log('[POINTS_API] 모든 테이블에 포인트 데이터 없음')
+      return NextResponse.json({
+        userPoints: {
+          available_points: 0,
+          total_points: 0
+        },
+        pointsHistory: [],
+        ranking: {
+          position: 0,
+          totalUsers: 0
+        }
+      })
     }
 
     // 포인트 히스토리 조회 (최근 10개)

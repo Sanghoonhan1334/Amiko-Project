@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 한국 사용자는 쿠폰 없이도 통화 가능
+    // 한국 사용자는 쿠폰 없이도 채팅 가능
     if ((profile as any).language === 'ko') {
       return NextResponse.json({
         canCall: true,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         totalMinutes: 0,
         availableCoupons: 0,
         userType: 'korean',
-        message: '한국 사용자는 쿠폰 없이도 통화가 가능합니다.'
+        message: '한국 사용자는 쿠폰 없이도 채팅가 가능합니다.'
       });
     }
 
@@ -100,8 +100,8 @@ export async function GET(request: NextRequest) {
       isVip,
       vipFeatures: isVip ? (vipSubscription as any).features : null,
       message: canCall 
-        ? (isVip ? 'VIP 사용자로 통화가 가능합니다.' : '쿠폰이 있어 통화가 가능합니다.')
-        : '쿠폰을 구매해야 통화가 가능합니다.'
+        ? (isVip ? 'VIP 사용자로 채팅가 가능합니다.' : '쿠폰이 있어 채팅가 가능합니다.')
+        : '쿠폰을 구매해야 채팅가 가능합니다.'
     });
 
   } catch (error) {

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface Notification {
   id: string
@@ -25,6 +26,7 @@ interface NotificationResponse {
 
 export default function NotificationBell() {
   const { token } = useAuth()
+  const { t } = useLanguage()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -249,7 +251,7 @@ export default function NotificationBell() {
         <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           {/* 헤더 */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-800">알림</h3>
+            <h3 className="font-semibold text-gray-800">{t('myTab.notifications')}</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <Button
@@ -258,7 +260,7 @@ export default function NotificationBell() {
                   onClick={markAllAsRead}
                   className="text-xs text-blue-600 hover:text-blue-700"
                 >
-                  모두 읽음
+{t('myTab.markAllAsRead')}
                 </Button>
               )}
               <Button
@@ -276,11 +278,11 @@ export default function NotificationBell() {
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
               <div className="p-4 text-center text-gray-500">
-                알림을 불러오는 중...
+{t('myTab.loadingNotifications')}
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
-                새로운 알림이 없습니다.
+{t('myTab.noNewNotifications')}
               </div>
             ) : (
               notifications.map((notification) => (
@@ -350,7 +352,7 @@ export default function NotificationBell() {
                   window.location.href = '/notifications'
                 }}
               >
-                모든 알림 보기
+{t('myTab.viewAllNotifications')}
               </Button>
             </div>
           )}

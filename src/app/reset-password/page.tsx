@@ -247,7 +247,7 @@ export default function ResetPasswordPage() {
           <Card className="w-full max-w-md bg-white border shadow-lg">
             <CardHeader className="text-center space-y-4 pb-6">
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                {t('buttons.loading')}
+                Cargando...
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">

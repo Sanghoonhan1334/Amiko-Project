@@ -157,7 +157,7 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
         setError('채널 참여에 실패했습니다.')
       }
     } catch (error) {
-      console.error('통화 시작 실패:', error)
+      console.error('채팅 시작 실패:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       
       if (errorMessage.includes('Agora credentials not configured')) {
@@ -165,7 +165,7 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
       } else if (errorMessage.includes('Failed to generate token')) {
         setError('토큰 생성에 실패했습니다. 네트워크를 확인해주세요.')
       } else {
-        setError(`통화 시작에 실패했습니다: ${errorMessage}`)
+        setError(`채팅 시작에 실패했습니다: ${errorMessage}`)
       }
     } finally {
       setIsLoading(false)
@@ -222,7 +222,7 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
           onClick={onEndCall}
           className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
         >
-          통화 종료
+          채팅 종료
         </button>
       </div>
     )
@@ -239,13 +239,13 @@ export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
             disabled={isLoading}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
           >
-            {isLoading ? '연결 중...' : '통화 시작'}
+            {isLoading ? '연결 중...' : '채팅 시작'}
           </button>
           <button 
             onClick={onEndCall}
             className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600"
           >
-            통화 종료
+            채팅 종료
           </button>
         </div>
       </div>

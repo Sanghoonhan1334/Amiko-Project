@@ -195,7 +195,7 @@ export default function InquiryPage() {
           <div className="flex justify-center items-center">
             <Button
               onClick={() => setIsInquiryModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base rounded-lg"
+              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-12 py-6 text-2xl rounded-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {t('inquiry.submit')}
             </Button>
@@ -213,7 +213,7 @@ export default function InquiryPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {inquiryTypes.map((type) => (
-              <div key={type.value} className="bg-white rounded-lg p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div key={type.value} className="bg-white rounded-lg p-4 shadow-lg border border-gray-100">
                 <div className="text-center">
                   <div className={`w-12 h-12 ${type.bgColor} rounded-full flex items-center justify-center mx-auto mb-3`}>
                     <span className="text-xl">{type.icon}</span>

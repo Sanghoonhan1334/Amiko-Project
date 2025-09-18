@@ -175,7 +175,7 @@ export default function CommunityTab() {
   const searchParams = useSearchParams()
   
   // 탭 상태 관리
-  const [activeTab, setActiveTab] = useState('qa')
+  const [activeTab, setActiveTab] = useState('freeboard')
   // 내부 커뮤니티 탭 URL 파라미터 (cTab) 사용
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -313,17 +313,19 @@ export default function CommunityTab() {
   // 스토리 로딩 함수
   const loadStories = async () => {
     console.log('loadStories 호출됨')
-    if (!user && !token) {
-      console.log('사용자와 토큰이 모두 없어서 loadStories 건너뜀')
-      return
-    }
     
     try {
+      // 토큰이 없어도 공개 스토리는 조회 가능하도록 수정
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
       const response = await fetch('/api/stories?isPublic=true&limit=10', {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+        headers
       })
       
       console.log('스토리 API 응답:', { 
@@ -333,6 +335,21 @@ export default function CommunityTab() {
       })
       
       if (!response.ok) {
+        // 404나 다른 에러의 경우 빈 배열로 처리
+        if (response.status === 404) {
+          console.log('스토리 API가 아직 구현되지 않음, 빈 배열 사용')
+          setStories([])
+          return
+        }
+        
+        // 응답이 HTML인지 확인 (JSON 파싱 오류 방지)
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('text/html')) {
+          console.log('스토리 API가 HTML 응답을 반환함, 빈 배열 사용')
+          setStories([])
+          return
+        }
+        
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('스토리 API 에러 응답:', errorData)
         throw new Error(errorData.error || `스토리를 불러오는데 실패했습니다. (${response.status})`)
@@ -344,11 +361,25 @@ export default function CommunityTab() {
         storiesCount: data.stories?.length || 0
       })
       
-      setStories(data.stories || [])
-      console.log('스토리 목록 설정 완료:', data.stories?.length || 0, '개')
+      // 스토리 데이터 변환 (API 응답을 컴포넌트에서 사용하는 형태로 변환)
+      const convertedStories = (data.stories || []).map((story: any) => ({
+        ...story,
+        user: {
+          full_name: story.user_name || '익명'
+        }
+      }))
+      
+      setStories(convertedStories)
+      console.log('스토리 목록 설정 완료:', convertedStories.length, '개')
     } catch (err) {
       console.error('스토리 로딩 실패:', err)
+      // 네트워크 오류나 기타 에러의 경우 빈 배열로 설정
       setStories([])
+      
+      // 개발 환경에서만 에러 메시지 표시
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('스토리 로딩 중 오류 발생, 빈 목록으로 대체:', err)
+      }
     }
   }
 
@@ -413,8 +444,12 @@ export default function CommunityTab() {
       loadQuestions()
     }
     
-    // 스토리는 항상 로딩 (로그인 상태와 관계없이)
+    // 스토리는 항상 로딩 시도 (에러가 발생해도 앱이 중단되지 않도록)
+    try {
     loadStories()
+    } catch (error) {
+      console.error('스토리 로딩 중 예외 발생:', error)
+    }
   }, [user, token, activeTab, activeCategory])
 
   // 탭 변경 핸들러
@@ -646,6 +681,13 @@ export default function CommunityTab() {
       return
     }
 
+    // 토큰 검증 제거 (임시)
+    // if (!token) {
+    //   console.log('인증 토큰 없음')
+    //   toast.error('인증 토큰이 없습니다. 다시 로그인해주세요.')
+    //   return
+    // }
+
     if (!selectedFile) {
       console.log('입력 검증 실패: 사진이 필요합니다')
       toast.error('사진을 선택해주세요.')
@@ -696,6 +738,13 @@ export default function CommunityTab() {
       } else {
         const errorData = await response.json()
         console.error('스토리 업로드 실패:', { status: response.status, error: errorData })
+        
+        // 인증 오류인 경우 에러 메시지만 표시
+        if (response.status === 401) {
+          toast.error('로그인이 필요합니다. 페이지를 새로고침해주세요.')
+          return
+        }
+        
         toast.error(`스토리 업로드 실패: ${errorData.error || '알 수 없는 오류'}`)
       }
     } catch (error) {
@@ -963,7 +1012,7 @@ export default function CommunityTab() {
 
 
       {/* 오늘의 스토리 섹션 */}
-      <div className="mt-8 mb-6 max-w-full overflow-hidden">
+      <div className="mt-8 mb-6 max-w-full overflow-hidden border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
@@ -986,8 +1035,9 @@ export default function CommunityTab() {
             onClick={() => {
               console.log('헤더 스토리 올리기 버튼 클릭됨')
               
-              // 로그인 체크
-              if (!user) {
+              // 로그인 체크 (user 또는 authUser 중 하나라도 있으면 OK)
+              const currentUser = user || authUser
+              if (!currentUser) {
                 console.log('로그인 필요 - 로그인 페이지로 이동')
                 window.location.href = '/sign-in'
                 return
@@ -1198,8 +1248,14 @@ export default function CommunityTab() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>{t('communityTab.noStories')}</p>
+            <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">📸</span>
+                </div>
+                <p className="text-lg font-medium">{t('communityTab.noStories')}</p>
+                <p className="text-sm text-gray-400">첫 번째 스토리를 업로드해보세요!</p>
+              </div>
             </div>
           )}
         </div>
@@ -1208,20 +1264,6 @@ export default function CommunityTab() {
       {/* 세그먼트 탭 네비게이션 */}
       <div className="bg-white rounded-2xl p-1 shadow-lg mb-6">
         <div className="grid grid-cols-3 gap-1">
-          <button
-            onClick={() => handleTabChange('qa')}
-            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'qa'
-                ? 'bg-purple-100 text-purple-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base">💬</span>
-              <span className="hidden sm:inline text-xs">{t('community.qa')}</span>
-          </div>
-          </button>
-          
           <button
             onClick={() => handleTabChange('freeboard')}
             className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -1248,6 +1290,20 @@ export default function CommunityTab() {
               <span className="text-base">📰</span>
               <span className="hidden sm:inline text-xs">{t('community.koreanNews')}</span>
           </div>
+          </button>
+          
+          <button
+            onClick={() => handleTabChange('qa')}
+            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeTab === 'qa'
+                ? 'bg-purple-100 text-purple-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-base">💬</span>
+              <span className="hidden sm:inline text-xs">{t('community.qa')}</span>
+            </div>
           </button>
           </div>
           </div>
@@ -1485,20 +1541,424 @@ export default function CommunityTab() {
           {/* 한국뉴스 섹션 */}
           <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200/50 shadow-lg">
             <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                   <span className="text-xl">📰</span>
               </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-800">최신 한국 뉴스</h3>
-                  <p className="text-gray-600">한국의 최신 소식을 확인해보세요</p>
+                  <p className="text-gray-600">한국의 최신 소식과 트렌드</p>
                   </div>
                 </div>
                 
-              <div className="text-center p-8">
-                <div className="text-4xl mb-4">🚧</div>
-                <h4 className="text-lg font-semibold text-gray-800 mb-2">준비 중입니다</h4>
-                <p className="text-gray-600">한국뉴스 기능이 곧 오픈됩니다!</p>
+              {/* 뉴스 영상 목록 */}
+              <div className="space-y-6">
+                {/* 샘플 뉴스 영상 1 */}
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-gray-800 mb-1">한국 문화 소식</h4>
+                    <p className="text-sm text-gray-600">최신 한국 문화 동향</p>
+                    <p className="text-xs text-gray-500 mt-1">2시간 전</p>
+                  </div>
+                  <div className="instagram-embed-wrapper">
+                    <blockquote 
+                      className="instagram-media" 
+                      data-instgrm-permalink="https://www.instagram.com/p/DOsXrrEEZo9/"
+                      data-instgrm-version="14"
+                      style={{
+                        background: '#FFF',
+                        border: '0',
+                        borderRadius: '3px',
+                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
+                        margin: '1px',
+                        maxWidth: '540px',
+                        minWidth: '326px',
+                        padding: '0',
+                        width: '99.375%'
+                      }}
+                    >
+                      <div style={{ padding: '16px' }}>
+                        <a 
+                          href="https://www.instagram.com/p/DOsXrrEEZo9/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{
+                            background: '#FFFFFF',
+                            lineHeight: '0',
+                            padding: '0 0',
+                            textAlign: 'center',
+                            textDecoration: 'none',
+                            width: '100%'
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                            <div style={{
+                              backgroundColor: '#F4F4F4',
+                              borderRadius: '50%',
+                              flexGrow: '0',
+                              height: '40px',
+                              marginRight: '14px',
+                              width: '40px'
+                            }}></div>
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              flexGrow: '1',
+                              justifyContent: 'center'
+                            }}>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                marginBottom: '6px',
+                                width: '100px'
+                              }}></div>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                width: '60px'
+                              }}></div>
+                            </div>
+                          </div>
+                          <div style={{ padding: '19% 0' }}></div>
+                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
+                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
+                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
+                                  <g>
+                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </svg>
+                          </div>
+                          <div style={{ paddingTop: '8px' }}>
+                            <div style={{
+                              color: '#3897f0',
+                              fontFamily: 'Arial,sans-serif',
+                              fontSize: '14px',
+                              fontStyle: 'normal',
+                              fontWeight: '550',
+                              lineHeight: '18px'
+                            }}>
+                              Instagram에서 이 게시물 보기
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </blockquote>
+                  </div>
+                </div>
+
+                {/* 샘플 뉴스 영상 2 */}
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-gray-800 mb-1">한국 음식 소식</h4>
+                    <p className="text-sm text-gray-600">K-푸드 관련 최신 소식</p>
+                    <p className="text-xs text-gray-500 mt-1">5시간 전</p>
+                  </div>
+                  <div className="instagram-embed-wrapper">
+                    <blockquote 
+                      className="instagram-media" 
+                      data-instgrm-permalink="https://www.instagram.com/p/DOsXnCkkb_y/"
+                      data-instgrm-version="14"
+                      style={{
+                        background: '#FFF',
+                        border: '0',
+                        borderRadius: '3px',
+                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
+                        margin: '1px',
+                        maxWidth: '540px',
+                        minWidth: '326px',
+                        padding: '0',
+                        width: '99.375%'
+                      }}
+                    >
+                      <div style={{ padding: '16px' }}>
+                        <a 
+                          href="https://www.instagram.com/p/DOsXnCkkb_y/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{
+                            background: '#FFFFFF',
+                            lineHeight: '0',
+                            padding: '0 0',
+                            textAlign: 'center',
+                            textDecoration: 'none',
+                            width: '100%'
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                            <div style={{
+                              backgroundColor: '#F4F4F4',
+                              borderRadius: '50%',
+                              flexGrow: '0',
+                              height: '40px',
+                              marginRight: '14px',
+                              width: '40px'
+                            }}></div>
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              flexGrow: '1',
+                              justifyContent: 'center'
+                            }}>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                marginBottom: '6px',
+                                width: '100px'
+                              }}></div>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                width: '60px'
+                              }}></div>
+                            </div>
+                          </div>
+                          <div style={{ padding: '19% 0' }}></div>
+                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
+                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
+                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
+                                  <g>
+                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </svg>
+                          </div>
+                          <div style={{ paddingTop: '8px' }}>
+                            <div style={{
+                              color: '#3897f0',
+                              fontFamily: 'Arial,sans-serif',
+                              fontSize: '14px',
+                              fontStyle: 'normal',
+                              fontWeight: '550',
+                              lineHeight: '18px'
+                            }}>
+                              Instagram에서 이 게시물 보기
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </blockquote>
+                  </div>
+                </div>
+
+                {/* 세 번째 뉴스 영상 */}
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-gray-800 mb-1">한국 여행 소식</h4>
+                    <p className="text-sm text-gray-600">한국 관광 관련 최신 소식</p>
+                    <p className="text-xs text-gray-500 mt-1">1일 전</p>
+                  </div>
+                  <div className="instagram-embed-wrapper">
+                    <blockquote 
+                      className="instagram-media" 
+                      data-instgrm-permalink="https://www.instagram.com/p/DOpNMYDE69S/"
+                      data-instgrm-version="14"
+                      style={{
+                        background: '#FFF',
+                        border: '0',
+                        borderRadius: '3px',
+                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
+                        margin: '1px',
+                        maxWidth: '540px',
+                        minWidth: '326px',
+                        padding: '0',
+                        width: '99.375%'
+                      }}
+                    >
+                      <div style={{ padding: '16px' }}>
+                        <a 
+                          href="https://www.instagram.com/p/DOpNMYDE69S/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{
+                            background: '#FFFFFF',
+                            lineHeight: '0',
+                            padding: '0 0',
+                            textAlign: 'center',
+                            textDecoration: 'none',
+                            width: '100%'
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                            <div style={{
+                              backgroundColor: '#F4F4F4',
+                              borderRadius: '50%',
+                              flexGrow: '0',
+                              height: '40px',
+                              marginRight: '14px',
+                              width: '40px'
+                            }}></div>
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              flexGrow: '1',
+                              justifyContent: 'center'
+                            }}>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                marginBottom: '6px',
+                                width: '100px'
+                              }}></div>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                width: '60px'
+                              }}></div>
+                            </div>
+                          </div>
+                          <div style={{ padding: '19% 0' }}></div>
+                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
+                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
+                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
+                                  <g>
+                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </svg>
+                          </div>
+                          <div style={{ paddingTop: '8px' }}>
+                            <div style={{
+                              color: '#3897f0',
+                              fontFamily: 'Arial,sans-serif',
+                              fontSize: '14px',
+                              fontStyle: 'normal',
+                              fontWeight: '550',
+                              lineHeight: '18px'
+                            }}>
+                              Instagram에서 이 게시물 보기
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </blockquote>
+                  </div>
+                </div>
+
+                {/* 네 번째 뉴스 영상 */}
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-gray-800 mb-1">한국 기술 소식</h4>
+                    <p className="text-sm text-gray-600">한국 기술 관련 최신 소식</p>
+                    <p className="text-xs text-gray-500 mt-1">2일 전</p>
+                  </div>
+                  <div className="instagram-embed-wrapper">
+                    <blockquote 
+                      className="instagram-media" 
+                      data-instgrm-permalink="https://www.instagram.com/p/DOpNF65k8GS/"
+                      data-instgrm-version="14"
+                      style={{
+                        background: '#FFF',
+                        border: '0',
+                        borderRadius: '3px',
+                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
+                        margin: '1px',
+                        maxWidth: '540px',
+                        minWidth: '326px',
+                        padding: '0',
+                        width: '99.375%'
+                      }}
+                    >
+                      <div style={{ padding: '16px' }}>
+                        <a 
+                          href="https://www.instagram.com/p/DOpNF65k8GS/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{
+                            background: '#FFFFFF',
+                            lineHeight: '0',
+                            padding: '0 0',
+                            textAlign: 'center',
+                            textDecoration: 'none',
+                            width: '100%'
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                            <div style={{
+                              backgroundColor: '#F4F4F4',
+                              borderRadius: '50%',
+                              flexGrow: '0',
+                              height: '40px',
+                              marginRight: '14px',
+                              width: '40px'
+                            }}></div>
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              flexGrow: '1',
+                              justifyContent: 'center'
+                            }}>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                marginBottom: '6px',
+                                width: '100px'
+                              }}></div>
+                              <div style={{
+                                backgroundColor: '#F4F4F4',
+                                borderRadius: '4px',
+                                flexGrow: '0',
+                                height: '14px',
+                                width: '60px'
+                              }}></div>
+                            </div>
+                          </div>
+                          <div style={{ padding: '19% 0' }}></div>
+                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
+                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
+                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
+                                  <g>
+                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </svg>
+                          </div>
+                          <div style={{ paddingTop: '8px' }}>
+                            <div style={{
+                              color: '#3897f0',
+                              fontFamily: 'Arial,sans-serif',
+                              fontSize: '14px',
+                              fontStyle: 'normal',
+                              fontWeight: '550',
+                              lineHeight: '18px'
+                            }}>
+                              Instagram에서 이 게시물 보기
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </blockquote>
+                  </div>
+                </div>
+
+                {/* 더 많은 뉴스 보기 버튼 */}
+                <div className="text-center pt-4">
+                  <Button variant="outline" className="bg-white hover:bg-gray-50">
+                    더 많은 한국 뉴스 보기
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>
@@ -1790,11 +2250,11 @@ export default function CommunityTab() {
               </div>
               
               {/* 스토리 텍스트 내용 */}
-              {selectedStory.text && (
+              {(selectedStory.text_content || selectedStory.text) && (
                 <div className="w-full max-w-2xl mb-6 p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">스토리 내용</h3>
                   <p className="text-gray-700 leading-relaxed text-base whitespace-pre-wrap">
-                    {selectedStory.text}
+                    {selectedStory.text_content || selectedStory.text}
                   </p>
                 </div>
               )}

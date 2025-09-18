@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
         hasCoupon: false,
         isVip: false,
         features: baseFeatures,
-        message: '쿠폰을 구매해야 영상통화가 가능합니다.'
+        message: '쿠폰을 구매해야 영상채팅이 가능합니다.'
       });
     }
 

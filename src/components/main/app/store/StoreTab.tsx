@@ -20,6 +20,8 @@ export default function StoreTab() {
   const { t, language } = useLanguage()
   const { user } = useAuth()
   
+  console.log('StoreTab 마운트됨, 사용자 상태:', { user: !!user, userId: user?.id })
+  
   // 디버깅: 번역 키 확인
   console.log('StoreTab - Current language:', language)
   console.log('StoreTab - storeTab.title:', t('storeTab.title'))
@@ -47,12 +49,18 @@ export default function StoreTab() {
       }
 
       try {
+        console.log('포인트 API 호출:', `/api/points?userId=${user.id}`)
         const response = await fetch(`/api/points?userId=${user.id}`)
+        console.log('포인트 API 응답:', { status: response.status, ok: response.ok })
+        
         if (response.ok) {
           const data = await response.json()
+          console.log('포인트 데이터:', data)
           setAvailablePoints(data.userPoints?.available_points || 0)
           setTotalPoints(data.userPoints?.total_points || 0)
         } else {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('포인트 API 실패:', errorData)
           // API 실패 시 기본값 사용
           setAvailablePoints(0)
           setTotalPoints(0)
@@ -239,7 +247,7 @@ export default function StoreTab() {
               </div>
             </div>
 
-            {/* 영상통화 상세 */}
+            {/* 영상채팅 상세 */}
             <div className="p-4 bg-white rounded-lg border border-purple-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">

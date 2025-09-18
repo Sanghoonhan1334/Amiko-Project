@@ -63,7 +63,7 @@ export default function AboutPage() {
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full mt-2">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
-                        src="https://www.youtube.com/embed/2tDHgOhdCqY"
+                        src="https://www.youtube.com/embed/do4aDyGZmgM"
                         title={t('about.introVideoTitle')}
                         className="w-full h-full"
                         frameBorder="0"
@@ -78,40 +78,39 @@ export default function AboutPage() {
 
             {/* 회사소개 슬라이드 */}
             <SwiperSlide>
-              <div className="min-h-[600px] py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+              <div className="min-h-[600px] py-12 bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="max-w-xl mx-auto px-16">
-                  <div className="space-y-8 pt-8">
+                  <div className="space-y-6 pt-16">
                     {/* 첫 번째 카드 */}
-                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
+                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
                       <div className="flex flex-col items-center text-center">
                         <img 
                           src="/1.png" 
                           alt="AMIKO Logo 1" 
-                          className="w-64 h-64 object-contain -mb-16 -mt-20"
+                          className="w-56 h-56 object-contain -mb-12 -mt-8"
                           loading="lazy"
                           decoding="async"
                         />
-                        <p className="text-gray-700 text-lg">
+                        <p className="text-gray-700 text-lg leading-relaxed tracking-wide">
                           : {t('about.companyDescription')}
                         </p>
                       </div>
                     </div>
 
                     {/* 두 번째 카드 */}
-                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
+                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
                       <div className="flex flex-col items-center text-center">
                         <img 
                           src="/2.png" 
                           alt="AMIKO Logo 2" 
-                          className="w-64 h-64 object-contain -mb-16 -mt-20"
+                          className="w-56 h-56 object-contain -mb-12 -mt-8"
                           loading="lazy"
                           decoding="async"
                         />
-                        <p className="text-gray-700 text-lg">
+                        <p className="text-gray-700 text-lg leading-relaxed tracking-wide">
                           : {language === 'es' ? (
                             <>
-                              Un puente que conecta<br />
-                              entre <span className="text-red-500">AM</span>erica y <span className="text-blue-500">KO</span>rea
+                              <span className="text-red-500">AM</span>erica와 <span className="text-blue-500">KO</span>rea를 {t('about.bridgeDescription')}
                             </>
                           ) : (
                             <>
@@ -123,16 +122,16 @@ export default function AboutPage() {
                     </div>
 
                     {/* 세 번째 카드 */}
-                    <div className="bg-white rounded-lg p-8 shadow-lg border border-gray-100">
+                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
                       <div className="flex flex-col items-center text-center">
                         <img 
                           src="/3.png" 
                           alt="AMIKO Logo 3" 
-                          className="w-64 h-64 object-contain -mb-16 -mt-20"
+                          className="w-56 h-56 object-contain -mb-12 -mt-8"
                           loading="lazy"
                           decoding="async"
                         />
-                        <p className="text-gray-700 text-lg">
+                        <p className="text-gray-700 text-lg leading-relaxed tracking-wide">
                           : {t('about.closerDescription')}
                         </p>
                       </div>
@@ -144,50 +143,41 @@ export default function AboutPage() {
 
             {/* 대표자 소개 텍스트 슬라이드 */}
             <SwiperSlide>
-              <div className="min-h-screen flex items-center justify-center py-4 bg-gradient-to-br from-slate-50 to-blue-50">
-                <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-4">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 sm:p-12 lg:p-16 border border-gray-200/50 shadow-lg">
-                    <div className="text-center mb-8">
-                      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+              <div className="min-h-screen flex items-start justify-center pt-20 py-12 bg-gradient-to-br from-slate-50 to-blue-50">
+                <div className="w-full max-w-3xl mx-auto px-6 sm:px-8 lg:px-12">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 sm:p-10 lg:p-12 border border-gray-200/50 shadow-xl">
+                    <div className="text-center mb-12">
+                      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8">
                         {t('about.greeting')}
                       </h2>
                     </div>
                     
-                    <div className="space-y-6 text-left">
-                      <p className="text-gray-700 text-lg leading-relaxed">
-                        {t('about.thankYou')}
-                      </p>
-                      
-                      <p className="text-gray-700 text-lg leading-relaxed">
+                    <div className="space-y-6 text-center max-w-2xl mx-auto">
+                      <p className="text-gray-700 text-xl leading-relaxed tracking-wide">
+                        {t('about.thankYou')}<br />
                         {t('about.teamIntroduction')}
                       </p>
                       
-                      <p className="text-gray-700 text-lg leading-relaxed">
-                        {t('about.latinAmericaExperience')}
-                      </p>
-                      
-                      <p className="text-gray-700 text-lg leading-relaxed">
+                      <p className="text-gray-700 text-base leading-relaxed tracking-wide">
+                        {t('about.latinAmericaExperience')}<br />
                         {t('about.koreanInterest')}
                       </p>
                       
-                      <p className="text-gray-700 text-lg leading-relaxed">
+                      <p className="text-gray-700 text-base leading-relaxed tracking-wide">
                         {t('about.culturalExchange')}
                       </p>
                       
-                      <p className="text-gray-700 text-lg leading-relaxed font-semibold">
+                      <p className="text-gray-800 text-base leading-relaxed font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tracking-wide">
                         {t('about.bridgePromise')}
                       </p>
                       
-                      <p className="text-gray-700 text-lg leading-relaxed">
-                        {t('about.platformDescription')}
-                      </p>
-                      
-                      <p className="text-gray-700 text-lg leading-relaxed">
+                      <p className="text-gray-700 text-base leading-relaxed tracking-wide">
+                        {t('about.platformDescription')}<br />
                         {t('about.communityVision')}
                       </p>
                       
-                      <div className="text-center mt-12">
-                        <p className="text-2xl font-bold text-gray-900">
+                      <div className="text-center mt-8 pt-4 border-t border-gray-200">
+                        <p className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tracking-wide">
                           {t('about.finalMessage')}
                         </p>
                       </div>

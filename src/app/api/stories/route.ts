@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { createClient } from '@supabase/supabase-js'
 
 // 스토리 목록 조회
 export async function GET(request: NextRequest) {
   try {
     if (!supabaseServer) {
-      return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
-        { status: 500 }
-      )
+      console.log('[STORIES_API] Supabase 서버 클라이언트가 없음, 빈 응답 반환')
+      return NextResponse.json({
+        stories: [],
+        pagination: {
+          offset: 0,
+          limit: 20,
+          total: 0
+        }
+      })
     }
 
     const { searchParams } = new URL(request.url)
@@ -57,6 +63,22 @@ export async function GET(request: NextRequest) {
     const storiesWithUsers = await Promise.all(
       (stories || []).map(async (story) => {
         try {
+          // 먼저 user_profiles 테이블에서 조회
+          const { data: profileData, error: profileError } = await supabaseServer
+            .from('user_profiles')
+            .select('display_name')
+            .eq('user_id', story.user_id)
+            .single()
+
+          if (!profileError && profileData?.display_name) {
+            return {
+              ...story,
+              user_name: profileData.display_name,
+              user_email: null
+            }
+          }
+
+          // user_profiles에 없으면 users 테이블에서 조회
           const { data: userData, error: userError } = await supabaseServer
             .from('users')
             .select('id, full_name, email')
@@ -111,6 +133,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     if (!supabaseServer) {
+      console.log('[STORIES_API] Supabase 서버 클라이언트가 없음, 스토리 생성 불가')
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
         { status: 500 }
@@ -118,10 +141,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { imageUrl, text, isPublic = true } = body
+    const { imageUrl, text, isPublic = true, userId } = body
 
-    // 임시로 인증 없이 진행 (실제로는 사용자 ID를 받아야 함)
-    const userId = body.userId || 'a0df2c5d-00bf-4a16-a62a-8a7f7679f506' // 실제 사용자 ID 사용
+    // 사용자 ID 검증 (임시로 단순 검증만 수행)
+    if (!userId) {
+      return NextResponse.json(
+        { error: '사용자 인증이 필요합니다.' },
+        { status: 401 }
+      )
+    }
     
     console.log('[STORIES_CREATE] 요청 데이터:', { imageUrl, text, isPublic, userId })
 

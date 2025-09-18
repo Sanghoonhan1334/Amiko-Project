@@ -72,58 +72,64 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
       {/* 메인 화면 */}
       <div className="space-y-6">
-        {/* 헤더 */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-6 shadow-lg">
-            <Video className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            {t('videoCall.title')}
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            {t('videoCall.subtitle')}
-            <br />
-            <span className="text-blue-600 font-medium">{t('videoCall.description')}</span>
-          </p>
-        </div>
-
         {/* 빠른 시작 */}
-        <Card className="p-8 bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg">
-          <div className="flex items-center justify-between mb-6">
+        <Card className="p-4 bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">{t('videoCall.quickStart')}</h3>
-              <p className="text-gray-600">{t('videoCall.quickStartDescription')}</p>
+              <h3 className="text-xl font-bold text-gray-800 mb-0">{t('videoCall.quickStart')}</h3>
+              <p className="text-sm text-gray-600">{t('videoCall.quickStartDescription')}</p>
             </div>
             <Button 
               onClick={() => setShowStartDialog(true)}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-4 py-2 text-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
-              <Phone className="w-5 h-5 mr-2" />
+              <Phone className="w-4 h-4 mr-1" />
               {t('videoCall.startCall')}
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-white rounded-xl border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Video className="w-6 h-6 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Video className="w-4 h-4 text-blue-600" />
               </div>
-              <h4 className="font-bold text-gray-800 mb-2">{t('videoCall.oneOnOne')}</h4>
-              <p className="text-sm text-gray-600">{t('videoCall.oneOnOneDescription')}</p>
+              <h4 className="font-semibold text-gray-800 mb-1 text-sm">{t('videoCall.oneOnOne')}</h4>
+              <p className="text-xs text-gray-600">
+                {t('videoCall.oneOnOneDescription').split('\n').map((line, index) => (
+                  <span key={index}>
+                    {line}
+                    {index < t('videoCall.oneOnOneDescription').split('\n').length - 1 && <br />}
+                  </span>
+                ))}
+              </p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-purple-600" />
+            <div className="text-center p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Users className="w-4 h-4 text-purple-600" />
               </div>
-              <h4 className="font-bold text-gray-800 mb-2">{t('videoCall.languageExchange')}</h4>
-              <p className="text-sm text-gray-600">{t('videoCall.languageExchangeDescription')}</p>
+              <h4 className="font-semibold text-gray-800 mb-1 text-sm">{t('videoCall.languageExchange')}</h4>
+              <p className="text-xs text-gray-600">
+                {t('videoCall.languageExchangeDescription').split('\n').map((line, index) => (
+                  <span key={index}>
+                    {line}
+                    {index < t('videoCall.languageExchangeDescription').split('\n').length - 1 && <br />}
+                  </span>
+                ))}
+              </p>
             </div>
-            <div className="text-center p-6 bg-white rounded-xl border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-6 h-6 text-green-600" />
+            <div className="text-center p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Clock className="w-4 h-4 text-green-600" />
               </div>
-              <h4 className="font-bold text-gray-800 mb-2">{t('videoCall.sessionTime')}</h4>
-              <p className="text-sm text-gray-600">{t('videoCall.sessionTimeDescription')}</p>
+              <h4 className="font-semibold text-gray-800 mb-1 text-sm">{t('videoCall.sessionTime')}</h4>
+              <p className="text-xs text-gray-600">
+                {t('videoCall.sessionTimeDescription').split('\n').map((line, index) => (
+                  <span key={index}>
+                    {line}
+                    {index < t('videoCall.sessionTimeDescription').split('\n').length - 1 && <br />}
+                  </span>
+                ))}
+              </p>
             </div>
           </div>
         </Card>
@@ -222,7 +228,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
       </div>
 
-      {/* 통화 시작 다이얼로그 */}
+      {/* 채팅 시작 다이얼로그 */}
       <Dialog open={showStartDialog} onOpenChange={setShowStartDialog}>
         <DialogContent className="max-w-md bg-gradient-to-br from-white to-blue-50 border border-blue-200">
           <DialogHeader>
@@ -263,7 +269,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 onClick={handleStartCall}
                 className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6"
               >
-                통화 시작
+                채팅 시작
               </Button>
             </div>
           </div>
@@ -378,11 +384,11 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
               {/* 통계 */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">통화 통계</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">채팅 통계</label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white p-4 rounded-lg border border-purple-100 text-center">
                     <div className="text-2xl font-bold text-purple-600">{selectedPartner.totalCalls}</div>
-                    <div className="text-sm text-gray-600">총 통화 횟수</div>
+                    <div className="text-sm text-gray-600">총 채팅 횟수</div>
                   </div>
                   <div className="bg-white p-4 rounded-lg border border-purple-100 text-center">
                     <div className="text-2xl font-bold text-purple-600">{selectedPartner.rating}</div>

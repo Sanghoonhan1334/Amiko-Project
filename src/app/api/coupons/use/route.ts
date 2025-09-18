@@ -36,11 +36,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 한국 사용자는 쿠폰 차감 없이 통화 가능
+    // 한국 사용자는 쿠폰 차감 없이 채팅 가능
     if ((profile as any).language === 'ko') {
       return NextResponse.json({
         success: true,
-        message: '한국 사용자는 쿠폰 차감 없이 통화가 가능합니다.',
+        message: '한국 사용자는 쿠폰 차감 없이 채팅가 가능합니다.',
         remainingMinutes: 0,
         usedMinutes: 0
       });

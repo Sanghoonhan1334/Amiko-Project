@@ -26,24 +26,11 @@ const nextConfig = {
       tls: false,
     };
     
+    // 개발 환경에서 청크 분할 비활성화 (모듈 에러 방지)
     if (dev) {
-      // 개발 환경에서 최적화
       config.optimization = {
         ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // 공통 모듈을 하나의 청크로
-            common: {
-              name: 'common',
-              chunks: 'all',
-              minChunks: 2,
-              enforce: true,
-            },
-          },
-        },
+        splitChunks: false,
       };
     }
     return config;

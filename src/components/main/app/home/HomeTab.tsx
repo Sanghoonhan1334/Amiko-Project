@@ -79,7 +79,14 @@ export default function HomeTab() {
               </div>
             </div>
             <h3 className="text-lg font-bold text-gray-800 mb-0 mt-1 font-['Inter']">{t('homeTab.community')}</h3>
-            <p className="text-sm text-gray-600 -mt-1 font-['Inter']">{t('mainPage.communityDescription')}</p>
+            <p className="text-sm text-gray-600 -mt-1 font-['Inter']">
+              {t('mainPage.communityDescription').split('\n').map((line, index) => (
+                <span key={index}>
+                  {line}
+                  {index < t('mainPage.communityDescription').split('\n').length - 1 && <br />}
+                </span>
+              ))}
+            </p>
           </Card>
 
           {/* 오픈 기념 이벤트 카드 */}

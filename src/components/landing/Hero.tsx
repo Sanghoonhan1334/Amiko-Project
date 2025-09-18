@@ -72,14 +72,7 @@ export default function Hero() {
                     <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 mb-6 leading-tight font-['Inter']">
                       {t('heroSlides.slide1.title').split('\n').map((line, index) => (
                         <span key={index}>
-                          {index === 0 ? (
-                            <span>
-                              <span>Global Community</span>
-                              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">를</span>
-                            </span>
-                          ) : (
-                            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">{line}</span>
-                          )}
+                          <span className={index === 0 ? 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'}>{line}</span>
                           {index === 0 && <br />}
                         </span>
                       ))}
@@ -94,7 +87,7 @@ export default function Hero() {
               </div>
             </SwiperSlide>
 
-            {/* 두 번째 슬라이드 - 화상 통화 */}
+            {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
               <div className="h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
@@ -135,8 +128,8 @@ export default function Hero() {
                   <div className="container-custom max-w-4xl mx-auto px-4 sm:px-6">
                     <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
                       {/* 왼쪽: 큰 텍스트 */}
-                      <div className="flex-1 flex justify-center lg:justify-start items-center">
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 leading-tight -mt-2 lg:mt-0 font-['Pretendard'] text-center lg:text-left -ml-8">
+                      <div className="flex-1 flex justify-center lg:justify-start items-center mt-4 lg:mt-6">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 leading-tight font-['Pretendard'] text-center lg:text-left -ml-8">
                           {t('heroSlides.slide2.subtitle').split('\n').map((line, index) => (
                             <span key={index}>
                               {line}
@@ -147,7 +140,7 @@ export default function Hero() {
                       </div>
 
                       {/* 오른쪽: 작은 텍스트들 */}
-                      <div className="flex-1 flex flex-col gap-1 sm:gap-2 justify-center">
+                      <div className="flex-1 flex flex-col gap-1 sm:gap-2 justify-center mt-4 lg:mt-6">
                         <p className="text-gray-600 text-xs leading-tight text-left whitespace-nowrap pl-0 pr-24">
                           {t('heroSlides.slide2.experience1')}
                         </p>
@@ -167,29 +160,29 @@ export default function Hero() {
             {/* 세 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide className="pointer-events-auto">
               <div className="min-h-screen flex flex-col py-12 sm:py-16 md:py-20">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                <div className="max-w-7xl mx-auto px-2 sm:px-4">
                   {/* 메인 레이아웃 */}
                   <div className="space-y-3 sm:space-y-4">
                     {/* 왼쪽 섹션 */}
                     <div className="space-y-3 sm:space-y-4 pt-16 sm:pt-20 md:pt-24">
                       {/* 제목 섹션 */}
-                      <div className="text-center lg:text-left">
-                        <h2 className="text-base sm:text-lg md:text-xl font-normal text-gray-900 mb-1 sm:mb-2">
+                      <div className="text-left">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 mb-3 sm:mb-4">
                           {t('heroSlides.slide3.subtitle')}
                         </h2>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2 sm:mb-3 font-['Inter']">
                           {t('heroSlides.slide3.title')}
                         </h1>
-                        <div className="w-20 sm:w-24 md:w-28 h-0.5 bg-purple-300 mb-2 sm:mb-3 mx-auto lg:mx-0"></div>
-                        <p className="text-gray-600 text-xs sm:text-sm max-w-2xl mx-auto lg:mx-0">
-                          {t('heroSlides.slide3.description')}
-                        </p>
+                        <div className="w-32 sm:w-40 md:w-48 h-1 bg-purple-300 mb-4 sm:mb-6"></div>
+                        <div className="space-y-2 text-gray-700 text-sm sm:text-base leading-relaxed">
+                          <p>{t('heroSlides.slide3.description')}</p>
+                        </div>
                       </div>
                       
                       {/* 4개 카드 그리드 */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 mt-4 sm:mt-6 md:mt-8">
+                      <div className="flex flex-wrap gap-4 sm:gap-6 mt-4 sm:mt-6 md:mt-8">
                         {/* 주제별 게시판 카드 */}
-                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">01</span>
                           </div>
@@ -202,13 +195,18 @@ export default function Hero() {
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.topicBoard.title')}</h3>
                             <p className="text-gray-600 text-xs leading-relaxed">
-                              {t('heroSlides.slide3.cards.topicBoard.description')}
+                              {t('heroSlides.slide3.cards.topicBoard.description').split('\n').map((line, index) => (
+                                <span key={index}>
+                                  {line}
+                                  {index < t('heroSlides.slide3.cards.topicBoard.description').split('\n').length - 1 && <br />}
+                                </span>
+                              ))}
                             </p>
                           </div>
                         </div>
                         
                         {/* 자유게시판 카드 */}
-                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">02</span>
                           </div>
@@ -234,7 +232,7 @@ export default function Hero() {
                         </div>
                         
                         {/* 스토리 카드 */}
-                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">03</span>
                           </div>
@@ -252,24 +250,26 @@ export default function Hero() {
                           </div>
                         </div>
                         
-                        {/* Q&A 카드 */}
-                        <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 shadow-lg border border-gray-100 relative w-full max-w-sm mx-auto md:mx-0">
+                        {/* 시작하기 버튼 카드 */}
+                        <div 
+                          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-purple-300 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40 cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
+                          onClick={() => router.push('/sign-up')}
+                        >
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
-                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">04</span>
+                            <span className="bg-white text-purple-600 text-xs px-1.5 py-0.5 rounded font-bold">START</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                              {/* 검은색 테두리 말풍선 */}
-                              <div className="w-10 h-6 sm:w-12 sm:h-8 border-2 border-gray-800 rounded-lg relative bg-white">
-                                {/* 말풍선 꼬리 */}
-                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-800"></div>
-                                {/* 물음표 */}
-                                <div className="absolute inset-0 flex items-center justify-center text-gray-800 font-bold text-sm sm:text-base">?</div>
+                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
+                              {/* 화살표 아이콘 */}
+                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white rounded-lg flex items-center justify-center relative">
+                                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
                               </div>
                             </div>
-                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.qna.title')}</h3>
-                            <p className="text-gray-600 text-xs leading-relaxed">
-                              {t('heroSlides.slide3.cards.qna.description')}
+                            <h3 className="text-sm sm:text-base font-bold text-white mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.startButton.title')}</h3>
+                            <p className="text-white/90 text-xs leading-relaxed">
+                              {t('heroSlides.slide3.startButton.subtitle')}
                             </p>
                           </div>
                         </div>
@@ -341,7 +341,7 @@ export default function Hero() {
               ✕
             </button>
             <iframe
-              src="https://www.youtube.com/embed/6BdrKjSMBJY?autoplay=1"
+              src="https://www.youtube.com/embed/do4aDyGZmgM?autoplay=1"
               title="Amiko 소개 영상"
               className="w-full h-full rounded-lg"
               frameBorder="0"

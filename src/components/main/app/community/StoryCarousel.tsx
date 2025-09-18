@@ -39,13 +39,15 @@ interface Comment {
   likes: number
 }
 import { useAuth } from '@/context/AuthContext'
+import { useUser } from '@/context/UserContext'
 import { useLanguage } from '@/context/LanguageContext'
 
 // 실제 스토리 데이터는 API에서 가져올 예정
 const getMockStories = (userName: string = '한상훈'): Story[] => []
 
 export default function StoryCarousel() {
-  const { user, token } = useAuth()
+  const { user } = useUser()
+  const { token, user: authUser } = useAuth()
   const { t } = useLanguage()
   
   // 사용자 이름 가져오기
@@ -74,6 +76,10 @@ export default function StoryCarousel() {
   
   // 좋아요 상태 관리
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
+  
+  // 스토리 모달 상태
+  const [selectedStory, setSelectedStory] = useState<Story | null>(null)
+  const [showStoryModal, setShowStoryModal] = useState(false)
   
   // 댓글 관련 상태
   const [showCommentModal, setShowCommentModal] = useState<string | null>(null)
@@ -219,6 +225,15 @@ export default function StoryCarousel() {
       ])
 
       if (!apiResponse.ok) {
+        // 응답이 HTML인지 확인 (JSON 파싱 오류 방지)
+        const contentType = apiResponse.headers.get('content-type')
+        if (contentType && contentType.includes('text/html')) {
+          console.log('스토리 API가 HTML 응답을 반환함, 빈 배열 사용')
+          setStories([])
+          setIsLoading(false)
+          return
+        }
+        
         const errorData = await apiResponse.json().catch(() => ({ error: 'Unknown error' }))
         console.error('스토리 목록 API 오류:', apiResponse.status, errorData)
         throw new Error(`스토리를 불러오는데 실패했습니다. (${apiResponse.status})`)
@@ -524,6 +539,19 @@ export default function StoryCarousel() {
            alert('사진과 텍스트를 모두 입력해주세요.')
            return
          }
+
+         // 사용자 정보 확인 (user 또는 authUser 중 하나라도 있으면 OK)
+         const currentUser = user || authUser
+         if (!currentUser) {
+           alert('로그인이 필요합니다.')
+           return
+         }
+
+         // 토큰 검증 제거 (임시)
+         // if (!token) {
+         //   alert('인증 토큰이 없습니다. 다시 로그인해주세요.')
+         //   return
+         // }
      
          setIsUploading(true)
          
@@ -532,19 +560,25 @@ export default function StoryCarousel() {
            const response = await fetch('/api/stories', {
              method: 'POST',
              headers: {
-               'Content-Type': 'application/json',
-               'Authorization': `Bearer ${token}`
+               'Content-Type': 'application/json'
              },
              body: JSON.stringify({
                imageUrl: storyForm.imageUrl,
                text: storyForm.text,
-               isPublic: storyForm.isPublic
+               isPublic: storyForm.isPublic,
+               userId: currentUser.id
              })
            })
 
            if (!response.ok) {
              const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
              console.error('스토리 생성 API 오류:', response.status, errorData)
+             
+             // 인증 오류인 경우 에러 메시지만 표시
+             if (response.status === 401) {
+               alert('로그인이 필요합니다. 페이지를 새로고침해주세요.')
+               return
+             }
              
              // 데이터베이스 연결 문제인 경우 사용자 친화적인 메시지 표시
              if (response.status === 500) {
@@ -654,8 +688,9 @@ export default function StoryCarousel() {
                 onClick={() => {
                   console.log('스토리 올리기 버튼 클릭됨')
                   
-                  // 로그인 체크
-                  if (!user) {
+                  // 로그인 체크 (user 또는 authUser 중 하나라도 있으면 OK)
+                  const currentUser = user || authUser
+                  if (!currentUser) {
                     console.log('로그인 필요 - 로그인 페이지로 이동')
                     window.location.href = '/sign-in'
                     return
@@ -864,11 +899,8 @@ export default function StoryCarousel() {
                           alt="스토리 이미지"
                           className="w-full h-full object-cover cursor-pointer"
                           onClick={() => {
-                            // 모바일에서는 전체화면 모달 열기
-                            if (window.innerWidth <= 768) {
-                              // TODO: 전체화면 스토리 뷰어 구현
-                              console.log('모바일 전체화면 스토리 뷰어 열기')
-                            }
+                            setSelectedStory(story)
+                            setShowStoryModal(true)
                           }}
                           onError={(e) => {
                             const target = e.target as HTMLImageElement
@@ -954,32 +986,33 @@ export default function StoryCarousel() {
                         </div>
                         
                         {/* 좋아요와 댓글 버튼 */}
-                        <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleLikeToggle(story.id)
-                            }}
-                            className="flex items-center gap-1 text-xs text-gray-600 hover:text-red-500 transition-colors"
-                          >
-                            {likedStories.has(story.id) ? (
-                              <Heart className="w-4 h-4 text-red-500 fill-current" />
-                            ) : (
-                              <Heart className="w-4 h-4" />
-                            )}
-                            <span>{t('communityTab.like')}</span>
-                          </button>
-                          
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setShowCommentModal(story.id)
-                            }}
-                            className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                            <span>{t('communityTab.comment')}</span>
-                          </button>
+                        <div className="flex items-center justify-end gap-4 pt-2 border-t border-gray-100">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleLikeToggle(story.id)
+                              }}
+                              className="flex items-center gap-1 text-xs text-gray-600 hover:text-red-500 transition-colors"
+                            >
+                              {likedStories.has(story.id) ? (
+                                <Heart className="w-4 h-4 text-red-500 fill-current" />
+                              ) : (
+                                <Heart className="w-4 h-4" />
+                              )}
+                              <span>{t('communityTab.like')}</span>
+                            </button>
+                            
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowCommentModal(story.id)
+                              }}
+                              className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                              <span>{t('communityTab.comment')}</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1101,6 +1134,107 @@ export default function StoryCarousel() {
           setSelectedUserId(null)
         }}
       />
+
+      {/* 스토리 전체 보기 모달 */}
+      <Dialog open={showStoryModal} onOpenChange={setShowStoryModal}>
+        <DialogContent className="max-w-4xl w-full h-full max-h-screen bg-white border-2 border-gray-200 shadow-xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>스토리 전체 보기</DialogTitle>
+          </DialogHeader>
+          
+          {selectedStory && (
+            <div className="flex flex-col items-center justify-center h-full p-8">
+              {/* 사용자 정보 */}
+              <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-xl w-full max-w-2xl">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 p-0.5">
+                  <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100">
+                      <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">
+                          {selectedStory.userName?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {selectedStory.userName || '익명'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {selectedStory.createdAt.toLocaleDateString('ko-KR')}
+                  </p>
+                </div>
+              </div>
+              
+              {/* 스토리 이미지 */}
+              <div className="relative w-full max-w-2xl h-96 mb-6 bg-gradient-to-br from-purple-500 via-pink-500 to-yellow-500 rounded-2xl overflow-hidden shadow-2xl">
+                <img
+                  src={selectedStory.imageUrl}
+                  alt="스토리 이미지"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* 스토리 텍스트 내용 */}
+              {selectedStory.text && (
+                <div className="w-full max-w-2xl mb-6 p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">스토리 내용</h3>
+                  <p className="text-gray-700 leading-relaxed text-base whitespace-pre-wrap">
+                    {selectedStory.text}
+                  </p>
+                </div>
+              )}
+              
+              {/* 액션 버튼들 */}
+              <div className="flex gap-4 mb-6">
+                <button
+                  onClick={() => {
+                    setLikedStories(prev => {
+                      const newLiked = new Set(prev)
+                      if (newLiked.has(selectedStory.id)) {
+                        newLiked.delete(selectedStory.id)
+                      } else {
+                        newLiked.add(selectedStory.id)
+                      }
+                      return newLiked
+                    })
+                  }}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 ${
+                    likedStories.has(selectedStory.id) 
+                      ? 'bg-red-500 text-white' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <svg 
+                    className={`w-6 h-6 transition-all duration-200 ${
+                      likedStories.has(selectedStory.id) 
+                        ? 'text-white fill-current' 
+                        : 'text-gray-400 hover:text-red-400'
+                    }`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                </button>
+              </div>
+              
+              {/* 닫기 버튼 */}
+              <Button
+                onClick={() => setShowStoryModal(false)}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
+              >
+                닫기
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

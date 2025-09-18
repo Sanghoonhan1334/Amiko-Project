@@ -4,7 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { useLanguage } from '@/hooks/useLanguage'
+import { useLanguage } from '@/context/LanguageContext'
 
 const getFaqs = (t: any) => [
   {

@@ -196,8 +196,8 @@ export default function EventTab() {
     // 커뮤니티 활동 포인트 (하루 최대 +20점)
     const communityPoints = 15 // 예시: 질문 1개(5) + 답변 1개(5) + 스토리 1개(5)
 
-    // 영상통화 포인트 (1회 완료 시 +40점)
-    const videoCallPoints = 40 // 영상통화 완료 시
+    // 영상채팅 포인트 (1회 완료 시 +40점)
+    const videoCallPoints = 40 // 영상채팅 완료 시
 
     const total = communityPoints + videoCallPoints
 

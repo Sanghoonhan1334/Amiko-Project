@@ -9,6 +9,7 @@ import MyTab from '@/components/main/app/me/MyTab'
 import ChargingTab from '@/components/main/app/charging/ChargingTab'
 import EventTab from '@/components/main/app/event/EventTab'
 import { useLanguage } from '@/context/LanguageContext'
+import { Video } from 'lucide-react'
 
 function AppPageContent() {
   const { t } = useLanguage()
@@ -83,8 +84,8 @@ function AppPageContent() {
             {activeTab === 'meet' && (
               <div className="card p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-brand-100 rounded-3xl flex items-center justify-center">
-                    <span className="text-2xl">🎥</span>
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
+                    <Video className="w-10 h-10 text-white" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800">{t('main.meet')}</h2>
@@ -103,7 +104,7 @@ function AppPageContent() {
                     <span className="text-2xl">💬</span>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{t('main.community')} (Q&A)</h2>
+                    <h2 className="text-2xl font-bold text-gray-800">{t('main.community')}</h2>
                     <p className="text-gray-600">{t('main.communityDescription')}</p>
                   </div>
                 </div>

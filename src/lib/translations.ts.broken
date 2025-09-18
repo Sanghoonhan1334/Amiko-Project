@@ -223,7 +223,7 @@ export const translations = {
     heroSlides: {
       slide1: {
         badge: 'Amiko와 함께',
-        title: 'Global Community를\n경험해보세요',
+        title: 'Global Community\n경험해보세요',
         description: '한국과 남미를 사랑하는 당신을 위한 글로벌 소통공간',
         subtitle: '전 세계 사용자들과\n함께하는 특별한 경험',
         features: {
@@ -2954,6 +2954,7 @@ export const translations = {
       footerMessage: '✨ ¡Se agregarán más recompensas en el futuro! Acumula puntos 🙌'
     }
   }
+}
 
 export type Language = keyof typeof translations
 export type TranslationKey = keyof typeof translations.ko

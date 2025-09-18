@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Baloo_2 } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import HeaderWrapper from '@/components/layout/HeaderWrapper'
 import Footer from '@/components/layout/Footer'
@@ -52,6 +53,7 @@ export default function RootLayout({
             </UserProvider>
           </LanguageProvider>
         </AuthProvider>
+        <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
       </body>
     </html>
   )
