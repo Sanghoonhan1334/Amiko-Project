@@ -30,15 +30,8 @@ const nextConfig = {
       tls: false,
     };
     
-    // 빌드 시 환경변수 검증
-    if (!dev && isServer) {
-      try {
-        require('./src/lib/env-guard');
-      } catch (error) {
-        console.error('환경변수 검증 중 오류 발생:', error);
-        process.exit(1);
-      }
-    }
+    // 빌드 시 환경변수 검증 (TypeScript 파일이므로 제거)
+    // 환경변수 검증은 런타임에 middleware.ts에서 처리됩니다
     
     return config;
   },
