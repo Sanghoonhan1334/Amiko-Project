@@ -129,32 +129,32 @@ export default function StoreTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
       {/* 제목 섹션 */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('storeTab.title')}</h2>
-        <p className="text-gray-600">{t('storeTab.subtitle')}</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('storeTab.title')}</h2>
+        <p className="text-sm sm:text-base text-gray-600">{t('storeTab.subtitle')}</p>
       </div>
 
       {/* 포인트 현황 */}
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800">
-            <Star className="w-6 h-6" />
+          <CardTitle className="flex items-center gap-2 text-blue-800 text-lg sm:text-xl">
+            <Star className="w-5 h-5 sm:w-6 sm:h-6" />
             {t('storeTab.pointStatus.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
-              <div className="text-2xl font-bold text-blue-600">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="text-center p-3 sm:p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {loading ? '...' : availablePoints}
               </div>
               <div className="text-sm text-gray-600">{t('storeTab.pointStatus.availablePoints')}</div>
               <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.availablePointsDesc')}</div>
             </div>
-            <div className="text-center p-4 bg-white rounded-lg border border-purple-200">
-              <div className="text-2xl font-bold text-purple-600">
+            <div className="text-center p-3 sm:p-4 bg-white rounded-lg border border-purple-200">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
                 {loading ? '...' : totalPoints}
               </div>
               <div className="text-sm text-gray-600">{t('storeTab.pointStatus.totalPoints')}</div>
@@ -165,7 +165,7 @@ export default function StoreTab() {
       </Card>
 
       {/* 상점 아이템들 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {storeItems.map((item) => (
           <Card 
             key={item.id} 
@@ -177,11 +177,11 @@ export default function StoreTab() {
           >
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="text-3xl">{item.icon}</div>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="text-2xl sm:text-3xl">{item.icon}</div>
                   <div>
-                    <CardTitle className="text-lg">{item.name}</CardTitle>
-                    <CardDescription className="text-sm">{item.description}</CardDescription>
+                    <CardTitle className="text-base sm:text-lg">{item.name}</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">{item.description}</CardDescription>
                   </div>
                 </div>
                 {!item.available && (
@@ -194,7 +194,7 @@ export default function StoreTab() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-xl font-bold text-blue-600">
+                <div className="text-lg sm:text-xl font-bold text-blue-600">
                   {item.price}{t('storeTab.points')}
                 </div>
                 {item.available ? (

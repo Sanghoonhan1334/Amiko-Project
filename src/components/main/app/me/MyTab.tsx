@@ -623,15 +623,15 @@ export default function MyTab() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
       {/* 내 프로필 - 맨 위로 이동 */}
-      <Card className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-6">
-        <div className="space-y-6">
+      <Card className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-4 sm:p-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* 프로필 사진 관리 - 맨 위로 이동 */}
           <div className="flex flex-col items-center gap-4">
             {/* 대표 프로필 사진 */}
             <div className="relative">
-              <div className="w-32 h-32 bg-gradient-to-br from-brand-100 to-mint-100 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 border-white overflow-hidden">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-brand-100 to-mint-100 rounded-full flex items-center justify-center text-4xl sm:text-6xl shadow-lg border-4 border-white overflow-hidden">
                 {(() => {
                   const currentImage = getCurrentMainImage()
                   console.log('이미지 표시 로직 확인:', {
@@ -683,7 +683,7 @@ export default function MyTab() {
                   />
                   <label
                     htmlFor="profile-image-upload-edit"
-                    className="inline-flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 cursor-pointer transition-colors"
+                    className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 cursor-pointer transition-colors"
                   >
                     📷
                   </label>
@@ -699,7 +699,7 @@ export default function MyTab() {
                   {profileImages.map((file, index) => (
                     <div key={index} className="relative">
                       <div 
-                        className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                        className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
                           getCurrentMainImage() === URL.createObjectURL(file) 
                             ? 'border-blue-500 ring-2 ring-blue-200' 
                             : 'border-gray-200 hover:border-gray-300'
@@ -748,9 +748,9 @@ export default function MyTab() {
           </div>
 
           {/* 프로필 정보 */}
-          <div className="space-y-4 md:space-y-6 px-2 min-w-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold text-gray-800 font-['Inter']">{t('profile.myProfile')}</h2>
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 px-2 min-w-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 font-['Inter']">{t('profile.myProfile')}</h2>
               <div className="flex flex-wrap gap-2">
                 {/* 사용자 타입 표시 */}
                 <Badge
@@ -825,7 +825,7 @@ export default function MyTab() {
             </div>
 
             {/* 기본 정보 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 block font-['Inter']">{t('profile.name')}</label>
                 {isEditing ? (
@@ -1020,9 +1020,9 @@ export default function MyTab() {
 
       {/* 현지인 전용: 나의 쿠폰/구매내역 리스트 */}
       {!profile?.isKorean && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {/* 쿠폰 리스트 */}
-          <Card className="p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-3xl">
+          <Card className="p-4 sm:p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-3xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-brand-100 rounded-xl flex items-center justify-center">
                 <Gift className="w-4 h-4 text-brand-600" />
@@ -1052,7 +1052,7 @@ export default function MyTab() {
           </Card>
 
           {/* 구매내역 리스트 */}
-          <Card className="p-6 bg-gradient-to-r from-mint-50 to-mint-100 border-2 border-mint-200/50 rounded-3xl">
+          <Card className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-mint-100 border-2 border-mint-200/50 rounded-3xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-mint-100 rounded-xl flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-mint-600" />
@@ -1092,7 +1092,7 @@ export default function MyTab() {
       <StorySettings />
 
       {/* 알림 설정 */}
-      <Card className="p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200/50 rounded-3xl">
+      <Card className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200/50 rounded-3xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
             <Settings className="w-4 h-4 text-purple-600" />

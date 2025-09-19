@@ -378,8 +378,10 @@ export default function StoryCarousel() {
   // 특정 인덱스로 스크롤
   const scrollToIndex = (index: number) => {
     if (containerRef.current) {
-      const cardWidth = 340 // min-w-[340px]
-      const gap = 16 // gap-4
+      // 모바일에서는 더 작은 카드 크기 사용
+      const isMobile = window.innerWidth < 640
+      const cardWidth = isMobile ? 280 : 340 // 모바일: 280px, 데스크톱: 340px
+      const gap = isMobile ? 12 : 16 // 모바일: gap-3, 데스크톱: gap-4
       const scrollLeft = index * (cardWidth + gap)
       
       containerRef.current.scrollTo({
@@ -393,8 +395,10 @@ export default function StoryCarousel() {
   const handleScroll = useCallback(() => {
     if (containerRef.current) {
       const scrollLeft = containerRef.current.scrollLeft
-      const cardWidth = 340 // min-w-[340px]
-      const gap = 16 // gap-4
+      // 모바일에서는 더 작은 카드 크기 사용
+      const isMobile = window.innerWidth < 640
+      const cardWidth = isMobile ? 280 : 340 // 모바일: 280px, 데스크톱: 340px
+      const gap = isMobile ? 12 : 16 // 모바일: gap-3, 데스크톱: gap-4
       const newIndex = Math.round(scrollLeft / (cardWidth + gap))
       setCurrentIndex(newIndex)
     }
@@ -898,7 +902,9 @@ export default function StoryCarousel() {
                           src={story.imageUrl}
                           alt="스토리 이미지"
                           className="w-full h-full object-cover cursor-pointer"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
                             setSelectedStory(story)
                             setShowStoryModal(true)
                           }}

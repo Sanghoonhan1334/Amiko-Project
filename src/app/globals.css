@@ -18,12 +18,18 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* 터치 스크롤 최적화 */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   
   body {
     font-family: var(--font-inter);
     line-height: 1.6;
     color: #374151;
+    /* 터치 스크롤 최적화 */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -31,24 +37,29 @@
     font-weight: 700;
     line-height: 1.2;
   }
+  
+  /* 모든 스크롤 가능한 요소에 터치 스크롤 최적화 적용 */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* 유틸리티 클래스 */
 @layer components {
   .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8;
   }
   
   .section-padding {
-    @apply py-16 md:py-24;
+    @apply py-12 sm:py-16 md:py-24;
   }
   
   .heading-primary {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900;
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900;
   }
   
   .heading-secondary {
-    @apply text-2xl md:text-3xl font-bold text-gray-800;
+    @apply text-xl sm:text-2xl md:text-3xl font-bold text-gray-800;
   }
   
   .text-body {
@@ -56,11 +67,11 @@
   }
   
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-2xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+    @apply inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-2xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base;
   }
   
   .btn-secondary {
-    @apply inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-2xl border-2 border-gray-200 hover:border-brand-300 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+    @apply inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-2xl border-2 border-gray-200 hover:border-brand-300 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base;
   }
   
   .card {
@@ -68,7 +79,7 @@
   }
   
   .badge {
-    @apply inline-flex items-center px-3 py-1 text-sm font-medium rounded-xl;
+    @apply inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-medium rounded-xl;
   }
   
   .badge-brand {
@@ -117,6 +128,77 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+  }
+  
+  /* 터치 영역 최적화 */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .touch-target-sm {
+    @apply min-h-[36px] min-w-[36px];
+  }
+  
+  /* 모바일 텍스트 크기 최적화 */
+  .text-mobile-sm {
+    @apply text-xs sm:text-sm;
+  }
+  
+  .text-mobile-base {
+    @apply text-sm sm:text-base;
+  }
+  
+  .text-mobile-lg {
+    @apply text-base sm:text-lg;
+  }
+  
+  .text-mobile-xl {
+    @apply text-lg sm:text-xl;
+  }
+  
+  /* 모바일 간격 최적화 */
+  .space-mobile-sm {
+    @apply space-y-2 sm:space-y-3;
+  }
+  
+  .space-mobile-md {
+    @apply space-y-3 sm:space-y-4;
+  }
+  
+  .space-mobile-lg {
+    @apply space-y-4 sm:space-y-6;
+  }
+  
+  /* 터치 스크롤 최적화 */
+  .scroll-smooth-touch {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+  
+  .scroll-horizontal-smooth {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+  }
+  
+  /* 터치 피드백 */
+  .touch-feedback {
+    @apply transition-transform duration-150 ease-out active:scale-95;
+  }
+  
+  .touch-feedback-sm {
+    @apply transition-transform duration-150 ease-out active:scale-98;
+  }
+  
+  /* 뒤로가기 버튼 */
+  .back-button {
+    @apply flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 touch-target;
+  }
+  
+  .back-button-mobile {
+    @apply flex items-center gap-1 px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 touch-target-sm;
   }
   
   /* 햄버거 메뉴 애니메이션 */
@@ -214,7 +296,13 @@
   
   /* 스토리 컨테이너 반응형 너비 */
   .story-container {
-    width: calc(200px * 1 + 12px * 0); /* 매우 작은 화면: 1개 */
+    width: calc(160px * 1 + 8px * 0); /* 매우 작은 화면: 1개 */
+  }
+  
+  @media (min-width: 360px) {
+    .story-container {
+      width: calc(180px * 2 + 8px * 1); /* 작은 화면: 2개 */
+    }
   }
   
   @media (min-width: 480px) {

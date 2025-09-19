@@ -8,6 +8,7 @@ import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'
 import ChargingTab from '@/components/main/app/charging/ChargingTab'
 import EventTab from '@/components/main/app/event/EventTab'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { Video } from 'lucide-react'
 
@@ -68,7 +69,7 @@ function AppPageContent() {
   }, [])
   
   return (
-    <div className="min-h-screen body-gradient pt-44">
+    <div className="min-h-screen body-gradient pt-44 pb-20 md:pb-0">
       {/* 메인 콘텐츠 섹션 */}
       <div className="max-w-5xl mx-auto px-4 py-6 relative z-0">
         <div className="w-full">
@@ -152,6 +153,9 @@ function AppPageContent() {
           </div>
         </div>
       </div>
+      
+      {/* 하단 탭 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }

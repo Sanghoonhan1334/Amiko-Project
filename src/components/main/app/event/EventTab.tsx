@@ -403,21 +403,21 @@ export default function EventTab() {
   const nextReward = getNextReward()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
       {/* 특별 이벤트 */}
       <Card className="bg-white border border-gray-200 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-2xl">
-            <Gift className="h-6 w-6 text-blue-500" />
+          <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl">
+            <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
             {t('eventTab.attendanceCheck.specialEvents.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* 현지인용 특별 이벤트 */}
-            <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
+            <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                   <img 
                     src="/airport.jpeg" 
                     alt="Airport" 
@@ -425,14 +425,14 @@ export default function EventTab() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
-                  <p className="text-sm text-blue-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
+                  <p className="text-xs sm:text-sm text-blue-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <div className="p-4 bg-white rounded-lg border border-gray-200">
-                  <div className="flex items-center gap-3 mb-3">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="p-3 sm:p-4 bg-white rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-bold">1</span>
                     </div>
@@ -454,14 +454,14 @@ export default function EventTab() {
             </div>
 
             {/* 한국인용 특별 이벤트 */}
-            <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
-              <div className="mb-4">
-                <h3 className="text-xl font-bold text-green-800 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
-                <p className="text-sm text-green-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
+            <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
+              <div className="mb-3 sm:mb-4">
+                <h3 className="text-lg sm:text-xl font-bold text-green-800 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
+                <p className="text-xs sm:text-sm text-green-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
               </div>
               
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
                   <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-bold">DELE</span>
                   </div>
@@ -471,12 +471,12 @@ export default function EventTab() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
                   <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">SIELE</span>
+                    <span className="text-white text-xs font-bold">FLEX</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.siele')}</div>
+                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
                     <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                   </div>
                 </div>
@@ -496,8 +496,8 @@ export default function EventTab() {
       {/* 포인트 랭킹 */}
       <Card className="bg-white border border-gray-200 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-2xl">
-            <Trophy className="h-6 w-6 text-yellow-500" />
+          <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl">
+            <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
             {t('eventTab.pointRanking.title')}
           </CardTitle>
         </CardHeader>

@@ -248,17 +248,17 @@ export default function NotificationBell() {
 
       {/* 알림 드롭다운 */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           {/* 헤더 */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-800">{t('myTab.notifications')}</h3>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('myTab.notifications')}</h3>
+            <div className="flex items-center gap-1 sm:gap-2">
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-700"
+                  className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1"
                 >
 {t('myTab.markAllAsRead')}
                 </Button>
@@ -267,7 +267,7 @@ export default function NotificationBell() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(false)}
-                className="p-1"
+                className="p-1 sm:p-2"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -277,28 +277,28 @@ export default function NotificationBell() {
           {/* 알림 목록 */}
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-3 sm:p-4 text-center text-gray-500 text-sm">
 {t('myTab.loadingNotifications')}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-3 sm:p-4 text-center text-gray-500 text-sm">
 {t('myTab.noNewNotifications')}
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-50 hover:bg-gray-50 ${
+                  className={`p-3 sm:p-4 border-b border-gray-50 hover:bg-gray-50 ${
                     !notification.is_read ? 'bg-blue-50' : ''
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="text-lg">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="text-base sm:text-lg">
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`font-medium text-sm ${getNotificationColor(notification.type)}`}>
+                      <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                        <h4 className={`font-medium text-xs sm:text-sm ${getNotificationColor(notification.type)}`}>
                           {notification.title}
                         </h4>
                         {!notification.is_read && (

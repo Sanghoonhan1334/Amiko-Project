@@ -31,6 +31,15 @@ export default function AboutPage() {
             spaceBetween={0}
             slidesPerView={1}
             speed={300}
+            touchRatio={1}
+            touchAngle={45}
+            threshold={10}
+            longSwipesRatio={0.5}
+            longSwipesMs={300}
+            followFinger={true}
+            allowTouchMove={true}
+            resistance={true}
+            resistanceRatio={0.85}
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
@@ -41,7 +50,7 @@ export default function AboutPage() {
               bulletClass: 'swiper-pagination-bullet',
               bulletActiveClass: 'swiper-pagination-bullet-active'
             }}
-            className="w-full relative z-10"
+            className="w-full relative z-10 scroll-smooth-touch"
             onInit={(swiper) => {
               try {
                 if (typeof window !== 'undefined') {

@@ -25,7 +25,8 @@ export const translations = {
       saving: '저장 중...',
       writing: '작성 중...',
       deleting: '삭제 중...',
-      retry: '다시 시도'
+      retry: '다시 시도',
+      required: '필수'
     },
 
     // 인증 관련
@@ -201,7 +202,80 @@ export const translations = {
     community: {
       qa: 'Q&A',
       freeBoard: '주제별 게시판',
-      koreanNews: '한국 뉴스'
+      koreanNews: '한국 뉴스',
+      galleryList: {
+        title: '갤러리',
+        subtitle: '다양한 주제로 소통하고 경험을 공유하세요',
+        beauty: '뷰티 갤러리',
+        fashion: '패션 갤러리',
+        travel: '여행 갤러리',
+        culture: '문화 갤러리',
+        food: '음식 갤러리',
+        language: '언어 갤러리',
+        free: '자유주제 갤러리',
+        daily: '일상 갤러리',
+        popularPosts: '인기글 보기',
+        writePost: '글쓰기',
+        latest: '최신순',
+        popular: '인기순',
+        hot: '핫글순',
+        mostCommented: '댓글많은순',
+        mostViewed: '조회많은순',
+        all: '전체',
+        today: '오늘',
+        week: '이번주',
+        month: '이번달',
+        withImages: '이미지 포함',
+        textOnly: '텍스트만',
+        pinned: '고정글',
+        hotPosts: '핫글',
+        popularPosts: '인기글',
+        searchPlaceholder: '제목, 내용으로 검색...',
+        search: '검색',
+        clear: '지우기',
+        advancedFilters: '고급 필터',
+        simpleView: '간단히 보기',
+        clearFilters: '필터 초기화',
+        appliedFilters: '적용된 필터',
+        sort: '정렬',
+        period: '기간',
+        type: '타입',
+        status: '상태',
+        quickAccess: '빠른 액세스',
+        totalPosts: '총 {count}개의 게시물',
+        noPosts: '아직 게시물이 없습니다',
+        writeFirstPost: '첫 번째 게시물을 작성해보세요!',
+        loginToVote: '로그인 후 투표 가능',
+        loginToComment: '로그인 후 댓글을 작성해보세요!',
+        noComments: '아직 댓글이 없습니다',
+        writeComment: '댓글을 작성해주세요...',
+        replyTo: '님에게 답글...',
+        reply: '답글',
+        cancel: '취소',
+        submitComment: '댓글 작성',
+        submitReply: '답글 작성',
+        writing: '작성 중...',
+        comments: '댓글 {count}개',
+        views: '조회 {count}',
+        likes: '추천 {count}',
+        dislikes: '비추천 {count}',
+        timeAgo: {
+          now: '방금 전',
+          minutes: '{count}분 전',
+          hours: '{count}시간 전',
+          yesterday: '어제',
+          days: '{count}일 전'
+        },
+        errors: {
+          loadPostsFailed: '게시물을 불러오는데 실패했습니다',
+          loadGalleriesFailed: '갤러리를 불러오는데 실패했습니다',
+          unknownError: '알 수 없는 오류가 발생했습니다'
+        },
+        loginRequired: '로그인이 필요합니다',
+        title: '제목',
+        content: '내용',
+        koreanNews: '한국 뉴스'
+      }
     },
 
     // 주제별 게시판 섹션
@@ -296,7 +370,7 @@ export const translations = {
             title: '한국어 이벤트',
             description: '한국어 시험 응시료 지원',
             dele: 'DELE',
-            siele: 'SIELE',
+            flex: 'FLEX',
             examFeeSupport: '시험 응시료 지원'
           }
         }
@@ -653,7 +727,8 @@ export const translations = {
       saving: 'Guardando...',
       writing: 'Escribiendo...',
       deleting: 'Eliminando...',
-      retry: 'Reintentar'
+      retry: 'Reintentar',
+      required: 'Requerido'
     },
 
     // 인증 관련
@@ -829,7 +904,80 @@ export const translations = {
     community: {
       qa: 'P&R',
       freeBoard: 'Tablero por Temas',
-      koreanNews: 'Noticias de Corea'
+      koreanNews: 'Noticias de Corea',
+      galleryList: {
+        title: 'Galerías',
+        subtitle: 'Comunícate sobre diversos temas y comparte experiencias',
+        beauty: 'Galería de Belleza',
+        fashion: 'Galería de Moda',
+        travel: 'Galería de Viajes',
+        culture: 'Galería de Cultura',
+        food: 'Galería de Comida',
+        language: 'Galería de Idioma',
+        free: 'Galería de Temas Libres',
+        daily: 'Galería de Vida Diaria',
+        popularPosts: 'Ver Publicaciones Populares',
+        writePost: 'Escribir',
+        latest: 'Más Reciente',
+        popular: 'Más Popular',
+        hot: 'Más Caliente',
+        mostCommented: 'Más Comentado',
+        mostViewed: 'Más Visto',
+        all: 'Todo',
+        today: 'Hoy',
+        week: 'Esta Semana',
+        month: 'Este Mes',
+        withImages: 'Con Imágenes',
+        textOnly: 'Solo Texto',
+        pinned: 'Fijado',
+        hotPosts: 'Caliente',
+        popularPosts: 'Popular',
+        searchPlaceholder: 'Buscar por título, contenido...',
+        search: 'Buscar',
+        clear: 'Limpiar',
+        advancedFilters: 'Filtros Avanzados',
+        simpleView: 'Vista Simple',
+        clearFilters: 'Limpiar Filtros',
+        appliedFilters: 'Filtros Aplicados',
+        sort: 'Ordenar',
+        period: 'Período',
+        type: 'Tipo',
+        status: 'Estado',
+        quickAccess: 'Acceso Rápido',
+        totalPosts: '{count} publicaciones en total',
+        noPosts: 'Aún no hay publicaciones',
+        writeFirstPost: '¡Escribe la primera publicación!',
+        loginToVote: 'Inicia sesión para votar',
+        loginToComment: '¡Inicia sesión para escribir comentarios!',
+        noComments: 'Aún no hay comentarios',
+        writeComment: 'Escribe un comentario...',
+        replyTo: 'Responder a {name}...',
+        reply: 'Responder',
+        cancel: 'Cancelar',
+        submitComment: 'Enviar Comentario',
+        submitReply: 'Enviar Respuesta',
+        writing: 'Escribiendo...',
+        comments: '{count} comentarios',
+        views: '{count} vistas',
+        likes: '{count} me gusta',
+        dislikes: '{count} no me gusta',
+        timeAgo: {
+          now: 'Ahora',
+          minutes: 'Hace {count} minutos',
+          hours: 'Hace {count} horas',
+          yesterday: 'Ayer',
+          days: 'Hace {count} días'
+        },
+        errors: {
+          loadPostsFailed: 'Error al cargar las publicaciones',
+          loadGalleriesFailed: 'Error al cargar las galerías',
+          unknownError: 'Ocurrió un error desconocido'
+        },
+        loginRequired: 'Se requiere iniciar sesión',
+        title: 'Título',
+        content: 'Contenido',
+        koreanNews: 'Noticias de Corea'
+      }
     },
 
     // 주제별 게시판 섹션
@@ -924,7 +1072,7 @@ export const translations = {
             title: 'Evento de Coreano',
             description: 'Apoyo para tarifas de examen de coreano',
             dele: 'DELE',
-            siele: 'SIELE',
+            flex: 'FLEX',
             examFeeSupport: 'Apoyo para Tarifa de Examen'
           }
         }
@@ -1220,7 +1368,7 @@ export const translations = {
     // 스토리 설정
     storySettings: {
       globalSettings: {
-        title: 'Configuración Global > Configuración de Historias',
+        title: 'Configuración de Historias',
         autoPublic: {
           label: 'Público Automático',
           description: 'Publica automáticamente las historias subidas'

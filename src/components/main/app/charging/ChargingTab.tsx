@@ -259,26 +259,26 @@ export default function ChargingTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
       {/* 포인트 현황 */}
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800">
-            <Star className="w-6 h-6" />
+          <CardTitle className="flex items-center gap-2 text-blue-800 text-lg sm:text-xl">
+            <Star className="w-5 h-5 sm:w-6 sm:h-6" />
             {t('storeTab.pointStatus.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
-              <div className="text-2xl font-bold text-blue-600">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="text-center p-3 sm:p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {loading ? '...' : availablePoints}
               </div>
               <div className="text-sm text-gray-600">{t('storeTab.pointStatus.availablePoints')}</div>
               <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.availablePointsDesc')}</div>
             </div>
-            <div className="text-center p-4 bg-white rounded-lg border border-purple-200">
-              <div className="text-2xl font-bold text-purple-600">
+            <div className="text-center p-3 sm:p-4 bg-white rounded-lg border border-purple-200">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
                 {loading ? '...' : totalPoints}
               </div>
               <div className="text-sm text-gray-600">{t('storeTab.pointStatus.totalPoints')}</div>
@@ -291,8 +291,8 @@ export default function ChargingTab() {
       {/* AI 화상 채팅 쿠폰 섹션 */}
       <Card className="bg-white shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-blue-500" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Video className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             {t('chargingTab.coupons.title')}
           </CardTitle>
           <CardDescription>
@@ -300,7 +300,7 @@ export default function ChargingTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {couponPackages.map((pkg) => {
               const IconComponent = pkg.popular ? Gift : Video
               return (
@@ -313,15 +313,15 @@ export default function ChargingTab() {
                   }`}
                   onClick={() => setSelectedCoupons(pkg.count)}
                 >
-                  <CardContent className="p-4 text-center">
+                  <CardContent className="p-3 sm:p-4 text-center">
                     {pkg.popular && (
                       <Badge className="mb-2 bg-blue-500 text-white">
                         {t('chargingTab.coupons.popular')}
                       </Badge>
                     )}
                     <div className="flex items-center justify-center mb-2">
-                      <IconComponent className="w-6 h-6 text-blue-500 mr-2" />
-                      <span className="text-lg font-bold">{pkg.count}{t('chargingTab.coupons.unit')}</span>
+                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 mr-2" />
+                      <span className="text-base sm:text-lg font-bold">{pkg.count}{t('chargingTab.coupons.unit')}</span>
                     </div>
                     {/* 가격 섹션 */}
                     <div className="text-center mb-3">

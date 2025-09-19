@@ -120,20 +120,20 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 pt-44">
+    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 pt-32 sm:pt-44">
       <div className="flex justify-center">
       <Card className="w-full max-w-md bg-white border shadow-lg">
-        <CardHeader className="text-center space-y-4 pb-6">
-          <CardTitle className="text-2xl font-semibold text-slate-900">
+        <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
+          <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900">
             {t('auth.signUp')}
           </CardTitle>
-          <CardDescription className="text-slate-600">
+          <CardDescription className="text-sm sm:text-base text-slate-600">
             {t('auth.signUpDescription')}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-4">
+          <form onSubmit={handleSignUp} className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium text-slate-700">
                 {t('auth.name')}

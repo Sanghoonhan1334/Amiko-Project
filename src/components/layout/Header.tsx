@@ -233,8 +233,8 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-36">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-28 sm:h-32 md:h-36">
             {/* 좌측: 시계 및 언어 전환 버튼 */}
             <div className="flex flex-col items-start gap-2">
               {/* 시계 표시 - 번역 버튼 위에 */}
@@ -242,9 +242,9 @@ export default function Header() {
                 className="relative cursor-pointer group time-dropdown"
                 onClick={() => setShowTimeDetails(!showTimeDetails)}
               >
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-                  <Clock className="w-3 h-3 text-blue-600" />
-                  <div className="flex items-center gap-2 text-xs font-medium">
+                <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
+                  <div className="flex items-center gap-1 sm:gap-2 text-xs font-medium">
                     <span className="text-blue-700">🇰🇷 {koreanTime}</span>
                     <span className="text-gray-400">|</span>
                     <span className="text-indigo-700">🇲🇽 {localTime}</span>
@@ -342,10 +342,10 @@ export default function Header() {
                     variant="ghost"
                     size="sm"
                     onClick={toggleLanguage}
-                    className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                    className="px-1.5 py-1 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
                     title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
                   >
-                    <span className="text-xs md:text-sm font-medium">
+                    <span className="text-xs sm:text-sm font-medium">
                       {language === 'ko' ? t('korean') : t('spanish')}
                     </span>
                   </Button>
@@ -357,10 +357,10 @@ export default function Header() {
                     variant="ghost"
                     size="sm"
                     onClick={toggleLanguage}
-                    className="px-2 py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
+                    className="px-1.5 py-1 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
                     title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
                   >
-                    <span className="text-xs md:text-sm font-medium">
+                    <span className="text-xs sm:text-sm font-medium">
                       {language === 'ko' ? t('korean') : t('spanish')}
                     </span>
                   </Button>
@@ -375,7 +375,7 @@ export default function Header() {
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
-                  className="h-40 w-auto object-contain transition-all duration-300"
+                  className="h-24 sm:h-32 md:h-40 w-auto object-contain transition-all duration-300"
                   style={{ 
                     maxHeight: '160px'
                   }}
@@ -388,8 +388,8 @@ export default function Header() {
                     router.push('/')
                   }}
                   style={{
-                    width: '60px',
-                    height: '60px',
+                    width: '40px',
+                    height: '40px',
                     left: '50%',
                     top: '50%',
                     transform: 'translate(-50%, -50%)',
@@ -402,7 +402,7 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex space-x-8 -mt-10 relative z-20">
+              <nav className="hidden md:flex space-x-6 lg:space-x-8 -mt-6 sm:-mt-8 md:-mt-10 relative z-20">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
@@ -523,7 +523,7 @@ export default function Header() {
             </div>
 
             {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {/* 로그인/로그아웃 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
               {isMainPage && (
                 <>
@@ -550,8 +550,8 @@ export default function Header() {
                 <div className="hidden md:flex flex-col items-end gap-1">
                   {/* 포인트 표시 - 최상단 */}
                   {verificationStatus === 'verified' && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 shadow-sm mb-1">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full flex items-center justify-center">
+                    <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 shadow-sm mb-1">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 rounded-full flex items-center justify-center">
                         <span className="text-xs text-white font-bold font-['Inter']">★</span>
                       </div>
                       <span className="text-xs text-purple-700 font-medium">{userPoints}P</span>
@@ -568,34 +568,34 @@ export default function Header() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleMainNavClick('me')}
-                      className={`p-2 rounded-full hover:bg-gray-100 transition-all duration-300 ${
+                      className={`p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-all duration-300 ${
                         activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
                       }`}
                     >
-                      <Users className="w-5 h-5 text-gray-600" />
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                     </Button>
                   </div>
                   
                   {/* 인증 상태 표시 */}
                   <div className="flex items-center gap-2">
                     {verificationStatus === 'loading' ? (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-full border border-gray-200">
+                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-50 rounded-full border border-gray-200">
                         <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
                         <span className="text-xs text-gray-600 font-medium">확인 중...</span>
                       </div>
                     ) : verificationStatus === 'verified' ? (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-emerald-50 to-green-50 rounded-full border border-emerald-200 shadow-sm">
-                        <div className="flex items-center justify-center w-3 h-3 bg-emerald-500 rounded-full">
-                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-emerald-50 to-green-50 rounded-full border border-emerald-200 shadow-sm">
+                        <div className="flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 rounded-full">
+                          <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
                         <span className="text-xs text-emerald-700 font-medium">{t('myTab.verificationComplete')}</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-full border border-amber-200">
-                        <div className="flex items-center justify-center w-3 h-3 bg-amber-500 rounded-full">
-                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-50 rounded-full border border-amber-200">
+                        <div className="flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 bg-amber-500 rounded-full">
+                          <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                           </svg>
                         </div>
@@ -618,12 +618,12 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleMobileMenu}
-                className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
+                className="md:hidden p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-5 h-5 text-gray-600" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 ) : (
-                  <Menu className="w-5 h-5 text-gray-600" />
+                  <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 )}
               </Button>
 
@@ -634,7 +634,7 @@ export default function Header() {
                     e.preventDefault()
                     router.push('/main')
                   }}
-                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl"
+                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg shadow-lg hover:shadow-xl"
                 >
                   {t('header.startButton')}
                 </button>
@@ -658,10 +658,10 @@ export default function Header() {
         />
         
         {/* 메뉴 패널 */}
-        <div className={`absolute left-0 top-16 sm:top-20 w-56 sm:w-64 max-h-96 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 rounded-r-2xl transition-all duration-300 transform ${
+        <div className={`absolute left-0 top-14 sm:top-16 md:top-20 w-52 sm:w-56 md:w-64 max-h-80 sm:max-h-96 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 rounded-r-2xl transition-all duration-300 transform ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
-          <div className="pt-6 px-4 pb-4 space-y-2 max-h-96 overflow-y-auto">
+          <div className="pt-4 sm:pt-6 px-3 sm:px-4 pb-3 sm:pb-4 space-y-1 sm:space-y-2 max-h-80 sm:max-h-96 overflow-y-auto scroll-smooth-touch">
             {/* 메인 메뉴 */}
             <div className="space-y-1">
               {/* 랜딩페이지 및 문의페이지 네비게이션 메뉴 */}
@@ -674,13 +674,13 @@ export default function Header() {
                       router.push('/')
                       toggleMobileMenu()
                     }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
+                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
                       activeNavItem === '/' 
                         ? 'bg-purple-50 text-purple-600' 
                         : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
                     }`}
                   >
-                    <span className="text-base">🏠</span>
+                    <span className="text-sm sm:text-base">🏠</span>
                     {t('header.home')}
                   </button>
                   <button
@@ -690,13 +690,13 @@ export default function Header() {
                       router.push('/about')
                       toggleMobileMenu()
                     }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
+                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
                       activeNavItem === '/about' 
                         ? 'bg-purple-50 text-purple-600' 
                         : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
                     }`}
                   >
-                    <span className="text-base">🏢</span>
+                    <span className="text-sm sm:text-base">🏢</span>
                     {t('header.about')}
                   </button>
                   <button

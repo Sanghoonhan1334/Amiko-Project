@@ -1,729 +1,314 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/button'
+import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { 
-  ThumbsUp, 
-  ThumbsDown,
-  MessageSquare,
-  User,
-  Clock,
-  Star,
-  Pin,
-  Trophy,
-  Send,
-  Edit,
-  Trash2
-} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { createClientComponentClient } from '@/lib/supabase'
-import UserProfileModal from '@/components/common/UserProfileModal'
-
-interface Comment {
-  id: string
-  content: string
-  parent_id?: string
-  like_count: number
-  dislike_count: number
-  created_at: string
-  author: {
-    id: string
-    full_name: string
-    profile_image?: string
-  }
-  replies?: Comment[]
-}
+import CommentSection from './CommentSection'
 
 interface Post {
   id: string
   title: string
   content: string
-  is_notice: boolean
-  is_survey: boolean
-  is_verified: boolean
-  is_pinned: boolean
+  images: string[]
   view_count: number
   like_count: number
   dislike_count: number
   comment_count: number
+  is_pinned: boolean
+  is_hot: boolean
   created_at: string
   updated_at: string
-  author: {
+  user: {
     id: string
     full_name: string
-    profile_image?: string
-  }
-  category?: {
-    id: string
-    name: string
+    avatar_url?: string
   }
 }
+
 
 interface PostDetailProps {
-  post: Post
-  onClose: () => void
-  onUpdate: () => void
+  postId: string
+  onBack: () => void
+  onEdit?: () => void
+  onDelete?: () => void
 }
 
-export default function PostDetail({ post, onClose, onUpdate }: PostDetailProps) {
-  const { user, token } = useAuth()
-  const supabase = createClientComponentClient()
-  
-  // 상태 관리
-  const [postData, setPostData] = useState<Post>(post)
-  const [comments, setComments] = useState<Comment[]>([])
-  const [loading, setLoading] = useState(false)
+export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDetailProps) {
+  const { t, language } = useLanguage()
+  const { user } = useAuth()
+  const [post, setPost] = useState<Post | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [userReaction, setUserReaction] = useState<'like' | 'dislike' | null>(null)
-  const [reactionLoading, setReactionLoading] = useState(false)
-  const reactionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
-  // 댓글 작성
-  const [newComment, setNewComment] = useState('')
-  const [replyTo, setReplyTo] = useState<string | null>(null)
-  const [replyContent, setReplyContent] = useState('')
-  const [commentLoading, setCommentLoading] = useState(false)
-  
-  // 프로필 모달 상태
-  const [showProfileModal, setShowProfileModal] = useState(false)
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null)
 
-  // 게시글 상세 조회
-  const fetchPostDetail = async () => {
+  useEffect(() => {
+    loadPost()
+    loadUserVote()
+  }, [postId])
+
+  const loadPost = async () => {
     try {
       setLoading(true)
-      setError(null)
-
-      const response = await fetch(`/api/posts/${post.id}`)
+      const response = await fetch(`/api/posts/${postId}`)
       
       if (!response.ok) {
-        throw new Error('게시글을 불러오는데 실패했습니다.')
+        throw new Error('게시물을 불러오는데 실패했습니다')
       }
-
+      
       const data = await response.json()
-      setPostData(data.post)
+      setPost(data.post)
     } catch (err) {
-      console.error('게시글 상세 조회 실패:', err)
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      console.error('게시물 로드 오류:', err)
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다')
     } finally {
       setLoading(false)
     }
   }
 
-  // 댓글 목록 조회
-  const fetchComments = async () => {
-    try {
-      const response = await fetch(`/api/posts/${post.id}/comments`)
-      
-      if (!response.ok) {
-        throw new Error('댓글 목록을 불러오는데 실패했습니다.')
-      }
 
-      const data = await response.json()
-      setComments(data.comments)
-    } catch (err) {
-      console.error('댓글 목록 조회 실패:', err)
-    }
-  }
-
-  // 사용자 반응 상태 조회
-  const fetchUserReaction = async () => {
+  const loadUserVote = async () => {
     if (!user) return
-
+    
     try {
-      // AuthContext에서 토큰 가져오기
-      let currentToken = token
-      
-      if (!currentToken) {
-        try {
-          const { data: { session: directSession }, error } = await supabase.auth.getSession()
-          if (error) {
-            console.error('세션 가져오기 실패:', error)
-          } else {
-            currentToken = directSession?.access_token
-          }
-        } catch (error) {
-          console.error('세션 조회 중 오류:', error)
-        }
-      }
-      
-      if (!currentToken) return
-      const response = await fetch(`/api/posts/${post.id}/reactions`, {
+      const response = await fetch(`/api/posts/${postId}/vote`, {
         headers: {
-          'Authorization': `Bearer ${currentToken}`
+          'Authorization': `Bearer ${user.access_token}`
         }
       })
       
       if (response.ok) {
         const data = await response.json()
-        setUserReaction(data.user_reaction)
+        setUserVote(data.vote_type)
       }
     } catch (err) {
-      console.error('사용자 반응 조회 실패:', err)
+      console.error('투표 정보 로드 오류:', err)
     }
   }
 
-  // 게시글 반응 토글
-  const handleReaction = async (reactionType: 'like' | 'dislike') => {
-    console.log('반응 버튼 클릭됨:', reactionType)
-    
-    // 이미 처리 중이면 무시
-    // Ignore if already processing
-    if (reactionLoading) {
-      console.log('반응 처리 중이므로 무시')
-      return
-    }
-    
+  const handleVote = async (voteType: 'like' | 'dislike') => {
     if (!user) {
-      console.log('사용자가 로그인되지 않음')
-      setError('로그인이 필요합니다.')
+      setError('로그인이 필요합니다')
       return
     }
 
-    // 즉시 UI 업데이트 (낙관적 업데이트)
-    // Immediate UI update (optimistic update)
-    const currentReaction = userReaction
-    const newReaction = currentReaction === reactionType ? null : reactionType
-    
-    // 로컬 상태 즉시 업데이트
-    // Update local state immediately
-    setUserReaction(newReaction)
-    setPostData(prev => {
-      const newData = { ...prev }
-      
-      if (currentReaction === 'like') {
-        newData.like_count = Math.max(0, newData.like_count - 1)
-      } else if (currentReaction === 'dislike') {
-        newData.dislike_count = Math.max(0, newData.dislike_count - 1)
-      }
-      
-      if (newReaction === 'like') {
-        newData.like_count += 1
-      } else if (newReaction === 'dislike') {
-        newData.dislike_count += 1
-      }
-      
-      return newData
-    })
-
-    // 짧은 로딩 상태 (중복 클릭 방지용)
-    // Short loading state (for preventing duplicate clicks)
-    setReactionLoading(true)
-    
-    // 기존 타이머가 있으면 취소
-    // Cancel existing timer if any
-    if (reactionTimeoutRef.current) {
-      clearTimeout(reactionTimeoutRef.current)
-    }
-    
-    // 짧은 지연 후 로딩 해제 (사용자 경험 개선)
-    // Short delay before clearing loading (improve UX)
-    reactionTimeoutRef.current = setTimeout(() => {
-      setReactionLoading(false)
-      reactionTimeoutRef.current = null
-    }, 100) // 100ms 후 로딩 해제 (매우 빠르게)
-    
     try {
-      // AuthContext에서 토큰 가져오기
-      let currentToken = token
-      
-      if (!currentToken) {
-        try {
-          const { data: { session: directSession }, error } = await supabase.auth.getSession()
-          if (error) {
-            console.error('세션 가져오기 실패:', error)
-          } else {
-            currentToken = directSession?.access_token
-          }
-        } catch (error) {
-          console.error('세션 조회 중 오류:', error)
-        }
-      }
-      
-      console.log('토큰 상태:', { token: !!currentToken, user: !!user })
-      
-      if (!currentToken) {
-        console.log('토큰이 없음')
-        setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
-        // 실패 시 원래 상태로 복원
-        // Restore original state on failure
-        setUserReaction(currentReaction)
-        setPostData(prev => ({
-          ...prev,
-          like_count: postData.like_count,
-          dislike_count: postData.dislike_count
-        }))
-        return
-      }
-      
-      console.log('API 요청 시작:', { postId: post.id, reactionType })
-      
-      const response = await fetch(`/api/posts/${post.id}/reactions`, {
+      const response = await fetch(`/api/posts/${postId}/vote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentToken}`
+          'Authorization': `Bearer ${user.access_token}`
         },
-        body: JSON.stringify({ reaction_type: reactionType })
+        body: JSON.stringify({ vote_type: voteType })
       })
-
-      console.log('API 응답 상태:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('API 에러:', errorData)
-        throw new Error(errorData.error || '반응 처리에 실패했습니다.')
+        throw new Error(errorData.error || '투표에 실패했습니다')
       }
 
       const data = await response.json()
-      console.log('반응 처리 성공:', data)
-      console.log('카운트 상세:', data.counts)
+      console.log('투표 성공:', data)
       
-      // 서버에서 받은 실제 데이터로 동기화
-      // Sync with actual data from server
-      console.log('서버 카운트로 업데이트:', {
-        like_count: data.counts.like_count,
-        dislike_count: data.counts.dislike_count
-      })
-      
-      setUserReaction(data.reaction_type)
-      setPostData(prev => ({
-        ...prev,
-        like_count: data.counts.like_count,
-        dislike_count: data.counts.dislike_count
-      }))
-    } catch (err) {
-      console.error('반응 처리 실패:', err)
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
-      
-      // 실패 시 원래 상태로 복원
-      // Restore original state on failure
-      setUserReaction(currentReaction)
-      setPostData(prev => ({
-        ...prev,
-        like_count: postData.like_count,
-        dislike_count: postData.dislike_count
-      }))
-    }
-  }
-
-  // 댓글 작성
-  const handleCommentSubmit = async () => {
-    if (!user) {
-      setError('로그인이 필요합니다.')
-      return
-    }
-
-    if (!newComment.trim()) {
-      setError('댓글 내용을 입력해주세요.')
-      return
-    }
-
-    try {
-      setCommentLoading(true)
-      setError(null)
-
-      // AuthContext에서 토큰 가져오기
-      let currentToken = token
-      
-      // AuthContext에 토큰이 없으면 직접 가져오기
-      if (!currentToken) {
-        try {
-          const { data: { session: directSession }, error } = await supabase.auth.getSession()
-          if (error) {
-            console.error('세션 가져오기 실패:', error)
-          } else {
-            currentToken = directSession?.access_token
-          }
-        } catch (error) {
-          console.error('세션 조회 중 오류:', error)
-        }
-      }
-      
-      if (!currentToken) {
-        setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
-        return
-      }
-      
-      const response = await fetch(`/api/posts/${post.id}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentToken}`
-        },
-        body: JSON.stringify({
-          content: newComment.trim(),
-          parent_id: replyTo
+      setUserVote(data.vote_type)
+      if (post) {
+        setPost({
+          ...post,
+          like_count: data.like_count,
+          dislike_count: data.dislike_count
         })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || '댓글 작성에 실패했습니다.')
       }
-
-      // 댓글 작성 성공
-      setNewComment('')
-      setReplyTo(null)
-      setReplyContent('')
-      
-      // 댓글 목록 새로고침
-      await fetchComments()
-      
-      // 게시글 데이터 업데이트
-      await fetchPostDetail()
     } catch (err) {
-      console.error('댓글 작성 실패:', err)
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
-    } finally {
-      setCommentLoading(false)
+      console.error('투표 오류:', err)
+      setError(err instanceof Error ? err.message : '투표 처리 중 오류가 발생했습니다')
     }
   }
 
-  // 프로필 보기
-  const handleViewProfile = (userId: string) => {
-    setSelectedUserId(userId)
-    setShowProfileModal(true)
-  }
 
-  // 대댓글 작성
-  const handleReplySubmit = async (parentId: string) => {
-    if (!user) {
-      setError('로그인이 필요합니다.')
-      return
-    }
-
-    if (!replyContent.trim()) {
-      setError('댓글 내용을 입력해주세요.')
-      return
-    }
-
-    try {
-      setCommentLoading(true)
-      setError(null)
-
-      // AuthContext에서 토큰 가져오기
-      let currentToken = token
-      
-      if (!currentToken) {
-        try {
-          const { data: { session: directSession }, error } = await supabase.auth.getSession()
-          if (error) {
-            console.error('세션 가져오기 실패:', error)
-          } else {
-            currentToken = directSession?.access_token
-          }
-        } catch (error) {
-          console.error('세션 조회 중 오류:', error)
-        }
-      }
-      
-      if (!currentToken) {
-        setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
-        return
-      }
-      
-      const response = await fetch(`/api/posts/${post.id}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentToken}`
-        },
-        body: JSON.stringify({
-          content: replyContent.trim(),
-          parent_id: parentId
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || '댓글 작성에 실패했습니다.')
-      }
-
-      // 대댓글 작성 성공
-      setReplyContent('')
-      
-      // 댓글 목록 새로고침
-      await fetchComments()
-      
-      // 게시글 데이터 업데이트
-      await fetchPostDetail()
-    } catch (err) {
-      console.error('대댓글 작성 실패:', err)
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
-    } finally {
-      setCommentLoading(false)
-    }
-  }
-
-  // 날짜 포맷팅
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return date.toLocaleString('ko-KR')
   }
 
-  // 초기 로드
-  useEffect(() => {
-    fetchPostDetail()
-    fetchComments()
-    fetchUserReaction()
-  }, [post.id])
-
-  // 컴포넌트 언마운트 시 타이머 정리
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (reactionTimeoutRef.current) {
-        clearTimeout(reactionTimeoutRef.current)
-      }
-    }
-  }, [])
+  const formatContent = (content: string) => {
+    // 간단한 HTML 태그 처리 (실제로는 더 복잡한 마크다운 파서 사용 권장)
+    return content
+      .replace(/\n/g, '<br />')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+  }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">{t('postDetail.loadingPost')}</p>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">게시물을 불러오는 중...</p>
         </div>
       </div>
     )
   }
 
+  if (error || !post) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <p className="text-red-600 mb-4">{error || '게시물을 찾을 수 없습니다'}</p>
+          <Button onClick={onBack} variant="outline">
+            ← 목록으로 돌아가기
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const isAuthor = user && user.id === post.user.id
+
   return (
     <div className="space-y-6">
-      {/* 에러 메시지 */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">{error}</p>
-        </div>
-      )}
+      {/* 뒤로가기 버튼 */}
+      <Button onClick={onBack} variant="outline" className="mb-4">
+        ← 목록으로 돌아가기
+      </Button>
 
-      {/* 게시글 상세 */}
+      {/* 게시물 상세 */}
       <Card className="p-6">
-        <div className="space-y-4">
-          {/* 제목 및 메타 정보 */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              {postData.is_notice && <Pin className="w-4 h-4 text-red-500" />}
-              {postData.is_survey && <Trophy className="w-4 h-4 text-green-500" />}
-              {postData.is_verified && <Star className="w-4 h-4 text-blue-500" />}
-              <h1 className="text-2xl font-bold text-gray-900">{postData.title}</h1>
+        {/* 게시물 헤더 */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            {/* 작성자 아바타 */}
+            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+              {post.user.avatar_url ? (
+                <img 
+                  src={post.user.avatar_url} 
+                  alt={post.user.full_name}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-lg font-medium text-gray-600">
+                  {post.user.full_name.charAt(0)}
+                </span>
+              )}
             </div>
             
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <User className="w-4 h-4" />
-                {postData.author?.full_name || '익명'}
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {formatDate(postData.created_at)}
-              </div>
-              <div className="flex items-center gap-1">
-                <MessageSquare className="w-4 h-4" />
-{t('postDetail.views')} {postData.view_count}
-              </div>
+            <div>
+              <p className="font-semibold text-gray-800">{post.user.full_name}</p>
+              <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
             </div>
           </div>
 
-          {/* 반응 버튼 */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant={userReaction === 'like' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleReaction('like')}
-              disabled={reactionLoading}
-              className={`flex items-center gap-1 transition-all duration-200 ${
-                userReaction === 'like' 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'hover:bg-blue-50 hover:text-blue-600'
-              } ${reactionLoading ? 'opacity-50 cursor-not-allowed' : ''} active:scale-95 active:bg-blue-200 active:text-blue-800`}
-            >
-              <ThumbsUp className={`w-4 h-4 transition-colors duration-200 ${userReaction === 'like' ? 'text-white' : 'text-gray-600'}`} />
-              {postData.like_count}
-            </Button>
-            <Button
-              variant={userReaction === 'dislike' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleReaction('dislike')}
-              disabled={reactionLoading}
-              className={`flex items-center gap-1 transition-all duration-200 ${
-                userReaction === 'dislike' 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'hover:bg-red-50 hover:text-red-600'
-              } ${reactionLoading ? 'opacity-50 cursor-not-allowed' : ''} active:scale-95 active:bg-red-200 active:text-red-800`}
-            >
-              <ThumbsDown className={`w-4 h-4 transition-colors duration-200 ${userReaction === 'dislike' ? 'text-white' : 'text-gray-600'}`} />
-              {postData.dislike_count}
-            </Button>
-          </div>
-
-          {/* 내용 */}
-          <div className="prose max-w-none">
-            <div className="whitespace-pre-wrap text-gray-800">
-              {postData.content}
-            </div>
+          {/* 상태 배지 및 액션 버튼 */}
+          <div className="flex items-center space-x-2">
+            {post.is_pinned && (
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+                📌 고정
+              </Badge>
+            )}
+            {post.is_hot && (
+              <Badge variant="secondary" className="bg-red-100 text-red-700">
+                🔥 핫글
+              </Badge>
+            )}
+            
+            {isAuthor && (
+              <div className="flex space-x-2">
+                <Button size="sm" variant="outline" onClick={onEdit}>
+                  수정
+                </Button>
+                <Button size="sm" variant="outline" onClick={onDelete}>
+                  삭제
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-      </Card>
 
-      {/* 댓글 목록 */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">
-{t('postDetail.comments')} ({postData.comment_count})
-        </h3>
-        <div className="space-y-4">
-          {comments.map((comment) => (
-            <div key={comment.id} className="border-b border-gray-200 pb-4 last:border-b-0">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600" />
+        {/* 게시물 제목 */}
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">{post.title}</h1>
+
+        {/* 게시물 내용 */}
+        <div 
+          className="prose max-w-none mb-6"
+          dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+        />
+
+        {/* 이미지 갤러리 */}
+        {post.images && post.images.length > 0 && (
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {post.images.map((image, index) => (
+                <div key={index} className="relative group">
+                  <img 
+                    src={image} 
+                    alt={`첨부 이미지 ${index + 1}`}
+                    className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => window.open(image, '_blank')}
+                  />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {comment.author?.id ? (
-                      <button
-                        onClick={() => handleViewProfile(comment.author.id)}
-                        className="font-medium text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                      >
-                        {comment.author?.full_name || '익명'}
-                      </button>
-                    ) : (
-                      <span className="font-medium text-sm">{comment.author?.full_name || '익명'}</span>
-                    )}
-                    <span className="text-xs text-gray-500">
-                      {formatDate(comment.created_at)}
-                    </span>
-                  </div>
-                  <p className="text-gray-800 mb-2">{comment.content}</p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-                    >
-                      {t('postDetail.reply')}
-                    </Button>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <ThumbsUp className="w-3 h-3" />
-                      {comment.like_count}
-                      <ThumbsDown className="w-3 h-3 ml-2" />
-                      {comment.dislike_count}
-                    </div>
-                  </div>
-                  
-                  {/* 대댓글 작성 */}
-                  {replyTo === comment.id && (
-                    <div className="mt-3 pl-4 border-l-2 border-gray-200">
-                      <Textarea
-                        placeholder={t('postDetail.replyPlaceholder')}
-                        value={replyContent}
-                        onChange={(e) => setReplyContent(e.target.value)}
-                        rows={2}
-                        className="mb-2"
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleReplySubmit(comment.id)}
-                          disabled={commentLoading}
-                        >
-{t('postDetail.writeReply')}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setReplyTo(null)}
-                        >
-{t('buttons.cancel')}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* 대댓글 목록 */}
-                  {comment.replies && comment.replies.length > 0 && (
-                    <div className="mt-3 pl-4 border-l-2 border-gray-200 space-y-3">
-                      {comment.replies.map((reply) => (
-                        <div key={reply.id} className="flex items-start gap-3">
-                          <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                            <User className="w-3 h-3 text-gray-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              {reply.author?.id ? (
-                                <button
-                                  onClick={() => handleViewProfile(reply.author.id)}
-                                  className="font-medium text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                                >
-                                  {reply.author?.full_name || '익명'}
-                                </button>
-                              ) : (
-                                <span className="font-medium text-sm">{reply.author?.full_name || '익명'}</span>
-                              )}
-                              <span className="text-xs text-gray-500">
-                                {formatDate(reply.created_at)}
-                              </span>
-                            </div>
-                            <p className="text-gray-800">{reply.content}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-          
-          {comments.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-{t('postDetail.noComments')}
-            </div>
-          )}
-        </div>
-      </Card>
+          </div>
+        )}
 
-      {/* 댓글 작성 */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">{t('postDetail.writeComment')}</h3>
-        <div className="space-y-4">
-          <Textarea
-            placeholder={t('postDetail.commentPlaceholder')}
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            rows={3}
-          />
-          <div className="flex justify-end">
-            <Button
-              onClick={handleCommentSubmit}
-              disabled={commentLoading}
-              className="bg-blue-600 hover:bg-blue-700"
+        {/* 통계 및 액션 */}
+        <div className="flex items-center justify-between pt-6 border-t">
+          <div className="flex items-center space-x-6 text-sm text-gray-500">
+            <div className="flex items-center">
+              <span className="mr-1">👁️</span>
+              <span>{post.view_count}</span>
+            </div>
+            <div className="flex items-center">
+              <span className="mr-1">💬</span>
+              <span>{post.comment_count}</span>
+            </div>
+          </div>
+
+          {/* 추천/비추천 버튼 */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => handleVote('like')}
+              disabled={!user}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                userVote === 'like'
+                  ? 'bg-green-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-600'
+              } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-{commentLoading ? t('buttons.writing') : t('postDetail.writeComment')}
-            </Button>
+              <span className="text-lg">👍</span>
+              <span className="font-medium">{post.like_count}</span>
+            </button>
+            
+            <button
+              onClick={() => handleVote('dislike')}
+              disabled={!user}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                userVote === 'dislike'
+                  ? 'bg-red-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
+              } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span className="text-lg">👎</span>
+              <span className="font-medium">{post.dislike_count}</span>
+            </button>
+            
+            {!user && (
+              <span className="text-xs text-gray-500 ml-2">
+                로그인 후 투표 가능
+              </span>
+            )}
           </div>
         </div>
       </Card>
 
-      {/* 사용자 프로필 모달 */}
-      <UserProfileModal
-        userId={selectedUserId}
-        isOpen={showProfileModal}
-        onClose={() => {
-          setShowProfileModal(false)
-          setSelectedUserId(null)
+      {/* 댓글 섹션 */}
+      <CommentSection 
+        postId={post.id} 
+        onCommentCountChange={(count) => {
+          // 댓글 수가 변경되면 게시물 정보 업데이트
+          setPost(prev => prev ? { ...prev, comment_count: count } : null)
         }}
       />
     </div>

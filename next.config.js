@@ -26,13 +26,6 @@ const nextConfig = {
       tls: false,
     };
     
-    // 개발 환경에서 청크 분할 비활성화 (모듈 에러 방지)
-    if (dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: false,
-      };
-    }
     return config;
   },
 };

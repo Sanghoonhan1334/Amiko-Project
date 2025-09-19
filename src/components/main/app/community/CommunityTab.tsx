@@ -24,7 +24,9 @@ import {
   Camera
 } from 'lucide-react'
 import VerificationGuard from '@/components/common/VerificationGuard'
-import FreeBoard from './FreeBoard'
+import CommunityMain from './CommunityMain'
+import BoardList from './BoardList'
+import NewsDetail from './NewsDetail'
 import { useLanguage } from '@/context/LanguageContext'
 import { useUser } from '@/context/UserContext'
 import { useAuth } from '@/context/AuthContext'
@@ -182,6 +184,35 @@ export default function CommunityTab() {
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null)
   const [showQuestionModal, setShowQuestionModal] = useState(false)
   const [showAnswerDrawer, setShowAnswerDrawer] = useState(false)
+  const [selectedNews, setSelectedNews] = useState<any>(null)
+  const [showNewsDetail, setShowNewsDetail] = useState(false)
+  const [showSpanishNews, setShowSpanishNews] = useState(false) // 뉴스 번역 상태
+  const [isTranslating, setIsTranslating] = useState(false) // 번역 중 상태
+  
+  // 언어 변경 시 자동 번역 처리
+  useEffect(() => {
+    if (language === 'es' && !showSpanishNews) {
+      // 스페인어로 변경되었고 현재 한국어 뉴스가 표시 중이면 자동 번역 시작
+      setIsTranslating(true)
+      
+      // 번역 시뮬레이션 (실제로는 API 호출)
+      setTimeout(() => {
+        setShowSpanishNews(true)
+        setIsTranslating(false)
+      }, 1500) // 1.5초 후 번역 완료
+    } else if (language === 'ko' && showSpanishNews) {
+      // 한국어로 변경되었고 현재 스페인어 뉴스가 표시 중이면 한국어로 복원
+      setShowSpanishNews(false)
+      setIsTranslating(false)
+    }
+  }, [language, showSpanishNews])
+  
+  // 뉴스 탭 활성화 시 실제 뉴스 로드
+  useEffect(() => {
+    if (activeTab === 'news' && newsData.length === 0) {
+      fetchRealNews()
+    }
+  }, [activeTab])
   const [showStoryUploadModal, setShowStoryUploadModal] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -197,6 +228,157 @@ export default function CommunityTab() {
   const [showCommentModal, setShowCommentModal] = useState(false)
   const [selectedStoryForComment, setSelectedStoryForComment] = useState<any>(null)
   const [commentText, setCommentText] = useState('')
+  
+  // 뉴스 데이터 상태
+  const [newsData, setNewsData] = useState<any[]>([])
+  const [newsLoading, setNewsLoading] = useState(false)
+  const [newsError, setNewsError] = useState<string | null>(null)
+  
+  // 실제 뉴스 데이터 (임시 - API 호출로 대체 예정)
+  const tempNewsData = [
+    {
+      id: 1,
+      title: '"한국 문화가 세계를 휩쓸고 있다!" 글로벌 K-콘텐츠 열풍',
+      title_es: '"¡La cultura coreana está arrasando el mundo!" Torbellino global de contenido K',
+      source: 'NewsWA',
+      date: '2025.09.18',
+      thumbnail: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face',
+      content: `한국의 전통문화와 현대문화가 조화롭게 발전하고 있습니다. K-팝, K-드라마, K-푸드 등 한국 문화 콘텐츠가 전 세계적으로 큰 인기를 얻고 있으며, 이를 통해 한국의 문화적 가치가 더욱 널리 알려지고 있습니다.
+
+최근 넷플릭스에서 한국 드라마가 상위권을 차지하고 있고, BTS, 뉴진스 등 K-팝 아티스트들이 빌보드 차트를 휩쓸고 있습니다. 또한 김치, 비빔밥 등 한국 음식도 전 세계인의 입맛을 사로잡고 있습니다.
+
+이러한 한국 문화의 글로벌 확산은 단순한 트렌드를 넘어서 한국의 소프트 파워를 강화하고 있으며, 문화적 교류와 이해를 증진시키는 중요한 역할을 하고 있습니다.`,
+      content_es: `La cultura tradicional y moderna de Corea se está desarrollando de manera armoniosa. El contenido cultural coreano como K-pop, K-drama, K-food está ganando gran popularidad en todo el mundo, y a través de esto, los valores culturales de Corea se están dando a conocer más ampliamente.
+
+Recientemente, los dramas coreanos han ocupado los primeros lugares en Netflix, y artistas de K-pop como BTS, NewJeans están arrasando en las listas de Billboard. Además, la comida coreana como kimchi y bibimbap también está conquistando el paladar de personas de todo el mundo.
+
+Esta expansión global de la cultura coreana va más allá de una simple tendencia, fortaleciendo el poder blando de Corea y desempeñando un papel importante en la promoción del intercambio cultural y la comprensión.`,
+      author: '김지혜',
+      views: 1250,
+      likes: 45,
+      comments: 12
+    },
+    {
+      id: 2,
+      title: '"김치가 세계를 정복했다!" K-푸드 열풍의 숨겨진 비밀',
+      source: '서울En',
+      date: '2025.09.18',
+      thumbnail: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=80&h=80&fit=crop&crop=face',
+      content: `한국 음식의 세계적 인기가 계속해서 높아지고 있습니다. 김치, 비빔밥, 불고기 등 전통 한국 요리뿐만 아니라 한국식 치킨, 떡볶이, 라면 등 간식류도 해외에서 큰 사랑을 받고 있습니다.
+
+특히 김치는 세계 5대 건강식품으로 선정되면서 전 세계인의 관심을 받고 있습니다. 발효 과정에서 생성되는 유익한 박테리아들이 건강에 도움이 된다는 연구 결과가 나오면서 더욱 주목받고 있습니다.
+
+한국 정부도 K-푸드의 글로벌 확산을 위해 다양한 정책을 추진하고 있으며, 해외 한국 식당의 수가 급증하고 있습니다.`,
+      author: '박민수',
+      views: 980,
+      likes: 32,
+      comments: 8
+    },
+    {
+      id: 3,
+      title: '"한국이 다시 핫하다!" 외국인 관광객 몰려드는 충격 현황',
+      source: 'NewsWA',
+      date: '2025.09.18',
+      thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
+      content: `한국 관광산업이 코로나19 이후 빠르게 회복되고 있습니다. 서울, 부산, 제주도 등 주요 관광지에 외국인 관광객들이 다시 찾아오고 있으며, 한국의 아름다운 자연과 문화를 경험하고자 하는 관심이 높아지고 있습니다.
+
+특히 한류 콘텐츠를 통해 한국에 관심을 갖게 된 젊은 관광객들이 크게 증가하고 있습니다. K-팝 콘서트, 드라마 촬영지 투어, 한국 전통문화 체험 등이 인기 관광 상품으로 떠오르고 있습니다.
+
+정부는 관광 인프라 확충과 다양한 관광 상품 개발에 힘쓰고 있으며, 앞으로도 한국 관광산업의 성장이 기대됩니다.`,
+      author: '이수진',
+      views: 1560,
+      likes: 67,
+      comments: 15
+    },
+    {
+      id: 4,
+      title: '"한국 기술이 세계 1위다!" 삼성·LG가 세계를 뒤흔드는 이유',
+      source: '서울En',
+      date: '2025.09.18',
+      thumbnail: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
+      content: `한국의 기술 혁신이 세계를 선도하고 있습니다. 반도체, 배터리, 디스플레이 등 첨단 기술 분야에서 한국 기업들의 경쟁력이 더욱 강화되고 있으며, AI, 자율주행, 로봇 등 미래 기술 개발에도 적극적으로 투자하고 있습니다.
+
+삼성전자는 메모리 반도체 분야에서 세계 1위를 유지하고 있으며, LG에너지솔루션은 전기차 배터리 시장에서 강력한 경쟁력을 보이고 있습니다. 또한 SK하이닉스, 현대자동차 등도 각 분야에서 혁신적인 기술을 선보이고 있습니다.
+
+정부는 반도체, 배터리, 디스플레이를 3대 핵심 기술로 지정하고 집중 투자하고 있으며, 한국의 기술력이 더욱 발전할 것으로 기대됩니다.`,
+      author: '최영호',
+      views: 2100,
+      likes: 89,
+      comments: 23
+    },
+    {
+      id: 5,
+      title: '"한국 배우들이 할리우드를 휩쓴다!" K-드라마 열풍의 진실',
+      source: 'NewsWA',
+      date: '2025.09.18',
+      thumbnail: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face',
+      content: `한국 드라마와 영화가 전 세계에서 큰 인기를 얻고 있습니다. 넷플릭스, 디즈니+ 등 글로벌 플랫폼에서 한국 콘텐츠가 상위권을 차지하고 있으며, 한국 배우들의 해외 진출도 활발해지고 있습니다.
+
+최근 '오징어 게임', '기생충' 등이 아카데미상과 에미상을 수상하면서 한국 콘텐츠의 위상이 더욱 높아졌습니다. 또한 송강호, 이정재, 박해진 등 한국 배우들이 할리우드에서 활발하게 활동하고 있습니다.
+
+한국 드라마의 성공 요인으로는 뛰어난 스토리텔링, 세련된 연출, 탄탄한 연기력 등이 꼽히고 있으며, 앞으로도 한국 콘텐츠의 글로벌 확산이 지속될 것으로 예상됩니다.`,
+      author: '정미영',
+      views: 1890,
+      likes: 76,
+      comments: 19
+    },
+    {
+      id: 6,
+      title: '"BTS 다음은 누구?" K-팝 4세대 아이돌들의 충격적인 성과',
+      source: '서울En',
+      date: '2025.09.18',
+      thumbnail: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face',
+      content: `K-팝 4세대 아이돌들이 전 세계적으로 큰 인기를 얻고 있습니다. 뉴진스, IVE, (여자)아이들 등이 빌보드 차트에 진입하며 한국 음악의 위상을 더욱 높이고 있습니다.
+
+특히 뉴진스는 'Attention', 'Hype Boy' 등으로 전 세계적인 인기를 얻었고, IVE는 'Love Dive', 'After LIKE' 등으로 차트를 휩쓸었습니다. 또한 (여자)아이들, aespa, ITZY 등도 각각의 독특한 컨셉으로 해외 팬들의 사랑을 받고 있습니다.
+
+이들의 성공은 BTS, 블랙핑크 등 선배 그룹들이 쌓아온 K-팝의 글로벌 인지도를 바탕으로 하고 있으며, 앞으로도 더 많은 한국 아티스트들이 세계 무대에서 활약할 것으로 기대됩니다.`,
+      author: '한지민',
+      views: 2340,
+      likes: 112,
+      comments: 28
+    }
+  ]
+  
+  // 실제 뉴스 API 호출 함수
+  const fetchRealNews = async () => {
+    setNewsLoading(true)
+    setNewsError(null)
+    
+    try {
+      const response = await fetch('/api/news?category=entertainment&limit=5')
+      const data = await response.json()
+      
+      if (data.success) {
+        setNewsData(data.news)
+        console.log('실제 뉴스 로드 성공:', data.news.length, '개')
+      } else {
+        throw new Error(data.error || '뉴스를 불러오는데 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('뉴스 API 오류:', error)
+      setNewsError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.')
+      // 오류 시 임시 데이터 사용
+      setNewsData(tempNewsData)
+    } finally {
+      setNewsLoading(false)
+    }
+  }
+  
+  // 뉴스 클릭 핸들러
+  const handleNewsClick = (news: any, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    console.log('뉴스 클릭:', news)
+    if (news && news.id) {
+      setSelectedNews(news)
+      setShowNewsDetail(true)
+    } else {
+      console.error('뉴스 데이터가 올바르지 않습니다:', news)
+    }
+  }
   
   // 데이터 상태 관리
   const [questions, setQuestions] = useState<any[]>([])
@@ -234,80 +416,68 @@ export default function CommunityTab() {
 
   // 데이터 로딩 함수들
   const loadQuestions = async () => {
-    console.log('loadQuestions 호출됨:', { user: !!user, token: !!token, activeTab })
-    if (!user && !token) {
-      console.log('사용자와 토큰이 모두 없어서 loadQuestions 건너뜀')
-      return
-    }
+    console.log('loadQuestions 호출됨 - 더미 데이터 사용')
     
-    setLoading(true)
-    setError(null)
+    // 임시로 더미 질문 데이터 설정
+    const dummyQuestions = [
+      {
+        id: 1,
+        title: '한국어 학습에 도움이 되는 앱 추천해주세요!',
+        content: '한국어를 배우고 있는데 좋은 앱이 있을까요?',
+        author: '김학생',
+        createdAt: '2025-09-18',
+        upvotes: 5,
+        answers: 3
+      },
+      {
+        id: 2,
+        title: '한국 문화에 대해 궁금한 점이 있어요',
+        content: '한국의 전통 문화와 현대 문화의 차이점이 궁금합니다.',
+        author: '박문화',
+        createdAt: '2025-09-17',
+        upvotes: 8,
+        answers: 7
+      },
+      {
+        id: 3,
+        title: '한국 여행 계획 도움 요청',
+        content: '첫 한국 여행인데 어디를 가야 할지 모르겠어요.',
+        author: '이여행',
+        createdAt: '2025-09-16',
+        upvotes: 12,
+        answers: 15
+      }
+    ]
     
-    try {
-      // 질문 목록 조회 (자유게시판 카테고리)
-      const category = encodeURIComponent('자유게시판')
-      const url = `/api/posts?category=${category}&sort=latest&limit=20`
-      console.log('API 호출 URL:', url)
-      
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      console.log('질문 목록 API 응답:', { 
-        status: response.status, 
-        statusText: response.statusText,
-        ok: response.ok 
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('질문 목록 API 에러 응답:', errorData)
-        throw new Error(errorData.error || `질문을 불러오는데 실패했습니다. (${response.status})`)
-      }
-      
-      const data = await response.json()
-      console.log('질문 목록 조회 응답:', { 
-        data,
-        postsCount: data.posts?.length || 0
-      })
-      
-      setQuestions(data.posts || [])
-      console.log('질문 목록 설정 완료:', data.posts?.length || 0, '개')
-    } catch (err) {
-      console.error('질문 로딩 실패:', err)
-      // 네트워크 에러인 경우 더 자세한 정보 출력
-      if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        console.error('네트워크 에러 - 서버 연결을 확인해주세요')
-        setError('서버 연결에 실패했습니다. 네트워크를 확인해주세요.')
-      } else {
-        setError(err instanceof Error ? err.message : '질문을 불러오는데 실패했습니다.')
-      }
-      // 에러 시 빈 배열 사용
-      setQuestions([])
-    } finally {
-      setLoading(false)
-    }
+    setQuestions(dummyQuestions)
+    console.log('더미 질문 데이터 설정 완료:', dummyQuestions.length, '개')
   }
 
   const loadAnswers = async (questionId: string) => {
-    if (!user) return
+    console.log('loadAnswers 호출됨 - 더미 데이터 사용:', questionId)
     
-    try {
-      const response = await fetch(`/api/comments?postId=${questionId}`)
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.error || '답변을 불러오는데 실패했습니다.')
+    // 임시로 더미 답변 데이터 설정
+    const dummyAnswers = [
+      {
+        id: 1,
+        content: '한국어 학습에는 "듀오링고"나 "헬로톡" 같은 앱이 좋아요!',
+        author: '한국어선생님',
+        createdAt: '2025-09-18',
+        upvotes: 3,
+        isAccepted: false
+      },
+      {
+        id: 2,
+        content: '저는 "토픽" 앱을 사용하고 있는데 정말 도움이 됩니다.',
+        author: '학습자',
+        createdAt: '2025-09-18',
+        upvotes: 2,
+        isAccepted: false
       }
-      
-      setAnswers(data.comments || [])
-    } catch (err) {
-      console.error('답변 로딩 실패:', err)
-      // 에러 시 빈 배열 사용
-      setAnswers([])
-    }
+    ]
+    
+    setAnswers(dummyAnswers)
+    console.log('더미 답변 데이터 설정 완료:', dummyAnswers.length, '개')
   }
 
   // 스토리 로딩 함수
@@ -1234,7 +1404,9 @@ export default function CommunityTab() {
                     {/* 스토리 클릭 시 전체 보기 모달 (좋아요 버튼 제외) */}
                     <div 
                       className="absolute inset-0 z-10"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
                         setSelectedStory(story)
                         setShowStoryModal(true)
                       }}
@@ -1262,11 +1434,11 @@ export default function CommunityTab() {
       </div>
 
       {/* 세그먼트 탭 네비게이션 */}
-      <div className="bg-white rounded-2xl p-1 shadow-lg mb-6">
+      <div className="bg-white rounded-2xl p-1 shadow-lg mb-4 sm:mb-6">
         <div className="grid grid-cols-3 gap-1">
           <button
             onClick={() => handleTabChange('freeboard')}
-            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeTab === 'freeboard'
                 ? 'bg-pink-100 text-pink-700 shadow-sm'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
@@ -1280,7 +1452,7 @@ export default function CommunityTab() {
           
           <button
             onClick={() => handleTabChange('news')}
-            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeTab === 'news'
                 ? 'bg-pink-100 text-pink-700 shadow-sm'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
@@ -1294,7 +1466,7 @@ export default function CommunityTab() {
           
           <button
             onClick={() => handleTabChange('qa')}
-            className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeTab === 'qa'
                 ? 'bg-purple-100 text-purple-700 shadow-sm'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
@@ -1407,13 +1579,13 @@ export default function CommunityTab() {
 
       {/* 카테고리 탭 */}
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full mt-8">
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-8 bg-gray-50">
-          <TabsTrigger value="all" className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1 sm:gap-2 mb-6 sm:mb-8 bg-gray-50">
+          <TabsTrigger value="all" className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-2 py-2 sm:px-3 sm:py-2">
             <Star className="w-3 h-3 sm:w-4 sm:h-4" />
             {t('communityTab.categories.all')}
           </TabsTrigger>
           {getCategories(t).map(category => (
-            <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm">
+            <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-2 py-2 sm:px-3 sm:py-2">
               <span>{category.icon}</span>
               <span className="truncate">{category.name}</span>
             </TabsTrigger>
@@ -1427,7 +1599,11 @@ export default function CommunityTab() {
               <div key={question.id}>
                 <Card 
                   className="p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
-                  onClick={() => handleQuestionClick(question)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleQuestionClick(question)
+                  }}
                 >
                   <div className="flex items-start gap-4">
                     {/* 업보트 영역 */}
@@ -1532,437 +1708,173 @@ export default function CommunityTab() {
 
       {activeTab === 'freeboard' && (
         <div className="space-y-6">
-          <FreeBoard />
-                  </div>
+          <BoardList 
+            onPostSelect={(post) => {
+              console.log('게시글 선택:', post)
+              // 게시글 상세 보기 로직
+            }}
+            onWritePost={() => {
+              console.log('글쓰기 클릭')
+              // 글쓰기 모달 열기 로직
+            }}
+          />
+        </div>
       )}
 
       {activeTab === 'news' && (
         <div className="space-y-6">
-          {/* 한국뉴스 섹션 */}
-          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200/50 shadow-lg">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <span className="text-xl">📰</span>
-              </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800">최신 한국 뉴스</h3>
-                  <p className="text-gray-600">한국의 최신 소식과 트렌드</p>
+          {showNewsDetail && selectedNews ? (
+            // 뉴스 상세 내용 (전체 영역)
+            <NewsDetail 
+              news={selectedNews} 
+              onBack={() => {
+                setShowNewsDetail(false)
+                setSelectedNews(null)
+              }}
+              showSpanish={showSpanishNews}
+            />
+          ) : (
+            // 뉴스 목록
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200/50 shadow-lg">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <span className="text-xl">📰</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-800">최신 한국 뉴스</h3>
+                      <p className="text-gray-600">한국의 최신 소식과 트렌드</p>
+                    </div>
                   </div>
-                </div>
-                
-              {/* 뉴스 영상 목록 */}
-              <div className="space-y-6">
-                {/* 샘플 뉴스 영상 1 */}
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-gray-800 mb-1">한국 문화 소식</h4>
-                    <p className="text-sm text-gray-600">최신 한국 문화 동향</p>
-                    <p className="text-xs text-gray-500 mt-1">2시간 전</p>
-                  </div>
-                  <div className="instagram-embed-wrapper">
-                    <blockquote 
-                      className="instagram-media" 
-                      data-instgrm-permalink="https://www.instagram.com/p/DOsXrrEEZo9/"
-                      data-instgrm-version="14"
-                      style={{
-                        background: '#FFF',
-                        border: '0',
-                        borderRadius: '3px',
-                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
-                        margin: '1px',
-                        maxWidth: '540px',
-                        minWidth: '326px',
-                        padding: '0',
-                        width: '99.375%'
-                      }}
-                    >
-                      <div style={{ padding: '16px' }}>
-                        <a 
-                          href="https://www.instagram.com/p/DOsXrrEEZo9/" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          style={{
-                            background: '#FFFFFF',
-                            lineHeight: '0',
-                            padding: '0 0',
-                            textAlign: 'center',
-                            textDecoration: 'none',
-                            width: '100%'
-                          }}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                            <div style={{
-                              backgroundColor: '#F4F4F4',
-                              borderRadius: '50%',
-                              flexGrow: '0',
-                              height: '40px',
-                              marginRight: '14px',
-                              width: '40px'
-                            }}></div>
-                            <div style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              flexGrow: '1',
-                              justifyContent: 'center'
-                            }}>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                marginBottom: '6px',
-                                width: '100px'
-                              }}></div>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                width: '60px'
-                              }}></div>
-                            </div>
-                          </div>
-                          <div style={{ padding: '19% 0' }}></div>
-                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
-                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
-                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
-                                  <g>
-                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
-                                  </g>
-                                </g>
-                              </g>
-                            </svg>
-                          </div>
-                          <div style={{ paddingTop: '8px' }}>
-                            <div style={{
-                              color: '#3897f0',
-                              fontFamily: 'Arial,sans-serif',
-                              fontSize: '14px',
-                              fontStyle: 'normal',
-                              fontWeight: '550',
-                              lineHeight: '18px'
-                            }}>
-                              Instagram에서 이 게시물 보기
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </blockquote>
-                  </div>
-                </div>
-
-                {/* 샘플 뉴스 영상 2 */}
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-gray-800 mb-1">한국 음식 소식</h4>
-                    <p className="text-sm text-gray-600">K-푸드 관련 최신 소식</p>
-                    <p className="text-xs text-gray-500 mt-1">5시간 전</p>
-                  </div>
-                  <div className="instagram-embed-wrapper">
-                    <blockquote 
-                      className="instagram-media" 
-                      data-instgrm-permalink="https://www.instagram.com/p/DOsXnCkkb_y/"
-                      data-instgrm-version="14"
-                      style={{
-                        background: '#FFF',
-                        border: '0',
-                        borderRadius: '3px',
-                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
-                        margin: '1px',
-                        maxWidth: '540px',
-                        minWidth: '326px',
-                        padding: '0',
-                        width: '99.375%'
-                      }}
-                    >
-                      <div style={{ padding: '16px' }}>
-                        <a 
-                          href="https://www.instagram.com/p/DOsXnCkkb_y/" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          style={{
-                            background: '#FFFFFF',
-                            lineHeight: '0',
-                            padding: '0 0',
-                            textAlign: 'center',
-                            textDecoration: 'none',
-                            width: '100%'
-                          }}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                            <div style={{
-                              backgroundColor: '#F4F4F4',
-                              borderRadius: '50%',
-                              flexGrow: '0',
-                              height: '40px',
-                              marginRight: '14px',
-                              width: '40px'
-                            }}></div>
-                            <div style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              flexGrow: '1',
-                              justifyContent: 'center'
-                            }}>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                marginBottom: '6px',
-                                width: '100px'
-                              }}></div>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                width: '60px'
-                              }}></div>
-                            </div>
-                          </div>
-                          <div style={{ padding: '19% 0' }}></div>
-                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
-                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
-                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
-                                  <g>
-                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
-                                  </g>
-                                </g>
-                              </g>
-                            </svg>
-                          </div>
-                          <div style={{ paddingTop: '8px' }}>
-                            <div style={{
-                              color: '#3897f0',
-                              fontFamily: 'Arial,sans-serif',
-                              fontSize: '14px',
-                              fontStyle: 'normal',
-                              fontWeight: '550',
-                              lineHeight: '18px'
-                            }}>
-                              Instagram에서 이 게시물 보기
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </blockquote>
-                  </div>
-                </div>
-
-                {/* 세 번째 뉴스 영상 */}
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-gray-800 mb-1">한국 여행 소식</h4>
-                    <p className="text-sm text-gray-600">한국 관광 관련 최신 소식</p>
-                    <p className="text-xs text-gray-500 mt-1">1일 전</p>
-                  </div>
-                  <div className="instagram-embed-wrapper">
-                    <blockquote 
-                      className="instagram-media" 
-                      data-instgrm-permalink="https://www.instagram.com/p/DOpNMYDE69S/"
-                      data-instgrm-version="14"
-                      style={{
-                        background: '#FFF',
-                        border: '0',
-                        borderRadius: '3px',
-                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
-                        margin: '1px',
-                        maxWidth: '540px',
-                        minWidth: '326px',
-                        padding: '0',
-                        width: '99.375%'
-                      }}
-                    >
-                      <div style={{ padding: '16px' }}>
-                        <a 
-                          href="https://www.instagram.com/p/DOpNMYDE69S/" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          style={{
-                            background: '#FFFFFF',
-                            lineHeight: '0',
-                            padding: '0 0',
-                            textAlign: 'center',
-                            textDecoration: 'none',
-                            width: '100%'
-                          }}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                            <div style={{
-                              backgroundColor: '#F4F4F4',
-                              borderRadius: '50%',
-                              flexGrow: '0',
-                              height: '40px',
-                              marginRight: '14px',
-                              width: '40px'
-                            }}></div>
-                            <div style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              flexGrow: '1',
-                              justifyContent: 'center'
-                            }}>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                marginBottom: '6px',
-                                width: '100px'
-                              }}></div>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                width: '60px'
-                              }}></div>
-                            </div>
-                          </div>
-                          <div style={{ padding: '19% 0' }}></div>
-                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
-                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
-                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
-                                  <g>
-                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
-                                  </g>
-                                </g>
-                              </g>
-                            </svg>
-                          </div>
-                          <div style={{ paddingTop: '8px' }}>
-                            <div style={{
-                              color: '#3897f0',
-                              fontFamily: 'Arial,sans-serif',
-                              fontSize: '14px',
-                              fontStyle: 'normal',
-                              fontWeight: '550',
-                              lineHeight: '18px'
-                            }}>
-                              Instagram에서 이 게시물 보기
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </blockquote>
-                  </div>
-                </div>
-
-                {/* 네 번째 뉴스 영상 */}
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-gray-800 mb-1">한국 기술 소식</h4>
-                    <p className="text-sm text-gray-600">한국 기술 관련 최신 소식</p>
-                    <p className="text-xs text-gray-500 mt-1">2일 전</p>
-                  </div>
-                  <div className="instagram-embed-wrapper">
-                    <blockquote 
-                      className="instagram-media" 
-                      data-instgrm-permalink="https://www.instagram.com/p/DOpNF65k8GS/"
-                      data-instgrm-version="14"
-                      style={{
-                        background: '#FFF',
-                        border: '0',
-                        borderRadius: '3px',
-                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)',
-                        margin: '1px',
-                        maxWidth: '540px',
-                        minWidth: '326px',
-                        padding: '0',
-                        width: '99.375%'
-                      }}
-                    >
-                      <div style={{ padding: '16px' }}>
-                        <a 
-                          href="https://www.instagram.com/p/DOpNF65k8GS/" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          style={{
-                            background: '#FFFFFF',
-                            lineHeight: '0',
-                            padding: '0 0',
-                            textAlign: 'center',
-                            textDecoration: 'none',
-                            width: '100%'
-                          }}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                            <div style={{
-                              backgroundColor: '#F4F4F4',
-                              borderRadius: '50%',
-                              flexGrow: '0',
-                              height: '40px',
-                              marginRight: '14px',
-                              width: '40px'
-                            }}></div>
-                            <div style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              flexGrow: '1',
-                              justifyContent: 'center'
-                            }}>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                marginBottom: '6px',
-                                width: '100px'
-                              }}></div>
-                              <div style={{
-                                backgroundColor: '#F4F4F4',
-                                borderRadius: '4px',
-                                flexGrow: '0',
-                                height: '14px',
-                                width: '60px'
-                              }}></div>
-                            </div>
-                          </div>
-                          <div style={{ padding: '19% 0' }}></div>
-                          <div style={{ display: 'block', height: '50px', margin: '0 auto 12px', width: '50px' }}>
-                            <svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1">
-                              <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                                <g transform="translate(-511.000000, -20.000000)" fill="#000000">
-                                  <g>
-                                    <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
-                                  </g>
-                                </g>
-                              </g>
-                            </svg>
-                          </div>
-                          <div style={{ paddingTop: '8px' }}>
-                            <div style={{
-                              color: '#3897f0',
-                              fontFamily: 'Arial,sans-serif',
-                              fontSize: '14px',
-                              fontStyle: 'normal',
-                              fontWeight: '550',
-                              lineHeight: '18px'
-                            }}>
-                              Instagram에서 이 게시물 보기
-                            </div>
-                          </div>
-                        </a>
-                      </div>
-                    </blockquote>
-                  </div>
-                </div>
-
-                {/* 더 많은 뉴스 보기 버튼 */}
-                <div className="text-center pt-4">
-                  <Button variant="outline" className="bg-white hover:bg-gray-50">
-                    더 많은 한국 뉴스 보기
+                  
+                  {/* 번역 버튼 */}
+                  <Button 
+                    variant={showSpanishNews ? "default" : "outline"} 
+                    size="sm"
+                    onClick={() => {
+                      if (!isTranslating) {
+                        setIsTranslating(true)
+                        setTimeout(() => {
+                          setShowSpanishNews(!showSpanishNews)
+                          setIsTranslating(false)
+                        }, 1000)
+                      }
+                    }}
+                    disabled={isTranslating}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="text-sm">
+                      {isTranslating ? '⏳' : '🌐'}
+                    </span>
+                    <span>
+                      {isTranslating ? '번역중...' : (showSpanishNews ? 'ES' : 'KO')}
+                    </span>
                   </Button>
                 </div>
+                  
+                {/* 뉴스 목록 */}
+                <div className="space-y-0">
+                  {newsLoading ? (
+                    // 뉴스 로딩 중
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((index) => (
+                        <div key={index} className="flex items-start gap-4 p-4 border-b border-gray-200">
+                          <div className="w-20 h-20 bg-gray-200 rounded-lg animate-pulse flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4 mb-2"></div>
+                            <div className="flex items-center gap-3">
+                              <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
+                              <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
+                              <div className="h-3 bg-gray-200 rounded animate-pulse w-12"></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="text-center py-4">
+                        <div className="inline-flex items-center gap-2 text-purple-600">
+                          <span className="animate-spin">📰</span>
+                          <span>뉴스를 불러오는 중...</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : newsError ? (
+                    // 뉴스 로딩 오류
+                    <div className="text-center py-8">
+                      <div className="text-red-500 mb-4">
+                        <span className="text-2xl">⚠️</span>
+                        <p className="mt-2">{newsError}</p>
+                      </div>
+                      <Button onClick={fetchRealNews} variant="outline">
+                        다시 시도
+                      </Button>
+                    </div>
+                  ) : isTranslating ? (
+                    // 번역 중 스켈레톤 로딩
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((index) => (
+                        <div key={index} className="flex items-start gap-4 p-4 border-b border-gray-200">
+                          <div className="w-20 h-20 bg-gray-200 rounded-lg animate-pulse flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4 mb-2"></div>
+                            <div className="flex items-center gap-3">
+                              <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
+                              <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
+                              <div className="h-3 bg-gray-200 rounded animate-pulse w-12"></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="text-center py-4">
+                        <div className="inline-flex items-center gap-2 text-purple-600">
+                          <span className="animate-spin">⏳</span>
+                          <span>번역 중...</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {newsData.map((news, index) => (
+                        <div 
+                          key={news.id}
+                          className="flex items-start gap-4 p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={(e) => handleNewsClick(news, e)}
+                        >
+                          <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                            <img 
+                              src={news.thumbnail} 
+                              alt="뉴스 썸네일" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-900 text-base leading-tight mb-2 line-clamp-2">
+                              {showSpanishNews && news.title_es ? news.title_es : news.title}
+                            </h4>
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <span>{news.source}</span>
+                              <span>{news.date}</span>
+                              <span>댓글 {news.comments}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* 더 많은 뉴스 보기 버튼 */}
+                      <div className="text-center pt-4">
+                        <Button variant="outline" className="bg-white hover:bg-gray-50">
+                          더 많은 한국 뉴스 보기
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          </Card>
-              </div>
+            </Card>
+          )}
+        </div>
       )}
 
 
@@ -2397,6 +2309,7 @@ export default function CommunityTab() {
           )}
         </DialogContent>
       </Dialog>
+
 
     </div>
   )

@@ -27,7 +27,7 @@ export default function Hero() {
         <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-blue-100/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-4 pt-4">
+      <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-2 sm:px-4 pt-2 sm:pt-4">
         <div className="w-full max-w-6xl">
 
           {/* 슬라이더 */}
@@ -36,6 +36,15 @@ export default function Hero() {
             modules={[Navigation, Pagination]}
             spaceBetween={0}
             slidesPerView={1}
+            touchRatio={1}
+            touchAngle={45}
+            threshold={10}
+            longSwipesRatio={0.5}
+            longSwipesMs={300}
+            followFinger={true}
+            allowTouchMove={true}
+            resistance={true}
+            resistanceRatio={0.85}
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
@@ -46,7 +55,7 @@ export default function Hero() {
               bulletClass: 'swiper-pagination-bullet',
               bulletActiveClass: 'swiper-pagination-bullet-active'
             }}
-            className="w-full relative z-0 pointer-events-auto"
+            className="w-full relative z-0 pointer-events-auto scroll-smooth-touch"
             onInit={(swiper) => {
               ;(window as any).swiperInstance = swiper
             }}
@@ -62,17 +71,17 @@ export default function Hero() {
             <SwiperSlide className="pointer-events-auto">
               <div className="min-h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
-                <div className="flex flex-col items-center justify-center py-24 sm:py-32 md:py-40 lg:py-48 text-center">
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6">
+                <div className="flex flex-col items-center justify-center py-16 sm:py-24 md:py-32 lg:py-40 xl:py-48 text-center">
+                  <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
                     <div className="inline-flex items-center gap-2 bg-purple-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-purple-200/30">
                       <Sparkles className="w-4 h-4 text-purple-600" />
                       <span className="text-purple-700 font-medium text-sm">{t('heroSlides.slide1.badge')}</span>
                     </div>
                     
-                    <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 mb-6 leading-tight font-['Inter']">
+                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight font-['Inter']">
                       {t('heroSlides.slide1.title').split('\n').map((line, index) => (
                         <span key={index}>
-                          <span className={index === 0 ? 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'}>{line}</span>
+                          <span className={index === 0 ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl' : 'text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl'}>{line}</span>
                           {index === 0 && <br />}
                         </span>
                       ))}
@@ -91,15 +100,15 @@ export default function Hero() {
             <SwiperSlide className="pointer-events-auto">
               <div className="h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
-                <div className="flex flex-col lg:flex-row items-center justify-start pt-4 pb-0 gap-18 lg:gap-24">
+                <div className="flex flex-col lg:flex-row items-center justify-start pt-2 sm:pt-4 pb-0 gap-8 sm:gap-12 lg:gap-18 xl:gap-24">
                   {/* 왼쪽 콘텐츠 */}
-                  <div className="max-w-xl text-center lg:text-left">
+                  <div className="max-w-xl text-center lg:text-left px-3 sm:px-4">
                     <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-3 border border-blue-200/30">
                       <Sparkles className="w-3 h-3 text-blue-600" />
                       <span className="text-blue-700 font-medium text-xs">{t('heroSlides.slide2.badge')}</span>
                     </div>
                     
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight font-['Inter']">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 leading-tight font-['Inter']">
                       {t('heroSlides.slide2.title')}
                     </h1>
                     
@@ -118,18 +127,18 @@ export default function Hero() {
                     <img 
                       src="/image.png" 
                       alt="Profile" 
-                      className="w-72 h-96 sm:w-80 sm:h-[28rem] md:w-88 md:h-[32rem] lg:w-96 lg:h-[36rem] object-contain"
+                      className="w-64 h-80 sm:w-72 sm:h-96 md:w-80 md:h-[28rem] lg:w-88 lg:h-[32rem] xl:w-96 xl:h-[36rem] object-contain"
                     />
                   </div>
                 </div>
 
                 {/* 하단 흰색 배경 섹션 */}
-                <div className="bg-white pt-4 pb-8 sm:pt-6 sm:pb-12 md:pt-8 md:pb-16 -translate-y-8 sm:-translate-y-12 md:-translate-y-16 lg:-translate-y-20">
-                  <div className="container-custom max-w-4xl mx-auto px-4 sm:px-6">
-                    <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
+                <div className="bg-white pt-2 pb-6 sm:pt-4 sm:pb-8 md:pt-6 md:pb-12 lg:pt-8 lg:pb-16 -translate-y-4 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-16 xl:-translate-y-20">
+                  <div className="container-custom max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+                    <div className="flex flex-col lg:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
                       {/* 왼쪽: 큰 텍스트 */}
-                      <div className="flex-1 flex justify-center lg:justify-start items-center mt-4 lg:mt-6">
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 leading-tight font-['Pretendard'] text-center lg:text-left -ml-8">
+                      <div className="flex-1 flex justify-center lg:justify-start items-center mt-2 sm:mt-4 lg:mt-6">
+                        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 leading-tight font-['Pretendard'] text-center lg:text-left -ml-4 sm:-ml-6 lg:-ml-8">
                           {t('heroSlides.slide2.subtitle').split('\n').map((line, index) => (
                             <span key={index}>
                               {line}
@@ -140,14 +149,14 @@ export default function Hero() {
                       </div>
 
                       {/* 오른쪽: 작은 텍스트들 */}
-                      <div className="flex-1 flex flex-col gap-1 sm:gap-2 justify-center mt-4 lg:mt-6">
-                        <p className="text-gray-600 text-xs leading-tight text-left whitespace-nowrap pl-0 pr-24">
+                      <div className="flex-1 flex flex-col gap-1 sm:gap-2 justify-center mt-2 sm:mt-4 lg:mt-6">
+                        <p className="text-gray-600 text-xs sm:text-sm leading-tight text-left whitespace-nowrap pl-0 pr-12 sm:pr-16 lg:pr-24">
                           {t('heroSlides.slide2.experience1')}
                         </p>
-                        <p className="text-gray-600 text-xs leading-tight text-left whitespace-nowrap pl-0 pr-24">
+                        <p className="text-gray-600 text-xs sm:text-sm leading-tight text-left whitespace-nowrap pl-0 pr-12 sm:pr-16 lg:pr-24">
                           {t('heroSlides.slide2.experience2')}
                         </p>
-                        <p className="text-gray-600 text-xs leading-tight text-left whitespace-nowrap pl-0 pr-24">
+                        <p className="text-gray-600 text-xs sm:text-sm leading-tight text-left whitespace-nowrap pl-0 pr-12 sm:pr-16 lg:pr-24">
                           {t('heroSlides.slide2.experience3')}
                         </p>
                       </div>
@@ -180,9 +189,9 @@ export default function Hero() {
                       </div>
                       
                       {/* 4개 카드 그리드 */}
-                      <div className="flex flex-wrap gap-4 sm:gap-6 mt-4 sm:mt-6 md:mt-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mt-4 sm:mt-6 md:mt-8">
                         {/* 주제별 게시판 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">01</span>
                           </div>
@@ -206,7 +215,7 @@ export default function Hero() {
                         </div>
                         
                         {/* 자유게시판 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">02</span>
                           </div>
@@ -232,7 +241,7 @@ export default function Hero() {
                         </div>
                         
                         {/* 스토리 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">03</span>
                           </div>
@@ -252,7 +261,7 @@ export default function Hero() {
                         
                         {/* 시작하기 버튼 카드 */}
                         <div 
-                          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-purple-300 relative flex-1 min-w-[280px] h-32 sm:h-36 md:h-40 cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
+                          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-purple-300 relative h-28 sm:h-32 md:h-36 lg:h-40 cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
                           onClick={() => router.push('/sign-up')}
                         >
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
@@ -290,7 +299,7 @@ export default function Hero() {
                   swiperRef.current.swiper.slidePrev()
                 }
               }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
             >
               <ChevronLeft className="w-6 h-6 group-hover:text-blue-600 transition-colors" />
             </button>
@@ -304,14 +313,14 @@ export default function Hero() {
                   swiperRef.current.swiper.slideNext()
                 }
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
             >
               <ChevronRight className="w-6 h-6 group-hover:text-blue-600 transition-colors" />
             </button>
           )}
 
           {/* 커스텀 페이지네이션 */}
-          <div className="swiper-pagination !bottom-40 !flex !justify-center !gap-2 !left-1/2 !transform !-translate-x-1/2">
+          <div className="swiper-pagination !bottom-20 sm:!bottom-32 md:!bottom-40 !flex !justify-center !gap-2 !left-1/2 !transform !-translate-x-1/2">
             <style jsx>{`
               .swiper-pagination-bullet {
                 width: 12px !important;
