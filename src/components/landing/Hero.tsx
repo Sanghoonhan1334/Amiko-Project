@@ -90,6 +90,15 @@ export default function Hero() {
                     <p className="text-gray-600 text-base sm:text-lg leading-relaxed mb-8 max-w-3xl mx-auto">
                       {t('heroSlides.slide1.description')}
                     </p>
+                    
+                    {/* 다인종 이미지 */}
+                    <div className="flex justify-center mb-8">
+                      <img 
+                        src="/다인종.jpg" 
+                        alt="다인종" 
+                        className="w-64 h-48 sm:w-80 sm:h-60 md:w-96 md:h-72 lg:w-[28rem] lg:h-[21rem] xl:w-[32rem] xl:h-[24rem] object-cover rounded-lg shadow-lg"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -100,7 +109,7 @@ export default function Hero() {
             <SwiperSlide className="pointer-events-auto">
               <div className="h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
-                <div className="flex flex-col lg:flex-row items-center justify-start pt-2 sm:pt-4 pb-0 gap-8 sm:gap-12 lg:gap-18 xl:gap-24">
+                <div className="flex flex-col lg:flex-row items-center justify-start pt-40 sm:pt-44 md:pt-48 lg:pt-52 xl:pt-56 pb-0 gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
                   {/* 왼쪽 콘텐츠 */}
                   <div className="max-w-xl text-center lg:text-left px-3 sm:px-4">
                     <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-3 border border-blue-200/30">
@@ -112,7 +121,7 @@ export default function Hero() {
                       {t('heroSlides.slide2.title')}
                     </h1>
                     
-                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">
+                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-2">
                       {t('heroSlides.slide2.description').split('\n').map((line, index) => (
                         <span key={index}>
                           {line}
@@ -133,7 +142,7 @@ export default function Hero() {
                 </div>
 
                 {/* 하단 흰색 배경 섹션 */}
-                <div className="bg-white pt-2 pb-6 sm:pt-4 sm:pb-8 md:pt-6 md:pb-12 lg:pt-8 lg:pb-16 -translate-y-4 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-16 xl:-translate-y-20">
+                <div className="bg-white pt-4 pb-6 sm:pt-6 sm:pb-8 md:pt-8 md:pb-12 lg:pt-10 lg:pb-16 xl:pt-12 xl:pb-16 -translate-y-16 sm:-translate-y-20 md:-translate-y-24 lg:-translate-y-28 xl:-translate-y-32">
                   <div className="container-custom max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
                     <div className="flex justify-center items-center mt-2 sm:mt-4 lg:mt-6">
                       <div className="text-center max-w-3xl">

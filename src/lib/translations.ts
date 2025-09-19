@@ -55,7 +55,7 @@ export const translations = {
         badge: '글로벌 커뮤니티',
         title: 'Global Community를',
         subtitle: '한국어를 배우고 문화를 체험하세요',
-        description: '실제 한국인과의 1:1 화상 멘토링을 통해 자연스러운 한국어 학습'
+        description: '아미코와 함께 만들어가보세요'
       },
        slide2: {
          badge: 'Amiko에 탑재된 AI 통역과 함께',
@@ -758,7 +758,7 @@ export const translations = {
         badge: 'Comunidad Global',
         title: 'Global Community',
         subtitle: 'Aprende coreano y experimenta la cultura',
-        description: 'Aprendizaje natural del coreano a través de mentoría 1:1 por video con coreanos reales'
+        description: 'Construyamos juntos con Amiko'
       },
       slide2: {
         badge: 'Con IA de interpretación integrada en Amiko',
