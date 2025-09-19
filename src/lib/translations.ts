@@ -73,7 +73,7 @@ export const translations = {
         cards: {
           topicBoard: {
             title: '주제별 게시판',
-            description: 'K-POP, K-DRAMA, K-뷰티, 트랜드, 여행 등\n다양한 주제를 자유롭게 소통해보세요.'
+            description: '다양한 주제를 자유롭게 소통해보세요.'
           },
           freeBoard: {
             title: '자유게시판',

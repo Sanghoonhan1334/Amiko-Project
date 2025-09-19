@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // 환경변수 검증 (빌드 시 실행)
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
   experimental: {
     optimizePackageImports: ['lucide-react'],
     reactCompiler: false,
@@ -25,6 +29,16 @@ const nextConfig = {
       net: false,
       tls: false,
     };
+    
+    // 빌드 시 환경변수 검증
+    if (!dev && isServer) {
+      try {
+        require('./src/lib/env-guard');
+      } catch (error) {
+        console.error('환경변수 검증 중 오류 발생:', error);
+        process.exit(1);
+      }
+    }
     
     return config;
   },

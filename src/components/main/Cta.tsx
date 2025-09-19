@@ -12,14 +12,14 @@ export default function Cta() {
   }
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-purple-300 to-pink-400 text-white">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6 text-center">
         {/* 메인 CTA */}
         <div className="mb-8 sm:mb-10 lg:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
             지금 바로 시작하세요
           </h2>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 max-w-2xl sm:max-w-3xl mx-auto mb-6 sm:mb-8">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-purple-100 max-w-2xl sm:max-w-3xl mx-auto mb-6 sm:mb-8">
             Amiko와 함께 한국 문화의 새로운 세계를 경험해보세요
           </p>
           
@@ -27,7 +27,7 @@ export default function Cta() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-10 lg:mb-12">
             <Button 
               size="lg"
-              className="bg-white text-blue-600 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl font-semibold w-full sm:w-auto"
+              className="bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl font-semibold w-full sm:w-auto"
               onClick={() => handleNavigation('/booking/create')}
             >
               지금 만남 예약하기
@@ -36,7 +36,7 @@ export default function Cta() {
             <Button 
               variant="outline"
               size="lg"
-              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl font-semibold w-full sm:w-auto"
+              className="border-2 border-white text-white hover:bg-white hover:text-purple-600 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl font-semibold w-full sm:w-auto"
               onClick={() => handleNavigation('/consultants')}
             >
               멘토 둘러보기
