@@ -71,7 +71,7 @@ export default function Hero() {
             <SwiperSlide className="pointer-events-auto">
               <div className="min-h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
-                <div className="flex flex-col items-center justify-center py-16 sm:py-24 md:py-32 lg:py-40 xl:py-48 text-center">
+                <div className="flex flex-col items-center justify-center pt-40 sm:pt-48 md:pt-56 lg:pt-64 xl:pt-72 pb-16 sm:pb-24 md:pb-32 lg:pb-40 xl:pb-48 text-center">
                   <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
                     <div className="inline-flex items-center gap-2 bg-purple-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-purple-200/30">
                       <Sparkles className="w-4 h-4 text-purple-600" />
@@ -135,30 +135,24 @@ export default function Hero() {
                 {/* 하단 흰색 배경 섹션 */}
                 <div className="bg-white pt-2 pb-6 sm:pt-4 sm:pb-8 md:pt-6 md:pb-12 lg:pt-8 lg:pb-16 -translate-y-4 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-16 xl:-translate-y-20">
                   <div className="container-custom max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
-                    <div className="flex flex-col lg:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
-                      {/* 왼쪽: 큰 텍스트 */}
-                      <div className="flex-1 flex justify-center lg:justify-start items-center mt-2 sm:mt-4 lg:mt-6">
-                        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 leading-tight font-['Pretendard'] text-center lg:text-left -ml-4 sm:-ml-6 lg:-ml-8">
+                    <div className="flex justify-center items-center mt-2 sm:mt-4 lg:mt-6">
+                      <div className="text-center max-w-3xl">
+                        {/* 큰 제목 */}
+                        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight font-['Pretendard'] mb-0">
                           {t('heroSlides.slide2.subtitle').split('\n').map((line, index) => (
                             <span key={index}>
                               {line}
-                              {index === 0 && <br />}
+                              {index < t('heroSlides.slide2.subtitle').split('\n').length - 1 && <br />}
                             </span>
                           ))}
                         </h2>
-                      </div>
-
-                      {/* 오른쪽: 작은 텍스트들 */}
-                      <div className="flex-1 flex flex-col gap-1 sm:gap-2 justify-center mt-2 sm:mt-4 lg:mt-6">
-                        <p className="text-gray-600 text-xs sm:text-sm leading-tight text-left whitespace-nowrap pl-0 pr-12 sm:pr-16 lg:pr-24">
-                          {t('heroSlides.slide2.experience1')}
-                        </p>
-                        <p className="text-gray-600 text-xs sm:text-sm leading-tight text-left whitespace-nowrap pl-0 pr-12 sm:pr-16 lg:pr-24">
-                          {t('heroSlides.slide2.experience2')}
-                        </p>
-                        <p className="text-gray-600 text-xs sm:text-sm leading-tight text-left whitespace-nowrap pl-0 pr-12 sm:pr-16 lg:pr-24">
-                          {t('heroSlides.slide2.experience3')}
-                        </p>
+                        
+                        {/* 설명 텍스트들 */}
+                <div className="space-y-0 text-gray-600 text-sm sm:text-base leading-tight px-0 py-0">
+                  <p>{t('heroSlides.slide2.experience1')}</p>
+                  <p>{t('heroSlides.slide2.experience2')}</p>
+                  <p>{t('heroSlides.slide2.experience3')}</p>
+                </div>
                       </div>
                     </div>
                   </div>

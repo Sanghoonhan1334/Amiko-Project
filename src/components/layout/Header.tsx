@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings, Clock } from 'lucide-react'
+import { LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings, Clock, ChevronDown, Globe } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
@@ -35,6 +35,9 @@ export default function Header() {
   const [koreanTime, setKoreanTime] = useState('')
   const [localTime, setLocalTime] = useState('')
   const [showTimeDetails, setShowTimeDetails] = useState(false)
+  
+  // 언어 드롭다운 상태 관리
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
 
   // 시계 업데이트 함수
   const updateClock = () => {
@@ -105,20 +108,23 @@ export default function Header() {
     return () => clearInterval(timer)
   }, [])
 
-  // 시계 드롭다운 외부 클릭으로 닫기
+  // 시계 및 언어 드롭다운 외부 클릭으로 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showTimeDetails) {
-        const target = event.target as Element
-        if (!target.closest('.time-dropdown')) {
-          setShowTimeDetails(false)
-        }
+      const target = event.target as Element
+      
+      if (showTimeDetails && !target.closest('.time-dropdown')) {
+        setShowTimeDetails(false)
+      }
+      
+      if (showLanguageDropdown && !target.closest('.language-dropdown')) {
+        setShowLanguageDropdown(false)
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showTimeDetails])
+  }, [showTimeDetails, showLanguageDropdown])
 
   // 포인트 업데이트 이벤트 리스너
   useEffect(() => {
@@ -235,18 +241,81 @@ export default function Header() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-28 sm:h-32 md:h-36">
-            {/* 좌측: 시계 및 언어 전환 버튼 */}
+            {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-2">
-              {/* 시계 표시 - 번역 버튼 위에 */}
+              {/* 언어 드롭다운 - 시계 위에 */}
+              <div className="relative language-dropdown">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                  className="px-1.5 py-1 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200 flex items-center gap-1"
+                  title={t('selectLanguage')}
+                >
+                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                  <span className="text-xs sm:text-sm font-medium">
+                    {language === 'ko' ? '한국어' : 'Español'}
+                  </span>
+                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
+                </Button>
+                
+                {/* 언어 선택 드롭다운 */}
+                {showLanguageDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-50">
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => {
+                          if (language !== 'ko') {
+                            toggleLanguage()
+                          }
+                          setShowLanguageDropdown(false)
+                        }}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          language === 'ko' 
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                            : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                        }`}
+                      >
+                        <span className="text-base">🇰🇷</span>
+                        <span>한국어</span>
+                        {language === 'ko' && (
+                          <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          if (language !== 'es') {
+                            toggleLanguage()
+                          }
+                          setShowLanguageDropdown(false)
+                        }}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          language === 'es' 
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                            : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                        }`}
+                      >
+                        <span className="text-base">🇲🇽</span>
+                        <span>Español</span>
+                        {language === 'es' && (
+                          <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* 시계 표시 - 언어 전환 버튼 아래에 */}
               <div 
                 className="relative cursor-pointer group time-dropdown"
                 onClick={() => setShowTimeDetails(!showTimeDetails)}
               >
-                <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
                   <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
-                  <div className="flex items-center gap-1 sm:gap-2 text-xs font-medium">
+                  <div className="flex flex-col gap-0.5 text-xs font-medium">
                     <span className="text-blue-700">🇰🇷 {koreanTime}</span>
-                    <span className="text-gray-400">|</span>
                     <span className="text-indigo-700">🇲🇽 {localTime}</span>
                   </div>
                 </div>
@@ -331,39 +400,6 @@ export default function Header() {
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-              
-              {/* 언어 전환 버튼들 */}
-              <div className="flex items-center">
-                {/* 랜딩페이지에서는 언어 전환 버튼만 표시 */}
-                {isLandingPage && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleLanguage}
-                    className="px-1.5 py-1 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                    title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
-                  >
-                    <span className="text-xs sm:text-sm font-medium">
-                      {language === 'ko' ? t('korean') : t('spanish')}
-                    </span>
-                  </Button>
-                )}
-                
-                {/* 언어 전환 버튼 - 랜딩페이지가 아닐 때만 표시 */}
-                {!isLandingPage && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleLanguage}
-                    className="px-1.5 py-1 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200"
-                    title={language === 'ko' ? t('changeToSpanish') : t('changeToKorean')}
-                  >
-                    <span className="text-xs sm:text-sm font-medium">
-                      {language === 'ko' ? t('korean') : t('spanish')}
-                    </span>
-                  </Button>
                 )}
               </div>
             </div>

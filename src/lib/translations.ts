@@ -8,6 +8,7 @@ export const translations = {
     spanish: 'Español',
     changeToSpanish: 'Cambiar a Español으로 변경',
     changeToKorean: '한국어로 변경',
+    selectLanguage: '언어 선택',
     
     // 공통 버튼
     buttons: {
@@ -710,6 +711,7 @@ export const translations = {
     spanish: 'Español',
     changeToSpanish: 'Cambiar a Español',
     changeToKorean: '한국어로 변경',
+    selectLanguage: 'Seleccionar idioma',
     
     // 공통 버튼
     buttons: {
