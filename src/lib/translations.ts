@@ -22,6 +22,7 @@ export const translations = {
       edit: '편집',
       submit: '제출',
       loading: '로딩 중...',
+      login: '로그인',
       uploading: '업로드 중...',
       saving: '저장 중...',
       writing: '작성 중...',
@@ -187,6 +188,7 @@ export const translations = {
       story: '스토리',
       uploadStory: '스토리 업로드',
       noStories: '스토리가 없습니다',
+      uploadFirstStory: '첫 번째 스토리를 업로드해보세요!',
       searchQuestions: '게시글 검색',
       askQuestion: '글쓰기',
       categories: {
@@ -271,7 +273,9 @@ export const translations = {
           loadGalleriesFailed: '갤러리를 불러오는데 실패했습니다',
           unknownError: '알 수 없는 오류가 발생했습니다'
         },
-        loginRequired: '로그인이 필요합니다'
+        loginRequired: '로그인이 필요합니다',
+        loginRequiredDescription: '이 서비스를 이용하려면 먼저 로그인해주세요.',
+        loginButton: '로그인하기'
       }
     },
 
@@ -712,6 +716,7 @@ export const translations = {
         title: '포인트 상점',
         subtitle: '포인트로 다양한 아이템을 구매하세요',
         comingSoon: '준비중',
+        points: '포인트',
         items: {
           pointShop: '포인트 상점',
           specialFeatures: '특별한 기능들',
@@ -832,6 +837,7 @@ export const translations = {
       edit: 'Editar',
       submit: 'Enviar',
       loading: 'Cargando...',
+      login: 'Iniciar sesión',
       uploading: 'Subiendo...',
       saving: 'Guardando...',
       writing: 'Escribiendo...',
@@ -997,6 +1003,7 @@ export const translations = {
       story: 'Historia',
       uploadStory: 'Subir Historia',
       noStories: 'No hay historias',
+      uploadFirstStory: '¡Sube tu primera historia!',
       searchQuestions: 'Buscar Publicaciones',
       askQuestion: 'Escribir',
       categories: {
@@ -1081,7 +1088,9 @@ export const translations = {
           loadGalleriesFailed: 'Error al cargar las galerías',
           unknownError: 'Ocurrió un error desconocido'
         },
-        loginRequired: 'Se requiere iniciar sesión'
+        loginRequired: 'Se requiere iniciar sesión',
+        loginRequiredDescription: 'Para usar este servicio, primero debe iniciar sesión.',
+        loginButton: 'Iniciar sesión'
       }
     },
 
@@ -1522,6 +1531,7 @@ export const translations = {
         title: 'Tienda de Puntos',
         subtitle: 'Compra varios artículos con puntos',
         comingSoon: 'Próximamente',
+        points: 'puntos',
         items: {
           pointShop: 'Tienda de Puntos',
           specialFeatures: 'Funciones Especiales',

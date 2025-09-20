@@ -55,24 +55,24 @@ export default function ChargingTab() {
     },
     {
       id: 'coming_soon_2',
-      name: '특별한 기능들',
-      description: '더 많은 기능들이 준비 중이에요',
+      name: t('storeTab.pointStore.items.specialFeatures'),
+      description: t('storeTab.pointStore.descriptions.specialFeatures'),
       price: 0,
       icon: '✨',
       available: false
     },
     {
       id: 'coming_soon_3',
-      name: '프리미엄 아이템',
-      description: '특별한 아이템들이 곧 출시될 예정이에요',
+      name: t('storeTab.pointStore.items.premiumItems'),
+      description: t('storeTab.pointStore.descriptions.premiumItems'),
       price: 0,
       icon: '👑',
       available: false
     },
     {
       id: 'coming_soon_4',
-      name: '새로운 기능',
-      description: '흥미로운 기능들이 준비 중이에요',
+      name: t('storeTab.pointStore.items.newFeatures'),
+      description: t('storeTab.pointStore.descriptions.newFeatures'),
       price: 0,
       icon: '🚀',
       available: false
@@ -374,7 +374,7 @@ export default function ChargingTab() {
                         <h3 className="font-semibold text-sm mb-1">{item.name}</h3>
                         <p className="text-xs text-gray-600 mb-1 leading-tight">{item.description}</p>
                         <div className="text-sm font-bold text-green-600 mb-2">
-                          {item.price} 포인트
+                          {item.price} {t('storeTab.pointStore.points')}
                         </div>
                         {!item.available && (
                           <div className="text-xs text-gray-500 mb-1">

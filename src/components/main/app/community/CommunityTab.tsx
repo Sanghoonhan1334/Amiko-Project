@@ -1503,7 +1503,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   <span className="text-white text-sm">📸</span>
                 </div>
                 <p className="text-lg font-medium">{t('communityTab.noStories')}</p>
-                <p className="text-sm text-gray-400">첫 번째 스토리를 업로드해보세요!</p>
+                <p className="text-sm text-gray-400">{t('communityTab.uploadFirstStory')}</p>
               </div>
             </div>
           )}

@@ -649,7 +649,7 @@ export default function Header() {
                       onClick={() => router.push('/sign-in')}
                       className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-blue-500 whitespace-nowrap"
                     >
-                      로그인
+{t('buttons.login')}
                     </button>
                   )}
                 </>
@@ -982,7 +982,7 @@ export default function Header() {
                   onClick={toggleMobileMenu}
                 >
                   <span className="text-base">🔐</span>
-                  로그인
+{t('buttons.login')}
                 </Link>
               )}
             </div>

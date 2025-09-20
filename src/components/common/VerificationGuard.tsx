@@ -84,9 +84,9 @@ export default function VerificationGuard({
       <div className={`flex items-center justify-center p-8 ${className}`}>
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle>로그인이 필요합니다</CardTitle>
+            <CardTitle>{t('community.galleryList.loginRequired')}</CardTitle>
             <CardDescription>
-              이 서비스를 이용하려면 먼저 로그인해주세요.
+              {t('community.galleryList.loginRequiredDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -94,7 +94,7 @@ export default function VerificationGuard({
               onClick={() => router.push('/sign-in')}
               className="w-full"
             >
-              로그인하기
+{t('community.galleryList.loginButton')}
             </Button>
           </CardContent>
         </Card>
