@@ -120,7 +120,7 @@ export const translations = {
     mainPage: {
       title: '다양한 방법으로 즐기세요',
       videoCall: '화상채팅',
-      videoCallDescription: '커뮤니티 활동에 참여하고 원하는 한국인과 AKO를 사용해 대화하세요.',
+      videoCallDescription: '72시간마다 한국인과 AKO를 사용해 대화하세요',
       community: '커뮤니티',
       communityDescription: '커뮤니티를 통해 서로 알아가고\n소통해보세요',
       openEvent: '오픈 이벤트',

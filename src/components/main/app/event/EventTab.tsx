@@ -223,8 +223,7 @@ export default function EventTab() {
       // 최초 가입자에게 쿠폰 1개 지급
       localStorage.setItem('hasReceivedWelcomeCoupon', 'true')
       
-      // 쿠폰 지급 알림
-      alert('🎉 가입을 축하합니다!\n쿠폰 1개가 지급되었습니다!')
+      // 쿠폰 지급 알림 제거 (사용자 요청)
       
       // 포인트도 추가
       const currentPoints = parseInt(localStorage.getItem('totalPoints') || '0')

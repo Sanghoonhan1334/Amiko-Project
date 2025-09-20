@@ -60,7 +60,7 @@ export default function HomeTab() {
             <h3 className="text-lg font-bold text-gray-800 mb-0 mt-1 font-['Inter']">{t('mainPage.videoCall')}</h3>
             <p className="text-sm text-gray-600 -mt-1 font-['Inter']">{t('mainPage.videoCallDescription')}</p>
             <div className="mt-2">
-              <Badge className="bg-blue-500 text-white border-blue-500 text-xs">
+              <Badge className="bg-blue-500 text-white border-blue-500 text-xs whitespace-normal text-center leading-tight">
 {t('homeTab.openingOctober')}
               </Badge>
             </div>

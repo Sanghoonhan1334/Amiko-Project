@@ -239,7 +239,7 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-28 sm:h-32 md:h-36 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
@@ -700,7 +700,7 @@ export default function Header() {
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-xs text-emerald-700 font-medium">{t('myTab.verificationComplete')}</span>
+                        <span className="text-xs text-emerald-700 font-medium whitespace-nowrap">{t('myTab.verificationComplete')}</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-50 rounded-full border border-amber-200">
@@ -709,7 +709,7 @@ export default function Header() {
                             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-xs text-amber-700 font-medium">{t('myTab.verificationRequired')}</span>
+                        <span className="text-xs text-amber-700 font-medium whitespace-nowrap">{t('myTab.verificationRequired')}</span>
                       </div>
                     )}
                   </div>
@@ -744,7 +744,7 @@ export default function Header() {
                     e.preventDefault()
                     router.push('/main')
                   }}
-                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg shadow-lg hover:shadow-xl"
+                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg shadow-lg hover:shadow-xl whitespace-nowrap"
                 >
                   {t('header.startButton')}
                 </button>

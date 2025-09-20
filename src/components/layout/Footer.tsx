@@ -17,7 +17,7 @@ export default function Footer() {
 
   return (
     <footer className="hidden md:block bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 border-t border-brand-200/50">
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* 메인 푸터 콘텐츠 - 모바일 최적화 */}
         <div className="space-y-6 md:grid md:grid-cols-3 md:gap-4 md:space-y-0 mb-4">
           {/* 모바일: SNS 섹션을 맨 위로 */}
