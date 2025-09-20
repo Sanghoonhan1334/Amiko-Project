@@ -240,9 +240,9 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-28 sm:h-32 md:h-36">
+          <div className="flex justify-between items-center h-28 sm:h-32 md:h-36 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
-            <div className="flex flex-col items-start gap-2">
+            <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
               {/* 언어 드롭다운 - 시계 위에 */}
               <div className="relative language-dropdown">
                 <Button
@@ -337,65 +337,137 @@ export default function Header() {
                         </button>
                       </div>
                       
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
-                          <span className="text-sm font-medium text-red-800">🇰🇷 한국</span>
-                          <span className="text-sm font-mono text-red-700">
-                            {new Date().toLocaleString('ko-KR', { 
-                              timeZone: 'Asia/Seoul',
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              weekday: 'short'
-                            })}
-                          </span>
+                      <div className="space-y-3">
+                        {/* 한국 */}
+                        <div className="relative overflow-hidden bg-gradient-to-r from-red-50 to-pink-50 rounded-xl p-3 shadow-sm border border-red-100 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                                <span className="text-sm">🇰🇷</span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-red-800">
+                                  {language === 'ko' ? '한국' : 'Corea del Sur'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-mono font-bold text-red-700">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                  timeZone: 'Asia/Seoul',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              <div className="text-xs text-red-500">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                  timeZone: 'Asia/Seoul',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  weekday: 'short'
+                                })}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
-                          <span className="text-sm font-medium text-blue-800">🇲🇽 멕시코</span>
-                          <span className="text-sm font-mono text-blue-700">
-                            {new Date().toLocaleString('ko-KR', {
-                              timeZone: 'America/Mexico_City',
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              weekday: 'short'
-                            })}
-                          </span>
+                        {/* 멕시코 */}
+                        <div className="relative overflow-hidden bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-3 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
+                                <span className="text-sm">🇲🇽</span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-blue-800">
+                                  {language === 'ko' ? '멕시코' : 'México'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-mono font-bold text-blue-700">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
+                                  timeZone: 'America/Mexico_City',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              <div className="text-xs text-blue-500">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
+                                  timeZone: 'America/Mexico_City',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  weekday: 'short'
+                                })}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
-                          <span className="text-sm font-medium text-green-800">🇵🇪 페루</span>
-                          <span className="text-sm font-mono text-green-700">
-                            {new Date().toLocaleString('ko-KR', { 
-                              timeZone: 'America/Lima',
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              weekday: 'short'
-                            })}
-                          </span>
+                        {/* 페루 */}
+                        <div className="relative overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 shadow-sm border border-green-100 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                                <span className="text-sm">🇵🇪</span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-green-800">
+                                  {language === 'ko' ? '페루' : 'Perú'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-mono font-bold text-green-700">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                  timeZone: 'America/Lima',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              <div className="text-xs text-green-500">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                  timeZone: 'America/Lima',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  weekday: 'short'
+                                })}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
-                          <span className="text-sm font-medium text-purple-800">🇨🇴 콜롬비아</span>
-                          <span className="text-sm font-mono text-purple-700">
-                            {new Date().toLocaleString('ko-KR', { 
-                              timeZone: 'America/Bogota',
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              weekday: 'short'
-                            })}
-                          </span>
+                        {/* 콜롬비아 */}
+                        <div className="relative overflow-hidden bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-3 shadow-sm border border-purple-100 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-violet-500 rounded-full flex items-center justify-center shadow-sm">
+                                <span className="text-sm">🇨🇴</span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-purple-800">
+                                  {language === 'ko' ? '콜롬비아' : 'Colombia'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-mono font-bold text-purple-700">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                  timeZone: 'America/Bogota',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              <div className="text-xs text-purple-500">
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                  timeZone: 'America/Bogota',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  weekday: 'short'
+                                })}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -405,7 +477,7 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 z-0 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-6 sm:-top-8 md:-top-10 z-0 flex flex-col items-center">
               {/* 로고 */}
               <div className="relative">
                 <img 
@@ -438,7 +510,7 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex space-x-6 lg:space-x-8 -mt-6 sm:-mt-8 md:-mt-10 relative z-20">
+              <nav className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-8 -mt-6 sm:-mt-8 md:-mt-10 relative z-20">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
@@ -501,7 +573,7 @@ export default function Header() {
                   </>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
-                  <div className="hidden md:flex space-x-8">
+                  <div className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-8">
                     <button 
                       onClick={() => handleMainNavClick('home')}
                       className={`font-semibold transition-all duration-300 drop-shadow-lg ${
@@ -559,21 +631,23 @@ export default function Header() {
             </div>
 
             {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0 w-20 sm:w-24 md:w-28 justify-end">
               {/* 로그인/로그아웃 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
               {isMainPage && (
                 <>
                   {user ? (
                     <button 
                       onClick={() => handleLogout()}
-                      className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500"
+                      className={`hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap ${
+                        language === 'es' ? 'ml-2' : ''
+                      }`}
                     >
                       {t('headerNav.logout')}
                     </button>
                   ) : (
                     <button 
                       onClick={() => router.push('/sign-in')}
-                      className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-blue-500"
+                      className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-blue-500 whitespace-nowrap"
                     >
                       로그인
                     </button>
@@ -583,7 +657,7 @@ export default function Header() {
 
               {/* 우측 상단 영역 - 세로 배치 */}
               {isMainPage && user && (
-                <div className="hidden md:flex flex-col items-end gap-1">
+                <div className="hidden md:flex flex-col items-end gap-0.5 sm:gap-1">
                   {/* 포인트 표시 - 최상단 */}
                   {verificationStatus === 'verified' && (
                     <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 shadow-sm mb-1">
@@ -595,7 +669,7 @@ export default function Header() {
                   )}
                   
                   {/* 상단 버튼들 - 가로 배치 */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 sm:gap-1">
                     {/* 알림 버튼 */}
                     <NotificationBell />
                     
@@ -604,7 +678,7 @@ export default function Header() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleMainNavClick('me')}
-                      className={`p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-all duration-300 ${
+                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 ${
                         activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
                       }`}
                     >
@@ -654,7 +728,7 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleMobileMenu}
-                className="md:hidden p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
+                className="md:hidden p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300"
               >
                 {isMobileMenuOpen ? (
                   <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
@@ -785,96 +859,6 @@ export default function Header() {
                 </button>
               )}
               
-              {/* 메인페이지 네비게이션 - 메인페이지에서만 표시 */}
-              {isMainPage && (
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      handleMainNavClick('meet')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
-                      activeMainTab === 'meet' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">🎥</span>
-                    {t('headerNav.videoCall')}
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleMainNavClick('community')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
-                      activeMainTab === 'community' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">💬</span>
-                    {t('headerNav.community')}
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleMainNavClick('me')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
-                      activeMainTab === 'me' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">👤</span>
-                    내 정보
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleMainNavClick('charging')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
-                      activeMainTab === 'charging' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">⚡</span>
-                    {t('headerNav.chargingStation')}
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleMainNavClick('event')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
-                      activeMainTab === 'event' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">🎁</span>
-                    {t('headerNav.event')}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActiveMainTab('lounge')
-                      router.push('/lounge')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
-                      activeMainTab === 'lounge' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">🎈</span>
-                    라운지
-                  </button>
-                </div>
-              )}
             </div>
             
             {/* 구분선 */}
@@ -904,14 +888,73 @@ export default function Header() {
             {/* 구분선 */}
             <div className="border-t border-gray-200 my-3" />
             
-            {/* 언어 전환 */}
+            {/* 푸터 내용 - 모바일에서만 표시 */}
             <div className="space-y-1">
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full text-left"
-              >
-                {language === 'ko' ? t('korean') : t('spanish')}
-              </button>
+              {/* SNS 링크 */}
+              <div className="p-2.5">
+                <div className="text-xs font-bold text-gray-800 mb-2">{t('footer.officialSns')}</div>
+                <div className="flex gap-2">
+                  <a 
+                    href="https://www.tiktok.com/@amiko_latin" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center"
+                  >
+                    <img src="/tiktok.png" alt="TikTok" className="w-6 h-6 object-contain" />
+                  </a>
+                  <a 
+                    href="https://www.instagram.com/amiko_latin/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center"
+                  >
+                    <img src="/instagram.jpeg" alt="Instagram" className="w-6 h-6 object-contain" />
+                  </a>
+                  <a 
+                    href="https://www.youtube.com/@AMIKO_Officialstudio" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center"
+                  >
+                    <img src="/youtube.png" alt="YouTube" className="w-6 h-6 object-contain" />
+                  </a>
+                </div>
+              </div>
+              
+              {/* 고객지원 */}
+              <div className="p-2.5">
+                <div className="text-xs font-bold text-gray-800 mb-2">{t('footer.support')}</div>
+                <div className="space-y-1">
+                  <Link href="/help" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    {t('footer.help')}
+                  </Link>
+                  <Link href="/faq" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    {t('footer.faq')}
+                  </Link>
+                  <Link href="/contact" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    {t('footer.contact')}
+                  </Link>
+                  <Link href="/feedback" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    {t('footer.feedback')}
+                  </Link>
+                </div>
+              </div>
+              
+              {/* 약관 및 정책 */}
+              <div className="p-2.5">
+                <div className="space-y-1">
+                  <Link href="/privacy" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    {t('footer.privacy')}
+                  </Link>
+                  <Link href="/terms" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    {t('footer.terms')}
+                  </Link>
+                  <Link href="/cookies" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                    {t('footer.cookies')}
+                  </Link>
+                </div>
+              </div>
+              
             </div>
             
             {/* 구분선 */}
@@ -921,9 +964,6 @@ export default function Header() {
             <div className="space-y-1">
               {user ? (
                 <>
-                  <div className="p-2.5 text-sm text-gray-600 border-b border-gray-100">
-                    {user.email}
-                  </div>
                   <button
                     onClick={() => {
                       handleLogout()

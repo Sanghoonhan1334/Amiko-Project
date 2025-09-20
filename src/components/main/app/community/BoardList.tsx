@@ -303,7 +303,7 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
         ) : posts.length === 0 ? (
           // 게시글이 없을 때
           <div className="p-8 text-center">
-            <div className="text-gray-500 mb-4">
+            <div className="text-gray-500">
               <span className="text-4xl">📝</span>
               <p className="mt-2 text-lg">
                 {language === 'ko' ? '게시물이 없습니다' : 'No posts available'}
@@ -312,13 +312,6 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
                 {language === 'ko' ? '첫 번째 게시글을 작성해보세요!' : 'Be the first to write a post!'}
               </p>
             </div>
-            <Button onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onWritePost?.()
-            }} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {language === 'ko' ? '글쓰기' : 'Write Post'}
-            </Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -436,11 +429,17 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
           <option>{language === 'ko' ? '제목' : 'Title'}</option>
           <option>{language === 'ko' ? '작성자' : 'Author'}</option>
         </select>
-        <input
-          type="text"
-          placeholder={language === 'ko' ? '검색어를 입력하세요' : 'Enter search term'}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-        />
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            placeholder={language === 'ko' ? '게시글 검색' : 'Search Posts'}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            style={{ paddingLeft: '2.5rem' }}
+          />
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+            💬
+          </span>
+        </div>
         <Button variant="outline" size="sm">
           🔍
         </Button>

@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         user_id
       `)
       .eq('is_expired', false)
+      .gt('expires_at', new Date().toISOString()) // 만료되지 않은 스토리만 조회
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

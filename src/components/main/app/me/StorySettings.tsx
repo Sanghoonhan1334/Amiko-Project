@@ -82,7 +82,15 @@ export default function StorySettings() {
           expiresAt: story.expires_at ? new Date(story.expires_at) : new Date(),
           isExpired: story.is_expired || false
         }))
-        setStories(mappedStories)
+        
+        // 만료된 스토리 필터링 (사용자 설정에서는 만료된 스토리도 보여줌)
+        const now = new Date()
+        const filteredStories = mappedStories.filter(story => {
+          // 만료되었지만 아직 삭제되지 않은 스토리는 보여줌 (사용자가 직접 삭제할 수 있도록)
+          return true
+        })
+        
+        setStories(filteredStories)
       } else {
         console.error('스토리 로드 실패:', response.status)
         setStories([])
@@ -107,6 +115,14 @@ export default function StorySettings() {
     }
 
     try {
+      // 토큰 확인
+      if (!token) {
+        alert('로그인이 필요합니다.')
+        return
+      }
+
+      console.log('스토리 삭제 시도:', storyId)
+
       const response = await fetch(`/api/stories/${storyId}`, {
         method: 'DELETE',
         headers: {
@@ -115,11 +131,14 @@ export default function StorySettings() {
         }
       })
 
+      const responseData = await response.json()
+
       if (response.ok) {
         setStories(prev => prev.filter(story => story.id !== storyId))
+        console.log('스토리 삭제 성공:', responseData)
       } else {
-        console.error('스토리 삭제 실패:', response.status)
-        alert('스토리 삭제에 실패했습니다.')
+        console.error('스토리 삭제 실패:', response.status, responseData)
+        alert(`스토리 삭제에 실패했습니다: ${responseData.error || '알 수 없는 오류'}`)
       }
     } catch (error) {
       console.error('스토리 삭제 중 오류:', error)
@@ -133,6 +152,14 @@ export default function StorySettings() {
       const story = stories.find(s => s.id === storyId)
       if (!story) return
 
+      // 토큰 확인
+      if (!token) {
+        alert('로그인이 필요합니다.')
+        return
+      }
+
+      console.log('스토리 가시성 변경 시도:', { storyId, currentVisibility: story.isPublic })
+
       const response = await fetch(`/api/stories/${storyId}`, {
         method: 'PUT',
         headers: {
@@ -144,13 +171,16 @@ export default function StorySettings() {
         })
       })
 
+      const responseData = await response.json()
+
       if (response.ok) {
         setStories(prev => prev.map(s => 
           s.id === storyId ? { ...s, isPublic: !s.isPublic } : s
         ))
+        console.log('스토리 가시성 변경 성공:', responseData)
       } else {
-        console.error('스토리 가시성 변경 실패:', response.status)
-        alert('스토리 가시성 변경에 실패했습니다.')
+        console.error('스토리 가시성 변경 실패:', response.status, responseData)
+        alert(`스토리 가시성 변경에 실패했습니다: ${responseData.error || '알 수 없는 오류'}`)
       }
     } catch (error) {
       console.error('스토리 가시성 변경 중 오류:', error)
@@ -236,7 +266,37 @@ export default function StorySettings() {
       {/* 개별 스토리 설정 */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('storySettings.individualSettings.title')}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>{t('storySettings.individualSettings.title')}</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/stories/cleanup', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    }
+                  })
+                  
+                  if (response.ok) {
+                    const data = await response.json()
+                    alert(`${data.deletedCount}개의 만료된 스토리가 삭제되었습니다.`)
+                    loadUserStories() // 스토리 목록 새로고침
+                  } else {
+                    alert('만료된 스토리 정리에 실패했습니다.')
+                  }
+                } catch (error) {
+                  console.error('스토리 정리 중 오류:', error)
+                  alert('스토리 정리 중 오류가 발생했습니다.')
+                }
+              }}
+            >
+              만료된 스토리 정리
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -251,25 +311,42 @@ export default function StorySettings() {
             </div>
           ) : (
             <div className="space-y-4">
-              {stories.map((story) => (
-              <div key={story.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={story.imageUrl}
-                    alt={t('storySettings.individualSettings.storyImage')}
-                    className="w-12 h-12 rounded-lg object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = `https://picsum.photos/48/48?random=${story.id}`
-                    }}
-                  />
-                  <div>
-                    <p className="font-medium text-sm">{story.text ? story.text.substring(0, 50) + '...' : '내용 없음'}</p>
-                    <p className="text-xs text-gray-500">
-                      {story.createdAt ? `${story.createdAt.toLocaleDateString()} ${story.createdAt.toLocaleTimeString()}` : '날짜 정보 없음'}
-                    </p>
+              {stories.map((story) => {
+                const now = new Date()
+                const isExpired = story.expiresAt < now
+                const timeLeft = Math.max(0, Math.floor((story.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)))
+                
+                return (
+                <div key={story.id} className={`flex items-center justify-between p-4 border rounded-lg ${isExpired ? 'bg-gray-50 opacity-60' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <img
+                        src={story.imageUrl}
+                        alt={t('storySettings.individualSettings.storyImage')}
+                        className="w-12 h-12 rounded-lg object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://picsum.photos/48/48?random=${story.id}`
+                        }}
+                      />
+                      {isExpired && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xs">만료</span>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{story.text ? story.text.substring(0, 50) + '...' : '내용 없음'}</p>
+                      <p className="text-xs text-gray-500">
+                        {story.createdAt ? `${story.createdAt.toLocaleDateString()} ${story.createdAt.toLocaleTimeString()}` : '날짜 정보 없음'}
+                      </p>
+                      {!isExpired && (
+                        <p className="text-xs text-orange-500">
+                          {timeLeft}시간 후 만료
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
                 
                 <div className="flex items-center gap-2">
                   <Button
@@ -300,7 +377,8 @@ export default function StorySettings() {
                   </Button>
                 </div>
               </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </CardContent>

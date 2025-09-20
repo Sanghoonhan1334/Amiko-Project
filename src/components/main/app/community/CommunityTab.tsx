@@ -189,6 +189,13 @@ export default function CommunityTab() {
   const [showSpanishNews, setShowSpanishNews] = useState(false) // 뉴스 번역 상태
   const [isTranslating, setIsTranslating] = useState(false) // 번역 중 상태
   
+  // 글쓰기 모달 상태
+  const [showWriteModal, setShowWriteModal] = useState(false)
+  const [writeTitle, setWriteTitle] = useState('')
+  const [writeContent, setWriteContent] = useState('')
+  const [writeCategory, setWriteCategory] = useState('free')
+  const [writeLoading, setWriteLoading] = useState(false)
+  
   // 언어 변경 시 자동 번역 처리
   useEffect(() => {
     if (language === 'es' && !showSpanishNews) {
@@ -206,6 +213,76 @@ export default function CommunityTab() {
       setIsTranslating(false)
     }
   }, [language, showSpanishNews])
+  
+  // 글쓰기 함수
+  const handleWritePost = async () => {
+    if (!writeTitle.trim() || !writeContent.trim()) {
+      alert('제목과 내용을 입력해주세요.')
+      return
+    }
+
+    const currentUser = user || authUser
+    if (!currentUser) {
+      alert('로그인이 필요합니다.')
+      window.location.href = '/sign-in'
+      return
+    }
+
+    setWriteLoading(true)
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('amiko_session')
+      let currentToken = token
+      
+      if (!currentToken) {
+        try {
+          const storedSession = localStorage.getItem('amiko_session')
+          if (storedSession) {
+            const sessionData = JSON.parse(storedSession)
+            currentToken = sessionData.access_token
+          }
+        } catch (error) {
+          console.error('토큰 파싱 실패:', error)
+        }
+      }
+
+      if (!currentToken) {
+        alert('로그인이 필요합니다.')
+        return
+      }
+
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: writeTitle,
+          content: writeContent,
+          category: writeCategory,
+          user_id: currentUser.id
+        })
+      })
+
+      if (response.ok) {
+        alert('게시글이 작성되었습니다!')
+        setShowWriteModal(false)
+        setWriteTitle('')
+        setWriteContent('')
+        setWriteCategory('free')
+        // 게시글 목록 새로고침
+        window.location.reload()
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        alert(errorData.error || '게시글 작성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('게시글 작성 오류:', error)
+      alert('게시글 작성 중 오류가 발생했습니다.')
+    } finally {
+      setWriteLoading(false)
+    }
+  }
   
   // 뉴스 탭 활성화 시 실제 뉴스 로드
   useEffect(() => {
@@ -1714,8 +1791,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               // 게시글 상세 보기 로직
             }}
             onWritePost={() => {
-              console.log('글쓰기 클릭')
-              // 글쓰기 모달 열기 로직
+              setShowWriteModal(true)
             }}
           />
         </div>
@@ -2310,6 +2386,91 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </DialogContent>
       </Dialog>
 
+      {/* 글쓰기 모달 */}
+      <Dialog open={showWriteModal} onOpenChange={setShowWriteModal}>
+        <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-200">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              {language === 'ko' ? '게시글 작성' : 'Write Post'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* 카테고리 선택 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                {language === 'ko' ? '카테고리' : 'Category'}
+              </Label>
+              <Select value={writeCategory} onValueChange={setWriteCategory}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="free">{language === 'ko' ? '자유' : 'Free'}</SelectItem>
+                  <SelectItem value="beauty">{language === 'ko' ? '뷰티' : 'Beauty'}</SelectItem>
+                  <SelectItem value="fashion">{language === 'ko' ? '패션' : 'Fashion'}</SelectItem>
+                  <SelectItem value="travel">{language === 'ko' ? '여행' : 'Travel'}</SelectItem>
+                  <SelectItem value="culture">{language === 'ko' ? '문화' : 'Culture'}</SelectItem>
+                  <SelectItem value="food">{language === 'ko' ? '음식' : 'Food'}</SelectItem>
+                  <SelectItem value="language">{language === 'ko' ? '언어' : 'Language'}</SelectItem>
+                  <SelectItem value="daily">{language === 'ko' ? '일상' : 'Daily'}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 제목 입력 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                {language === 'ko' ? '제목' : 'Title'}
+              </Label>
+              <Input
+                placeholder={language === 'ko' ? '제목을 입력하세요' : 'Enter title'}
+                value={writeTitle}
+                onChange={(e) => setWriteTitle(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+
+            {/* 내용 입력 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                {language === 'ko' ? '내용' : 'Content'}
+              </Label>
+              <Textarea
+                placeholder={language === 'ko' ? '내용을 입력하세요' : 'Enter content'}
+                value={writeContent}
+                onChange={(e) => setWriteContent(e.target.value)}
+                className="mt-1 min-h-[200px]"
+              />
+            </div>
+
+            {/* 버튼들 */}
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowWriteModal(false)}
+                disabled={writeLoading}
+              >
+                {language === 'ko' ? '취소' : 'Cancel'}
+              </Button>
+              <Button
+                onClick={handleWritePost}
+                disabled={writeLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {writeLoading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    {language === 'ko' ? '작성 중...' : 'Writing...'}
+                  </>
+                ) : (
+                  language === 'ko' ? '작성하기' : 'Write'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )

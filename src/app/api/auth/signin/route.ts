@@ -10,21 +10,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, password } = await request.json()
+    const { identifier, password } = await request.json()
 
     // 입력 검증
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: '이메일과 비밀번호를 입력해주세요.' },
+        { error: '이메일 또는 전화번호와 비밀번호를 입력해주세요.' },
         { status: 400 }
       )
     }
 
+    // identifier가 이메일인지 전화번호인지 확인
+    const isEmail = identifier.includes('@')
+    const email = isEmail ? identifier : null
+    const phone = isEmail ? null : identifier
+
     // Supabase Auth로 로그인
-    const { data: authData, error: authError } = await supabaseServer.auth.signInWithPassword({
-      email,
-      password
-    })
+    let authData, authError
+    
+    if (isEmail) {
+      // 이메일로 로그인
+      const result = await supabaseServer.auth.signInWithPassword({
+        email,
+        password
+      })
+      authData = result.data
+      authError = result.error
+    } else {
+      // 전화번호로 로그인 - 먼저 사용자 테이블에서 이메일 찾기
+      const { data: userData, error: userError } = await supabaseServer
+        .from('users')
+        .select('email')
+        .eq('phone', phone)
+        .single()
+      
+      if (userError || !userData) {
+        return NextResponse.json(
+          { error: '등록되지 않은 전화번호입니다.' },
+          { status: 401 }
+        )
+      }
+      
+      const result = await supabaseServer.auth.signInWithPassword({
+        email: userData.email,
+        password
+      })
+      authData = result.data
+      authError = result.error
+    }
 
     if (authError) {
       console.error('[SIGNIN] 로그인 실패:', authError)

@@ -215,7 +215,6 @@ export const translations = {
         language: '언어 갤러리',
         free: '자유주제 갤러리',
         daily: '일상 갤러리',
-        popularPosts: '인기글 보기',
         writePost: '글쓰기',
         latest: '최신순',
         popular: '인기순',
@@ -272,10 +271,7 @@ export const translations = {
           loadGalleriesFailed: '갤러리를 불러오는데 실패했습니다',
           unknownError: '알 수 없는 오류가 발생했습니다'
         },
-        loginRequired: '로그인이 필요합니다',
-        title: '제목',
-        content: '내용',
-        koreanNews: '한국 뉴스'
+        loginRequired: '로그인이 필요합니다'
       }
     },
 
@@ -373,6 +369,69 @@ export const translations = {
             dele: 'DELE',
             flex: 'FLEX',
             examFeeSupport: '시험 응시료 지원'
+          }
+        }
+      },
+      
+      // 포인트 시스템
+      pointSystem: {
+        title: '포인트 시스템 안내',
+        earningMethods: {
+          title: '포인트 획득 방법',
+          subtitle: '커뮤니티 활동을 통해 포인트를 획득하세요! (하루 최대 +40점)',
+          questionWriting: {
+            title: '질문 작성',
+            description: '유의미한 질문을 올리면 포인트를 획득할 수 있어요',
+            limit: '하루 최대 3개까지만 포인트 지급'
+          },
+          answerWriting: {
+            title: '답변 작성',
+            description: '다른 사용자의 질문에 도움이 되는 답변을 작성하세요',
+            limit: '하루 최대 5개까지만 포인트 지급'
+          },
+          storyUpload: {
+            title: '스토리 업로드',
+            description: '일상 스토리를 공유하고 포인트를 획득하세요',
+            limit: '하루 최대 2개까지만 포인트 지급'
+          },
+          receiveLikes: {
+            title: '좋아요 받기',
+            description: '다른 사용자로부터 좋아요를 받으면 포인트를 획득!',
+            limit: '제한 없음'
+          },
+          warning: {
+            title: '주의사항',
+            message: '도배글, 스팸, 부적절한 내용은 오히려 계정 정지의 원인이 될 수 있습니다. 의미 있는 활동을 통해 포인트를 획득해주세요.'
+          }
+        },
+        usage: {
+          title: '포인트 사용처',
+          subtitle: '포인트로 얻을 수 있는 특별한 혜택들',
+          current: {
+            title: '현재 진행 중',
+            description: '누적 포인트 1등에게 비행기 티켓 지급!',
+            detail: '매월 누적 포인트 1등 사용자에게 한국 왕복 항공권을 지급합니다!'
+          },
+          upcoming: {
+            title: '준비 중',
+            description: '포인트 상점에서 다양한 아이템 구매 가능',
+            detail: '곧 포인트로 구매할 수 있는 다양한 아이템들이 준비될 예정입니다!'
+          }
+        },
+        couponEvent: {
+          title: '쿠폰 이벤트',
+          subtitle: '연속 출석으로 쿠폰을 획득하세요!',
+          attendanceReward: {
+            title: '연속 출석 보상',
+            progress: '연속 {current}/3일 출석',
+            completion: '축하합니다! AKO 쿠폰 1개가 지급되었습니다!',
+            tip: '매일 출석체크를 하면 3일마다 AKO 쿠폰을 받을 수 있어요!'
+          },
+          messages: {
+            alreadyCompleted: '오늘은 이미 출석체크를 완료했습니다!',
+            streakBroken: '연속 출석이 끊어졌습니다. 다시 시작해주세요!',
+            completed: '출석체크 완료! 연속 {days}일째입니다.',
+            congratulations: '축하합니다! AKO 쿠폰 1개가 지급되었습니다!'
           }
         }
       },
@@ -545,6 +604,9 @@ export const translations = {
       joinDate: '가입일',
       edit: '편집',
       name: '이름',
+      spanishName: '스페인어 이름',
+      spanishNamePlaceholder: '스페인어 이름을 입력하세요',
+      noSpanishName: '스페인어 이름 없음',
       university: '대학교',
       major: '전공',
       year: '학년',
@@ -622,13 +684,58 @@ export const translations = {
     // 상점 탭
     storeTab: {
       title: '충전소',
-      subtitle: '포인트 상점',
+      subtitle: 'AKO충전, VIP구독, 포인트 상점',
+      akoExplanation: '1 AKO = 1 화상채팅 (20분)',
+      charging: {
+        title: 'AKO 충전',
+        subtitle: 'AKO를 충전하여 AI 화상 채팅을 즐기세요',
+        chargeButton: '충전하기',
+        popular: '인기',
+        perUnit: '개당',
+        minutes: '분',
+        units: '개'
+      },
+      vip: {
+        title: 'VIP 구독',
+        subtitle: '프리미엄 기능으로 더욱 특별한 Amiko를 경험하세요',
+        monthly: '월간 구독',
+        yearly: '연간 구독',
+        popular: '인기',
+        subscribe: '구독하기',
+        save: '절약',
+        features: 'VIP 기능',
+        beautyFilter: '뷰티 필터',
+        adRemoval: '광고 제거',
+        simultaneousInterpretation: '동시 통역 기능'
+      },
+      pointStore: {
+        title: '포인트 상점',
+        subtitle: '포인트로 다양한 아이템을 구매하세요',
+        comingSoon: '준비중',
+        items: {
+          pointShop: '포인트 상점',
+          specialFeatures: '특별한 기능들',
+          premiumItems: '프리미엄 아이템',
+          newFeatures: '새로운 기능'
+        },
+        descriptions: {
+          pointShop: '곧 다양한 아이템들이 준비될 예정이에요',
+          specialFeatures: '더 많은 기능들이 준비 중이에요',
+          premiumItems: '특별한 아이템들이 곧 출시될 예정이에요',
+          newFeatures: '흥미로운 기능들이 준비 중이에요'
+        }
+      },
       pointStatus: {
         title: '내 포인트 현황',
-      availablePoints: '사용 가능한 포인트',
+        availablePoints: '사용 가능한 포인트',
         availablePointsDesc: '상점 구매용',
-      totalPoints: '누적 포인트',
+        totalPoints: '누적 포인트',
         totalPointsDesc: '랭킹/이벤트용'
+      },
+      pointCard: {
+        title: 'AKO 충전, VIP 구독, 포인트 상점',
+        availableAKO: '사용 가능한 AKO',
+        currentPoints: '현재 포인트'
       },
       items: {
         chatExtension: {
@@ -918,7 +1025,6 @@ export const translations = {
         language: 'Galería de Idioma',
         free: 'Galería de Temas Libres',
         daily: 'Galería de Vida Diaria',
-        popularPosts: 'Ver Publicaciones Populares',
         writePost: 'Escribir',
         latest: 'Más Reciente',
         popular: 'Más Popular',
@@ -975,10 +1081,7 @@ export const translations = {
           loadGalleriesFailed: 'Error al cargar las galerías',
           unknownError: 'Ocurrió un error desconocido'
         },
-        loginRequired: 'Se requiere iniciar sesión',
-        title: 'Título',
-        content: 'Contenido',
-        koreanNews: 'Noticias de Corea'
+        loginRequired: 'Se requiere iniciar sesión'
       }
     },
 
@@ -1076,6 +1179,69 @@ export const translations = {
             dele: 'DELE',
             flex: 'FLEX',
             examFeeSupport: 'Apoyo para Tarifa de Examen'
+          }
+        }
+      },
+      
+      // 포인트 시스템
+      pointSystem: {
+        title: 'Guía del Sistema de Puntos',
+        earningMethods: {
+          title: 'Métodos para Obtener Puntos',
+          subtitle: '¡Obtén puntos a través de actividades comunitarias! (Máximo +40 puntos por día)',
+          questionWriting: {
+            title: 'Escribir Pregunta',
+            description: 'Puedes obtener puntos publicando preguntas significativas',
+            limit: 'Máximo 3 por día para obtener puntos'
+          },
+          answerWriting: {
+            title: 'Escribir Respuesta',
+            description: 'Escribe respuestas útiles a las preguntas de otros usuarios',
+            limit: 'Máximo 5 por día para obtener puntos'
+          },
+          storyUpload: {
+            title: 'Subir Historia',
+            description: 'Comparte historias diarias y obtén puntos',
+            limit: 'Máximo 2 por día para obtener puntos'
+          },
+          receiveLikes: {
+            title: 'Recibir Me Gusta',
+            description: '¡Obtén puntos cuando recibas me gusta de otros usuarios!',
+            limit: 'Sin límite'
+          },
+          warning: {
+            title: 'Advertencia',
+            message: 'Publicaciones spam, spam o contenido inapropiado pueden resultar en suspensión de cuenta. Por favor, obtén puntos a través de actividades significativas.'
+          }
+        },
+        usage: {
+          title: 'Uso de Puntos',
+          subtitle: 'Beneficios especiales que puedes obtener con puntos',
+          current: {
+            title: 'En Progreso',
+            description: '¡Boleto de avión para el usuario con más puntos acumulados!',
+            detail: '¡Se otorga un boleto de avión de ida y vuelta a Corea mensualmente al usuario con más puntos acumulados!'
+          },
+          upcoming: {
+            title: 'Preparando',
+            description: 'Compra varios artículos en la tienda de puntos',
+            detail: '¡Pronto estarán disponibles varios artículos que se pueden comprar con puntos!'
+          }
+        },
+        couponEvent: {
+          title: 'Evento de Cupones',
+          subtitle: '¡Obtén cupones con asistencia continua!',
+          attendanceReward: {
+            title: 'Recompensa de Asistencia Continua',
+            progress: 'Asistencia continua {current}/3 días',
+            completion: '¡Felicidades! Se ha otorgado 1 cupón AKO!',
+            tip: '¡Si verificas la asistencia todos los días, puedes recibir un cupón AKO cada 3 días!'
+          },
+          messages: {
+            alreadyCompleted: 'Ya completaste la verificación de asistencia hoy!',
+            streakBroken: 'La asistencia continua se ha interrumpido. ¡Por favor, comienza de nuevo!',
+            completed: 'Verificación de asistencia completada! Día {days} consecutivo.',
+            congratulations: '¡Felicidades! Se ha otorgado 1 cupón AKO!'
           }
         }
       },
@@ -1248,6 +1414,9 @@ export const translations = {
       joinDate: 'Fecha de Registro',
       edit: 'Editar',
       name: 'Nombre',
+      spanishName: 'Nombre en Español',
+      spanishNamePlaceholder: 'Ingresa tu nombre en español',
+      noSpanishName: 'Sin nombre en español',
       university: 'Universidad',
       major: 'Carrera',
       year: 'Año',
@@ -1325,13 +1494,58 @@ export const translations = {
     // 상점 탭
     storeTab: {
       title: 'Estación de Carga',
-      subtitle: 'Tienda de Puntos',
+      subtitle: 'Carga AKO, Suscripción VIP, Tienda de Puntos',
+      akoExplanation: '1 AKO = 1 videollamada (20 minutos)',
+      charging: {
+        title: 'Carga AKO',
+        subtitle: 'Carga AKO para disfrutar de videollamadas con IA',
+        chargeButton: 'Cargar',
+        popular: 'Popular',
+        perUnit: 'por unidad',
+        minutes: 'minutos',
+        units: 'unidades'
+      },
+      vip: {
+        title: 'Suscripción VIP',
+        subtitle: 'Experimenta un Amiko más especial con funciones premium',
+        monthly: 'Suscripción Mensual',
+        yearly: 'Suscripción Anual',
+        popular: 'Popular',
+        subscribe: 'Suscribirse',
+        save: 'Ahorrar',
+        features: 'Funciones VIP',
+        beautyFilter: 'Filtro de Belleza',
+        adRemoval: 'Eliminar Anuncios',
+        simultaneousInterpretation: 'Función de Interpretación Simultánea'
+      },
+      pointStore: {
+        title: 'Tienda de Puntos',
+        subtitle: 'Compra varios artículos con puntos',
+        comingSoon: 'Próximamente',
+        items: {
+          pointShop: 'Tienda de Puntos',
+          specialFeatures: 'Funciones Especiales',
+          premiumItems: 'Artículos Premium',
+          newFeatures: 'Nuevas Funciones'
+        },
+        descriptions: {
+          pointShop: 'Pronto estarán disponibles varios artículos',
+          specialFeatures: 'Más funciones están siendo preparadas',
+          premiumItems: 'Artículos especiales estarán disponibles pronto',
+          newFeatures: 'Funciones interesantes están siendo preparadas'
+        }
+      },
       pointStatus: {
         title: 'Mi estado de puntos',
         availablePoints: 'Puntos disponibles',
         availablePointsDesc: 'Para compras en la tienda',
         totalPoints: 'Puntos acumulados',
         totalPointsDesc: 'Para ranking/eventos'
+      },
+      pointCard: {
+        title: 'Carga AKO, Suscripción VIP, Tienda de Puntos',
+        availableAKO: 'AKO Disponible',
+        currentPoints: 'Puntos Actuales'
       },
       items: {
         chatExtension: {

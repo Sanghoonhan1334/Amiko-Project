@@ -71,13 +71,13 @@ export default function MainNav() {
 
         {/* 우측 버튼들 */}
         <div className="hidden md:flex items-center space-x-3">
-          <Button
-            variant="outline"
-            className="hover:bg-brand-50 hover:border-brand-300 transition-colors"
-                            onClick={() => handleNavigation('/sign-up')}
-          >
-            시작하기
-          </Button>
+                <Button
+                  variant="outline"
+                  className="hover:bg-brand-50 hover:border-brand-300 transition-colors"
+                            onClick={() => handleNavigation('/main')}
+                >
+                  시작하기
+                </Button>
           <Button
             variant="outline"
             className="hover:bg-mint-50 hover:border-mint-300 transition-colors"
@@ -139,7 +139,7 @@ export default function MainNav() {
                 <Button
                   variant="outline"
                   className="w-full justify-start hover:bg-brand-50 hover:border-brand-300 transition-colors"
-                  onClick={() => handleNavigation('/sign-up')}
+                  onClick={() => handleNavigation('/main')}
                 >
                   시작하기
                 </Button>

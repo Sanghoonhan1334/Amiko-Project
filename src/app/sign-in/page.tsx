@@ -46,7 +46,7 @@ export default function SignInPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.identifier,
+          identifier: formData.identifier,
           password: formData.password
         })
       })
@@ -117,7 +117,8 @@ export default function SignInPage() {
                   placeholder={t('auth.emailOrPhonePlaceholder')}
                   value={formData.identifier}
                   onChange={(e) => handleInputChange('identifier', e.target.value)}
-                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
               </div>
@@ -135,7 +136,8 @@ export default function SignInPage() {
                   placeholder={t('auth.passwordPlaceholder')}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="pl-10 pr-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="pr-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
                 <button

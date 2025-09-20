@@ -469,7 +469,8 @@ export default function MyTab() {
         new_images_count: profileImagesBase64.length,
         total_images_count: allProfileImages.length,
         main_profile_image: getCurrentMainImage() ? '있음' : '없음',
-        main_profile_image_preview: getCurrentMainImage()?.substring(0, 50) + '...'
+        main_profile_image_preview: getCurrentMainImage()?.substring(0, 50) + '...',
+        full_request_data: requestData
       })
 
       let response = await fetch('/api/profile', {
@@ -506,6 +507,8 @@ export default function MyTab() {
 
       const responseData = await response.json()
       console.log('프로필 저장 응답 데이터:', responseData)
+      console.log('프로필 저장 응답 데이터 타입:', typeof responseData)
+      console.log('프로필 저장 응답 데이터 키들:', Object.keys(responseData))
       console.log('프로필 저장 성공 여부:', response.ok)
       console.log('저장된 사용자 데이터:', responseData.user)
 
@@ -836,6 +839,21 @@ export default function MyTab() {
                   />
                 ) : (
                   <p className="text-gray-800 font-medium">{profile.full_name || profile.name || t('myTab.noName')}</p>
+                )}
+              </div>
+              
+              {/* 스페인어 이름 필드 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 block font-['Inter']">{t('profile.spanishName')}</label>
+                {isEditing ? (
+                  <Input
+                    value={profile.spanish_name || ''}
+                    onChange={(e) => setProfile({ ...profile, spanish_name: e.target.value })}
+                    className="border-brand-200 focus:border-brand-500"
+                    placeholder={t('profile.spanishNamePlaceholder')}
+                  />
+                ) : (
+                  <p className="text-gray-800 font-medium">{profile.spanish_name || t('profile.noSpanishName')}</p>
                 )}
               </div>
               

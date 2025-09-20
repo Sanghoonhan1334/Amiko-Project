@@ -33,6 +33,7 @@ export default function EventTab() {
   const [stampSize, setStampSize] = useState(1)
   const [clickedDay, setClickedDay] = useState<number | null>(null)
   const [userType, setUserType] = useState<'local' | 'korean'>('local') // 기본값: 현지인
+  const [couponStreak, setCouponStreak] = useState(0) // 쿠폰 연속 출석 일수
   
   // 포인트 데이터 상태
   const [pointsData, setPointsData] = useState({
@@ -402,6 +403,78 @@ export default function EventTab() {
 
   const nextReward = getNextReward()
 
+  // 쿠폰 도장 찍기 함수
+  const handleCouponStamp = async (day: number) => {
+    if (couponStreak !== day - 1) return // 순서대로만 찍을 수 있음
+    
+    // 오늘 날짜 확인
+    const today = new Date().toISOString().split('T')[0]
+    const lastCouponDate = localStorage.getItem('lastCouponDate')
+    const todayStamp = localStorage.getItem(`couponStamp_${today}`)
+    
+    // 오늘 이미 도장을 찍었다면 막기
+    if (todayStamp) {
+      alert(t('eventTab.pointSystem.couponEvent.messages.alreadyCompleted'))
+      return
+    }
+    
+    // 어제까지 연속이었다면 리셋
+    if (lastCouponDate && lastCouponDate !== today) {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const yesterdayStr = yesterday.toISOString().split('T')[0]
+      
+      if (lastCouponDate !== yesterdayStr) {
+        // 연속이 끊어짐 - 리셋
+        setCouponStreak(0)
+        localStorage.setItem('couponStreak', '0')
+        alert(t('eventTab.pointSystem.couponEvent.messages.streakBroken'))
+        return
+      }
+    }
+    
+    // 도장 찍기
+    const newStreak = couponStreak + 1
+    setCouponStreak(newStreak)
+    localStorage.setItem('couponStreak', newStreak.toString())
+    localStorage.setItem('lastCouponDate', today)
+    localStorage.setItem(`couponStamp_${today}`, 'true') // 오늘 도장 찍음 표시
+    
+    // 3일 완료 시 쿠폰 지급
+    if (newStreak === 3) {
+      alert('🎉 ' + t('eventTab.pointSystem.couponEvent.messages.congratulations'))
+      // 쿠폰 지급 후 리셋
+      setTimeout(() => {
+        setCouponStreak(0)
+        localStorage.setItem('couponStreak', '0')
+      }, 2000)
+    } else {
+      alert(t('eventTab.pointSystem.couponEvent.messages.completed').replace('{days}', newStreak.toString()))
+    }
+  }
+
+  // 쿠폰 출석 데이터 로드
+  useEffect(() => {
+    const savedCouponStreak = localStorage.getItem('couponStreak')
+    const lastCouponDate = localStorage.getItem('lastCouponDate')
+    const today = new Date().toISOString().split('T')[0]
+    
+    if (savedCouponStreak && lastCouponDate) {
+      // 어제까지 연속이었다면 유지, 아니면 리셋
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const yesterdayStr = yesterday.toISOString().split('T')[0]
+      
+      if (lastCouponDate === yesterdayStr || lastCouponDate === today) {
+        setCouponStreak(parseInt(savedCouponStreak))
+      } else {
+        // 연속이 끊어짐 - 리셋
+        setCouponStreak(0)
+        localStorage.setItem('couponStreak', '0')
+      }
+    }
+  }, [])
+
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
       {/* 특별 이벤트 */}
@@ -581,33 +654,202 @@ export default function EventTab() {
         </CardContent>
       </Card>
 
-      {/* 간소화된 포인트 시스템 안내 */}
+      {/* 포인트 시스템 상세 안내 */}
       <Card className="bg-white border border-gray-200 shadow-lg">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full">
-              <Zap className="w-6 h-6 text-white" />
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl">
+            <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+            {t('eventTab.pointSystem.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          
+          {/* 포인트 획득 방법 */}
+          <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">🎯</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-green-800">{t('eventTab.pointSystem.earningMethods.title')}</h3>
+                <p className="text-sm text-green-600">{t('eventTab.pointSystem.earningMethods.subtitle')}</p>
+              </div>
             </div>
-            <h3 className="text-xl font-bold text-gray-800 font-['Inter']">{t('eventTab.pointRules.title')}</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">💬</span>
+                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.questionWriting.title')}</span>
+                  <Badge className="bg-blue-100 text-blue-800">+5점</Badge>
+                </div>
+                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.questionWriting.description')}</p>
+                <div className="mt-2 text-xs text-blue-600 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
+              </div>
+              
+              <div className="p-4 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">✍️</span>
+                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.answerWriting.title')}</span>
+                  <Badge className="bg-green-100 text-green-800">+5점</Badge>
+                </div>
+                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.answerWriting.description')}</p>
+                <div className="mt-2 text-xs text-green-600 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
+              </div>
+              
+              <div className="p-4 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">📸</span>
+                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.storyUpload.title')}</span>
+                  <Badge className="bg-purple-100 text-purple-800">+5점</Badge>
+                </div>
+                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.storyUpload.description')}</p>
+                <div className="mt-2 text-xs text-purple-600 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
+              </div>
+              
+              <div className="p-4 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">💎</span>
+                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.receiveLikes.title')}</span>
+                  <Badge className="bg-pink-100 text-pink-800">+5점</Badge>
+                </div>
+                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
+                <div className="mt-2 text-xs text-pink-600 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚠️</span>
+                <span className='font-medium text-yellow-800'>{t('eventTab.pointSystem.earningMethods.warning.title')}</span>
+              </div>
+              <p className='text-sm text-yellow-700 mt-1'>
+                {t('eventTab.pointSystem.earningMethods.warning.message')}
+              </p>
+            </div>
           </div>
 
-          <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
-            <div className="text-4xl mb-4">🎯</div>
-            <h4 className="text-lg font-bold text-gray-800 mb-2">{t('eventTab.pointRules.subtitle')}</h4>
-            <p className="text-gray-600 mb-4">
-              {t('eventTab.pointRules.description')}
-            </p>
-            <Button 
-              onClick={() => {
-                // 상점 탭으로 이동
-                if (typeof window !== 'undefined') {
-                  (window as any).changeMainTab?.('store')
-                }
-              }}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              {t('eventTab.pointRules.goToStore')}
-            </Button>
+          {/* 포인트 사용처 */}
+          <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">🏆</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-purple-800">{t('eventTab.pointSystem.usage.title')}</h3>
+                <p className="text-sm text-purple-600">{t('eventTab.pointSystem.usage.subtitle')}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {/* 현재 사용처 - 비행기 티켓 */}
+              <div className="p-4 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">✈️</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">{t('eventTab.pointSystem.usage.current.title')}</h4>
+                    <p className="text-sm text-gray-600">{t('eventTab.pointSystem.usage.current.description')}</p>
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-sm text-blue-800 font-medium">
+                    🎯 {t('eventTab.pointSystem.usage.current.detail')}
+                  </p>
+                </div>
+              </div>
+              
+              {/* 향후 사용처 - 포인트 상점 */}
+              <div className="p-4 bg-white rounded-lg border border-gray-200 opacity-75">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">🛍️</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-600">{t('eventTab.pointSystem.usage.upcoming.title')}</h4>
+                    <p className="text-sm text-gray-500">{t('eventTab.pointSystem.usage.upcoming.description')}</p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    🚧 {t('eventTab.pointSystem.usage.upcoming.detail')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 쿠폰 이벤트 안내 */}
+          <div className="p-4 sm:p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">🎁</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-orange-800">{t('eventTab.pointSystem.couponEvent.title')}</h3>
+                <p className="text-sm text-orange-600">{t('eventTab.pointSystem.couponEvent.subtitle')}</p>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-white rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-lg">📅</span>
+                <span className='font-semibold text-gray-800'>{t('eventTab.pointSystem.couponEvent.attendanceReward.title')}</span>
+              </div>
+              
+              {/* 도장 찍기 섹션 */}
+              <div className="mb-4">
+                <div className="flex items-center justify-center gap-4 mb-3">
+                  {[1, 2, 3].map((day) => {
+                    const isCompleted = couponStreak >= day
+                    const isClickable = couponStreak === day - 1
+                    const today = new Date().toISOString().split('T')[0]
+                    const todayStamp = localStorage.getItem(`couponStamp_${today}`)
+                    const canClickToday = isClickable && !todayStamp
+                    
+                    return (
+                      <div
+                        key={day}
+                        className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                          isCompleted
+                            ? 'bg-red-500 border-red-600 shadow-lg'
+                            : canClickToday
+                            ? 'bg-orange-100 border-orange-300 hover:bg-orange-200 cursor-pointer'
+                            : 'bg-gray-100 border-gray-300 cursor-not-allowed'
+                        }`}
+                        onClick={() => canClickToday && handleCouponStamp(day)}
+                      >
+                        {isCompleted ? (
+                          <span className="text-white text-xl">🎯</span>
+                        ) : (
+                          <span className="text-gray-400 text-lg">{day}</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+                
+                <div className="text-center">
+                  <p className='text-sm text-gray-600 mb-2'>
+                    {t('eventTab.pointSystem.couponEvent.attendanceReward.progress').replace('{current}', couponStreak.toString())}
+                  </p>
+                  {couponStreak === 3 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className='text-sm text-green-800 font-medium'>
+                        🎉 {t('eventTab.pointSystem.couponEvent.attendanceReward.completion')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <p className='text-sm text-orange-800 font-medium'>
+                  💡 {t('eventTab.pointSystem.couponEvent.attendanceReward.tip')}
+                </p>
+              </div>
+            </div>
           </div>
 
         </CardContent>

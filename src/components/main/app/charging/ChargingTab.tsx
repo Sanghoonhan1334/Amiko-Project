@@ -13,17 +13,20 @@ import {
   Zap,
   Gift,
   ShoppingBag,
-  Clock,
-  Lock
+  Clock
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Navigation, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 
 export default function ChargingTab() {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const [, setSelectedCoupons] = useState(1)
-  const [, setSelectedVipPlan] = useState('')
+  const [currentSlide, setCurrentSlide] = useState(0)
   
   console.log('ChargingTab 마운트됨, 사용자 상태:', { user: !!user, userId: user?.id })
   
@@ -32,10 +35,55 @@ export default function ChargingTab() {
   const [totalPoints, setTotalPoints] = useState(0)
   const [loading, setLoading] = useState(true)
 
+  // 쿠폰 패키지 데이터 (1 AKO = $1.99 기준, 많이 살수록 할인, 1 AKO = 20분)
+  const couponPackages = [
+    { id: 1, count: 1, price: 1.99, minutes: 20, popular: false, discount: 0, perUnit: 1.99 },
+    { id: 2, count: 5, price: 9.45, minutes: 100, popular: true, discount: 5, perUnit: 1.89 },
+    { id: 3, count: 10, price: 17.90, minutes: 200, popular: false, discount: 10, perUnit: 1.79 },
+    { id: 4, count: 20, price: 33.80, minutes: 400, popular: false, discount: 15, perUnit: 1.69 }
+  ]
+
+  // 상점 아이템 데이터
+  const storeItems = [
+    {
+      id: 'coming_soon_1',
+      name: t('storeTab.pointStore.items.pointShop'),
+      description: t('storeTab.pointStore.descriptions.pointShop'),
+      price: 0,
+      icon: '🛍️',
+      available: false
+    },
+    {
+      id: 'coming_soon_2',
+      name: '특별한 기능들',
+      description: '더 많은 기능들이 준비 중이에요',
+      price: 0,
+      icon: '✨',
+      available: false
+    },
+    {
+      id: 'coming_soon_3',
+      name: '프리미엄 아이템',
+      description: '특별한 아이템들이 곧 출시될 예정이에요',
+      price: 0,
+      icon: '👑',
+      available: false
+    },
+    {
+      id: 'coming_soon_4',
+      name: '새로운 기능',
+      description: '흥미로운 기능들이 준비 중이에요',
+      price: 0,
+      icon: '🚀',
+      available: false
+    }
+  ]
+
   // 포인트 데이터 가져오기
   useEffect(() => {
     const fetchPoints = async () => {
       if (!user?.id) {
+        // 사용자가 없으면 기본값 설정
         setAvailablePoints(0)
         setTotalPoints(0)
         setLoading(false)
@@ -43,24 +91,34 @@ export default function ChargingTab() {
       }
 
       try {
-        console.log('포인트 API 호출:', `/api/points?userId=${user.id}`)
-        const response = await fetch(`/api/points?userId=${user.id}`)
-        console.log('포인트 API 응답:', { status: response.status, ok: response.ok })
-        
+        const token = localStorage.getItem('token')
+        if (!token) {
+          setAvailablePoints(0)
+          setTotalPoints(0)
+          setLoading(false)
+          return
+        }
+
+        const response = await fetch(`/api/points?userId=${user.id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
         if (response.ok) {
           const data = await response.json()
-          console.log('포인트 데이터:', data)
           setAvailablePoints(data.userPoints?.available_points || 0)
           setTotalPoints(data.userPoints?.total_points || 0)
         } else {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-          console.error('포인트 API 실패:', errorData)
-          // API 실패 시 기본값 사용
+          console.error('포인트 조회 실패:', response.status)
+          // API 실패 시 기본값 설정
           setAvailablePoints(0)
           setTotalPoints(0)
         }
       } catch (error) {
-        console.error('포인트 조회 실패:', error)
+        console.error('포인트 조회 중 오류:', error)
         setAvailablePoints(0)
         setTotalPoints(0)
       } finally {
@@ -71,90 +129,7 @@ export default function ChargingTab() {
     fetchPoints()
   }, [user?.id])
 
-  const couponPackages = [
-    { 
-      count: 1, 
-      price: 1.99, 
-      originalPrice: 1.99,
-      discount: 0, 
-      popular: false, 
-      minutes: 20,
-      pricePerUnit: 1.99
-    },
-    { 
-      count: 5, 
-      price: 9.49, 
-      originalPrice: 9.95,
-      discount: 5, 
-      popular: true, 
-      minutes: 100,
-      pricePerUnit: 1.90
-    },
-    { 
-      count: 10, 
-      price: 17.90, 
-      originalPrice: 19.90,
-      discount: 10, 
-      popular: false, 
-      minutes: 200,
-      pricePerUnit: 1.79
-    },
-    { 
-      count: 20, 
-      price: 32.90, 
-      originalPrice: 39.80,
-      discount: 17, 
-      popular: false, 
-      minutes: 400,
-      pricePerUnit: 1.65
-    },
-  ]
-
-  const vipPlans = [
-    {
-      id: 'monthly',
-      name: t('chargingTab.vip.monthly'),
-      price: 9.99,
-      period: t('chargingTab.vip.period'),
-      features: [t('chargingTab.vip.features.beautyFilter'), t('chargingTab.vip.features.communityBadge'), t('chargingTab.vip.features.adRemoval'), t('chargingTab.vip.features.simultaneousInterpretation')],
-      icon: Crown,
-      color: 'bg-purple-100 text-purple-700 border-purple-300',
-      popular: true
-    },
-    {
-      id: 'yearly',
-      name: t('chargingTab.vip.yearly'),
-      price: 80.00,
-      period: t('chargingTab.vip.periodYear'),
-      features: [t('chargingTab.vip.features.beautyFilter'), t('chargingTab.vip.features.communityBadge'), t('chargingTab.vip.features.adRemoval'), t('chargingTab.vip.features.simultaneousInterpretation'), t('chargingTab.vip.monthlyLevel')],
-      icon: Star,
-      color: 'bg-gold-100 text-gold-700 border-gold-300',
-      discount: t('chargingTab.vip.monthlySavings')
-    }
-  ]
-
-  // 상점 아이템들
-  const storeItems = [
-    {
-      id: 'chat_extension',
-      name: t('storeTab.items.chatExtension.name'),
-      description: t('storeTab.items.chatExtension.description'),
-      price: 100,
-      icon: '💬',
-      available: true,
-      category: 'utility'
-    },
-    {
-      id: 'special_event_ticket',
-      name: t('storeTab.items.specialEventTicket.name'),
-      description: t('storeTab.items.specialEventTicket.description'),
-      price: 2000,
-      icon: '🎫',
-      available: false,
-      category: 'event'
-    }
-  ]
-
+  // 쿠폰 구매 처리
   const handleCouponPurchase = async (packageData: any) => {
     try {
       // 사용자 국가 확인 (한국인은 구매 불가)
@@ -164,40 +139,30 @@ export default function ChargingTab() {
         return;
       }
 
-      // PayPal 주문 생성
-      const response = await fetch('/api/paypal/create-order', {
+      const response = await fetch('/api/payments/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          amount: packageData.price * 100, // USD 센트 단위
-          orderId: `coupon-${Date.now()}`,
-          orderName: `${packageData.count}개 AKO 쿠폰 (${packageData.minutes}분)`,
-          customerName: '고객',
-          customerEmail: 'customer@example.com',
-          productType: 'coupon',
-          productData: {
-            couponCount: packageData.count,
-            couponMinutes: packageData.minutes,
-            pricePerCoupon: packageData.price / packageData.count
-          }
-        }),
+          package_id: packageData.id,
+          count: packageData.count,
+          price: packageData.price
+        })
       });
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        console.error('PayPal API 에러:', data);
-        alert(`결제 처리 중 오류가 발생했습니다: ${data.error || '알 수 없는 오류'}`);
-        return;
+      if (response.ok) {
+        const { client_secret } = await response.json();
+        // Stripe 결제 처리 로직
+        console.log('결제 준비 완료:', client_secret);
+        alert('결제 페이지로 이동합니다.');
+      } else {
+        const errorData = await response.json();
+        alert(`결제 준비 실패: ${errorData.error || '알 수 없는 오류'}`);
       }
-
-      // PayPal 결제 페이지로 리다이렉트
-      window.location.href = `/payments/paypal?orderId=${data.orderId}&amount=${packageData.price * 100}&type=coupon&count=${packageData.count}&minutes=${packageData.minutes}`;
-
     } catch (error) {
-      console.error('쿠폰 구매 실패:', error);
+      console.error('쿠폰 구매 중 오류:', error);
       alert('결제 처리 중 오류가 발생했습니다.');
     }
   }
@@ -205,46 +170,12 @@ export default function ChargingTab() {
   // 사용자 국가 확인 함수
   const getUserCountry = async () => {
     try {
-      const response = await fetch('/api/user/country');
+      const response = await fetch('https://ipapi.co/json/');
       const data = await response.json();
-      return data.country || 'US'; // 기본값은 US
+      return data.country_code;
     } catch (error) {
       console.error('국가 확인 실패:', error);
-      return 'US'; // 기본값은 US
-    }
-  }
-
-  const handleVipPurchase = async (plan: any) => {
-    try {
-      // PayPal 주문 생성
-      const response = await fetch('/api/paypal/create-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: plan.price * 100, // USD 센트 단위
-          orderId: `vip-${Date.now()}`,
-          orderName: `${plan.name} VIP 구독`,
-          customerName: '고객',
-          customerEmail: 'customer@example.com',
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        console.error('PayPal API 에러:', data);
-        alert(`결제 처리 중 오류가 발생했습니다: ${data.error || '알 수 없는 오류'}`);
-        return;
-      }
-
-      // PayPal 결제 페이지로 리다이렉트
-      window.location.href = `/payments/paypal?orderId=${data.orderId}&amount=${plan.price * 100}&type=vip&plan=${plan.name}`;
-
-    } catch (error) {
-      console.error('VIP 구독 실패:', error);
-      alert('결제 처리 중 오류가 발생했습니다. PayPal 설정을 확인해주세요.');
+      return 'US'; // 기본값
     }
   }
 
@@ -252,341 +183,286 @@ export default function ChargingTab() {
   const handleStoreItemPurchase = (item: any) => {
     if (availablePoints >= item.price) {
       setAvailablePoints(availablePoints - item.price)
-      alert(t('storeTab.messages.purchaseSuccess'))
+      alert('구매가 완료되었습니다!')
     } else {
-      alert(t('storeTab.messages.insufficientPoints'))
+      alert('포인트가 부족합니다.')
     }
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
-      {/* 포인트 현황 */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800 text-lg sm:text-xl">
-            <Star className="w-5 h-5 sm:w-6 sm:h-6" />
-            {t('storeTab.pointStatus.title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="text-center p-3 sm:p-4 bg-white rounded-lg border border-blue-200">
-              <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                {loading ? '...' : availablePoints}
-              </div>
-              <div className="text-sm text-gray-600">{t('storeTab.pointStatus.availablePoints')}</div>
-              <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.availablePointsDesc')}</div>
-            </div>
-            <div className="text-center p-3 sm:p-4 bg-white rounded-lg border border-purple-200">
-              <div className="text-xl sm:text-2xl font-bold text-purple-600">
-                {loading ? '...' : totalPoints}
-              </div>
-              <div className="text-sm text-gray-600">{t('storeTab.pointStatus.totalPoints')}</div>
-              <div className="text-xs text-gray-500 mt-1">{t('storeTab.pointStatus.totalPointsDesc')}</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="p-3 sm:p-4 md:p-6">
 
-      {/* AI 화상 채팅 쿠폰 섹션 */}
-      <Card className="bg-white shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Video className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            {t('chargingTab.coupons.title')}
-          </CardTitle>
-          <CardDescription>
-            {t('chargingTab.coupons.subtitle')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {couponPackages.map((pkg) => {
-              const IconComponent = pkg.popular ? Gift : Video
-              return (
-                <Card 
-                  key={pkg.count}
-                  className={`cursor-pointer transition-all ${
-                    pkg.popular 
-                      ? 'ring-2 ring-blue-500 bg-blue-50' 
-                      : 'hover:shadow-md'
-                  }`}
-                  onClick={() => setSelectedCoupons(pkg.count)}
-                >
-                  <CardContent className="p-3 sm:p-4 text-center">
-                    {pkg.popular && (
-                      <Badge className="mb-2 bg-blue-500 text-white">
-                        {t('chargingTab.coupons.popular')}
-                      </Badge>
-                    )}
-                    <div className="flex items-center justify-center mb-2">
-                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 mr-2" />
-                      <span className="text-base sm:text-lg font-bold">{pkg.count}{t('chargingTab.coupons.unit')}</span>
-                    </div>
-                    {/* 가격 섹션 */}
-                    <div className="text-center mb-3">
-                      {pkg.discount > 0 && (
-                        <div className="text-xs text-green-600 font-medium mb-1">
-                          {pkg.discount}% {t('chargingTab.coupons.discount')}
-                        </div>
-                      )}
-                      <div className="text-3xl font-bold text-gray-900 mb-1">
+      {/* 슬라이드 컨테이너 */}
+      <div className="relative">
+        <Swiper
+          modules={[Navigation, Pagination]}
+          spaceBetween={20}
+          slidesPerView={1}
+          autoHeight={true}
+          navigation={{
+            nextEl: '.swiper-button-next-custom',
+            prevEl: '.swiper-button-prev-custom',
+          }}
+          pagination={{
+            clickable: true,
+            bulletClass: 'swiper-pagination-bullet-custom',
+            bulletActiveClass: 'swiper-pagination-bullet-active-custom',
+          }}
+          className="charging-swiper min-h-[400px]"
+          onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
+        >
+        {/* 슬라이드 1: AKO 쿠폰 */}
+        <SwiperSlide>
+          <Card className="bg-white shadow-lg">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Gift className="w-4 h-4 text-blue-500" />
+                {t('storeTab.charging.title')}
+              </CardTitle>
+              <CardDescription className="text-sm">
+                {t('storeTab.charging.subtitle')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {couponPackages.map((pkg) => (
+                  <Card 
+                    key={pkg.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      pkg.popular ? 'ring-2 ring-blue-500' : ''
+                    }`}
+                    onClick={() => handleCouponPurchase(pkg)}
+                  >
+                    <CardContent className="p-2 text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Video className="w-3 h-3 text-blue-500" />
+                        {pkg.popular && (
+                          <Badge className="text-xs px-1 py-0.5 bg-blue-100 text-blue-700 border-blue-300">
+                            {t('storeTab.charging.popular')}
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="font-semibold text-xs">{pkg.count}{t('storeTab.charging.units')}</h3>
+                      <div className="text-sm font-bold text-blue-600 mb-1">
                         ${pkg.price}
                       </div>
-                      {pkg.discount > 0 && (
-                        <div className="text-sm text-gray-400 line-through">
-                          ${pkg.originalPrice}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* 상세 정보 */}
-                    <div className="space-y-1 mb-4">
-                      <div className="text-sm text-gray-600">
-                        {t('chargingTab.coupons.perUnit')} <span className="font-semibold">${pkg.pricePerUnit.toFixed(2)}</span>
+                      <div className="text-xs text-gray-500 mb-1">
+                        {t('storeTab.charging.perUnit')} ${pkg.perUnit}
                       </div>
-                      <div className="text-sm text-blue-600 font-medium">
-                        {pkg.minutes}{t('chargingTab.coupons.minutes')} = {pkg.count}AKO
+                      <div className="text-xs text-gray-600 mb-2">
+                        {pkg.minutes}{t('storeTab.charging.minutes')}
                       </div>
+                      <Button 
+                        size="sm" 
+                        className="w-full text-xs h-6"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCouponPurchase(pkg)
+                        }}
+                      >
+                        {t('storeTab.charging.chargeButton')}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </SwiperSlide>
+
+        {/* 슬라이드 2: VIP 멤버십 */}
+        <SwiperSlide>
+          <Card className="bg-white shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Crown className="w-4 h-4 text-purple-500" />
+                VIP 구독
+              </CardTitle>
+              <CardDescription className="text-sm">
+                프리미엄 기능으로 더욱 특별한 Amiko를 경험하세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-3 gap-2">
+                {/* 월간 구독 */}
+                <Card className="text-center p-1 border border-gray-200">
+                  <CardContent className="p-1">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Clock className="w-3 h-3 text-gray-500" />
+                      <span className="text-xs font-medium">{t('storeTab.vip.monthly')}</span>
                     </div>
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleCouponPurchase(pkg)
-                      }}
-                    >
-                      {t('chargingTab.coupons.buyNow')}
+                    <div className="text-base font-bold text-gray-800 mb-1">$10</div>
+                    <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.monthly')}</div>
+                    <Button size="sm" className="w-full text-xs h-6">
+                      {t('storeTab.vip.subscribe')}
                     </Button>
                   </CardContent>
                 </Card>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* VIP 기능 섹션 */}
-      <Card className="bg-white shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-purple-500" />
-            {t('chargingTab.vip.title')}
-          </CardTitle>
-          <CardDescription>
-            {t('chargingTab.vip.subtitle')}
-            <br />
-            <span className="text-sm text-orange-600 font-medium">
-              ⚠️ {t('chargingTab.vip.warning')}
-            </span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {vipPlans.map((plan) => {
-              const IconComponent = plan.icon
-              return (
-                <Card 
-                  key={plan.id}
-                  className={`cursor-pointer transition-all ${
-                    plan.popular 
-                      ? 'ring-2 ring-purple-500 bg-purple-50' 
-                      : 'hover:shadow-md'
-                  }`}
-                  onClick={() => setSelectedVipPlan(plan.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <IconComponent className="w-6 h-6 text-purple-500" />
-                        <div>
-                          <h3 className="font-bold text-lg">{plan.name}</h3>
-                          <p className="text-sm text-gray-500">{plan.period}</p>
+                {/* 연간 구독 */}
+                <Card className="text-center p-1 border border-purple-300 ring-1 ring-purple-200">
+                  <CardContent className="p-1">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Crown className="w-3 h-3 text-purple-500" />
+                      <span className="text-xs font-medium">{t('storeTab.vip.yearly')}</span>
+                      <Badge className="text-xs px-1 py-0.5 bg-purple-100 text-purple-700 border-purple-300">
+                        {t('storeTab.vip.popular')}
+                      </Badge>
+                    </div>
+                    <div className="text-base font-bold text-purple-600 mb-1">$80</div>
+                    <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.yearly')}</div>
+                    <div className="text-xs text-green-600 mb-1">{t('storeTab.vip.save')} $3.3</div>
+                    <Button size="sm" className="w-full text-xs h-6 bg-gradient-to-r from-purple-300 to-purple-400 hover:from-purple-400 hover:to-purple-500 text-white shadow-md hover:shadow-lg transition-all duration-200">
+                      {t('storeTab.vip.subscribe')}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* VIP 기능 상세정보 */}
+                <Card className="text-center p-2 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+                  <CardContent className="p-2">
+                    <div className="flex items-center justify-center gap-1 mb-2">
+                      <Sparkles className="w-4 h-4 text-purple-500" />
+                      <span className='text-sm font-bold text-purple-700'>{t('storeTab.vip.features')}</span>
+                    </div>
+                    <div className="text-sm font-bold text-gray-800 leading-relaxed">
+                      {t('storeTab.vip.beautyFilter')}<br/>
+                      {t('storeTab.vip.adRemoval')}<br/>
+                      {t('storeTab.vip.simultaneousInterpretation')}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </SwiperSlide>
+
+        {/* 슬라이드 3: 포인트 상점 */}
+        <SwiperSlide>
+          <Card className="bg-white shadow-lg h-auto relative">
+            {/* 공사중 팻말 */}
+            <div className="absolute top-4 right-4 z-10">
+              <div className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg transform rotate-12">
+                🚧 {t('storeTab.pointStore.comingSoon')}
+              </div>
+            </div>
+            
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <ShoppingBag className="w-4 h-4 text-green-500" />
+                {t('storeTab.pointStore.title')}
+              </CardTitle>
+              <CardDescription className="text-sm">
+                {t('storeTab.pointStore.subtitle')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 gap-3">
+                {storeItems.map((item) => (
+                  <Card 
+                    key={item.id}
+                    className={`cursor-pointer transition-all ${
+                      item.available 
+                        ? 'hover:shadow-md' 
+                        : 'opacity-50 cursor-not-allowed'
+                    }`}
+                    onClick={() => item.available && handleStoreItemPurchase(item)}
+                  >
+                    <CardContent className="p-3 text-center">
+                      <div className="mb-2">
+                        <div className="text-2xl mb-1">{item.icon}</div>
+                        <h3 className="font-semibold text-sm mb-1">{item.name}</h3>
+                        <p className="text-xs text-gray-600 mb-1 leading-tight">{item.description}</p>
+                        <div className="text-sm font-bold text-green-600 mb-2">
+                          {item.price} 포인트
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-900">
-                          ${plan.price}
-                        </div>
-                        {plan.discount && (
-                          <div className="text-sm text-green-600">
-                            {plan.discount}
+                        {!item.available && (
+                          <div className="text-xs text-gray-500 mb-1">
+                            {t('storeTab.pointStore.comingSoon')}
                           </div>
                         )}
                       </div>
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
-                          <Sparkles className="w-4 h-4 text-purple-500" />
-                          <span>{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {plan.popular && (
-                      <Badge className={`mb-3 ${plan.color}`}>
-                        {t('chargingTab.vip.mostPopular')}
-                      </Badge>
-                    )}
-
-                    <Button 
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        // PayPal 설정 완료 후 활성화
-                        alert('VIP 구독 기능은 준비 중입니다. 곧 이용하실 수 있습니다!\n\n⚠️ 참고: VIP 구독만으로는 채팅이 불가능하며, 반드시 쿠폰을 구매해야 합니다.');
-                        // handleVipPurchase(plan)
-                      }}
-                    >
-                      {t('chargingTab.vip.subscribe')}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* VIP 기능 상세 설명 */}
-      <Card className="bg-white shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-yellow-500" />
-            {t('chargingTab.vip.title')} {t('chargingTab.vip.details')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
-                <span className="text-pink-600">✨</span>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800">{t('chargingTab.vip.features.beautyFilter')}</h4>
-                <p className="text-sm text-gray-600">
-                  {t('chargingTab.vip.featureDescriptions.beautyFilter')}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <Crown className="w-4 h-4 text-purple-600" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800">{t('chargingTab.vip.features.communityBadge')}</h4>
-                <p className="text-sm text-gray-600">
-                  {t('chargingTab.vip.featureDescriptions.communityBadge')}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600">🚫</span>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800">{t('chargingTab.vip.features.adRemoval')}</h4>
-                <p className="text-sm text-gray-600">
-                  {t('chargingTab.vip.featureDescriptions.adRemoval')}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <Globe className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800">{t('chargingTab.vip.features.simultaneousInterpretation')}</h4>
-                <p className="text-sm text-gray-600">
-                  {t('chargingTab.vip.featureDescriptions.simultaneousInterpretation')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 포인트 상점 */}
-      <Card className="bg-white shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-green-500" />
-            {t('storeTab.subtitle')}
-          </CardTitle>
-          <CardDescription>
-            {t('storeTab.pointEarning.title')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {storeItems.map((item) => (
-              <Card 
-                key={item.id}
-                className={`cursor-pointer transition-all ${
-                  item.available 
-                    ? 'hover:shadow-md' 
-                    : 'opacity-50 cursor-not-allowed'
-                }`}
-                onClick={() => item.available && handleStoreItemPurchase(item)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="text-2xl">{item.icon}</div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg">{item.name}</h3>
-                      <p className="text-sm text-gray-600">{item.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">
-                        {item.price}{t('storeTab.points')}
-                      </div>
-                      {!item.available && (
-                        <div className="text-xs text-gray-500">
-                          {t('storeTab.comingSoon')}
-                        </div>
+                      {item.available && (
+                        <Button 
+                          size="sm" 
+                          className="w-full text-xs h-7"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleStoreItemPurchase(item)
+                          }}
+                        >
+                          구매하기
+                        </Button>
                       )}
-                    </div>
-                  </div>
-                  {item.available && (
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleStoreItemPurchase(item)
-                      }}
-                    >
-                      {t('storeTab.buy')}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          {/* 포인트 획득 방법 */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold text-gray-800 mb-3">{t('storeTab.pointEarning.title')}</h4>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <Sparkles className="w-4 h-4 text-blue-500" />
-                <span>{t('storeTab.pointEarning.communityActivities')}</span>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Video className="w-4 h-4 text-purple-500" />
-                <span>{t('storeTab.pointEarning.videoCalls')}</span>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-3">{t('storeTab.footerMessage')}</p>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </SwiperSlide>
+        </Swiper>
+
+        {/* 좌우 화살표 네비게이션 버튼 */}
+        <button className="swiper-button-prev-custom sticky left-4 top-1/3 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 hover:bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ml-4">
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button className="swiper-button-next-custom sticky right-4 top-1/3 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 hover:bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-200 mr-4">
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* 슬라이드 점들 */}
+      <div className="flex items-center justify-center gap-2 mt-6">
+        <div className={`w-2 h-2 rounded-full transition-colors ${currentSlide === 0 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+        <div className={`w-2 h-2 rounded-full transition-colors ${currentSlide === 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+        <div className={`w-2 h-2 rounded-full transition-colors ${currentSlide === 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+      </div>
+
+      {/* 커스텀 스타일 */}
+      <style jsx global>{`
+        .charging-swiper {
+          overflow: hidden;
+        }
+        .charging-swiper .swiper-wrapper {
+          height: 100%;
+        }
+        .charging-swiper .swiper-slide {
+          height: auto !important;
+          overflow-y: visible;
+        }
+        .charging-swiper .swiper-pagination {
+          bottom: -40px;
+        }
+        .swiper-pagination-bullet-custom {
+          width: 8px;
+          height: 8px;
+          background: #d1d5db;
+          border-radius: 50%;
+          margin: 0 4px;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .swiper-pagination-bullet-active-custom {
+          background: #3b82f6;
+          transform: scale(1.2);
+        }
+        .swiper-button-prev-custom,
+        .swiper-button-next-custom {
+          position: absolute;
+          margin: 0;
+          width: 40px;
+          height: 40px;
+        }
+        .swiper-button-prev-custom:hover,
+        .swiper-button-next-custom:hover {
+          transform: translateY(-50%) scale(1.1);
+        }
+      `}</style>
     </div>
   )
 }

@@ -13,7 +13,9 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     console.log('[PROFILE] 요청 데이터:', body)
-    const { full_name, phone, one_line_intro, language, profile_image, profile_images, main_profile_image, user_type, university, major, grade, occupation, company, work_experience } = body
+    console.log('[PROFILE] 요청 데이터 타입:', typeof body)
+    console.log('[PROFILE] 요청 데이터 키들:', Object.keys(body))
+    const { full_name, spanish_name, phone, one_line_intro, language, profile_image, profile_images, main_profile_image, user_type, university, major, grade, occupation, company, work_experience } = body
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
@@ -73,6 +75,7 @@ export async function PUT(request: NextRequest) {
     // 사용자 기본 정보 업데이트
     const updateData: any = {
       full_name,
+      spanish_name,
       phone,
       one_line_intro,
       language,
@@ -213,12 +216,20 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log('[PROFILE] 최종 사용자 데이터:', finalUser)
+    console.log('[PROFILE] 최종 사용자 데이터 타입:', typeof finalUser)
+    console.log('[PROFILE] 최종 사용자 데이터 키들:', finalUser ? Object.keys(finalUser) : 'null')
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       user: finalUser,
       message: '프로필이 성공적으로 업데이트되었습니다.'
-    })
+    }
+    
+    console.log('[PROFILE] 응답 데이터:', responseData)
+    console.log('[PROFILE] 응답 데이터 타입:', typeof responseData)
+    console.log('[PROFILE] 응답 데이터 키들:', Object.keys(responseData))
+
+    return NextResponse.json(responseData)
 
   } catch (error) {
     console.error('[PROFILE] 프로필 업데이트 오류:', error)

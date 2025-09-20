@@ -9,6 +9,7 @@ import {
   MessageSquare, 
   User, 
   Zap, 
+  ShoppingBag,
   Calendar 
 } from 'lucide-react'
 
