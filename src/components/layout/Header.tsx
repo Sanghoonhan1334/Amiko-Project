@@ -874,7 +874,7 @@ export default function Header() {
                     href="https://www.tiktok.com/@amiko_latin" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center"
+                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all duration-300"
                   >
                     <img src="/tiktok.png" alt="TikTok" className="w-6 h-6 object-contain" />
                   </a>
@@ -882,7 +882,7 @@ export default function Header() {
                     href="https://www.instagram.com/amiko_latin/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center"
+                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all duration-300"
                   >
                     <img src="/instagram.jpeg" alt="Instagram" className="w-6 h-6 object-contain" />
                   </a>
@@ -890,7 +890,7 @@ export default function Header() {
                     href="https://www.youtube.com/@AMIKO_Officialstudio" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center"
+                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all duration-300"
                   >
                     <img src="/youtube.png" alt="YouTube" className="w-6 h-6 object-contain" />
                   </a>
