@@ -186,7 +186,6 @@ export default function Hero() {
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-5xl font-bold text-gray-900 mb-2 sm:mb-3 font-['Inter']">
                           {t('heroSlides.slide3.title')}
                         </h1>
-                        <div className="w-32 sm:w-40 md:w-48 h-1 bg-purple-300 mb-4 sm:mb-6"></div>
                         <div className="space-y-2 text-gray-700 text-sm sm:text-base leading-relaxed">
                           <p>{t('heroSlides.slide3.description')}</p>
                         </div>

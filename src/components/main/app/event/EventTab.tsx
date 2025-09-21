@@ -680,7 +680,7 @@ export default function EventTab() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">💬</span>
                   <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.questionWriting.title')}</span>
-                  <Badge className="bg-blue-100 text-blue-800">+5점</Badge>
+                  <Badge className="bg-blue-100 text-blue-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
                 <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.questionWriting.description')}</p>
                 <div className="mt-2 text-xs text-blue-600 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
@@ -690,7 +690,7 @@ export default function EventTab() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">✍️</span>
                   <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.answerWriting.title')}</span>
-                  <Badge className="bg-green-100 text-green-800">+5점</Badge>
+                  <Badge className="bg-green-100 text-green-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
                 <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.answerWriting.description')}</p>
                 <div className="mt-2 text-xs text-green-600 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
@@ -700,7 +700,7 @@ export default function EventTab() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">📸</span>
                   <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.storyUpload.title')}</span>
-                  <Badge className="bg-purple-100 text-purple-800">+5점</Badge>
+                  <Badge className="bg-purple-100 text-purple-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
                 <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.storyUpload.description')}</p>
                 <div className="mt-2 text-xs text-purple-600 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
@@ -710,7 +710,7 @@ export default function EventTab() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">💎</span>
                   <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.receiveLikes.title')}</span>
-                  <Badge className="bg-pink-100 text-pink-800">+5점</Badge>
+                  <Badge className="bg-pink-100 text-pink-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
                 <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
                 <div className="mt-2 text-xs text-pink-600 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>

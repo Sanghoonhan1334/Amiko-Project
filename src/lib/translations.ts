@@ -383,6 +383,7 @@ export const translations = {
         earningMethods: {
           title: '포인트 획득 방법',
           subtitle: '커뮤니티 활동을 통해 포인트를 획득하세요! (하루 최대 +40점)',
+          points: '+5점',
           questionWriting: {
             title: '질문 작성',
             description: '유의미한 질문을 올리면 포인트를 획득할 수 있어요',
@@ -1197,6 +1198,7 @@ export const translations = {
         earningMethods: {
           title: 'Métodos para Obtener Puntos',
           subtitle: '¡Obtén puntos a través de actividades comunitarias! (Máximo +40 puntos por día)',
+          points: '+5 puntos',
           questionWriting: {
             title: 'Escribir Pregunta',
             description: 'Puedes obtener puntos publicando preguntas significativas',
