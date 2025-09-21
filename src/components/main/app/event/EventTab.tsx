@@ -954,12 +954,12 @@ export default function EventTab() {
                     </div>
                   )}
                 </div>
-              </div>
-              
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <p className='text-sm text-orange-800 font-medium'>
-                  💡 {t('eventTab.pointSystem.couponEvent.attendanceReward.tip')}
-                </p>
+                
+                <div className="bg-orange-50 p-3 rounded-lg">
+                  <p className='text-sm text-orange-800 font-medium'>
+                    💡 {t('eventTab.pointSystem.couponEvent.attendanceReward.tip')}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
