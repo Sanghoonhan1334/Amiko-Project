@@ -1245,7 +1245,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
   return (
-    <div className="flex gap-6 p-4 sm:p-6">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 sm:p-6">
       {/* 메인 컨텐츠 */}
       <div className="flex-1 space-y-6">
         {/* 인증 가드 - 커뮤니티 활동 */}
