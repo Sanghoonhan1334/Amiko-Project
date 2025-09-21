@@ -158,7 +158,7 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
       </div>
 
       {/* 카테고리 필터 */}
-      <div className="flex flex-wrap gap-1 sm:gap-2">
+      <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6">
         {categories.map((category) => (
           <Button
             key={category.id}
@@ -178,7 +178,7 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
       </div>
 
       {/* 정렬 옵션 */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
         <span className="text-sm text-gray-600">
           {language === 'ko' ? '정렬:' : 'Sort by:'}
         </span>
