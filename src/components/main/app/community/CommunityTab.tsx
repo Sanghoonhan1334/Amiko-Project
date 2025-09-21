@@ -1656,13 +1656,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 카테고리 탭 */}
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full mt-8">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1 sm:gap-2 mb-6 sm:mb-8 bg-gray-50">
-          <TabsTrigger value="all" className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-2 py-2 sm:px-3 sm:py-2">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1 sm:gap-2 mb-6 sm:mb-8 bg-gray-50">
+          <TabsTrigger value="all" className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-1 py-2 sm:px-3 sm:py-2">
             <Star className="w-3 h-3 sm:w-4 sm:h-4" />
             {t('communityTab.categories.all')}
           </TabsTrigger>
           {getCategories(t).map(category => (
-            <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-2 py-2 sm:px-3 sm:py-2">
+            <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-1 py-2 sm:px-3 sm:py-2">
               <span>{category.icon}</span>
               <span className="truncate">{category.name}</span>
             </TabsTrigger>
