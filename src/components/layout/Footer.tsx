@@ -29,7 +29,7 @@ export default function Footer() {
                 href="https://www.tiktok.com/@amiko_latin" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex items-center justify-center"
+                className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center"
               >
                 <img 
                   src="/tiktok.png" 
@@ -43,7 +43,7 @@ export default function Footer() {
                 href="https://www.instagram.com/amiko_latin/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex items-center justify-center"
+                className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center"
               >
                 <img 
                   src="/instagram.jpeg" 
@@ -57,7 +57,7 @@ export default function Footer() {
                 href="https://www.youtube.com/@AMIKO_Officialstudio" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex items-center justify-center"
+                className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center"
               >
                 <img 
                   src="/youtube.png" 
@@ -74,13 +74,13 @@ export default function Footer() {
               © 2025 Amiko. All rights reserved.
             </div>
             <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-gray-600 font-['Inter'] font-medium">
-              <Link href="/privacy" className="hover:text-brand-600 transition-colors duration-300">
+              <Link href="/privacy" className="hover:text-brand-600 hover:underline transition-all duration-300">
                 {t('footer.privacy')}
               </Link>
-              <Link href="/terms" className="hover:text-brand-600 transition-colors duration-300">
+              <Link href="/terms" className="hover:text-brand-600 hover:underline transition-all duration-300">
                 {t('footer.terms')}
               </Link>
-              <Link href="/cookies" className="hover:text-brand-600 transition-colors duration-300">
+              <Link href="/cookies" className="hover:text-brand-600 hover:underline transition-all duration-300">
                 {t('footer.cookies')}
               </Link>
             </div>
@@ -94,25 +94,25 @@ export default function Footer() {
               <div className="space-y-1 text-right">
                 <Link 
                   href="/help" 
-                  className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.help')}
                 </Link>
                 <Link 
                   href="/faq" 
-                  className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.faq')}
                 </Link>
                 <Link 
                   href="/contact" 
-                  className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.contact')}
                 </Link>
                 <Link 
                   href="/feedback" 
-                  className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.feedback')}
                 </Link>
@@ -138,28 +138,28 @@ export default function Footer() {
                 <div className="mt-3 bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2">
                   <Link 
                     href="/help" 
-                    className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.help')}
                   </Link>
                   <Link 
                     href="/faq" 
-                    className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.faq')}
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.contact')}
                   </Link>
                   <Link 
                     href="/feedback" 
-                    className="block text-gray-700 hover:text-mint-600 transition-colors duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.feedback')}
