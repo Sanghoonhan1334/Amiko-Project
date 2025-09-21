@@ -78,10 +78,10 @@ export default function Hero() {
                       <span className="text-purple-700 font-medium text-sm">{t('heroSlides.slide1.badge')}</span>
                     </div>
                     
-                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight font-['Inter']">
+                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-7xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight font-['Inter']">
                       {t('heroSlides.slide1.title').split('\n').map((line, index) => (
                         <span key={index}>
-                          <span className={index === 0 ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl' : 'text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl'}>{line}</span>
+                          <span className={index === 0 ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-7xl' : 'text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl'}>{line}</span>
                           {index === 0 && <br />}
                         </span>
                       ))}
