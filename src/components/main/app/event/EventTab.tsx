@@ -963,24 +963,23 @@ export default function EventTab() {
                 })}
               </div>
                 
-                <div className="text-center">
-                  <p className='text-sm text-gray-600 mb-2'>
-                    {t('eventTab.pointSystem.couponEvent.attendanceReward.progress').replace('{current}', couponStreak.toString())}
-                  </p>
-                  {couponStreak === 3 && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <p className='text-sm text-green-800 font-medium'>
-                        🎉 {t('eventTab.pointSystem.couponEvent.attendanceReward.completion')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="bg-orange-50 p-3 rounded-lg">
-                  <p className='text-sm text-orange-800 font-medium'>
-                    💡 {t('eventTab.pointSystem.couponEvent.attendanceReward.tip')}
-                  </p>
-                </div>
+              <div className="text-center">
+                <p className='text-sm text-gray-600 mb-2'>
+                  {t('eventTab.pointSystem.couponEvent.attendanceReward.progress').replace('{current}', couponStreak.toString())}
+                </p>
+                {couponStreak === 3 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className='text-sm text-green-800 font-medium'>
+                      🎉 {t('eventTab.pointSystem.couponEvent.attendanceReward.completion')}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <p className='text-sm text-orange-800 font-medium'>
+                  💡 {t('eventTab.pointSystem.couponEvent.attendanceReward.tip')}
+                </p>
               </div>
             </div>
           </div>
