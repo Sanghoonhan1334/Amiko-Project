@@ -792,7 +792,8 @@ export default function EventTab() {
               </div>
             </div>
             
-            <div className="space-y-4">
+            {/* 데스크톱: 카드 스타일 */}
+            <div className="hidden md:block space-y-4">
               {/* 현재 사용처 - 비행기 티켓 */}
               <div className="p-4 bg-white rounded-lg border border-gray-200">
                 <div className="flex items-center gap-3 mb-3">
@@ -829,6 +830,27 @@ export default function EventTab() {
                 </div>
               </div>
             </div>
+
+            {/* 모바일: 리스트 스타일 */}
+            <div className="block md:hidden space-y-2">
+              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">✈️</span>
+                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.usage.current.title')}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-1">{t('eventTab.pointSystem.usage.current.description')}</p>
+                <div className="text-xs text-blue-600 font-medium">🎯 {t('eventTab.pointSystem.usage.current.detail')}</div>
+              </div>
+              
+              <div className="py-3 px-4 border-b border-gray-200 bg-white opacity-75">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🛍️</span>
+                  <span className="font-semibold text-gray-600">{t('eventTab.pointSystem.usage.upcoming.title')}</span>
+                </div>
+                <p className="text-sm text-gray-500 mb-1">{t('eventTab.pointSystem.usage.upcoming.description')}</p>
+                <div className="text-xs text-gray-600">🚧 {t('eventTab.pointSystem.usage.upcoming.detail')}</div>
+              </div>
+            </div>
           </div>
 
           {/* 쿠폰 이벤트 안내 */}
@@ -843,7 +865,8 @@ export default function EventTab() {
               </div>
             </div>
             
-            <div className="p-4 bg-white rounded-lg border border-gray-200">
+            {/* 데스크톱: 카드 스타일 */}
+            <div className="hidden md:block p-4 bg-white rounded-lg border border-gray-200">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-lg">📅</span>
                 <span className='font-semibold text-gray-800'>{t('eventTab.pointSystem.couponEvent.attendanceReward.title')}</span>
@@ -880,6 +903,44 @@ export default function EventTab() {
                     )
                   })}
                 </div>
+
+            {/* 모바일: 리스트 스타일 */}
+            <div className="block md:hidden py-3 px-4 border-b border-gray-200 bg-white">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">📅</span>
+                <span className='font-semibold text-gray-800'>{t('eventTab.pointSystem.couponEvent.attendanceReward.title')}</span>
+              </div>
+              
+              {/* 도장 찍기 섹션 - 모바일용 작은 크기 */}
+              <div className="flex items-center justify-center gap-2 mb-3">
+                {[1, 2, 3].map((day) => {
+                  const isCompleted = couponStreak >= day
+                  const isClickable = couponStreak === day - 1
+                  const today = new Date().toISOString().split('T')[0]
+                  const todayStamp = localStorage.getItem(`couponStamp_${today}`)
+                  const canClickToday = isClickable && !todayStamp
+                  
+                  return (
+                    <div
+                      key={day}
+                      className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                        isCompleted
+                          ? 'bg-red-500 border-red-600 shadow-lg'
+                          : canClickToday
+                          ? 'bg-orange-100 border-orange-300 hover:bg-orange-200 cursor-pointer'
+                          : 'bg-gray-100 border-gray-300 cursor-not-allowed'
+                      }`}
+                      onClick={() => canClickToday && handleCouponStamp(day)}
+                    >
+                      {isCompleted ? (
+                        <span className="text-white text-lg">🎯</span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">{day}</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
                 
                 <div className="text-center">
                   <p className='text-sm text-gray-600 mb-2'>
