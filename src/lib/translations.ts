@@ -688,7 +688,7 @@ export const translations = {
     // 상점 탭
     storeTab: {
       title: '충전소',
-      subtitle: 'AKO충전, VIP구독, 포인트 상점',
+      subtitle: 'AKO • VIP • 포인트',
       akoExplanation: '1 AKO = 1 화상채팅 (20분)',
       charging: {
         title: 'AKO 충전',
@@ -738,7 +738,7 @@ export const translations = {
         totalPointsDesc: '랭킹/이벤트용'
       },
       pointCard: {
-        title: 'AKO 충전, VIP 구독, 포인트 상점',
+        title: 'AKO • VIP • 포인트',
         availableAKO: '사용 가능한 AKO',
         currentPoints: '현재 포인트'
       },
@@ -1503,7 +1503,7 @@ export const translations = {
     // 상점 탭
     storeTab: {
       title: 'Estación de Carga',
-      subtitle: 'Carga AKO, Suscripción VIP, Tienda de Puntos',
+      subtitle: 'AKO • VIP • Puntos',
       akoExplanation: '1 AKO = 1 videollamada (20 minutos)',
       charging: {
         title: 'Carga AKO',
@@ -1553,7 +1553,7 @@ export const translations = {
         totalPointsDesc: 'Para ranking/eventos'
       },
       pointCard: {
-        title: 'Carga AKO, Suscripción VIP, Tienda de Puntos',
+        title: 'AKO • VIP • Puntos',
         availableAKO: 'AKO Disponible',
         currentPoints: 'Puntos Actuales'
       },
