@@ -100,7 +100,7 @@ export default function BottomTabNavigation() {
               }`}
             >
               <Icon className={`w-5 h-5 mb-1 ${isActive ? 'text-purple-600' : 'text-gray-600'}`} />
-              <span className={`text-xs font-medium ${isActive ? 'text-purple-600' : 'text-gray-600'}`}>
+              <span className={`${t('language') === 'es' ? 'text-[10px]' : 'text-xs'} font-medium ${isActive ? 'text-purple-600' : 'text-gray-600'}`}>
                 {tab.label}
               </span>
             </button>

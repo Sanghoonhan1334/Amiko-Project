@@ -153,7 +153,7 @@ export const translations = {
       meetDescription: '한국인 친구와 AI 화상 채팅을 통해 한국 문화를 배워보세요',
       community: '커뮤니티',
       communityDescription: '다양한 주제로 소통하고 경험을 공유하세요',
-      me: '나의 활동',
+      me: '내 프로필',
       meDescription: '내 활동 내역과 포인트를 확인하세요'
     },
 
@@ -968,7 +968,7 @@ export const translations = {
       meetDescription: 'Conoce a coreanos reales a través de videollamadas',
       community: 'Comunidad',
       communityDescription: 'Comunícate sobre diversos temas y comparte experiencias',
-      me: 'Mi Actividad',
+      me: 'Mi Perfil',
       meDescription: 'Revisa tu historial de actividad y puntos'
     },
 

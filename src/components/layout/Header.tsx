@@ -874,14 +874,6 @@ export default function Header() {
                     <NotificationBell />
                   </div>
                 </div>
-                {user && (
-                  <button
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full text-left"
-                  >
-                    <Users className="w-5 h-5" />
-                    프로필
-                  </button>
-                )}
               </div>
             )}
             
