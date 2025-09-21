@@ -855,13 +855,22 @@ export default function EventTab() {
 
           {/* 쿠폰 이벤트 안내 */}
           <div className="p-4 sm:p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl">
-            <div className="flex items-center gap-3 mb-4">
+            {/* 데스크톱: 헤더 */}
+            <div className="hidden md:flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xl">🎁</span>
               </div>
               <div>
                 <h3 className="text-lg font-bold text-orange-800">{t('eventTab.pointSystem.couponEvent.title')}</h3>
                 <p className="text-sm text-orange-600">{t('eventTab.pointSystem.couponEvent.subtitle')}</p>
+              </div>
+            </div>
+
+            {/* 모바일: 간단한 헤더 */}
+            <div className="block md:hidden mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎁</span>
+                <span className="font-semibold text-orange-800">{t('eventTab.pointSystem.couponEvent.title')}</span>
               </div>
             </div>
             
@@ -925,61 +934,43 @@ export default function EventTab() {
               </div>
             </div>
 
-            {/* 모바일: 리스트 스타일 */}
-            <div className="block md:hidden py-3 px-4 border-b border-gray-200 bg-white">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">📅</span>
-                <span className='font-semibold text-gray-800'>{t('eventTab.pointSystem.couponEvent.attendanceReward.title')}</span>
-              </div>
-              
-              {/* 도장 찍기 섹션 - 모바일용 작은 크기 */}
-              <div className="flex items-center justify-center gap-2 mb-3">
-                {[1, 2, 3].map((day) => {
-                  const isCompleted = couponStreak >= day
-                  const isClickable = couponStreak === day - 1
-                  const today = new Date().toISOString().split('T')[0]
-                  const todayStamp = localStorage.getItem(`couponStamp_${today}`)
-                  const canClickToday = isClickable && !todayStamp
-                  
-                  return (
-                    <div
-                      key={day}
-                      className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                        isCompleted
-                          ? 'bg-red-500 border-red-600 shadow-lg'
-                          : canClickToday
-                          ? 'bg-orange-100 border-orange-300 hover:bg-orange-200 cursor-pointer'
-                          : 'bg-gray-100 border-gray-300 cursor-not-allowed'
-                      }`}
-                      onClick={() => canClickToday && handleCouponStamp(day)}
-                    >
-                      {isCompleted ? (
-                        <span className="text-white text-lg">🎯</span>
-                      ) : (
-                        <span className="text-gray-400 text-sm">{day}</span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-                
-              <div className="text-center">
-                <p className='text-sm text-gray-600 mb-2'>
-                  {t('eventTab.pointSystem.couponEvent.attendanceReward.progress').replace('{current}', couponStreak.toString())}
-                </p>
-                {couponStreak === 3 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className='text-sm text-green-800 font-medium'>
-                      🎉 {t('eventTab.pointSystem.couponEvent.attendanceReward.completion')}
-                    </p>
+            {/* 모바일: 간단한 리스트 스타일 */}
+            <div className="block md:hidden space-y-2">
+              <div className="py-2 px-3 bg-white rounded border border-orange-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">📅</span>
+                    <span className="text-sm font-medium text-gray-800">{t('eventTab.pointSystem.couponEvent.attendanceReward.title')}</span>
                   </div>
-                )}
-              </div>
-              
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <p className='text-sm text-orange-800 font-medium'>
-                  💡 {t('eventTab.pointSystem.couponEvent.attendanceReward.tip')}
-                </p>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3].map((day) => {
+                      const isCompleted = couponStreak >= day
+                      const isClickable = couponStreak === day - 1
+                      const today = new Date().toISOString().split('T')[0]
+                      const todayStamp = localStorage.getItem(`couponStamp_${today}`)
+                      const canClickToday = isClickable && !todayStamp
+                      
+                      return (
+                        <div
+                          key={day}
+                          className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs transition-all duration-200 ${
+                            isCompleted
+                              ? 'bg-red-500 border-red-600 text-white'
+                              : canClickToday
+                              ? 'bg-orange-100 border-orange-300 hover:bg-orange-200 cursor-pointer text-orange-600'
+                              : 'bg-gray-100 border-gray-300 text-gray-400'
+                          }`}
+                          onClick={() => canClickToday && handleCouponStamp(day)}
+                        >
+                          {isCompleted ? '🎯' : day}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div className="text-xs text-gray-600">
+                  {t('eventTab.pointSystem.couponEvent.attendanceReward.progress').replace('{current}', couponStreak.toString())}
+                </div>
               </div>
             </div>
           </div>
