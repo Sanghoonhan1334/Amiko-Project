@@ -147,19 +147,22 @@ export default function Hero() {
                         <div className="text-center">
                           {/* 메인 제목 */}
                           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight font-['Pretendard'] mb-3">
-                            검증된 한국인 튜터들이
-                            <br />
-                            여러분들과 함께합니다.
+                            {t('heroSlides.slide2.subtitle').split('\n').map((line, index) => (
+                              <span key={index}>
+                                {line}
+                                {index === 0 && <br />}
+                              </span>
+                            ))}
                             <span className="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full ml-1"></span>
                           </h2>
                           
                           {/* 질문 텍스트 */}
                           <div className="space-y-1 text-xs sm:text-sm text-gray-700 leading-relaxed">
                             <p>
-                              서로의 나라에 대한 좋은 이미지를 가지고 그들을 만나기 위해 화상 채팅 어플을 사용했던 경험이 있으신가요?
+                              {t('heroSlides.slide2.experience1')}
                             </p>
                             <p>
-                              혹시 그 경험이 당신에게 실망으로 다가오시지는 않으셨나요?
+                              {t('heroSlides.slide2.experience2')}
                             </p>
                           </div>
                         </div>
@@ -206,13 +209,8 @@ export default function Hero() {
                               </div>
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.topicBoard.title')}</h3>
-                            <p className="text-gray-600 text-xs leading-relaxed">
-                              {t('heroSlides.slide3.cards.topicBoard.description').split('\n').map((line, index) => (
-                                <span key={index}>
-                                  {line}
-                                  {index < t('heroSlides.slide3.cards.topicBoard.description').split('\n').length - 1 && <br />}
-                                </span>
-                              ))}
+                            <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                              {t('heroSlides.slide3.cards.topicBoard.description')}
                             </p>
                           </div>
                         </div>
@@ -237,7 +235,7 @@ export default function Hero() {
                               </div>
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.freeBoard.title')}</h3>
-                            <p className="text-gray-600 text-xs leading-relaxed">
+                            <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                               {t('heroSlides.slide3.cards.freeBoard.description')}
                             </p>
                           </div>
@@ -256,7 +254,7 @@ export default function Hero() {
                               </div>
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.story.title')}</h3>
-                            <p className="text-gray-600 text-xs leading-relaxed">
+                            <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                               {t('heroSlides.slide3.cards.story.description')}
                             </p>
                           </div>

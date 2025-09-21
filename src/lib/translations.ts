@@ -876,7 +876,7 @@ export const translations = {
       slide2: {
         badge: 'Con IA de interpretación integrada en Amiko',
         title: 'Comunícate por videollamada',
-        subtitle: 'Tutores coreanos\nverificados',
+        subtitle: 'Los tutores coreanos verificados\nestán contigo',
         description: 'A través del sistema de videollamadas 1:1 de nuestra propia plataforma y\nservicio de interpretación IA, puedes intercambiar culturas y\nidiomas de manera fluida y conveniente.',
         experience1: '¿Has usado aplicaciones de chat de video para conocer personas con una buena imagen de los países de cada uno?',
         experience2: '¿Quizás esa experiencia te decepcionó?',
@@ -889,7 +889,7 @@ export const translations = {
         cards: {
           topicBoard: {
             title: 'Foro por Temas',
-            description: 'Comunícate libremente sobre diversos temas como\nK-POP, K-DRAMA, K-Beauty, tendencias, viajes, etc.'
+            description: 'Comunícate libremente sobre diversos temas.'
           },
           freeBoard: {
             title: 'Foro Libre',
@@ -915,10 +915,10 @@ export const translations = {
     // 헤더 네비게이션
     headerNav: {
       home: 'Inicio',
-      videoCall: 'Videollamada',
-      community: 'Comunidad',
+      videoCall: 'Video',
+      community: 'Chat',
       chargingStation: 'Estación de Carga',
-      chargingStationShort: 'Estación',
+      chargingStationShort: 'Carga',
       event: 'Eventos',
       logout: 'Cerrar Sesión',
       store: 'Tienda',
