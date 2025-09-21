@@ -1674,8 +1674,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           <div className="space-y-8">
             {filteredQuestions.map((question, index) => (
               <div key={question.id}>
+                {/* 데스크톱: 카드 스타일 */}
                 <Card 
-                  className="p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
+                  className="hidden md:block p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -1713,17 +1714,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                       
                       <p className="text-gray-600 mb-3 line-clamp-2">{question.preview}</p>
                       
-                      {/* 태그 - 현재 비활성화 */}
-                      {/* {question.tags && question.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {question.tags.map((tag, tagIndex) => (
-                            <Badge key={tagIndex} variant="outline" className="text-xs border-purple-200 text-purple-700">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )} */}
-                      
                       {/* 메타 정보 */}
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
@@ -1753,8 +1743,40 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     </div>
                   </div>
                 </Card>
-                
 
+                {/* 모바일: 리스트 스타일 */}
+                <div 
+                  className="block md:hidden py-3 px-4 border-b border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleQuestionClick(question)
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-gray-800 truncate flex-1 mr-2">{question.title}</h3>
+                    <div className="flex items-center gap-1 text-purple-600">
+                      <ThumbsUp className="w-3 h-3" />
+                      <span className="text-sm font-medium">{question.upvotes}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <span>{question.author?.full_name || question.author || '익명'}</span>
+                      <Badge className={`text-xs px-1 py-0 ${
+                        question.authorType === 'korean' 
+                          ? 'bg-purple-100 text-purple-700' 
+                          : 'bg-pink-100 text-pink-700'
+                      }`}>
+                        {question.authorType === 'korean' ? '한국인' : '라틴'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>{question.answers} 답변</span>
+                      <span>{formatTime(question.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

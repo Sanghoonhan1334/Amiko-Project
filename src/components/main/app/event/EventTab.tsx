@@ -675,7 +675,8 @@ export default function EventTab() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 데스크톱: 카드 그리드 */}
+            <div className="hidden md:grid grid-cols-2 gap-4">
               <div className="p-4 bg-white rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">💬</span>
@@ -714,6 +715,57 @@ export default function EventTab() {
                 </div>
                 <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
                 <div className="mt-2 text-xs text-pink-600 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>
+              </div>
+            </div>
+
+            {/* 모바일: 리스트 스타일 */}
+            <div className="block md:hidden space-y-2">
+              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">💬</span>
+                    <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.questionWriting.title')}</span>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                </div>
+                <p className="text-sm text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.questionWriting.description')}</p>
+                <div className="text-xs text-blue-600 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
+              </div>
+              
+              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">✍️</span>
+                    <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.answerWriting.title')}</span>
+                  </div>
+                  <Badge className="bg-green-100 text-green-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                </div>
+                <p className="text-sm text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.answerWriting.description')}</p>
+                <div className="text-xs text-green-600 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
+              </div>
+              
+              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📸</span>
+                    <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.storyUpload.title')}</span>
+                  </div>
+                  <Badge className="bg-purple-100 text-purple-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                </div>
+                <p className="text-sm text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.storyUpload.description')}</p>
+                <div className="text-xs text-purple-600 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
+              </div>
+              
+              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">💎</span>
+                    <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.receiveLikes.title')}</span>
+                  </div>
+                  <Badge className="bg-pink-100 text-pink-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                </div>
+                <p className="text-sm text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
+                <div className="text-xs text-pink-600 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>
               </div>
             </div>
             
