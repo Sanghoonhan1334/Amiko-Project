@@ -96,7 +96,7 @@ export default function Hero() {
                       <img 
                         src="/다인종.jpg" 
                         alt="다인종" 
-                        className="w-64 h-48 sm:w-80 sm:h-60 md:w-96 md:h-72 lg:w-[28rem] lg:h-[21rem] xl:w-[32rem] xl:h-[24rem] object-cover rounded-lg shadow-lg"
+                        className="w-48 h-36 sm:w-64 sm:h-48 md:w-80 md:h-60 lg:w-96 lg:h-72 xl:w-[24rem] xl:h-[18rem] object-cover rounded-lg shadow-lg"
                       />
                     </div>
                   </div>
@@ -109,10 +109,10 @@ export default function Hero() {
             <SwiperSlide className="pointer-events-auto">
               <div className="h-screen flex flex-col">
                 {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
-                <div className="flex-1 flex flex-col justify-start px-4 sm:px-6 lg:px-8 pt-16">
+                <div className="flex-1 flex flex-col justify-start px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 md:pt-12 lg:pt-8 xl:pt-8">
                   <div className="w-full max-w-4xl mx-auto">
-                    {/* 상단 텍스트 섹션 - 간격 최소화 */}
-                    <div className="text-center mb-4 -mb-16">
+                    {/* 상단 텍스트 섹션 - 딱 붙게 조정 */}
+                    <div className="text-center mb-0 sm:mb-0 md:mb-0 lg:mb-0 xl:mb-0 -mb-20 sm:-mb-12 md:-mb-20 lg:-mb-16 xl:-mb-20">
                       <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-1 border border-blue-200/30">
                         <Sparkles className="w-3 h-3 text-blue-600" />
                         <span className="text-blue-700 font-medium text-xs">{t('heroSlides.slide2.badge')}</span>
@@ -132,8 +132,8 @@ export default function Hero() {
                       </p>
                     </div>
 
-                    {/* 중앙 이미지 - 간격 최소화 */}
-                    <div className="flex justify-center mb-4">
+                    {/* 중앙 이미지 - 딱 붙게 조정 */}
+                    <div className="flex justify-center mb-0 sm:mb-0 md:mb-0 lg:mb-0 xl:mb-0">
                       <img 
                         src="/image.png" 
                         alt="Profile" 
@@ -141,8 +141,8 @@ export default function Hero() {
                       />
                     </div>
 
-                    {/* 하단 검증된 튜터 카드 - 간격 최소화 */}
-                    <div className="flex justify-center -mt-8">
+                    {/* 하단 검증된 튜터 카드 - 딱 붙게 조정 */}
+                    <div className="flex justify-center -mt-16 sm:-mt-20 md:-mt-28 lg:-mt-14 xl:-mt-16">
                       <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-2xl mx-4">
                         <div className="text-center">
                           {/* 메인 제목 */}
