@@ -28,7 +28,7 @@ export default function Hero() {
       </div>
 
       <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-2 sm:px-4 pt-32 sm:pt-36 md:pt-40">
-        <div className="w-full max-w-6xl">
+        <div className="w-full lg:max-w-6xl lg:mx-auto">
 
           {/* 슬라이더 */}
           <Swiper
@@ -72,7 +72,7 @@ export default function Hero() {
               <div className="min-h-screen flex flex-col">
                 {/* 상단 메인 콘텐츠 */}
                 <div className="flex flex-col items-center justify-center pt-20 sm:pt-24 md:pt-28 lg:pt-24 xl:pt-20 pb-16 sm:pb-24 md:pb-32 lg:pb-40 xl:pb-48 text-center">
-                  <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+                  <div className="w-full px-3 sm:px-4 md:px-6 lg:max-w-4xl lg:mx-auto">
                     <div className="inline-flex items-center gap-2 bg-purple-100/50 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-purple-200/30">
                       <Sparkles className="w-4 h-4 text-purple-600" />
                       <span className="text-purple-700 font-medium text-sm">{t('heroSlides.slide1.badge')}</span>
@@ -87,7 +87,7 @@ export default function Hero() {
                       ))}
                     </h1>
                     
-                    <p className="text-gray-600 text-base sm:text-lg leading-relaxed mb-8 max-w-3xl mx-auto">
+                    <p className="text-gray-600 text-base sm:text-lg leading-relaxed mb-8 w-full lg:max-w-3xl lg:mx-auto">
                       {t('heroSlides.slide1.description')}
                     </p>
                     
@@ -110,7 +110,7 @@ export default function Hero() {
               <div className="h-screen flex flex-col">
                 {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
                 <div className="flex-1 flex flex-col justify-start px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 md:pt-12 lg:pt-8 xl:pt-8">
-                  <div className="w-full max-w-4xl mx-auto">
+                  <div className="w-full lg:max-w-4xl lg:mx-auto">
                     {/* 상단 텍스트 섹션 - 딱 붙게 조정 */}
                     <div className="text-center mb-0 sm:mb-0 md:mb-0 lg:mb-0 xl:mb-0 -mb-20 sm:-mb-12 md:-mb-20 lg:-mb-16 xl:-mb-20">
                       <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-1 border border-blue-200/30">
@@ -143,7 +143,7 @@ export default function Hero() {
 
                     {/* 하단 검증된 튜터 카드 - 딱 붙게 조정 */}
                     <div className="flex justify-center -mt-16 sm:-mt-20 md:-mt-28 lg:-mt-14 xl:-mt-16">
-                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-2xl mx-4">
+                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 w-full lg:max-w-2xl lg:mx-auto mx-4">
                         <div className="text-center">
                           {/* 메인 제목 */}
                           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight font-['Pretendard'] mb-3">
@@ -176,7 +176,7 @@ export default function Hero() {
             {/* 세 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide className="pointer-events-auto">
               <div className="min-h-screen flex flex-col pt-0 sm:pt-2 md:pt-4 pb-12 sm:pb-16 md:pb-20">
-                <div className="max-w-7xl mx-auto px-2 sm:px-4">
+                <div className="w-full px-2 sm:px-4 lg:max-w-7xl lg:mx-auto">
                   {/* 메인 레이아웃 */}
                   <div className="space-y-3 sm:space-y-4">
                     {/* 왼쪽 섹션 */}

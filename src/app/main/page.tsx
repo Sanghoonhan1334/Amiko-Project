@@ -113,7 +113,7 @@ function AppPageContent() {
   return (
     <div className="min-h-screen body-gradient pt-44 pb-20 md:pb-0">
       {/* 메인 콘텐츠 섹션 */}
-      <div className="max-w-5xl mx-auto px-4 py-6 relative z-0">
+      <div className="w-full px-4 py-6 relative z-0 lg:max-w-5xl lg:mx-auto">
         <div className="w-full">
 
           {/* 콘텐츠 */}

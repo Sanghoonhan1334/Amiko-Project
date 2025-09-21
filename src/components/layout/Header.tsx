@@ -239,7 +239,7 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 lg:max-w-6xl lg:mx-auto">
           <div className="flex justify-between items-center h-28 sm:h-32 md:h-36 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
@@ -860,22 +860,6 @@ export default function Header() {
               )}
               
             </div>
-            
-            {/* 구분선 */}
-            <div className="border-t border-gray-200 my-3" />
-            
-            {/* 알림과 프로필 - 메인페이지에서만 표시 */}
-            {isMainPage && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-300 w-full">
-                  <Bell className="w-5 h-5" />
-{t('myTab.notifications')}
-                  <div className="ml-auto">
-                    <NotificationBell />
-                  </div>
-                </div>
-              </div>
-            )}
             
             {/* 구분선 */}
             <div className="border-t border-gray-200 my-3" />
