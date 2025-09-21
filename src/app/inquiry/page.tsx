@@ -166,11 +166,6 @@ export default function InquiryPage() {
       {/* Hero 섹션 */}
       <section className="pt-40 pb-16 md:pt-48 md:pb-20 bg-gradient-to-br from-green-50 via-white to-emerald-50">
         <div className="container max-w-4xl mx-auto px-4 text-center">
-          {/* 상단 라벨 */}
-          <div className="inline-flex items-center gap-2 bg-green-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-4 border border-green-200/30">
-            <span className="text-green-700 font-medium text-xs">💬 {t('inquiry.submit')}</span>
-          </div>
-          
           {/* 메인 타이틀 */}
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
             {t('inquiry.heroTitle').split('\n').map((line, index) => (
@@ -208,7 +203,6 @@ export default function InquiryPage() {
         <div className="container max-w-5xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('inquiry.inquiryType')}</h2>
-            <p className="text-lg text-gray-600">{t('inquiry.inquiryTypeSubtitle')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

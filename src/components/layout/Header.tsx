@@ -314,9 +314,9 @@ export default function Header() {
               >
                 <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
                   <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
-                  <div className="flex flex-col gap-0.5 text-xs font-medium">
-                    <span className="text-blue-700">🇰🇷 {koreanTime}</span>
-                    <span className="text-indigo-700">🇲🇽 {localTime}</span>
+                  <div className="flex flex-row gap-1 sm:gap-2 text-xs font-medium">
+                    <span className="text-blue-700 whitespace-nowrap">🇰🇷 {koreanTime}</span>
+                    <span className="text-indigo-700 whitespace-nowrap">🇲🇽 {localTime}</span>
                   </div>
                 </div>
                 

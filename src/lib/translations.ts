@@ -519,7 +519,7 @@ export const translations = {
 
     // 문의 페이지
     inquiry: {
-      heroTitle: '문의하기\n궁금한 점이 있으시면\n언제든지 연락주세요',
+      heroTitle: '궁금한 점이 있으시면\n언제든지 연락주세요',
       heroSubtitle: 'AMIKO 팀이\n빠르고 정확하게\n답변드리겠습니다',
       title: '문의하기',
       subtitle: '궁금한 점이 있으시면 언제든지 연락주세요',
@@ -528,8 +528,7 @@ export const translations = {
       successMessage: '빠른 시일 내에 답변드리겠습니다.',
       newInquiry: '새 문의하기',
       goToCommunity: '커뮤니티로 이동',
-      inquiryType: '문의 유형',
-      inquiryTypeSubtitle: '어떤 종류의 문의인지 선택해주세요',
+      inquiryType: '이런 것들 문의할 수 있습니다',
       selectInquiryType: '문의 유형을 선택하세요',
       priority: '우선순위',
       selectPriority: '우선순위를 선택하세요',
@@ -1334,7 +1333,7 @@ export const translations = {
 
     // 문의 페이지
     inquiry: {
-      heroTitle: 'Consultas\nSi tienes alguna pregunta\ncontáctanos en cualquier momento',
+      heroTitle: 'Si tienes alguna pregunta\ncontáctanos en cualquier momento',
       heroSubtitle: 'El equipo AMIKO\nresponderá rápida y\nprecisamente',
       title: 'Consultas',
       subtitle: 'Si tienes alguna pregunta, contáctanos en cualquier momento',
@@ -1343,8 +1342,7 @@ export const translations = {
       successMessage: 'Te responderemos en breve.',
       newInquiry: 'Nueva Consulta',
       goToCommunity: 'Ir a la Comunidad',
-      inquiryType: 'Tipo de Consulta',
-      inquiryTypeSubtitle: 'Selecciona qué tipo de consulta es',
+      inquiryType: 'Puedes consultar sobre estas cosas',
       selectInquiryType: 'Selecciona el tipo de consulta',
       priority: 'Prioridad',
       selectPriority: 'Selecciona la prioridad',
