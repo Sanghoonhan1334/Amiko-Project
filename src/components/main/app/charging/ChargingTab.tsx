@@ -305,9 +305,6 @@ export default function ChargingTab() {
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Crown className="w-3 h-3 text-purple-500" />
                       <span className="text-xs font-medium">{t('storeTab.vip.yearly')}</span>
-                      <Badge className="text-xs px-1 py-0.5 bg-purple-100 text-purple-700 border-purple-300">
-                        {t('storeTab.vip.popular')}
-                      </Badge>
                     </div>
                     <div className="text-base font-bold text-purple-600 mb-1">$80</div>
                     <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.yearly')}</div>
@@ -315,6 +312,11 @@ export default function ChargingTab() {
                     <Button size="sm" className="w-full text-xs h-6 bg-gradient-to-r from-purple-300 to-purple-400 hover:from-purple-400 hover:to-purple-500 text-white shadow-md hover:shadow-lg transition-all duration-200">
                       {t('storeTab.vip.subscribe')}
                     </Button>
+                    <div className="mt-1">
+                      <Badge className="text-xs px-1 py-0.5 bg-purple-100 text-purple-700 border-purple-300">
+                        {t('storeTab.vip.popular')}
+                      </Badge>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -325,10 +327,16 @@ export default function ChargingTab() {
                       <Sparkles className="w-4 h-4 text-purple-500" />
                       <span className='text-sm font-bold text-purple-700'>{t('storeTab.vip.features')}</span>
                     </div>
-                    <div className="text-sm font-bold text-gray-800 leading-relaxed">
-                      {t('storeTab.vip.beautyFilter')}<br/>
-                      {t('storeTab.vip.adRemoval')}<br/>
-                      {t('storeTab.vip.simultaneousInterpretation')}
+                    <div className="space-y-1">
+                      <div className="text-sm font-bold text-gray-800">
+                        • {t('storeTab.vip.beautyFilter')}
+                      </div>
+                      <div className="text-sm font-bold text-gray-800">
+                        • {t('storeTab.vip.adRemoval')}
+                      </div>
+                      <div className="text-sm font-bold text-gray-800">
+                        • {t('storeTab.vip.simultaneousInterpretation')}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
