@@ -20,194 +20,312 @@ export default function TermsOfService() {
 
         {/* 본문 */}
         <div className="bg-white/80 rounded-2xl shadow-lg p-8 space-y-8">
-          {/* 1. 서비스 정의 */}
+          {/* 서비스 소개 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              1. 서비스 정의
+              제1조 (서비스 소개)
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>AMIKO는 한국과 남미를 연결하는 문화 교류 플랫폼으로, 다음과 같은 서비스를 제공합니다:</p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>AI 화상 채팅 서비스</li>
-                <li>커뮤니티 서비스 (게시판, 스토리, Q&A)</li>
-                <li>포인트 시스템 (AKO)</li>
-                <li>VIP 멤버십 서비스</li>
-                <li>이벤트 및 특별 프로그램</li>
-              </ul>
+              <p>Amiko는 한국과 남미를 잇는 언어 교환 및 문화 교류 플랫폼입니다.</p>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">주요 서비스</h3>
+                <ul className="list-disc pl-6 space-y-1 text-blue-700">
+                  <li><strong>화상채팅:</strong> 한국인과의 1:1 화상채팅을 통한 언어 교환</li>
+                  <li><strong>커뮤니티:</strong> 한국 문화, K-POP, 라이프스타일 공유 커뮤니티</li>
+                  <li><strong>포인트 시스템:</strong> 활동에 따른 포인트 적립 및 사용</li>
+                  <li><strong>이벤트:</strong> 다양한 한국 문화 체험 이벤트</li>
+                </ul>
+              </div>
             </div>
           </section>
 
-          {/* 2. 회원 가입 및 계정 관리 */}
+          {/* 약관의 효력 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              2. 회원 가입 및 계정 관리
+              제2조 (약관의 효력 및 변경)
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">가입 조건</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
+              <p>본 약관은 서비스를 이용하는 모든 사용자에게 적용됩니다.</p>
+              
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-yellow-800 mb-2">약관 변경 시</h3>
+                <ul className="list-disc pl-6 space-y-1 text-yellow-700">
+                  <li>중요한 변경사항은 서비스 공지사항으로 사전 안내</li>
+                  <li>이메일을 통한 개별 안내 (필요시)</li>
+                  <li>변경된 약관은 공지 후 7일 후부터 효력 발생</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* 회원가입 및 관리 */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+              제3조 (회원가입 및 관리)
+            </h2>
+            <div className="space-y-4 text-gray-700 font-['Inter']">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">회원가입 조건</h3>
+                <ul className="list-disc pl-6 space-y-1 text-green-700">
                   <li>만 14세 이상 (미성년자는 법정대리인 동의 필요)</li>
-                  <li>실명 인증 완료</li>
-                  <li>유효한 이메일 주소 보유</li>
-                  <li>서비스 이용약관에 동의</li>
+                  <li>실명 인증 및 본인 확인</li>
+                  <li>한국인 또는 한국어 학습자</li>
+                  <li>서비스 이용 목적이 명확한 경우</li>
                 </ul>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">계정 관리</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>회원은 자신의 계정 정보를 정확하게 유지해야 합니다</li>
-                  <li>계정 정보 변경 시 즉시 업데이트해야 합니다</li>
-                  <li>계정 도용 시 즉시 고객센터에 신고해야 합니다</li>
-                  <li>1인 1계정 원칙을 준수해야 합니다</li>
-                </ul>
-              </div>
-            </div>
-          </section>
 
-          {/* 3. 서비스 이용 */}
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              3. 서비스 이용
-            </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">화상채팅 서비스</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>AKO 포인트를 사용하여 화상채팅를 이용할 수 있습니다</li>
-                  <li>1 AKO = 20분 화상채팅</li>
-                  <li>상대방과의 상호 존중을 바탕으로 이용해야 합니다</li>
-                  <li>부적절한 행위 시 서비스 이용이 제한될 수 있습니다</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">커뮤니티 서비스</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>다양한 주제의 게시판에 참여할 수 있습니다</li>
-                  <li>스토리 업로드 및 공유가 가능합니다</li>
-                  <li>Q&A를 통한 정보 교환이 가능합니다</li>
-                  <li>커뮤니티 가이드라인을 준수해야 합니다</li>
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-red-800 mb-2">가입 제한 사유</h3>
+                <ul className="list-disc pl-6 space-y-1 text-red-700">
+                  <li>타인의 정보를 도용한 경우</li>
+                  <li>허위 정보를 제공한 경우</li>
+                  <li>서비스 이용 목적이 불분명한 경우</li>
+                  <li>이전에 서비스 이용 제한을 받은 경우</li>
                 </ul>
               </div>
             </div>
           </section>
 
-          {/* 4. 금지 행위 */}
+          {/* 서비스 이용 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              4. 금지 행위
+              제4조 (서비스 이용)
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>다음과 같은 행위는 엄격히 금지되며, 계정 제재의 대상이 됩니다:</p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>욕설, 비방, 차별적 발언</li>
-                <li>스팸, 광고성 게시물</li>
-                <li>불법적인 내용의 게시</li>
-                <li>타인의 개인정보 무단 수집 및 이용</li>
-                <li>계정 공유 및 양도</li>
-                <li>시스템 해킹 및 악성 프로그램 사용</li>
-                <li>상업적 목적의 서비스 이용</li>
-                <li>성인 콘텐츠 및 부적절한 행위</li>
-              </ul>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-blue-800 mb-2">이용자의 의무</h3>
+                  <ul className="list-disc pl-6 space-y-1 text-blue-700 text-sm">
+                    <li>정확한 정보 제공</li>
+                    <li>서비스 이용 규칙 준수</li>
+                    <li>다른 이용자에 대한 존중</li>
+                    <li>불법적 행위 금지</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-purple-800 mb-2">회사의 의무</h3>
+                  <ul className="list-disc pl-6 space-y-1 text-purple-700 text-sm">
+                    <li>안정적인 서비스 제공</li>
+                    <li>개인정보 보호</li>
+                    <li>고객 지원</li>
+                    <li>서비스 개선</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* 5. 결제 및 환불 */}
+          {/* 금지 행위 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              5. 결제 및 환불
+              제5조 (금지 행위)
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">결제 정책</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>AKO 포인트는 현금으로 구매할 수 있습니다</li>
-                  <li>VIP 멤버십은 월간/연간 구독 방식입니다</li>
-                  <li>결제는 신용카드, 페이팔 등으로 가능합니다</li>
-                  <li>결제 후 즉시 서비스 이용이 가능합니다</li>
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-red-800 mb-2">절대 금지 행위</h3>
+                <ul className="list-disc pl-6 space-y-1 text-red-700">
+                  <li><strong>성적 내용:</strong> 성적인 대화, 사진, 동영상 공유</li>
+                  <li><strong>상업적 목적:</strong> 상품 판매, 광고, 홍보 활동</li>
+                  <li><strong>개인정보 수집:</strong> 다른 이용자의 개인정보 무단 수집</li>
+                  <li><strong>허위 정보:</strong> 거짓 정보 유포 또는 사기 행위</li>
+                  <li><strong>욕설 및 괴롭힘:</strong> 비방, 욕설, 괴롭힘 행위</li>
+                  <li><strong>불법적 행위:</strong> 법률에 위반되는 모든 행위</li>
                 </ul>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">환불 정책</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>구매 후 7일 이내 미사용 시 100% 환불 가능</li>
-                  <li>사용한 AKO 포인트는 환불 불가</li>
-                  <li>VIP 멤버십은 이용 기간에 따라 비례 환불</li>
-                  <li>환불 요청은 고객센터를 통해 접수</li>
+
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-yellow-800 mb-2">제한 행위</h3>
+                <ul className="list-disc pl-6 space-y-1 text-yellow-700">
+                  <li>과도한 친구 요청 또는 메시지 전송</li>
+                  <li>서비스 이용 목적과 무관한 활동</li>
+                  <li>시스템 부하를 유발하는 행위</li>
+                  <li>다른 이용자의 서비스 이용을 방해하는 행위</li>
                 </ul>
               </div>
             </div>
           </section>
 
-          {/* 6. 서비스 중단 및 변경 */}
+          {/* 포인트 시스템 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              6. 서비스 중단 및 변경
+              제6조 (포인트 시스템)
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">서비스 중단 사유</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>정기 점검 및 시스템 업데이트</li>
-                  <li>기술적 장애 및 서버 문제</li>
-                  <li>자연재해 및 불가항력적 사유</li>
-                  <li>법적 요구사항 및 정부 정책 변경</li>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">포인트 획득</h3>
+                <ul className="list-disc pl-6 space-y-1 text-green-700">
+                  <li><strong>커뮤니티 활동:</strong> 게시글 작성, 댓글, 좋아요 (+5점)</li>
+                  <li><strong>화상채팅 완료:</strong> 20분 화상채팅 완료 (+40점)</li>
+                  <li><strong>이벤트 참여:</strong> 특별 이벤트 참여 시 추가 포인트</li>
                 </ul>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">서비스 변경</h3>
-                <p>AMIKO는 서비스 개선을 위해 서비스 내용을 변경할 수 있으며, 중요한 변경사항은 사전에 공지합니다.</p>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">포인트 사용</h3>
+                <ul className="list-disc pl-6 space-y-1 text-blue-700">
+                  <li><strong>화상채팅:</strong> 1회 화상채팅 (20분) = 1 AKO</li>
+                  <li><strong>쿠폰 구매:</strong> 포인트로 다양한 쿠폰 구매 가능</li>
+                  <li><strong>특별 혜택:</strong> 포인트 랭킹에 따른 특별 혜택</li>
+                </ul>
+              </div>
+
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-red-800 mb-2">포인트 정책</h3>
+                <ul className="list-disc pl-6 space-y-1 text-red-700">
+                  <li>포인트는 현금으로 환불되지 않습니다</li>
+                  <li>계정 탈퇴 시 포인트는 소멸됩니다</li>
+                  <li>부정한 방법으로 획득한 포인트는 회수됩니다</li>
+                  <li>포인트 정책은 사전 공지 후 변경될 수 있습니다</li>
+                </ul>
               </div>
             </div>
           </section>
 
-          {/* 7. 면책 조항 */}
+          {/* 계정 정지 및 제재 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              7. 면책 조항
+              제7조 (계정 정지 및 제재)
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>회원의 서비스 이용 중 발생한 손해에 대해 AMIKO는 고의 또는 중대한 과실이 없는 한 책임지지 않습니다</li>
-                <li>제3자와의 분쟁에 대해 AMIKO는 책임지지 않습니다</li>
-                <li>회원의 개인정보 관리 소홀로 인한 손해에 대해 책임지지 않습니다</li>
-                <li>서비스 이용 중 발생한 정신적 피해에 대해 책임지지 않습니다</li>
-              </ul>
-            </div>
-          </section>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-3 text-left">위반 유형</th>
+                      <th className="border border-gray-300 p-3 text-left">1차 경고</th>
+                      <th className="border border-gray-300 p-3 text-left">2차 제재</th>
+                      <th className="border border-gray-300 p-3 text-left">3차 제재</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 p-3">경미한 위반</td>
+                      <td className="border border-gray-300 p-3">경고</td>
+                      <td className="border border-gray-300 p-3">7일 정지</td>
+                      <td className="border border-gray-300 p-3">30일 정지</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 p-3">중간 위반</td>
+                      <td className="border border-gray-300 p-3">3일 정지</td>
+                      <td className="border border-gray-300 p-3">30일 정지</td>
+                      <td className="border border-gray-300 p-3">영구 정지</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 p-3">심각한 위반</td>
+                      <td className="border border-gray-300 p-3">30일 정지</td>
+                      <td className="border border-gray-300 p-3">영구 정지</td>
+                      <td className="border border-gray-300 p-3">-</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-          {/* 8. 약관 변경 */}
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              8. 약관 변경
-            </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>이 약관은 시행일로부터 적용되며, 법령 및 방침에 따른 변경내용의 추가, 삭제 및 정정이 있는 경우에는 변경사항의 시행 7일 전부터 공지사항을 통하여 고지할 것입니다.</p>
-            </div>
-          </section>
-
-          {/* 9. 분쟁 해결 */}
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              9. 분쟁 해결
-            </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p><strong>관할 법원:</strong> 서울중앙지방법원</p>
-                <p><strong>준거법:</strong> 대한민국 법률</p>
-                <p><strong>분쟁 해결:</strong> 우선적으로 협의를 통해 해결하며, 협의가 불가능한 경우 법적 절차를 따릅니다.</p>
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-yellow-800 mb-2">제재 해제</h3>
+                <ul className="list-disc pl-6 space-y-1 text-yellow-700">
+                  <li>제재 사유에 대한 충분한 설명과 함께 이의제기 가능</li>
+                  <li>이의제기는 고객지원팀으로 접수</li>
+                  <li>검토 후 부당한 제재인 경우 해제</li>
+                </ul>
               </div>
             </div>
           </section>
-        </div>
 
-        {/* 하단 버튼 */}
-        <div className="text-center mt-8">
-          <button 
-            onClick={() => window.history.back()}
-            className="bg-gradient-to-r from-brand-500 to-mint-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 font-['Inter']"
-          >
-            이전 페이지로
-          </button>
+          {/* 서비스 중단 및 변경 */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+              제8조 (서비스 중단 및 변경)
+            </h2>
+            <div className="space-y-4 text-gray-700 font-['Inter']">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">서비스 중단 사유</h3>
+                <ul className="list-disc pl-6 space-y-1 text-blue-700">
+                  <li>시스템 점검 및 업데이트</li>
+                  <li>기술적 장애 발생</li>
+                  <li>법적 문제 발생</li>
+                  <li>기타 불가피한 사유</li>
+                </ul>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">사전 공지</h3>
+                <ul className="list-disc pl-6 space-y-1 text-green-700">
+                  <li><strong>정기 점검:</strong> 최소 24시간 전 공지</li>
+                  <li><strong>긴급 중단:</strong> 가능한 한 사전 공지</li>
+                  <li><strong>서비스 변경:</strong> 변경 내용 및 시기 사전 안내</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* 손해배상 및 면책 */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+              제9조 (손해배상 및 면책)
+            </h2>
+            <div className="space-y-4 text-gray-700 font-['Inter']">
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-red-800 mb-2">회사의 면책 사항</h3>
+                <ul className="list-disc pl-6 space-y-1 text-red-700">
+                  <li>천재지변, 전쟁, 파업 등 불가항력적 사유로 인한 서비스 중단</li>
+                  <li>이용자의 귀책사유로 인한 서비스 이용 장애</li>
+                  <li>제3자가 제공하는 서비스의 장애</li>
+                  <li>이용자 간의 분쟁으로 인한 손해</li>
+                </ul>
+              </div>
+
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-yellow-800 mb-2">이용자의 책임</h3>
+                <ul className="list-disc pl-6 space-y-1 text-yellow-700">
+                  <li>본인의 계정 정보 관리 책임</li>
+                  <li>서비스 이용 중 발생한 모든 행위에 대한 책임</li>
+                  <li>다른 이용자에게 발생한 손해에 대한 배상 책임</li>
+                  <li>법령 위반으로 인한 모든 법적 책임</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* 분쟁 해결 */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+              제10조 (분쟁 해결)
+            </h2>
+            <div className="space-y-4 text-gray-700 font-['Inter']">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">분쟁 해결 절차</h3>
+                <ol className="list-decimal pl-6 space-y-1 text-blue-700">
+                  <li><strong>1단계:</strong> 고객지원팀을 통한 상담 및 조정</li>
+                  <li><strong>2단계:</strong> 분쟁조정위원회 조정 (필요시)</li>
+                  <li><strong>3단계:</strong> 관할 법원에서의 소송</li>
+                </ol>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">준거법 및 관할</h3>
+                <ul className="list-disc pl-6 space-y-1 text-green-700">
+                  <li><strong>준거법:</strong> 대한민국 법률</li>
+                  <li><strong>관할법원:</strong> 서울중앙지방법원</li>
+                  <li><strong>언어:</strong> 한국어 (번역본은 참고용)</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* 연락처 */}
+          <section className="bg-gradient-to-r from-brand-50 to-mint-50 p-6 rounded-lg">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+              문의 및 연락처
+            </h2>
+            <div className="space-y-2 text-gray-700 font-['Inter']">
+              <p><strong>고객지원:</strong> support@amiko.com</p>
+              <p><strong>법무팀:</strong> legal@amiko.com</p>
+              <p><strong>웹사이트:</strong> https://amiko.com</p>
+              <p><strong>운영시간:</strong> 평일 09:00 - 18:00 (한국시간)</p>
+            </div>
+          </section>
         </div>
       </div>
     </div>

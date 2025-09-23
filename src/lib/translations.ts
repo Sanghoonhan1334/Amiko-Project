@@ -37,17 +37,72 @@ export const translations = {
       signUp: '회원가입',
       signIn: '로그인',
       signInDescription: '계정에 로그인하여 Amiko의 모든 기능을 이용하세요',
+      signUpDescription: 'Amiko에 가입하여 한국어 학습과 문화 교류를 시작하세요',
       signingIn: '로그인 중...',
+      signingUp: '회원가입 중...',
       emailOrPhone: '이메일 또는 전화번호',
       emailOrPhonePlaceholder: '이메일 또는 전화번호를 입력하세요',
       password: '비밀번호',
       passwordPlaceholder: '비밀번호를 입력하세요',
+      confirmPassword: '비밀번호 확인',
+      confirmPasswordPlaceholder: '비밀번호를 다시 입력하세요',
+      name: '이름',
+      namePlaceholder: '이름을 입력하세요',
+      email: '이메일',
+      emailPlaceholder: 'example@email.com',
+      phone: '전화번호',
+      country: '국가',
+      countryCode: '국가 코드',
+      selectCountry: '국가를 선택하세요',
+      passwordMinLength: '최소 6자 이상',
+      passwordHasNumber: '숫자 포함',
+      passwordHasSpecial: '특수문자 포함',
+      passwordNoRepeated: '연속된 문자 없음',
+      passwordMismatch: '비밀번호가 일치하지 않습니다',
+      signUpSuccess: '회원가입이 완료되었습니다!',
+      signUpFailed: '회원가입에 실패했습니다',
+      signUpError: '회원가입 중 오류가 발생했습니다',
+      alreadyHaveAccount: '이미 계정이 있으신가요?',
       noAccount: '계정이 없으신가요?',
       credentialsCheckMessage: '이메일/전화번호와 비밀번호를 확인해주세요',
       verifying: '인증 확인 중...',
       pleaseWait: '잠시만 기다려주세요.',
       checkingVerificationStatus: '인증 상태를 확인하는 중...',
-      verificationStatusError: '인증 상태를 확인하는 중 오류가 발생했습니다.'
+      verificationStatusError: '인증 상태를 확인하는 중 오류가 발생했습니다.',
+      
+      // 이메일/SMS 인증
+      emailVerification: '이메일 인증',
+      smsVerification: '전화번호 인증',
+      verificationCode: '인증코드',
+      verificationCodePlaceholder: '6자리 인증코드를 입력하세요',
+      sendVerificationCode: '인증코드 발송',
+      resendCode: '인증코드 다시 발송',
+      codeSent: '인증코드가 발송되었습니다',
+      codeExpired: '인증코드가 만료되었습니다',
+      invalidCode: '잘못된 인증코드입니다',
+      verificationSuccess: '인증이 완료되었습니다',
+      
+      // 지문 인증
+      biometricLogin: '지문으로 빠른 로그인',
+      biometricSetup: '지문 인증 설정',
+      biometricExplanation: '지문으로 더 빠르게 로그인하시겠습니까?',
+      biometricSafe: '지문 정보는 디바이스에만 저장되며 서버로 전송되지 않습니다',
+      biometricSkip: '나중에 설정',
+      biometricEnable: '지문 인증 설정',
+      biometricNotSupported: '이 디바이스는 지문 인증을 지원하지 않습니다',
+      
+      // 검증 절차 설명
+      verificationNeeded: '왜 검증 절차가 필요한가요?',
+      verificationReason1: '서로를 지켜주기 위해서: 검증된 사용자만이 커뮤니티에 참여할 수 있어 안전한 환경을 유지합니다',
+      verificationReason2: '신뢰할 수 있는 커뮤니티: 모든 사용자가 실제 사람임을 확인하여 가짜 계정을 방지합니다',
+      verificationReason3: '개인정보 보호: 검증된 사용자만이 다른 사용자의 정보에 접근할 수 있습니다',
+      verificationSteps: '검증 절차 안내',
+      step1Title: '이메일 인증',
+      step1Desc: '이메일 주소가 실제로 사용 가능한지 확인합니다',
+      step2Title: '전화번호 인증',
+      step2Desc: 'SMS로 인증코드를 발송하여 실제 사용자임을 확인합니다',
+      step3Title: '프로필 완성',
+      step3Desc: '자기소개와 관심사를 작성하여 커뮤니티에 참여합니다'
     },
 
     // Hero 슬라이드
@@ -507,15 +562,25 @@ export const translations = {
       cookies: '쿠키 정책'
     },
 
-    // 정책 페이지
+    // 개인정보처리방침
     privacy: {
-      lastUpdated: '최종 업데이트'
+      lastUpdated: '최종 수정일',
+      contactEmail: 'privacy@amiko.com',
+      supportEmail: 'support@amiko.com'
     },
+
+    // 서비스 이용약관
     terms: {
-      lastUpdated: '최종 업데이트'
+      lastUpdated: '최종 수정일',
+      contactEmail: 'legal@amiko.com',
+      supportEmail: 'support@amiko.com'
     },
+
+    // 쿠키 정책
     cookies: {
-      lastUpdated: '최종 업데이트'
+      lastUpdated: '최종 수정일',
+      contactEmail: 'privacy@amiko.com',
+      supportEmail: 'support@amiko.com'
     },
 
     // 문의 페이지
@@ -852,17 +917,72 @@ export const translations = {
       signUp: 'Registrarse',
       signIn: 'Iniciar sesión',
       signInDescription: 'Inicia sesión en tu cuenta para acceder a todas las funciones de Amiko',
+      signUpDescription: 'Únete a Amiko para comenzar a aprender coreano e intercambiar culturas',
       signingIn: 'Iniciando sesión...',
+      signingUp: 'Registrándose...',
       emailOrPhone: 'Correo electrónico o teléfono',
       emailOrPhonePlaceholder: 'Ingresa tu correo electrónico o número de teléfono',
       password: 'Contraseña',
       passwordPlaceholder: 'Ingresa tu contraseña',
+      confirmPassword: 'Confirmar contraseña',
+      confirmPasswordPlaceholder: 'Ingresa tu contraseña nuevamente',
+      name: 'Nombre',
+      namePlaceholder: 'Ingresa tu nombre',
+      email: 'Correo electrónico',
+      emailPlaceholder: 'ejemplo@email.com',
+      phone: 'Teléfono',
+      country: 'País',
+      countryCode: 'Código de país',
+      selectCountry: 'Selecciona un país',
+      passwordMinLength: 'Mínimo 6 caracteres',
+      passwordHasNumber: 'Incluir números',
+      passwordHasSpecial: 'Incluir caracteres especiales',
+      passwordNoRepeated: 'Sin caracteres repetidos',
+      passwordMismatch: 'Las contraseñas no coinciden',
+      signUpSuccess: '¡Registro completado exitosamente!',
+      signUpFailed: 'El registro falló',
+      signUpError: 'Ocurrió un error durante el registro',
+      alreadyHaveAccount: '¿Ya tienes una cuenta?',
       noAccount: '¿No tienes cuenta?',
       credentialsCheckMessage: 'Por favor verifica tu correo electrónico/teléfono y contraseña',
       verifying: 'Verificando autenticación...',
       pleaseWait: 'Por favor espere.',
       checkingVerificationStatus: 'Verificando estado de autenticación...',
-      verificationStatusError: 'Ocurrió un error al verificar el estado de autenticación.'
+      verificationStatusError: 'Ocurrió un error al verificar el estado de autenticación.',
+      
+      // 이메일/SMS 인증
+      emailVerification: 'Verificación por correo electrónico',
+      smsVerification: 'Verificación por teléfono',
+      verificationCode: 'Código de verificación',
+      verificationCodePlaceholder: 'Ingresa el código de verificación de 6 dígitos',
+      sendVerificationCode: 'Enviar código de verificación',
+      resendCode: 'Reenviar código de verificación',
+      codeSent: 'El código de verificación ha sido enviado',
+      codeExpired: 'El código de verificación ha expirado',
+      invalidCode: 'Código de verificación inválido',
+      verificationSuccess: 'Verificación completada',
+      
+      // 지문 인증
+      biometricLogin: 'Inicio de sesión rápido con huella dactilar',
+      biometricSetup: 'Configurar autenticación biométrica',
+      biometricExplanation: '¿Te gustaría iniciar sesión más rápido con tu huella dactilar?',
+      biometricSafe: 'La información biométrica se almacena solo en el dispositivo y no se envía al servidor',
+      biometricSkip: 'Configurar más tarde',
+      biometricEnable: 'Configurar autenticación biométrica',
+      biometricNotSupported: 'Este dispositivo no soporta autenticación biométrica',
+      
+      // 검증 절차 설명
+      verificationNeeded: '¿Por qué es necesario el proceso de verificación?',
+      verificationReason1: 'Para protegernos mutuamente: Solo usuarios verificados pueden participar en la comunidad, manteniendo un entorno seguro',
+      verificationReason2: 'Comunidad confiable: Verificamos que todos los usuarios sean personas reales para prevenir cuentas falsas',
+      verificationReason3: 'Protección de datos personales: Solo usuarios verificados pueden acceder a la información de otros usuarios',
+      verificationSteps: 'Guía del proceso de verificación',
+      step1Title: 'Verificación por correo electrónico',
+      step1Desc: 'Verificamos que la dirección de correo electrónico sea realmente utilizable',
+      step2Title: 'Verificación por teléfono',
+      step2Desc: 'Enviamos un código de verificación por SMS para confirmar que eres un usuario real',
+      step3Title: 'Completar perfil',
+      step3Desc: 'Escribe tu presentación e intereses para participar en la comunidad'
     },
 
     // Hero 슬라이드
@@ -1322,15 +1442,25 @@ export const translations = {
       cookies: 'Política de Cookies'
     },
 
-    // 정책 페이지
+    // 개인정보처리방침
     privacy: {
-      lastUpdated: 'Última actualización'
+      lastUpdated: 'Última actualización',
+      contactEmail: 'privacy@amiko.com',
+      supportEmail: 'support@amiko.com'
     },
+
+    // 서비스 이용약관
     terms: {
-      lastUpdated: 'Última actualización'
+      lastUpdated: 'Última actualización',
+      contactEmail: 'legal@amiko.com',
+      supportEmail: 'support@amiko.com'
     },
+
+    // 쿠키 정책
     cookies: {
-      lastUpdated: 'Última actualización'
+      lastUpdated: 'Última actualización',
+      contactEmail: 'privacy@amiko.com',
+      supportEmail: 'support@amiko.com'
     },
 
     // 문의 페이지

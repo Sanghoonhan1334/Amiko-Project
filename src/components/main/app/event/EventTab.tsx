@@ -203,11 +203,10 @@ export default function EventTab() {
     const total = communityPoints + videoCallPoints
 
     setPointsData({
-      attendance: 0, // 출석체크 포인트 제거
       community: communityPoints,
       videoCall: videoCallPoints,
       total: total,
-      coupons: 0 // 포인트로 쿠폰 구매 불가
+      available: total
     })
   }
 
@@ -475,145 +474,164 @@ export default function EventTab() {
   }, [])
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
-      {/* 특별 이벤트 */}
-      <Card className="bg-white border border-gray-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl">
-            <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-            {t('eventTab.attendanceCheck.specialEvents.title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* 현지인용 특별 이벤트 */}
-            <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
-              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
-                  <img 
-                    src="/airport.jpeg" 
-                    alt="Airport" 
-                    className="w-full h-full object-cover"
-                  />
+    <div className="space-y-4 sm:space-y-6">
+      {/* 특별 이벤트 제목 */}
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.title')}</h2>
+      </div>
+
+        {/* 데스크톱: 카드 스타일 */}
+        <div className="hidden md:grid grid-cols-2 gap-4 sm:gap-6">
+          {/* 현지인용 특별 이벤트 */}
+          <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
+                <img 
+                  src="/airport.jpeg" 
+                  alt="Airport" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
+                <p className="text-xs sm:text-sm text-blue-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 sm:space-y-3">
+              <div className="p-3 sm:p-4 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">1</span>
+                  </div>
+                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
+                </div>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.flightTicket')}</div>
+                  <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.guideService')}</div>
+                  <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.accommodation')}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
+              <p className="text-sm text-gray-700 font-medium">
+                🏆 {t('eventTab.attendanceCheck.specialEvents.localEvent.period')}
+              </p>
+            </div>
+          </div>
+
+          {/* 한국인용 특별 이벤트 */}
+          <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
+            <div className="mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-bold text-green-800 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
+              <p className="text-xs sm:text-sm text-green-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
+            </div>
+            
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">DELE</span>
                 </div>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
-                  <p className="text-xs sm:text-sm text-blue-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
+                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
+                  <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                 </div>
               </div>
               
-              <div className="space-y-2 sm:space-y-3">
-                <div className="p-3 sm:p-4 bg-white rounded-lg border border-gray-200">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">1</span>
-                    </div>
-                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
-                  </div>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.flightTicket')}</div>
-                    <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.guideService')}</div>
-                    <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.accommodation')}</div>
-                  </div>
+              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">FLEX</span>
                 </div>
-              </div>
-              
-              <div className="mt-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-700 font-medium">
-                  🏆 {t('eventTab.attendanceCheck.specialEvents.localEvent.period')}
-                </p>
+                <div>
+                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
+                  <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* 한국인용 특별 이벤트 */}
-            <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
-              <div className="mb-3 sm:mb-4">
-                <h3 className="text-lg sm:text-xl font-bold text-green-800 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
-                <p className="text-xs sm:text-sm text-green-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
-              </div>
-              
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">DELE</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
-                    <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">FLEX</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
-                    <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
-                  </div>
-                </div>
-              </div>
-              
+        {/* 모바일: 리스트 스타일 */}
+        <div className="block md:hidden space-y-4">
+          {/* 현지인용 특별 이벤트 */}
+          <div className="py-3 px-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">✈️</span>
+              <span className="font-semibold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</span>
             </div>
+            <p className="text-sm text-blue-600 mb-2">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
+            <div className="text-sm text-gray-600 mb-1">
+              <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.flightTicket')}</div>
+              <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.guideService')}</div>
+              <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.accommodation')}</div>
+            </div>
+            <div className="text-xs text-gray-500">🏆 {t('eventTab.attendanceCheck.specialEvents.localEvent.period')}</div>
           </div>
           
-          {/* 포인트 시스템 상세 정보 */}
-          <div className="mt-6 space-y-6">
-
-
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 포인트 랭킹 */}
-      <Card className="bg-white border border-gray-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl">
-            <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
-            {t('eventTab.pointRanking.title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-2 text-gray-600">{t('eventTab.pointRanking.loading')}</p>
+          {/* 한국인용 특별 이벤트 */}
+          <div className="py-3 px-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">🇰🇷</span>
+              <span className="font-semibold text-green-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</span>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {/* 내 랭킹 */}
-              {rankingData.userRank && (
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">
-                          {rankingData.userRank.position}
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-800">{t('eventTab.pointRanking.myRank')}</h4>
-                        <p className="text-sm text-gray-600">
-                          {t('eventTab.pointRanking.totalPoints')} {rankingData.userRank.total_points}{t('eventTab.points')}
-                        </p>
-                      </div>
+            <p className="text-sm text-green-600 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
+            <div className="text-sm text-gray-600">
+              <div>• {t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
+              <div>• {t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
+            </div>
+          </div>
+        </div>
+
+      {/* 포인트 랭킹 제목 */}
+      <div className="flex items-center gap-2 sm:gap-3 mb-4">
+        <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">{t('eventTab.pointRanking.title')}</h2>
+      </div>
+
+        {/* 랭킹 내용 */}
+        {loading ? (
+          <div className="text-center py-8 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-2 text-gray-600">{t('eventTab.pointRanking.loading')}</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* 내 랭킹 */}
+            {rankingData.userRank && (
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">
+                        {rankingData.userRank.position}
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {rankingData.userRank.position}{t('eventTab.pointRanking.rank')}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {t('eventTab.pointRanking.outOf')} {rankingData.totalUsers}{t('eventTab.pointRanking.users')}
-                      </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800">{t('eventTab.pointRanking.myRank')}</h4>
+                      <p className="text-sm text-gray-600">
+                        {t('eventTab.pointRanking.totalPoints')} {rankingData.userRank.total_points}{t('eventTab.points')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {rankingData.userRank.position}{t('eventTab.pointRanking.rank')}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {t('eventTab.pointRanking.outOf')} {rankingData.totalUsers}{t('eventTab.pointRanking.users')}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* 상위 랭킹 */}
-              {rankingData.ranking.length > 0 ? (
+            {/* 상위 랭킹 */}
+            {rankingData.ranking.length > 0 ? (
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                <h4 className="font-semibold text-gray-800 mb-3">🏆 {t('eventTab.pointRanking.topRanking')}</h4>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-800 mb-3">🏆 {t('eventTab.pointRanking.topRanking')}</h4>
                   {rankingData.ranking.slice(0, 5).map((user: any, index: number) => (
                     <div key={user.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
@@ -641,27 +659,22 @@ export default function EventTab() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Trophy className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>{t('eventTab.pointRanking.noData')}</p>
-                  <p className="text-sm">{t('eventTab.pointRanking.startActivity')}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <Trophy className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>{t('eventTab.pointRanking.noData')}</p>
+                <p className="text-sm">{t('eventTab.pointRanking.startActivity')}</p>
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* 포인트 시스템 상세 안내 */}
-      <Card className="bg-white border border-gray-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl">
-            <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-            {t('eventTab.pointSystem.title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      {/* 포인트 시스템 제목 */}
+      <div className="flex items-center gap-2 sm:gap-3 mb-4">
+        <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">{t('eventTab.pointSystem.title')}</h2>
+      </div>
           
           {/* 포인트 획득 방법 */}
           <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
@@ -974,9 +987,6 @@ export default function EventTab() {
               </div>
             </div>
           </div>
-
-        </CardContent>
-      </Card>
 
 
     </div>

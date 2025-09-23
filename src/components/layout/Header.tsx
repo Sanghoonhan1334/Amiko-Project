@@ -212,6 +212,12 @@ export default function Header() {
 
   // 메인페이지 네비게이션 클릭 핸들러
   const handleMainNavClick = (tab: string) => {
+    // 로그인하지 않은 상태에서 'me' 탭 클릭 시 로그인 페이지로 이동
+    if (tab === 'me' && !user) {
+      router.push('/sign-in')
+      return
+    }
+    
     setActiveMainTab(tab)
     if (pathname === '/main') {
       // 세션스토리지에 저장
@@ -723,6 +729,19 @@ export default function Header() {
                 </div>
               )}
 
+              {/* 시작하기 버튼 - 모바일에서만 표시 (햄버거 왼쪽) */}
+              {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault()
+                    router.push('/main')
+                  }}
+                  className="md:hidden px-2 py-1 text-[10px] font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-full transition-all duration-300 transform hover:scale-105 shadow-sm whitespace-nowrap"
+                >
+                  {t('header.startButton')}
+                </button>
+              )}
+
               {/* 모바일 메뉴 버튼 - 모든 페이지에서 표시 */}
               <Button
                 variant="ghost"
@@ -772,6 +791,36 @@ export default function Header() {
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="pt-4 sm:pt-6 px-3 sm:px-4 pb-3 sm:pb-4 space-y-1 sm:space-y-2 max-h-80 sm:max-h-96 overflow-y-auto scroll-smooth-touch">
+            {/* 인증 메뉴 - 맨 위로 이동 */}
+            <div className="space-y-1 mb-4">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => {
+                      handleLogout()
+                      toggleMobileMenu()
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-all duration-300 w-full text-left"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    로그아웃
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  href="/sign-in"
+                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 text-gray-700 hover:text-brand-600 transition-all duration-300"
+                  onClick={toggleMobileMenu}
+                >
+                  <span className="text-base">🔐</span>
+{t('buttons.login')}
+                </Link>
+              )}
+            </div>
+            
+            {/* 구분선 */}
+            <div className="border-t border-gray-200 my-3" />
+            
             {/* 메인 메뉴 */}
             <div className="space-y-1">
               {/* 랜딩페이지 및 문의페이지 네비게이션 메뉴 */}
@@ -845,19 +894,6 @@ export default function Header() {
               )}
               
               {/* 랜딩페이지 및 문의페이지에서는 시작하기 버튼 표시 */}
-              {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    router.push('/main')
-                    toggleMobileMenu()
-                  }}
-                  className="flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 bg-gray-900 text-white hover:bg-gray-800"
-                >
-                  <span className="text-base">🚀</span>
-{t('header.startButton')}
-                </button>
-              )}
               
             </div>
             
@@ -935,33 +971,6 @@ export default function Header() {
             
             {/* 구분선 */}
             <div className="border-t border-gray-200 my-3" />
-            
-            {/* 인증 메뉴 */}
-            <div className="space-y-1">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => {
-                      handleLogout()
-                      toggleMobileMenu()
-                    }}
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-all duration-300 w-full text-left"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    로그아웃
-                  </button>
-                </>
-              ) : (
-                <Link 
-                  href="/sign-in"
-                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 text-gray-700 hover:text-brand-600 transition-all duration-300"
-                  onClick={toggleMobileMenu}
-                >
-                  <span className="text-base">🔐</span>
-{t('buttons.login')}
-                </Link>
-              )}
-            </div>
           </div>
         </div>
       </div>

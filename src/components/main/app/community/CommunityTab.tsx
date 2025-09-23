@@ -1245,7 +1245,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 sm:p-6">
+    <div className="flex flex-col lg:flex-row gap-6 p-0 sm:p-1">
       {/* 메인 컨텐츠 */}
       <div className="flex-1 space-y-6">
         {/* 인증 가드 - 커뮤니티 활동 */}
@@ -1259,7 +1259,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
       {/* 오늘의 스토리 섹션 */}
-      <div className="mt-8 mb-6 max-w-full overflow-hidden border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+      <div className="mt-0 mb-6 max-w-full overflow-hidden border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">

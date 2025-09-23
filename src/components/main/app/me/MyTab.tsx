@@ -626,9 +626,9 @@ export default function MyTab() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* 내 프로필 - 맨 위로 이동 */}
-      <Card className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-4 sm:p-6">
+      <div className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-4 sm:p-6">
         <div className="space-y-4 sm:space-y-6">
           {/* 프로필 사진 관리 - 맨 위로 이동 */}
           <div className="flex flex-col items-center gap-4">
@@ -1025,7 +1025,7 @@ export default function MyTab() {
           </div>
 
         </div>
-      </Card>
+      </div>
 
       {/* 인증 가드 - 전체 서비스 이용 */}
       <VerificationGuard 
@@ -1040,7 +1040,7 @@ export default function MyTab() {
       {!profile?.isKorean && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {/* 쿠폰 리스트 */}
-          <Card className="p-4 sm:p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-3xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-3xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-brand-100 rounded-xl flex items-center justify-center">
                 <Gift className="w-4 h-4 text-brand-600" />
@@ -1067,10 +1067,10 @@ export default function MyTab() {
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
 
           {/* 구매내역 리스트 */}
-          <Card className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-mint-100 border-2 border-mint-200/50 rounded-3xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-mint-100 border-2 border-mint-200/50 rounded-3xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-mint-100 rounded-xl flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-mint-600" />
@@ -1100,7 +1100,7 @@ export default function MyTab() {
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
@@ -1110,7 +1110,7 @@ export default function MyTab() {
       <StorySettings />
 
       {/* 알림 설정 */}
-      <Card className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200/50 rounded-3xl">
+      <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200/50 rounded-3xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
             <Settings className="w-4 h-4 text-purple-600" />
@@ -1161,7 +1161,7 @@ export default function MyTab() {
             />
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* 추후 연동 포인트 주석 */}
       {/* 

@@ -9,11 +9,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowRight, User, Mail, Lock, Phone, Globe } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import AuthenticationOptions from '@/components/auth/AuthenticationOptions'
+import EmailVerification from '@/components/auth/EmailVerification'
+import SMSVerification from '@/components/auth/SMSVerification'
+import BiometricAuth from '@/components/auth/BiometricAuth'
 
 export default function SignUpPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
+  const [currentStep, setCurrentStep] = useState<'form' | 'auth' | 'email' | 'sms' | 'biometric'>('form')
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,6 +34,15 @@ export default function SignUpPage() {
     hasNumber: false,
     hasSpecial: false,
     noRepeated: false
+  })
+  
+  const [authData, setAuthData] = useState({
+    email: '',
+    phoneNumber: '',
+    verificationCode: '',
+    isEmailVerified: false,
+    isSMSVerified: false,
+    biometricEnabled: false
   })
 
   const countries = [
@@ -78,9 +92,115 @@ export default function SignUpPage() {
     }))
   }
 
+  // 인증 관련 함수들
+  const handleEmailAuth = async (email: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, type: 'email' })
+      })
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+
+      setAuthData(prev => ({ ...prev, email }))
+      setCurrentStep('email')
+    } catch (error) {
+      console.error('이메일 인증 발송 실패:', error)
+      alert('이메일 인증코드 발송에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSMSAuth = async (phoneNumber: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, type: 'sms' })
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+
+      setAuthData(prev => ({ ...prev, phoneNumber }))
+      setCurrentStep('sms')
+    } catch (error) {
+      console.error('SMS 인증 발송 실패:', error)
+      alert('SMS 인증코드 발송에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEmailVerify = async (code: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/verification', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: authData.email, 
+          code, 
+          type: 'email' 
+        })
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+
+      setAuthData(prev => ({ ...prev, isEmailVerified: true }))
+      setCurrentStep('biometric')
+    } catch (error) {
+      console.error('이메일 인증 실패:', error)
+      alert('인증코드가 올바르지 않습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSMSVerify = async (code: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/verification', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phoneNumber: authData.phoneNumber, 
+          code, 
+          type: 'sms' 
+        })
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+
+      setAuthData(prev => ({ ...prev, isSMSVerified: true }))
+      setCurrentStep('biometric')
+    } catch (error) {
+      console.error('SMS 인증 실패:', error)
+      alert('인증코드가 올바르지 않습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleBiometricSetup = () => {
+    setAuthData(prev => ({ ...prev, biometricEnabled: true }))
+    handleSignUp()
+  }
+
+  const handleSkipBiometric = () => {
+    handleSignUp()
+  }
+
+
+  const handleSignUp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     setIsLoading(true)
 
     try {
@@ -95,7 +215,10 @@ export default function SignUpPage() {
           name: formData.name,
           phone: formData.phone,
           country: formData.country,
-          isKorean: selectedCountry?.isKorean || false
+          isKorean: selectedCountry?.isKorean || false,
+          emailVerified: authData.isEmailVerified,
+          phoneVerified: authData.isSMSVerified,
+          biometricEnabled: authData.biometricEnabled
         })
       })
 
@@ -119,21 +242,58 @@ export default function SignUpPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 pt-32 sm:pt-44">
-      <div className="flex justify-center">
-      <Card className="w-full max-w-md bg-white border shadow-lg">
-        <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
-          <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900">
-            {t('auth.signUp')}
-          </CardTitle>
-          <CardDescription className="text-sm sm:text-base text-slate-600">
-            {t('auth.signUpDescription')}
-          </CardDescription>
-        </CardHeader>
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isPasswordValid && formData.password === formData.confirmPassword) {
+      setCurrentStep('auth')
+    }
+  }
 
-        <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-3 sm:space-y-4">
+  // 단계별 렌더링
+  const renderStep = () => {
+    switch (currentStep) {
+      case 'auth':
+        return (
+          <AuthenticationOptions
+            onEmailAuth={handleEmailAuth}
+            onSMSAuth={handleSMSAuth}
+            onBiometricSetup={handleBiometricSetup}
+            onSkipBiometric={handleSkipBiometric}
+          />
+        )
+      
+      case 'email':
+        return (
+          <EmailVerification
+            email={authData.email}
+            onVerify={handleEmailVerify}
+            onResend={() => handleEmailAuth(authData.email)}
+            isLoading={isLoading}
+          />
+        )
+      
+      case 'sms':
+        return (
+          <SMSVerification
+            phoneNumber={authData.phoneNumber}
+            onVerify={handleSMSVerify}
+            onResend={() => handleSMSAuth(authData.phoneNumber)}
+            isLoading={isLoading}
+          />
+        )
+      
+      case 'biometric':
+        return (
+          <BiometricAuth
+            onEnable={handleBiometricSetup}
+            onSkip={handleSkipBiometric}
+            mode="setup"
+          />
+        )
+      
+      default:
+        return (
+          <form onSubmit={handleFormSubmit} className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium text-slate-700">
                 {t('auth.name')}
@@ -146,7 +306,8 @@ export default function SignUpPage() {
                   placeholder={t('auth.namePlaceholder')}
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
               </div>
@@ -164,8 +325,10 @@ export default function SignUpPage() {
                   placeholder="example@email.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  style={{ paddingLeft: '2.5rem' }}
                   required
+                  title="올바른 이메일 주소를 입력해주세요"
                 />
               </div>
             </div>
@@ -182,9 +345,10 @@ export default function SignUpPage() {
                   placeholder={t('auth.passwordPlaceholder')}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className={`pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
+                  className={`border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
                     formData.password && !isPasswordValid ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
                   }`}
+                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
               </div>
@@ -224,9 +388,10 @@ export default function SignUpPage() {
                   placeholder={t('auth.confirmPasswordPlaceholder')}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className={`pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
+                  className={`border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
                     formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
                   }`}
+                  style={{ paddingLeft: '2.5rem' }}
                   required
                 />
               </div>
@@ -260,7 +425,8 @@ export default function SignUpPage() {
                     placeholder="10-1234-5678"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                    className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  style={{ paddingLeft: '2.5rem' }}
                     required
                   />
                 </div>
@@ -274,7 +440,7 @@ export default function SignUpPage() {
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Select value={formData.country} onValueChange={handleCountryChange} required>
-                  <SelectTrigger className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400">
+                  <SelectTrigger className="pl-12 border-slate-200 focus:border-slate-400 focus:ring-slate-400">
                     <SelectValue placeholder={t('auth.selectCountry')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-slate-200 rounded-md shadow-lg z-50">
@@ -300,24 +466,50 @@ export default function SignUpPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span>{t('auth.signUp')}</span>
+                  <span>다음 단계</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               )}
             </Button>
           </form>
+        )
+    }
+  }
 
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-slate-600">
-              {t('auth.alreadyHaveAccount')}{' '}
-              <a href="/sign-in" className="text-slate-900 hover:text-slate-700 font-medium">
-                {t('auth.signIn')}
-              </a>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+  return (
+    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 pt-32 sm:pt-44">
+      <div className="flex justify-center">
+        <Card className="w-full max-w-md bg-white border shadow-lg">
+          {currentStep === 'form' && (
+            <>
+              <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900">
+                  {t('auth.signUp')}
+                </CardTitle>
+                <CardDescription className="text-sm sm:text-base text-slate-600">
+                  {t('auth.signUpDescription')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {renderStep()}
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-slate-600">
+                    {t('auth.alreadyHaveAccount')}{' '}
+                    <a href="/sign-in" className="text-slate-900 hover:text-slate-700 font-medium">
+                      {t('auth.signIn')}
+                    </a>
+                  </p>
+                </div>
+              </CardContent>
+            </>
+          )}
+          
+          {currentStep !== 'form' && (
+            <CardContent className="p-6">
+              {renderStep()}
+            </CardContent>
+          )}
+        </Card>
       </div>
     </div>
   )

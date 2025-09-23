@@ -126,7 +126,7 @@ function AppPageContent() {
 
             {activeTab === 'meet' && (
               <div className="card p-8">
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
                     <Video className="w-10 h-10 text-white" />
                   </div>
@@ -142,7 +142,7 @@ function AppPageContent() {
 
             {activeTab === 'community' && (
               <div className="card p-8">
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-0">
                   <div className="w-12 h-12 bg-mint-100 rounded-3xl flex items-center justify-center">
                     <span className="text-2xl">💬</span>
                   </div>
