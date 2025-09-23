@@ -71,7 +71,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       )}
 
       {/* 메인 화면 */}
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-2 sm:space-y-3">
         {/* 빠른 시작 */}
         <Card className="p-3 sm:p-4 bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-2">
