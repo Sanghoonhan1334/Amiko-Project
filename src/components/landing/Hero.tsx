@@ -156,20 +156,12 @@ export default function Hero() {
 
             {/* 세 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide className="pointer-events-auto">
-<<<<<<< Updated upstream
-              <div className="min-h-screen flex flex-col pt-0 sm:pt-4 md:pt-8 pb-12 sm:pb-16 md:pb-20">
-=======
               <div className="min-h-screen flex flex-col justify-center md:justify-start md:pt-[8vh] lg:pt-[10vh] pb-12 sm:pb-16 md:pb-20">
->>>>>>> Stashed changes
                 <div className="w-full px-2 sm:px-4 lg:max-w-7xl lg:mx-auto">
                   {/* 메인 레이아웃 */}
                   <div className="space-y-3 sm:space-y-4">
                     {/* 왼쪽 섹션 */}
-<<<<<<< Updated upstream
-                    <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-8 md:pt-12">
-=======
                     <div className="space-y-3 sm:space-y-4 pt-0 md:pt-0">
->>>>>>> Stashed changes
                       {/* 제목 섹션 */}
                       <div className="text-left">
                         <h2 className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 mb-3 sm:mb-4">
