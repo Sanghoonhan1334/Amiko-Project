@@ -93,11 +93,7 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
-<<<<<<< Updated upstream
-              <div className="min-h-screen flex flex-col items-center justify-start pt-4 sm:pt-12 md:pt-20 lg:pt-24 xl:pt-28">
-=======
               <div className="min-h-screen flex flex-col items-center justify-center md:justify-start md:pt-[12vh] lg:pt-[15vh]">
->>>>>>> Stashed changes
                 {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
                 <div className="w-full px-4 sm:px-6 lg:px-8">
                   <div className="w-full lg:max-w-4xl lg:mx-auto">
