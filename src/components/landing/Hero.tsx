@@ -27,7 +27,7 @@ export default function Hero() {
         <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-blue-100/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-2 sm:px-4 pt-32 sm:pt-36 md:pt-40">
+      <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-2 sm:px-4 pt-24 sm:pt-32 md:pt-36">
         <div className="w-full lg:max-w-6xl lg:mx-auto">
 
           {/* 슬라이더 */}
@@ -93,7 +93,7 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-start pt-16 sm:pt-24 md:pt-32 lg:pt-36 xl:pt-40">
+              <div className="min-h-screen flex flex-col items-center justify-start pt-4 sm:pt-12 md:pt-20 lg:pt-24 xl:pt-28">
                 {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
                 <div className="w-full px-4 sm:px-6 lg:px-8">
                   <div className="w-full lg:max-w-4xl lg:mx-auto">
@@ -157,12 +157,12 @@ export default function Hero() {
 
             {/* 세 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col pt-0 sm:pt-2 md:pt-4 pb-12 sm:pb-16 md:pb-20">
+              <div className="min-h-screen flex flex-col pt-0 sm:pt-4 md:pt-8 pb-12 sm:pb-16 md:pb-20">
                 <div className="w-full px-2 sm:px-4 lg:max-w-7xl lg:mx-auto">
                   {/* 메인 레이아웃 */}
                   <div className="space-y-3 sm:space-y-4">
                     {/* 왼쪽 섹션 */}
-                    <div className="space-y-3 sm:space-y-4 pt-16 sm:pt-20 md:pt-24">
+                    <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-8 md:pt-12">
                       {/* 제목 섹션 */}
                       <div className="text-left">
                         <h2 className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 mb-3 sm:mb-4">
