@@ -786,7 +786,7 @@ export default function Header() {
                     e.preventDefault()
                     router.push('/main')
                   }}
-                  className="md:hidden px-2 py-1 text-[10px] font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-full transition-all duration-300 transform hover:scale-105 shadow-sm whitespace-nowrap"
+                  className="md:hidden px-2.5 py-1.5 text-[11px] font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md whitespace-nowrap"
                 >
                   {t('header.startButton')}
                 </button>
@@ -797,12 +797,12 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleMobileMenu}
-                className="md:hidden p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300"
+                className="md:hidden p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                  <X className="w-7 h-7 text-gray-600" />
                 ) : (
-                  <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                  <Menu className="w-7 h-7 text-gray-600" />
                 )}
               </Button>
 
