@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,7 @@ import { useUser } from '@/context/UserContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { ArrowLeft, MessageSquare, Smartphone, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react'
 
-export default function SimpleVerificationPage() {
+function SimpleVerificationContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -437,5 +437,20 @@ export default function SimpleVerificationPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SimpleVerificationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <SimpleVerificationContent />
+    </Suspense>
   )
 }
