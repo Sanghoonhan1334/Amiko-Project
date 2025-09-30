@@ -1479,15 +1479,15 @@ export const translations = {
       introVideo: 'Video de Introducción',
       introVideoTitle: 'Video de Introducción de AMIKO',
       companyDescription: 'Amigo(amigo) + Korea',
-      bridgeDescription: 'puente que conecta',
+      bridgeDescription: 'Puente que conecta entre AMerica y KOrea',
       closerDescription: 'A mí(para mí) Korea más cerca',
-      greeting: 'Hola.',
+      greeting: '¡Hola!',
       thankYou: 'Gracias por visitar Amiko.',
-      teamIntroduction: 'Somos Han Sang-hoon (Samuel), CTO de Amiko, y Park Gyeom (Pablo), CMO de Amiko.',
+      teamIntroduction: 'Somos Han Sang-hoon (Samuel), CTO de Amiko,\ny Park Gyeom (Pablo), CMO de Amiko.',
       latinAmericaExperience: 'Hemos vivido en varios países de América del Sur y hemos llegado a amar sinceramente sus culturas y personas.',
       koreanInterest: 'Recientemente, a medida que la belleza de América del Sur se ha introducido a través de varios medios coreanos, muchos coreanos están aprendiendo gradualmente sobre este atractivo continente al otro lado del mundo.',
-      culturalExchange: 'A través de estas experiencias, sentimos profundamente la necesidad de intercambio cultural y una comunidad que pueda conectar Corea y América del Sur más estrechamente.',
-      bridgePromise: 'Así que nos comprometimos. Construyamos un puente que conecte Corea y América del Sur.',
+      culturalExchange: 'A través de estas experiencias, sentimos profundamente la necesidad de intercambio cultural y una comunidad que pueda conectar Corea del Sur y América del Sur más estrechamente.',
+      bridgePromise: 'Así que nos comprometimos. Construyamos un puente que conecte Corea del Sur y América del Sur.',
       platformDescription: 'Amiko proporciona una plataforma confiable basada en videollamadas y servicios comunitarios, a través de membresías completamente verificadas.',
       communityVision: 'Evolucionaremos hacia una comunidad donde podamos compartir no solo comunicación simple, sino también tendencias coreanas, moda, K-POP e incluso estilo de vida.',
       finalMessage: 'Acérquense unos a otros a través de Amiko.'
@@ -1495,7 +1495,7 @@ export const translations = {
 
     // 푸터
     footer: {
-      bridgeDescription: 'Puente entre Corea y América del Sur, AMIKO',
+      bridgeDescription: 'Puente entre Corea del Sur y América del Sur, AMIKO',
       officialSns: 'SNS Oficial de AMIKO',
       support: 'Soporte al Cliente',
       help: 'Ayuda',
@@ -1532,7 +1532,7 @@ export const translations = {
     // 문의 페이지
     inquiry: {
       heroTitle: 'Si tienes alguna pregunta\ncontáctanos en cualquier momento',
-      heroSubtitle: 'El equipo AMIKO\nresponderá rápida y\nprecisamente',
+      heroSubtitle: 'El equipo AMIKO responderá rápida y precisamente',
       title: 'Consultas',
       subtitle: 'Si tienes alguna pregunta, contáctanos en cualquier momento',
       submit: 'Enviar Consulta',

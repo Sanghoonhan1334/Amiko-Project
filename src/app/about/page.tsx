@@ -63,13 +63,13 @@ export default function AboutPage() {
           >
             {/* 소개 영상 슬라이드 */}
             <SwiperSlide className="swiper-slide-no-lazy">
-              <div className="min-h-screen flex items-start justify-center pt-28 bg-gradient-to-br from-slate-50 to-blue-50">
+              <div className="min-h-screen flex items-center justify-center md:items-start md:pt-[5vh] lg:pt-[6vh] bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="w-full max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl mx-auto px-4 text-center">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-0 leading-tight -mt-2">
+                  <h2 className="text-4xl font-bold text-gray-900 mb-2 leading-tight">
                     {t('about.introVideo')}
                   </h2>
                   
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full mt-2">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full mt-4">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
                         src="https://www.youtube.com/embed/do4aDyGZmgM"
@@ -89,14 +89,14 @@ export default function AboutPage() {
             <SwiperSlide>
               <div className="min-h-[600px] py-12 bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="max-w-xl mx-auto px-16">
-                  <div className="space-y-6 pt-16">
+                  <div className="space-y-6 pt-8">
                     {/* 첫 번째 카드 */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-                      <div className="flex flex-col items-center text-center">
+                    <div className="bg-white rounded-lg p-6 pt-0 pb-6 shadow-lg border border-gray-100">
+                      <div className="flex flex-col items-center text-center -mt-8">
                         <img 
                           src="/1.png" 
                           alt="AMIKO Logo 1" 
-                          className="w-56 h-56 object-contain -mb-12 -mt-8"
+                          className="w-56 h-56 object-contain -mb-12"
                           loading="lazy"
                           decoding="async"
                         />
@@ -107,12 +107,12 @@ export default function AboutPage() {
                     </div>
 
                     {/* 두 번째 카드 */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-                      <div className="flex flex-col items-center text-center">
+                    <div className="bg-white rounded-lg p-6 pt-0 pb-6 shadow-lg border border-gray-100">
+                      <div className="flex flex-col items-center text-center -mt-8">
                         <img 
                           src="/2.png" 
                           alt="AMIKO Logo 2" 
-                          className="w-56 h-56 object-contain -mb-12 -mt-8"
+                          className="w-56 h-56 object-contain -mb-12"
                           loading="lazy"
                           decoding="async"
                         />
@@ -131,12 +131,12 @@ export default function AboutPage() {
                     </div>
 
                     {/* 세 번째 카드 */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-                      <div className="flex flex-col items-center text-center">
+                    <div className="bg-white rounded-lg p-6 pt-0 pb-6 shadow-lg border border-gray-100">
+                      <div className="flex flex-col items-center text-center -mt-8">
                         <img 
                           src="/3.png" 
                           alt="AMIKO Logo 3" 
-                          className="w-56 h-56 object-contain -mb-12 -mt-8"
+                          className="w-56 h-56 object-contain -mb-12"
                           loading="lazy"
                           decoding="async"
                         />
@@ -164,7 +164,12 @@ export default function AboutPage() {
                     <div className="space-y-6 text-center max-w-2xl mx-auto">
                       <p className="text-gray-700 text-xl leading-relaxed tracking-wide">
                         {t('about.thankYou')}<br />
-                        {t('about.teamIntroduction')}
+                        {t('about.teamIntroduction').split('\n').map((line, index) => (
+                          <span key={index}>
+                            {line}
+                            {index === 0 && <br />}
+                          </span>
+                        ))}
                       </p>
                       
                       <p className="text-gray-700 text-base leading-relaxed tracking-wide">

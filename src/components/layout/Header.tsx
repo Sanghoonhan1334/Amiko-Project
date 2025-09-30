@@ -288,7 +288,7 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 lg:max-w-6xl lg:mx-auto">
+        <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
           <div className="flex justify-between items-center h-20 sm:h-24 md:h-28 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
@@ -597,7 +597,7 @@ export default function Header() {
                         setActiveNavItem('/inquiry')
                         router.push('/inquiry')
                       }}
-                      className={`font-semibold transition-all duration-300 relative z-30 ${
+                      className={`font-semibold transition-all duration-300 relative z-30 px-3 py-1.5 rounded-lg ${
                         activeNavItem === '/inquiry' 
                           ? 'text-purple-600 scale-110' 
                           : 'text-gray-800 hover:text-purple-600'
@@ -696,7 +696,7 @@ export default function Header() {
                   ) : (
                     <button 
                       onClick={() => router.push('/sign-in')}
-                      className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-blue-500 whitespace-nowrap"
+                      className="hidden md:block font-semibold transition-all duration-300 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg whitespace-nowrap mt-5"
                     >
 {t('buttons.login')}
                     </button>
@@ -915,7 +915,7 @@ export default function Header() {
                       router.push('/inquiry')
                       toggleMobileMenu()
                     }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-all duration-300 ${
                       activeNavItem === '/inquiry' 
                         ? 'bg-purple-50 text-purple-600' 
                         : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'

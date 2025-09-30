@@ -69,7 +69,7 @@ export default function Hero() {
           >
             {/* 첫 번째 슬라이드 - Global Community */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-start pt-32 sm:pt-40 md:pt-48 lg:pt-52 xl:pt-56">
+              <div className="min-h-screen flex flex-col items-center justify-center md:justify-start md:pt-[15vh] lg:pt-[18vh]">
                 <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
                   <div className="max-w-4xl mx-auto">
                     {/* 상단 텍스트 */}
@@ -93,7 +93,11 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
+<<<<<<< Updated upstream
               <div className="min-h-screen flex flex-col items-center justify-start pt-4 sm:pt-12 md:pt-20 lg:pt-24 xl:pt-28">
+=======
+              <div className="min-h-screen flex flex-col items-center justify-center md:justify-start md:pt-[12vh] lg:pt-[15vh]">
+>>>>>>> Stashed changes
                 {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
                 <div className="w-full px-4 sm:px-6 lg:px-8">
                   <div className="w-full lg:max-w-4xl lg:mx-auto">
@@ -130,7 +134,6 @@ export default function Hero() {
                                 {index === 0 && <br />}
                               </span>
                             ))}
-                            <span className="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full ml-1"></span>
                           </h2>
                           
                           {/* 질문 텍스트 */}
@@ -157,12 +160,20 @@ export default function Hero() {
 
             {/* 세 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide className="pointer-events-auto">
+<<<<<<< Updated upstream
               <div className="min-h-screen flex flex-col pt-0 sm:pt-4 md:pt-8 pb-12 sm:pb-16 md:pb-20">
+=======
+              <div className="min-h-screen flex flex-col justify-center md:justify-start md:pt-[8vh] lg:pt-[10vh] pb-12 sm:pb-16 md:pb-20">
+>>>>>>> Stashed changes
                 <div className="w-full px-2 sm:px-4 lg:max-w-7xl lg:mx-auto">
                   {/* 메인 레이아웃 */}
                   <div className="space-y-3 sm:space-y-4">
                     {/* 왼쪽 섹션 */}
+<<<<<<< Updated upstream
                     <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-8 md:pt-12">
+=======
+                    <div className="space-y-3 sm:space-y-4 pt-0 md:pt-0">
+>>>>>>> Stashed changes
                       {/* 제목 섹션 */}
                       <div className="text-left">
                         <h2 className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 mb-3 sm:mb-4">
@@ -282,7 +293,7 @@ export default function Hero() {
                   swiperRef.current.swiper.slidePrev()
                 }
               }}
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
+              className="absolute left-2 sm:left-4 top-[45%] sm:top-[40%] md:top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
             >
               <ChevronLeft className="w-6 h-6 group-hover:text-blue-600 transition-colors" />
             </button>
@@ -296,7 +307,7 @@ export default function Hero() {
                   swiperRef.current.swiper.slideNext()
                 }
               }}
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
+              className="absolute right-2 sm:right-4 top-[45%] sm:top-[40%] md:top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
             >
               <ChevronRight className="w-6 h-6 group-hover:text-blue-600 transition-colors" />
             </button>

@@ -164,7 +164,7 @@ export default function InquiryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
       {/* Hero 섹션 */}
-      <section className="pt-40 pb-16 md:pt-48 md:pb-20 bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <section className="pt-32 pb-16 md:pt-40 md:pb-20 bg-gradient-to-br from-green-50 via-white to-emerald-50">
         <div className="container max-w-4xl mx-auto px-4 text-center">
           {/* 메인 타이틀 */}
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
@@ -177,20 +177,16 @@ export default function InquiryPage() {
           </h1>
           
           {/* 서브 텍스트 */}
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            {t('inquiry.heroSubtitle').split('\n').map((line, index) => (
-              <span key={index}>
-                {line}
-                {index === 0 && <br />}
-              </span>
-            ))}
+          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8 whitespace-nowrap">
+            {t('inquiry.heroSubtitle')}
           </p>
           
           {/* CTA 버튼 */}
           <div className="flex justify-center items-center">
             <Button
               onClick={() => setIsInquiryModalOpen(true)}
-              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-12 py-6 text-2xl rounded-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+              size="lg"
+              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-4 py-2 text-sm font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {t('inquiry.submit')}
             </Button>
@@ -199,7 +195,7 @@ export default function InquiryPage() {
       </section>
 
       {/* 문의 유형 섹션 */}
-      <section className="bg-white py-12" id="inquiry-types">
+      <section className="bg-white py-8" id="inquiry-types">
         <div className="container max-w-5xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('inquiry.inquiryType')}</h2>

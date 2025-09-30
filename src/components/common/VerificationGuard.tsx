@@ -154,29 +154,10 @@ export default function VerificationGuard({
     )
   }
 
-  // 로그인하지 않은 경우
+  // 로그인하지 않은 경우 - 아무것도 표시하지 않음
   const currentUser = user || authUser
   if (!currentUser) {
-    return (
-      <div className={`flex items-center justify-center p-2 ${className}`}>
-        <Card className="w-full max-w-sm">
-          <CardHeader className="text-center pb-1">
-            <CardTitle className="text-lg">{t('auth.signIn')}</CardTitle>
-            <CardDescription className="text-sm">
-              {t('auth.signInDescription')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={() => router.push('/sign-in')}
-                className="w-full py-2 text-base"
-            >
-{t('auth.signIn')}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return <div className={className}>{children}</div>
   }
 
   // 인증이 필요한 서비스인지 확인

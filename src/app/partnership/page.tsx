@@ -163,7 +163,7 @@ export default function PartnershipPage() {
             <Button 
               onClick={() => setIsPartnershipModalOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 text-base font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 text-base font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Handshake className="mr-2 h-4 w-4" />
               {t('partnership.submit')}
@@ -173,17 +173,8 @@ export default function PartnershipPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-12 bg-white">
+      <section className="pt-6 pb-12 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              {t('partnership.benefitsTitle')}
-            </h2>
-            <p className="text-base text-gray-600 max-w-2xl mx-auto">
-              {t('partnership.benefitsSubtitle')}
-            </p>
-          </div>
-          
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <div className="text-center p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100">
               <div className="p-3 bg-blue-500 rounded-xl w-fit mx-auto mb-4">
