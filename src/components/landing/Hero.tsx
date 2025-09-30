@@ -69,7 +69,7 @@ export default function Hero() {
           >
             {/* 첫 번째 슬라이드 - Global Community */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-center md:justify-start md:pt-[15vh] lg:pt-[18vh]">
+              <div className="min-h-screen flex flex-col items-center justify-start pt-20 md:justify-start md:pt-[15vh] lg:pt-[18vh]">
                 <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
                   <div className="max-w-4xl mx-auto">
                     {/* 상단 텍스트 */}
@@ -93,7 +93,7 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-center md:justify-start md:pt-[12vh] lg:pt-[15vh]">
+              <div className="min-h-screen flex flex-col items-center justify-start pt-12 md:justify-start md:pt-[12vh] lg:pt-[15vh]">
                 {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
                 <div className="w-full px-4 sm:px-6 lg:px-8">
                   <div className="w-full lg:max-w-4xl lg:mx-auto">
