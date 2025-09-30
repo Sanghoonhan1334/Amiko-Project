@@ -28,6 +28,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { createClientComponentClient } from '@/lib/supabase'
 import PostDetail from './PostDetail'
 import { CardGridSkeleton } from '@/components/ui/skeleton'
+import VerificationGuard from '@/components/common/VerificationGuard'
 
 // 게시글 타입 정의
 interface Post {
@@ -193,7 +194,15 @@ export default function FreeBoard() {
         url: `/api/posts?${params}`
       })
 
-      const response = await fetch(`/api/posts?${params}`)
+      // 타임아웃 설정으로 무한 대기 방지
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5초 타임아웃
+
+      const response = await fetch(`/api/posts?${params}`, {
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
@@ -215,7 +224,16 @@ export default function FreeBoard() {
       })
     } catch (err) {
       console.error('게시글 목록 조회 실패:', err)
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      
+      // AbortError인 경우 타임아웃으로 처리
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('게시글 로딩 타임아웃, 빈 배열 사용')
+        setError('요청 시간이 초과되었습니다. 다시 시도해주세요.')
+        setPosts([])
+      } else {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+        setPosts([])
+      }
     } finally {
       setLoading(false)
     }
@@ -345,7 +363,7 @@ export default function FreeBoard() {
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${currentToken}`
+          'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
         },
         body: formData
       })
@@ -449,7 +467,7 @@ export default function FreeBoard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         },
         body: JSON.stringify({ reaction_type: reactionType })
       })
@@ -600,13 +618,14 @@ export default function FreeBoard() {
             </SelectContent>
           </Select>
           
-          <Dialog open={showWriteDialog} onOpenChange={setShowWriteDialog}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-400 hover:bg-blue-500 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-{t('buttons.write')}
-              </Button>
-            </DialogTrigger>
+          <VerificationGuard requiredLevel="sms">
+            <Dialog open={showWriteDialog} onOpenChange={setShowWriteDialog}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-400 hover:bg-blue-500 text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t('buttons.write')}
+                </Button>
+              </DialogTrigger>
             <DialogContent 
               className="max-w-2xl bg-white border border-gray-200 shadow-xl"
               style={{ 
@@ -866,6 +885,7 @@ export default function FreeBoard() {
               </div>
             </DialogContent>
           </Dialog>
+          </VerificationGuard>
         </div>
       </div>
 

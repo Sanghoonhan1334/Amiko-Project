@@ -252,12 +252,24 @@ export async function DELETE(
       )
     }
 
-    if (existingPost.user_id !== authUser.id) {
+    // 운영자 권한 확인
+    const adminEmails = ['admin@amiko.com', 'editor@amiko.com', 'manager@amiko.com']
+    const adminIds = ['66623263-4c1d-4dce-85a7-cc1b21d01f70']
+    const isAdmin = adminEmails.includes(authUser.email) || adminIds.includes(authUser.id)
+
+    // 작성자이거나 운영자만 삭제 가능
+    if (existingPost.user_id !== authUser.id && !isAdmin) {
       return NextResponse.json(
         { error: '게시물을 삭제할 권한이 없습니다.' },
         { status: 403 }
       )
     }
+
+    console.log('[POST_DELETE] 삭제 권한 확인:', { 
+      isAuthor: existingPost.user_id === authUser.id, 
+      isAdmin,
+      deletedBy: isAdmin ? 'admin' : 'author'
+    })
 
     // 게시물 삭제 (소프트 삭제)
     const { error: deleteError } = await supabaseServer

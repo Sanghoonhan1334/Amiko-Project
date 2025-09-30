@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
+import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 
 interface Post {
   id: string
@@ -23,10 +25,12 @@ interface Post {
 interface BoardListProps {
   onPostSelect: (post: Post) => void
   onWritePost?: () => void
+  refreshTrigger?: number // 새로고침 트리거
 }
 
-export default function BoardList({ onPostSelect, onWritePost }: BoardListProps) {
+export default function BoardList({ onPostSelect, onWritePost, refreshTrigger }: BoardListProps) {
   const { t, language } = useLanguage()
+  const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +39,42 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
   const [sortBy, setSortBy] = useState('latest')
   const [showSpanish, setShowSpanish] = useState(false) // 번역 상태
   const [isTranslating, setIsTranslating] = useState(false) // 번역 중 상태
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // 운영자 권한 확인
+  const checkAdminStatus = () => {
+    if (!user) {
+      setIsAdmin(false)
+      return
+    }
+    
+    // 운영자 이메일 목록
+    const adminEmails = [
+      'admin@amiko.com',
+      'editor@amiko.com',
+      'manager@amiko.com'
+    ]
+    
+    // 운영자 ID 목록
+    const adminIds = [
+      '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
+    ]
+    
+    const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
+    setIsAdmin(isAdminUser)
+  }
+
+  useEffect(() => {
+    checkAdminStatus()
+  }, [user])
+
+  // refreshTrigger가 변경될 때 게시글 목록 새로고침
+  useEffect(() => {
+    if (refreshTrigger !== undefined) {
+      fetchPosts()
+    }
+  }, [refreshTrigger])
 
   // 카테고리 옵션
   const categories = [
@@ -56,7 +96,16 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
       setError(null)
       
       console.log('게시글 API 호출 시작...')
-      const response = await fetch('/api/posts')
+      
+      // 타임아웃 설정으로 무한 대기 방지
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15초 타임아웃
+      
+      const response = await fetch('/api/posts', {
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -66,6 +115,16 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
       
       const data = await response.json()
       console.log('API 응답 데이터:', data)
+      console.log('API 응답 상세:', {
+        success: data.success,
+        postsCount: data.posts?.length || 0,
+        posts: data.posts?.map(p => ({
+          id: p.id,
+          title: p.title,
+          author: p.author?.full_name || p.author,
+          created_at: p.created_at
+        }))
+      })
       
       // 성공적으로 빈 배열을 받아도 정상 처리
       const posts = data.posts || []
@@ -74,7 +133,15 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
       
     } catch (err) {
       console.error('게시글 로드 오류:', err)
-      setError(err instanceof Error ? err.message : '게시글을 불러오는데 실패했습니다')
+      
+      // AbortError인 경우 타임아웃으로 처리
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('게시글 로딩 타임아웃, 빈 배열 사용')
+        setError('요청 시간이 초과되었습니다. 다시 시도해주세요.')
+      } else {
+        setError(err instanceof Error ? err.message : '게시글을 불러오는데 실패했습니다')
+      }
+      
       setPosts([]) // 오류 시 빈 배열
     } finally {
       setLoading(false)
@@ -150,7 +217,12 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
           <Button onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            onWritePost?.()
+            // 운영자는 인증 없이 바로 글쓰기 가능
+            if (isAdmin) {
+              onWritePost?.()
+            } else {
+              setShowAuthDialog(true)
+            }
           }} className="bg-blue-600 hover:bg-blue-700 text-white">
             {language === 'ko' ? '글쓰기' : 'Write Post'}
           </Button>
@@ -444,6 +516,16 @@ export default function BoardList({ onPostSelect, onWritePost }: BoardListProps)
           🔍
         </Button>
       </div>
+
+      {/* 인증 확인 다이얼로그 */}
+      <AuthConfirmDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        title="인증이 필요합니다"
+        description="게시글 작성을 위해 인증이 필요합니다. 인증센터로 이동하시겠습니까?"
+        confirmText="인증센터로 이동"
+        cancelText="취소"
+      />
     </div>
   )
 }

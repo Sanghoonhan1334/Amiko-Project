@@ -26,21 +26,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   // 클라이언트에서만 Supabase 클라이언트 생성
   useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') {
+      setLoading(false)
+      return
+    }
+
     try {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      setSupabase(client as any)
+      // 환경 변수가 설정된 경우에만 Supabase 클라이언트 생성
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        const client = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true,
+              storage: {
+                getItem: (key) => {
+                  if (typeof window !== 'undefined') {
+                    return localStorage.getItem(key)
+                  }
+                  return null
+                },
+                setItem: (key, value) => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem(key, value)
+                  }
+                },
+                removeItem: (key) => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem(key)
+                  }
+                }
+              }
+            }
+          }
+        )
+        setSupabase(client as any)
+        console.log('[AUTH] Supabase 클라이언트 생성 완료')
+      } else {
+        console.log('[AUTH] Supabase 환경 변수가 설정되지 않았습니다. 인증 기능이 비활성화됩니다.')
+        setSupabase(null)
+        setLoading(false)
+      }
     } catch (err) {
       console.error('[AUTH] Supabase 클라이언트 생성 실패:', err)
       setError('Supabase 클라이언트를 초기화할 수 없습니다.')
+      setSupabase(null)
+      setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    // supabase 클라이언트가 없으면 초기화 중단
+    // supabase 클라이언트가 없으면 로딩 완료
     if (!supabase) {
+      setLoading(false)
       return
     }
 
@@ -49,48 +91,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('[AUTH] 인증 초기화 시작')
         
-        // Supabase에서 세션 확인
-        const { data: { session } } = await supabase.auth.getSession()
+        // 먼저 로컬 스토리지에서 세션 복구 시도
+        const savedSession = localStorage.getItem('amiko_session')
+        if (savedSession) {
+          try {
+            const sessionData = JSON.parse(savedSession)
+            const now = Math.floor(Date.now() / 1000)
+            
+            if (sessionData.expires_at > now) {
+              console.log('[AUTH] 로컬 세션으로 인증 상태 복구:', sessionData.user.email)
+              setUser(sessionData.user)
+              setSession({
+                user: sessionData.user,
+                expires_at: sessionData.expires_at
+              } as Session)
+              
+              // 백그라운드에서 Supabase 세션 확인 및 갱신
+              setTimeout(async () => {
+                try {
+                  const { data: { session } } = await supabase.auth.getSession()
+                  if (session) {
+                    console.log('[AUTH] Supabase 세션 확인됨, 상태 동기화')
+                    setSession(session)
+                    setUser(session.user)
+                    
+                    // 로컬 스토리지 업데이트
+                    const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
+                    localStorage.setItem('amiko_session', JSON.stringify({
+                      user: session.user,
+                      expires_at: extendedExpiry,
+                      original_expires_at: session.expires_at
+                    }))
+                  } else {
+                    console.log('[AUTH] Supabase 세션 없음, 로컬 세션 유지')
+                  }
+                } catch (error) {
+                  console.log('[AUTH] Supabase 세션 확인 실패, 로컬 세션 유지')
+                }
+              }, 1000)
+              
+              console.log('[AUTH] 로컬 세션으로 인증 상태 복구 완료')
+              setLoading(false)
+              return
+            } else {
+              console.log('[AUTH] 로컬 세션 만료됨, 제거')
+              localStorage.removeItem('amiko_session')
+            }
+          } catch (error) {
+            console.error('[AUTH] 로컬 세션 파싱 오류:', error)
+            localStorage.removeItem('amiko_session')
+          }
+        }
+
+        // 로컬 세션이 없으면 Supabase에서 세션 확인
+        const { data: { session }, error } = await supabase.auth.getSession()
         console.log('[AUTH] Supabase 세션 확인:', session ? '있음' : '없음')
         
-        if (session) {
+        if (session && !error) {
           console.log('[AUTH] Supabase 세션으로 인증 상태 설정')
           setSession(session)
           setUser(session.user)
           
-          // 로컬 스토리지에 저장
+          // 로컬 스토리지에 저장 (더 긴 만료시간으로)
+          const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60) // 30일 추가
           localStorage.setItem('amiko_session', JSON.stringify({
             user: session.user,
-            expires_at: session.expires_at
+            expires_at: extendedExpiry,
+            original_expires_at: session.expires_at
           }))
+          console.log('[AUTH] 세션을 로컬 스토리지에 저장 (30일 연장)')
         } else {
-          // Supabase 세션이 없으면 로컬 스토리지에서 복구 시도
-          const savedSession = localStorage.getItem('amiko_session')
-          if (savedSession) {
-            try {
-              const sessionData = JSON.parse(savedSession)
-              const now = Math.floor(Date.now() / 1000)
-              
-              if (sessionData.expires_at > now) {
-                console.log('[AUTH] 로컬 세션으로 인증 상태 복구:', sessionData.user.email)
-                setUser(sessionData.user)
-                setSession({
-                  user: sessionData.user,
-                  expires_at: sessionData.expires_at
-                } as Session)
-                
-                // Supabase에 세션 복구 시도 (선택사항)
-                // 로컬 세션이 유효하면 이미 사용자 상태가 설정되어 있음
-                console.log('[AUTH] 로컬 세션으로 인증 상태 복구 완료')
-              } else {
-                console.log('[AUTH] 로컬 세션 만료됨, 제거')
-                localStorage.removeItem('amiko_session')
-              }
-            } catch (error) {
-              console.error('[AUTH] 로컬 세션 파싱 오류:', error)
-              localStorage.removeItem('amiko_session')
-            }
-          }
+          // Supabase 세션이 없으면 로컬 스토리지도 정리
+          console.log('[AUTH] Supabase 세션 없음, 로컬 스토리지 정리')
+          localStorage.removeItem('amiko_session')
         }
         
         setLoading(false)
@@ -103,23 +176,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
-    // 인증 상태 변경 감지
+    // 인증 상태 변경 감지 - 무한 루프 방지
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: Session | null) => {
-        console.log('[AUTH] 인증 상태 변경:', event, session ? '세션 있음' : '세션 없음')
+        // 중요한 이벤트만 로그
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          console.log('[AUTH] 인증 상태 변경:', event)
+        }
         
         if (session) {
-          // 세션이 있으면 상태 업데이트 및 로컬 저장
+          // 세션 설정
           setSession(session)
           setUser(session.user)
+          
+          // 로컬 스토리지 업데이트 (간소화)
+          const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
           localStorage.setItem('amiko_session', JSON.stringify({
             user: session.user,
-            expires_at: session.expires_at
+            expires_at: extendedExpiry,
+            original_expires_at: session.expires_at
           }))
-          console.log('[AUTH] 세션을 로컬 스토리지에 저장')
         } else {
-          // 세션이 없을 때는 로컬 상태도 초기화
-          console.log('[AUTH] Supabase 세션 없음, 로컬 상태 초기화')
+          // 세션 정리
           setUser(null)
           setSession(null)
           localStorage.removeItem('amiko_session')
@@ -141,50 +219,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
         console.error('[AUTH] 로그인 실패:', error);
+        
+        // 로컬 스토리지 초기화 (사용자가 삭제된 경우)
+        if (error.message.includes('Invalid login credentials')) {
+          try {
+            localStorage.removeItem('sb-abrxigfmuebrnyzkfcyr-auth-token');
+            localStorage.removeItem('amiko_session');
+            console.log('[AUTH] 로컬 스토리지 초기화 완료');
+          } catch (e) {
+            console.warn('[AUTH] 로컬 스토리지 초기화 실패:', e);
+          }
+        }
+        
         return { error };
       }
       
-      console.log('[AUTH] 로그인 성공');
-      
-      // 세션 지속성 확인 및 강화
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        console.log('[AUTH] 세션 확인됨:', session.user.email)
-        setSession(session)
-        setUser(session.user)
+      if (data.session && data.user) {
+        console.log('[AUTH] 로그인 성공:', data.user.email);
         
-        // 로컬 스토리지에 세션 저장
+        // 세션 설정
+        setSession(data.session);
+        setUser(data.user);
+        
+        // 로컬 스토리지에 세션 저장 (30일 연장)
+        const extendedExpiry = data.session.expires_at + (30 * 24 * 60 * 60); // 30일 추가
         localStorage.setItem('amiko_session', JSON.stringify({
-          user: session.user,
-          expires_at: session.expires_at
-        }))
+          user: data.user,
+          expires_at: extendedExpiry,
+          original_expires_at: data.session.expires_at
+        }));
         
-        console.log('[AUTH] 세션을 로컬 스토리지에 저장 완료')
+        // 토큰도 별도로 저장 (verification 페이지에서 사용)
+        localStorage.setItem('amiko_token', data.session.access_token);
         
-        // 세션 지속성 강화를 위한 추가 설정
-        try {
-          await supabase.auth.setSession({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token
-          })
-          console.log('[AUTH] 세션 지속성 설정 완료')
-        } catch (error) {
-          console.error('[AUTH] 세션 지속성 설정 실패:', error)
-          // 실패해도 로컬 세션은 유지
-          console.log('[AUTH] 로컬 세션으로 인증 상태 유지')
-        }
-      } else {
-        console.log('[AUTH] 세션을 가져올 수 없음, 로그인 실패로 간주')
+        console.log('[AUTH] 세션과 토큰을 로컬 스토리지에 저장 완료 (30일 연장)');
       }
       
-      return { error: null };
+      return { data, error: null };
     } catch (err) {
       console.error('[AUTH] 로그인 예외 발생:', err);
       return { error: err };

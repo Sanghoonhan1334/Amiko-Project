@@ -43,12 +43,19 @@ export default function NotificationBell() {
       setLoading(true)
       console.log('알림 API 호출 시작:', { token: !!token })
       
+      // 타임아웃 설정으로 무한 대기 방지
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5초 타임아웃
+      
       const response = await fetch('/api/notifications?limit=10', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
 
       console.log('알림 API 응답:', { 
         status: response.status, 
@@ -85,6 +92,11 @@ export default function NotificationBell() {
       setUnreadCount(data.unreadCount)
     } catch (error) {
       console.error('알림 조회 실패:', error)
+      
+      // AbortError인 경우 타임아웃으로 처리
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('알림 로딩 타임아웃, 빈 배열 사용')
+      }
       
       // 모든 에러에 대해 빈 알림으로 설정하여 앱이 정상 작동하도록 함
       console.warn('알림 로드 실패로 인해 빈 알림 목록을 반환합니다.')

@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 
-// 사용자 프로필 업데이트
+// 사용자 프로필 생성/업데이트 (POST와 PUT 모두 지원)
+export async function POST(request: NextRequest) {
+  return handleProfileUpdate(request)
+}
+
 export async function PUT(request: NextRequest) {
+  return handleProfileUpdate(request)
+}
+
+async function handleProfileUpdate(request: NextRequest) {
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -28,11 +36,20 @@ export async function PUT(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '')
     
+    // 토큰 디코딩 (인코딩된 토큰 처리)
+    const decodedToken = decodeURIComponent(token)
+    
     // 토큰에서 사용자 정보 추출
     let authUser = null
     let userId = null
     
-    const { data: { user: initialUser }, error: authError } = await supabaseServer.auth.getUser(token)
+    console.log('[PROFILE] 토큰 확인:', { 
+      hasToken: !!token, 
+      tokenLength: token?.length,
+      decodedLength: decodedToken?.length 
+    })
+    
+    const { data: { user: initialUser }, error: authError } = await supabaseServer.auth.getUser(decodedToken)
     
     if (authError || !initialUser) {
       console.error('[PROFILE] 인증 실패:', authError)
@@ -262,7 +279,53 @@ export async function GET(request: NextRequest) {
 
     console.log('[PROFILE] 사용자 ID:', userId)
     
-    // 사용자 기본 정보 조회
+    // 임시 ID인 경우 처리 (개발 환경)
+    if (userId.startsWith('user_') || userId.startsWith('temp_')) {
+      console.log('[PROFILE] 임시 사용자 ID 감지, 기본 프로필 반환')
+      return NextResponse.json({
+        user: {
+          id: userId,
+          email: 'temp@example.com',
+          full_name: '임시 사용자',
+          phone: null,
+          one_line_intro: null,
+          language: 'ko',
+          avatar_url: null,
+          profile_image: null,
+          profile_images: null,
+          main_profile_image: null,
+          is_admin: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user_type: 'student'
+        },
+        profile: {
+          user_id: userId,
+          display_name: '임시 사용자',
+          bio: null,
+          avatar_url: null,
+          country: 'KR',
+          native_language: 'ko',
+          is_korean: true,
+          user_type: 'student',
+          university: null,
+          major: null,
+          grade: null,
+          occupation: null,
+          company: null,
+          work_experience: null,
+          kakao_linked_at: null,
+          wa_verified_at: null,
+          sms_verified_at: null,
+          email_verified_at: null
+        },
+        points: {
+          total_points: 0,
+          daily_points: 0,
+          last_reset_date: new Date().toISOString().split('T')[0]
+        }
+      })
+    }
     const { data: user, error: userError } = await supabaseServer
       .from('users')
       .select('*')

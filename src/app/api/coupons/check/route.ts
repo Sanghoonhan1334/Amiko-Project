@@ -3,7 +3,10 @@ import { supabaseClient } from '@/lib/supabaseServer';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[COUPONS_CHECK] API 호출 시작')
+    
     if (!supabaseClient) {
+      console.log('[COUPONS_CHECK] Supabase 클라이언트 없음')
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
         { status: 500 }
@@ -11,18 +14,38 @@ export async function GET(request: NextRequest) {
     }
     const supabase = supabaseClient;
     
-    // 현재 사용자 정보 가져오기
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('authorization')
+    console.log('[COUPONS_CHECK] Authorization 헤더:', authHeader ? '있음' : '없음')
     
-    if (authError || !user) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[COUPONS_CHECK] 인증 헤더 없음')
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
       );
     }
 
+    const token = authHeader.replace('Bearer ', '')
+    const decodedToken = decodeURIComponent(token)
+    console.log('[COUPONS_CHECK] 토큰 디코딩 완료')
+    
+    // 토큰으로 사용자 정보 가져오기
+    console.log('[COUPONS_CHECK] 사용자 인증 시작')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(decodedToken);
+    
+    if (authError || !user) {
+      console.log('[COUPONS_CHECK] 사용자 인증 실패:', authError)
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    console.log('[COUPONS_CHECK] 사용자 인증 성공:', user.id)
+
     // 사용자 프로필 정보 가져오기
-    const { data: profile, error: profileError } = await supabase
+    const { data: userInfo, error: profileError } = await supabase
       .from('users')
       .select('language, is_admin')
       .eq('id', user.id)
@@ -35,8 +58,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 한국 사용자는 쿠폰 없이도 채팅 가능
-    if ((profile as any).language === 'ko') {
+    // 프로필이 완성된 사용자는 쿠폰 없이도 채팅 가능
+    const { data: userProfile, error: userProfileError } = await supabase
+      .from('user_preferences')
+      .select('full_name, phone, university, major, interests')
+      .eq('user_id', user.id)
+      .single()
+
+    const isProfileComplete = userProfile && (
+      userProfile.full_name || 
+      userProfile.phone || 
+      userProfile.university || 
+      userProfile.major ||
+      (userProfile.interests && userProfile.interests.length > 0)
+    )
+
+    if (isProfileComplete) {
+      return NextResponse.json({
+        canCall: true,
+        hasCoupon: true,
+        totalMinutes: 0,
+        availableCoupons: 0,
+        userType: 'verified',
+        message: '프로필이 완성된 사용자는 쿠폰 없이도 채팅가 가능합니다.'
+      });
+    }
+
+    // 한국 사용자도 인증이 완료되면 쿠폰 없이 채팅 가능
+    if ((userProfile as any).language === 'ko') {
       return NextResponse.json({
         canCall: true,
         hasCoupon: true,
@@ -96,7 +145,7 @@ export async function GET(request: NextRequest) {
       hasCoupon,
       totalMinutes,
       availableCoupons,
-      userType: (profile as any).language === 'ko' ? 'korean' : 'global',
+      userType: (userInfo as any).language === 'ko' ? 'korean' : 'global',
       isVip,
       vipFeatures: isVip ? (vipSubscription as any).features : null,
       message: canCall 

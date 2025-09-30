@@ -9,6 +9,7 @@ export const translations = {
     changeToSpanish: 'Cambiar a Español으로 변경',
     changeToKorean: '한국어로 변경',
     selectLanguage: '언어 선택',
+    language: 'ko',
     
     // 공통 버튼
     buttons: {
@@ -54,7 +55,7 @@ export const translations = {
       country: '국가',
       countryCode: '국가 코드',
       selectCountry: '국가를 선택하세요',
-      passwordMinLength: '최소 6자 이상',
+      passwordMinLength: '최소 8자 이상',
       passwordHasNumber: '숫자 포함',
       passwordHasSpecial: '특수문자 포함',
       passwordNoRepeated: '연속된 문자 없음',
@@ -102,23 +103,29 @@ export const translations = {
       step2Title: '전화번호 인증',
       step2Desc: 'SMS로 인증코드를 발송하여 실제 사용자임을 확인합니다',
       step3Title: '프로필 완성',
-      step3Desc: '자기소개와 관심사를 작성하여 커뮤니티에 참여합니다'
+      step3Desc: '자기소개와 관심사를 작성하여 커뮤니티에 참여합니다',
+      
+      // 세션 관련
+      sessionUpdateFailed: '세션 업데이트에 실패했습니다',
+      sessionExpired: '세션이 만료되었습니다',
+      sessionInvalid: '유효하지 않은 세션입니다',
+      sessionRefreshFailed: '세션 갱신에 실패했습니다'
     },
 
     // Hero 슬라이드
     heroSlides: {
       slide1: {
         badge: '글로벌 커뮤니티',
-        title: 'Global Community를',
-        subtitle: '한국어를 배우고 문화를 체험하세요',
-        description: '아미코와 함께 만들어가보세요'
+        title: 'Global Community',
+        subtitle: '남미와 한국을 잇는',
+        description: 'AMIKO에서 다양한 사람들과 교류하며 새로운 세상을 경험하세요.'
       },
        slide2: {
          badge: 'Amiko에 탑재된 AI 통역과 함께',
          title: '화상으로 소통하세요',
         subtitle: '검증된 한국인 튜터들이\n여러분들과 함께합니다.',
         description: '자체 플랫폼을 통한 1:1 화상 미팅 시스템과\nAI 통역 서비스로 막힘없이, 간편하게,\n서로의 문화와 언어를 교류할 수 있습니다.',
-        experience1: '서로의 나라에 대한 좋은 이미지를 가지고 그들을 만나기 위해 화상 채팅 어플을 사용했던 경험이 있으신가요?',
+        experience1: '서로의 나라에 대한 좋은 이미지를 가지고 그들을 만나기 위해\n화상 채팅 어플을 사용했던 경험이 있으신가요?',
         experience2: '혹시 그 경험이 당신에게 실망으로 다가오시지는 않으셨나요?',
         experience3: 'Amiko는 검증된 한국인 튜터들과 별점 시스템을 통해 좋은 경험을 여러분들께 선사합니다.'
       },
@@ -180,8 +187,7 @@ export const translations = {
       community: '커뮤니티',
       communityDescription: '커뮤니티를 통해 서로 알아가고\n소통해보세요',
       openEvent: '오픈 이벤트',
-      openEventDescription: '11월까지 가입하면 3 AKO를 받으세요!',
-      openEventNote: '*자세한 내용은 이벤트 페이지를 확인하세요',
+      openEventDescription: '신규 회원가입하고\n3 AKO를 받으세요!',
       cbtBadge: '10월 오픈 예정',
       cbtText: '10월 오픈 예정',
       eventBadge: 'EVENT',
@@ -747,7 +753,60 @@ export const translations = {
       markAllAsRead: '모두 읽음',
       viewAllNotifications: '모든 알림 보기',
       verificationComplete: '인증 완료',
-      verificationRequired: '인증 필요'
+      verificationRequired: '인증 필요',
+      authRequired: '인증이 필요합니다',
+      authRequiredDescription: '이 기능을 이용하려면 인증이 필요합니다. 인증센터로 이동하시겠습니까?',
+      goToAuthCenter: '인증센터로 이동'
+    },
+
+    // 인증 페이지
+    verification: {
+      loginRequired: '로그인이 필요합니다',
+      loginRequiredDescription: '인증을 위해 먼저 로그인해주세요.',
+      loginButton: '로그인하기',
+      title: '상세 인증',
+      subtitle: '더 많은 기능을 이용하기 위해 추가 정보를 입력해주세요.',
+      infoCollectionGuide: '정보 수집 안내',
+      infoCollectionDescription: '아래 정보들은 매칭과 커뮤니티 활동에 활용됩니다.',
+      publicInfo: '공개 정보',
+      publicInfoDescription: '다른 사용자들에게 공개되는 정보입니다.',
+      privateInfo: '비공개 정보',
+      privateInfoDescription: '개인정보로 보호되며 공개되지 않습니다.',
+      name: '이름',
+      major: '전공',
+      languageLevel: '언어 수준',
+      interests: '관심사',
+      introduction: '자기소개',
+      phone: '전화번호',
+      university: '대학교',
+      studentId: '학번',
+      occupation: '직업',
+      experience: '경력',
+      availableTime: '가능한 시간',
+      basicInfoStep: '기본 정보',
+      matchingStep: '매칭 정보',
+      basicInfoDescription: '기본적인 개인 정보를 입력해주세요.',
+      matchingDescription: '매칭에 필요한 정보를 입력해주세요.',
+      userType: '사용자 유형',
+      student: '학생',
+      studentDescription: '대학교 재학 중인 학생',
+      general: '일반인',
+      generalDescription: '직장인 또는 기타',
+      nationality: '국적',
+      korean: '한국인',
+      koreanDescription: '한국 국적을 가진 사용자',
+      nonKorean: '외국인',
+      nonKoreanDescription: '한국 외 국적을 가진 사용자',
+      profilePhoto: '프로필 사진',
+      profilePreview: '프로필 미리보기',
+      selectPhoto: '사진 선택',
+      photoRequirements: 'JPG, PNG 파일만 업로드 가능합니다.',
+      namePlaceholder: '실명을 입력해주세요',
+      phonePlaceholder: '010-1234-5678',
+      universityPlaceholder: '대학교명을 입력해주세요',
+      majorPlaceholder: '전공을 입력해주세요',
+      gradePlaceholder: '학년을 선택해주세요',
+      grade: '학년'
     },
 
     // 상점 탭
@@ -889,6 +948,7 @@ export const translations = {
     changeToSpanish: 'Cambiar a Español',
     changeToKorean: '한국어로 변경',
     selectLanguage: 'Seleccionar idioma',
+    language: 'es',
     
     // 공통 버튼
     buttons: {
@@ -934,7 +994,7 @@ export const translations = {
       country: 'País',
       countryCode: 'Código de país',
       selectCountry: 'Selecciona un país',
-      passwordMinLength: 'Mínimo 6 caracteres',
+      passwordMinLength: 'Mínimo 8 caracteres',
       passwordHasNumber: 'Incluir números',
       passwordHasSpecial: 'Incluir caracteres especiales',
       passwordNoRepeated: 'Sin caracteres repetidos',
@@ -982,7 +1042,13 @@ export const translations = {
       step2Title: 'Verificación por teléfono',
       step2Desc: 'Enviamos un código de verificación por SMS para confirmar que eres un usuario real',
       step3Title: 'Completar perfil',
-      step3Desc: 'Escribe tu presentación e intereses para participar en la comunidad'
+      step3Desc: 'Escribe tu presentación e intereses para participar en la comunidad',
+      
+      // 세션 관련
+      sessionUpdateFailed: 'Error al actualizar la sesión',
+      sessionExpired: 'La sesión ha expirado',
+      sessionInvalid: 'Sesión inválida',
+      sessionRefreshFailed: 'Error al renovar la sesión'
     },
 
     // Hero 슬라이드
@@ -1627,7 +1693,60 @@ export const translations = {
       markAllAsRead: 'Marcar todo como leído',
       viewAllNotifications: 'Ver todas las notificaciones',
       verificationComplete: 'Verificación completada',
-      verificationRequired: 'Verificación requerida'
+      verificationRequired: 'Verificación requerida',
+      authRequired: 'Se requiere autenticación',
+      authRequiredDescription: 'Se requiere autenticación para usar esta función. ¿Desea ir al centro de autenticación?',
+      goToAuthCenter: 'Ir al centro de autenticación'
+    },
+
+    // 인증 페이지
+    verification: {
+      loginRequired: 'Se requiere iniciar sesión',
+      loginRequiredDescription: 'Por favor inicie sesión primero para la verificación.',
+      loginButton: 'Iniciar sesión',
+      title: 'Verificación Detallada',
+      subtitle: 'Por favor ingrese información adicional para usar más funciones.',
+      infoCollectionGuide: 'Guía de Recopilación de Información',
+      infoCollectionDescription: 'La siguiente información se utiliza para emparejamiento y actividades comunitarias.',
+      publicInfo: 'Información Pública',
+      publicInfoDescription: 'Información que se muestra a otros usuarios.',
+      privateInfo: 'Información Privada',
+      privateInfoDescription: 'Información personal protegida que no se muestra públicamente.',
+      name: 'Nombre',
+      major: 'Carrera',
+      languageLevel: 'Nivel de Idioma',
+      interests: 'Intereses',
+      introduction: 'Introducción Personal',
+      phone: 'Teléfono',
+      university: 'Universidad',
+      studentId: 'ID de Estudiante',
+      occupation: 'Ocupación',
+      experience: 'Experiencia',
+      availableTime: 'Tiempo Disponible',
+      basicInfoStep: 'Información Básica',
+      matchingStep: 'Información de Emparejamiento',
+      basicInfoDescription: 'Por favor ingrese información personal básica.',
+      matchingDescription: 'Por favor ingrese información necesaria para el emparejamiento.',
+      userType: 'Tipo de Usuario',
+      student: 'Estudiante',
+      studentDescription: 'Estudiante universitario actual',
+      general: 'General',
+      generalDescription: 'Empleado u otros',
+      nationality: 'Nacionalidad',
+      korean: 'Coreano',
+      koreanDescription: 'Usuario con nacionalidad coreana',
+      nonKorean: 'Extranjero',
+      nonKoreanDescription: 'Usuario con nacionalidad no coreana',
+      profilePhoto: 'Foto de Perfil',
+      profilePreview: 'Vista Previa del Perfil',
+      selectPhoto: 'Seleccionar Foto',
+      photoRequirements: 'Solo se pueden subir archivos JPG, PNG.',
+      namePlaceholder: 'Ingrese su nombre real',
+      phonePlaceholder: '010-1234-5678',
+      universityPlaceholder: 'Ingrese el nombre de la universidad',
+      majorPlaceholder: 'Ingrese su carrera',
+      gradePlaceholder: 'Seleccione su año académico',
+      grade: 'Año Académico'
     },
 
     // 상점 탭

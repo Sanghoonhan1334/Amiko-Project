@@ -90,7 +90,7 @@ export default function PostList({
 
       const response = await fetch(`/api/galleries/${gallery.slug}/posts/filtered?${params}`, {
         headers: user ? {
-          'Authorization': `Bearer ${user.access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         } : {}
       })
       
@@ -135,7 +135,7 @@ export default function PostList({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         },
         body: JSON.stringify({ vote_type: voteType })
       })

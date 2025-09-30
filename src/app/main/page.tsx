@@ -23,6 +23,7 @@ function AppPageContent() {
   const [availableAKO, setAvailableAKO] = useState(0)
   const [currentPoints, setCurrentPoints] = useState(0)
   const [pointsLoading, setPointsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // 포인트 데이터 가져오기
   const fetchPoints = async () => {
@@ -33,20 +34,56 @@ function AppPageContent() {
 
     try {
       setPointsLoading(true)
-      const response = await fetch(`/api/points?userId=${user.id}`)
       
-      if (response.ok) {
-        const data = await response.json()
-        // AKO는 쿠폰 개수이므로 별도로 관리 (현재는 0으로 설정)
-        setAvailableAKO(0) // TODO: AKO 쿠폰 시스템 구현 시 실제 데이터로 변경
+      // 토큰 갱신 시도
+      let token = localStorage.getItem('amiko_token')
+      
+      // 토큰이 없거나 만료되었을 가능성이 있으면 Supabase에서 새로 가져오기
+      try {
+        const { createClient } = await import('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
+        
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        if (session && !sessionError) {
+          token = session.access_token
+          localStorage.setItem('amiko_token', token)
+          console.log('[MAIN] 토큰 갱신 성공')
+        }
+      } catch (refreshError) {
+        console.log('[MAIN] 토큰 갱신 실패:', refreshError)
+      }
+      
+      // 포인트와 AKO 쿠폰을 병렬로 조회
+      const [pointsResponse, couponsResponse] = await Promise.all([
+        fetch(`/api/points?userId=${user.id}`),
+        fetch('/api/coupons/check', {
+          headers: {
+            'Authorization': `Bearer ${encodeURIComponent(token || '')}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      ])
+      
+      if (pointsResponse.ok) {
+        const data = await pointsResponse.json()
         setCurrentPoints(data.userPoints?.total_points || 0)
       } else {
-        console.error('포인트 조회 실패:', response.status)
-        setAvailableAKO(0)
+        console.error('포인트 조회 실패:', pointsResponse.status)
         setCurrentPoints(0)
       }
+      
+      if (couponsResponse.ok) {
+        const couponsData = await couponsResponse.json()
+        setAvailableAKO(couponsData.availableCoupons || 0)
+      } else {
+        console.error('쿠폰 조회 실패:', couponsResponse.status)
+        setAvailableAKO(0)
+      }
     } catch (error) {
-      console.error('포인트 조회 오류:', error)
+      console.error('데이터 조회 오류:', error)
       setAvailableAKO(0)
       setCurrentPoints(0)
     } finally {
@@ -54,12 +91,38 @@ function AppPageContent() {
     }
   }
 
-  // 사용자 정보가 있을 때 포인트 데이터 로드
+  // 운영자 상태 확인 함수
+  const checkAdminStatus = async () => {
+    if (!user?.id && !user?.email) {
+      setIsAdmin(false)
+      return
+    }
+
+    try {
+      const params = new URLSearchParams()
+      if (user?.id) params.append('userId', user.id)
+      if (user?.email) params.append('email', user.email)
+      
+      const response = await fetch(`/api/admin/check?${params.toString()}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setIsAdmin(data.isAdmin || false)
+      } else {
+        setIsAdmin(false)
+      }
+    } catch (error) {
+      setIsAdmin(false)
+    }
+  }
+
+  // 사용자 정보가 있을 때 포인트 데이터 로드 및 운영자 상태 확인
   useEffect(() => {
     if (user?.id) {
       fetchPoints()
     }
-  }, [user?.id])
+    checkAdminStatus()
+  }, [user?.id, user?.email])
 
   // URL 파라미터에서 탭 확인 및 설정
   useEffect(() => {
@@ -111,21 +174,21 @@ function AppPageContent() {
   }, [])
   
   return (
-    <div className="min-h-screen body-gradient pt-44 pb-20 md:pb-0">
+    <div className="min-h-screen body-gradient pt-36 pb-20 md:pb-0">
       {/* 메인 콘텐츠 섹션 */}
-      <div className="w-full px-4 py-6 relative z-0 lg:max-w-5xl lg:mx-auto">
+      <div className="w-full px-4 py-0 sm:py-6 relative z-0 lg:max-w-5xl lg:mx-auto">
         <div className="w-full">
 
           {/* 콘텐츠 */}
-          <div className="space-y-8">
+          <div className="space-y-2 sm:space-y-8">
             {activeTab === 'home' && (
-              <div className="card p-8">
+              <div className="card p-8 -mt-12 sm:mt-0">
                 <HomeTab />
               </div>
             )}
 
             {activeTab === 'meet' && (
-              <div className="card p-8">
+              <div className="card p-8 -mt-12 sm:mt-0">
                 <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
                     <Video className="w-10 h-10 text-white" />
@@ -141,9 +204,9 @@ function AppPageContent() {
             )}
 
             {activeTab === 'community' && (
-              <div className="card p-8">
+              <div className="card p-8 -mt-12 sm:mt-0">
                 <div className="flex items-center gap-3 mb-0">
-                  <div className="w-12 h-12 bg-mint-100 rounded-3xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
                     <span className="text-2xl">💬</span>
                   </div>
                   <div>
@@ -156,16 +219,20 @@ function AppPageContent() {
             )}
 
             {activeTab === 'me' && (
-              <div className="card p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
-                    <span className="text-2xl">👤</span>
+              <div className="card p-8 -mt-12 sm:mt-0">
+                {/* 일반 사용자만 헤더 섹션 표시 */}
+                {!isAdmin && (
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
+                      <span className="text-2xl">👤</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
+                      <p className="text-gray-600">{t('main.meDescription')}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
-                    <p className="text-gray-600">{t('main.meDescription')}</p>
-                  </div>
-                </div>
+                )}
+                {/* 운영자는 대시보드만 표시 (헤더 없음) */}
                 <MyTab />
               </div>
             )}
@@ -173,7 +240,7 @@ function AppPageContent() {
 
             {activeTab === 'charging' && (
               <>
-                <div className="card p-6 sm:p-8">
+                <div className="card p-6 sm:p-8 -mt-12 sm:mt-0">
                   {/* 헤더 섹션 */}
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
@@ -220,7 +287,7 @@ function AppPageContent() {
 
 
             {activeTab === 'event' && (
-              <div className="card p-8">
+              <div className="card p-8 -mt-12 sm:mt-0">
                 <EventTab />
               </div>
             )}

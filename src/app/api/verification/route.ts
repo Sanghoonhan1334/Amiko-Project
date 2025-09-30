@@ -251,8 +251,15 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      // 인증 정보가 있으면 'approved', 없으면 'not_submitted'
-      const verification = preferences ? {
+      // 실제 인증 완료 여부 확인
+      const isVerified = preferences && (
+        (preferences as any).full_name ||
+        (preferences as any).phone ||
+        (preferences as any).university ||
+        (preferences as any).major
+      )
+
+      const verification = isVerified ? {
         status: 'approved' as const,
         message: '인증이 완료되었습니다.',
         submitted_at: (preferences as any).created_at,

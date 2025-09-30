@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import CommentSection from './CommentSection'
+import VerificationGuard from '@/components/common/VerificationGuard'
 
 interface Post {
   id: string
@@ -43,6 +44,34 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // 운영자 권한 확인
+  const checkAdminStatus = () => {
+    if (!user) {
+      setIsAdmin(false)
+      return
+    }
+    
+    // 운영자 이메일 목록
+    const adminEmails = [
+      'admin@amiko.com',
+      'editor@amiko.com',
+      'manager@amiko.com'
+    ]
+    
+    // 운영자 ID 목록
+    const adminIds = [
+      '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
+    ]
+    
+    const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
+    setIsAdmin(isAdminUser)
+  }
+
+  useEffect(() => {
+    checkAdminStatus()
+  }, [user])
 
   useEffect(() => {
     loadPost()
@@ -75,7 +104,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     try {
       const response = await fetch(`/api/posts/${postId}/vote`, {
         headers: {
-          'Authorization': `Bearer ${user.access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         }
       })
       
@@ -99,7 +128,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         },
         body: JSON.stringify({ vote_type: voteType })
       })
@@ -166,6 +195,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   }
 
   const isAuthor = user && user.id === post.user.id
+  const canManage = isAuthor || isAdmin // 작성자이거나 운영자
 
   return (
     <div className="space-y-6">
@@ -213,13 +243,20 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               </Badge>
             )}
             
-            {isAuthor && (
+            {canManage && (
               <div className="flex space-x-2">
-                <Button size="sm" variant="outline" onClick={onEdit}>
-                  수정
-                </Button>
-                <Button size="sm" variant="outline" onClick={onDelete}>
-                  삭제
+                {isAuthor && (
+                  <Button size="sm" variant="outline" onClick={onEdit}>
+                    수정
+                  </Button>
+                )}
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={onDelete}
+                  className={isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : ''}
+                >
+                  {isAdmin && !isAuthor ? '🗑️ 운영자 삭제' : '삭제'}
                 </Button>
               </div>
             )}
@@ -266,40 +303,42 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
             </div>
           </div>
 
-          {/* 추천/비추천 버튼 */}
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => handleVote('like')}
-              disabled={!user}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-                userVote === 'like'
-                  ? 'bg-green-500 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-600'
-              } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            >
-              <span className="text-lg">👍</span>
-              <span className="font-medium">{post.like_count}</span>
-            </button>
-            
-            <button
-              onClick={() => handleVote('dislike')}
-              disabled={!user}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-                userVote === 'dislike'
-                  ? 'bg-red-500 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
-              } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            >
-              <span className="text-lg">👎</span>
-              <span className="font-medium">{post.dislike_count}</span>
-            </button>
-            
-            {!user && (
-              <span className="text-xs text-gray-500 ml-2">
-                로그인 후 투표 가능
-              </span>
-            )}
-          </div>
+          {/* 추천/비추천 버튼 - SMS 인증 필요 */}
+          <VerificationGuard requiredLevel="sms">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => handleVote('like')}
+                disabled={!user}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  userVote === 'like'
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-600'
+                } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                <span className="text-lg">👍</span>
+                <span className="font-medium">{post.like_count}</span>
+              </button>
+              
+              <button
+                onClick={() => handleVote('dislike')}
+                disabled={!user}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  userVote === 'dislike'
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
+                } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                <span className="text-lg">👎</span>
+                <span className="font-medium">{post.dislike_count}</span>
+              </button>
+              
+              {!user && (
+                <span className="text-xs text-gray-500 ml-2">
+                  로그인 후 투표 가능
+                </span>
+              )}
+            </div>
+          </VerificationGuard>
         </div>
       </Card>
 

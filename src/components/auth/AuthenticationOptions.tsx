@@ -13,19 +13,23 @@ interface AuthenticationOptionsProps {
   onSMSAuth: (phoneNumber: string) => void
   onBiometricSetup: () => void
   onSkipBiometric: () => void
+  userEmail?: string      // 사용자가 입력한 이메일
+  userPhone?: string       // 사용자가 입력한 전화번호
 }
 
 export default function AuthenticationOptions({ 
   onEmailAuth, 
   onSMSAuth, 
   onBiometricSetup, 
-  onSkipBiometric 
+  onSkipBiometric,
+  userEmail = '',
+  userPhone = ''
 }: AuthenticationOptionsProps) {
   const { t } = useLanguage()
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [showSMSForm, setShowSMSForm] = useState(false)
-  const [email, setEmail] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
+  const [email, setEmail] = useState(userEmail)        // 사용자가 입력한 이메일로 초기화
+  const [phoneNumber, setPhoneNumber] = useState(userPhone)  // 사용자가 입력한 전화번호로 초기화
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()

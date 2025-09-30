@@ -17,6 +17,8 @@ export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'sugge
   const { t } = useLanguage()
   const [isSupported, setIsSupported] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     // WebAuthn 지원 여부 확인
@@ -39,6 +41,9 @@ export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'sugge
     if (!isSupported) return
     
     setIsLoading(true)
+    setError(null)
+    setSuccess(false)
+    
     try {
       // WebAuthn 등록
       const credential = await navigator.credentials.create({
@@ -54,14 +59,32 @@ export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'sugge
           authenticatorSelection: {
             authenticatorAttachment: "platform",
             userVerification: "required"
-          }
+          },
+          timeout: 60000 // 60초 타임아웃
         }
       })
       
-      // 성공 시 콜백 호출
-      onEnable()
-    } catch (error) {
+      if (credential) {
+        setSuccess(true)
+        setTimeout(() => {
+          onEnable()
+        }, 1000)
+      }
+    } catch (error: any) {
       console.error('Biometric setup failed:', error)
+      
+      // 오류 타입별 메시지 설정
+      if (error.name === 'NotAllowedError') {
+        setError('지문 인증이 거부되었습니다. 브라우저 설정에서 지문 인증을 허용해주세요.')
+      } else if (error.name === 'TimeoutError') {
+        setError('지문 인증 시간이 초과되었습니다. 다시 시도해주세요.')
+      } else if (error.name === 'NotSupportedError') {
+        setError('이 디바이스는 지문 인증을 지원하지 않습니다.')
+      } else if (error.name === 'SecurityError') {
+        setError('보안 오류가 발생했습니다. HTTPS 환경에서만 사용 가능합니다.')
+      } else {
+        setError('지문 인증 설정에 실패했습니다. 나중에 설정하거나 건너뛸 수 있습니다.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -152,16 +175,42 @@ export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'sugge
           </div>
         </div>
         
+        {/* 오류 메시지 */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-red-800">설정 실패</h4>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* 성공 메시지 */}
+        {success && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-green-800">설정 완료</h4>
+                <p className="text-sm text-green-700">지문 인증이 성공적으로 설정되었습니다!</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="flex gap-3">
           <Button variant="outline" onClick={onSkip} className="flex-1">
             {t('auth.biometricSkip')}
           </Button>
           <Button 
             onClick={handleBiometricSetup} 
-            disabled={isLoading}
+            disabled={isLoading || success}
             className="flex-1"
           >
-            {isLoading ? '설정 중...' : t('auth.biometricEnable')}
+            {isLoading ? '설정 중...' : success ? '설정 완료' : t('auth.biometricEnable')}
           </Button>
         </div>
       </div>
@@ -181,13 +230,31 @@ export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'sugge
             <p className="text-sm text-gray-600">
               {t('auth.biometricExplanation')}
             </p>
+            
+            {/* 오류 메시지 */}
+            {error && (
+              <div className="mt-2 text-xs text-red-600">
+                {error}
+              </div>
+            )}
+            
+            {/* 성공 메시지 */}
+            {success && (
+              <div className="mt-2 text-xs text-green-600">
+                지문 인증이 설정되었습니다!
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={onSkip}>
               나중에
             </Button>
-            <Button size="sm" onClick={handleBiometricSetup} disabled={isLoading}>
-              {isLoading ? '설정 중...' : '설정하기'}
+            <Button 
+              size="sm" 
+              onClick={handleBiometricSetup} 
+              disabled={isLoading || success}
+            >
+              {isLoading ? '설정 중...' : success ? '설정 완료' : '설정하기'}
             </Button>
           </div>
         </div>

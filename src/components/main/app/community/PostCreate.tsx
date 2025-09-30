@@ -109,7 +109,7 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         },
         body: JSON.stringify({
           gallery_id: gallery.id,
@@ -130,7 +130,7 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${user.access_token}`
+              'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
             },
             body: JSON.stringify({
               gallery_id: gallery.id,

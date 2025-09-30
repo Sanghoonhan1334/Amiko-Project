@@ -19,17 +19,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = authHeader.replace('Bearer ', '')
+    const token = authHeader.replace('Bearer ', '')
+    const decodedToken = decodeURIComponent(token)
+    
+    console.log('[PROFILE_INIT] 토큰 확인:', { 
+      hasToken: !!token, 
+      tokenLength: token?.length,
+      decodedLength: decodedToken?.length 
+    })
 
-    // auth.users에서 사용자 정보 가져오기
-    const { data: authUser, error: authError } = await supabaseServer.auth.admin.getUserById(userId)
+    // 토큰에서 사용자 정보 추출
+    const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(decodedToken)
     
     if (authError || !authUser) {
+      console.error('[PROFILE_INIT] 인증 실패:', authError)
       return NextResponse.json(
-        { error: '사용자 정보를 찾을 수 없습니다.' },
-        { status: 404 }
+        { error: '인증에 실패했습니다.' },
+        { status: 401 }
       )
     }
+
+    const userId = authUser.id
 
     // public.users에 기본 프로필 생성
     const { data: user, error: userError } = await (supabaseServer as any)

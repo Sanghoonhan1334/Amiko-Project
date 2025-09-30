@@ -41,6 +41,7 @@ interface Comment {
 import { useAuth } from '@/context/AuthContext'
 import { useUser } from '@/context/UserContext'
 import { useLanguage } from '@/context/LanguageContext'
+import VerificationGuard from '@/components/common/VerificationGuard'
 
 // 실제 스토리 데이터는 API에서 가져올 예정
 const getMockStories = (userName: string = '한상훈'): Story[] => []
@@ -49,6 +50,35 @@ export default function StoryCarousel() {
   const { user } = useUser()
   const { token, user: authUser } = useAuth()
   const { t } = useLanguage()
+  
+  // 운영자 권한 확인
+  const [isAdmin, setIsAdmin] = useState(false)
+  
+  const checkAdminStatus = () => {
+    if (!authUser) {
+      setIsAdmin(false)
+      return
+    }
+    
+    // 운영자 이메일 목록
+    const adminEmails = [
+      'admin@amiko.com',
+      'editor@amiko.com',
+      'manager@amiko.com'
+    ]
+    
+    // 운영자 ID 목록
+    const adminIds = [
+      '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
+    ]
+    
+    const isAdminUser = adminEmails.includes(authUser.email) || adminIds.includes(authUser.id)
+    setIsAdmin(isAdminUser)
+  }
+
+  useEffect(() => {
+    checkAdminStatus()
+  }, [authUser])
   
   // 사용자 이름 가져오기
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '한상훈'
@@ -136,7 +166,7 @@ export default function StoryCarousel() {
       const response = await fetch(`/api/stories?isPublic=true&limit=3&offset=${stories.length}`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         }
       })
 
@@ -213,16 +243,23 @@ export default function StoryCarousel() {
     const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1500))
     
     try {
+      // 타임아웃 설정으로 무한 대기 방지
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5초 타임아웃
+      
       // 스토리 API 호출과 최소 로딩 시간을 동시에 실행
       const [apiResponse] = await Promise.all([
         fetch('/api/stories?isPublic=true&limit=10', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+            'Authorization': `Bearer ${encodeURIComponent(token)}`
+          },
+          signal: controller.signal
         }),
         minLoadingTime
       ])
+      
+      clearTimeout(timeoutId)
 
       if (!apiResponse.ok) {
         // 응답이 HTML인지 확인 (JSON 파싱 오류 방지)
@@ -285,7 +322,7 @@ export default function StoryCarousel() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+              'Authorization': `Bearer ${encodeURIComponent(token)}`
             },
             body: JSON.stringify({
               imageUrl: 'https://picsum.photos/400/400?random=1',
@@ -326,6 +363,12 @@ export default function StoryCarousel() {
       }
     } catch (error) {
       console.error('초기 스토리 로드 실패:', error)
+      
+      // AbortError인 경우 타임아웃으로 처리
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('스토리 로딩 타임아웃, 빈 배열 사용')
+      }
+      
       // 에러 시 빈 배열로 설정 (목업 데이터 사용하지 않음)
       setStories([])
       setHasMore(false)
@@ -683,32 +726,47 @@ export default function StoryCarousel() {
         </h3>
         
         <div className="flex items-center gap-2">
-          {/* 스토리 업로드 버튼 */}
-          <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
-            <DialogTrigger asChild>
-              <Button 
-                size="sm" 
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md"
-                onClick={() => {
-                  console.log('스토리 올리기 버튼 클릭됨')
-                  
-                  // 로그인 체크 (user 또는 authUser 중 하나라도 있으면 OK)
-                  const currentUser = user || authUser
-                  if (!currentUser) {
-                    console.log('로그인 필요 - 로그인 페이지로 이동')
-                    window.location.href = '/sign-in'
-                    return
-                  }
-                  
-                  setShowUploadModal(true)
-                }}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                {t('communityTab.uploadStory')}
-              </Button>
-            </DialogTrigger>
+          {/* 스토리 업로드 버튼 - 운영자는 인증 없이 가능 */}
+          {isAdmin ? (
+            <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
+              <DialogTrigger asChild>
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md"
+                  onClick={() => {
+                    console.log('스토리 올리기 버튼 클릭됨 (운영자)')
+                    setShowUploadModal(true)
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  {t('communityTab.uploadStory')}
+                </Button>
+              </DialogTrigger>
+            </Dialog>
+          ) : (
+            <VerificationGuard requiredLevel="sms">
+              <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md"
+                    onClick={() => {
+                      console.log('스토리 올리기 버튼 클릭됨')
+                      setShowUploadModal(true)
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    {t('communityTab.uploadStory')}
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </VerificationGuard>
+          )}
+        </div>
             
-            <DialogContent className="max-w-md bg-white border-2 border-gray-200 shadow-xl">
+        {/* 스토리 업로드 모달 - 운영자와 일반 사용자 공통 */}
+        <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
+          <DialogContent className="max-w-md bg-white border-2 border-gray-200 shadow-xl">
               <DialogHeader className="pb-4 border-b border-gray-200">
                 <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newStory')}</DialogTitle>
               </DialogHeader>
@@ -862,6 +920,7 @@ export default function StoryCarousel() {
               </div>
             </DialogContent>
           </Dialog>
+          </VerificationGuard>
           
 
         </div>
@@ -935,31 +994,35 @@ export default function StoryCarousel() {
                         {/* 스토리 오버레이 메뉴 (마우스 오버 시) */}
                         <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100 pointer-events-none">
                           <div className="flex gap-3 pointer-events-auto">
-                            {/* 좋아요 버튼 */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleLikeToggle(story.id)
-                              }}
-                              className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
-                            >
-                              {likedStories.has(story.id) ? (
-                                <Heart className="w-5 h-5 text-red-500 fill-current" />
-                              ) : (
-                                <Heart className="w-5 h-5 text-red-500" />
-                              )}
-                            </button>
+                            {/* 좋아요 버튼 - SMS 인증 필요 */}
+                            <VerificationGuard requiredLevel="sms">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleLikeToggle(story.id)
+                                }}
+                                className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                              >
+                                {likedStories.has(story.id) ? (
+                                  <Heart className="w-5 h-5 text-red-500 fill-current" />
+                                ) : (
+                                  <Heart className="w-5 h-5 text-red-500" />
+                                )}
+                              </button>
+                            </VerificationGuard>
                             
-                            {/* 댓글 버튼 */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setShowCommentModal(story.id)
-                              }}
-                              className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
-                            >
-                              <MessageSquare className="w-5 h-5 text-blue-500" />
-                            </button>
+                            {/* 댓글 버튼 - SMS 인증 필요 */}
+                            <VerificationGuard requiredLevel="sms">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setShowCommentModal(story.id)
+                                }}
+                                className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                              >
+                                <MessageSquare className="w-5 h-5 text-blue-500" />
+                              </button>
+                            </VerificationGuard>
                           </div>
                         </div>
                       </div>
@@ -993,31 +1056,35 @@ export default function StoryCarousel() {
                         
                         {/* 좋아요와 댓글 버튼 */}
                         <div className="flex items-center justify-end gap-4 pt-2 border-t border-gray-100">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleLikeToggle(story.id)
-                              }}
-                              className="flex items-center gap-1 text-xs text-gray-600 hover:text-red-500 transition-colors"
-                            >
-                              {likedStories.has(story.id) ? (
-                                <Heart className="w-4 h-4 text-red-500 fill-current" />
-                              ) : (
-                                <Heart className="w-4 h-4" />
-                              )}
-                              <span>{t('communityTab.like')}</span>
-                            </button>
+                            <VerificationGuard requiredLevel="sms">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleLikeToggle(story.id)
+                                }}
+                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-red-500 transition-colors"
+                              >
+                                {likedStories.has(story.id) ? (
+                                  <Heart className="w-4 h-4 text-red-500 fill-current" />
+                                ) : (
+                                  <Heart className="w-4 h-4" />
+                                )}
+                                <span>{t('communityTab.like')}</span>
+                              </button>
+                            </VerificationGuard>
                             
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setShowCommentModal(story.id)
-                              }}
-                              className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
-                            >
-                              <MessageSquare className="w-4 h-4" />
-                              <span>{t('communityTab.comment')}</span>
-                            </button>
+                            <VerificationGuard requiredLevel="sms">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setShowCommentModal(story.id)
+                                }}
+                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
+                              >
+                                <MessageSquare className="w-4 h-4" />
+                                <span>{t('communityTab.comment')}</span>
+                              </button>
+                            </VerificationGuard>
                           </div>
                         </div>
                       </div>
@@ -1088,13 +1155,15 @@ export default function StoryCarousel() {
                       </div>
                       <p className="text-sm text-gray-700">{comment.content}</p>
                     </div>
-                    <button
-                      onClick={() => handleCommentLike(showCommentModal, comment.id)}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500"
-                    >
-                      <Heart className="w-3 h-3" />
-                      <span>{comment.likes}</span>
-                    </button>
+                    <VerificationGuard requiredLevel="sms">
+                      <button
+                        onClick={() => handleCommentLike(showCommentModal, comment.id)}
+                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500"
+                      >
+                        <Heart className="w-3 h-3" />
+                        <span>{comment.likes}</span>
+                      </button>
+                    </VerificationGuard>
                   </div>
                 </div>
               ))}
@@ -1106,27 +1175,29 @@ export default function StoryCarousel() {
               )}
             </div>
             
-            {/* 댓글 작성 */}
-            <div className="flex gap-2">
-              <Input
-                placeholder={t('communityTab.writeComment')}
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAddComment(showCommentModal!)
-                  }
-                }}
-                className="flex-1"
-              />
-              <Button 
-                onClick={() => handleAddComment(showCommentModal!)}
-                disabled={!commentText.trim()}
-                size="sm"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
+            {/* 댓글 작성 - SMS 인증 필요 */}
+            <VerificationGuard requiredLevel="sms">
+              <div className="flex gap-2">
+                <Input
+                  placeholder={t('communityTab.writeComment')}
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddComment(showCommentModal!)
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={() => handleAddComment(showCommentModal!)}
+                  disabled={!commentText.trim()}
+                  size="sm"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </VerificationGuard>
           </div>
         </DialogContent>
       </Dialog>

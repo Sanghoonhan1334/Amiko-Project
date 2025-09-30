@@ -92,8 +92,6 @@ export default function BottomTabNavigation() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 border-t-2 border-blue-200 shadow-2xl md:hidden">
-      {/* 상단 글로우 효과 */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400"></div>
       
       <div className="flex items-center justify-around px-1 py-2">
         {tabs.map((tab) => {
@@ -104,25 +102,16 @@ export default function BottomTabNavigation() {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className={`flex flex-col items-center justify-center p-3 transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+              className={`relative flex flex-col items-center justify-center p-3 transition-all duration-200 active:scale-95 ${
                 isActive 
-                  ? tab.id === 'community'
-                    ? 'text-white bg-gradient-to-br from-green-500 to-mint-400 shadow-lg border-2 border-green-300 rounded-xl' 
-                    : 'text-blue-700'
-                  : tab.id === 'community'
-                    ? 'text-green-700 hover:text-green-800 hover:bg-green-200'
-                    : 'text-blue-600 hover:text-blue-800'
+                  ? 'text-blue-700 bg-blue-200 rounded-xl' 
+                  : 'text-blue-600 rounded-xl active:bg-blue-200'
               }`}
             >
-              <Icon className={`w-6 h-6 mb-1 ${isActive ? (tab.id === 'community' ? 'text-white drop-shadow-sm' : 'text-blue-700') : tab.id === 'community' ? 'text-green-700' : 'text-blue-600'}`} />
-              <span className={`${t('language') === 'es' ? 'text-[10px]' : 'text-xs'} ${tab.id === 'community' ? 'font-black' : 'font-bold'} ${isActive ? (tab.id === 'community' ? 'text-white drop-shadow-sm' : 'text-blue-700') : tab.id === 'community' ? 'text-green-700' : 'text-blue-600'}`}>
+              <Icon className={`w-6 h-6 mb-1 transition-transform duration-200 ${isActive ? 'text-blue-700 scale-110' : 'text-blue-600'}`} />
+              <span className={`${t('language') === 'es' ? 'text-[10px]' : 'text-[9px] xs:text-[10px] sm:text-xs'} font-bold whitespace-nowrap ${isActive ? 'text-blue-700' : 'text-blue-600'}`}>
                 {tab.label}
               </span>
-              
-              {/* 선택된 버튼에 펄스 효과 - 커뮤니티만 */}
-              {isActive && tab.id === 'community' && (
-                <div className="absolute inset-0 rounded-xl bg-green-400 opacity-20 animate-pulse"></div>
-              )}
             </button>
           )
         })}

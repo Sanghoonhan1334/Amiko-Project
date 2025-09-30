@@ -71,7 +71,7 @@ export default function PopularPosts({ onPostSelect }: PopularPostsProps) {
 
       const response = await fetch(`/api/posts/popular${query}`, {
         headers: user ? {
-          'Authorization': `Bearer ${user.access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         } : {}
       })
 
@@ -100,7 +100,7 @@ export default function PopularPosts({ onPostSelect }: PopularPostsProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         },
         body: JSON.stringify({ vote_type: voteType })
       })

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -22,8 +23,8 @@ import {
   Calendar,
   MessageSquare
 } from 'lucide-react'
-import VerificationGuard from '@/components/common/VerificationGuard'
 import StorySettings from './StorySettings'
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
 import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -169,12 +170,51 @@ const mockNotificationSettings = {
 export default function MyTab() {
   const { t } = useLanguage()
   const { user, token, refreshSession } = useAuth()
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState<any>(null)
   const [notificationSettings, setNotificationSettings] = useState(mockNotificationSettings)
   const [loading, setLoading] = useState(true)
   const [profileImages, setProfileImages] = useState<File[]>([])
   const [mainProfileImage, setMainProfileImage] = useState<string | null>(null)
+  
+  // 인증 상태 확인
+  const [authStatus, setAuthStatus] = useState({
+    emailVerified: false,
+    smsVerified: false,
+    loading: true
+  })
+  
+  // 운영자 상태 확인 (false: 로딩 중/일반 사용자, true: 운영자)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [adminCheckComplete, setAdminCheckComplete] = useState(false)
+  
+  // 운영자 상태 확인 함수
+  const checkAdminStatus = async () => {
+    if (!user?.id && !user?.email) return
+    
+    try {
+      const params = new URLSearchParams()
+      if (user?.id) params.append('userId', user.id)
+      if (user?.email) params.append('email', user.email)
+      
+      const response = await fetch(`/api/admin/check?${params.toString()}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setIsAdmin(data.isAdmin || false)
+        console.log('MyTab: 운영자 상태 확인됨:', data.isAdmin)
+      } else {
+        console.log('MyTab: 운영자 상태 확인 실패:', response.status)
+        setIsAdmin(false)
+      }
+    } catch (error) {
+      console.error('MyTab: 운영자 상태 확인 실패:', error)
+      setIsAdmin(false)
+    } finally {
+      setAdminCheckComplete(true)
+    }
+  }
   
   // 현재 메인 프로필 이미지를 가져오는 함수 (서버 데이터 우선)
   const getCurrentMainImage = () => {
@@ -215,13 +255,21 @@ export default function MyTab() {
         return
       }
 
+      // 운영자 체크 먼저 수행
+      console.log('현재 isAdmin 상태:', isAdmin)
+      if (isAdmin) {
+        console.log('운영자 확인됨, 프로필 로드 건너뛰기')
+        if (showLoading) setLoading(false)
+        return
+      }
+
       try {
         if (showLoading) setLoading(true)
         console.log('프로필 로드 시작:', { userId: user.id, token: !!token })
         
         const response = await fetch(`/api/profile?userId=${user.id}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${encodeURIComponent(token)}`,
             'Content-Type': 'application/json'
           }
         })
@@ -281,7 +329,7 @@ export default function MyTab() {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
+                  'Authorization': `Bearer ${encodeURIComponent(token)}`
                 }
               })
               
@@ -290,7 +338,7 @@ export default function MyTab() {
                 // 프로필 다시 로드
                 const profileResponse = await fetch(`/api/profile?userId=${user.id}`, {
                   headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${encodeURIComponent(token)}`,
                     'Content-Type': 'application/json'
                   }
                 })
@@ -317,12 +365,22 @@ export default function MyTab() {
                   }
                 }
               } else {
-                console.log('프로필 생성 실패. 인증 페이지로 이동합니다.')
-                window.location.href = '/verification'
+                console.log('프로필 생성 실패.')
+                if (!isAdmin) {
+                  router.push('/verification')
+                } else {
+                  console.log('운영자 계정: isAdmin 상태로 대시보드 표시')
+                  // isAdmin이 true면 자동으로 AnalyticsDashboard 렌더링됨
+                }
               }
             } catch (error) {
               console.error('프로필 초기화 오류:', error)
-              window.location.href = '/verification'
+              if (!isAdmin) {
+                router.push('/verification')
+              } else {
+                console.log('운영자 계정: 오류 발생 시에도 isAdmin 상태로 대시보드 표시')
+                // isAdmin이 true면 자동으로 AnalyticsDashboard 렌더링됨
+              }
             }
             return
           }
@@ -334,9 +392,56 @@ export default function MyTab() {
       }
   }
 
-  // 실제 사용자 데이터 로드
+  // 운영자 상태 확인 (한 번만 실행)
   useEffect(() => {
-    loadUserProfile()
+    if (user?.id && !adminCheckComplete) {
+      checkAdminStatus()
+    }
+  }, [user?.id]) // adminCheckComplete 제거로 무한 루프 방지
+
+  // 실제 사용자 데이터 로드 (운영자 체크 완료 후)
+  useEffect(() => {
+    // 운영자 상태 확인이 완료된 후에만 실행
+    if (user?.id && adminCheckComplete) {
+      if (isAdmin) {
+        // 운영자인 경우 바로 대시보드 표시
+        console.log('운영자 확인됨, 대시보드 표시')
+        setLoading(false)
+      } else {
+        // 일반 사용자인 경우 프로필 로드
+        loadUserProfile()
+      }
+    }
+  }, [user?.id, adminCheckComplete, isAdmin])
+
+  // 인증 상태 확인
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      if (!user?.id) {
+        setAuthStatus({ emailVerified: false, smsVerified: false, loading: false })
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/auth/status?userId=${user.id}`)
+        const result = await response.json()
+
+        if (response.ok) {
+          setAuthStatus({
+            emailVerified: result.emailVerified || false,
+            smsVerified: result.smsVerified || false,
+            loading: false
+          })
+        } else {
+          setAuthStatus({ emailVerified: false, smsVerified: false, loading: false })
+        }
+      } catch (error) {
+        console.error('인증 상태 확인 오류:', error)
+        setAuthStatus({ emailVerified: false, smsVerified: false, loading: false })
+      }
+    }
+
+    checkAuthStatus()
   }, [user?.id])
   
   // 관심사 번역 함수
@@ -601,10 +706,19 @@ export default function MyTab() {
   }
 
   // 로딩 중일 때
-  if (loading) {
+  if (loading && !isAdmin) {
     return (
       <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
         <ProfileSkeleton />
+      </div>
+    )
+  }
+
+  // 운영자일 때 분석 대시보드 표시 (로딩 중이어도 표시)
+  if (isAdmin) {
+    return (
+      <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+        <AnalyticsDashboard />
       </div>
     )
   }
@@ -626,9 +740,42 @@ export default function MyTab() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-      {/* 내 프로필 - 맨 위로 이동 */}
-      <div className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto -mt-4 sm:mt-0">
+      {/* 인증이 필요한 경우 인증하기 버튼 표시 */}
+      {authStatus.loading ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">인증 상태 확인 중...</p>
+          </div>
+        </div>
+      ) : !authStatus.smsVerified && !profile ? (
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200/50 rounded-3xl p-8 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center">
+              <Settings className="w-10 h-10 text-orange-600" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">인증 후 이용가능합니다</h2>
+          
+          
+          <div className="mt-8 space-y-3">
+            {!isAdmin && (
+              <Button 
+                onClick={() => router.push('/verification')}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 text-lg"
+              >
+                <Settings className="w-5 h-5 mr-2" />
+                인증하기
+              </Button>
+            )}
+            
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* 내 프로필 - 맨 위로 이동 */}
+          <div className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-3 sm:p-6 pt-2 sm:pt-6">
         <div className="space-y-4 sm:space-y-6">
           {/* 프로필 사진 관리 - 맨 위로 이동 */}
           <div className="flex flex-col items-center gap-4">
@@ -833,12 +980,12 @@ export default function MyTab() {
                 <label className="text-sm font-medium text-gray-700 block font-['Inter']">{t('profile.name')}</label>
                 {isEditing ? (
                   <Input
-                    value={profile.full_name || profile.name || ''}
+                    value={profile?.full_name || profile?.name || user?.user_metadata?.full_name || user?.email || ''}
                     onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                     className="border-brand-200 focus:border-brand-500"
                   />
                 ) : (
-                  <p className="text-gray-800 font-medium">{profile.full_name || profile.name || t('myTab.noName')}</p>
+                  <p className="text-gray-800 font-medium">{profile?.full_name || profile?.name || user?.user_metadata?.full_name || user?.email || t('myTab.noName')}</p>
                 )}
               </div>
               
@@ -1027,13 +1174,7 @@ export default function MyTab() {
         </div>
       </div>
 
-      {/* 인증 가드 - 전체 서비스 이용 */}
-      <VerificationGuard 
-        requiredFeature="all"
-        className="mb-6"
-      >
-        <div></div>
-      </VerificationGuard>
+      {/* 인증 가드 제거 - 운영자는 자동으로 통과 */}
 
 
       {/* 현지인 전용: 나의 쿠폰/구매내역 리스트 */}
@@ -1171,6 +1312,8 @@ export default function MyTab() {
       TODO: 리워드 시스템 연동
       TODO: 알림 설정 저장/동기화
       */}
+        </>
+      )}
     </div>
   )
 }

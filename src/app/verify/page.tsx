@@ -285,28 +285,36 @@ function VerifyContent() {
               {authChannels.map((channel) => (
                 <div
                   key={channel.id}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                  className={`p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 transform hover:scale-105 ${
                     selectedChannel === channel.id
-                      ? 'border-brand-400 bg-brand-50 shadow-md'
-                      : 'border-gray-200 hover:border-brand-300 hover:bg-brand-50/50'
+                      ? 'border-brand-400 bg-gradient-to-r from-brand-50 to-brand-100 shadow-xl shadow-brand-200/50'
+                      : 'border-gray-200 hover:border-brand-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-brand-50/50 shadow-lg hover:shadow-xl'
                   }`}
                   onClick={() => handleChannelSelect(channel.id)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">{channel.icon}</div>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${
+                      selectedChannel === channel.id
+                        ? 'bg-gradient-to-br from-brand-400 to-brand-600 shadow-lg'
+                        : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                    }`}>
+                      {channel.icon}
+                    </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-gray-800">{channel.name}</span>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="font-bold text-lg text-gray-800">{channel.name}</span>
                         {channel.priority === 'primary' && (
-                          <Badge className="bg-brand-100 text-brand-700 border-brand-300 text-xs">
-                            추천
+                          <Badge className="bg-gradient-to-r from-orange-400 to-orange-500 text-white border-0 text-xs px-3 py-1 rounded-full shadow-md">
+                            ✨ 추천
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">{channel.description}</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{channel.description}</p>
                     </div>
                     {selectedChannel === channel.id && (
-                      <CheckCircle className="w-5 h-5 text-brand-600" />
+                      <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
                     )}
                   </div>
                 </div>

@@ -116,8 +116,7 @@ export default function HomeTab() {
               </div>
             </div>
             <h3 className="text-lg font-bold text-gray-800 mb-0 mt-1 font-['Inter']">{t('mainPage.openEvent')}</h3>
-            <p className="text-sm text-gray-600 mt-1 font-['Inter']">{t('mainPage.openEventDescription')}<br />
-            <span className="text-xs text-gray-500 font-['Inter']">{t('mainPage.openEventNote')}</span></p>
+            <p className="text-sm text-gray-600 mt-1 font-['Inter'] whitespace-pre-line">{t('mainPage.openEventDescription')}</p>
           </Card>
         </div>
 

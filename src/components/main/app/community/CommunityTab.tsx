@@ -28,8 +28,8 @@ import CommunityMain from './CommunityMain'
 import BoardList from './BoardList'
 import NewsDetail from './NewsDetail'
 import { useLanguage } from '@/context/LanguageContext'
-import { useUser } from '@/context/UserContext'
 import { useAuth } from '@/context/AuthContext'
+import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
 
@@ -158,20 +158,58 @@ const mockTodayActivity = {
 
 export default function CommunityTab() {
   const { t, language } = useLanguage()
-  const { user } = useUser()
-  const { token, user: authUser } = useAuth()
+  const { user, token } = useAuth()
+  
+  // 운영진 상태 관리
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [isAdmin, setIsAdmin] = useState(false)
+  
+  // 운영자 권한 확인 함수
+  const checkAdminStatus = () => {
+    if (!user) {
+      setIsAdmin(false)
+      return
+    }
+    
+    // 운영자 이메일 목록 (실제 운영자 이메일로 변경 필요)
+    const adminEmails = [
+      'admin@amiko.com',
+      'editor@amiko.com',
+      'manager@amiko.com'
+    ]
+    
+    // 운영자 ID 목록 (실제 운영자 ID로 변경 필요)
+    const adminIds = [
+      '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
+    ]
+    
+    const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
+    setIsAdmin(isAdminUser)
+    
+    console.log('운영자 권한 확인:', {
+      userId: user.id,
+      email: user.email,
+      isAdmin: isAdminUser
+    })
+  }
   const router = useRouter()
   
   // 언어 설정 디버깅
   console.log('현재 언어 설정:', language)
   console.log('스토리 번역:', t('community.story'))
+
+  // 운영진 상태 확인
+  useEffect(() => {
+    checkAdminStatus()
+  }, [user])
+
+  // 임시 디버깅: 운영진 상태 출력
+  console.log('CommunityTab 현재 운영진 상태:', isAdmin)
   
   // 사용자 상태 디버깅
   console.log('사용자 상태:', { 
     user: !!user, 
     userId: user?.id, 
-    authUser: !!authUser,
-    authUserId: authUser?.id,
     token: !!token 
   })
   const searchParams = useSearchParams()
@@ -221,7 +259,7 @@ export default function CommunityTab() {
       return
     }
 
-    const currentUser = user || authUser
+    const currentUser = user
     if (!currentUser) {
       alert('로그인이 필요합니다.')
       window.location.href = '/sign-in'
@@ -230,37 +268,63 @@ export default function CommunityTab() {
 
     setWriteLoading(true)
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('amiko_session')
-      let currentToken = token
+      // 토큰 가져오기 - 여러 방법 시도
+      let currentToken = null
       
-      if (!currentToken) {
-        try {
+      try {
+        // 방법 1: 직접 토큰
+        currentToken = localStorage.getItem('token')
+        
+        // 방법 2: 세션에서 토큰 추출
+        if (!currentToken) {
           const storedSession = localStorage.getItem('amiko_session')
           if (storedSession) {
             const sessionData = JSON.parse(storedSession)
-            currentToken = sessionData.access_token
+            currentToken = sessionData.access_token || sessionData.token
           }
-        } catch (error) {
-          console.error('토큰 파싱 실패:', error)
         }
+        
+        // 방법 3: Supabase 세션에서 토큰 추출
+        if (!currentToken && user?.access_token) {
+          currentToken = user.access_token
+        }
+        
+        console.log('토큰 확인:', { 
+          hasToken: !!currentToken, 
+          tokenLength: currentToken?.length,
+          userId: user?.id,
+          userEmail: user?.email,
+          userFullName: user?.user_metadata?.full_name
+        })
+        
+      } catch (error) {
+        console.error('토큰 가져오기 실패:', error)
       }
 
-      if (!currentToken) {
+      if (!currentToken && !isAdmin) {
         alert('로그인이 필요합니다.')
         return
       }
 
+      // 운영자 권한이 있으면 토큰 없이도 요청 가능
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      
+      if (currentToken) {
+        headers['Authorization'] = `Bearer ${encodeURIComponent(currentToken)}`
+      }
+
       const response = await fetch('/api/posts', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${currentToken}`,
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
+          gallery_id: 'free', // 자유게시판 갤러리 ID 또는 slug
           title: writeTitle,
           content: writeContent,
-          category: writeCategory,
-          user_id: currentUser.id
+          images: [],
+          admin_override: isAdmin ? 'admin@amiko.com' : undefined, // 운영자 권한 확인
+          user_id: user?.id // 실제 사용자 ID 추가
         })
       })
 
@@ -271,10 +335,11 @@ export default function CommunityTab() {
         setWriteContent('')
         setWriteCategory('free')
         // 게시글 목록 새로고침
-        window.location.reload()
+        setRefreshTrigger(prev => prev + 1)
       } else {
         const errorData = await response.json().catch(() => ({}))
-        alert(errorData.error || '게시글 작성에 실패했습니다.')
+        console.error('게시글 작성 실패:', errorData)
+        alert(errorData.error || '게시글 작성에 실패했습니다.' + (errorData.details ? `\n상세: ${errorData.details}` : ''))
       }
     } catch (error) {
       console.error('게시글 작성 오류:', error)
@@ -291,6 +356,7 @@ export default function CommunityTab() {
     }
   }, [activeTab])
   const [showStoryUploadModal, setShowStoryUploadModal] = useState(false)
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [storyText, setStoryText] = useState('')
@@ -305,6 +371,25 @@ export default function CommunityTab() {
   const [showCommentModal, setShowCommentModal] = useState(false)
   const [selectedStoryForComment, setSelectedStoryForComment] = useState<any>(null)
   const [commentText, setCommentText] = useState('')
+  
+  // 뉴스 작성 모달 상태
+  const [showNewsWriteModal, setShowNewsWriteModal] = useState(false)
+  const [showNewsEditModal, setShowNewsEditModal] = useState(false)
+  const [editingNews, setEditingNews] = useState<any>(null)
+  const [newsWriteForm, setNewsWriteForm] = useState({
+    title: '',
+    title_es: '',
+    content: '',
+    content_es: '',
+    source: '',
+    author: '',
+    category: 'entertainment'
+  })
+  const [newsWriteLoading, setNewsWriteLoading] = useState(false)
+  
+  // 이미지 관련 상태
+  const [uploadedImages, setUploadedImages] = useState<Array<{url: string, name: string}>>([])
+  const [selectedThumbnail, setSelectedThumbnail] = useState<string>('')
   
   // 뉴스 데이터 상태
   const [newsData, setNewsData] = useState<any[]>([])
@@ -427,8 +512,16 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       const data = await response.json()
       
       if (data.success) {
-        setNewsData(data.news)
-        console.log('실제 뉴스 로드 성공:', data.news.length, '개')
+        // 고정된 뉴스를 먼저, 그 다음 최신순으로 정렬
+        const sortedNews = data.newsItems.sort((a: any, b: any) => {
+          // 고정된 뉴스가 먼저
+          if (a.is_pinned && !b.is_pinned) return -1
+          if (!a.is_pinned && b.is_pinned) return 1
+          // 같은 고정 상태면 최신순
+          return new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime()
+        })
+        setNewsData(sortedNews)
+        console.log('실제 뉴스 로드 성공:', sortedNews.length, '개')
       } else {
         throw new Error(data.error || '뉴스를 불러오는데 실패했습니다.')
       }
@@ -568,12 +661,19 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }
       
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`
+        headers['Authorization'] = `Bearer ${encodeURIComponent(token)}`
       }
       
+      // 타임아웃 설정으로 무한 대기 방지
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15초 타임아웃
+      
       const response = await fetch('/api/stories?isPublic=true&limit=10', {
-        headers
+        headers,
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
       
       console.log('스토리 API 응답:', { 
         status: response.status, 
@@ -620,6 +720,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       console.log('스토리 목록 설정 완료:', convertedStories.length, '개')
     } catch (err) {
       console.error('스토리 로딩 실패:', err)
+      
+      // AbortError인 경우 타임아웃으로 처리
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('스토리 로딩 타임아웃, 빈 배열 사용')
+      }
+      
       // 네트워크 오류나 기타 에러의 경우 빈 배열로 설정
       setStories([])
       
@@ -648,7 +754,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${JSON.parse(token).access_token}`
+          'Authorization': `Bearer ${encodeURIComponent(JSON.parse(token).access_token)}`
         },
         body: JSON.stringify({
           postId: selectedQuestion.id,
@@ -692,11 +798,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     }
     
     // 스토리는 항상 로딩 시도 (에러가 발생해도 앱이 중단되지 않도록)
-    try {
-    loadStories()
-    } catch (error) {
+    loadStories().catch((error) => {
       console.error('스토리 로딩 중 예외 발생:', error)
-    }
+      // 에러가 발생해도 빈 배열로 설정하여 앱이 정상 작동하도록 함
+      setStories([])
+    })
   }, [user, token, activeTab, activeCategory])
 
   // 탭 변경 핸들러
@@ -766,7 +872,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentToken}`
+          'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
         },
         body: JSON.stringify({
           title: questionForm.title,
@@ -920,8 +1026,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       return
     }
     
-    // 사용자 정보 확인 (user 또는 authUser 중 하나라도 있으면 OK)
-    const currentUser = user || authUser
+    // 사용자 정보 확인
+    const currentUser = user
     if (!currentUser) {
       console.log('사용자 로그인 필요')
       toast.error('로그인이 필요합니다.')
@@ -1131,7 +1237,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentToken}`
+          'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
         },
         body: JSON.stringify({
           content: answerForm.content
@@ -1230,6 +1336,203 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     toast.success('댓글이 작성되었습니다!')
   }
 
+  // 이미지 업로드 함수
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || '이미지 업로드에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      return data.imageUrl
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error)
+      // 업로드 실패 시 임시 Data URL 사용
+      return new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string
+          resolve(imageUrl)
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+  }
+
+  // 이미지 삽입 함수
+  const insertImageToContent = async (file: File, isKorean: boolean = true) => {
+    try {
+      const imageUrl = await handleImageUpload(file)
+      const imageName = file.name.split('.')[0] // 확장자 제거
+      
+      // 업로드된 이미지 목록에 추가
+      setUploadedImages(prev => [...prev, { url: imageUrl, name: imageName }])
+      
+      // 마크다운 형태로 이미지 삽입
+      const imageMarkdown = `![${imageName}](${imageUrl})`
+      
+      if (isKorean) {
+        setNewsWriteForm(prev => ({
+          ...prev,
+          content: prev.content + '\n\n' + imageMarkdown
+        }))
+      } else {
+        setNewsWriteForm(prev => ({
+          ...prev,
+          content_es: prev.content_es + '\n\n' + imageMarkdown
+        }))
+      }
+      
+      toast.success('이미지가 삽입되었습니다!')
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error)
+      toast.error('이미지 업로드에 실패했습니다.')
+    }
+  }
+
+  // 뉴스 편집 함수
+  const handleNewsEdit = async () => {
+    const hasTitle = newsWriteForm.title.trim() || newsWriteForm.title_es.trim()
+    if (!hasTitle) {
+      toast.error('제목을 한국어 또는 스페인어로 입력해주세요.')
+      return
+    }
+    
+    const hasContent = newsWriteForm.content.trim() || newsWriteForm.content_es.trim()
+    if (!hasContent) {
+      toast.error('내용을 한국어 또는 스페인어로 입력해주세요.')
+      return
+    }
+    
+    if (!newsWriteForm.author.trim()) {
+      toast.error('작성자를 입력해주세요.')
+      return
+    }
+
+    setNewsWriteLoading(true)
+    try {
+      const response = await fetch('/api/news', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: editingNews.id,
+          title: newsWriteForm.title,
+          title_es: newsWriteForm.title_es,
+          content: newsWriteForm.content,
+          content_es: newsWriteForm.content_es,
+          source: newsWriteForm.source,
+          author: newsWriteForm.author,
+          category: newsWriteForm.category,
+          thumbnail: selectedThumbnail || null
+        })
+      })
+
+      if (response.ok) {
+        toast.success('뉴스가 수정되었습니다!')
+        setShowNewsEditModal(false)
+        setEditingNews(null)
+        setNewsWriteForm({
+          title: '',
+          title_es: '',
+          content: '',
+          content_es: '',
+          source: '',
+          author: '',
+          category: 'entertainment'
+        })
+        setUploadedImages([])
+        setSelectedThumbnail('')
+        // 뉴스 목록 새로고침
+        await fetchRealNews()
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        toast.error(errorData.error || '뉴스 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('뉴스 수정 오류:', error)
+      toast.error('뉴스 수정 중 오류가 발생했습니다.')
+    } finally {
+      setNewsWriteLoading(false)
+    }
+  }
+
+  // 뉴스 작성 함수
+  const handleNewsWrite = async () => {
+    const hasTitle = newsWriteForm.title.trim() || newsWriteForm.title_es.trim()
+    if (!hasTitle) {
+      toast.error('제목을 한국어 또는 스페인어로 입력해주세요.')
+      return
+    }
+    
+    const hasContent = newsWriteForm.content.trim() || newsWriteForm.content_es.trim()
+    if (!hasContent) {
+      toast.error('내용을 한국어 또는 스페인어로 입력해주세요.')
+      return
+    }
+    
+    if (!newsWriteForm.author.trim()) {
+      toast.error('작성자를 입력해주세요.')
+      return
+    }
+
+    setNewsWriteLoading(true)
+    try {
+      const response = await fetch('/api/news', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newsWriteForm.title,
+          title_es: newsWriteForm.title_es,
+          content: newsWriteForm.content,
+          content_es: newsWriteForm.content_es,
+          source: newsWriteForm.source,
+          author: newsWriteForm.author,
+          category: newsWriteForm.category,
+          thumbnail: selectedThumbnail || null, // 썸네일이 선택되지 않으면 null
+        })
+      })
+
+      if (response.ok) {
+        toast.success('뉴스가 작성되었습니다!')
+        setShowNewsWriteModal(false)
+        setNewsWriteForm({
+          title: '',
+          title_es: '',
+          content: '',
+          content_es: '',
+          source: '',
+          author: '',
+          category: 'entertainment'
+        })
+        setUploadedImages([])
+        setSelectedThumbnail('')
+        // 뉴스 목록 새로고침
+        await fetchRealNews()
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        toast.error(errorData.error || '뉴스 작성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('뉴스 작성 오류:', error)
+      toast.error('뉴스 작성 중 오류가 발생했습니다.')
+    } finally {
+      setNewsWriteLoading(false)
+    }
+  }
+
   // 댓글 모달 열기
   const openCommentModal = (story: any) => {
     setSelectedStoryForComment(story)
@@ -1248,13 +1551,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     <div className="flex flex-col lg:flex-row gap-6 p-0 sm:p-1">
       {/* 메인 컨텐츠 */}
       <div className="flex-1 space-y-6">
-        {/* 인증 가드 - 커뮤니티 활동 */}
-        <VerificationGuard 
-          requiredFeature="community_posting"
-          className="mb-6"
-        >
-          <div></div>
-        </VerificationGuard>
+        {/* 인증 가드 - 커뮤니티 활동 (운영자는 건너뛰기) */}
+        {!isAdmin && (
+          <VerificationGuard 
+            requiredLevel="email"
+            className="mb-6"
+          >
+            <div></div>
+          </VerificationGuard>
+        )}
 
 
 
@@ -1282,15 +1587,16 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             onClick={() => {
               console.log('헤더 스토리 올리기 버튼 클릭됨')
               
-              // 로그인 체크 (user 또는 authUser 중 하나라도 있으면 OK)
-              const currentUser = user || authUser
+              // 로그인 체크
+              const currentUser = user
               if (!currentUser) {
                 console.log('로그인 필요 - 로그인 페이지로 이동')
                 window.location.href = '/sign-in'
                 return
               }
               
-              setShowStoryUploadModal(true)
+              // 인증 확인 다이얼로그 표시
+              setShowAuthDialog(true)
             }}
           >
             <span className="hidden sm:inline">+ {t('communityTab.uploadStory')}</span>
@@ -1715,30 +2021,54 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                       <p className="text-gray-600 mb-3 line-clamp-2">{question.preview}</p>
                       
                       {/* 메타 정보 */}
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <User className="w-4 h-4" />
-                          <span>{question.author?.full_name || question.author || '익명'}</span>
-                          <Badge className={`ml-2 text-xs ${
-                            question.authorType === 'korean' 
-                              ? 'bg-purple-100 text-purple-700 border-purple-300' 
-                              : 'bg-pink-100 text-pink-700 border-pink-300'
-                          }`}>
-                            {question.authorType === 'korean' ? '한국인' : '라틴'}
-                          </Badge>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <User className="w-4 h-4" />
+                            <span>{question.author?.full_name || question.author || '익명'}</span>
+                            <Badge className={`ml-2 text-xs ${
+                              question.authorType === 'korean' 
+                                ? 'bg-purple-100 text-purple-700 border-purple-300' 
+                                : 'bg-pink-100 text-pink-700 border-pink-300'
+                            }`}>
+                              {question.authorType === 'korean' ? '한국인' : '라틴'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="w-4 h-4" />
+                            <span>{question.answers} 답변</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="w-4 h-4" />
+                            <span>{question.views} 조회</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span>{formatTime(question.createdAt)}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-4 h-4" />
-                          <span>{question.answers} 답변</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          <span>{question.views} 조회</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span>{formatTime(question.createdAt)}</span>
-                        </div>
+                        
+                        {/* 운영자 전용 버튼들 */}
+                        {isAdmin && (
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-6 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                if (confirm('정말로 이 질문을 삭제하시겠습니까?')) {
+                                  // 질문 삭제 로직 (나중에 구현)
+                                  console.log('질문 삭제:', question.id)
+                                  toast.success('질문이 삭제되었습니다.')
+                                }
+                              }}
+                            >
+                              🗑️
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1815,6 +2145,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             onWritePost={() => {
               setShowWriteModal(true)
             }}
+            refreshTrigger={refreshTrigger}
           />
         </div>
       )}
@@ -1830,6 +2161,35 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 setSelectedNews(null)
               }}
               showSpanish={showSpanishNews}
+              isAdmin={isAdmin}
+              onEdit={(news) => {
+                setShowNewsDetail(false)
+                setSelectedNews(null)
+                setEditingNews(news)
+                setShowNewsEditModal(true)
+                // 편집 폼에 기존 데이터 설정
+                setNewsWriteForm({
+                  title: news.title || '',
+                  title_es: news.title_es || '',
+                  content: news.content || '',
+                  content_es: news.content_es || '',
+                  source: news.source || '',
+                  author: news.author || '',
+                  category: news.category || 'entertainment'
+                })
+                setSelectedThumbnail(news.thumbnail || '')
+              }}
+              onDelete={(newsId) => {
+                // 뉴스 목록에서 삭제된 뉴스 제거
+                setRealNews(prev => prev.filter(news => news.id !== newsId))
+                toast.success('뉴스가 삭제되었습니다.')
+              }}
+              onPin={(newsId, isPinned) => {
+                // 뉴스 목록에서 고정 상태 업데이트
+                setRealNews(prev => prev.map(news => 
+                  news.id === newsId ? { ...news, is_pinned: isPinned } : news
+                ))
+              }}
             />
           ) : (
             // 뉴스 목록
@@ -1847,28 +2207,42 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   </div>
                   
                   {/* 번역 버튼 */}
-                  <Button 
-                    variant={showSpanishNews ? "default" : "outline"} 
-                    size="sm"
-                    onClick={() => {
-                      if (!isTranslating) {
-                        setIsTranslating(true)
-                        setTimeout(() => {
-                          setShowSpanishNews(!showSpanishNews)
-                          setIsTranslating(false)
-                        }, 1000)
-                      }
-                    }}
-                    disabled={isTranslating}
-                    className="flex items-center gap-2"
-                  >
-                    <span className="text-sm">
-                      {isTranslating ? '⏳' : '🌐'}
-                    </span>
-                    <span>
-                      {isTranslating ? '번역중...' : (showSpanishNews ? 'ES' : 'KO')}
-                    </span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {/* 번역 버튼 */}
+                    <Button 
+                      variant={showSpanishNews ? "default" : "outline"} 
+                      size="sm"
+                      onClick={() => {
+                        if (!isTranslating) {
+                          setIsTranslating(true)
+                          setTimeout(() => {
+                            setShowSpanishNews(!showSpanishNews)
+                            setIsTranslating(false)
+                          }, 1000)
+                        }
+                      }}
+                      disabled={isTranslating}
+                      className="flex items-center gap-2"
+                    >
+                      <span className="text-sm">
+                        {isTranslating ? '⏳' : '🌐'}
+                      </span>
+                      <span>
+                        {isTranslating ? '번역중...' : (showSpanishNews ? 'ES' : 'KO')}
+                      </span>
+                    </Button>
+                    
+                    {/* 운영진 전용 버튼들 */}
+                    {isAdmin && (
+                      <Button 
+                        size="sm" 
+                        className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                        onClick={() => setShowNewsWriteModal(true)}
+                      >
+                        ➕ 뉴스 작성
+                      </Button>
+                    )}
+                  </div>
                 </div>
                   
                 {/* 뉴스 목록 */}
@@ -1941,20 +2315,136 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                           onClick={(e) => handleNewsClick(news, e)}
                         >
                           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                            <img 
-                              src={news.thumbnail} 
-                              alt="뉴스 썸네일" 
-                              className="w-full h-full object-cover"
-                            />
+                            {news.thumbnail ? (
+                              <img 
+                                src={news.thumbnail} 
+                                alt="뉴스 썸네일" 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                                <div className="text-center">
+                                  <div className="text-2xl mb-1">📰</div>
+                                  <span className="text-blue-600 text-xs font-medium">뉴스</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-gray-900 text-base leading-tight mb-2 line-clamp-2">
-                              {showSpanishNews && news.title_es ? news.title_es : news.title}
-                            </h4>
-                            <div className="flex items-center gap-3 text-xs text-gray-500">
-                              <span>{news.source}</span>
-                              <span>{news.date}</span>
-                              <span>댓글 {news.comments}</span>
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-bold text-gray-900 text-base leading-tight line-clamp-2">
+                                {showSpanishNews && news.title_es ? news.title_es : news.title}
+                              </h4>
+                              {news.is_pinned && (
+                                <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex-shrink-0">
+                                  📌 고정
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 text-xs text-gray-500">
+                                <span>{news.source}</span>
+                                <span>{news.date}</span>
+                                <span>댓글 {news.comments}</span>
+                              </div>
+                              
+                              {/* 운영진 전용 버튼들 */}
+                              {isAdmin && (
+                                <div className="flex items-center gap-1">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-6 px-2 text-xs text-blue-600 border-blue-300 hover:bg-blue-50"
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setEditingNews(news)
+                                      setShowNewsEditModal(true)
+                                      // 편집 폼에 기존 데이터 설정
+                                      setNewsWriteForm({
+                                        title: news.title || '',
+                                        title_es: news.title_es || '',
+                                        content: news.content || '',
+                                        content_es: news.content_es || '',
+                                        source: news.source || '',
+                                        author: news.author || '',
+                                        category: news.category || 'entertainment'
+                                      })
+                                      setSelectedThumbnail(news.thumbnail || '')
+                                    }}
+                                  >
+                                    ✏️
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className={`h-6 px-2 text-xs ${
+                                      news.is_pinned 
+                                        ? 'text-yellow-600 border-yellow-400 bg-yellow-50 hover:bg-yellow-100' 
+                                        : 'text-orange-600 border-orange-300 hover:bg-orange-50'
+                                    }`}
+                                    onClick={async (e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      try {
+                                        const response = await fetch('/api/news', {
+                                          method: 'PUT',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            id: news.id,
+                                            is_pinned: !news.is_pinned
+                                          })
+                                        })
+                                        if (response.ok) {
+                                          toast.success(news.is_pinned ? '고정이 해제되었습니다.' : '뉴스가 고정되었습니다.')
+                                          // 뉴스 목록에서 고정 상태 업데이트
+                                          setNewsData(prev => prev.map(n => 
+                                            n.id === news.id ? { ...n, is_pinned: !news.is_pinned } : n
+                                          ))
+                                        } else {
+                                          const errorData = await response.json().catch(() => ({}))
+                                          console.error('고정 상태 변경 실패:', errorData)
+                                          toast.error(errorData.error || '고정 상태 변경에 실패했습니다.')
+                                        }
+                                      } catch (error) {
+                                        console.error('뉴스 고정 오류:', error)
+                                        toast.error('고정 상태 변경 중 오류가 발생했습니다.')
+                                      }
+                                    }}
+                                  >
+                                    {news.is_pinned ? '🔒' : '📌'}
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-6 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50"
+                                    onClick={async (e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      if (!confirm('정말로 이 뉴스를 삭제하시겠습니까?')) {
+                                        return
+                                      }
+                                      try {
+                                        const response = await fetch(`/api/news?id=${news.id}`, {
+                                          method: 'DELETE'
+                                        })
+                                        if (response.ok) {
+                                          toast.success('뉴스가 삭제되었습니다.')
+                                          // 뉴스 목록에서 삭제된 뉴스 제거
+                                          setNewsData(prev => prev.filter(n => n.id !== news.id))
+                                        } else {
+                                          toast.error('뉴스 삭제에 실패했습니다.')
+                                        }
+                                      } catch (error) {
+                                        console.error('뉴스 삭제 오류:', error)
+                                        toast.error('뉴스 삭제 중 오류가 발생했습니다.')
+                                      }
+                                    }}
+                                  >
+                                    🗑️
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1962,9 +2452,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
                       {/* 더 많은 뉴스 보기 버튼 */}
                       <div className="text-center pt-4">
-                        <Button variant="outline" className="bg-white hover:bg-gray-50">
-                          더 많은 한국 뉴스 보기
-                        </Button>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button variant="outline" className="bg-white hover:bg-gray-50">
+                            더 많은 한국 뉴스 보기
+                          </Button>
+                        </div>
                       </div>
                     </>
                   )}
@@ -2487,6 +2979,422 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   </>
                 ) : (
                   language === 'ko' ? '작성하기' : 'Write'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 인증 확인 다이얼로그 */}
+      <AuthConfirmDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        title="인증이 필요합니다"
+        description="스토리 업로드를 위해 인증이 필요합니다. 인증센터로 이동하시겠습니까?"
+        confirmText="인증센터로 이동"
+        cancelText="취소"
+      />
+
+      {/* 뉴스 작성 모달 */}
+      <Dialog open={showNewsWriteModal} onOpenChange={setShowNewsWriteModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-200">
+            <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 작성</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* 기본 정보 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  출처 <span className="text-gray-400 text-xs">(선택사항)</span>
+                </Label>
+                <Input
+                  placeholder="예: NewsWA, 서울En"
+                  value={newsWriteForm.source}
+                  onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
+                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">작성자</Label>
+                <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
+                  <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                    <SelectValue placeholder="작성자를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Amiko">Amiko</SelectItem>
+                    <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
+                    <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
+                    <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* 카테고리 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">카테고리</Label>
+              <Select value={newsWriteForm.category} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, category: value })}>
+                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="entertainment">엔터테인먼트</SelectItem>
+                  <SelectItem value="culture">문화</SelectItem>
+                  <SelectItem value="technology">기술</SelectItem>
+                  <SelectItem value="lifestyle">라이프스타일</SelectItem>
+                  <SelectItem value="food">음식</SelectItem>
+                  <SelectItem value="travel">여행</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 제목 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목 (한국어)</Label>
+              <Input
+                placeholder="한국어 제목을 입력하세요"
+                value={newsWriteForm.title}
+                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
+                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목 (스페인어)</Label>
+              <Input
+                placeholder="스페인어 제목을 입력하세요"
+                value={newsWriteForm.title_es}
+                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title_es: e.target.value })}
+                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* 내용 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium text-gray-700">내용 (한국어)</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) insertImageToContent(file, true)
+                    }}
+                    className="hidden"
+                    id="koreanImageUpload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('koreanImageUpload')?.click()}
+                    className="text-xs"
+                  >
+                    📷 이미지 삽입
+                  </Button>
+                </div>
+              </div>
+              <Textarea
+                placeholder="한국어 내용을 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
+                value={newsWriteForm.content}
+                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
+                rows={8}
+                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium text-gray-700">내용 (스페인어)</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) insertImageToContent(file, false)
+                    }}
+                    className="hidden"
+                    id="spanishImageUpload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('spanishImageUpload')?.click()}
+                    className="text-xs"
+                  >
+                    📷 이미지 삽입
+                  </Button>
+                </div>
+              </div>
+              <Textarea
+                placeholder="스페인어 내용을 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
+                value={newsWriteForm.content_es}
+                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content_es: e.target.value })}
+                rows={8}
+                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
+              />
+            </div>
+
+            {/* 썸네일 선택 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">썸네일 선택</Label>
+              <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
+                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uploadedImages.length > 0 ? (
+                    uploadedImages.map((image, index) => (
+                      <SelectItem key={index} value={image.url}>
+                        <div className="flex items-center gap-2">
+                          <img src={image.url} alt={image.name} className="w-8 h-8 object-cover rounded" />
+                          <span>{image.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-images" disabled>
+                      <span className="text-gray-400">먼저 이미지를 삽입해주세요</span>
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                {uploadedImages.length > 0 
+                  ? "본문에 삽입된 이미지 중에서 썸네일로 사용할 이미지를 선택하세요."
+                  : "본문에 이미지를 삽입하면 썸네일로 선택할 수 있습니다."
+                }
+              </p>
+            </div>
+
+            {/* 버튼들 */}
+            <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setShowNewsWriteModal(false)}
+                disabled={newsWriteLoading}
+                className="px-6"
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleNewsWrite}
+                disabled={newsWriteLoading}
+                className="px-6 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {newsWriteLoading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    작성 중...
+                  </>
+                ) : (
+                  '뉴스 작성'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 뉴스 편집 모달 */}
+      <Dialog open={showNewsEditModal} onOpenChange={setShowNewsEditModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-200">
+            <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 편집</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* 기본 정보 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  출처 <span className="text-gray-400 text-xs">(선택사항)</span>
+                </Label>
+                <Input
+                  placeholder="예: NewsWA, 서울En"
+                  value={newsWriteForm.source}
+                  onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
+                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">작성자</Label>
+                <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
+                  <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                    <SelectValue placeholder="작성자를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Amiko">Amiko</SelectItem>
+                    <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
+                    <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
+                    <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* 카테고리 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">카테고리</Label>
+              <Select value={newsWriteForm.category} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, category: value })}>
+                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="entertainment">엔터테인먼트</SelectItem>
+                  <SelectItem value="politics">정치</SelectItem>
+                  <SelectItem value="economy">경제</SelectItem>
+                  <SelectItem value="sports">스포츠</SelectItem>
+                  <SelectItem value="technology">기술</SelectItem>
+                  <SelectItem value="culture">문화</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 제목 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">제목 (한국어)</Label>
+                <Input
+                  placeholder="한국어 제목을 입력하세요"
+                  value={newsWriteForm.title}
+                  onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
+                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">제목 (스페인어)</Label>
+                <Input
+                  placeholder="Título en español"
+                  value={newsWriteForm.title_es}
+                  onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title_es: e.target.value })}
+                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+            </div>
+
+            {/* 내용 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">내용 (한국어)</Label>
+                <div className="relative">
+                  <Textarea
+                    placeholder="한국어 내용을 입력하세요"
+                    value={newsWriteForm.content}
+                    onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
+                    className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 min-h-[200px] resize-none"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="absolute bottom-2 right-2"
+                    onClick={() => {
+                      const input = document.createElement('input')
+                      input.type = 'file'
+                      input.accept = 'image/*'
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0]
+                        if (file) insertImageToContent(file, true)
+                      }
+                      input.click()
+                    }}
+                  >
+                    📷 이미지 삽입
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">내용 (스페인어)</Label>
+                <div className="relative">
+                  <Textarea
+                    placeholder="Contenido en español"
+                    value={newsWriteForm.content_es}
+                    onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content_es: e.target.value })}
+                    className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 min-h-[200px] resize-none"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="absolute bottom-2 right-2"
+                    onClick={() => {
+                      const input = document.createElement('input')
+                      input.type = 'file'
+                      input.accept = 'image/*'
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0]
+                        if (file) insertImageToContent(file, false)
+                      }
+                      input.click()
+                    }}
+                  >
+                    📷 Insertar imagen
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* 썸네일 선택 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">썸네일 선택</Label>
+              <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
+                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uploadedImages.length > 0 ? (
+                    uploadedImages.map((image, index) => (
+                      <SelectItem key={index} value={image.url}>
+                        <div className="flex items-center gap-2">
+                          <img src={image.url} alt={image.name} className="w-8 h-8 object-cover rounded" />
+                          <span>{image.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-images" disabled>
+                      <span className="text-gray-400">먼저 이미지를 삽입해주세요</span>
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                {uploadedImages.length > 0
+                  ? "본문에 삽입된 이미지 중에서 썸네일로 사용할 이미지를 선택하세요."
+                  : "본문에 이미지를 삽입하면 썸네일로 선택할 수 있습니다."
+                }
+              </p>
+            </div>
+
+            {/* 버튼 */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setShowNewsEditModal(false)}
+                disabled={newsWriteLoading}
+                className="px-6"
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleNewsEdit}
+                disabled={newsWriteLoading}
+                className="px-6 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {newsWriteLoading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    수정 중...
+                  </>
+                ) : (
+                  '뉴스 수정'
                 )}
               </Button>
             </div>

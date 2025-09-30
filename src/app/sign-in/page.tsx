@@ -15,6 +15,9 @@ import {
   EyeOff
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import BiometricLogin from '@/components/auth/BiometricLogin'
+import { checkWebAuthnSupport } from '@/lib/webauthnClient'
+import { useEffect } from 'react'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -27,7 +30,14 @@ export default function SignInPage() {
     password: ''
   })
   
+  const [isWebAuthnSupported, setIsWebAuthnSupported] = useState(false)
+  const [showBiometricLogin, setShowBiometricLogin] = useState(false)
 
+  useEffect(() => {
+    // WebAuthn 지원 여부 확인
+    const support = checkWebAuthnSupport()
+    setIsWebAuthnSupported(support.isSupported)
+  }, [])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -63,7 +73,12 @@ export default function SignInPage() {
       const { error: signInError } = await signIn(formData.identifier, formData.password)
       
       if (signInError) {
-        throw new Error(t('auth.sessionUpdateFailed'))
+        // 구체적인 오류 메시지 표시
+        if (signInError.message.includes('Invalid login credentials')) {
+          throw new Error('이메일 또는 비밀번호가 올바르지 않습니다. 회원가입을 먼저 진행해주세요.')
+        } else {
+          throw new Error(t('auth.sessionUpdateFailed'))
+        }
       }
       
       // 로그인 성공 후 메인 앱으로 이동
@@ -85,6 +100,17 @@ export default function SignInPage() {
     }
   }
 
+
+  const handleBiometricLoginSuccess = (user: any) => {
+    console.log('지문 인증 로그인 성공:', user)
+    // 지문 인증으로 로그인 성공 시 메인 앱으로 이동
+    router.push('/main')
+  }
+
+  const handleBiometricLoginError = (error: string) => {
+    console.error('지문 인증 로그인 실패:', error)
+    alert(error)
+  }
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
@@ -168,6 +194,26 @@ export default function SignInPage() {
               )}
             </Button>
           </form>
+
+          {/* 지문 인증 로그인 */}
+          {isWebAuthnSupported && (
+            <div className="space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-slate-50 px-2 text-slate-500">또는</span>
+                </div>
+              </div>
+              
+              <BiometricLogin
+                userId="temp-user-id" // 실제로는 사용자 ID 사용
+                onSuccess={handleBiometricLoginSuccess}
+                onError={handleBiometricLoginError}
+              />
+            </div>
+          )}
 
           {/* 소셜 로그인 */}
 

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -16,6 +17,11 @@ import {
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
@@ -29,12 +35,43 @@ interface VideoCallStarterProps {
 
 export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps) {
   const { t } = useLanguage()
+  const router = useRouter()
+  const { user } = useAuth()
   const [isCallActive, setIsCallActive] = useState(false)
   const [channelName, setChannelName] = useState('')
   const [showStartDialog, setShowStartDialog] = useState(false)
   const [showOnlyKoreans, setShowOnlyKoreans] = useState(true)
   const [selectedPartner, setSelectedPartner] = useState<any>(null)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
+  const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
+  
+  // 헤더와 동일한 인증 상태 확인
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      if (!user?.id) {
+        setVerificationStatus('unverified')
+        return
+      }
+      try {
+        const response = await fetch(`/api/auth/status?userId=${user.id}`)
+        const result = await response.json()
+        if (response.ok && result.success) {
+          if (result.emailVerified || result.smsVerified) {
+            setVerificationStatus('verified')
+          } else {
+            setVerificationStatus('unverified')
+          }
+        } else {
+          setVerificationStatus('unverified')
+        }
+      } catch (error) {
+        console.error('인증 상태 확인 오류:', error)
+        setVerificationStatus('unverified')
+      }
+    }
+    checkAuthStatus()
+  }, [user?.id])
+
 
   const handleStartCall = () => {
     if (!channelName.trim()) {
@@ -51,6 +88,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
     setIsCallActive(false)
     setChannelName('')
   }
+
 
   // 실제 파트너 데이터는 API에서 가져올 예정
   const allPartners: any[] = []
@@ -73,14 +111,20 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       {/* 메인 화면 */}
       <div className="space-y-1 sm:space-y-2">
         {/* 빠른 시작 */}
-        <Card className="p-3 sm:p-4 bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg">
+        <Card className="p-3 sm:p-4 bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg mt-3 sm:mt-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-2">
             <div>
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-0">{t('videoCall.quickStart')}</h3>
               <p className="text-xs sm:text-sm text-gray-600">{t('videoCall.quickStartDescription')}</p>
             </div>
             <Button 
-              onClick={() => setShowStartDialog(true)}
+              onClick={() => {
+                if (verificationStatus === 'verified') {
+                  setShowStartDialog(true)
+                } else {
+                  router.push('/main?tab=me')
+                }
+              }}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-3 py-2 sm:px-4 text-xs sm:text-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               <Phone className="w-4 h-4 mr-1" />
@@ -423,6 +467,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           )}
         </DialogContent>
       </Dialog>
+
     </>
   )
 }

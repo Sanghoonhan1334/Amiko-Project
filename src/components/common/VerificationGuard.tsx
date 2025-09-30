@@ -8,36 +8,63 @@ import { useLanguage } from '@/context/LanguageContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
+import { AlertTriangle, MessageSquare, Smartphone, ArrowRight, Shield } from 'lucide-react'
+
+// 인증 레벨 정의
+export type AuthLevel = 
+  | 'none'           // 인증 불필요 (커뮤니티 읽기)
+  | 'email'          // 이메일 인증 (커뮤니티 게시글 작성)
+  | 'sms'            // SMS 인증 (영상통화, 결제)
+  | 'full'           // 전체 인증 (모든 기능)
 
 interface VerificationGuardProps {
   children: React.ReactNode
-  requiredFeature?: 'all' | 'consultation' | 'community' | 'community_posting'
+  requiredLevel?: AuthLevel
   className?: string
 }
 
-interface VerificationStatus {
-  status: 'not_submitted' | 'pending' | 'approved' | 'rejected'
-  message?: string
-  submitted_at?: string
-  reviewed_at?: string
-  admin_notes?: string
-}
 
 export default function VerificationGuard({ 
   children, 
-  requiredFeature = 'all',
+  requiredLevel = 'none',
   className = ''
 }: VerificationGuardProps) {
   const { user } = useUser()
   const { user: authUser } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
-  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null)
+  const [userAuthLevel, setUserAuthLevel] = useState<AuthLevel>('none')
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // 운영자 상태 확인 함수
+  const checkAdminStatus = async (currentUser: any) => {
+    if (!currentUser?.id && !currentUser?.email) return false
+    
+    try {
+      const params = new URLSearchParams()
+      if (currentUser?.id) params.append('userId', currentUser.id)
+      if (currentUser?.email) params.append('email', currentUser.email)
+      
+      const response = await fetch(`/api/admin/check?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        return data.isAdmin || false
+      }
+    } catch (error) {
+      console.error('VerificationGuard: 운영자 상태 확인 실패:', error)
+    }
+    return false
+  }
 
   useEffect(() => {
-    const checkVerificationStatus = async () => {
+    const checkUserAuthLevel = async () => {
       const currentUser = user || authUser
       if (!currentUser?.id) {
         setLoading(false)
@@ -45,33 +72,83 @@ export default function VerificationGuard({
       }
 
       try {
-        const response = await fetch(`/api/verification?userId=${currentUser.id}`)
+        // 먼저 운영자 상태 확인
+        const adminStatus = await checkAdminStatus(currentUser)
+        setIsAdmin(adminStatus)
+        
+        // 운영자면 인증 체크 건너뛰기
+        if (adminStatus) {
+          setUserAuthLevel('full')
+          setLoading(false)
+          return
+        }
+
+        // 사용자의 인증 상태 확인
+        console.log('[VerificationGuard] API 호출 시작:', currentUser.id)
+        const response = await fetch(`/api/auth/status?userId=${currentUser.id}`)
+        console.log('[VerificationGuard] API 응답 상태:', response.status)
         const result = await response.json()
+        console.log('[VerificationGuard] API 응답 데이터:', result)
 
         if (response.ok) {
-          setVerificationStatus(result.verification)
+          const { emailVerified, smsVerified, profileComplete } = result
+          
+          console.log('[VerificationGuard] 인증 상태:', { emailVerified, smsVerified, profileComplete })
+          
+          // 인증 레벨 결정 (프로필 완성 여부 우선 확인)
+          if (profileComplete) {
+            setUserAuthLevel('full') // 프로필 완성은 full 레벨로 설정
+            console.log('[VerificationGuard] 프로필 완성됨, full 레벨로 설정')
+          } else if (smsVerified) {
+            setUserAuthLevel('sms')
+            console.log('[VerificationGuard] SMS 인증됨, sms 레벨로 설정')
+          } else if (emailVerified) {
+            setUserAuthLevel('email')
+            console.log('[VerificationGuard] 이메일 인증됨, email 레벨로 설정')
+          } else {
+            setUserAuthLevel('none')
+            console.log('[VerificationGuard] 인증 없음, none 레벨로 설정')
+          }
         } else {
-          console.error('인증 상태 확인 실패:', result.error)
-          setVerificationStatus({ status: 'not_submitted' })
+          setUserAuthLevel('none')
+          console.log('[VerificationGuard] API 응답 실패')
         }
       } catch (error) {
-        console.error('인증 상태 확인 오류:', error)
-        setVerificationStatus({ status: 'not_submitted' })
+        console.error('인증 레벨 확인 오류:', error)
+        setUserAuthLevel('none')
       } finally {
         setLoading(false)
       }
     }
 
-    checkVerificationStatus()
+    checkUserAuthLevel()
   }, [user?.id])
+
+  // 인증 레벨 확인
+  const hasRequiredLevel = (required: AuthLevel, current: AuthLevel): boolean => {
+    const levels = ['none', 'email', 'sms', 'full']
+    const requiredIndex = levels.indexOf(required)
+    const currentIndex = levels.indexOf(current)
+    const hasLevel = currentIndex >= requiredIndex
+    
+    console.log('[VerificationGuard] 레벨 확인:', { 
+      required, 
+      current, 
+      requiredIndex, 
+      currentIndex, 
+      hasLevel 
+    })
+    
+    return hasLevel
+  }
 
   // 로딩 중
   if (loading) {
     return (
-      <div className={`flex items-center justify-center p-8 ${className}`}>
+      <div className={`flex items-center justify-center p-2 ${className}`}>
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('auth.checkingVerificationStatus')}</p>
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-1"></div>
+          <p className="text-gray-600 text-sm">{t('auth.checkingVerificationStatus')}</p>
         </div>
       </div>
     )
@@ -81,20 +158,20 @@ export default function VerificationGuard({
   const currentUser = user || authUser
   if (!currentUser) {
     return (
-      <div className={`flex items-center justify-center p-8 ${className}`}>
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>{t('community.galleryList.loginRequired')}</CardTitle>
-            <CardDescription>
-              {t('community.galleryList.loginRequiredDescription')}
+      <div className={`flex items-center justify-center p-2 ${className}`}>
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center pb-1">
+            <CardTitle className="text-lg">{t('auth.signIn')}</CardTitle>
+            <CardDescription className="text-sm">
+              {t('auth.signInDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button 
               onClick={() => router.push('/sign-in')}
-              className="w-full"
+                className="w-full py-2 text-base"
             >
-{t('community.galleryList.loginButton')}
+{t('auth.signIn')}
             </Button>
           </CardContent>
         </Card>
@@ -103,102 +180,129 @@ export default function VerificationGuard({
   }
 
   // 인증이 필요한 서비스인지 확인
-  const needsVerification = requiredFeature === 'all' || requiredFeature === 'consultation'
+  const needsVerification = requiredLevel !== 'none'
 
   // 인증이 필요하지 않은 서비스인 경우 바로 렌더링
   if (!needsVerification) {
     return <div className={className}>{children}</div>
   }
 
-  // 인증 상태에 따른 처리
-  const status = verificationStatus?.status || 'not_submitted'
-
-  // 인증 승인된 경우
-  if (status === 'approved') {
+  // 사용자가 필요한 인증 레벨을 가지고 있는지 확인
+  // 인증이 필요하지 않거나 충분한 경우 (운영자는 항상 통과)
+  if (hasRequiredLevel(requiredLevel, userAuthLevel) || isAdmin) {
     return <div className={className}>{children}</div>
   }
 
   // 인증이 필요한 경우 가드 화면 표시
   const getStatusInfo = () => {
-    switch (status) {
-      case 'not_submitted':
-        return {
-          icon: <AlertTriangle className="w-8 h-8 text-orange-500" />,
-          title: '인증이 필요합니다',
-          description: '상담 서비스를 이용하려면 사용자 인증을 완료해주세요.',
-          badge: <Badge variant="outline" className="text-orange-600 border-orange-300">인증 필요</Badge>,
-          buttonText: '인증하기',
-          buttonAction: () => router.push('/verification')
-        }
-      case 'pending':
-        return {
-          icon: <Clock className="w-8 h-8 text-blue-500" />,
-          title: '인증 검토 중',
-          description: '제출하신 인증 정보를 검토 중입니다. 검토 완료 후 결과를 알려드리겠습니다.',
-          badge: <Badge variant="outline" className="text-blue-600 border-blue-300">검토 중</Badge>,
-          buttonText: '인증 상태 확인',
-          buttonAction: () => router.push('/verification')
-        }
-      case 'rejected':
-        return {
-          icon: <XCircle className="w-8 h-8 text-red-500" />,
-          title: '인증이 거부되었습니다',
-          description: verificationStatus?.admin_notes || '제출하신 인증 정보에 문제가 있습니다. 다시 제출해주세요.',
-          badge: <Badge variant="outline" className="text-red-600 border-red-300">인증 거부</Badge>,
-          buttonText: '다시 인증하기',
-          buttonAction: () => router.push('/verification')
-        }
-      default:
-        return {
-          icon: <AlertTriangle className="w-8 h-8 text-gray-500" />,
-          title: '인증 상태를 확인할 수 없습니다',
-          description: t('auth.verificationStatusError'),
-          badge: <Badge variant="outline" className="text-gray-600 border-gray-300">상태 불명</Badge>,
-          buttonText: '인증하기',
-          buttonAction: () => router.push('/verification')
-        }
+    const getRequiredLevelText = (level: AuthLevel) => {
+      switch (level) {
+        case 'email':
+          return '이메일 인증'
+        case 'sms':
+          return '전화번호 인증'
+        case 'full':
+          return '프로필 완성'
+        default:
+          return '인증'
+      }
+    }
+
+    if (requiredLevel === 'sms') {
+      return {
+        icon: <AlertTriangle className="w-8 h-8 text-orange-500" />,
+        title: '전화번호 인증이 필요합니다',
+        description: '게시판 참여와 영상통화를 위해 전화번호 인증이 필요합니다.',
+        badge: <Badge variant="outline" className="text-orange-600 border-orange-300">인증 필요</Badge>,
+        buttonText: '인증센터로 이동',
+        buttonAction: () => router.push('/verification-center'),
+        showDualOptions: false
+      }
+    }
+
+    return {
+      icon: <AlertTriangle className="w-8 h-8 text-orange-500" />,
+      title: `${getRequiredLevelText(requiredLevel)}이 필요합니다`,
+      description: `이 기능을 이용하려면 ${getRequiredLevelText(requiredLevel)}을 완료해주세요.`,
+      badge: <Badge variant="outline" className="text-orange-600 border-orange-300">인증 필요</Badge>,
+      buttonText: '인증하기',
+      buttonAction: () => router.push('/verification'),
+      showDualOptions: false
     }
   }
 
   const statusInfo = getStatusInfo()
 
   return (
-    <div className={`flex items-center justify-center p-8 ${className}`}>
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+    <div className={`flex items-center justify-center p-2 ${className}`}>
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center pb-1">
+          <div className="flex justify-center mb-0">
             {statusInfo.icon}
           </div>
-          <CardTitle className="flex items-center justify-center gap-2">
+          <CardTitle className="flex items-center justify-center gap-1 text-lg">
             {statusInfo.title}
             {statusInfo.badge}
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-sm">
             {statusInfo.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {verificationStatus?.submitted_at && (
-            <div className="text-sm text-gray-600 text-center">
-              제출일: {new Date(verificationStatus.submitted_at).toLocaleDateString('ko-KR')}
+        <CardContent className="space-y-1">
+          {statusInfo.showDualOptions ? (
+            <div className="space-y-1">
+              {/* WhatsApp 인증 버튼 */}
+              <Button 
+                onClick={() => router.push('/verification-simple?method=whatsapp')}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 text-base rounded-lg shadow-md hover:shadow-lg transform hover:scale-102 transition-all duration-200 border-0"
+              >
+                <div className="flex items-center justify-center w-full">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                    <MessageSquare className="w-4 h-4" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <div className="font-bold text-base">WhatsApp으로 인증</div>
+                    <div className="text-xs opacity-90 font-medium">WhatsApp 메시지로 인증번호 받기</div>
+                  </div>
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </Button>
+              
+              {/* SMS 인증 버튼 */}
+              <Button 
+                onClick={() => router.push('/verification-simple?method=sms')}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 text-base rounded-lg shadow-md hover:shadow-lg transform hover:scale-102 transition-all duration-200 border-0"
+              >
+                <div className="flex items-center justify-center w-full">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <div className="font-bold text-base">SMS로 인증</div>
+                    <div className="text-xs opacity-90 font-medium">문자 메시지로 인증번호 받기</div>
+                  </div>
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </Button>
             </div>
+          ) : (
+            <Button 
+              onClick={statusInfo.buttonAction}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-2 text-base rounded-lg shadow-md hover:shadow-lg transform hover:scale-102 transition-all duration-200"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Shield className="w-4 h-4" />
+                {statusInfo.buttonText}
+                <ArrowRight className="w-3 h-3" />
+              </div>
+            </Button>
           )}
           
-          <Button 
-            onClick={statusInfo.buttonAction}
-            className="w-full"
-          >
-            {statusInfo.buttonText}
-          </Button>
-          
           <div className="text-center">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => router.push('/main')}
-            >
-              메인으로 돌아가기
-            </Button>
           </div>
         </CardContent>
       </Card>

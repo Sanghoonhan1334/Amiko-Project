@@ -190,7 +190,7 @@ export default function ChargingTab() {
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6">
+    <div className="p-3 sm:p-4 md:p-6 -mt-8 sm:mt-0">
 
       {/* 슬라이드 컨테이너 */}
       <div className="relative">

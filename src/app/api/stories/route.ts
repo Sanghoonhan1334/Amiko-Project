@@ -23,6 +23,19 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
+    // 임시 사용자 ID인 경우 처리 (개발 환경)
+    if (userId && (userId.startsWith('user_') || userId.startsWith('temp_'))) {
+      console.log('[STORIES_API] 임시 사용자 ID 감지, 빈 스토리 목록 반환')
+      return NextResponse.json({
+        stories: [],
+        pagination: {
+          offset: 0,
+          limit: 20,
+          total: 0
+        }
+      })
+    }
+
     let query = supabaseServer
       .from('stories')
       .select(`

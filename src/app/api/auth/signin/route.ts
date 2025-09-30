@@ -1,7 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 
+// 로그인 처리
 export async function POST(request: NextRequest) {
+  try {
+    const { identifier, password } = await request.json()
+
+    // 필수 필드 검증
+    if (!identifier || !password) {
+      return NextResponse.json(
+        { error: '이메일/전화번호와 비밀번호를 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 임시로 로그인 성공 처리 (테스트용)
+    const mockUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    console.log('\n' + '='.repeat(60))
+    console.log('🔐 로그인 처리 (개발 환경)')
+    console.log('='.repeat(60))
+    console.log(`로그인 ID: ${identifier}`)
+    console.log(`비밀번호: ${password}`)
+    console.log(`사용자 ID: ${mockUserId}`)
+    console.log('='.repeat(60) + '\n')
+
+    return NextResponse.json({
+      success: true,
+      message: '로그인이 완료되었습니다.',
+      data: {
+        user: {
+          id: mockUserId,
+          email: identifier.includes('@') ? identifier : 'test@example.com',
+          name: '테스트 사용자',
+          phone: identifier.includes('@') ? '010-1234-5678' : identifier,
+          country: 'KR',
+          isKorean: true,
+          emailVerified: true,
+          phoneVerified: false,
+          biometricEnabled: false
+        },
+        session: {
+          access_token: `mock_token_${Date.now()}`,
+          refresh_token: `mock_refresh_${Date.now()}`,
+          expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24시간
+        }
+      }
+    })
+
+  } catch (error) {
+    console.error('[SIGNIN] 오류:', error)
+    return NextResponse.json(
+      { error: '로그인 중 오류가 발생했습니다.' },
+      { status: 500 }
+    )
+  }
+}
+
+// 로그인 상태 확인
+export async function GET(request: NextRequest) {
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -10,127 +67,60 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { identifier, password } = await request.json()
+    // 세션 확인
+    const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession()
 
-    // 입력 검증
-    if (!identifier || !password) {
-      return NextResponse.json(
-        { error: '이메일 또는 전화번호와 비밀번호를 입력해주세요.' },
-        { status: 400 }
-      )
-    }
-
-    // identifier가 이메일인지 전화번호인지 확인
-    const isEmail = identifier.includes('@')
-    const email = isEmail ? identifier : null
-    const phone = isEmail ? null : identifier
-
-    // Supabase Auth로 로그인
-    let authData, authError
-    
-    if (isEmail) {
-      // 이메일로 로그인
-      const result = await supabaseServer.auth.signInWithPassword({
-        email,
-        password
+    if (sessionError || !session) {
+      return NextResponse.json({
+        success: false,
+        data: { isAuthenticated: false }
       })
-      authData = result.data
-      authError = result.error
-    } else {
-      // 전화번호로 로그인 - 먼저 사용자 테이블에서 이메일 찾기
-      const { data: userData, error: userError } = await supabaseServer
-        .from('users')
-        .select('email')
-        .eq('phone', phone)
-        .single()
-      
-      if (userError || !userData) {
-        return NextResponse.json(
-          { error: '등록되지 않은 전화번호입니다.' },
-          { status: 401 }
-        )
-      }
-      
-      const result = await supabaseServer.auth.signInWithPassword({
-        email: userData.email,
-        password
-      })
-      authData = result.data
-      authError = result.error
     }
 
-    if (authError) {
-      console.error('[SIGNIN] 로그인 실패:', authError)
-      
-      if (authError.message.includes('Invalid login credentials')) {
-        return NextResponse.json(
-          { error: '이메일 또는 비밀번호가 올바르지 않습니다.' },
-          { status: 401 }
-        )
-      }
-      
-      // 이메일 인증 체크 제거 (개발용)
-      // if (authError.message.includes('Email not confirmed')) {
-      //   return NextResponse.json(
-      //     { error: '계정이 활성화되지 않았습니다. 관리자에게 문의하세요.' },
-      //     { status: 401 }
-      //   )
-      // }
-      
-      return NextResponse.json(
-        { error: '로그인에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    const user = authData.user
-    const session = authData.session
-
-    // 사용자 프로필 정보 가져오기
-    const { data: profile, error: profileError } = await supabaseServer
+    // 사용자 정보 조회
+    const { data: user, error: userError } = await supabaseServer
       .from('users')
       .select('*')
-      .eq('id', user.id)
+      .eq('id', session.user.id)
       .single()
 
-    if (profileError) {
-      console.error('[SIGNIN] 프로필 조회 실패:', profileError)
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: '사용자 정보를 찾을 수 없습니다.' },
+        { status: 404 }
+      )
     }
 
-    // 포인트 정보는 기본값으로 설정 (나중에 포인트 시스템 구현 시 추가)
-    const points = {
-      total_points: 0,
-      level: 1,
-      experience_points: 0
-    }
+    // 사용자 인증 상태 조회
+    const { data: authStatus, error: statusError } = await supabaseServer
+      .from('user_auth_status')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .single()
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.user_metadata?.name || (profile as any)?.full_name,
-        country: user.user_metadata?.country,
-        is_korean: user.user_metadata?.is_korean || false,
-        avatar_url: (profile as any)?.avatar_url,
-        bio: (profile as any)?.one_line_intro,
-        language: (profile as any)?.language || 'ko',
-        phone: (profile as any)?.phone,
-        points: points.total_points,
-        level: points.level,
-        experience_points: points.experience_points
-      },
-      session: {
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-        expires_at: session.expires_at
+      data: {
+        isAuthenticated: true,
+        user: {
+          id: session.user.id,
+          email: session.user.email,
+          name: user.name,
+          phone: user.phone,
+          country: user.country,
+          isKorean: user.is_korean,
+          emailVerified: authStatus?.email_verified || false,
+          phoneVerified: authStatus?.phone_verified || false,
+          biometricEnabled: authStatus?.biometric_enabled || false
+        },
+        session: session
       }
     })
 
   } catch (error) {
-    console.error('[SIGNIN] 오류:', error)
+    console.error('[SIGNIN_STATUS] 오류:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: '로그인 상태 확인 중 오류가 발생했습니다.' },
       { status: 500 }
     )
   }

@@ -31,6 +31,9 @@ export default function Header() {
   // 포인트 상태 관리
   const [userPoints, setUserPoints] = useState(0)
   
+  // 운영진 상태 관리
+  const [isAdmin, setIsAdmin] = useState(false)
+  
   // 시계 상태 관리
   const [koreanTime, setKoreanTime] = useState('')
   const [localTime, setLocalTime] = useState('')
@@ -63,18 +66,15 @@ export default function Header() {
     setLocalTime(mexicoTimeStr)
   }
 
-  // 포인트 로딩 함수
+  // 포인트 로딩 함수 - 로그 최소화
   const loadUserPoints = async () => {
     if (!user?.id) return
 
     try {
-      console.log('헤더 포인트 로딩 시작:', user.id)
       const response = await fetch(`/api/points?userId=${user.id}`)
-      console.log('헤더 포인트 API 응답:', response.status)
       
       if (response.ok) {
         const data = await response.json()
-        console.log('헤더 포인트 데이터:', data)
         
         // 다양한 포인트 필드 확인
         const points = data.userPoints?.available_points || 
@@ -83,13 +83,31 @@ export default function Header() {
                       data.availablePoints || 
                       0
         
-        console.log('설정할 포인트:', points)
         setUserPoints(points)
-      } else {
-        console.error('헤더 포인트 API 오류:', response.status)
       }
     } catch (error) {
-      console.error('헤더 포인트 로딩 실패:', error)
+      console.error('포인트 로딩 실패:', error)
+    }
+  }
+
+  // 운영진 여부 확인 함수 - 로그 간소화
+  const checkAdminStatus = async () => {
+    if (!user?.id && !user?.email) {
+      setIsAdmin(false)
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/check?userId=${user.id}&email=${user.email}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setIsAdmin(data.isAdmin)
+      } else {
+        setIsAdmin(false)
+      }
+    } catch (error) {
+      setIsAdmin(false)
     }
   }
 
@@ -97,8 +115,11 @@ export default function Header() {
   useEffect(() => {
     if (user?.id) {
       loadUserPoints()
+      checkAdminStatus()
+    } else {
+      setIsAdmin(false)
     }
-  }, [user?.id])
+  }, [user?.id, user?.email])
 
   // 시계 초기화 및 주기적 업데이트
   useEffect(() => {
@@ -177,14 +198,30 @@ export default function Header() {
         return
       }
 
-      try {
-        // 인증 상태 확인
-        const verificationResponse = await fetch(`/api/verification?userId=${user.id}`)
-        const verificationResult = await verificationResponse.json()
+      // 운영자일 때는 인증 상태 확인 건너뛰기
+      if (isAdmin) {
+        setVerificationStatus('verified')
+        return
+      }
 
-        if (verificationResponse.ok && verificationResult.verification?.status === 'approved') {
+      try {
+        // 인증 상태 확인 (users 테이블의 email_verified, phone_verified 확인)
+        const authStatusResponse = await fetch(`/api/auth/status?userId=${user.id}`)
+        
+        // 404 오류 시 (사용자가 users 테이블에 없음) 인증 필요로 표시
+        if (authStatusResponse.status === 404) {
+          setVerificationStatus('unverified')
+          return
+        }
+        
+        const authStatusResult = await authStatusResponse.json()
+        console.log('[HEADER] 인증 상태 결과:', authStatusResult)
+
+        if (authStatusResponse.ok && authStatusResult.success && (authStatusResult.emailVerified || authStatusResult.smsVerified)) {
+          console.log('[HEADER] 인증 완료로 설정')
           setVerificationStatus('verified')
         } else {
+          console.log('[HEADER] 인증 미완료로 설정')
           setVerificationStatus('unverified')
         }
 
@@ -196,8 +233,14 @@ export default function Header() {
       }
     }
 
-    checkVerificationStatus()
-  }, [user?.id])
+    // 운영자 상태가 확인된 후에만 인증 상태 확인 실행
+    if (user?.id && !isAdmin) {
+      checkVerificationStatus()
+    } else if (isAdmin) {
+      // 운영자일 때는 바로 verified 상태로 설정
+      setVerificationStatus('verified')
+    }
+  }, [user?.id, isAdmin])
 
   // 모바일 메뉴 토글
   const toggleMobileMenu = () => {
@@ -246,7 +289,7 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 lg:max-w-6xl lg:mx-auto">
-          <div className="flex justify-between items-center h-28 sm:h-32 md:h-36 relative">
+          <div className="flex justify-between items-center h-20 sm:h-24 md:h-28 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
               {/* 언어 드롭다운 - 시계 위에 */}
@@ -698,6 +741,13 @@ export default function Header() {
                       <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-50 rounded-full border border-gray-200">
                         <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
                         <span className="text-xs text-gray-600 font-medium">확인 중...</span>
+                      </div>
+                    ) : isAdmin ? (
+                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-full border border-purple-200 shadow-sm">
+                        <div className="flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full">
+                          <span className="text-xs text-white font-bold">👑</span>
+                        </div>
+                        <span className="text-xs text-purple-700 font-medium lg:whitespace-nowrap">운영자</span>
                       </div>
                     ) : verificationStatus === 'verified' ? (
                       <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-emerald-50 to-green-50 rounded-full border border-emerald-200 shadow-sm">
