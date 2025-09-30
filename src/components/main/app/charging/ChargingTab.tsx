@@ -254,7 +254,7 @@ export default function ChargingTab() {
                       </div>
                       <Button 
                         size="sm" 
-                        className="w-full text-xs h-6"
+                        className="w-full text-xs h-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleCouponPurchase(pkg)
@@ -293,7 +293,7 @@ export default function ChargingTab() {
                     </div>
                     <div className="text-base font-bold text-gray-800 mb-1">$10</div>
                     <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.monthly')}</div>
-                    <Button size="sm" className="w-full text-xs h-6">
+                    <Button size="sm" className="w-full text-xs h-8 bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       {t('storeTab.vip.subscribe')}
                     </Button>
                   </CardContent>
@@ -309,7 +309,7 @@ export default function ChargingTab() {
                     <div className="text-base font-bold text-purple-600 mb-1">$80</div>
                     <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.yearly')}</div>
                     <div className="text-xs text-green-600 mb-1">{t('storeTab.vip.save')} $3.3</div>
-                    <Button size="sm" className="w-full text-xs h-6 bg-gradient-to-r from-purple-300 to-purple-400 hover:from-purple-400 hover:to-purple-500 text-white shadow-md hover:shadow-lg transition-all duration-200">
+                    <Button size="sm" className="w-full text-xs h-8 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       {t('storeTab.vip.subscribe')}
                     </Button>
                     <div className="mt-1">
@@ -393,7 +393,7 @@ export default function ChargingTab() {
                       {item.available && (
                         <Button 
                           size="sm" 
-                          className="w-full text-xs h-7"
+                          className="w-full text-xs h-8 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleStoreItemPurchase(item)

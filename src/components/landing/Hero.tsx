@@ -27,8 +27,8 @@ export default function Hero() {
         <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-blue-100/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-2 sm:px-4 pt-24 sm:pt-32 md:pt-36">
-        <div className="w-full lg:max-w-6xl lg:mx-auto">
+      <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-0 sm:px-0 md:px-0 pt-24 sm:pt-32 md:pt-36">
+        <div className="w-full">
 
           {/* 슬라이더 */}
           <Swiper
@@ -69,9 +69,9 @@ export default function Hero() {
           >
             {/* 첫 번째 슬라이드 - Global Community */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-start pt-20 md:justify-start md:pt-[15vh] lg:pt-[18vh]">
+              <div className="min-h-screen flex flex-col items-center justify-start pt-12 md:justify-start md:pt-[12vh] lg:pt-[15vh]">
                 <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
-                  <div className="max-w-4xl mx-auto">
+                  <div className="w-full">
                     {/* 상단 텍스트 */}
                     <p className="text-gray-600 text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium mb-4 leading-relaxed">
                       {t('heroSlides.slide1.subtitle')}
@@ -93,10 +93,10 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-start pt-12 md:justify-start md:pt-[12vh] lg:pt-[15vh]">
+              <div className="min-h-screen flex flex-col items-center justify-start pt-8 md:justify-start md:pt-[10vh] lg:pt-[12vh]">
                 {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
                 <div className="w-full px-4 sm:px-6 lg:px-8">
-                  <div className="w-full lg:max-w-4xl lg:mx-auto">
+                  <div className="w-full">
                     {/* 상단 텍스트 섹션 */}
                     <div className="text-center mb-6">
                       <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-4 border border-blue-200/30">
@@ -120,7 +120,7 @@ export default function Hero() {
 
                     {/* 하단 검증된 튜터 카드 - 바로 붙여서 */}
                     <div className="flex justify-center">
-                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 w-full lg:max-w-2xl lg:mx-auto mx-4">
+                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 w-full mx-2 sm:mx-4 md:mx-6 lg:mx-8">
                         <div className="text-center">
                           {/* 메인 제목 */}
                           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight font-['Pretendard'] mb-4">
@@ -156,8 +156,8 @@ export default function Hero() {
 
             {/* 세 번째 슬라이드 - 홈 (커뮤니티 서비스) */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col justify-center md:justify-start md:pt-[8vh] lg:pt-[10vh] pb-12 sm:pb-16 md:pb-20">
-                <div className="w-full px-2 sm:px-4 lg:max-w-7xl lg:mx-auto">
+              <div className="min-h-screen flex flex-col justify-start pt-8 md:justify-start md:pt-[6vh] lg:pt-[8vh] pb-12 sm:pb-16 md:pb-20">
+                <div className="w-full px-2 sm:px-4">
                   {/* 메인 레이아웃 */}
                   <div className="space-y-3 sm:space-y-4">
                     {/* 왼쪽 섹션 */}
@@ -176,7 +176,7 @@ export default function Hero() {
                       </div>
                       
                       {/* 4개 카드 그리드 */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mt-4 sm:mt-6 md:mt-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mt-4 sm:mt-6 md:mt-8 mx-2 sm:mx-4 md:mx-6 lg:mx-8">
                         {/* 주제별 게시판 카드 */}
                         <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
@@ -281,7 +281,7 @@ export default function Hero() {
                   swiperRef.current.swiper.slidePrev()
                 }
               }}
-              className="absolute left-2 sm:left-4 top-[45%] sm:top-[40%] md:top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
+              className="absolute left-4 sm:left-6 md:left-8 top-[45%] sm:top-[40%] md:top-[40%] -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white/95 backdrop-blur-md rounded-full border border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-300 group pointer-events-auto"
             >
               <ChevronLeft className="w-6 h-6 group-hover:text-blue-600 transition-colors" />
             </button>
@@ -295,14 +295,14 @@ export default function Hero() {
                   swiperRef.current.swiper.slideNext()
                 }
               }}
-              className="absolute right-2 sm:right-4 top-[45%] sm:top-[40%] md:top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-md rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-300 group pointer-events-auto"
+              className="absolute right-4 sm:right-6 md:right-8 top-[45%] sm:top-[40%] md:top-[40%] -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white/95 backdrop-blur-md rounded-full border border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-300 group pointer-events-auto"
             >
               <ChevronRight className="w-6 h-6 group-hover:text-blue-600 transition-colors" />
             </button>
           )}
 
           {/* 커스텀 페이지네이션 */}
-          <div className="swiper-pagination !bottom-20 sm:!bottom-32 md:!bottom-40 !flex !justify-center !gap-2 !left-1/2 !transform !-translate-x-1/2">
+          <div className="swiper-pagination !bottom-8 sm:!bottom-12 md:!bottom-16 !flex !justify-center !gap-2 !left-1/2 !transform !-translate-x-1/2">
             <style jsx>{`
               .swiper-pagination-bullet {
                 width: 12px !important;

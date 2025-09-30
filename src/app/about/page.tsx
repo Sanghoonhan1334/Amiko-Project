@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
@@ -11,6 +11,7 @@ import { useLanguage } from '@/context/LanguageContext'
 export default function AboutPage() {
   const swiperRef = useRef<any>(null)
   const { t, language } = useLanguage()
+  const [activeSlide, setActiveSlide] = useState(0)
 
   return (
     <section className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50">
@@ -60,16 +61,19 @@ export default function AboutPage() {
                 console.error('Swiper initialization error:', error)
               }
             }}
+            onSlideChange={(swiper) => {
+              setActiveSlide(swiper.activeIndex)
+            }}
           >
             {/* 소개 영상 슬라이드 */}
             <SwiperSlide className="swiper-slide-no-lazy">
-              <div className="min-h-screen flex items-center justify-center md:items-start md:pt-[5vh] lg:pt-[6vh] bg-gradient-to-br from-slate-50 to-blue-50">
-                <div className="w-full max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl mx-auto px-4 text-center">
+              <div className="min-h-screen flex items-start justify-center pt-20 md:pt-[5vh] lg:pt-[6vh] bg-gradient-to-br from-slate-50 to-blue-50">
+                <div className="w-full max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl mx-auto px-4 text-center relative">
                   <h2 className="text-4xl font-bold text-gray-900 mb-2 leading-tight">
                     {t('about.introVideo')}
                   </h2>
                   
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full mt-4">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 lg:p-12 border border-gray-200/50 shadow-lg w-full mt-4 relative">
                     <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden w-full">
                       <iframe
                         src="https://www.youtube.com/embed/do4aDyGZmgM"
@@ -80,6 +84,47 @@ export default function AboutPage() {
                         allowFullScreen
                       />
                     </div>
+                    
+                    {/* 소개영상 전용 화살표 - 영상 컨테이너 기준 */}
+                    {activeSlide === 0 && (
+                      <>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault()
+                            try {
+                              if (swiperRef.current && swiperRef.current.swiper) {
+                                swiperRef.current.swiper.slidePrev()
+                              }
+                            } catch (error) {
+                              console.error('Swiper navigation error:', error)
+                            }
+                          }}
+                          className="absolute -left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/95 backdrop-blur-md rounded-full border-2 border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-200 group"
+                        >
+                          <svg className="w-6 h-6 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault()
+                            try {
+                              if (swiperRef.current && swiperRef.current.swiper) {
+                                swiperRef.current.swiper.slideNext()
+                              }
+                            } catch (error) {
+                              console.error('Swiper navigation error:', error)
+                            }
+                          }}
+                          className="absolute -right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/95 backdrop-blur-md rounded-full border-2 border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-200 group"
+                        >
+                          <svg className="w-6 h-6 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -87,8 +132,8 @@ export default function AboutPage() {
 
             {/* 회사소개 슬라이드 */}
             <SwiperSlide>
-              <div className="min-h-[600px] py-12 bg-gradient-to-br from-slate-50 to-blue-50">
-                <div className="max-w-xl mx-auto px-16">
+              <div className="min-h-[600px] py-12 bg-gradient-to-br from-slate-50 to-blue-50 relative">
+                <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8">
                   <div className="space-y-6 pt-8">
                     {/* 첫 번째 카드 */}
                     <div className="bg-white rounded-lg p-6 pt-0 pb-6 shadow-lg border border-gray-100">
@@ -178,7 +223,12 @@ export default function AboutPage() {
                       </p>
                       
                       <p className="text-gray-700 text-base leading-relaxed tracking-wide">
-                        {t('about.culturalExchange')}
+                        {t('about.culturalExchange').split('\n').map((line, index) => (
+                          <span key={index}>
+                            {line}
+                            {index === 0 && <br />}
+                          </span>
+                        ))}
                       </p>
                       
                       <p className="text-gray-800 text-base leading-relaxed font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tracking-wide">
@@ -202,7 +252,7 @@ export default function AboutPage() {
             </SwiperSlide>
           </Swiper>
 
-          {/* 커스텀 네비게이션 버튼 - 매우 큰 버전 */}
+          {/* 커스텀 네비게이션 버튼 - 슬라이드별 동적 배치 */}
           <button 
             onClick={(e) => {
               e.preventDefault()
@@ -214,9 +264,15 @@ export default function AboutPage() {
                 console.error('Swiper navigation error:', error)
               }
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-200 group"
+            className={`absolute z-20 bg-white/95 backdrop-blur-md rounded-full border-2 border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-200 group ${
+              activeSlide === 0 
+                ? 'hidden' // 소개영상: 전용 화살표 사용
+                : activeSlide === 1 
+                ? 'left-2 sm:left-4 md:left-6 top-[45%] -translate-y-1/2 w-16 h-16' // 회사소개: 카드 높이에 맞춤
+                : 'left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-16 h-16' // 대표자소개: 화면 중앙, 큰 크기
+            }`}
           >
-            <svg className="w-8 h-8 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`group-hover:text-blue-600 transition-colors ${activeSlide === 0 ? 'w-6 h-6' : 'w-8 h-8'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -232,16 +288,34 @@ export default function AboutPage() {
                 console.error('Swiper navigation error:', error)
               }
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 backdrop-blur-md rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg hover:scale-105 transition-all duration-200 group"
+            className={`absolute z-20 bg-white/95 backdrop-blur-md rounded-full border-2 border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-xl hover:scale-105 transition-all duration-200 group ${
+              activeSlide === 0 
+                ? 'hidden' // 소개영상: 전용 화살표 사용
+                : activeSlide === 1 
+                ? 'right-2 sm:right-4 md:right-6 top-[45%] -translate-y-1/2 w-16 h-16' // 회사소개: 카드 높이에 맞춤
+                : 'right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 w-16 h-16' // 대표자소개: 화면 중앙, 큰 크기
+            }`}
           >
-            <svg className="w-8 h-8 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`group-hover:text-blue-600 transition-colors ${activeSlide === 0 ? 'w-6 h-6' : 'w-8 h-8'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
 
-          {/* 커스텀 페이지네이션 */}
-          <div className="swiper-pagination !bottom-8 !flex !justify-center !gap-2">
+          {/* 커스텀 페이지네이션 - 슬라이드별 동적 위치 */}
+          <div className="swiper-pagination !flex !justify-center !gap-2">
             <style jsx>{`
+              .swiper-pagination {
+                position: absolute !important;
+                bottom: ${activeSlide === 0 ? '6rem' : activeSlide === 1 ? '5rem' : '4rem'} !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                z-index: 10 !important;
+              }
+              @media (max-width: 640px) {
+                .swiper-pagination {
+                  bottom: ${activeSlide === 0 ? '20rem' : activeSlide === 1 ? '18rem' : '16rem'} !important;
+                }
+              }
               .swiper-pagination-bullet {
                 width: 12px !important;
                 height: 12px !important;

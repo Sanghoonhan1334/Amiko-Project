@@ -65,7 +65,8 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .single()
 
-    const isProfileComplete = userProfile && (
+    // 프로필 조회 실패 시 기본값으로 처리
+    const isProfileComplete = userProfile && !userProfileError && (
       userProfile.full_name || 
       userProfile.phone || 
       userProfile.university || 
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 한국 사용자도 인증이 완료되면 쿠폰 없이 채팅 가능
-    if ((userProfile as any).language === 'ko') {
+    if ((userInfo as any).language === 'ko') {
       return NextResponse.json({
         canCall: true,
         hasCoupon: true,
@@ -105,10 +106,17 @@ export async function GET(request: NextRequest) {
       .gt('minutes_remaining', 0);
 
     if (couponsError) {
-      return NextResponse.json(
-        { error: '쿠폰 정보를 가져올 수 없습니다.' },
-        { status: 500 }
-      );
+      console.log('[COUPONS_CHECK] 쿠폰 조회 실패, 기본값 반환:', couponsError)
+      // 쿠폰 조회 실패 시 기본값으로 처리
+      return NextResponse.json({
+        canCall: false,
+        hasCoupon: false,
+        totalMinutes: 0,
+        availableCoupons: 0,
+        userType: (userInfo as any).language === 'ko' ? 'korean' : 'global',
+        isVip: false,
+        message: '쿠폰 정보를 확인할 수 없습니다.'
+      });
     }
 
     // 쿠폰 사용 가능 여부 계산

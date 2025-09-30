@@ -546,7 +546,7 @@ export const translations = {
       teamIntroduction: 'Amiko의 CTO 한상훈(Samuel), CMO 박겸(Pablo)입니다.',
       latinAmericaExperience: '저희는 여러 남미 국가에서 살며 그들의 문화와 사람들을 진심으로 사랑하게 되었습니다.',
       koreanInterest: '최근 한국의 다양한 매체를 통해 남미의 아름다움이 소개되면서, 많은 한국인들이 점차 지구 반대편의 매력적인 대륙에 대해 알아가고 있습니다.',
-      culturalExchange: '이러한 경험을 통해 한국과 남미를 더욱 가깝게 연결할 수 있는 문화 교류와 커뮤니티의 필요성을 깊이 느끼게 되었습니다.',
+      culturalExchange: 'AMIKO에서 다양한 사람들과 교류하며\n새로운 세상을 경험하세요.',
       bridgePromise: '그래서 다짐했습니다. 한국과 남미를 이어주는 다리를 만들자.',
       platformDescription: 'Amiko는 화상 채팅과 커뮤니티 서비스를 기반으로, 철저히 검증된 멤버십을 통해 신뢰할 수 있는 플랫폼을 제공합니다.',
       communityVision: '단순한 소통을 넘어 한국의 트렌드, 패션, K-POP, 라이프스타일까지 공유할 수 있는 커뮤니티로 발전해 나가겠습니다.',
@@ -1486,7 +1486,7 @@ export const translations = {
       teamIntroduction: 'Somos Han Sang-hoon (Samuel), CTO de Amiko,\ny Park Gyeom (Pablo), CMO de Amiko.',
       latinAmericaExperience: 'Hemos vivido en varios países de América del Sur y hemos llegado a amar sinceramente sus culturas y personas.',
       koreanInterest: 'Recientemente, a medida que la belleza de América del Sur se ha introducido a través de varios medios coreanos, muchos coreanos están aprendiendo gradualmente sobre este atractivo continente al otro lado del mundo.',
-      culturalExchange: 'A través de estas experiencias, sentimos profundamente la necesidad de intercambio cultural y una comunidad que pueda conectar Corea del Sur y América del Sur más estrechamente.',
+      culturalExchange: 'En AMIKO, interactúa con diversas personas y\nexperimenta un nuevo mundo.',
       bridgePromise: 'Así que nos comprometimos. Construyamos un puente que conecte Corea del Sur y América del Sur.',
       platformDescription: 'Amiko proporciona una plataforma confiable basada en videollamadas y servicios comunitarios, a través de membresías completamente verificadas.',
       communityVision: 'Evolucionaremos hacia una comunidad donde podamos compartir no solo comunicación simple, sino también tendencias coreanas, moda, K-POP e incluso estilo de vida.',
@@ -1512,21 +1512,398 @@ export const translations = {
     privacy: {
       lastUpdated: 'Última actualización',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com'
+      supportEmail: 'support@amiko.com',
+      title: 'Política de Privacidad',
+      lastUpdatedDate: '17 de enero de 2025',
+      sections: {
+        purpose: {
+          title: '1. Propósito de recolección y uso de información personal',
+          content: 'Amiko recolecta y utiliza información personal para los siguientes propósitos:',
+          items: [
+            'Registro y gestión de miembros: Identificación de usuarios del servicio, verificación de identidad, confirmación de intención de registro',
+            'Provisión de servicios: Aprendizaje de coreano, intercambio cultural, provisión de servicios de videollamadas',
+            'Soporte al cliente: Procesamiento de consultas, recolección de retroalimentación para mejora del servicio',
+            'Seguridad y seguridad: Prevención de uso indebido, garantía de estabilidad del servicio',
+            'Marketing: Provisión de servicios personalizados, notificación de información de eventos (con consentimiento)'
+          ]
+        },
+        collection: {
+          title: '2. Información personal recolectada',
+          content: 'Amiko recolecta la siguiente información personal:',
+          items: [
+            'Información de registro: Nombre, correo electrónico, número de teléfono',
+            'Información de perfil: Edad, género, intereses, nivel de idioma',
+            'Información de uso: Historial de uso del servicio, tiempo de conexión',
+            'Información de dispositivo: Dirección IP, tipo de dispositivo, sistema operativo'
+          ]
+        },
+        retention: {
+          title: '3. Período de retención y uso de información personal',
+          content: 'Amiko retiene y utiliza información personal durante el siguiente período:',
+          items: [
+            'Información de registro: Hasta la retirada del servicio',
+            'Información de perfil: Hasta la retirada del servicio',
+            'Información de uso: 3 años desde la última actividad',
+            'Información de dispositivo: 1 año desde la última conexión'
+          ]
+        },
+        rights: {
+          title: '4. Derechos del titular de la información personal',
+          content: 'Los usuarios tienen los siguientes derechos:',
+          items: [
+            'Derecho de acceso: Solicitar acceso a información personal',
+            'Derecho de rectificación: Solicitar corrección de información personal',
+            'Derecho de eliminación: Solicitar eliminación de información personal',
+            'Derecho de limitación: Solicitar limitación del procesamiento de información personal'
+          ]
+        },
+        contact: {
+          title: '5. Contacto para consultas sobre información personal',
+          content: 'Para consultas sobre información personal, contacte:',
+          items: [
+            'Correo electrónico: privacy@amiko.com',
+            'Soporte al cliente: support@amiko.com',
+            'Horario de atención: Lunes a Viernes, 9:00 - 18:00 (KST)'
+          ]
+        }
+      }
     },
 
     // 서비스 이용약관
     terms: {
       lastUpdated: 'Última actualización',
       contactEmail: 'legal@amiko.com',
-      supportEmail: 'support@amiko.com'
+      supportEmail: 'support@amiko.com',
+      title: 'Términos de Servicio',
+      lastUpdatedDate: '17 de enero de 2025',
+      sections: {
+        introduction: {
+          title: 'Artículo 1 (Introducción del servicio)',
+          content: 'Amiko es una plataforma de intercambio de idiomas e intercambio cultural que conecta Corea del Sur y América del Sur.',
+          services: {
+            title: 'Servicios principales',
+            items: [
+              'Videollamadas: Intercambio de idiomas a través de videollamadas 1:1 con coreanos',
+              'Comunidad: Comunidad para compartir cultura coreana, K-POP, estilo de vida',
+              'Sistema de puntos: Acumulación y uso de puntos según actividades',
+              'Eventos: Varios eventos de experiencia cultural coreana'
+            ]
+          }
+        },
+        effectiveness: {
+          title: 'Artículo 2 (Efectividad y cambios de términos)',
+          content: 'Estos términos se aplican a todos los usuarios que utilizan el servicio.',
+          items: [
+            'Los términos pueden ser modificados con notificación previa de 7 días',
+            'Los usuarios pueden retirarse del servicio en cualquier momento',
+            'El uso continuado del servicio después de los cambios constituye aceptación de los nuevos términos'
+          ]
+        },
+        membership: {
+          title: 'Artículo 3 (Registro y gestión de miembros)',
+          content: 'Para utilizar el servicio, debe registrarse como miembro.',
+          items: [
+            'Registro: Proporcionar información personal precisa',
+            'Verificación: Verificación de identidad a través de número de teléfono',
+            'Gestión: Mantener información de cuenta actualizada',
+            'Retiro: Proceso de retiro disponible en cualquier momento'
+          ]
+        },
+        service: {
+          title: 'Artículo 4 (Uso del servicio)',
+          content: 'Los usuarios deben usar el servicio de acuerdo con estos términos.',
+          prohibited: {
+            title: 'Actividades prohibidas',
+            items: [
+              'Actividades ilegales o que violen las leyes',
+              'Actividades que dañen a otros usuarios',
+              'Actividades comerciales no autorizadas',
+              'Actividades que interfieran con el funcionamiento del servicio'
+            ]
+          }
+        },
+        liability: {
+          title: 'Artículo 5 (Limitación de responsabilidad)',
+          content: 'Amiko no será responsable de los siguientes daños:',
+          items: [
+            'Daños causados por uso indebido del servicio',
+            'Daños causados por problemas de red o sistema',
+            'Daños causados por terceros',
+            'Daños indirectos o consecuenciales'
+          ]
+        }
+      }
     },
 
     // 쿠키 정책
     cookies: {
       lastUpdated: 'Última actualización',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com'
+      supportEmail: 'support@amiko.com',
+      title: 'Política de Cookies',
+      lastUpdatedDate: '17 de enero de 2025',
+      sections: {
+        definition: {
+          title: '1. ¿Qué son las cookies?',
+          content: 'Las cookies son pequeños archivos de texto que los sitios web almacenan en la computadora o dispositivo móvil del usuario. Amiko utiliza las siguientes cookies para proporcionar servicios:',
+          note: 'Las cookies no contienen información que pueda identificar a una persona y no dañan la computadora.'
+        },
+        types: {
+          title: '2. Cookies utilizadas por Amiko',
+          essential: {
+            title: 'Cookies esenciales',
+            content: 'Necesarias para el funcionamiento básico del servicio',
+            items: [
+              'Cookies de sesión: Mantenimiento de sesión de usuario',
+              'Cookies de seguridad: Prevención de uso indebido',
+              'Cookies de configuración: Configuración de preferencias del usuario'
+            ]
+          },
+          functional: {
+            title: 'Cookies funcionales',
+            content: 'Mejoran la funcionalidad del servicio',
+            items: [
+              'Cookies de idioma: Recordar preferencia de idioma',
+              'Cookies de tema: Recordar configuración de tema',
+              'Cookies de ubicación: Servicios basados en ubicación'
+            ]
+          },
+          analytics: {
+            title: 'Cookies de análisis',
+            content: 'Recopilan información sobre el uso del servicio',
+            items: [
+              'Google Analytics: Análisis de tráfico del sitio web',
+              'Cookies de rendimiento: Medición del rendimiento del servicio',
+              'Cookies de error: Recopilación de información de errores'
+            ]
+          },
+          marketing: {
+            title: 'Cookies de marketing',
+            content: 'Utilizadas para publicidad personalizada',
+            items: [
+              'Cookies de publicidad: Publicidad dirigida',
+              'Cookies de seguimiento: Seguimiento de conversiones',
+              'Cookies de redes sociales: Integración con redes sociales'
+            ]
+          }
+        },
+        management: {
+          title: '3. Gestión de cookies',
+          content: 'Los usuarios pueden gestionar las cookies de las siguientes maneras:',
+          browser: {
+            title: 'Configuración del navegador',
+            items: [
+              'Chrome: Configuración > Privacidad y seguridad > Cookies',
+              'Firefox: Opciones > Privacidad y seguridad > Cookies',
+              'Safari: Preferencias > Privacidad > Cookies',
+              'Edge: Configuración > Cookies y permisos del sitio'
+            ]
+          },
+          service: {
+            title: 'Configuración del servicio',
+            items: [
+              'Centro de configuración: Gestión de preferencias de cookies',
+              'Consentimiento granular: Consentimiento por tipo de cookie',
+              'Retiro de consentimiento: Retiro en cualquier momento',
+              'Configuración de privacidad: Configuración detallada de privacidad'
+            ]
+          }
+        },
+        consent: {
+          title: '4. Consentimiento para uso de cookies',
+          content: 'Amiko solicita consentimiento para el uso de cookies de la siguiente manera:',
+          procedure: {
+            title: 'Procedimiento de consentimiento',
+            items: [
+              'Primera visita: Notificación y solicitud de consentimiento para uso de cookies',
+              'Consentimiento selectivo: Consentimiento individual para cookies esenciales/funcionales/análisis/marketing',
+              'Cambio de configuración: Posibilidad de retirar consentimiento y cambiar configuración en cualquier momento',
+              'Registro de consentimiento: Almacenamiento y gestión del historial de consentimiento/retiro'
+            ]
+          },
+          legal: {
+            title: 'Base legal',
+            items: [
+              'Cookies esenciales: Interés legítimo para provisión de servicios',
+              'Cookies funcionales: Consentimiento del usuario',
+              'Cookies de análisis: Consentimiento del usuario',
+              'Cookies de marketing: Consentimiento explícito del usuario'
+            ]
+          }
+        },
+        changes: {
+          title: '5. Cambios en la política de cookies',
+          content: 'Amiko puede cambiar esta política de cookies cuando sea necesario.',
+          items: [
+            'Notificación: Notificación de cambios con 7 días de anticipación',
+            'Consentimiento: Nuevo consentimiento para cambios significativos',
+            'Historial: Mantenimiento del historial de cambios',
+            'Contacto: Notificación de cambios por correo electrónico'
+          ]
+        }
+      }
+    },
+
+    // 도움말 페이지
+    help: {
+      subtitle: 'AMIKO 서비스 이용에 도움이 되는 정보를 제공합니다',
+      sections: {
+        gettingStarted: {
+          title: '시작하기',
+          content: 'AMIKO 서비스를 처음 이용하시는 분들을 위한 가이드입니다.',
+          items: [
+            '회원가입 및 프로필 설정 방법',
+            '서비스 이용 방법 및 기본 기능',
+            '언어 설정 및 지역 설정',
+            '계정 보안 설정 방법'
+          ]
+        },
+        videoChat: {
+          title: '화상채팅',
+          content: '화상채팅 서비스 이용에 대한 도움말입니다.',
+          items: [
+            '화상채팅 시작 및 종료 방법',
+            'AI 통역 기능 사용법',
+            '화상채팅 품질 개선 방법',
+            '화상채팅 중 문제 해결'
+          ]
+        },
+        community: {
+          title: '커뮤니티',
+          content: '커뮤니티 기능 이용에 대한 도움말입니다.',
+          items: [
+            '게시글 작성 및 관리',
+            '댓글 및 좋아요 기능',
+            '커뮤니티 가이드라인',
+            '신고 및 차단 기능'
+          ]
+        },
+        points: {
+          title: '포인트 시스템',
+          content: '포인트 적립 및 사용에 대한 도움말입니다.',
+          items: [
+            '포인트 적립 방법',
+            '포인트 사용 방법',
+            '포인트 내역 확인',
+            '포인트 정책 및 규정'
+          ]
+        },
+        troubleshooting: {
+          title: '문제 해결',
+          content: '자주 발생하는 문제와 해결 방법입니다.',
+          items: [
+            '로그인 문제 해결',
+            '화상채팅 연결 문제',
+            '앱 성능 최적화',
+            '기타 기술적 문제'
+          ]
+        }
+      }
+    },
+
+    // 연락처 페이지
+    contact: {
+      subtitle: 'AMIKO 팀과 직접 연락하실 수 있습니다',
+      sections: {
+        info: {
+          title: '연락처 정보',
+          email: {
+            title: '이메일',
+            content: 'support@amiko.com'
+          },
+          hours: {
+            title: '운영 시간',
+            content: '월요일 - 금요일, 09:00 - 18:00 (KST)'
+          }
+        },
+        types: {
+          title: '문의 유형',
+          content: '다음과 같은 문의를 받고 있습니다.',
+          technical: {
+            title: '기술 지원',
+            content: '서비스 이용 중 발생하는 기술적 문제'
+          },
+          billing: {
+            title: '결제 문의',
+            content: '결제 및 환불 관련 문의'
+          },
+          general: {
+            title: '일반 문의',
+            content: '서비스 이용 및 정책 관련 문의'
+          },
+          partnership: {
+            title: '제휴 문의',
+            content: '비즈니스 제휴 및 협력 관련 문의'
+          }
+        },
+        response: {
+          title: '응답 시간',
+          content: '문의 유형에 따른 응답 시간입니다.',
+          items: [
+            '기술 지원: 24시간 이내',
+            '결제 문의: 12시간 이내',
+            '일반 문의: 48시간 이내',
+            '제휴 문의: 72시간 이내'
+          ]
+        }
+      }
+    },
+
+    // 피드백 페이지
+    feedback: {
+      subtitle: 'AMIKO 서비스 개선을 위한 여러분의 소중한 의견을 기다립니다',
+      sections: {
+        guidelines: {
+          title: '피드백 가이드라인',
+          content: '효과적인 피드백을 위한 가이드라인입니다.',
+          items: [
+            '구체적이고 명확한 내용으로 작성해주세요',
+            '개선 제안 시 이유와 근거를 함께 제시해주세요',
+            '건설적이고 예의 바른 언어를 사용해주세요',
+            '개인정보는 포함하지 말아주세요'
+          ]
+        },
+        types: {
+          title: '피드백 유형',
+          content: '다음과 같은 피드백을 받고 있습니다.',
+          bug: {
+            title: '버그 신고',
+            content: '서비스에서 발견한 오류나 문제점'
+          },
+          feature: {
+            title: '기능 제안',
+            content: '새로운 기능이나 개선 사항 제안'
+          },
+          ux: {
+            title: '사용자 경험',
+            content: '사용자 인터페이스 및 경험 개선 제안'
+          },
+          general: {
+            title: '일반 피드백',
+            content: '서비스 전반에 대한 의견 및 제안'
+          }
+        },
+        submission: {
+          title: '피드백 제출 방법',
+          content: '피드백을 제출하는 방법입니다.',
+          items: [
+            '이메일: feedback@amiko.com',
+            '문의 페이지를 통한 제출',
+            '앱 내 피드백 기능 이용',
+            '소셜 미디어를 통한 제출'
+          ]
+        },
+        process: {
+          title: '피드백 처리 과정',
+          content: '제출된 피드백의 처리 과정입니다.',
+          items: [
+            '피드백 접수 및 검토',
+            '개발팀 검토 및 우선순위 결정',
+            '구현 가능성 평가',
+            '개선 사항 반영 및 결과 공유'
+          ]
+        }
+      }
     },
 
     // 문의 페이지
@@ -1874,6 +2251,168 @@ export const translations = {
         public: 'Público',
         private: 'Privado',
         delete: 'Eliminar'
+      }
+    },
+
+    // 도움말 페이지
+    help: {
+      subtitle: 'Proporcionamos información útil para usar el servicio AMIKO',
+      sections: {
+        gettingStarted: {
+          title: 'Comenzar',
+          content: 'Guía para usuarios que utilizan el servicio AMIKO por primera vez.',
+          items: [
+            'Método de registro y configuración de perfil',
+            'Método de uso del servicio y funciones básicas',
+            'Configuración de idioma y región',
+            'Método de configuración de seguridad de cuenta'
+          ]
+        },
+        videoChat: {
+          title: 'Videollamadas',
+          content: 'Ayuda para usar el servicio de videollamadas.',
+          items: [
+            'Método de inicio y finalización de videollamadas',
+            'Cómo usar la función de traducción AI',
+            'Método de mejora de calidad de videollamadas',
+            'Resolución de problemas durante videollamadas'
+          ]
+        },
+        community: {
+          title: 'Comunidad',
+          content: 'Ayuda para usar las funciones de comunidad.',
+          items: [
+            'Escritura y gestión de publicaciones',
+            'Función de comentarios y me gusta',
+            'Guía de la comunidad',
+            'Función de reporte y bloqueo'
+          ]
+        },
+        points: {
+          title: 'Sistema de Puntos',
+          content: 'Ayuda para acumular y usar puntos.',
+          items: [
+            'Método de acumulación de puntos',
+            'Método de uso de puntos',
+            'Verificación del historial de puntos',
+            'Políticas y regulaciones de puntos'
+          ]
+        },
+        troubleshooting: {
+          title: 'Resolución de Problemas',
+          content: 'Problemas frecuentes y métodos de solución.',
+          items: [
+            'Resolución de problemas de inicio de sesión',
+            'Problemas de conexión de videollamadas',
+            'Optimización del rendimiento de la aplicación',
+            'Otros problemas técnicos'
+          ]
+        }
+      }
+    },
+
+    // 연락처 페이지
+    contact: {
+      subtitle: 'Puedes contactar directamente con el equipo AMIKO',
+      sections: {
+        info: {
+          title: 'Información de Contacto',
+          email: {
+            title: 'Correo Electrónico',
+            content: 'support@amiko.com'
+          },
+          hours: {
+            title: 'Horario de Atención',
+            content: 'Lunes - Viernes, 09:00 - 18:00 (KST)'
+          }
+        },
+        types: {
+          title: 'Tipos de Consulta',
+          content: 'Recibimos las siguientes consultas.',
+          technical: {
+            title: 'Soporte Técnico',
+            content: 'Problemas técnicos que surgen durante el uso del servicio'
+          },
+          billing: {
+            title: 'Consultas de Pago',
+            content: 'Consultas relacionadas con pagos y reembolsos'
+          },
+          general: {
+            title: 'Consultas Generales',
+            content: 'Consultas sobre uso del servicio y políticas'
+          },
+          partnership: {
+            title: 'Consultas de Alianza',
+            content: 'Consultas sobre alianzas y cooperación empresarial'
+          }
+        },
+        response: {
+          title: 'Tiempo de Respuesta',
+          content: 'Tiempo de respuesta según el tipo de consulta.',
+          items: [
+            'Soporte técnico: Dentro de 24 horas',
+            'Consultas de pago: Dentro de 12 horas',
+            'Consultas generales: Dentro de 48 horas',
+            'Consultas de alianza: Dentro de 72 horas'
+          ]
+        }
+      }
+    },
+
+    // 피드백 페이지
+    feedback: {
+      subtitle: 'Esperamos sus valiosas opiniones para mejorar el servicio AMIKO',
+      sections: {
+        guidelines: {
+          title: 'Guía de Retroalimentación',
+          content: 'Guía para retroalimentación efectiva.',
+          items: [
+            'Escriba contenido específico y claro',
+            'Al sugerir mejoras, presente razones y fundamentos',
+            'Use lenguaje constructivo y cortés',
+            'No incluya información personal'
+          ]
+        },
+        types: {
+          title: 'Tipos de Retroalimentación',
+          content: 'Recibimos los siguientes tipos de retroalimentación.',
+          bug: {
+            title: 'Reporte de Errores',
+            content: 'Errores o problemas encontrados en el servicio'
+          },
+          feature: {
+            title: 'Sugerencia de Funciones',
+            content: 'Sugerencias de nuevas funciones o mejoras'
+          },
+          ux: {
+            title: 'Experiencia de Usuario',
+            content: 'Sugerencias de mejora de interfaz y experiencia de usuario'
+          },
+          general: {
+            title: 'Retroalimentación General',
+            content: 'Opiniones y sugerencias sobre el servicio en general'
+          }
+        },
+        submission: {
+          title: 'Método de Envío de Retroalimentación',
+          content: 'Método para enviar retroalimentación.',
+          items: [
+            'Correo electrónico: feedback@amiko.com',
+            'Envío a través de la página de consultas',
+            'Uso de la función de retroalimentación en la aplicación',
+            'Envío a través de redes sociales'
+          ]
+        },
+        process: {
+          title: 'Proceso de Procesamiento de Retroalimentación',
+          content: 'Proceso de manejo de retroalimentación enviada.',
+          items: [
+            'Recepción y revisión de retroalimentación',
+            'Revisión del equipo de desarrollo y determinación de prioridades',
+            'Evaluación de viabilidad de implementación',
+            'Reflejo de mejoras y compartir resultados'
+          ]
+        }
       }
     }
   }

@@ -2,7 +2,7 @@
 
 import { useLanguage } from '@/context/LanguageContext'
 
-export default function PrivacyPolicy() {
+export default function HelpPage() {
   const { t } = useLanguage()
 
   return (
@@ -11,85 +11,81 @@ export default function PrivacyPolicy() {
         {/* 헤더 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 font-['Inter']">
-            {t('privacy.title')}
+            {t('footer.help')}
           </h1>
           <p className="text-lg text-gray-600 font-['Inter']">
-            {t('privacy.lastUpdated')}: {t('privacy.lastUpdatedDate')}
+            {t('help.subtitle')}
           </p>
         </div>
 
         {/* 본문 */}
         <div className="bg-white/80 rounded-2xl shadow-lg p-8 space-y-8">
-          {/* 1. 개인정보 수집 및 이용 목적 */}
+          {/* 도움말 섹션들 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('privacy.sections.purpose.title')}
+              {t('help.sections.gettingStarted.title')}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('privacy.sections.purpose.content')}</p>
+              <p>{t('help.sections.gettingStarted.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.purpose.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                {t('help.sections.gettingStarted.items').map((item: string, index: number) => (
+                  <li key={index}>{item}</li>
                 ))}
               </ul>
             </div>
           </section>
 
-          {/* 2. 수집하는 개인정보 항목 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('privacy.sections.collection.title')}
+              {t('help.sections.videoChat.title')}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('privacy.sections.collection.content')}</p>
+              <p>{t('help.sections.videoChat.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.collection.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                {t('help.sections.videoChat.items').map((item: string, index: number) => (
+                  <li key={index}>{item}</li>
                 ))}
               </ul>
             </div>
           </section>
 
-          {/* 3. 개인정보 보유 및 이용기간 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('privacy.sections.retention.title')}
+              {t('help.sections.community.title')}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('privacy.sections.retention.content')}</p>
+              <p>{t('help.sections.community.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.retention.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                {t('help.sections.community.items').map((item: string, index: number) => (
+                  <li key={index}>{item}</li>
                 ))}
               </ul>
             </div>
           </section>
 
-          {/* 4. 개인정보 주체의 권리 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('privacy.sections.rights.title')}
+              {t('help.sections.points.title')}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('privacy.sections.rights.content')}</p>
+              <p>{t('help.sections.points.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.rights.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                {t('help.sections.points.items').map((item: string, index: number) => (
+                  <li key={index}>{item}</li>
                 ))}
               </ul>
             </div>
           </section>
 
-          {/* 5. 개인정보 보호책임자 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('privacy.sections.contact.title')}
+              {t('help.sections.troubleshooting.title')}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('privacy.sections.contact.content')}</p>
+              <p>{t('help.sections.troubleshooting.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.contact.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                {t('help.sections.troubleshooting.items').map((item: string, index: number) => (
+                  <li key={index}>{item}</li>
                 ))}
               </ul>
             </div>

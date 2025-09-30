@@ -559,7 +559,7 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-8 -mt-6 sm:-mt-8 md:-mt-10 relative z-20">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10 -mt-8 sm:-mt-10 md:-mt-12 relative z-20">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
@@ -569,10 +569,10 @@ export default function Header() {
                         setActiveNavItem('/')
                         router.push('/')
                       }}
-                      className={`font-semibold transition-all duration-300 relative z-30 ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
                         activeNavItem === '/'
-                          ? 'text-purple-600 scale-110'
-                          : 'text-gray-800 hover:text-purple-600'
+                          ? 'text-purple-600 bg-purple-50 scale-105'
+                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('header.home')}
@@ -583,10 +583,10 @@ export default function Header() {
                         setActiveNavItem('/about')
                         router.push('/about')
                       }}
-                      className={`font-semibold transition-all duration-300 relative z-30 ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
                         activeNavItem === '/about' 
-                          ? 'text-purple-600 scale-110' 
-                          : 'text-gray-800 hover:text-purple-600'
+                          ? 'text-purple-600 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('header.about')}
@@ -597,10 +597,10 @@ export default function Header() {
                         setActiveNavItem('/inquiry')
                         router.push('/inquiry')
                       }}
-                      className={`font-semibold transition-all duration-300 relative z-30 px-3 py-1.5 rounded-lg ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
                         activeNavItem === '/inquiry' 
-                          ? 'text-purple-600 scale-110' 
-                          : 'text-gray-800 hover:text-purple-600'
+                          ? 'text-purple-600 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('header.inquiry')}
@@ -611,10 +611,10 @@ export default function Header() {
                         setActiveNavItem('/partnership')
                         router.push('/partnership')
                       }}
-                      className={`font-semibold transition-all duration-300 relative z-30 ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
                         activeNavItem === '/partnership' 
-                          ? 'text-purple-600 scale-110' 
-                          : 'text-gray-800 hover:text-purple-600'
+                          ? 'text-purple-600 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('header.partnership')}
@@ -622,43 +622,43 @@ export default function Header() {
                   </>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
-                  <div className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-8">
+                  <div className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10">
                     <button 
                       onClick={() => handleMainNavClick('home')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
                         activeMainTab === 'home' 
-                          ? 'text-purple-500 scale-110' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          ? 'text-purple-500 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('headerNav.home')}
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('meet')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
                         activeMainTab === 'meet' 
-                          ? 'text-purple-500 scale-110' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          ? 'text-purple-500 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('headerNav.videoCall')}
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('community')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
                         activeMainTab === 'community' 
-                          ? 'text-purple-500 scale-110' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          ? 'text-purple-500 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('headerNav.community')}
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('charging')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
                         activeMainTab === 'charging' 
-                          ? 'text-purple-500 scale-110' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          ? 'text-purple-500 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
                       }`}
                     >
                       <span className="hidden lg:inline">{t('headerNav.chargingStation')}</span>
@@ -666,10 +666,10 @@ export default function Header() {
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('event')}
-                      className={`font-semibold transition-all duration-300 drop-shadow-lg ${
+                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
                         activeMainTab === 'event' 
-                          ? 'text-purple-500 scale-110' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          ? 'text-purple-500 bg-purple-50 scale-105' 
+                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
                       }`}
                     >
                       {t('headerNav.event')}
