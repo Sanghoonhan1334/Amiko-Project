@@ -64,7 +64,7 @@ export default function FeatureCards() {
               
               <Button 
                 variant="outline" 
-                className="w-full border-brand-300 text-brand-700 hover:bg-brand-50 hover:border-brand-400 transition-all duration-300"
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300"
                 onClick={() => router.push('/main')}
               >
                 {t('features.meeting.button')}
@@ -108,7 +108,7 @@ export default function FeatureCards() {
               
               <Button 
                 variant="outline" 
-                className="w-full border-mint-300 text-mint-700 hover:bg-mint-50 hover:border-mint-400 transition-all duration-300"
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300"
                 onClick={() => router.push('/main')}
               >
                 {t('features.community.button')}
@@ -175,7 +175,7 @@ export default function FeatureCards() {
               
               <Button 
                 variant="outline" 
-                className="w-full border-sky-300 text-sky-700 hover:bg-sky-50 hover:border-sky-400 transition-all duration-300"
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300"
                 onClick={() => router.push('/lounge')}
               >
                 {t('features.loungePage.button')}

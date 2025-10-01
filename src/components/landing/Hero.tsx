@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -73,12 +73,12 @@ export default function Hero() {
                 <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
                   <div className="w-full">
                     {/* 상단 텍스트 */}
-                    <p className="text-gray-600 text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium mb-4 leading-relaxed">
+                    <p className="text-gray-600 text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium mb-1 leading-relaxed">
                       {t('heroSlides.slide1.subtitle')}
                     </p>
                     
                     {/* 메인 제목 */}
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 mb-8 leading-tight font-['Inter']">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 mb-2 leading-tight font-['Inter']">
                       {t('heroSlides.slide1.title')}
                     </h1>
                     
@@ -87,14 +87,25 @@ export default function Hero() {
                       {t('heroSlides.slide1.description')}
                     </p>
                     
-                    {/* 이미지 */}
-                    <div className="mt-8 md:mt-12 flex justify-center">
+                    {/* 이미지 - 모바일에서는 더 올림, 데스크톱에서는 더 위로 올림 */}
+                    <div className="-mt-4 md:-mt-24 lg:-mt-28 flex justify-center">
                       <img 
                         src="/Slide1.png" 
                         alt="Global Community" 
                         className="w-full max-w-5xl"
                         loading="lazy"
                       />
+                    </div>
+                    
+                    {/* 시작하기 버튼 - 모바일에서는 더 올림, 데스크톱에서는 더 위로 올림 */}
+                    <div className="-mt-4 md:-mt-16 lg:-mt-24 flex justify-center">
+                      <Button 
+                        onClick={() => router.push('/main')}
+                        className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        {t('heroSlides.slide1.startButton')}
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </Button>
                     </div>
                   </div>
                 </div>

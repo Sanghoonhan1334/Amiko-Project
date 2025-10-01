@@ -218,12 +218,11 @@ export default function LoungeMini() {
             {/* 라운지 안내 보기 버튼 */}
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-sky-500 to-brand-500 hover:from-sky-600 hover:to-brand-600 text-white px-10 py-5 text-xl rounded-3xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              className="bg-gray-800 hover:bg-gray-900 text-white px-10 py-5 text-xl rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/lounge')}
             >
-              <Sparkles className="w-6 h-6 mr-3" />
-              {t('loungeMini.button')}
               <ArrowRight className="w-6 h-6 ml-3" />
+              {t('loungeMini.button')}
             </Button>
 
             {/* 추가 정보 */}

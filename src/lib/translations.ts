@@ -154,7 +154,8 @@ export const translations = {
         badge: '글로벌 커뮤니티',
         title: 'Global Community',
         subtitle: '남미와 한국을 잇는',
-        description: 'AMIKO에서 다양한 사람들과 교류하며 새로운 세상을 경험하세요.'
+        description: 'AMIKO에서 다양한 사람들과 교류하며 새로운 세상을 경험하세요.',
+        startButton: '시작하기'
       },
        slide2: {
          badge: 'Amiko에 탑재된 AI 통역과 함께',
@@ -1665,7 +1666,8 @@ export const translations = {
         badge: 'Comunidad Global',
         title: 'Global Community',
         subtitle: 'Aprende coreano y experimenta la cultura',
-        description: 'Construyamos juntos con Amiko'
+        description: 'Construyamos juntos con Amiko',
+        startButton: 'Comenzar'
       },
       slide2: {
         badge: 'Con IA de interpretación integrada en Amiko',
