@@ -569,11 +569,12 @@ export default function Header() {
                         setActiveNavItem('/')
                         router.push('/')
                       }}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
                         activeNavItem === '/'
-                          ? 'text-purple-600 bg-purple-50 scale-105'
-                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
+                          ? 'text-purple-600'
+                          : 'text-gray-800 hover:text-purple-600'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('header.home')}
                     </button>
@@ -583,11 +584,12 @@ export default function Header() {
                         setActiveNavItem('/about')
                         router.push('/about')
                       }}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
                         activeNavItem === '/about' 
-                          ? 'text-purple-600 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
+                          ? 'text-purple-600' 
+                          : 'text-gray-800 hover:text-purple-600'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('header.about')}
                     </button>
@@ -597,11 +599,12 @@ export default function Header() {
                         setActiveNavItem('/inquiry')
                         router.push('/inquiry')
                       }}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
                         activeNavItem === '/inquiry' 
-                          ? 'text-purple-600 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
+                          ? 'text-purple-600' 
+                          : 'text-gray-800 hover:text-purple-600'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('header.inquiry')}
                     </button>
@@ -611,11 +614,12 @@ export default function Header() {
                         setActiveNavItem('/partnership')
                         router.push('/partnership')
                       }}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 relative z-30 rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
                         activeNavItem === '/partnership' 
-                          ? 'text-purple-600 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-600 hover:bg-purple-50/50'
+                          ? 'text-purple-600' 
+                          : 'text-gray-800 hover:text-purple-600'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('header.partnership')}
                     </button>
@@ -625,52 +629,57 @@ export default function Header() {
                   <div className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10">
                     <button 
                       onClick={() => handleMainNavClick('home')}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
                         activeMainTab === 'home' 
-                          ? 'text-purple-500 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
+                          ? 'text-purple-500' 
+                          : 'text-gray-800 hover:text-purple-500'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('headerNav.home')}
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('meet')}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
                         activeMainTab === 'meet' 
-                          ? 'text-purple-500 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
+                          ? 'text-purple-500' 
+                          : 'text-gray-800 hover:text-purple-500'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('headerNav.videoCall')}
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('community')}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
                         activeMainTab === 'community' 
-                          ? 'text-purple-500 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
+                          ? 'text-purple-500' 
+                          : 'text-gray-800 hover:text-purple-500'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('headerNav.community')}
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('charging')}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
                         activeMainTab === 'charging' 
-                          ? 'text-purple-500 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
+                          ? 'text-purple-500' 
+                          : 'text-gray-800 hover:text-purple-500'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       <span className="hidden lg:inline">{t('headerNav.chargingStation')}</span>
                       <span className="lg:hidden">{t('headerNav.chargingStationShort')}</span>
                     </button>
                     <button 
                       onClick={() => handleMainNavClick('event')}
-                      className={`px-3 py-2 font-semibold transition-all duration-300 drop-shadow-lg rounded-lg whitespace-nowrap ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
                         activeMainTab === 'event' 
-                          ? 'text-purple-500 bg-purple-50 scale-105' 
-                          : 'text-gray-800 hover:text-purple-500 hover:bg-purple-50/50'
+                          ? 'text-purple-500' 
+                          : 'text-gray-800 hover:text-purple-500'
                       }`}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       {t('headerNav.event')}
                     </button>
@@ -797,12 +806,12 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleMobileMenu}
-                className="md:hidden p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300"
+                className="md:hidden p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 [&_svg]:!size-6"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-7 h-7 text-gray-600" />
+                  <X className="text-gray-600" />
                 ) : (
-                  <Menu className="w-7 h-7 text-gray-600" />
+                  <Menu className="text-gray-600" />
                 )}
               </Button>
 

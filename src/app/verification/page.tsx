@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, AlertCircle, Settings } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
 export default function VerificationPage() {

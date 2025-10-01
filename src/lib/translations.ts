@@ -522,17 +522,17 @@ export const translations = {
         },
         couponEvent: {
           title: '쿠폰 이벤트',
-          subtitle: '연속 출석으로 쿠폰을 획득하세요!',
+          subtitle: '누적 출석으로 쿠폰을 획득하세요!',
           attendanceReward: {
-            title: '연속 출석 보상',
-            progress: '연속 {current}/3일 출석',
+            title: '누적 출석 보상',
+            progress: '누적 {current}/3일 출석',
             completion: '축하합니다! AKO 쿠폰 1개가 지급되었습니다!',
-            tip: '매일 출석체크를 하면 3일마다 AKO 쿠폰을 받을 수 있어요!'
+            tip: '출석체크 3번 완료 시마다 AKO 쿠폰을 받을 수 있어요!'
           },
           messages: {
             alreadyCompleted: '오늘은 이미 출석체크를 완료했습니다!',
             streakBroken: '연속 출석이 끊어졌습니다. 다시 시작해주세요!',
-            completed: '출석체크 완료! 연속 {days}일째입니다.',
+            completed: '출석체크 완료! 누적 {days}일째입니다.',
             congratulations: '축하합니다! AKO 쿠폰 1개가 지급되었습니다!'
           }
         }
@@ -916,6 +916,40 @@ export const translations = {
           title: '매출 증대',
           description: '제휴를 통한 새로운 수익 창출 기회를 제공합니다'
         }
+      }
+    },
+
+    // 테스트 탭
+    tests: {
+      title: '테스트',
+      subtitle: '재미있는 테스트로 자신을 알아보세요',
+      categories: {
+        all: '전체',
+        personality: '성격',
+        celebrity: '연예인',
+        learningStyle: '학습 스타일',
+        culture: '문화',
+        fun: '재미'
+      },
+      noPosts: '테스트가 없습니다',
+      beFirst: '첫 번째 테스트를 만들어보세요!',
+      participants: '참여자',
+      questions: '질문',
+      startTest: '테스트 시작',
+      retakeTest: '다시 하기',
+      shareResult: '결과 공유',
+      myResults: '내 결과',
+      question: '질문',
+      of: '/',
+      next: '다음',
+      previous: '이전',
+      submit: '제출',
+      viewResult: '결과 보기',
+      result: {
+        title: '테스트 결과',
+        yourType: '당신의 타입은',
+        description: '결과 설명',
+        shareText: '나는 {result} 타입! 당신은?'
       }
     },
 
@@ -1969,17 +2003,17 @@ export const translations = {
         },
         couponEvent: {
           title: 'Evento de Cupones',
-          subtitle: '¡Obtén cupones con asistencia continua!',
+          subtitle: '¡Obtén cupones con asistencia acumulada!',
           attendanceReward: {
-            title: 'Recompensa de Asistencia Continua',
-            progress: 'Asistencia continua {current}/3 días',
+            title: 'Recompensa de Asistencia Acumulada',
+            progress: 'Asistencia acumulada {current}/3 días',
             completion: '¡Felicidades! Se ha otorgado 1 cupón AKO!',
-            tip: '¡Si verificas la asistencia todos los días, puedes recibir un cupón AKO cada 3 días!'
+            tip: '¡Puedes recibir un cupón AKO cada vez que completes 3 asistencias!'
           },
           messages: {
             alreadyCompleted: 'Ya completaste la verificación de asistencia hoy!',
             streakBroken: 'La asistencia continua se ha interrumpido. ¡Por favor, comienza de nuevo!',
-            completed: 'Verificación de asistencia completada! Día {days} consecutivo.',
+            completed: 'Verificación de asistencia completada! Día {days} acumulado.',
             congratulations: '¡Felicidades! Se ha otorgado 1 cupón AKO!'
           }
         }
@@ -2452,6 +2486,40 @@ export const translations = {
           title: 'Aumento de Ingresos',
           description: 'Ofrece nuevas oportunidades de generación de ingresos a través de la asociación'
         }
+      }
+    },
+
+    // 테스트 탭
+    tests: {
+      title: 'Tests',
+      subtitle: 'Descubre más sobre ti con tests divertidos',
+      categories: {
+        all: 'Todo',
+        personality: 'Personalidad',
+        celebrity: 'Celebridad',
+        learningStyle: 'Estilo de Aprendizaje',
+        culture: 'Cultura',
+        fun: 'Diversión'
+      },
+      noPosts: 'No hay tests disponibles',
+      beFirst: '¡Sé el primero en crear un test!',
+      participants: 'Participantes',
+      questions: 'Preguntas',
+      startTest: 'Iniciar Test',
+      retakeTest: 'Repetir',
+      shareResult: 'Compartir Resultado',
+      myResults: 'Mis Resultados',
+      question: 'Pregunta',
+      of: 'de',
+      next: 'Siguiente',
+      previous: 'Anterior',
+      submit: 'Enviar',
+      viewResult: 'Ver Resultado',
+      result: {
+        title: 'Resultado del Test',
+        yourType: 'Tu tipo es',
+        description: 'Descripción del resultado',
+        shareText: '¡Soy tipo {result}! ¿Y tú?'
       }
     },
 

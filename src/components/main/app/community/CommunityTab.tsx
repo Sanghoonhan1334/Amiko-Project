@@ -576,10 +576,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 실제 사용자 프로필 사용
   const currentProfile = user
 
-  // URL 파라미터와 탭 상태 동기화 (cTab = story|qa|freeboard|news)
+  // URL 파라미터와 탭 상태 동기화 (cTab = story|qa|freeboard|news|tests)
   useEffect(() => {
     const tabParam = searchParams.get('cTab')
-    if (tabParam && ['story', 'qa', 'freeboard', 'news'].includes(tabParam)) {
+    if (tabParam && ['story', 'qa', 'freeboard', 'news', 'tests'].includes(tabParam)) {
       setActiveTab(tabParam)
     }
   }, [searchParams])
@@ -1584,7 +1584,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           </div>
           <Button 
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap"
-            onClick={() => {
+            onClick={async () => {
               console.log('헤더 스토리 올리기 버튼 클릭됨')
               
               // 로그인 체크
@@ -1595,8 +1595,37 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 return
               }
               
-              // 인증 확인 다이얼로그 표시
-              setShowAuthDialog(true)
+              // 운영자는 인증 건너뛰기
+              if (isAdmin) {
+                console.log('운영자 - 인증 건너뛰고 업로드 모달 표시')
+                setShowStoryUploadModal(true)
+                return
+              }
+              
+              // 인증 상태 확인
+              try {
+                const response = await fetch(`/api/auth/status?userId=${currentUser.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  const authLevel = data.verification?.status
+                  
+                  // 인증 완료된 경우 바로 업로드 모달 표시
+                  if (authLevel === 'approved') {
+                    console.log('인증 완료 - 업로드 모달 표시')
+                    setShowStoryUploadModal(true)
+                  } else {
+                    // 인증 안 된 경우 인증 다이얼로그 표시
+                    console.log('인증 필요 - 인증 다이얼로그 표시')
+                    setShowAuthDialog(true)
+                  }
+                } else {
+                  // API 오류 시 안전하게 인증 다이얼로그 표시
+                  setShowAuthDialog(true)
+                }
+              } catch (error) {
+                console.error('인증 상태 확인 오류:', error)
+                setShowAuthDialog(true)
+              }
             }}
           >
             <span className="hidden sm:inline">+ {t('communityTab.uploadStory')}</span>
@@ -1818,7 +1847,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 세그먼트 탭 네비게이션 */}
       <div className="bg-white rounded-2xl p-1 shadow-lg mb-4 sm:mb-6">
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-4 gap-1">
           <button
             onClick={() => handleTabChange('freeboard')}
             className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -1858,6 +1887,20 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             <div className="flex items-center justify-center gap-1">
               <span className="text-base">💬</span>
               <span className="hidden sm:inline text-xs">{t('community.qa')}</span>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => handleTabChange('tests')}
+            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeTab === 'tests'
+                ? 'bg-blue-100 text-blue-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-base">🎯</span>
+              <span className="hidden sm:inline text-xs">{t('tests.title')}</span>
             </div>
           </button>
           </div>
@@ -3401,6 +3444,37 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Tests 탭 */}
+      {activeTab === 'tests' && (
+        <div className="space-y-6">
+          {/* 테스트 목록 헤더 */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <span className="text-2xl">🎯</span>
+                  {t('tests.title')}
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">{t('tests.subtitle')}</p>
+              </div>
+            </div>
+
+            {/* 테스트 목록 (현재는 빈 상태) */}
+            <div className="mt-6">
+              <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">🎯</span>
+                  </div>
+                  <p className="text-lg font-medium">{t('tests.noPosts')}</p>
+                  <p className="text-sm text-gray-400">{t('tests.beFirst')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

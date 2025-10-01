@@ -83,9 +83,19 @@ export default function Hero() {
                     </h1>
                     
                     {/* 하단 설명 */}
-                    <p className="text-gray-700 text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed">
+                    <p className="text-gray-700 text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed mb-0">
                       {t('heroSlides.slide1.description')}
                     </p>
+                    
+                    {/* 이미지 */}
+                    <div className="-mt-36 flex justify-center">
+                      <img 
+                        src="/Slide1.png" 
+                        alt="Global Community" 
+                        className="w-full max-w-5xl"
+                        loading="lazy"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -93,59 +103,68 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-start pt-8 md:justify-start md:pt-[10vh] lg:pt-[12vh]">
-                {/* 메인 콘텐츠 - 세 요소가 한 세트처럼 컴팩트하게 */}
+              <div className="min-h-screen flex items-start justify-center pt-16 md:pt-20 lg:pt-24">
                 <div className="w-full px-4 sm:px-6 lg:px-8">
-                  <div className="w-full">
-                    {/* 상단 텍스트 섹션 */}
-                    <div className="text-center mb-6">
-                      <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-4 border border-blue-200/30">
-                        <Sparkles className="w-3 h-3 text-blue-600" />
-                        <span className="text-blue-700 font-medium text-xs">{t('heroSlides.slide2.badge')}</span>
+                  <div className="max-w-6xl mx-auto relative">
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-2">
+                      {/* 왼쪽: 텍스트 */}
+                      <div className="text-left max-w-lg">
+                        <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-4 border border-blue-200/30">
+                          <Sparkles className="w-3 h-3 text-blue-600" />
+                          <span className="text-blue-700 font-medium text-xs">{t('heroSlides.slide2.badge')}</span>
+                        </div>
+                        
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight font-['Inter']">
+                          {t('heroSlides.slide2.title')}
+                        </h1>
+                        
+                        <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed mb-0">
+                          {t('heroSlides.slide2.description').split('\n').map((line, index) => (
+                            <span key={index}>
+                              {line}
+                              {index < t('heroSlides.slide2.description').split('\n').length - 1 && <br />}
+                            </span>
+                          ))}
+                        </p>
                       </div>
-                      
-                      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight font-['Inter']">
-                        {t('heroSlides.slide2.title')}
-                      </h1>
-                      
-                      <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed mb-8">
-                        {t('heroSlides.slide2.description').split('\n').map((line, index) => (
-                          <span key={index}>
-                            {line}
-                            {index < t('heroSlides.slide2.description').split('\n').length - 1 && <br />}
-                          </span>
-                        ))}
-                      </p>
+
+                      {/* 오른쪽: 이미지 */}
+                      <div className="flex justify-center z-10">
+                        <img 
+                          src="/Slide2.png" 
+                          alt="화상 채팅" 
+                          className="w-56"
+                          loading="lazy"
+                        />
+                      </div>
                     </div>
 
-                    {/* 하단 검증된 튜터 카드 - 바로 붙여서 */}
-                    <div className="flex justify-center">
-                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 w-full mx-2 sm:mx-4 md:mx-6 lg:mx-8">
-                        <div className="text-center">
-                          {/* 메인 제목 */}
-                          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight font-['Pretendard'] mb-4">
-                            {t('heroSlides.slide2.subtitle').split('\n').map((line, index) => (
+                    {/* 하단: 검증된 튜터 카드 */}
+                    <div className="mt-4 md:mt-6 flex justify-center">
+                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 relative text-center w-full max-w-[740px]">
+                        {/* 메인 제목 */}
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight font-['Pretendard'] mb-4">
+                          {t('heroSlides.slide2.subtitle').split('\n').map((line, index) => (
+                            <span key={index}>
+                              {line}
+                              {index === 0 && <br />}
+                            </span>
+                          ))}
+                        </h2>
+                        
+                        {/* 질문 텍스트 */}
+                        <div className="space-y-2 text-sm sm:text-base text-gray-700 leading-relaxed">
+                          <p>
+                            {t('heroSlides.slide2.experience1').split('\n').map((line, index) => (
                               <span key={index}>
                                 {line}
-                                {index === 0 && <br />}
+                                {index < t('heroSlides.slide2.experience1').split('\n').length - 1 && <br />}
                               </span>
                             ))}
-                          </h2>
-                          
-                          {/* 질문 텍스트 */}
-                          <div className="space-y-2 text-sm sm:text-base text-gray-700 leading-relaxed">
-                            <p>
-                              {t('heroSlides.slide2.experience1').split('\n').map((line, index) => (
-                                <span key={index}>
-                                  {line}
-                                  {index < t('heroSlides.slide2.experience1').split('\n').length - 1 && <br />}
-                                </span>
-                              ))}
-                            </p>
-                            <p>
-                              {t('heroSlides.slide2.experience2')}
-                            </p>
-                          </div>
+                          </p>
+                          <p>
+                            {t('heroSlides.slide2.experience2')}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -163,7 +182,7 @@ export default function Hero() {
                     {/* 왼쪽 섹션 */}
                     <div className="space-y-3 sm:space-y-4 pt-0 md:pt-0">
                       {/* 제목 섹션 */}
-                      <div className="text-left">
+                      <div className="text-left ml-4 sm:ml-6 md:ml-12 lg:ml-16">
                         <h2 className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 mb-3 sm:mb-4">
                           {t('heroSlides.slide3.subtitle')}
                         </h2>

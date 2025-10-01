@@ -401,13 +401,10 @@ export default function EventTab() {
 
   const nextReward = getNextReward()
 
-  // 쿠폰 도장 찍기 함수
+  // 쿠폰 도장 찍기 함수 (누적 방식)
   const handleCouponStamp = async (day: number) => {
-    if (couponStreak !== day - 1) return // 순서대로만 찍을 수 있음
-    
     // 오늘 날짜 확인
     const today = new Date().toISOString().split('T')[0]
-    const lastCouponDate = localStorage.getItem('lastCouponDate')
     const todayStamp = localStorage.getItem(`couponStamp_${today}`)
     
     // 오늘 이미 도장을 찍었다면 막기
@@ -416,29 +413,14 @@ export default function EventTab() {
       return
     }
     
-    // 어제까지 연속이었다면 리셋
-    if (lastCouponDate && lastCouponDate !== today) {
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayStr = yesterday.toISOString().split('T')[0]
-      
-      if (lastCouponDate !== yesterdayStr) {
-        // 연속이 끊어짐 - 리셋
-        setCouponStreak(0)
-        localStorage.setItem('couponStreak', '0')
-        alert(t('eventTab.pointSystem.couponEvent.messages.streakBroken'))
-        return
-      }
-    }
-    
-    // 도장 찍기
+    // 누적 도장 찍기
     const newStreak = couponStreak + 1
     setCouponStreak(newStreak)
     localStorage.setItem('couponStreak', newStreak.toString())
     localStorage.setItem('lastCouponDate', today)
     localStorage.setItem(`couponStamp_${today}`, 'true') // 오늘 도장 찍음 표시
     
-    // 3일 완료 시 쿠폰 지급
+    // 3일 누적 완료 시 쿠폰 지급
     if (newStreak === 3) {
       alert('🎉 ' + t('eventTab.pointSystem.couponEvent.messages.congratulations'))
       // 쿠폰 지급 후 리셋
@@ -451,25 +433,13 @@ export default function EventTab() {
     }
   }
 
-  // 쿠폰 출석 데이터 로드
+  // 쿠폰 출석 데이터 로드 (누적 방식)
   useEffect(() => {
     const savedCouponStreak = localStorage.getItem('couponStreak')
-    const lastCouponDate = localStorage.getItem('lastCouponDate')
-    const today = new Date().toISOString().split('T')[0]
     
-    if (savedCouponStreak && lastCouponDate) {
-      // 어제까지 연속이었다면 유지, 아니면 리셋
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayStr = yesterday.toISOString().split('T')[0]
-      
-      if (lastCouponDate === yesterdayStr || lastCouponDate === today) {
-        setCouponStreak(parseInt(savedCouponStreak))
-      } else {
-        // 연속이 끊어짐 - 리셋
-        setCouponStreak(0)
-        localStorage.setItem('couponStreak', '0')
-      }
+    if (savedCouponStreak) {
+      // 누적 값 그대로 유지
+      setCouponStreak(parseInt(savedCouponStreak))
     }
   }, [])
 
@@ -508,10 +478,9 @@ export default function EventTab() {
             <div className="flex items-center justify-center gap-4 mb-3">
               {[1, 2, 3].map((day) => {
                 const isCompleted = couponStreak >= day
-                const isClickable = couponStreak === day - 1
                 const today = new Date().toISOString().split('T')[0]
                 const todayStamp = localStorage.getItem(`couponStamp_${today}`)
-                const canClickToday = isClickable && !todayStamp
+                const canClickToday = couponStreak < 3 && !todayStamp && !isCompleted // 3번 전이고, 오늘 안 찍었고, 이미 완료 안된 것만
                 
                 return (
                   <div
@@ -567,10 +536,9 @@ export default function EventTab() {
               <div className="flex items-center gap-1">
                 {[1, 2, 3].map((day) => {
                   const isCompleted = couponStreak >= day
-                  const isClickable = couponStreak === day - 1
                   const today = new Date().toISOString().split('T')[0]
                   const todayStamp = localStorage.getItem(`couponStamp_${today}`)
-                  const canClickToday = isClickable && !todayStamp
+                  const canClickToday = couponStreak < 3 && !todayStamp && !isCompleted // 3번 전이고, 오늘 안 찍었고, 이미 완료 안된 것만
                   
                   return (
                     <div

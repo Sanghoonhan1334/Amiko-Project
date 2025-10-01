@@ -104,12 +104,12 @@ export default function BottomTabNavigation() {
               onClick={() => handleTabClick(tab)}
               className={`relative flex flex-col items-center justify-center p-3 transition-all duration-200 active:scale-95 ${
                 isActive 
-                  ? 'text-blue-700 bg-blue-200 rounded-xl' 
-                  : 'text-blue-600 rounded-xl active:bg-blue-200'
+                  ? 'text-purple-600' 
+                  : 'text-blue-600'
               }`}
             >
-              <Icon className={`w-6 h-6 mb-1 transition-transform duration-200 ${isActive ? 'text-blue-700 scale-110' : 'text-blue-600'}`} />
-              <span className={`${t('language') === 'es' ? 'text-[10px]' : 'text-[9px] xs:text-[10px] sm:text-xs'} font-bold whitespace-nowrap ${isActive ? 'text-blue-700' : 'text-blue-600'}`}>
+              <Icon className={`w-6 h-6 mb-1 transition-transform duration-200 ${isActive ? 'text-purple-600 scale-110' : 'text-blue-600'}`} />
+              <span className={`${t('language') === 'es' ? 'text-[10px]' : 'text-[9px] xs:text-[10px] sm:text-xs'} font-bold whitespace-nowrap ${isActive ? 'text-purple-600' : 'text-blue-600'}`}>
                 {tab.label}
               </span>
             </button>
