@@ -51,11 +51,10 @@ export async function GET(request: NextRequest) {
       `)
       .eq('is_deleted', false)
 
-    // 임시로 모든 갤러리의 게시글 조회 (디버깅용)
-    console.log('[POSTS_GET] 모든 갤러리의 게시글 조회 (디버깅 모드)')
+    // 자유게시판 갤러리의 게시글 조회
+    console.log('[POSTS_GET] 자유게시판 갤러리의 게시글 조회')
     
-    // 자유게시판 갤러리만 조회하는 로직을 임시로 비활성화
-    /*
+    // 자유게시판 갤러리만 조회
     const { data: freeGallery, error: galleryError } = await supabaseServer
       .from('galleries')
       .select('id')
@@ -81,7 +80,6 @@ export async function GET(request: NextRequest) {
     if (freeGallery) {
       query = query.eq('gallery_id', freeGallery.id)
     }
-    */
 
     // 검색 필터
     if (searchQuery.trim()) {
@@ -357,38 +355,14 @@ export async function POST(request: NextRequest) {
       if (galleryError || !freeGallery) {
         console.error('[POST_CREATE] 자유게시판 갤러리 없음:', galleryError)
         
-        // 갤러리가 없으면 생성 시도
-        console.log('[POST_CREATE] 자유게시판 갤러리 생성 시도...')
-        const { data: newGallery, error: createError } = await supabaseServer
-          .from('galleries')
-          .insert({
-            slug: 'free',
-            name_ko: '자유게시판',
-            name_en: 'Free Board',
-            description_ko: '자유롭게 글을 작성할 수 있는 게시판입니다.',
-            description_en: 'A board where you can freely write posts.',
-            icon: '📝',
-            color: '#3B82F6',
-            is_active: true,
-            post_count: 0
-          })
-          .select('id')
-          .single()
-        
-        if (createError || !newGallery) {
-          console.error('[POST_CREATE] 갤러리 생성 실패:', createError)
-          return NextResponse.json(
-            { error: '자유게시판 갤러리를 찾을 수 없고 생성에도 실패했습니다.' },
-            { status: 404 }
-          )
-        }
-        
-        actualGalleryId = newGallery.id
-        console.log('[POST_CREATE] 자유게시판 갤러리 생성 완료:', actualGalleryId)
-      } else {
-        actualGalleryId = freeGallery.id
-        console.log('[POST_CREATE] 자유게시판 갤러리 ID 확인:', actualGalleryId)
+        return NextResponse.json(
+          { error: '자유게시판 갤러리를 찾을 수 없습니다.' },
+          { status: 404 }
+        )
       }
+      
+      actualGalleryId = freeGallery.id
+      console.log('[POST_CREATE] 자유게시판 갤러리 ID 확인:', actualGalleryId)
     }
 
     if (title.length > 200) {

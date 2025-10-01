@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
@@ -26,9 +27,10 @@ interface BoardListProps {
   onPostSelect: (post: Post) => void
   onWritePost?: () => void
   refreshTrigger?: number // 새로고침 트리거
+  showHeader?: boolean // 헤더 표시 여부
 }
 
-export default function BoardList({ onPostSelect, onWritePost, refreshTrigger }: BoardListProps) {
+export default function BoardList({ onPostSelect, onWritePost, refreshTrigger, showHeader = true }: BoardListProps) {
   const { t, language } = useLanguage()
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
@@ -78,15 +80,13 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger }:
 
   // 카테고리 옵션
   const categories = [
-    { id: 'all', name: language === 'ko' ? '전체글' : 'All Posts', icon: '📝' },
-    { id: 'beauty', name: language === 'ko' ? '뷰티' : 'Beauty', icon: '💄' },
-    { id: 'fashion', name: language === 'ko' ? '패션' : 'Fashion', icon: '👗' },
-    { id: 'travel', name: language === 'ko' ? '여행' : 'Travel', icon: '✈️' },
-    { id: 'culture', name: language === 'ko' ? '문화' : 'Culture', icon: '🎭' },
-    { id: 'food', name: language === 'ko' ? '음식' : 'Food', icon: '🍜' },
-    { id: 'language', name: language === 'ko' ? '언어' : 'Language', icon: '📚' },
-    { id: 'free', name: language === 'ko' ? '자유' : 'Free', icon: '💬' },
-    { id: 'daily', name: language === 'ko' ? '일상' : 'Daily', icon: '📅' }
+    { id: 'all', name: t('community.categories.all'), icon: '📝' },
+    { id: 'free', name: t('community.categories.free'), icon: '💬' },
+    { id: 'kpop', name: t('community.categories.kpop'), icon: '🎵' },
+    { id: 'kdrama', name: t('community.categories.kdrama'), icon: '📺' },
+    { id: 'beauty', name: t('community.categories.beauty'), icon: '💄' },
+    { id: 'korean', name: t('community.categories.korean'), icon: '🇰🇷' },
+    { id: 'spanish', name: t('community.categories.spanish'), icon: '🇪🇸' }
   ]
 
   // 실제 게시글 API 호출 함수
@@ -171,127 +171,175 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger }:
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-            <span className="text-lg sm:text-xl">📝</span>
+      {/* 헤더 - showHeader가 true일 때만 표시 */}
+      {showHeader && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+                {t('community.freeBoard')}
+              </h2>
+              <p className="text-xs sm:text-base text-gray-600 hidden sm:block">
+                {t('community.freeBoardDescription')}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-              {language === 'ko' ? '주제별 게시판' : 'Topic Board'}
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600">
-              {language === 'ko' ? '다양한 주제로 자유롭게 소통하세요' : 'Communicate freely on various topics'}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* 번역 버튼 */}
-          <Button 
-            variant={showSpanish ? "default" : "outline"} 
-            size="sm"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (!isTranslating) {
-                        setIsTranslating(true)
-                        setTimeout(() => {
-                          setShowSpanish(!showSpanish)
-                          setIsTranslating(false)
-                        }, 1000)
-                      }
-                    }}
-            disabled={isTranslating}
-            className="flex items-center gap-2"
-          >
-            <span className="text-sm">
-              {isTranslating ? '⏳' : '🌐'}
-            </span>
-            <span>
-              {isTranslating ? (language === 'ko' ? '번역중...' : 'Translating...') : (showSpanish ? 'ES' : 'KO')}
-            </span>
-          </Button>
           
-          <Button onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            // 운영자는 인증 없이 바로 글쓰기 가능
-            if (isAdmin) {
-              onWritePost?.()
-            } else {
-              setShowAuthDialog(true)
-            }
-          }} className="bg-blue-600 hover:bg-blue-700 text-white">
-            {language === 'ko' ? '글쓰기' : 'Write Post'}
-          </Button>
-        </div>
-      </div>
-
-      {/* 카테고리 필터 */}
-      <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6">
-        {categories.map((category) => (
-          <Button
-            key={category.id}
-            variant={selectedCategory === category.id ? 'default' : 'outline'}
-            size="sm"
-            onClick={(e) => {
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* 번역 버튼 */}
+            <Button 
+              variant={showSpanish ? "default" : "outline"} 
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!isTranslating) {
+                  setIsTranslating(true)
+                  setTimeout(() => {
+                    setShowSpanish(!showSpanish)
+                    setIsTranslating(false)
+                  }, 1000)
+                }
+              }}
+              disabled={isTranslating}
+              className="flex items-center gap-2"
+            >
+              <span className="text-sm">
+                {isTranslating ? '⏳' : '🌐'}
+              </span>
+              <span>
+                {isTranslating ? (language === 'ko' ? '번역중...' : 'Translating...') : (showSpanish ? 'ES' : 'KO')}
+              </span>
+            </Button>
+            
+            <Button onClick={async (e) => {
               e.preventDefault()
               e.stopPropagation()
-              setSelectedCategory(category.id)
-            }}
-            className="flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-3 sm:py-2"
+              
+              // 로그인 체크
+              if (!user) {
+                setShowAuthDialog(true)
+                return
+              }
+              
+              // 운영자는 인증 없이 바로 글쓰기 가능
+              if (isAdmin) {
+                onWritePost?.()
+                return
+              }
+              
+              // 인증 상태 확인 (헤더와 동일한 로직 사용)
+              try {
+                const response = await fetch(`/api/auth/status?userId=${user.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  console.log('게시글 작성 인증 상태 확인:', data)
+                  
+                  // 헤더와 동일한 조건: emailVerified 또는 smsVerified가 true인 경우
+                  if (data.success && (data.emailVerified || data.smsVerified)) {
+                    console.log('인증 완료 - 글쓰기 모달 표시')
+                    onWritePost?.()
+                  } else {
+                    // 인증 안 된 경우 인증 다이얼로그 표시
+                    console.log('인증 필요 - 인증 다이얼로그 표시')
+                    setShowAuthDialog(true)
+                  }
+                } else {
+                  // API 오류 시 안전하게 인증 다이얼로그 표시
+                  console.log('API 오류 - 인증 다이얼로그 표시')
+                  setShowAuthDialog(true)
+                }
+              } catch (error) {
+                console.error('인증 상태 확인 오류:', error)
+                setShowAuthDialog(true)
+              }
+            }} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {t('community.writePost')}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* 카테고리 필터 - 드롭다운 */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 flex-1"
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.icon} {t(`community.categories.${category.id}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* 글쓰기 버튼 */}
+          <Button 
+            onClick={async (e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              
+              // 로그인 체크
+              if (!user) {
+                setShowAuthDialog(true)
+                return
+              }
+              
+              // 운영자는 인증 없이 바로 글쓰기 가능
+              if (isAdmin) {
+                onWritePost?.()
+                return
+              }
+              
+              // 인증 상태 확인 (헤더와 동일한 로직 사용)
+              try {
+                const response = await fetch(`/api/auth/status?userId=${user.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  console.log('게시글 작성 인증 상태 확인:', data)
+                  
+                  // 헤더와 동일한 조건: emailVerified 또는 smsVerified가 true인 경우
+                  if (data.success && (data.emailVerified || data.smsVerified)) {
+                    console.log('인증 완료 - 글쓰기 모달 표시')
+                    onWritePost?.()
+                  } else {
+                    // 인증 안 된 경우 인증 다이얼로그 표시
+                    console.log('인증 필요 - 인증 다이얼로그 표시')
+                    setShowAuthDialog(true)
+                  }
+                } else {
+                  // API 오류 시 안전하게 인증 다이얼로그 표시
+                  console.log('API 오류 - 인증 다이얼로그 표시')
+                  setShowAuthDialog(true)
+                }
+              } catch (error) {
+                console.error('인증 상태 확인 오류:', error)
+                setShowAuthDialog(true)
+              }
+            }} 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md transition-colors w-full sm:w-auto"
           >
-            <span>{category.icon}</span>
-            <span>{category.name}</span>
+            {t('community.writePost')}
           </Button>
-        ))}
+        </div>
       </div>
 
       {/* 정렬 옵션 */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-        <span className="text-sm text-gray-600">
-          {language === 'ko' ? '정렬:' : 'Sort by:'}
-        </span>
-        <div className="flex gap-1 sm:gap-2">
-          <Button
-            variant={sortBy === 'latest' ? 'default' : 'outline'}
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setSortBy('latest')
-            }}
-            className="px-2 py-1 sm:px-3 sm:py-2"
-          >
-            {language === 'ko' ? '최신순' : 'Latest'}
-          </Button>
-          <Button
-            variant={sortBy === 'popular' ? 'default' : 'outline'}
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setSortBy('popular')
-            }}
-            className="px-2 py-1 sm:px-3 sm:py-2"
-          >
-            {language === 'ko' ? '인기순' : 'Popular'}
-          </Button>
-          <Button
-            variant={sortBy === 'views' ? 'default' : 'outline'}
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setSortBy('views')
-            }}
-            className="px-2 py-1 sm:px-3 sm:py-2"
-          >
-            {language === 'ko' ? '조회순' : 'Views'}
-          </Button>
-        </div>
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="latest">{t('community.sortOptions.latest')}</SelectItem>
+            <SelectItem value="popular">{t('community.sortOptions.popular')}</SelectItem>
+            <SelectItem value="views">{t('community.sortOptions.views')}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 게시글 목록 */}
@@ -378,10 +426,10 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger }:
             <div className="text-gray-500">
               <span className="text-4xl">📝</span>
               <p className="mt-2 text-lg">
-                {language === 'ko' ? '게시물이 없습니다' : 'No posts available'}
+                {t('community.noPosts')}
               </p>
               <p className="text-sm mt-1">
-                {language === 'ko' ? '첫 번째 게시글을 작성해보세요!' : 'Be the first to write a post!'}
+                {t('community.beFirstToWrite')}
               </p>
             </div>
           </div>
@@ -506,9 +554,9 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger }:
             type="text"
             placeholder={language === 'ko' ? '게시글 검색' : 'Search Posts'}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            style={{ paddingLeft: '2.5rem' }}
+            style={{ paddingLeft: '3rem' }}
           />
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
             💬
           </span>
         </div>

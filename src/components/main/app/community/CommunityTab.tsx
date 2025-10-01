@@ -23,7 +23,6 @@ import {
   ImageIcon,
   Camera
 } from 'lucide-react'
-import VerificationGuard from '@/components/common/VerificationGuard'
 import CommunityMain from './CommunityMain'
 import BoardList from './BoardList'
 import NewsDetail from './NewsDetail'
@@ -32,6 +31,7 @@ import { useAuth } from '@/context/AuthContext'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
+import QuizzesTab from './QuizzesTab'
 
 // 포인트 시스템 정의
 const pointSystem = {
@@ -57,11 +57,12 @@ const pointSystem = {
 
 // 카테고리 정의 함수
 const getCategories = (t: (key: string) => string) => [
+  { id: 'free', name: t('communityTab.categories.free'), icon: '💬', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+  { id: 'kpop', name: 'K-POP게시판', icon: '🎵', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { id: 'kdrama', name: 'K-Drama게시판', icon: '📺', color: 'bg-purple-100 text-purple-700 border-purple-300' },
   { id: 'beauty', name: t('communityTab.categories.beauty'), icon: '💄', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-  { id: 'fashion', name: t('communityTab.categories.fashion'), icon: '👗', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { id: 'travel', name: t('communityTab.categories.travel'), icon: '✈️', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { id: 'culture', name: t('communityTab.categories.culture'), icon: '🏮', color: 'bg-red-100 text-red-700 border-red-300' },
-  { id: 'free', name: t('communityTab.categories.free'), icon: '💬', color: 'bg-gray-100 text-gray-700 border-gray-300' }
+  { id: 'korean', name: '한국어', icon: '🇰🇷', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { id: 'spanish', name: '스페인어', icon: '🇪🇸', color: 'bg-red-100 text-red-700 border-red-300' }
 ]
 
 // 목업 데이터 - 질문
@@ -156,7 +157,11 @@ const mockTodayActivity = {
   upvotes: 3
 }
 
-export default function CommunityTab() {
+interface CommunityTabProps {
+  onViewChange?: (view: string) => void
+}
+
+export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
   
@@ -216,6 +221,7 @@ export default function CommunityTab() {
   
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState('freeboard')
+  const [currentView, setCurrentView] = useState('home') // 'home', 'freeboard', 'news', 'qa', 'tests'
   // 내부 커뮤니티 탭 URL 파라미터 (cTab) 사용
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -285,8 +291,8 @@ export default function CommunityTab() {
         }
         
         // 방법 3: Supabase 세션에서 토큰 추출
-        if (!currentToken && user?.access_token) {
-          currentToken = user.access_token
+        if (!currentToken && (user as any)?.access_token) {
+          currentToken = (user as any).access_token
         }
         
         console.log('토큰 확인:', { 
@@ -351,10 +357,10 @@ export default function CommunityTab() {
   
   // 뉴스 탭 활성화 시 실제 뉴스 로드
   useEffect(() => {
-    if (activeTab === 'news' && newsData.length === 0) {
+    if (currentView === 'news' && newsData.length === 0) {
       fetchRealNews()
     }
-  }, [activeTab])
+  }, [currentView])
   const [showStoryUploadModal, setShowStoryUploadModal] = useState(false)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -815,6 +821,33 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     router.push(`/main?${params.toString()}`, { scroll: false })
   }
 
+  // 새로운 뷰 변경 핸들러
+  const handleViewChange = (view: string) => {
+    setCurrentView(view)
+    setActiveTab(view)
+    onViewChange?.(view) // 상위 컴포넌트에 뷰 변경 알림
+  }
+
+  // 커뮤니티 홈으로 돌아가기
+  const goToHome = () => {
+    setCurrentView('home')
+    setActiveTab('freeboard')
+    onViewChange?.('home') // 상위 컴포넌트에 홈으로 돌아가기 알림
+  }
+
+  // 커뮤니티 홈으로 돌아가기 이벤트 리스너
+  useEffect(() => {
+    const handleGoToHome = () => {
+      goToHome()
+    }
+    
+    window.addEventListener('goToHome', handleGoToHome)
+    
+    return () => {
+      window.removeEventListener('goToHome', handleGoToHome)
+    }
+  }, [goToHome])
+
   // 필터링된 질문 목록
   const filteredQuestions = questions.filter(question => {
     const matchesCategory = activeCategory === 'all' || question.category === activeCategory
@@ -1156,7 +1189,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 포인트 획득 함수
   const earnPoints = (activity: 'question' | 'answer' | 'story' | 'freeboard' | 'reaction' | 'consultation') => {
     if (!currentProfile) return
-    const userType = currentProfile.is_korean ? 'korean' : 'latin'
+    const userType = (currentProfile as any).is_korean ? 'korean' : 'latin'
     const points = pointSystem[userType][activity]
     const dailyLimit = pointSystem[userType].dailyLimit
     
@@ -1551,19 +1584,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     <div className="flex flex-col lg:flex-row gap-6 p-0 sm:p-1">
       {/* 메인 컨텐츠 */}
       <div className="flex-1 space-y-6">
-        {/* 인증 가드 - 커뮤니티 활동 (운영자는 건너뛰기) */}
-        {!isAdmin && (
-          <VerificationGuard 
-            requiredLevel="email"
-            className="mb-6"
-          >
-            <div></div>
-          </VerificationGuard>
-        )}
 
 
 
-      {/* 오늘의 스토리 섹션 */}
+      {/* 오늘의 스토리 섹션 - 홈에서만 표시 */}
+      {currentView === 'home' && (
       <div className="mt-0 mb-6 max-w-full overflow-hidden border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
@@ -1602,15 +1627,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 return
               }
               
-              // 인증 상태 확인
+              // 인증 상태 확인 (헤더와 동일한 로직 사용)
               try {
                 const response = await fetch(`/api/auth/status?userId=${currentUser.id}`)
                 if (response.ok) {
                   const data = await response.json()
-                  const authLevel = data.verification?.status
+                  console.log('스토리 업로드 인증 상태 확인:', data)
                   
-                  // 인증 완료된 경우 바로 업로드 모달 표시
-                  if (authLevel === 'approved') {
+                  // 헤더와 동일한 조건: emailVerified 또는 smsVerified가 true인 경우
+                  if (data.success && (data.emailVerified || data.smsVerified)) {
                     console.log('인증 완료 - 업로드 모달 표시')
                     setShowStoryUploadModal(true)
                   } else {
@@ -1620,6 +1645,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   }
                 } else {
                   // API 오류 시 안전하게 인증 다이얼로그 표시
+                  console.log('API 오류 - 인증 다이얼로그 표시')
                   setShowAuthDialog(true)
                 }
               } catch (error) {
@@ -1844,92 +1870,87 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           )}
         </div>
       </div>
+      )}
 
-      {/* 세그먼트 탭 네비게이션 */}
-      <div className="bg-white rounded-2xl p-1 shadow-lg mb-4 sm:mb-6">
-        <div className="grid grid-cols-4 gap-1">
+      {/* 커뮤니티 홈 메뉴 - 큰 버튼 4개 */}
+      {currentView === 'home' && (
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <button
-            onClick={() => handleTabChange('freeboard')}
-            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'freeboard'
-                ? 'bg-pink-100 text-pink-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
+            onClick={() => handleViewChange('freeboard')}
+            className="bg-gradient-to-br from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border-2 border-pink-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
           >
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base">📝</span>
-              <span className="hidden sm:inline text-xs">{t('community.freeBoard')}</span>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                📝
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">{t('community.freeBoard')}</h3>
+              <p className="text-sm text-gray-600 text-center">{t('community.freeBoardDescription')}</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleViewChange('news')}
+            className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                📰
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">{t('community.koreanNews')}</h3>
+              <p className="text-sm text-gray-600 text-center">{t('community.koreanNewsDescription')}</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleViewChange('qa')}
+            className="bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-2 border-purple-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                💬
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">{t('community.qa')}</h3>
+              <p className="text-sm text-gray-600 text-center">{t('community.qaDescription')}</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleViewChange('tests')}
+            className="bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                🎯
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">{t('tests.title')}</h3>
+              <p className="text-sm text-gray-600 text-center">{t('tests.description')}</p>
+            </div>
+          </button>
         </div>
-          </button>
-          
-          <button
-            onClick={() => handleTabChange('news')}
-            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'news'
-                ? 'bg-pink-100 text-pink-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base">📰</span>
-              <span className="hidden sm:inline text-xs">{t('community.koreanNews')}</span>
-          </div>
-          </button>
-          
-          <button
-            onClick={() => handleTabChange('qa')}
-            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'qa'
-                ? 'bg-purple-100 text-purple-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base">💬</span>
-              <span className="hidden sm:inline text-xs">{t('community.qa')}</span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => handleTabChange('tests')}
-            className={`px-2 py-2 sm:px-3 sm:py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'tests'
-                ? 'bg-blue-100 text-blue-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base">🎯</span>
-              <span className="hidden sm:inline text-xs">{t('tests.title')}</span>
-            </div>
-          </button>
-          </div>
-          </div>
+      )}
 
       {/* 탭 컨텐츠 */}
 
-      {activeTab === 'qa' && (
-        <div className="space-y-6">
+      {currentView === 'qa' && (
+        <div className="w-full">
 
 
 
 
 
       {/* 상단 컨트롤 */}
-      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder={t('communityTab.searchQuestions')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64 bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-            />
-          </div>
+      <div className="flex items-center justify-between">
+        <div className="relative">
+          <MessageSquare className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
+          <Input
+            placeholder={t('communityTab.searchQuestions')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-14 w-64 bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+          />
         </div>
-
-        {/* 질문하기 버튼 */}
+        
+        {/* 질문하기 버튼 - 오른쪽 끝 */}
         <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
           <DialogTrigger asChild>
             <Button className="bg-purple-500 hover:bg-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 text-white">
@@ -1937,88 +1958,74 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               {t('communityTab.askQuestion')}
             </Button>
           </DialogTrigger>
-          
-          <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
-            <DialogHeader className="pb-4 border-b border-gray-200">
-              <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newQuestion')}</DialogTitle>
-            </DialogHeader>
             
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.title')}</label>
-                <Input
-                  placeholder={t('communityTab.titlePlaceholder')}
-                  value={questionForm.title}
-                  onChange={(e) => setQuestionForm({ ...questionForm, title: e.target.value })}
-                  className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                />
-              </div>
+            <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
+              <DialogHeader className="pb-4 border-b border-gray-200">
+                <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newQuestion')}</DialogTitle>
+              </DialogHeader>
               
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.category')}</label>
-                <select
-                  value={questionForm.category}
-                  onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
-                  className="w-full p-3 border-2 border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white"
-                >
-                  {getCategories(t).map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.icon} {category.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.title')}</label>
+                  <Input
+                    placeholder={t('communityTab.titlePlaceholder')}
+                    value={questionForm.title}
+                    onChange={(e) => setQuestionForm({ ...questionForm, title: e.target.value })}
+                    className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.category')}</label>
+                  <select
+                    value={questionForm.category}
+                    onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
+                    className="w-full p-3 border-2 border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white"
+                  >
+                    {getCategories(t).map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.icon} {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.tags')}</label>
+                  <Input
+                    placeholder={t('communityTab.tagsPlaceholder')}
+                    value={questionForm.tags}
+                    onChange={(e) => setQuestionForm({ ...questionForm, tags: e.target.value })}
+                    className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.questionContent')}</label>
+                  <Textarea
+                    placeholder={t('communityTab.questionContentPlaceholder')}
+                    value={questionForm.content}
+                    onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
+                    rows={6}
+                    className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none"
+                  />
+                </div>
+                
+                <div className="flex gap-3 justify-end">
+                  <Button variant="outline" onClick={() => setShowQuestionModal(false)}>
+                    {t('buttons.cancel')}
+                  </Button>
+                  <Button onClick={handleSubmitQuestion}>
+                    {t('communityTab.registerQuestion')}
+                  </Button>
+                </div>
               </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.tags')}</label>
-                <Input
-                  placeholder={t('communityTab.tagsPlaceholder')}
-                  value={questionForm.tags}
-                  onChange={(e) => setQuestionForm({ ...questionForm, tags: e.target.value })}
-                  className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.questionContent')}</label>
-                <Textarea
-                  placeholder={t('communityTab.questionContentPlaceholder')}
-                  value={questionForm.content}
-                  onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
-                  rows={6}
-                  className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none"
-                />
-              </div>
-              
-              <div className="flex gap-3 justify-end">
-                <Button variant="outline" onClick={() => setShowQuestionModal(false)}>
-                  {t('buttons.cancel')}
-                </Button>
-                <Button onClick={handleSubmitQuestion}>
-                  {t('communityTab.registerQuestion')}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
       </div>
 
-      {/* 카테고리 탭 */}
-      <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full mt-8">
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1 sm:gap-2 mb-6 sm:mb-8 bg-gray-50">
-          <TabsTrigger value="all" className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-1 py-2 sm:px-3 sm:py-2">
-            <Star className="w-3 h-3 sm:w-4 sm:h-4" />
-            {t('communityTab.categories.all')}
-          </TabsTrigger>
-          {getCategories(t).map(category => (
-            <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1 text-xs sm:text-sm bg-white data-[state=active]:bg-purple-100 data-[state=active]:shadow-sm px-1 py-2 sm:px-3 sm:py-2">
-              <span>{category.icon}</span>
-              <span className="truncate">{category.name}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        
-        <TabsContent value={activeCategory} className="mt-12">
+      {/* 질문 목록 */}
+      <div className="mt-8">
           {/* 질문 카드 리스트 */}
           <div className="space-y-8">
             {filteredQuestions.map((question, index) => (
@@ -2044,7 +2051,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                           handleUpvote(question.id)
                         }}
                       >
-                        <ThumbsUp className="w-4 h-4 text-purple-500" />
+                        <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
                       </Button>
                       <span className="text-lg font-semibold text-purple-600">{question.upvotes}</span>
                     </div>
@@ -2173,13 +2180,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               </Button>
             </Card>
           )}
-        </TabsContent>
-      </Tabs>
+      </div>
         </div>
       )}
 
-      {activeTab === 'freeboard' && (
-        <div className="space-y-6">
+      {currentView === 'freeboard' && (
+        <div className="w-full">
           <BoardList 
             onPostSelect={(post) => {
               console.log('게시글 선택:', post)
@@ -2189,12 +2195,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               setShowWriteModal(true)
             }}
             refreshTrigger={refreshTrigger}
+            showHeader={false}
           />
         </div>
       )}
 
-      {activeTab === 'news' && (
-        <div className="space-y-6">
+      {currentView === 'news' && (
+        <div className="w-full">
           {showNewsDetail && selectedNews ? (
             // 뉴스 상세 내용 (전체 영역)
             <NewsDetail 
@@ -2224,69 +2231,58 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               }}
               onDelete={(newsId) => {
                 // 뉴스 목록에서 삭제된 뉴스 제거
-                setRealNews(prev => prev.filter(news => news.id !== newsId))
+                setNewsData(prev => prev.filter(news => news.id !== newsId))
                 toast.success('뉴스가 삭제되었습니다.')
               }}
               onPin={(newsId, isPinned) => {
                 // 뉴스 목록에서 고정 상태 업데이트
-                setRealNews(prev => prev.map(news => 
+                setNewsData(prev => prev.map(news => 
                   news.id === newsId ? { ...news, is_pinned: isPinned } : news
                 ))
               }}
             />
           ) : (
             // 뉴스 목록
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200/50 shadow-lg">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <span className="text-xl">📰</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-800">최신 한국 뉴스</h3>
-                      <p className="text-gray-600">한국의 최신 소식과 트렌드</p>
-                    </div>
-                  </div>
-                  
+            <div className="space-y-6">
+              <div className="flex items-center justify-end">
+                {/* 번역 버튼 */}
+                <div className="flex items-center gap-2">
                   {/* 번역 버튼 */}
-                  <div className="flex items-center gap-2">
-                    {/* 번역 버튼 */}
+                  <Button 
+                    variant={showSpanishNews ? "default" : "outline"} 
+                    size="sm"
+                    onClick={() => {
+                      if (!isTranslating) {
+                        setIsTranslating(true)
+                        setTimeout(() => {
+                          setShowSpanishNews(!showSpanishNews)
+                          setIsTranslating(false)
+                        }, 1000)
+                      }
+                    }}
+                    disabled={isTranslating}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="text-sm">
+                      {isTranslating ? '⏳' : '🌐'}
+                    </span>
+                    <span>
+                      {isTranslating ? '번역중...' : (showSpanishNews ? 'ES' : 'KO')}
+                    </span>
+                  </Button>
+                  
+                  {/* 운영진 전용 버튼들 */}
+                  {isAdmin && (
                     <Button 
-                      variant={showSpanishNews ? "default" : "outline"} 
-                      size="sm"
-                      onClick={() => {
-                        if (!isTranslating) {
-                          setIsTranslating(true)
-                          setTimeout(() => {
-                            setShowSpanishNews(!showSpanishNews)
-                            setIsTranslating(false)
-                          }, 1000)
-                        }
-                      }}
-                      disabled={isTranslating}
-                      className="flex items-center gap-2"
+                      size="sm" 
+                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      onClick={() => setShowNewsWriteModal(true)}
                     >
-                      <span className="text-sm">
-                        {isTranslating ? '⏳' : '🌐'}
-                      </span>
-                      <span>
-                        {isTranslating ? '번역중...' : (showSpanishNews ? 'ES' : 'KO')}
-                      </span>
+                      ➕ 뉴스 작성
                     </Button>
-                    
-                    {/* 운영진 전용 버튼들 */}
-                    {isAdmin && (
-                      <Button 
-                        size="sm" 
-                        className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                        onClick={() => setShowNewsWriteModal(true)}
-                      >
-                        ➕ 뉴스 작성
-                      </Button>
-                    )}
-                  </div>
+                  )}
                 </div>
+              </div>
                   
                 {/* 뉴스 목록 */}
                 <div className="space-y-0">
@@ -2310,7 +2306,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                       <div className="text-center py-4">
                         <div className="inline-flex items-center gap-2 text-purple-600">
                           <span className="animate-spin">📰</span>
-                          <span>뉴스를 불러오는 중...</span>
+                          <span>{t('community.loadingNews')}</span>
                         </div>
                       </div>
                     </div>
@@ -2497,15 +2493,14 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                       <div className="text-center pt-4">
                         <div className="flex items-center justify-center gap-2">
                           <Button variant="outline" className="bg-white hover:bg-gray-50">
-                            더 많은 한국 뉴스 보기
+                            {t('community.viewMoreNews')}
                           </Button>
                         </div>
                       </div>
                     </>
                   )}
                 </div>
-              </div>
-            </Card>
+            </div>
           )}
         </div>
       )}
@@ -2674,7 +2669,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <ImageIcon className="w-6 h-6 text-gray-400" />
+                      <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
                       <span className="text-sm text-gray-600">
                         {imagePreview ? '다른 사진 선택' : '📱 갤러리에서 선택'}
                       </span>
@@ -2697,7 +2692,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <Camera className="w-6 h-6 text-gray-400" />
+                      <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
                       <span className="text-sm text-gray-600">
                         📷 카메라로 촬영
                       </span>
@@ -2734,7 +2729,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   handleStoryUpload()
                 }}
                 disabled={isUploading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white"
               >
                 {isUploading ? '업로드 중...' : '업로드'}
               </Button>
@@ -2963,14 +2958,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="free">{language === 'ko' ? '자유' : 'Free'}</SelectItem>
+                  <SelectItem value="free">{language === 'ko' ? '자유게시판' : 'Free Board'}</SelectItem>
+                  <SelectItem value="kpop">{language === 'ko' ? 'K-POP게시판' : 'K-POP Board'}</SelectItem>
+                  <SelectItem value="kdrama">{language === 'ko' ? 'K-Drama게시판' : 'K-Drama Board'}</SelectItem>
                   <SelectItem value="beauty">{language === 'ko' ? '뷰티' : 'Beauty'}</SelectItem>
-                  <SelectItem value="fashion">{language === 'ko' ? '패션' : 'Fashion'}</SelectItem>
-                  <SelectItem value="travel">{language === 'ko' ? '여행' : 'Travel'}</SelectItem>
-                  <SelectItem value="culture">{language === 'ko' ? '문화' : 'Culture'}</SelectItem>
-                  <SelectItem value="food">{language === 'ko' ? '음식' : 'Food'}</SelectItem>
-                  <SelectItem value="language">{language === 'ko' ? '언어' : 'Language'}</SelectItem>
-                  <SelectItem value="daily">{language === 'ko' ? '일상' : 'Daily'}</SelectItem>
+                  <SelectItem value="korean">{language === 'ko' ? '한국어' : 'Korean'}</SelectItem>
+                  <SelectItem value="spanish">{language === 'ko' ? '스페인어' : 'Spanish'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -3446,33 +3439,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       </Dialog>
 
       {/* Tests 탭 */}
-      {activeTab === 'tests' && (
-        <div className="space-y-6">
-          {/* 테스트 목록 헤더 */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  <span className="text-2xl">🎯</span>
-                  {t('tests.title')}
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">{t('tests.subtitle')}</p>
-              </div>
-            </div>
-
-            {/* 테스트 목록 (현재는 빈 상태) */}
-            <div className="mt-6">
-              <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-3xl">🎯</span>
-                  </div>
-                  <p className="text-lg font-medium">{t('tests.noPosts')}</p>
-                  <p className="text-sm text-gray-400">{t('tests.beFirst')}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+      {currentView === 'tests' && (
+        <div className="w-full">
+          <QuizzesTab />
         </div>
       )}
 

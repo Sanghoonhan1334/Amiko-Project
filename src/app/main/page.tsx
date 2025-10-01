@@ -24,6 +24,7 @@ function AppPageContent() {
   const [currentPoints, setCurrentPoints] = useState(0)
   const [pointsLoading, setPointsLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [communityView, setCommunityView] = useState('home')
 
   // 포인트 데이터 가져오기
   const fetchPoints = async () => {
@@ -205,16 +206,56 @@ function AppPageContent() {
 
             {activeTab === 'community' && (
               <div className="card p-8 -mt-12 sm:mt-0">
-                <div className="flex items-center gap-3 mb-0">
-                  <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
-                    <span className="text-2xl">💬</span>
+                <div className="flex items-center justify-between mb-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
+                      <span className="text-2xl">
+                        {communityView === 'home' ? '💬' :
+                         communityView === 'freeboard' ? '📝' :
+                         communityView === 'news' ? '📰' :
+                         communityView === 'qa' ? '💬' :
+                         communityView === 'tests' ? '🎯' :
+                         '💬'}
+                      </span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-800">
+                        {communityView === 'home' ? t('main.community') :
+                         communityView === 'freeboard' ? t('community.freeBoard') :
+                         communityView === 'news' ? t('community.koreanNews') :
+                         communityView === 'qa' ? t('community.qa') :
+                         communityView === 'tests' ? t('tests.title') :
+                         t('main.community')}
+                      </h2>
+                      <p className="text-gray-600">
+                        {communityView === 'home' ? t('main.communityDescription') :
+                         communityView === 'freeboard' ? t('community.freeBoardDescription') :
+                         communityView === 'news' ? t('community.koreanNewsDescription') :
+                         communityView === 'qa' ? t('community.qaDescription') :
+                         communityView === 'tests' ? t('tests.description') :
+                         t('main.communityDescription')}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{t('main.community')}</h2>
-                    <p className="text-gray-600">{t('main.communityDescription')}</p>
-                  </div>
+                  
+                  {/* 커뮤니티 홈으로 돌아가기 버튼 - 제목과 같은 줄 */}
+                  {communityView !== 'home' && (
+                    <button
+                      onClick={() => {
+                        // CommunityTab의 goToHome 함수 호출을 위해 이벤트 전달
+                        const event = new CustomEvent('goToHome')
+                        window.dispatchEvent(event)
+                      }}
+                      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      </svg>
+                      <span className="font-medium">{t('community.backToHome')}</span>
+                    </button>
+                  )}
                 </div>
-                <CommunityTab />
+                <CommunityTab onViewChange={setCommunityView} />
               </div>
             )}
 
@@ -256,7 +297,7 @@ function AppPageContent() {
                   {/* 포인트 카드 */}
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                       </svg>
                       <span className='text-sm font-medium text-blue-800'>{t('storeTab.pointCard.title')}</span>

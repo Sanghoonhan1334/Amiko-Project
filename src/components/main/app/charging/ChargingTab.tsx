@@ -190,7 +190,7 @@ export default function ChargingTab() {
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 -mt-8 sm:mt-0">
+    <div className="card p-6 sm:p-8 -mt-8 sm:mt-0">
 
       {/* 슬라이드 컨테이너 */}
       <div className="relative">
@@ -213,80 +213,82 @@ export default function ChargingTab() {
         >
         {/* 슬라이드 1: AKO 쿠폰 */}
         <SwiperSlide>
-          <Card className="bg-white shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Gift className="w-4 h-4 text-blue-500" />
-                {t('storeTab.charging.title')}
-              </CardTitle>
-              <CardDescription className="text-sm">
-                {t('storeTab.charging.subtitle')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {couponPackages.map((pkg) => (
-                  <Card 
-                    key={pkg.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      pkg.popular ? 'ring-2 ring-blue-500' : ''
-                    }`}
-                    onClick={() => handleCouponPurchase(pkg)}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.charging.title')}</h3>
+            </div>
+            <p className="text-sm text-gray-600">{t('storeTab.charging.subtitle')}</p>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {couponPackages.map((pkg) => (
+                <div 
+                  key={pkg.id}
+                  className={`bg-white rounded-lg p-2 text-center cursor-pointer transition-all hover:shadow-md border ${
+                    pkg.popular ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200'
+                  }`}
+                  onClick={() => handleCouponPurchase(pkg)}
+                >
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <Video className="w-3 h-3 text-blue-500" />
+                    {pkg.popular && (
+                      <Badge className="text-xs px-1 py-0.5 bg-blue-100 text-blue-700 border-blue-300">
+                        {t('storeTab.charging.popular')}
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-xs">{pkg.count}{t('storeTab.charging.units')}</h3>
+                  <div className="text-sm font-bold text-blue-600 mb-1">
+                    ${pkg.price}
+                  </div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {t('storeTab.charging.perUnit')} ${pkg.perUnit}
+                  </div>
+                  <div className="text-xs text-gray-600 mb-2">
+                    {pkg.minutes}{t('storeTab.charging.minutes')}
+                  </div>
+                  <Button 
+                    size="sm" 
+                    className="w-full text-xs h-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleCouponPurchase(pkg)
+                    }}
                   >
-                    <CardContent className="p-2 text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Video className="w-3 h-3 text-blue-500" />
-                        {pkg.popular && (
-                          <Badge className="text-xs px-1 py-0.5 bg-blue-100 text-blue-700 border-blue-300">
-                            {t('storeTab.charging.popular')}
-                          </Badge>
-                        )}
-                      </div>
-                      <h3 className="font-semibold text-xs">{pkg.count}{t('storeTab.charging.units')}</h3>
-                      <div className="text-sm font-bold text-blue-600 mb-1">
-                        ${pkg.price}
-                      </div>
-                      <div className="text-xs text-gray-500 mb-1">
-                        {t('storeTab.charging.perUnit')} ${pkg.perUnit}
-                      </div>
-                      <div className="text-xs text-gray-600 mb-2">
-                        {pkg.minutes}{t('storeTab.charging.minutes')}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        className="w-full text-xs h-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleCouponPurchase(pkg)
-                        }}
-                      >
-                        {t('storeTab.charging.chargeButton')}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                    {t('storeTab.charging.chargeButton')}
+                  </Button>
+                </div>
+              ))}
+            </div>
+            
+            {/* 무료 AKO 안내 문구 */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">💡 {t('storeTab.charging.freeAkoTitle')}</p>
+                  <p>{t('storeTab.charging.freeAkoDescription')}</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </SwiperSlide>
 
         {/* 슬라이드 2: VIP 멤버십 */}
         <SwiperSlide>
-          <Card className="bg-white shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Crown className="w-4 h-4 text-purple-500" />
-                VIP 구독
-              </CardTitle>
-              <CardDescription className="text-sm">
-                프리미엄 기능으로 더욱 특별한 Amiko를 경험하세요
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-3 gap-2">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
+              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.vip.title')}</h3>
+            </div>
+            <p className="text-sm text-gray-600">{t('storeTab.vip.subtitle')}</p>
+            
+            <div className="space-y-4">
+              {/* 구독 옵션들 */}
+              <div className="grid grid-cols-2 gap-2">
                 {/* 월간 구독 */}
-                <Card className="text-center p-1 border border-gray-200">
-                  <CardContent className="p-1">
+                <div className="text-center p-1 border border-gray-200 bg-white rounded-lg">
+                  <div className="p-1">
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Clock className="w-3 h-3 text-gray-500" />
                       <span className="text-xs font-medium">{t('storeTab.vip.monthly')}</span>
@@ -296,12 +298,12 @@ export default function ChargingTab() {
                     <Button size="sm" className="w-full text-xs h-8 bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       {t('storeTab.vip.subscribe')}
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
                 {/* 연간 구독 */}
-                <Card className="text-center p-1 border border-purple-300 ring-1 ring-purple-200">
-                  <CardContent className="p-1">
+                <div className="text-center p-1 border border-purple-300 ring-1 ring-purple-200 bg-white rounded-lg">
+                  <div className="p-1">
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Crown className="w-3 h-3 text-purple-500" />
                       <span className="text-xs font-medium">{t('storeTab.vip.yearly')}</span>
@@ -317,97 +319,88 @@ export default function ChargingTab() {
                         {t('storeTab.vip.popular')}
                       </Badge>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* VIP 기능 상세정보 */}
-                <Card className="text-center p-2 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
-                  <CardContent className="p-2">
-                    <div className="flex items-center justify-center gap-1 mb-2">
-                      <Sparkles className="w-4 h-4 text-purple-500" />
-                      <span className='text-sm font-bold text-purple-700'>{t('storeTab.vip.features')}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-sm font-bold text-gray-800">
-                        • {t('storeTab.vip.beautyFilter')}
-                      </div>
-                      <div className="text-sm font-bold text-gray-800">
-                        • {t('storeTab.vip.adRemoval')}
-                      </div>
-                      <div className="text-sm font-bold text-gray-800">
-                        • {t('storeTab.vip.simultaneousInterpretation')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* VIP 기능 상세정보 - 아래로 이동 */}
+              <div className="text-center p-2 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                <div className="p-2">
+                  <div className="flex items-center justify-center gap-1 mb-2">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
+                    <span className='text-sm font-bold text-purple-700'>{t('storeTab.vip.features.title')}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-sm font-bold text-gray-800">
+                      • {t('storeTab.vip.features.beautyFilter')}
+                    </div>
+                    <div className="text-sm font-bold text-gray-800">
+                      • {t('storeTab.vip.features.aiTranslation')}
+                    </div>
+                    <div className="text-sm font-bold text-gray-800">
+                      • {t('storeTab.vip.features.gameFunction')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </SwiperSlide>
 
         {/* 슬라이드 3: 포인트 상점 */}
         <SwiperSlide>
-          <Card className="bg-white shadow-lg h-auto relative">
+          <div className="space-y-4 relative">
             {/* 공사중 팻말 */}
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-0 right-0 z-10">
               <div className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg transform rotate-12">
                 🚧 {t('storeTab.pointStore.comingSoon')}
               </div>
             </div>
             
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <ShoppingBag className="w-4 h-4 text-green-500" />
-                {t('storeTab.pointStore.title')}
-              </CardTitle>
-              <CardDescription className="text-sm">
-                {t('storeTab.pointStore.subtitle')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 gap-3">
-                {storeItems.map((item) => (
-                  <Card 
-                    key={item.id}
-                    className={`cursor-pointer transition-all ${
-                      item.available 
-                        ? 'hover:shadow-md' 
-                        : 'opacity-50 cursor-not-allowed'
-                    }`}
-                    onClick={() => item.available && handleStoreItemPurchase(item)}
-                  >
-                    <CardContent className="p-3 text-center">
-                      <div className="mb-2">
-                        <div className="text-2xl mb-1">{item.icon}</div>
-                        <h3 className="font-semibold text-sm mb-1">{item.name}</h3>
-                        <p className="text-xs text-gray-600 mb-1 leading-tight">{item.description}</p>
-                        <div className="text-sm font-bold text-green-600 mb-2">
-                          {item.price} {t('storeTab.pointStore.points')}
-                        </div>
-                        {!item.available && (
-                          <div className="text-xs text-gray-500 mb-1">
-                            {t('storeTab.pointStore.comingSoon')}
-                          </div>
-                        )}
-                      </div>
-                      {item.available && (
-                        <Button 
-                          size="sm" 
-                          className="w-full text-xs h-8 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleStoreItemPurchase(item)
-                          }}
-                        >
-                          구매하기
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
+              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.pointStore.title')}</h3>
+            </div>
+            <p className="text-sm text-gray-600">{t('storeTab.pointStore.subtitle')}</p>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {storeItems.map((item) => (
+                <div 
+                  key={item.id}
+                  className={`text-center cursor-pointer transition-all ${
+                    item.available 
+                      ? 'hover:opacity-80' 
+                      : 'opacity-50 cursor-not-allowed'
+                  }`}
+                  onClick={() => item.available && handleStoreItemPurchase(item)}
+                >
+                  <div className="text-2xl mb-1">{item.icon}</div>
+                  <h3 className="font-semibold text-sm mb-1">{item.name}</h3>
+                  <p className="text-xs text-gray-600 mb-1 leading-tight">{item.description}</p>
+                  <div className="text-sm font-bold text-green-600 mb-2">
+                    {item.price} {t('storeTab.pointStore.points')}
+                  </div>
+                  {!item.available && (
+                    <div className="text-xs text-gray-500 mb-1">
+                      {t('storeTab.pointStore.comingSoon')}
+                    </div>
+                  )}
+                  {item.available && (
+                    <Button 
+                      size="sm" 
+                      className="w-full text-xs h-8 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleStoreItemPurchase(item)
+                      }}
+                    >
+                      구매하기
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </SwiperSlide>
         </Swiper>
 

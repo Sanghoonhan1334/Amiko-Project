@@ -303,6 +303,30 @@ export const translations = {
       qa: 'Q&A',
       freeBoard: '주제별 게시판',
       koreanNews: '한국 뉴스',
+      freeBoardDescription: '다양한 주제로 자유롭게 소통하세요',
+      koreanNewsDescription: '한국의 최신 뉴스를 확인하세요',
+      qaDescription: '질문하고 답변을 받아보세요',
+      loadingNews: '뉴스를 불러오는 중...',
+      backToHome: '커뮤니티 홈으로 돌아가기',
+      viewMoreNews: '더 많은 한국 뉴스 보기',
+      categories: {
+        all: '전체글',
+        free: '자유게시판',
+        kpop: 'K-POP게시판',
+        kdrama: 'K-Drama게시판',
+        beauty: '뷰티',
+        korean: '한국어',
+        spanish: '스페인어'
+      },
+      noPosts: '게시물이 없습니다',
+      beFirstToWrite: '첫 번째 게시글을 작성해보세요!',
+      sortBy: '정렬:',
+      sortOptions: {
+        latest: '최신순',
+        popular: '인기순',
+        views: '조회순'
+      },
+      writePost: '글쓰기',
       galleryList: {
         title: '갤러리',
         subtitle: '다양한 주제로 소통하고 경험을 공유하세요',
@@ -923,19 +947,21 @@ export const translations = {
     tests: {
       title: '테스트',
       subtitle: '재미있는 테스트로 자신을 알아보세요',
+      description: '성향 테스트로 나를 알아보세요',
       categories: {
         all: '전체',
         personality: '성격',
         celebrity: '연예인',
-        learningStyle: '학습 스타일',
-        culture: '문화',
+        knowledge: '지식',
         fun: '재미'
       },
       noPosts: '테스트가 없습니다',
       beFirst: '첫 번째 테스트를 만들어보세요!',
       participants: '참여자',
       questions: '질문',
+      minutes: '분',
       startTest: '테스트 시작',
+      startButton: '테스트 시작',
       retakeTest: '다시 하기',
       shareResult: '결과 공유',
       myResults: '내 결과',
@@ -945,6 +971,7 @@ export const translations = {
       previous: '이전',
       submit: '제출',
       viewResult: '결과 보기',
+      errorLoading: '테스트를 불러오는 중 오류가 발생했습니다',
       result: {
         title: '테스트 결과',
         yourType: '당신의 타입은',
@@ -1107,7 +1134,9 @@ export const translations = {
         popular: '인기',
         perUnit: '개당',
         minutes: '분',
-        units: '개'
+        units: '개',
+        freeAkoTitle: '무료 AKO 받는 방법',
+        freeAkoDescription: 'AKO충전을 하지않아도 이벤트 탭에서 3번 출석체크하면 AKO를 받을 수 있습니다.<br />72시간마다 한번씩 무료로 한국인들과 영상통화를 즐겨보세요.'
       },
       vip: {
         title: 'VIP 구독',
@@ -1117,10 +1146,12 @@ export const translations = {
         popular: '인기',
         subscribe: '구독하기',
         save: '절약',
-        features: 'VIP 기능',
-        beautyFilter: '뷰티 필터',
-        adRemoval: '광고 제거',
-        simultaneousInterpretation: '동시 통역 기능'
+        features: {
+          title: 'VIP 기능',
+          beautyFilter: '뷰티필터',
+          aiTranslation: 'AI동시통역기능',
+          gameFunction: '영상 통화중 게임 기능'
+        }
       },
       pointStore: {
         title: '포인트 상점',
@@ -1784,6 +1815,30 @@ export const translations = {
       qa: 'P&R',
       freeBoard: 'Tablero por Temas',
       koreanNews: 'Noticias de Corea',
+      freeBoardDescription: 'Comunícate libremente sobre diversos temas',
+      koreanNewsDescription: 'Consulta las últimas noticias de Corea',
+      qaDescription: 'Haz preguntas y recibe respuestas',
+      loadingNews: 'Cargando noticias...',
+      backToHome: 'Volver al Inicio de la Comunidad',
+      viewMoreNews: 'Ver más noticias de Corea',
+      categories: {
+        all: 'Todas las Publicaciones',
+        free: 'Foro Libre',
+        kpop: 'Foro K-POP',
+        kdrama: 'Foro K-Drama',
+        beauty: 'Belleza',
+        korean: 'Coreano',
+        spanish: 'Español'
+      },
+      noPosts: 'No hay publicaciones disponibles',
+      beFirstToWrite: '¡Sé el primero en escribir una publicación!',
+      sortBy: 'Ordenar por:',
+      sortOptions: {
+        latest: 'Más Recientes',
+        popular: 'Más Populares',
+        views: 'Más Vistos'
+      },
+      writePost: 'Escribir',
       galleryList: {
         title: 'Galerías',
         subtitle: 'Comunícate sobre diversos temas y comparte experiencias',
@@ -2493,19 +2548,21 @@ export const translations = {
     tests: {
       title: 'Tests',
       subtitle: 'Descubre más sobre ti con tests divertidos',
+      description: 'Descubre más sobre ti con tests de personalidad',
       categories: {
         all: 'Todo',
         personality: 'Personalidad',
         celebrity: 'Celebridad',
-        learningStyle: 'Estilo de Aprendizaje',
-        culture: 'Cultura',
+        knowledge: 'Conocimiento',
         fun: 'Diversión'
       },
       noPosts: 'No hay tests disponibles',
       beFirst: '¡Sé el primero en crear un test!',
       participants: 'Participantes',
       questions: 'Preguntas',
+      minutes: 'min',
       startTest: 'Iniciar Test',
+      startButton: 'Iniciar Test',
       retakeTest: 'Repetir',
       shareResult: 'Compartir Resultado',
       myResults: 'Mis Resultados',
@@ -2515,6 +2572,7 @@ export const translations = {
       previous: 'Anterior',
       submit: 'Enviar',
       viewResult: 'Ver Resultado',
+      errorLoading: 'Error al cargar los tests',
       result: {
         title: 'Resultado del Test',
         yourType: 'Tu tipo es',
@@ -2677,7 +2735,9 @@ export const translations = {
         popular: 'Popular',
         perUnit: 'por unidad',
         minutes: 'minutos',
-        units: 'unidades'
+        units: 'unidades',
+        freeAkoTitle: 'Cómo obtener AKO gratis',
+        freeAkoDescription: 'Puedes obtener AKO sin cargar, simplemente marcando asistencia 3 veces en la pestaña de eventos.<br />Disfruta de videollamadas gratuitas con coreanos cada 72 horas.'
       },
       vip: {
         title: 'Suscripción VIP',
@@ -2687,10 +2747,12 @@ export const translations = {
         popular: 'Popular',
         subscribe: 'Suscribirse',
         save: 'Ahorrar',
-        features: 'Funciones VIP',
-        beautyFilter: 'Filtro de Belleza',
-        adRemoval: 'Eliminar Anuncios',
-        simultaneousInterpretation: 'Función de Interpretación Simultánea'
+        features: {
+          title: 'Funciones VIP',
+          beautyFilter: 'Filtro de Belleza',
+          aiTranslation: 'Función de Interpretación Simultánea con IA',
+          gameFunction: 'Función de Juegos durante Videollamadas'
+        }
       },
       pointStore: {
         title: 'Tienda de Puntos',
