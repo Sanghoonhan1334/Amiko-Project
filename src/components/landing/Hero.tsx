@@ -106,7 +106,7 @@ export default function Hero() {
               <div className="min-h-screen flex items-start justify-center pt-16 md:pt-20 lg:pt-24">
                 <div className="w-full px-4 sm:px-6 lg:px-8">
                   <div className="max-w-6xl mx-auto relative">
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-2">
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
                       {/* 왼쪽: 텍스트 */}
                       <div className="text-left max-w-lg">
                         <div className="inline-flex items-center gap-2 bg-blue-100/50 backdrop-blur-sm rounded-full px-3 py-1.5 mb-4 border border-blue-200/30">
