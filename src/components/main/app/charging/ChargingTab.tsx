@@ -267,7 +267,7 @@ export default function ChargingTab() {
                 <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">💡 {t('storeTab.charging.freeAkoTitle')}</p>
-                  <p>{t('storeTab.charging.freeAkoDescription')}</p>
+                  <p dangerouslySetInnerHTML={{ __html: t('storeTab.charging.freeAkoDescription') }}></p>
                 </div>
               </div>
             </div>

@@ -1946,7 +1946,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             placeholder={t('communityTab.searchQuestions')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-14 w-64 bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+            className="pl-20 w-64 bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
           />
         </div>
         

@@ -576,7 +576,7 @@ export default function FreeBoard() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            className="pl-10"
+            className="pl-12"
           />
         </div>
         <Button onClick={handleSearch} variant="outline">

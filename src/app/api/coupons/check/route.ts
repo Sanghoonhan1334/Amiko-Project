@@ -167,9 +167,18 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('[COUPONS_CHECK] 예상치 못한 오류:', error);
+    console.error('[COUPONS_CHECK] 오류 타입:', typeof error);
+    console.error('[COUPONS_CHECK] 오류 메시지:', error instanceof Error ? error.message : String(error));
     console.error('[COUPONS_CHECK] 오류 스택:', error instanceof Error ? error.stack : 'No stack trace');
+    
+    // 더 자세한 에러 정보를 클라이언트에 전달
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.', details: error instanceof Error ? error.message : String(error) },
+      { 
+        error: '서버 오류가 발생했습니다.', 
+        details: error instanceof Error ? error.message : String(error),
+        type: typeof error,
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

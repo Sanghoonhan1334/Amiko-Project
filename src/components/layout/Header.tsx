@@ -788,18 +788,6 @@ export default function Header() {
                 </div>
               )}
 
-              {/* 시작하기 버튼 - 모바일에서만 표시 (햄버거 왼쪽) */}
-              {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
-                <button 
-                  onClick={(e) => {
-                    e.preventDefault()
-                    router.push('/main')
-                  }}
-                  className="md:hidden px-2.5 py-1.5 text-[11px] font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md whitespace-nowrap"
-                >
-                  {t('header.startButton')}
-                </button>
-              )}
 
               {/* 모바일 메뉴 버튼 - 모든 페이지에서 표시 */}
               <Button
@@ -924,7 +912,7 @@ export default function Header() {
                       router.push('/inquiry')
                       toggleMobileMenu()
                     }}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-all duration-300 ${
+                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
                       activeNavItem === '/inquiry' 
                         ? 'bg-purple-50 text-purple-600' 
                         : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'

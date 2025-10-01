@@ -175,17 +175,17 @@ export const translations = {
             title: '주제별 게시판',
             description: '다양한 주제를 자유롭게 소통해보세요.'
           },
-          freeBoard: {
-            title: '자유게시판',
-            description: '자유로운 주제로 자유롭게 지구 반대편과 소통해보세요.'
+          koreanNews: {
+            title: '한국뉴스',
+            description: '한국의 최신 소식과 트렌드를 확인해보세요.'
           },
           story: {
             title: '스토리',
             description: '나의 일상을 공유하고 일상에 대해서 대화해보세요.'
           },
-          qna: {
-            title: 'Q&A',
-            description: 'Q&A 커뮤니티를 통해 서로에게 궁금한 점을 질문하고 직접 답변을 받아보세요.'
+          koreanTest: {
+            title: '한국성향테스트',
+            description: '재미있는 테스트로 자신을 알아보세요.'
           }
         },
         startButton: {
@@ -1687,17 +1687,17 @@ export const translations = {
             title: 'Foro por Temas',
             description: 'Comunícate libremente sobre diversos temas.'
           },
-          freeBoard: {
-            title: 'Foro Libre',
-            description: 'Comunícate libremente con el otro lado del mundo sobre temas libres.'
+          koreanNews: {
+            title: 'Noticias Coreanas',
+            description: 'Consulta las últimas noticias y tendencias de Corea.'
           },
           story: {
             title: 'Historia',
             description: 'Comparte tu vida diaria y conversa sobre la vida cotidiana.'
           },
-          qna: {
-            title: 'P&R',
-            description: 'Haz preguntas sobre lo que te interesa mutuamente a través de la comunidad P&R y recibe respuestas directamente.'
+          koreanTest: {
+            title: 'Test de Personalidad Coreana',
+            description: 'Descubre más sobre ti mismo con tests divertidos.'
           }
         },
         startButton: {

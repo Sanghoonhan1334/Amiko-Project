@@ -58,15 +58,24 @@ function AppPageContent() {
       }
       
       // 포인트와 AKO 쿠폰을 병렬로 조회
-      const [pointsResponse, couponsResponse] = await Promise.all([
-        fetch(`/api/points?userId=${user.id}`),
-        fetch('/api/coupons/check', {
-          headers: {
-            'Authorization': `Bearer ${encodeURIComponent(token || '')}`,
-            'Content-Type': 'application/json'
-          }
-        })
-      ])
+      const promises = [
+        fetch(`/api/points?userId=${user.id}`)
+      ]
+      
+      // 토큰이 있을 때만 쿠폰 조회
+      if (token) {
+        promises.push(
+          fetch('/api/coupons/check', {
+            headers: {
+              'Authorization': `Bearer ${encodeURIComponent(token)}`,
+              'Content-Type': 'application/json'
+            }
+          })
+        )
+      }
+      
+      const responses = await Promise.all(promises)
+      const [pointsResponse, couponsResponse] = responses
       
       if (pointsResponse.ok) {
         const data = await pointsResponse.json()
@@ -76,11 +85,23 @@ function AppPageContent() {
         setCurrentPoints(0)
       }
       
-      if (couponsResponse.ok) {
-        const couponsData = await couponsResponse.json()
-        setAvailableAKO(couponsData.availableCoupons || 0)
+      // 쿠폰 응답이 있을 때만 처리
+      if (couponsResponse) {
+        if (couponsResponse.ok) {
+          const couponsData = await couponsResponse.json()
+          setAvailableAKO(couponsData.availableCoupons || 0)
+        } else {
+          console.error('쿠폰 조회 실패:', couponsResponse.status)
+          try {
+            const errorData = await couponsResponse.json()
+            console.error('쿠폰 API 에러 상세:', errorData)
+          } catch (e) {
+            console.error('쿠폰 API 에러 응답 파싱 실패:', e)
+          }
+          setAvailableAKO(0)
+        }
       } else {
-        console.error('쿠폰 조회 실패:', couponsResponse.status)
+        // 토큰이 없어서 쿠폰 조회를 하지 않은 경우
         setAvailableAKO(0)
       }
     } catch (error) {

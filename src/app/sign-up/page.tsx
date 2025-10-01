@@ -526,7 +526,7 @@ export default function SignUpPage() {
                   placeholder={t('auth.namePlaceholder')}
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                   style={{ paddingLeft: '2.5rem' }}
                   required
                 />
@@ -545,7 +545,7 @@ export default function SignUpPage() {
                   placeholder="example@email.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                   style={{ paddingLeft: '2.5rem' }}
                   required
                   title="올바른 이메일 주소를 입력해주세요"
@@ -646,7 +646,7 @@ export default function SignUpPage() {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     onKeyDown={handlePhoneKeyDown}
-                    className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                    className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                     style={{ paddingLeft: '2.5rem' }}
                     required
                   />

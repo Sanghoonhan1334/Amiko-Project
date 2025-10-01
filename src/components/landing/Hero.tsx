@@ -99,13 +99,12 @@ export default function Hero() {
                     
                     {/* 시작하기 버튼 - 모바일에서는 더 올림, 데스크톱에서는 더 위로 올림 */}
                     <div className="-mt-4 md:-mt-16 lg:-mt-24 flex justify-center">
-                      <Button 
+                      <button 
                         onClick={() => router.push('/main')}
-                        className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg shadow-lg hover:shadow-xl"
                       >
                         {t('heroSlides.slide1.startButton')}
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -114,7 +113,7 @@ export default function Hero() {
 
             {/* 두 번째 슬라이드 - 화상 채팅 */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex items-start justify-center pt-16 md:pt-20 lg:pt-24">
+              <div className="min-h-screen flex items-start justify-center pt-8 md:pt-12 lg:pt-16">
                 <div className="w-full px-4 sm:px-6 lg:px-8">
                   <div className="max-w-6xl mx-auto relative">
                     <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
@@ -226,28 +225,21 @@ export default function Hero() {
                           </div>
                         </div>
                         
-                        {/* 자유게시판 카드 */}
+                        {/* 한국뉴스 카드 */}
                         <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">02</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-pink-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
-                              {/* 직사각형 말풍선 모양 */}
-                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative">
-                                {/* 말풍선 안의 텍스트 라인들 */}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="flex flex-col space-y-0.5">
-                                    <div className="w-4 h-0.5 bg-gray-400 rounded-full"></div>
-                                    <div className="w-3 h-0.5 bg-gray-400 rounded-full"></div>
-                                    <div className="w-3.5 h-0.5 bg-gray-400 rounded-full"></div>
-                                  </div>
-                                </div>
+                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
+                              {/* 뉴스 아이콘 */}
+                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
+                                <span className="text-gray-800 font-bold text-sm sm:text-base">📰</span>
                               </div>
                             </div>
-                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.freeBoard.title')}</h3>
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanNews.title')}</h3>
                             <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
-                              {t('heroSlides.slide3.cards.freeBoard.description')}
+                              {t('heroSlides.slide3.cards.koreanNews.description')}
                             </p>
                           </div>
                         </div>
@@ -267,6 +259,25 @@ export default function Hero() {
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.story.title')}</h3>
                             <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                               {t('heroSlides.slide3.cards.story.description')}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* 한국성향테스트 카드 */}
+                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">04</span>
+                          </div>
+                          <div className="text-center">
+                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
+                              {/* 테스트 아이콘 */}
+                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
+                                <span className="text-gray-800 font-bold text-sm sm:text-base">🎯</span>
+                              </div>
+                            </div>
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanTest.title')}</h3>
+                            <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                              {t('heroSlides.slide3.cards.koreanTest.description')}
                             </p>
                           </div>
                         </div>
@@ -332,7 +343,7 @@ export default function Hero() {
           )}
 
           {/* 커스텀 페이지네이션 */}
-          <div className="swiper-pagination !bottom-8 sm:!bottom-12 md:!bottom-16 !flex !justify-center !gap-2 !left-1/2 !transform !-translate-x-1/2">
+          <div className="swiper-pagination !bottom-4 sm:!bottom-6 md:!bottom-8 !flex !justify-center !gap-2 !left-1/2 !transform !-translate-x-1/2">
             <style jsx>{`
               .swiper-pagination-bullet {
                 width: 12px !important;
