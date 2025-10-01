@@ -7,11 +7,11 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 pt-32 md:pt-40 lg:pt-48 pb-12 max-w-4xl">
         {/* 헤더 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 font-['Inter']">
-            {t('footer.contact')}
+            {t('contact.title')}
           </h1>
           <p className="text-lg text-gray-600 font-['Inter']">
             {t('contact.subtitle')}
@@ -75,9 +75,13 @@ export default function ContactPage() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('contact.sections.response.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('contact.sections.response.items').map((item: string, index: number) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {(() => {
+                  const items = t('contact.sections.response.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}>{item}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>

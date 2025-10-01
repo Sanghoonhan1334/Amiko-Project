@@ -7,7 +7,7 @@ export default function TermsOfService() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 pt-32 md:pt-40 lg:pt-48 pb-12 max-w-4xl">
         {/* 헤더 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 font-['Inter']">
@@ -31,9 +31,13 @@ export default function TermsOfService() {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-800 mb-2">{t('terms.sections.introduction.services.title')}</h3>
                 <ul className="list-disc pl-6 space-y-1 text-blue-700">
-                  {t('terms.sections.introduction.services.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('terms.sections.introduction.services.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
             </div>
@@ -47,9 +51,13 @@ export default function TermsOfService() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('terms.sections.effectiveness.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('terms.sections.effectiveness.items').map((item: string, index: number) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {(() => {
+                  const items = t('terms.sections.effectiveness.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}>{item}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -62,9 +70,13 @@ export default function TermsOfService() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('terms.sections.membership.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('terms.sections.membership.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                ))}
+                {(() => {
+                  const items = t('terms.sections.membership.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -80,9 +92,13 @@ export default function TermsOfService() {
               <div className="bg-red-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-red-800 mb-2">{t('terms.sections.service.prohibited.title')}</h3>
                 <ul className="list-disc pl-6 space-y-1 text-red-700">
-                  {t('terms.sections.service.prohibited.items').map((item: string, index: number) => (
-                    <li key={index}>{item}</li>
-                  ))}
+                  {(() => {
+                    const items = t('terms.sections.service.prohibited.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}>{item}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
             </div>
@@ -96,9 +112,13 @@ export default function TermsOfService() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('terms.sections.liability.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('terms.sections.liability.items').map((item: string, index: number) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {(() => {
+                  const items = t('terms.sections.liability.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}>{item}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>

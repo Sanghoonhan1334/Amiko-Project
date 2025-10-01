@@ -67,7 +67,7 @@ export default function AboutPage() {
           >
             {/* 소개 영상 슬라이드 */}
             <SwiperSlide className="swiper-slide-no-lazy">
-              <div className="min-h-screen flex items-start justify-center pt-20 md:pt-[5vh] lg:pt-[6vh] bg-gradient-to-br from-slate-50 to-blue-50">
+              <div className="min-h-screen flex items-start justify-center pt-24 md:pt-[8vh] lg:pt-[10vh] bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="w-full max-w-6xl lg:max-w-7xl xl:max-w-8xl 2xl:max-w-9xl mx-auto px-4 text-center relative">
                   <h2 className="text-4xl font-bold text-gray-900 mb-2 leading-tight">
                     {t('about.introVideo')}

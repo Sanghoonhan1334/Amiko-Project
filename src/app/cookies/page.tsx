@@ -7,7 +7,7 @@ export default function CookiePolicy() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 pt-32 md:pt-40 lg:pt-48 pb-12 max-w-4xl">
         {/* 헤더 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 font-['Inter']">
@@ -44,9 +44,13 @@ export default function CookiePolicy() {
                 <h3 className="font-semibold text-green-800 mb-2">{t('cookies.sections.types.essential.title')}</h3>
                 <p className="text-green-700 mb-2">{t('cookies.sections.types.essential.content')}</p>
                 <ul className="list-disc pl-6 space-y-1 text-green-700">
-                  {t('cookies.sections.types.essential.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.types.essential.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
 
@@ -55,9 +59,13 @@ export default function CookiePolicy() {
                 <h3 className="font-semibold text-blue-800 mb-2">{t('cookies.sections.types.functional.title')}</h3>
                 <p className="text-blue-700 mb-2">{t('cookies.sections.types.functional.content')}</p>
                 <ul className="list-disc pl-6 space-y-1 text-blue-700">
-                  {t('cookies.sections.types.functional.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.types.functional.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
 
@@ -66,9 +74,13 @@ export default function CookiePolicy() {
                 <h3 className="font-semibold text-purple-800 mb-2">{t('cookies.sections.types.analytics.title')}</h3>
                 <p className="text-purple-700 mb-2">{t('cookies.sections.types.analytics.content')}</p>
                 <ul className="list-disc pl-6 space-y-1 text-purple-700">
-                  {t('cookies.sections.types.analytics.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.types.analytics.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
 
@@ -77,9 +89,13 @@ export default function CookiePolicy() {
                 <h3 className="font-semibold text-orange-800 mb-2">{t('cookies.sections.types.marketing.title')}</h3>
                 <p className="text-orange-700 mb-2">{t('cookies.sections.types.marketing.content')}</p>
                 <ul className="list-disc pl-6 space-y-1 text-orange-700">
-                  {t('cookies.sections.types.marketing.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.types.marketing.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
             </div>
@@ -96,18 +112,26 @@ export default function CookiePolicy() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-gray-800 mb-2">{t('cookies.sections.management.browser.title')}</h3>
                 <ul className="list-disc pl-6 space-y-1 text-gray-700">
-                  {t('cookies.sections.management.browser.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.management.browser.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
 
               <div className="bg-indigo-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-indigo-800 mb-2">{t('cookies.sections.management.service.title')}</h3>
                 <ul className="list-disc pl-6 space-y-1 text-indigo-700">
-                  {t('cookies.sections.management.service.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.management.service.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
             </div>
@@ -124,18 +148,26 @@ export default function CookiePolicy() {
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-yellow-800 mb-2">{t('cookies.sections.consent.procedure.title')}</h3>
                 <ol className="list-decimal pl-6 space-y-1 text-yellow-700">
-                  {t('cookies.sections.consent.procedure.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.consent.procedure.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ol>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-800 mb-2">{t('cookies.sections.consent.legal.title')}</h3>
                 <ul className="list-disc pl-6 space-y-1 text-blue-700">
-                  {t('cookies.sections.consent.legal.items').map((item: string, index: number) => (
-                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                  ))}
+                  {(() => {
+                    const items = t('cookies.sections.consent.legal.items');
+                    if (!Array.isArray(items)) return null;
+                    return items.map((item: string, index: number) => (
+                      <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                    ));
+                  })()}
                 </ul>
               </div>
             </div>
@@ -149,9 +181,13 @@ export default function CookiePolicy() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('cookies.sections.changes.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('cookies.sections.changes.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                ))}
+                {(() => {
+                  const items = t('cookies.sections.changes.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>

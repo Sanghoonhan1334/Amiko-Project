@@ -45,24 +45,34 @@ export default function NotificationSettingsPage() {
 
     try {
       setLoading(true)
+      
+      // 먼저 localStorage에서 설정 확인
+      const localSettings = localStorage.getItem(`notificationSettings_${user.id}`)
+      
       const response = await fetch(`/api/notifications/settings?userId=${user.id}`)
       
       if (response.ok) {
         const data = await response.json()
-        setSettings(data.settings)
+        
+        // 로컬에 저장된 경우거나 실제 DB에서 가져온 경우 모두 적용
+        if (data.settings) {
+          setSettings(data.settings)
+          // localStorage에도 저장
+          localStorage.setItem(`notificationSettings_${user.id}`, JSON.stringify(data.settings))
+        }
         
         // 성공 메시지가 있으면 표시
-        if (data.message) {
+        if (data.message && !data.is_local) {
           setSuccess(data.message)
           setTimeout(() => setSuccess(''), 5000)
         }
       } else {
-        // 에러 응답 처리
-        const errorData = await response.json()
-        console.warn('[NOTIFICATION SETTINGS] API 응답 에러:', errorData)
-        
-        // 테이블이 없는 경우 등은 기본 설정으로 처리
-        if (errorData.message && errorData.message.includes('테이블이 아직 생성되지 않았습니다')) {
+        // API 실패 시 localStorage에서 설정 불러오기
+        if (localSettings) {
+          setSettings(JSON.parse(localSettings))
+          console.log('[NOTIFICATION SETTINGS] localStorage에서 설정 로드')
+        } else {
+          // localStorage에도 없으면 기본 설정
           const defaultSettings = {
             user_id: user.id,
             email_enabled: true,
@@ -73,12 +83,18 @@ export default function NotificationSettingsPage() {
             in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
           }
           setSettings(defaultSettings)
-          setError(t('notificationSettings.tableMissing'))
-          setTimeout(() => setError(''), 5000)
-          return
+          localStorage.setItem(`notificationSettings_${user.id}`, JSON.stringify(defaultSettings))
         }
-        
-        // 다른 에러는 기본 설정으로 처리
+      }
+    } catch (error) {
+      console.error('알림 설정 조회 실패:', error)
+      
+      // 에러 발생 시 localStorage에서 설정 불러오기
+      const localSettings = localStorage.getItem(`notificationSettings_${user.id}`)
+      if (localSettings) {
+        setSettings(JSON.parse(localSettings))
+      } else {
+        // localStorage에도 없으면 기본 설정
         const defaultSettings = {
           user_id: user.id,
           email_enabled: true,
@@ -89,24 +105,8 @@ export default function NotificationSettingsPage() {
           in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
         }
         setSettings(defaultSettings)
-        setError(t('notificationSettings.errorMessage'))
-        setTimeout(() => setError(''), 5000)
+        localStorage.setItem(`notificationSettings_${user.id}`, JSON.stringify(defaultSettings))
       }
-    } catch (error) {
-      console.error('알림 설정 조회 실패:', error)
-      // 네트워크 에러 등은 기본 설정으로 처리
-      const defaultSettings = {
-        user_id: user.id,
-        email_enabled: true,
-        push_enabled: true,
-        in_app_enabled: true,
-        email_types: ['booking_created', 'payment_confirmed', 'consultation_reminder'],
-        push_types: ['booking_created', 'payment_confirmed'],
-        in_app_types: ['booking_created', 'payment_confirmed', 'consultation_reminder', 'consultation_completed', 'review_reminder', 'system']
-      }
-      setSettings(defaultSettings)
-      setError(t('notificationSettings.networkError'))
-      setTimeout(() => setError(''), 5000)
     } finally {
       setLoading(false)
     }
@@ -128,6 +128,9 @@ export default function NotificationSettingsPage() {
       setError('')
       setSuccess('')
 
+      // 먼저 localStorage에 저장 (즉시 적용)
+      localStorage.setItem(`notificationSettings_${user.id}`, JSON.stringify(settings))
+
       const response = await fetch('/api/notifications/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -139,33 +142,24 @@ export default function NotificationSettingsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setSuccess(data.message || t('notificationSettings.successMessage'))
-        setTimeout(() => setSuccess(''), 5000)
-      } else {
-        // 에러 응답 처리
-        const errorData = await response.json()
-        console.warn('[NOTIFICATION SETTINGS] 저장 API 응답 에러:', errorData)
         
-        let errorMessage = errorData.error
-        
-        // 상세한 에러 정보가 있으면 표시
-        if (errorData.details) {
-          if (errorData.details.table_missing) {
-            errorMessage += '\n\n💡 해결 방법:\n1. Supabase 대시보드에서 SQL Editor 접속\n2. database/notifications.sql 파일 내용 실행\n3. 페이지 새로고침 후 다시 시도'
-          } else if (errorData.details.update_error) {
-            errorMessage += `\n\n🔍 상세 오류: ${errorData.details.update_error}`
-          } else if (errorData.details.create_error) {
-            errorMessage += `\n\n🔍 생성 오류: ${errorData.details.create_error}`
-          }
+        // 로컬 저장인 경우와 실제 DB 저장 구분
+        if (data.is_local) {
+          setSuccess('설정이 로컬에 저장되었습니다.')
+        } else {
+          setSuccess(data.message || t('notificationSettings.successMessage'))
         }
-        
-        setError(errorMessage)
-        setTimeout(() => setError(''), 10000) // 더 긴 시간 동안 표시
+        setTimeout(() => setSuccess(''), 3000)
+      } else {
+        // API 실패해도 localStorage에는 저장되었으므로 성공 메시지
+        setSuccess('설정이 로컬에 저장되었습니다.')
+        setTimeout(() => setSuccess(''), 3000)
       }
     } catch (error) {
       console.error('알림 설정 저장 실패:', error)
-      setError('네트워크 오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.')
-      setTimeout(() => setError(''), 5000)
+      // 에러가 발생해도 localStorage에는 저장되었음
+      setSuccess('설정이 로컬에 저장되었습니다.')
+      setTimeout(() => setSuccess(''), 3000)
     } finally {
       setSaving(false)
     }

@@ -103,10 +103,31 @@ export default function StorySettings() {
     }
   }
 
-  // 컴포넌트 마운트 시 스토리 로드
+  // 컴포넌트 마운트 시 스토리 로드 및 설정 불러오기
   useEffect(() => {
     loadUserStories()
+    
+    // localStorage에서 설정 불러오기
+    const savedGlobalSettings = localStorage.getItem('storyGlobalSettings')
+    if (savedGlobalSettings) {
+      setGlobalStorySettings(JSON.parse(savedGlobalSettings))
+    }
+    
+    const savedArchiveSettings = localStorage.getItem('storyArchiveSettings')
+    if (savedArchiveSettings) {
+      setArchiveSettings(JSON.parse(savedArchiveSettings))
+    }
   }, [user, token])
+  
+  // 전역 설정 변경 시 localStorage에 저장
+  useEffect(() => {
+    localStorage.setItem('storyGlobalSettings', JSON.stringify(globalStorySettings))
+  }, [globalStorySettings])
+  
+  // 아카이브 설정 변경 시 localStorage에 저장
+  useEffect(() => {
+    localStorage.setItem('storyArchiveSettings', JSON.stringify(archiveSettings))
+  }, [archiveSettings])
 
   // 스토리 삭제
   const deleteStory = async (storyId: string) => {

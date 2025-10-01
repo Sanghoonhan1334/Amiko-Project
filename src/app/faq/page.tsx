@@ -85,7 +85,7 @@ export default function FaqPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
       {/* Hero Section */}
-      <div className="text-center py-16 px-4">
+      <div className="text-center pt-32 md:pt-40 lg:pt-48 pb-16 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-6xl mb-4">❓</div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">

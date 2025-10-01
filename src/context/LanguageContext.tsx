@@ -6,7 +6,7 @@ import { translations, Language } from '@/lib/translations'
 interface LanguageContextType {
   language: Language
   setLanguage: (lang: Language) => void
-  t: (key: string) => string
+  t: (key: string, params?: Record<string, string | number>) => string
   toggleLanguage: () => void
 }
 
@@ -38,7 +38,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     try {
       const keys = key.split('.')
       let value: unknown = translations[language]
@@ -53,7 +53,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
       
       if (typeof value === 'string') {
-        return value
+        let result = value
+        
+        // Replace placeholders with parameters
+        if (params) {
+          for (const [paramKey, paramValue] of Object.entries(params)) {
+            result = result.replace(new RegExp(`{${paramKey}}`, 'g'), String(paramValue))
+          }
+        }
+        
+        return result
       } else {
         console.warn(`Translation value is not a string for key: ${key}`, value)
         return key

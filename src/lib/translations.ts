@@ -570,23 +570,239 @@ export const translations = {
 
     // 개인정보처리방침
     privacy: {
+      title: '개인정보처리방침',
       lastUpdated: '최종 수정일',
+      lastUpdatedDate: '2025년 1월 17일',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com'
+      supportEmail: 'support@amiko.com',
+      sections: {
+        purpose: {
+          title: '1. 개인정보의 처리 목적',
+          content: 'Amiko는 다음의 목적을 위하여 개인정보를 처리합니다.',
+          items: [
+            '서비스 제공: 화상 채팅 및 커뮤니티 서비스 제공',
+            '회원 관리: 회원 가입, 인증, 탈퇴 등 회원 관리',
+            '고객 지원: 문의사항 응답 및 기술 지원',
+            '마케팅: 서비스 개선 및 새로운 서비스 안내'
+          ]
+        },
+        collection: {
+          title: '2. 수집하는 개인정보 항목',
+          content: 'Amiko는 서비스 제공을 위해 다음과 같은 개인정보를 수집합니다.',
+          items: [
+            '필수 정보: 이메일, 전화번호, 이름',
+            '선택 정보: 프로필 사진, 관심사',
+            '자동 수집: IP 주소, 접속 기록, 쿠키'
+          ]
+        },
+        retention: {
+          title: '3. 개인정보의 처리 및 보유 기간',
+          content: '개인정보는 수집·이용에 관한 동의일로부터 회원 탈퇴 시까지 보유·이용됩니다.',
+          items: [
+            '회원 정보: 탈퇴 시 즉시 삭제',
+            '서비스 이용 기록: 1년간 보관',
+            '법적 의무 기록: 관련 법령에 따라 보관'
+          ]
+        },
+        rights: {
+          title: '4. 정보주체의 권리',
+          content: '정보주체는 개인정보 처리에 대해 다음의 권리를 가집니다.',
+          items: [
+            '개인정보 처리 현황에 대한 열람 요구',
+            '오류 등이 있을 경우 정정·삭제 요구',
+            '처리정지 요구'
+          ]
+        },
+        contactInfo: {
+          title: '5. 개인정보 보호책임자',
+          content: '개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.',
+          items: [
+            '개인정보 보호책임자: privacy@amiko.com',
+            '고객지원: support@amiko.com',
+            '운영시간: 월-금 09:00-18:00 (KST)'
+          ]
+        }
+      }
     },
 
     // 서비스 이용약관
     terms: {
+      title: '서비스 이용약관',
       lastUpdated: '최종 수정일',
+      lastUpdatedDate: '2025년 1월 17일',
       contactEmail: 'legal@amiko.com',
-      supportEmail: 'support@amiko.com'
+      supportEmail: 'support@amiko.com',
+      sections: {
+        introduction: {
+          title: '1. 서비스 소개',
+          content: 'Amiko는 한국과 스페인 간의 문화 교류를 위한 화상 채팅 및 커뮤니티 서비스입니다.',
+          services: {
+            title: '제공 서비스',
+            items: [
+              'AI 화상 채팅: 실시간 번역과 함께하는 화상 채팅',
+              '커뮤니티: 질문과 답변, 스토리 공유',
+              '포인트 시스템: 서비스 이용을 위한 포인트 충전'
+            ]
+          }
+        },
+        effectiveness: {
+          title: '2. 약관의 효력',
+          content: '본 약관은 서비스 이용 시 즉시 효력을 발생합니다.',
+          items: [
+            '약관 변경 시 7일 전 공지',
+            '중대한 변경 시 30일 전 공지',
+            '이용자의 동의 없이 불리한 변경 불가'
+          ]
+        },
+        membership: {
+          title: '3. 회원 가입 및 관리',
+          content: '회원 가입 시 다음 정보를 제공해야 합니다.',
+          items: [
+            '필수 정보: 이메일, 전화번호, 이름',
+            '선택 정보: 프로필 사진, 관심사',
+            '인증: 이메일 및 SMS 인증 필요'
+          ]
+        },
+        service: {
+          title: '4. 서비스 이용',
+          content: 'Amiko는 화상 채팅 및 커뮤니티 서비스를 제공합니다.',
+          prohibited: {
+            title: '금지 행위',
+            items: [
+              '타인의 권리를 침해하는 행위',
+              '불법적인 콘텐츠 게시',
+              '서비스의 안정적 운영을 방해하는 행위',
+              '스팸성 메시지 발송',
+              '허위 정보 유포'
+            ]
+          }
+        },
+        liability: {
+          title: '5. 책임의 한계',
+          content: 'Amiko는 다음과 같은 경우 책임을 지지 않습니다.',
+          items: [
+            '이용자의 귀책사유로 인한 손해',
+            '제3자가 제공한 정보의 정확성',
+            '서비스 이용 중 발생한 개인적 손해',
+            '통신망 장애로 인한 서비스 중단'
+          ]
+        },
+        responsibility: {
+          title: '6. 이용자의 책임',
+          content: '이용자는 서비스 이용 시 다음 사항을 준수해야 합니다.',
+          items: [
+            '타인의 권리를 침해하지 않을 것',
+            '불법적인 행위를 하지 않을 것',
+            '서비스의 안정적 운영을 방해하지 않을 것'
+          ]
+        }
+      }
     },
 
     // 쿠키 정책
     cookies: {
+      title: '쿠키 정책',
       lastUpdated: '최종 수정일',
+      lastUpdatedDate: '2025년 1월 17일',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com'
+      supportEmail: 'support@amiko.com',
+      sections: {
+        definition: {
+          title: '1. 쿠키의 정의',
+          content: '쿠키는 웹사이트가 사용자의 컴퓨터에 저장하는 작은 텍스트 파일입니다.',
+          note: '쿠키는 개인을 식별할 수 있는 정보를 포함하지 않으며 컴퓨터에 해를 끼치지 않습니다.'
+        },
+        types: {
+          title: '2. 쿠키의 종류',
+          content: 'Amiko는 다음과 같은 종류의 쿠키를 사용합니다.',
+          essential: {
+            title: '필수 쿠키',
+            content: '서비스의 기본 기능을 위해 필요한 쿠키입니다.',
+            items: [
+              '세션 관리: 로그인 상태 유지',
+              '보안: CSRF 방지 및 보안 토큰',
+              '기본 설정: 언어 및 지역 설정'
+            ]
+          },
+          functional: {
+            title: '기능 쿠키',
+            content: '서비스의 편의 기능을 제공하는 쿠키입니다.',
+            items: [
+              '사용자 설정: 테마, 알림 설정',
+              '편의 기능: 자동 로그인, 폼 데이터 저장',
+              '개인화: 맞춤형 콘텐츠 추천'
+            ]
+          },
+          analytics: {
+            title: '분석 쿠키',
+            content: '서비스 이용 현황을 분석하는 쿠키입니다.',
+            items: [
+              '사용 통계: 페이지 방문, 체류 시간',
+              '성능 분석: 서비스 속도, 오류 분석',
+              '개선 방향: 사용자 행동 패턴 분석'
+            ]
+          },
+          marketing: {
+            title: '마케팅 쿠키',
+            content: '맞춤형 광고 및 마케팅을 위한 쿠키입니다.',
+            items: [
+              '광고 타겟팅: 관심사 기반 광고',
+              '성과 측정: 광고 클릭, 전환율',
+              '재마케팅: 방문한 페이지 기반 광고'
+            ]
+          }
+        },
+        management: {
+          title: '3. 쿠키 관리',
+          content: '사용자는 브라우저 설정을 통해 쿠키를 관리할 수 있습니다.',
+          browser: {
+            title: '브라우저 설정',
+            items: [
+              'Chrome: 설정 > 개인정보 보호 및 보안 > 쿠키',
+              'Firefox: 설정 > 개인정보 보호 및 보안 > 쿠키',
+              'Safari: 환경설정 > 개인정보 보호 > 쿠키',
+              'Edge: 설정 > 쿠키 및 사이트 권한 > 쿠키'
+            ]
+          },
+          service: {
+            title: '서비스 내 설정',
+            items: [
+              '쿠키 동의 관리: 쿠키 설정 페이지에서 관리',
+              '분석 쿠키: Google Analytics 설정에서 비활성화',
+              '마케팅 쿠키: 광고 설정에서 비활성화'
+            ]
+          }
+        },
+        consent: {
+          title: '4. 쿠키 동의',
+          content: 'Amiko는 사용자의 동의를 받아 쿠키를 사용합니다.',
+          procedure: {
+            title: '동의 절차',
+            items: [
+              '최초 방문: 쿠키 동의 팝업 표시',
+              '선택적 동의: 필수/선택 쿠키 구분',
+              '동의 철회: 언제든지 설정에서 변경 가능'
+            ]
+          },
+          legal: {
+            title: '법적 근거',
+            items: [
+              '개인정보보호법: 개인정보 처리 동의',
+              '정보통신망법: 쿠키 사용 고지',
+              'GDPR: 유럽 개인정보 보호 규정'
+            ]
+          }
+        },
+        changes: {
+          title: '5. 정책 변경',
+          content: '쿠키 정책은 필요에 따라 변경될 수 있습니다.',
+          items: [
+            '변경 사전 공지: 7일 전 웹사이트 공지',
+            '중요 변경: 30일 전 이메일 공지',
+            '동의 재요청: 새로운 쿠키 사용 시'
+          ]
+        }
+      }
     },
 
     // 문의 페이지
@@ -934,6 +1150,261 @@ export const translations = {
         public: '공개',
         private: '비공개',
         delete: '삭제'
+      }
+    },
+
+    // 피드백 페이지
+    feedback: {
+      title: '피드백',
+      subtitle: 'AMIKO 서비스 개선을 위한 여러분의 소중한 의견을 기다립니다',
+      sections: {
+        guidelines: {
+          title: '피드백 가이드라인',
+          content: '효과적인 피드백을 위한 가이드라인입니다.',
+          items: [
+            '구체적이고 명확한 내용으로 작성해주세요',
+            '개선 제안 시 이유와 근거를 함께 제시해주세요',
+            '건설적이고 예의 바른 언어를 사용해주세요',
+            '개인정보는 포함하지 말아주세요'
+          ]
+        },
+        types: {
+          title: '피드백 유형',
+          content: '다음과 같은 피드백을 받고 있습니다.',
+          bug: {
+            title: '버그 신고',
+            content: '서비스에서 발견한 오류나 문제점'
+          },
+          feature: {
+            title: '기능 제안',
+            content: '새로운 기능이나 개선 사항 제안'
+          },
+          ux: {
+            title: '사용자 경험',
+            content: '사용자 인터페이스 및 경험 개선 제안'
+          },
+          general: {
+            title: '일반 피드백',
+            content: '서비스 전반에 대한 의견 및 제안'
+          }
+        },
+        submission: {
+          title: '피드백 제출 방법',
+          content: '피드백을 제출하는 방법입니다.',
+          items: [
+            '이메일: feedback@amiko.com',
+            '문의 페이지를 통한 제출',
+            '앱 내 피드백 기능 이용',
+            '소셜 미디어를 통한 제출'
+          ]
+        },
+        process: {
+          title: '피드백 처리 과정',
+          content: '제출된 피드백의 처리 과정입니다.',
+          items: [
+            '피드백 접수 및 검토',
+            '개발팀 검토 및 우선순위 결정',
+            '구현 가능성 평가',
+            '개선 사항 반영 및 결과 공유'
+          ]
+        }
+      }
+    },
+
+    // 도움말 페이지
+    help: {
+      title: '도움말',
+      subtitle: 'AMIKO 서비스 이용에 도움이 되는 정보를 제공합니다',
+      sections: {
+        gettingStarted: {
+          title: '시작하기',
+          content: 'AMIKO 서비스를 처음 이용하시는 분들을 위한 가이드입니다.',
+          items: [
+            '회원가입 및 프로필 설정 방법',
+            '서비스 이용 방법 및 기본 기능',
+            '언어 설정 및 지역 설정',
+            '계정 보안 설정 방법'
+          ]
+        },
+        videoChat: {
+          title: '화상채팅',
+          content: '화상채팅 서비스 이용에 대한 도움말입니다.',
+          items: [
+            '화상채팅 시작 및 종료 방법',
+            'AI 통역 기능 사용법',
+            '화상채팅 중 문제 해결',
+            '화상채팅 품질 개선 방법'
+          ]
+        },
+        community: {
+          title: '커뮤니티',
+          content: '커뮤니티 서비스 이용에 대한 도움말입니다.',
+          items: [
+            '게시글 작성 및 관리 방법',
+            '댓글 작성 및 답글 기능',
+            '커뮤니티 규칙 및 가이드라인',
+            '신고 및 차단 기능 사용법'
+          ]
+        },
+        points: {
+          title: '포인트 시스템',
+          content: '포인트 시스템 이용에 대한 도움말입니다.',
+          items: [
+            '포인트 획득 방법',
+            '포인트 사용 방법',
+            '포인트 충전 및 결제',
+            '포인트 내역 확인 방법'
+          ]
+        },
+        troubleshooting: {
+          title: '문제 해결',
+          content: '자주 발생하는 문제들의 해결 방법입니다.',
+          items: [
+            '로그인 문제 해결',
+            '화상채팅 연결 문제',
+            '앱 성능 최적화',
+            '기타 기술적 문제'
+          ]
+        }
+      }
+    },
+
+    // FAQ 페이지
+    faq: {
+      title: '자주 묻는 질문',
+      subtitle: 'AMIKO 서비스 이용 중 자주 묻는 질문과 답변입니다',
+      totalQuestions: '총 {count}개',
+      categories: {
+        lounge: '라운지',
+        videoChat: '화상채팅',
+        meeting: '미팅',
+        community: '커뮤니티',
+        points: '포인트',
+        account: '계정',
+        technical: '기술 지원'
+      },
+      lounge: {
+        whatDoWeDo: '라운지에서는 무엇을 할 수 있나요?',
+        whatDoWeDoAnswer: '라운지에서는 다양한 주제에 대해 자유롭게 대화할 수 있습니다. 한국어 학습, 문화 교류, 일상 대화 등 다양한 주제로 소통할 수 있어요.',
+        pointsAvailable: '라운지에서도 포인트를 받을 수 있나요?',
+        pointsAvailableAnswer: '네, 라운지에서도 대화 참여 시 포인트를 받을 수 있습니다. 활발한 참여와 유용한 정보 공유 시 추가 포인트가 지급됩니다.',
+        whenOpen: '라운지는 언제 열리나요?',
+        whenOpenAnswer: '라운지는 24시간 언제든지 이용 가능합니다. 다만 활성 사용자가 많은 시간대에는 더 많은 대화 상대를 만날 수 있어요.',
+        differentLanguages: '다른 언어로도 대화할 수 있나요?',
+        differentLanguagesAnswer: '네, 한국어와 스페인어 모두 지원합니다. AI 통역 기능을 통해 서로 다른 언어를 사용하는 사용자들도 자연스럽게 대화할 수 있습니다.'
+      },
+      videoChat: {
+        howToStart: '화상채팅은 어떻게 시작하나요?',
+        howToStartAnswer: '메인 페이지의 화상채팅 탭에서 "채팅 시작" 버튼을 클릭하면 됩니다. 상대방이 연결되면 자동으로 화상채팅이 시작됩니다.',
+        aiTranslation: 'AI 통역 기능은 어떻게 사용하나요?',
+        aiTranslationAnswer: '화상채팅 중 실시간으로 상대방의 말을 번역해주는 기능입니다. 설정에서 켜고 끌 수 있으며, 한국어와 스페인어를 지원합니다.',
+        connectionIssues: '화상채팅 연결에 문제가 있어요',
+        connectionIssuesAnswer: '인터넷 연결을 확인하고, 브라우저를 새로고침해보세요. 문제가 지속되면 고객지원팀에 문의해주세요.'
+      },
+      meeting: {
+        howToMeet: '미팅은 어떻게 시작하나요?',
+        howToMeetAnswer: '메인 페이지의 미팅 탭에서 "미팅 시작" 버튼을 클릭하면 됩니다. 매칭이 완료되면 자동으로 미팅이 시작됩니다.',
+        translationMode: '번역 모드는 어떻게 사용하나요?',
+        translationModeAnswer: '미팅 중 실시간 번역 기능을 사용할 수 있습니다. 설정에서 번역 모드를 켜고 끌 수 있으며, 한국어와 스페인어를 지원합니다.',
+        howToUseCoupons: '쿠폰은 어떻게 사용하나요?',
+        howToUseCouponsAnswer: '미팅 연장이나 특별 기능 이용 시 쿠폰을 사용할 수 있습니다. 쿠폰은 자동으로 적용되며, 사용 가능한 쿠폰이 있을 때 자동으로 사용됩니다.'
+      },
+      community: {
+        howToPost: '게시글은 어떻게 작성하나요?',
+        howToPostAnswer: '커뮤니티 탭에서 "글쓰기" 버튼을 클릭하고 제목과 내용을 입력한 후 게시하면 됩니다. 이미지도 함께 업로드할 수 있어요.',
+        categories: '게시글 카테고리는 어떻게 선택하나요?',
+        categoriesAnswer: '게시글 작성 시 카테고리를 선택할 수 있습니다. 뷰티, 패션, 여행, 문화 등 다양한 카테고리 중에서 선택하세요.',
+        moderation: '부적절한 게시글은 어떻게 신고하나요?',
+        moderationAnswer: '게시글 우측 상단의 신고 버튼을 클릭하여 신고할 수 있습니다. 운영진이 검토 후 적절한 조치를 취합니다.',
+        howToGetPoints: '커뮤니티에서 포인트는 어떻게 얻나요?',
+        howToGetPointsAnswer: '게시글 작성, 댓글 작성, 좋아요 받기, 일일 출석체크 등을 통해 포인트를 얻을 수 있습니다. 품질 높은 콘텐츠일수록 더 많은 포인트를 받을 수 있어요.',
+        dailyPointLimit: '일일 포인트 획득 제한이 있나요?',
+        dailyPointLimitAnswer: '네, 일일 포인트 획득에는 제한이 있습니다. 게시글 작성은 하루 5개, 댓글 작성은 하루 20개까지 포인트를 받을 수 있습니다.',
+        communityRules: '커뮤니티 이용 규칙이 있나요?',
+        communityRulesAnswer: '네, 모든 사용자가 즐겁게 이용할 수 있도록 기본적인 이용 규칙이 있습니다. 타인을 존중하고, 스팸이나 부적절한 내용을 게시하지 않도록 해주세요.'
+      },
+      points: {
+        howToEarn: '포인트는 어떻게 얻나요?',
+        howToEarnAnswer: '화상채팅 참여, 게시글 작성, 댓글 작성, 출석체크 등 다양한 활동을 통해 포인트를 얻을 수 있습니다.',
+        howToUse: '포인트는 어떻게 사용하나요?',
+        howToUseAnswer: '포인트는 화상채팅 연장, VIP 구독, 특별 기능 이용 등에 사용할 수 있습니다. 상점에서 다양한 상품을 구매할 수 있어요.',
+        expiration: '포인트는 만료되나요?',
+        expirationAnswer: '포인트는 만료되지 않습니다. 다만 장기간 미사용 시 관리 목적으로 정리될 수 있으니 정기적으로 사용해주세요.'
+      },
+      account: {
+        profileSetup: '프로필은 어떻게 설정하나요?',
+        profileSetupAnswer: '내 프로필 탭에서 프로필 사진, 이름, 관심사 등을 설정할 수 있습니다. 완성된 프로필은 더 나은 매칭에 도움이 됩니다.',
+        passwordChange: '비밀번호는 어떻게 변경하나요?',
+        passwordChangeAnswer: '설정 > 계정 관리에서 비밀번호 변경이 가능합니다. 보안을 위해 정기적으로 비밀번호를 변경하는 것을 권장합니다.',
+        accountDeletion: '계정을 삭제하고 싶어요',
+        accountDeletionAnswer: '계정 삭제는 고객지원팀에 문의해주세요. 삭제 시 모든 데이터가 영구적으로 삭제되므로 신중히 결정해주세요.',
+        whyVerificationNeeded: '왜 인증이 필요한가요?',
+        whyVerificationNeededAnswer: '인증은 서비스의 안전성과 신뢰성을 보장하기 위해 필요합니다. 인증된 사용자만 화상채팅과 미팅 기능을 이용할 수 있습니다.',
+        verificationMethods: '인증 방법은 어떤 것들이 있나요?',
+        verificationMethodsAnswer: '전화번호 인증, 이메일 인증, 소셜 로그인 인증 등 다양한 방법으로 인증할 수 있습니다. 가장 간단한 방법은 전화번호 인증입니다.',
+        verificationFailed: '인증에 실패했어요',
+        verificationFailedAnswer: '인증 코드를 다시 확인해보시고, 문제가 지속되면 고객지원팀에 문의해주세요. 네트워크 연결이나 입력 오류를 확인해보세요.'
+      },
+      technical: {
+        browserSupport: '어떤 브라우저를 지원하나요?',
+        browserSupportAnswer: 'Chrome, Firefox, Safari, Edge 등 최신 브라우저를 지원합니다. 최신 버전 사용을 권장합니다.',
+        mobileSupport: '모바일에서도 이용할 수 있나요?',
+        mobileSupportAnswer: '네, 모바일 브라우저에서도 이용 가능합니다. 앱과 유사한 경험을 위해 PWA 기능도 지원합니다.',
+        performanceIssues: '앱이 느려요',
+        performanceIssuesAnswer: '브라우저 캐시를 삭제하고, 불필요한 탭을 닫아보세요. 문제가 지속되면 고객지원팀에 문의해주세요.'
+      },
+      moreQuestions: '더 궁금한 점이 있으신가요?',
+      moreQuestionsDescription: '위에서 답을 찾지 못하셨다면 언제든지 문의해주세요. 빠르고 정확한 답변을 드리겠습니다.',
+      emailInquiry: '이메일 문의',
+      customerService: '고객지원팀'
+    },
+
+    // 연락처 페이지
+    contact: {
+      title: '연락처',
+      subtitle: 'AMIKO 팀과 직접 연락하실 수 있습니다',
+      sections: {
+        info: {
+          title: '연락처 정보',
+          email: {
+            title: '이메일',
+            content: 'info@amiko.com'
+          },
+          hours: {
+            title: '운영 시간',
+            content: '월요일 - 금요일, 09:00 - 18:00 (KST)'
+          }
+        },
+        types: {
+          title: '문의 유형',
+          content: '다음과 같은 문의를 받고 있습니다.',
+          technical: {
+            title: '기술 지원',
+            content: '서비스 이용 중 발생하는 기술적 문제'
+          },
+          billing: {
+            title: '결제 문의',
+            content: '결제 및 환불 관련 문의'
+          },
+          general: {
+            title: '일반 문의',
+            content: '서비스 이용 및 정책 관련 문의'
+          },
+          partnership: {
+            title: '제휴 문의',
+            content: '비즈니스 제휴 및 협력 관련 문의'
+          }
+        },
+        response: {
+          title: '응답 시간',
+          content: '문의 유형에 따른 응답 시간입니다.',
+          items: [
+            '기술 지원: 24시간 이내',
+            '결제 문의: 12시간 이내',
+            '일반 문의: 48시간 이내',
+            '제휴 문의: 72시간 이내'
+          ]
+        }
       }
     }
   },
@@ -1557,7 +2028,7 @@ export const translations = {
             'Derecho de limitación: Solicitar limitación del procesamiento de información personal'
           ]
         },
-        contact: {
+        contactInfo: {
           title: '5. Contacto para consultas sobre información personal',
           content: 'Para consultas sobre información personal, contacte:',
           items: [
@@ -1744,256 +2215,98 @@ export const translations = {
       }
     },
 
-    // 도움말 페이지
-    help: {
-      subtitle: 'AMIKO 서비스 이용에 도움이 되는 정보를 제공합니다',
-      sections: {
-        gettingStarted: {
-          title: '시작하기',
-          content: 'AMIKO 서비스를 처음 이용하시는 분들을 위한 가이드입니다.',
-          items: [
-            '회원가입 및 프로필 설정 방법',
-            '서비스 이용 방법 및 기본 기능',
-            '언어 설정 및 지역 설정',
-            '계정 보안 설정 방법'
-          ]
-        },
-        videoChat: {
-          title: '화상채팅',
-          content: '화상채팅 서비스 이용에 대한 도움말입니다.',
-          items: [
-            '화상채팅 시작 및 종료 방법',
-            'AI 통역 기능 사용법',
-            '화상채팅 품질 개선 방법',
-            '화상채팅 중 문제 해결'
-          ]
-        },
-        community: {
-          title: '커뮤니티',
-          content: '커뮤니티 기능 이용에 대한 도움말입니다.',
-          items: [
-            '게시글 작성 및 관리',
-            '댓글 및 좋아요 기능',
-            '커뮤니티 가이드라인',
-            '신고 및 차단 기능'
-          ]
-        },
-        points: {
-          title: '포인트 시스템',
-          content: '포인트 적립 및 사용에 대한 도움말입니다.',
-          items: [
-            '포인트 적립 방법',
-            '포인트 사용 방법',
-            '포인트 내역 확인',
-            '포인트 정책 및 규정'
-          ]
-        },
-        troubleshooting: {
-          title: '문제 해결',
-          content: '자주 발생하는 문제와 해결 방법입니다.',
-          items: [
-            '로그인 문제 해결',
-            '화상채팅 연결 문제',
-            '앱 성능 최적화',
-            '기타 기술적 문제'
-          ]
-        }
-      }
-    },
-
-    // 연락처 페이지
-    contact: {
-      subtitle: 'AMIKO 팀과 직접 연락하실 수 있습니다',
-      sections: {
-        info: {
-          title: '연락처 정보',
-          email: {
-            title: '이메일',
-            content: 'support@amiko.com'
-          },
-          hours: {
-            title: '운영 시간',
-            content: '월요일 - 금요일, 09:00 - 18:00 (KST)'
-          }
-        },
-        types: {
-          title: '문의 유형',
-          content: '다음과 같은 문의를 받고 있습니다.',
-          technical: {
-            title: '기술 지원',
-            content: '서비스 이용 중 발생하는 기술적 문제'
-          },
-          billing: {
-            title: '결제 문의',
-            content: '결제 및 환불 관련 문의'
-          },
-          general: {
-            title: '일반 문의',
-            content: '서비스 이용 및 정책 관련 문의'
-          },
-          partnership: {
-            title: '제휴 문의',
-            content: '비즈니스 제휴 및 협력 관련 문의'
-          }
-        },
-        response: {
-          title: '응답 시간',
-          content: '문의 유형에 따른 응답 시간입니다.',
-          items: [
-            '기술 지원: 24시간 이내',
-            '결제 문의: 12시간 이내',
-            '일반 문의: 48시간 이내',
-            '제휴 문의: 72시간 이내'
-          ]
-        }
-      }
-    },
-
-    // 피드백 페이지
-    feedback: {
-      subtitle: 'AMIKO 서비스 개선을 위한 여러분의 소중한 의견을 기다립니다',
-      sections: {
-        guidelines: {
-          title: '피드백 가이드라인',
-          content: '효과적인 피드백을 위한 가이드라인입니다.',
-          items: [
-            '구체적이고 명확한 내용으로 작성해주세요',
-            '개선 제안 시 이유와 근거를 함께 제시해주세요',
-            '건설적이고 예의 바른 언어를 사용해주세요',
-            '개인정보는 포함하지 말아주세요'
-          ]
-        },
-        types: {
-          title: '피드백 유형',
-          content: '다음과 같은 피드백을 받고 있습니다.',
-          bug: {
-            title: '버그 신고',
-            content: '서비스에서 발견한 오류나 문제점'
-          },
-          feature: {
-            title: '기능 제안',
-            content: '새로운 기능이나 개선 사항 제안'
-          },
-          ux: {
-            title: '사용자 경험',
-            content: '사용자 인터페이스 및 경험 개선 제안'
-          },
-          general: {
-            title: '일반 피드백',
-            content: '서비스 전반에 대한 의견 및 제안'
-          }
-        },
-        submission: {
-          title: '피드백 제출 방법',
-          content: '피드백을 제출하는 방법입니다.',
-          items: [
-            '이메일: feedback@amiko.com',
-            '문의 페이지를 통한 제출',
-            '앱 내 피드백 기능 이용',
-            '소셜 미디어를 통한 제출'
-          ]
-        },
-        process: {
-          title: '피드백 처리 과정',
-          content: '제출된 피드백의 처리 과정입니다.',
-          items: [
-            '피드백 접수 및 검토',
-            '개발팀 검토 및 우선순위 결정',
-            '구현 가능성 평가',
-            '개선 사항 반영 및 결과 공유'
-          ]
-        }
-      }
-    },
-
-    // 문의 페이지
-    inquiry: {
-      heroTitle: 'Si tienes alguna pregunta\ncontáctanos en cualquier momento',
-      heroSubtitle: 'El equipo AMIKO responderá rápida y precisamente',
-      title: 'Consultas',
-      subtitle: 'Si tienes alguna pregunta, contáctanos en cualquier momento',
-      submit: 'Enviar Consulta',
-      successTitle: '¡Tu consulta se ha enviado exitosamente!',
-      successMessage: 'Te responderemos en breve.',
-      newInquiry: 'Nueva Consulta',
-      goToCommunity: 'Ir a la Comunidad',
-      inquiryType: 'Puedes consultar sobre estas cosas',
-      selectInquiryType: 'Selecciona el tipo de consulta',
-      priority: 'Prioridad',
-      selectPriority: 'Selecciona la prioridad',
-      subject: 'Asunto',
-      subjectPlaceholder: 'Ingresa el asunto de tu consulta',
-      message: 'Mensaje',
-      messagePlaceholder: 'Describe tu consulta en detalle',
-      submitSuccessMessage: '¡Tu consulta se ha enviado exitosamente!',
-      submitting: 'Enviando...',
-      submitInquiry: 'Enviar Consulta',
-      loginRequired: 'Se requiere iniciar sesión',
-      submitFailed: 'Error al enviar la consulta',
-      submitError: 'Ocurrió un error al enviar la consulta',
-      inquiryTypes: {
-        bug: 'Reporte de Error',
-        feature: 'Solicitud de Función',
-        general: 'Consulta General',
-        payment: 'Consulta de Pago',
-        account: 'Consulta de Cuenta',
-        other: 'Otro'
+    // FAQ 페이지
+    faq: {
+      title: 'Preguntas Frecuentes',
+      subtitle: 'Preguntas y respuestas frecuentes sobre el uso del servicio AMIKO',
+      totalQuestions: 'Total {count}',
+      categories: {
+        lounge: 'Sala',
+        videoChat: 'Videollamadas',
+        meeting: 'Reunión',
+        community: 'Comunidad',
+        points: 'Puntos',
+        account: 'Cuenta',
+        technical: 'Soporte Técnico'
       },
-      inquiryTypeDescriptions: {
-        bug: 'Reporta errores o problemas',
-        feature: 'Solicita nuevas funciones',
-        general: 'Preguntas o consultas generales',
-        payment: 'Consultas relacionadas con pagos',
-        account: 'Consultas relacionadas con la cuenta',
-        other: 'Otras consultas'
+      lounge: {
+        whatDoWeDo: '¿Qué puedo hacer en la sala?',
+        whatDoWeDoAnswer: 'En la sala puedes conversar libremente sobre diversos temas. Puedes comunicarte sobre aprendizaje de coreano, intercambio cultural, conversaciones cotidianas y más.',
+        pointsAvailable: '¿También puedo recibir puntos en la sala?',
+        pointsAvailableAnswer: 'Sí, también puedes recibir puntos al participar en conversaciones en la sala. Se otorgan puntos adicionales por participación activa y compartir información útil.',
+        whenOpen: '¿Cuándo está abierta la sala?',
+        whenOpenAnswer: 'La sala está disponible las 24 horas del día. Sin embargo, puedes encontrar más compañeros de conversación durante las horas de mayor actividad.',
+        differentLanguages: '¿Puedo conversar en otros idiomas?',
+        differentLanguagesAnswer: 'Sí, soportamos tanto coreano como español. A través de la función de traducción AI, los usuarios que hablan diferentes idiomas pueden conversar naturalmente.'
       },
-      priorities: {
-        low: 'Baja',
-        medium: 'Media',
-        high: 'Alta',
-        urgent: 'Urgente'
-      }
+      videoChat: {
+        howToStart: '¿Cómo inicio una videollamada?',
+        howToStartAnswer: 'Haz clic en el botón "Iniciar Chat" en la pestaña de videollamadas de la página principal. La videollamada comenzará automáticamente cuando se conecte la otra persona.',
+        aiTranslation: '¿Cómo uso la función de traducción AI?',
+        aiTranslationAnswer: 'Es una función que traduce en tiempo real lo que dice la otra persona durante la videollamada. Puedes activarla y desactivarla en la configuración, y soporta coreano y español.',
+        connectionIssues: 'Tengo problemas de conexión en videollamadas',
+        connectionIssuesAnswer: 'Verifica tu conexión a internet y actualiza el navegador. Si el problema persiste, contacta al equipo de soporte al cliente.'
+      },
+      meeting: {
+        howToMeet: '¿Cómo inicio una reunión?',
+        howToMeetAnswer: 'Haz clic en el botón "Iniciar Reunión" en la pestaña de reuniones de la página principal. La reunión comenzará automáticamente cuando se complete el emparejamiento.',
+        translationMode: '¿Cómo uso el modo de traducción?',
+        translationModeAnswer: 'Puedes usar la función de traducción en tiempo real durante las reuniones. Puedes activar y desactivar el modo de traducción en la configuración, y soporta coreano y español.',
+        howToUseCoupons: '¿Cómo uso los cupones?',
+        howToUseCouponsAnswer: 'Puedes usar cupones para extender reuniones o usar funciones especiales. Los cupones se aplican automáticamente y se usan automáticamente cuando hay cupones disponibles.'
+      },
+      community: {
+        howToPost: '¿Cómo escribo una publicación?',
+        howToPostAnswer: 'Haz clic en el botón "Escribir" en la pestaña de comunidad, ingresa el título y contenido, luego publica. También puedes subir imágenes.',
+        categories: '¿Cómo selecciono la categoría de la publicación?',
+        categoriesAnswer: 'Puedes seleccionar una categoría al escribir la publicación. Elige entre diversas categorías como belleza, moda, viajes, cultura, etc.',
+        moderation: '¿Cómo reporto una publicación inapropiada?',
+        moderationAnswer: 'Puedes reportar haciendo clic en el botón de reporte en la esquina superior derecha de la publicación. El equipo de moderación revisará y tomará las medidas apropiadas.',
+        howToGetPoints: '¿Cómo obtengo puntos en la comunidad?',
+        howToGetPointsAnswer: 'Puedes obtener puntos escribiendo publicaciones, comentarios, recibiendo likes, asistencia diaria, etc. Cuanto mayor sea la calidad del contenido, más puntos puedes recibir.',
+        dailyPointLimit: '¿Hay límite diario para obtener puntos?',
+        dailyPointLimitAnswer: 'Sí, hay límites para obtener puntos diariamente. Puedes recibir puntos por escribir publicaciones hasta 5 por día y comentarios hasta 20 por día.',
+        communityRules: '¿Hay reglas para usar la comunidad?',
+        communityRulesAnswer: 'Sí, hay reglas básicas de uso para que todos los usuarios puedan disfrutar. Respeta a otros y no publiques spam o contenido inapropiado.'
+      },
+      points: {
+        howToEarn: '¿Cómo obtengo puntos?',
+        howToEarnAnswer: 'Puedes obtener puntos a través de diversas actividades como participar en videollamadas, escribir publicaciones, comentar, asistencia diaria, etc.',
+        howToUse: '¿Cómo uso los puntos?',
+        howToUseAnswer: 'Los puntos se pueden usar para extender videollamadas, suscripción VIP, usar funciones especiales, etc. Puedes comprar diversos productos en la tienda.',
+        expiration: '¿Los puntos expiran?',
+        expirationAnswer: 'Los puntos no expiran. Sin embargo, pueden ser organizados por motivos de gestión si no se usan por mucho tiempo, así que úsalos regularmente.'
+      },
+      account: {
+        profileSetup: '¿Cómo configuro mi perfil?',
+        profileSetupAnswer: 'Puedes configurar foto de perfil, nombre, intereses, etc. en la pestaña de mi perfil. Un perfil completo ayuda con mejores coincidencias.',
+        passwordChange: '¿Cómo cambio mi contraseña?',
+        passwordChangeAnswer: 'Puedes cambiar tu contraseña en Configuración > Gestión de cuenta. Se recomienda cambiar la contraseña regularmente por seguridad.',
+        accountDeletion: 'Quiero eliminar mi cuenta',
+        accountDeletionAnswer: 'Contacta al equipo de soporte al cliente para eliminar tu cuenta. Ten en cuenta que todos los datos se eliminarán permanentemente al eliminar la cuenta.',
+        whyVerificationNeeded: '¿Por qué es necesaria la verificación?',
+        whyVerificationNeededAnswer: 'La verificación es necesaria para garantizar la seguridad y confiabilidad del servicio. Solo los usuarios verificados pueden usar las funciones de videollamadas y reuniones.',
+        verificationMethods: '¿Qué métodos de verificación hay?',
+        verificationMethodsAnswer: 'Puedes verificar tu cuenta a través de verificación por teléfono, email, inicio de sesión social, etc. El método más simple es la verificación por teléfono.',
+        verificationFailed: 'Falló la verificación',
+        verificationFailedAnswer: 'Verifica nuevamente el código de verificación, y si el problema persiste, contacta al equipo de soporte al cliente. Verifica la conexión de red o errores de entrada.'
+      },
+      technical: {
+        browserSupport: '¿Qué navegadores soportan?',
+        browserSupportAnswer: 'Soportamos navegadores modernos como Chrome, Firefox, Safari, Edge, etc. Se recomienda usar la versión más reciente.',
+        mobileSupport: '¿También puedo usarlo en móvil?',
+        mobileSupportAnswer: 'Sí, también está disponible en navegadores móviles. También soportamos funciones PWA para una experiencia similar a una aplicación.',
+        performanceIssues: 'La aplicación es lenta',
+        performanceIssuesAnswer: 'Elimina la caché del navegador y cierra pestañas innecesarias. Si el problema persiste, contacta al equipo de soporte al cliente.'
+      },
+      moreQuestions: '¿Tienes más preguntas?',
+      moreQuestionsDescription: 'Si no encontraste la respuesta arriba, no dudes en contactarnos. Te daremos una respuesta rápida y precisa.',
+      emailInquiry: 'Consulta por Email',
+      customerService: 'Equipo de Soporte al Cliente'
     },
 
-    // 제휴 문의 페이지
-    partnership: {
-      title: 'Consultas de Alianza',
-      subtitle: 'Crece junto con AMIKO',
-      submit: 'Enviar Consulta de Alianza',
-      benefitsTitle: 'Beneficios de Alianza',
-      benefitsSubtitle: 'Beneficios que puedes obtener al aliarte con AMIKO',
-      partnershipInquiry: 'Consultas de Alianza',
-      companyInfo: 'Información de la Empresa',
-      companyName: 'Nombre de la Empresa',
-      companyNamePlaceholder: 'Ingresa el nombre de tu empresa',
-      submitError: 'Error al enviar la consulta de alianza',
-      networkError: 'Error de red',
-      benefits: {
-        brandExpansion: {
-          title: 'Expansión de Marca',
-          description: 'Aumenta el reconocimiento de tu marca en los mercados de Corea y América del Sur'
-        },
-        customerExpansion: {
-          title: 'Expansión de Clientes',
-          description: 'Accede a nuevos segmentos de clientes y mercados'
-        },
-        revenueIncrease: {
-          title: 'Aumento de Ingresos',
-          description: 'Proporciona nuevas oportunidades de generación de ingresos a través de alianzas'
-        }
-      }
-    },
-
-    // 프로필 관련
+    // 프로필
     profile: {
-      myProfile: 'Mi Perfil',
-      koreanLanguage: 'Coreano',
-      koreanCulture: 'Cultura Coreana',
-      cooking: 'Cocina',
-      travel: 'Viajes',
-      music: 'Música',
-      consultation15min: 'Consulta de 15 min',
-      joinDate: 'Fecha de Registro',
       edit: 'Editar',
       name: 'Nombre',
       spanishName: 'Nombre en Español',
@@ -2256,6 +2569,7 @@ export const translations = {
 
     // 도움말 페이지
     help: {
+      title: 'Ayuda',
       subtitle: 'Proporcionamos información útil para usar el servicio AMIKO',
       sections: {
         gettingStarted: {
@@ -2313,13 +2627,14 @@ export const translations = {
 
     // 연락처 페이지
     contact: {
+      title: 'Contacto',
       subtitle: 'Puedes contactar directamente con el equipo AMIKO',
       sections: {
         info: {
           title: 'Información de Contacto',
           email: {
             title: 'Correo Electrónico',
-            content: 'support@amiko.com'
+            content: 'info@amiko.com'
           },
           hours: {
             title: 'Horario de Atención',
@@ -2354,63 +2669,6 @@ export const translations = {
             'Consultas de pago: Dentro de 12 horas',
             'Consultas generales: Dentro de 48 horas',
             'Consultas de alianza: Dentro de 72 horas'
-          ]
-        }
-      }
-    },
-
-    // 피드백 페이지
-    feedback: {
-      subtitle: 'Esperamos sus valiosas opiniones para mejorar el servicio AMIKO',
-      sections: {
-        guidelines: {
-          title: 'Guía de Retroalimentación',
-          content: 'Guía para retroalimentación efectiva.',
-          items: [
-            'Escriba contenido específico y claro',
-            'Al sugerir mejoras, presente razones y fundamentos',
-            'Use lenguaje constructivo y cortés',
-            'No incluya información personal'
-          ]
-        },
-        types: {
-          title: 'Tipos de Retroalimentación',
-          content: 'Recibimos los siguientes tipos de retroalimentación.',
-          bug: {
-            title: 'Reporte de Errores',
-            content: 'Errores o problemas encontrados en el servicio'
-          },
-          feature: {
-            title: 'Sugerencia de Funciones',
-            content: 'Sugerencias de nuevas funciones o mejoras'
-          },
-          ux: {
-            title: 'Experiencia de Usuario',
-            content: 'Sugerencias de mejora de interfaz y experiencia de usuario'
-          },
-          general: {
-            title: 'Retroalimentación General',
-            content: 'Opiniones y sugerencias sobre el servicio en general'
-          }
-        },
-        submission: {
-          title: 'Método de Envío de Retroalimentación',
-          content: 'Método para enviar retroalimentación.',
-          items: [
-            'Correo electrónico: feedback@amiko.com',
-            'Envío a través de la página de consultas',
-            'Uso de la función de retroalimentación en la aplicación',
-            'Envío a través de redes sociales'
-          ]
-        },
-        process: {
-          title: 'Proceso de Procesamiento de Retroalimentación',
-          content: 'Proceso de manejo de retroalimentación enviada.',
-          items: [
-            'Recepción y revisión de retroalimentación',
-            'Revisión del equipo de desarrollo y determinación de prioridades',
-            'Evaluación de viabilidad de implementación',
-            'Reflejo de mejoras y compartir resultados'
           ]
         }
       }

@@ -4,14 +4,18 @@ import { useLanguage } from '@/context/LanguageContext'
 
 export default function PrivacyPolicy() {
   const { t } = useLanguage()
+  
+  console.log('privacy.title:', t('privacy.title'))
+  console.log('privacy.lastUpdated:', t('privacy.lastUpdated'))
+  console.log('privacy.lastUpdatedDate:', t('privacy.lastUpdatedDate'))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 pt-32 md:pt-40 lg:pt-48 pb-12 max-w-4xl">
         {/* 헤더 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 font-['Inter']">
-            {t('privacy.title')}
+            {t('privacy.title') || '개인정보처리방침'}
           </h1>
           <p className="text-lg text-gray-600 font-['Inter']">
             {t('privacy.lastUpdated')}: {t('privacy.lastUpdatedDate')}
@@ -28,9 +32,14 @@ export default function PrivacyPolicy() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('privacy.sections.purpose.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.purpose.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                ))}
+                {(() => {
+                  const items = t('privacy.sections.purpose.items');
+                  console.log('purpose.items:', items, typeof items, Array.isArray(items));
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -43,9 +52,13 @@ export default function PrivacyPolicy() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('privacy.sections.collection.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.collection.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                ))}
+                {(() => {
+                  const items = t('privacy.sections.collection.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -58,9 +71,13 @@ export default function PrivacyPolicy() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('privacy.sections.retention.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.retention.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                ))}
+                {(() => {
+                  const items = t('privacy.sections.retention.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -73,9 +90,13 @@ export default function PrivacyPolicy() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('privacy.sections.rights.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.rights.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                ))}
+                {(() => {
+                  const items = t('privacy.sections.rights.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -83,14 +104,18 @@ export default function PrivacyPolicy() {
           {/* 5. 개인정보 보호책임자 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('privacy.sections.contact.title')}
+              {t('privacy.sections.contactInfo.title')}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('privacy.sections.contact.content')}</p>
+              <p>{t('privacy.sections.contactInfo.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('privacy.sections.contact.items').map((item: string, index: number) => (
-                  <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
-                ))}
+                {(() => {
+                  const items = t('privacy.sections.contactInfo.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}><strong>{item.split(':')[0]}:</strong>{item.split(':')[1]}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>

@@ -4,6 +4,10 @@ import { supabaseClient } from '@/lib/supabaseServer';
 export async function GET(request: NextRequest) {
   try {
     console.log('[COUPONS_CHECK] API 호출 시작')
+    console.log('[COUPONS_CHECK] 환경변수 확인:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '있음' : '없음',
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '있음' : '없음'
+    })
     
     if (!supabaseClient) {
       console.log('[COUPONS_CHECK] Supabase 클라이언트 없음')
@@ -162,9 +166,10 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('쿠폰 확인 실패:', error);
+    console.error('[COUPONS_CHECK] 예상치 못한 오류:', error);
+    console.error('[COUPONS_CHECK] 오류 스택:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: '서버 오류가 발생했습니다.', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

@@ -59,10 +59,12 @@ export async function PUT(request: Request) {
       )
     }
 
-    // 임시로 항상 성공 응답 반환 (테이블 생성 전까지)
-    console.log('[NOTIFICATION SETTINGS] 임시 응답 반환 (테이블 미생성)')
-    
-    const tempSettings = {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const settingsData = {
       user_id: userId,
       email_enabled: settings.email_enabled ?? true,
       push_enabled: settings.push_enabled ?? true,
@@ -70,15 +72,39 @@ export async function PUT(request: Request) {
       email_types: settings.email_types ?? ['booking_created', 'payment_confirmed', 'consultation_reminder'],
       push_types: settings.push_types ?? ['payment_confirmed', 'consultation_reminder'],
       in_app_types: settings.in_app_types ?? ['booking_created', 'payment_confirmed', 'consultation_reminder', 'system'],
-      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
+    }
+
+    // upsert를 사용하여 설정이 없으면 생성하고, 있으면 업데이트
+    const { data, error } = await supabase
+      .from('notification_settings')
+      .upsert(settingsData, {
+        onConflict: 'user_id'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('❌ 알림 설정 저장 실패:', error)
+      
+      // 테이블이 없는 경우 로컬스토리지로 대체
+      if (error.message.includes('relation') || error.code === '42P01') {
+        console.log('[NOTIFICATION SETTINGS] 테이블 미생성 - localStorage 사용')
+        return NextResponse.json({
+          success: true,
+          settings: settingsData,
+          message: '설정이 로컬에 저장되었습니다.',
+          is_local: true
+        })
+      }
+      
+      throw error
     }
 
     return NextResponse.json({
       success: true,
-      settings: tempSettings,
-      message: '임시 응답: notification_settings 테이블을 생성한 후 실제 저장이 가능합니다.',
-      is_temporary: true
+      settings: data,
+      message: '알림 설정이 저장되었습니다.'
     })
 
   } catch (error) {

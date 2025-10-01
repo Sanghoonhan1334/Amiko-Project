@@ -4,14 +4,20 @@ import { useLanguage } from '@/context/LanguageContext'
 
 export default function FeedbackPage() {
   const { t } = useLanguage()
+  
+  console.log('Current language:', t('language'))
+  console.log('feedback.sections.guidelines.title:', t('feedback.sections.guidelines.title'))
+  console.log('feedback.sections.guidelines.content:', t('feedback.sections.guidelines.content'))
+  console.log('feedback.sections.types.title:', t('feedback.sections.types.title'))
+  console.log('feedback.sections.types.content:', t('feedback.sections.types.content'))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 pt-32 md:pt-40 lg:pt-48 pb-12 max-w-4xl">
         {/* 헤더 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 font-['Inter']">
-            {t('footer.feedback')}
+            {t('feedback.title')}
           </h1>
           <p className="text-lg text-gray-600 font-['Inter']">
             {t('feedback.subtitle')}
@@ -23,14 +29,18 @@ export default function FeedbackPage() {
           {/* 피드백 안내 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('feedback.sections.guidelines.title')}
+              {t('feedback.sections.guidelines.title') || '피드백 가이드라인'}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('feedback.sections.guidelines.content')}</p>
+              <p>{t('feedback.sections.guidelines.content') || '효과적인 피드백을 위한 가이드라인입니다.'}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('feedback.sections.guidelines.items').map((item: string, index: number) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {(() => {
+                  const items = t('feedback.sections.guidelines.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}>{item}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -38,14 +48,14 @@ export default function FeedbackPage() {
           {/* 피드백 유형 */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
-              {t('feedback.sections.types.title')}
+              {t('feedback.sections.types.title') || '피드백 유형'}
             </h2>
             <div className="space-y-4 text-gray-700 font-['Inter']">
-              <p>{t('feedback.sections.types.content')}</p>
+              <p>{t('feedback.sections.types.content') || '다음과 같은 피드백을 받고 있습니다.'}</p>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-green-800 mb-2">{t('feedback.sections.types.bug.title')}</h3>
-                  <p className="text-green-700">{t('feedback.sections.types.bug.content')}</p>
+                  <h3 className="font-semibold text-green-800 mb-2">{t('feedback.sections.types.bug.title') || '버그 신고'}</h3>
+                  <p className="text-green-700">{t('feedback.sections.types.bug.content') || '서비스에서 발견한 오류나 문제점'}</p>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-blue-800 mb-2">{t('feedback.sections.types.feature.title')}</h3>
@@ -71,9 +81,13 @@ export default function FeedbackPage() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('feedback.sections.submission.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('feedback.sections.submission.items').map((item: string, index: number) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {(() => {
+                  const items = t('feedback.sections.submission.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}>{item}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
@@ -86,9 +100,13 @@ export default function FeedbackPage() {
             <div className="space-y-4 text-gray-700 font-['Inter']">
               <p>{t('feedback.sections.process.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
-                {t('feedback.sections.process.items').map((item: string, index: number) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {(() => {
+                  const items = t('feedback.sections.process.items');
+                  if (!Array.isArray(items)) return null;
+                  return items.map((item: string, index: number) => (
+                    <li key={index}>{item}</li>
+                  ));
+                })()}
               </ul>
             </div>
           </section>
