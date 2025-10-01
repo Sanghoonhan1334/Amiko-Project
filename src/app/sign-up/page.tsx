@@ -44,31 +44,31 @@ export default function SignUpPage() {
   })
 
   const countries = [
-    { code: 'KR', name: '대한민국', isKorean: true, phoneCode: '+82' },
-    { code: 'MX', name: '멕시코', isKorean: false, phoneCode: '+52' },
-    { code: 'CO', name: '콜롬비아', isKorean: false, phoneCode: '+57' },
-    { code: 'AR', name: '아르헨티나', isKorean: false, phoneCode: '+54' },
-    { code: 'PE', name: '페루', isKorean: false, phoneCode: '+51' },
-    { code: 'VE', name: '베네수엘라', isKorean: false, phoneCode: '+58' },
-    { code: 'CL', name: '칠레', isKorean: false, phoneCode: '+56' },
-    { code: 'EC', name: '에콰도르', isKorean: false, phoneCode: '+593' },
-    { code: 'GT', name: '과테말라', isKorean: false, phoneCode: '+502' },
-    { code: 'HN', name: '온두라스', isKorean: false, phoneCode: '+504' },
-    { code: 'NI', name: '니카라과', isKorean: false, phoneCode: '+505' },
-    { code: 'PA', name: '파나마', isKorean: false, phoneCode: '+507' },
-    { code: 'PY', name: '파라과이', isKorean: false, phoneCode: '+595' },
-    { code: 'UY', name: '우루과이', isKorean: false, phoneCode: '+598' },
-    { code: 'BO', name: '볼리비아', isKorean: false, phoneCode: '+591' },
-    { code: 'CR', name: '코스타리카', isKorean: false, phoneCode: '+506' },
-    { code: 'DO', name: '도미니카공화국', isKorean: false, phoneCode: '+1' },
-    { code: 'SV', name: '엘살바도르', isKorean: false, phoneCode: '+503' },
-    { code: 'CU', name: '쿠바', isKorean: false, phoneCode: '+53' },
-    { code: 'PR', name: '푸에르토리코', isKorean: false, phoneCode: '+1' },
-    { code: 'BR', name: '브라질', isKorean: false, phoneCode: '+55' },
-    { code: 'US', name: '미국', isKorean: false, phoneCode: '+1' },
-    { code: 'CA', name: '캐나다', isKorean: false, phoneCode: '+1' },
-    { code: 'JP', name: '일본', isKorean: false, phoneCode: '+81' },
-    { code: 'CN', name: '중국', isKorean: false, phoneCode: '+86' }
+    { code: 'KR', isKorean: true, phoneCode: '+82' },
+    { code: 'MX', isKorean: false, phoneCode: '+52' },
+    { code: 'CO', isKorean: false, phoneCode: '+57' },
+    { code: 'AR', isKorean: false, phoneCode: '+54' },
+    { code: 'PE', isKorean: false, phoneCode: '+51' },
+    { code: 'VE', isKorean: false, phoneCode: '+58' },
+    { code: 'CL', isKorean: false, phoneCode: '+56' },
+    { code: 'EC', isKorean: false, phoneCode: '+593' },
+    { code: 'GT', isKorean: false, phoneCode: '+502' },
+    { code: 'HN', isKorean: false, phoneCode: '+504' },
+    { code: 'NI', isKorean: false, phoneCode: '+505' },
+    { code: 'PA', isKorean: false, phoneCode: '+507' },
+    { code: 'PY', isKorean: false, phoneCode: '+595' },
+    { code: 'UY', isKorean: false, phoneCode: '+598' },
+    { code: 'BO', isKorean: false, phoneCode: '+591' },
+    { code: 'CR', isKorean: false, phoneCode: '+506' },
+    { code: 'DO', isKorean: false, phoneCode: '+1' },
+    { code: 'SV', isKorean: false, phoneCode: '+503' },
+    { code: 'CU', isKorean: false, phoneCode: '+53' },
+    { code: 'PR', isKorean: false, phoneCode: '+1' },
+    { code: 'BR', isKorean: false, phoneCode: '+55' },
+    { code: 'US', isKorean: false, phoneCode: '+1' },
+    { code: 'CA', isKorean: false, phoneCode: '+1' },
+    { code: 'JP', isKorean: false, phoneCode: '+81' },
+    { code: 'CN', isKorean: false, phoneCode: '+86' }
   ]
 
   const handleInputChange = (field: string, value: string) => {
@@ -632,7 +632,7 @@ export default function SignUpPage() {
                   <SelectContent className="bg-white border border-slate-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                     {countries.map((country) => (
                       <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50">
-                        {country.phoneCode} {country.name}
+                        {country.phoneCode} {t(`auth.countries.${country.code}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -656,18 +656,18 @@ export default function SignUpPage() {
 
             <div className="space-y-2">
               <Label htmlFor="country" className="text-sm font-medium text-slate-700">
-                국적
+                {t('auth.nationality')}
               </Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Select value={formData.country} onValueChange={handleCountryChange} required>
                   <SelectTrigger className="pl-12 border-slate-200 focus:border-slate-400 focus:ring-slate-400">
-                    <SelectValue placeholder="국적을 선택해주세요" />
+                    <SelectValue placeholder={t('auth.selectNationality')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-slate-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                     {countries.map((country) => (
                       <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50">
-                        {country.name}
+                        {t(`auth.countries.${country.code}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -683,11 +683,11 @@ export default function SignUpPage() {
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  확인 중...
+                  {t('auth.checking')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span>다음 단계</span>
+                  <span>{t('auth.nextStep')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               )}

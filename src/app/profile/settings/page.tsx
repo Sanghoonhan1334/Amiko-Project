@@ -214,7 +214,7 @@ export default function ProfileSettingsPage() {
                 <SelectContent>
                   {COUNTRIES.map((country) => (
                     <SelectItem key={country.value} value={country.value}>
-                      {t(`profileSettings.countries.${country.value}`) || country.label}
+                      {t(`auth.countries.${country.value}`) || country.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

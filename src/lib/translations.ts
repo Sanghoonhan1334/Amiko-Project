@@ -55,6 +55,42 @@ export const translations = {
       country: '국가',
       countryCode: '국가 코드',
       selectCountry: '국가를 선택하세요',
+      nationality: '국적',
+      selectNationality: '국적을 선택해주세요',
+      nextStep: '다음 단계',
+      checking: '확인 중...',
+      countries: {
+        KR: '대한민국',
+        MX: '멕시코',
+        CO: '콜롬비아',
+        AR: '아르헨티나',
+        PE: '페루',
+        VE: '베네수엘라',
+        CL: '칠레',
+        EC: '에콰도르',
+        GT: '과테말라',
+        HN: '온두라스',
+        NI: '니카라과',
+        PA: '파나마',
+        PY: '파라과이',
+        UY: '우루과이',
+        BO: '볼리비아',
+        CR: '코스타리카',
+        DO: '도미니카공화국',
+        SV: '엘살바도르',
+        CU: '쿠바',
+        PR: '푸에르토리코',
+        BR: '브라질',
+        US: '미국',
+        CA: '캐나다',
+        JP: '일본',
+        CN: '중국',
+        GB: '영국',
+        FR: '프랑스',
+        DE: '독일',
+        AU: '호주',
+        SG: '싱가포르'
+      },
       passwordMinLength: '최소 8자 이상',
       passwordHasNumber: '숫자 포함',
       passwordHasSpecial: '특수문자 포함',
@@ -1465,6 +1501,42 @@ export const translations = {
       country: 'País',
       countryCode: 'Código de país',
       selectCountry: 'Selecciona un país',
+      nationality: 'Nacionalidad',
+      selectNationality: 'Selecciona tu nacionalidad',
+      nextStep: 'Siguiente paso',
+      checking: 'Verificando...',
+      countries: {
+        KR: 'Corea del Sur',
+        MX: 'México',
+        CO: 'Colombia',
+        AR: 'Argentina',
+        PE: 'Perú',
+        VE: 'Venezuela',
+        CL: 'Chile',
+        EC: 'Ecuador',
+        GT: 'Guatemala',
+        HN: 'Honduras',
+        NI: 'Nicaragua',
+        PA: 'Panamá',
+        PY: 'Paraguay',
+        UY: 'Uruguay',
+        BO: 'Bolivia',
+        CR: 'Costa Rica',
+        DO: 'República Dominicana',
+        SV: 'El Salvador',
+        CU: 'Cuba',
+        PR: 'Puerto Rico',
+        BR: 'Brasil',
+        US: 'Estados Unidos',
+        CA: 'Canadá',
+        JP: 'Japón',
+        CN: 'China',
+        GB: 'Reino Unido',
+        FR: 'Francia',
+        DE: 'Alemania',
+        AU: 'Australia',
+        SG: 'Singapur'
+      },
       passwordMinLength: 'Mínimo 8 caracteres',
       passwordHasNumber: 'Incluir números',
       passwordHasSpecial: 'Incluir caracteres especiales',
@@ -2305,8 +2377,94 @@ export const translations = {
       customerService: 'Equipo de Soporte al Cliente'
     },
 
+    // 문의 페이지
+    inquiry: {
+      heroTitle: 'Si tienes alguna pregunta,\ncontáctanos en cualquier momento',
+      heroSubtitle: 'El equipo AMIKO\nte responderá\nrápida y precisamente',
+      title: 'Consultas',
+      subtitle: 'Si tienes alguna pregunta, contáctanos en cualquier momento',
+      submit: 'Enviar Consulta',
+      successTitle: '¡Tu consulta se envió exitosamente!',
+      successMessage: 'Te responderemos lo antes posible.',
+      newInquiry: 'Nueva Consulta',
+      goToCommunity: 'Ir a la Comunidad',
+      inquiryType: 'Puedes consultar sobre estas cosas',
+      selectInquiryType: 'Selecciona el tipo de consulta',
+      priority: 'Prioridad',
+      selectPriority: 'Selecciona la prioridad',
+      subject: 'Asunto',
+      subjectPlaceholder: 'Ingresa el asunto de la consulta',
+      message: 'Contenido',
+      messagePlaceholder: 'Por favor ingresa el contenido de la consulta en detalle',
+      submitSuccessMessage: '¡Tu consulta se envió exitosamente!',
+      submitting: 'Enviando...',
+      submitInquiry: 'Enviar Consulta',
+      loginRequired: 'Se requiere inicio de sesión',
+      submitFailed: 'Error al enviar la consulta',
+      submitError: 'Ocurrió un error al enviar la consulta',
+      inquiryTypes: {
+        bug: 'Reporte de Error',
+        feature: 'Solicitud de Función',
+        general: 'Consulta General',
+        payment: 'Consulta de Pago',
+        account: 'Consulta de Cuenta',
+        other: 'Otros'
+      },
+      inquiryTypeDescriptions: {
+        bug: 'Reporta errores o problemas',
+        feature: 'Solicita nuevas funciones',
+        general: 'Preguntas o consultas generales',
+        payment: 'Consultas relacionadas con pagos',
+        account: 'Consultas relacionadas con la cuenta',
+        other: 'Otras consultas'
+      },
+      priorities: {
+        low: 'Baja',
+        medium: 'Media',
+        high: 'Alta',
+        urgent: 'Urgente'
+      }
+    },
+
+    // 제휴 문의 페이지
+    partnership: {
+      title: 'Consulta de Asociación',
+      subtitle: 'Crece junto con AMIKO',
+      submit: 'Enviar Consulta de Asociación',
+      benefitsTitle: 'Beneficios de Asociación',
+      benefitsSubtitle: 'Beneficios que puedes obtener con la asociación de AMIKO',
+      partnershipInquiry: 'Enviar Consulta de Asociación',
+      companyInfo: 'Información de la Empresa',
+      companyName: 'Nombre de la Empresa',
+      companyNamePlaceholder: 'Ingresa el nombre de la empresa',
+      submitError: 'Ocurrió un error al enviar la consulta de asociación',
+      networkError: 'Ocurrió un error de red',
+      benefits: {
+        brandExpansion: {
+          title: 'Expansión de Marca',
+          description: 'Aumenta el reconocimiento de tu marca en el mercado coreano y latinoamericano'
+        },
+        customerExpansion: {
+          title: 'Expansión de Clientes',
+          description: 'Accede a nuevos segmentos de clientes y mercados'
+        },
+        revenueIncrease: {
+          title: 'Aumento de Ingresos',
+          description: 'Ofrece nuevas oportunidades de generación de ingresos a través de la asociación'
+        }
+      }
+    },
+
     // 프로필
     profile: {
+      myProfile: 'Mi Perfil',
+      koreanLanguage: 'Idioma Coreano',
+      koreanCulture: 'Cultura Coreana',
+      cooking: 'Cocina',
+      travel: 'Viajes',
+      music: 'Música',
+      consultation15min: 'Consulta de 15 min',
+      joinDate: 'Fecha de Registro',
       edit: 'Editar',
       name: 'Nombre',
       spanishName: 'Nombre en Español',
@@ -2620,6 +2778,64 @@ export const translations = {
             'Problemas de conexión de videollamadas',
             'Optimización del rendimiento de la aplicación',
             'Otros problemas técnicos'
+          ]
+        }
+      }
+    },
+
+    // 피드백 페이지
+    feedback: {
+      title: 'Comentarios',
+      subtitle: 'Esperamos tus valiosas opiniones para mejorar el servicio AMIKO',
+      sections: {
+        guidelines: {
+          title: 'Guía de Comentarios',
+          content: 'Guía para comentarios efectivos.',
+          items: [
+            'Por favor escribe con contenido específico y claro',
+            'Al sugerir mejoras, presenta razones y fundamentos',
+            'Usa un lenguaje constructivo y respetuoso',
+            'No incluyas información personal'
+          ]
+        },
+        types: {
+          title: 'Tipos de Comentarios',
+          content: 'Recibimos los siguientes tipos de comentarios.',
+          bug: {
+            title: 'Reporte de Errores',
+            content: 'Errores o problemas encontrados en el servicio'
+          },
+          feature: {
+            title: 'Sugerencia de Funciones',
+            content: 'Sugerencias de nuevas funciones o mejoras'
+          },
+          ux: {
+            title: 'Experiencia de Usuario',
+            content: 'Sugerencias de mejora de interfaz y experiencia de usuario'
+          },
+          general: {
+            title: 'Comentarios Generales',
+            content: 'Opiniones y sugerencias sobre el servicio en general'
+          }
+        },
+        submission: {
+          title: 'Método de Envío de Comentarios',
+          content: 'Cómo enviar comentarios.',
+          items: [
+            'Correo electrónico: feedback@amiko.com',
+            'Envío a través de la página de consultas',
+            'Usar la función de comentarios en la aplicación',
+            'Envío a través de redes sociales'
+          ]
+        },
+        process: {
+          title: 'Proceso de Comentarios',
+          content: 'Proceso de manejo de los comentarios enviados.',
+          items: [
+            'Recepción y revisión de comentarios',
+            'Revisión del equipo de desarrollo y decisión de prioridades',
+            'Evaluación de viabilidad de implementación',
+            'Aplicación de mejoras y compartir resultados'
           ]
         }
       }
