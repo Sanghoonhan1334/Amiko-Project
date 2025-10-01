@@ -88,7 +88,7 @@ export default function Hero() {
                     </p>
                     
                     {/* 이미지 */}
-                    <div className="-mt-36 flex justify-center">
+                    <div className="mt-8 md:mt-12 flex justify-center">
                       <img 
                         src="/Slide1.png" 
                         alt="Global Community" 
