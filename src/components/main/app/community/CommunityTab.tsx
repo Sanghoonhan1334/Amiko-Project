@@ -1843,11 +1843,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                           </div>
                         )}
 
-                        {/* 하단 그라데이션 오버레이 - 안개 효과 제거 */}
-                        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/50 to-transparent">
+                        {/* 하단 그라데이션 오버레이 - 안개 효과 최소화 */}
+                        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent">
                           {/* 스토리 텍스트 */}
                           {story.text && (
-                            <div className="absolute bottom-16 left-4 right-4">
+                            <div className="absolute bottom-12 left-4 right-4">
                               <p className="text-white text-sm leading-relaxed font-medium drop-shadow-lg">
                                 {story.text}
                               </p>
