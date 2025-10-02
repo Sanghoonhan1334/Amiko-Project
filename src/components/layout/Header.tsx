@@ -206,10 +206,22 @@ export default function Header() {
 
       try {
         // 인증 상태 확인 (users 테이블의 email_verified, phone_verified 확인)
-        const authStatusResponse = await fetch(`/api/auth/status?userId=${user.id}`)
+        const baseUrl = window.location.origin
+        const authStatusResponse = await fetch(`${baseUrl}/api/auth/status?userId=${user.id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
         
         // 404 오류 시 (사용자가 users 테이블에 없음) 인증 필요로 표시
         if (authStatusResponse.status === 404) {
+          setVerificationStatus('unverified')
+          return
+        }
+        
+        if (!authStatusResponse.ok) {
+          console.error('[HEADER] 인증 상태 API 오류:', authStatusResponse.status, authStatusResponse.statusText)
           setVerificationStatus('unverified')
           return
         }
@@ -228,6 +240,8 @@ export default function Header() {
         // 포인트는 별도 로딩 함수에서 처리
       } catch (error) {
         console.error('인증 상태 및 포인트 확인 오류:', error)
+        console.error('오류 타입:', typeof error)
+        console.error('오류 메시지:', error instanceof Error ? error.message : String(error))
         setVerificationStatus('unverified')
         // 포인트는 별도로 로딩하므로 여기서 리셋하지 않음
       }

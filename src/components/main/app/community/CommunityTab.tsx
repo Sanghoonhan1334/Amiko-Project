@@ -674,7 +674,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000) // 15초 타임아웃
       
-      const response = await fetch('/api/stories?isPublic=true&limit=10', {
+      const baseUrl = window.location.origin
+      const response = await fetch(`${baseUrl}/api/stories?isPublic=true&limit=10`, {
+        method: 'GET',
         headers,
         signal: controller.signal
       })
@@ -1629,7 +1631,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               
               // 인증 상태 확인 (헤더와 동일한 로직 사용)
               try {
-                const response = await fetch(`/api/auth/status?userId=${currentUser.id}`)
+                const baseUrl = window.location.origin
+                const response = await fetch(`${baseUrl}/api/auth/status?userId=${currentUser.id}`, {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                })
                 if (response.ok) {
                   const data = await response.json()
                   console.log('스토리 업로드 인증 상태 확인:', data)

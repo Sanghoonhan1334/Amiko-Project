@@ -58,14 +58,21 @@ function AppPageContent() {
       }
       
       // 포인트와 AKO 쿠폰을 병렬로 조회
+      const baseUrl = window.location.origin
       const promises = [
-        fetch(`/api/points?userId=${user.id}`)
+        fetch(`${baseUrl}/api/points?userId=${user.id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
       ]
       
       // 토큰이 있을 때만 쿠폰 조회
       if (token) {
         promises.push(
-          fetch('/api/coupons/check', {
+          fetch(`${baseUrl}/api/coupons/check`, {
+            method: 'GET',
             headers: {
               'Authorization': `Bearer ${encodeURIComponent(token)}`,
               'Content-Type': 'application/json'
@@ -106,6 +113,9 @@ function AppPageContent() {
       }
     } catch (error) {
       console.error('데이터 조회 오류:', error)
+      console.error('오류 타입:', typeof error)
+      console.error('오류 메시지:', error instanceof Error ? error.message : String(error))
+      console.error('오류 스택:', error instanceof Error ? error.stack : 'No stack trace')
       setAvailableAKO(0)
       setCurrentPoints(0)
     } finally {
@@ -121,19 +131,29 @@ function AppPageContent() {
     }
 
     try {
+      const baseUrl = window.location.origin
       const params = new URLSearchParams()
       if (user?.id) params.append('userId', user.id)
       if (user?.email) params.append('email', user.email)
       
-      const response = await fetch(`/api/admin/check?${params.toString()}`)
+      const response = await fetch(`${baseUrl}/api/admin/check?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
       
       if (response.ok) {
         const data = await response.json()
         setIsAdmin(data.isAdmin || false)
       } else {
+        console.error('[MAIN] 관리자 상태 확인 실패:', response.status, response.statusText)
         setIsAdmin(false)
       }
     } catch (error) {
+      console.error('[MAIN] 관리자 상태 확인 오류:', error)
+      console.error('오류 타입:', typeof error)
+      console.error('오류 메시지:', error instanceof Error ? error.message : String(error))
       setIsAdmin(false)
     }
   }
