@@ -793,24 +793,22 @@ export default function Header() {
                   </div>
                   
                   {/* 하단: 인증 상태 표시 */}
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg border">
-                    {verificationStatus === 'verified' ? (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-lg border border-green-200">
-                        <span className="text-green-600 text-sm">✅</span>
-                        <span className="text-green-700 text-sm font-medium">{t('notifications.verified')}</span>
-                      </div>
-                    ) : verificationStatus === 'unverified' ? (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-lg border border-amber-200">
-                        <span className="text-amber-600 text-sm">⚠️</span>
-                        <span className="text-amber-700 text-sm font-medium">{t('notifications.unverified')}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
-                        <span className="text-gray-600 text-sm animate-pulse">⏳</span>
-                        <span className="text-gray-700 text-sm font-medium">{t('notifications.checking')}</span>
-                      </div>
-                    )}
-                  </div>
+                  {verificationStatus === 'verified' ? (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-lg border border-green-200">
+                      <span className="text-green-600 text-sm">✅</span>
+                      <span className="text-green-700 text-sm font-medium">{t('notifications.verified')}</span>
+                    </div>
+                  ) : verificationStatus === 'unverified' ? (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-lg border border-amber-200">
+                      <span className="text-amber-600 text-sm">⚠️</span>
+                      <span className="text-amber-700 text-sm font-medium">{t('notifications.unverified')}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+                      <span className="text-gray-600 text-sm animate-pulse">⏳</span>
+                      <span className="text-gray-700 text-sm font-medium">{t('notifications.checking')}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
