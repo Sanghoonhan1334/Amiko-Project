@@ -301,6 +301,7 @@ export const translations = {
 
     // 커뮤니티 섹션
     community: {
+      story: '스토리',
       qa: 'Q&A',
       freeBoard: '주제별 게시판',
       koreanNews: '한국 뉴스',
@@ -2419,6 +2420,7 @@ export const translations = {
         howToUseCouponsAnswer: 'Puedes usar cupones para extender reuniones o usar funciones especiales. Los cupones se aplican automáticamente y se usan automáticamente cuando hay cupones disponibles.'
       },
       community: {
+        story: 'Historia',
         howToPost: '¿Cómo escribo una publicación?',
         howToPostAnswer: 'Haz clic en el botón "Escribir" en la pestaña de comunidad, ingresa el título y contenido, luego publica. También puedes subir imágenes.',
         categories: '¿Cómo selecciono la categoría de la publicación?',
