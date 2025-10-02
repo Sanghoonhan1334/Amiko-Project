@@ -1174,45 +1174,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     try {
       let imageUrl = ''
       
-      // 실제 이미지 파일이 있는 경우 Supabase Storage에 업로드
-      if (selectedFile) {
-        console.log('이미지 파일 업로드 시작:', selectedFile.name)
-        
-        const formData = new FormData()
-        formData.append('file', selectedFile)
-        
-        const baseUrl = window.location.origin
-        console.log('모바일 디버깅 - 이미지 업로드 시작:', {
-          fileName: selectedFile.name,
-          fileSize: selectedFile.size,
-          fileType: selectedFile.type,
-          apiUrl: `${baseUrl}/api/upload/image`
-        })
-        
-        const uploadResponse = await fetch(`${baseUrl}/api/upload/image`, {
-          method: 'POST',
-          body: formData
-        })
-        
-        console.log('모바일 디버깅 - 업로드 응답 상태:', uploadResponse.status)
-        
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          imageUrl = uploadResult.imageUrl
-          console.log('모바일 디버깅 - 이미지 업로드 성공:', uploadResult)
-        } else {
-          const errorData = await uploadResponse.json()
-          console.error('모바일 디버깅 - 이미지 업로드 실패:', {
-            status: uploadResponse.status,
-            error: errorData
-          })
-          toast.error(`이미지 업로드에 실패했습니다: ${errorData.error || '알 수 없는 오류'}`)
-          return
-        }
-      } else {
-        console.log('선택된 파일이 없음, 기본 이미지 사용')
-        imageUrl = 'https://picsum.photos/400/600'
-      }
+      // 임시 해결책: 이미지 업로드 건너뛰고 기본 이미지 사용
+      console.log('임시 해결책: 이미지 업로드 건너뛰고 기본 이미지 사용')
+      imageUrl = 'https://picsum.photos/400/600'
       
       console.log('API 요청 데이터 준비:', { imageUrl, text: storyText.trim(), userId: currentUser.id })
       
