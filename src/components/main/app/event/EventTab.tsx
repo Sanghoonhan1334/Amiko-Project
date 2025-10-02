@@ -401,47 +401,98 @@ export default function EventTab() {
 
   const nextReward = getNextReward()
 
-  // 쿠폰 도장 찍기 함수 (누적 방식)
+  // 쿠폰 도장 찍기 함수 (서버 기반)
   const handleCouponStamp = async (day: number) => {
-    // 오늘 날짜 확인
-    const today = new Date().toISOString().split('T')[0]
-    const todayStamp = localStorage.getItem(`couponStamp_${today}`)
-    
-    // 오늘 이미 도장을 찍었다면 막기
-    if (todayStamp) {
-      alert(t('eventTab.pointSystem.couponEvent.messages.alreadyCompleted'))
+    if (!user?.id) {
+      alert('로그인이 필요합니다.')
       return
     }
-    
-    // 누적 도장 찍기
-    const newStreak = couponStreak + 1
-    setCouponStreak(newStreak)
-    localStorage.setItem('couponStreak', newStreak.toString())
-    localStorage.setItem('lastCouponDate', today)
-    localStorage.setItem(`couponStamp_${today}`, 'true') // 오늘 도장 찍음 표시
-    
-    // 3일 누적 완료 시 쿠폰 지급
-    if (newStreak === 3) {
-      alert('🎉 ' + t('eventTab.pointSystem.couponEvent.messages.congratulations'))
-      // 쿠폰 지급 후 리셋
-      setTimeout(() => {
-        setCouponStreak(0)
-        localStorage.setItem('couponStreak', '0')
-      }, 2000)
-    } else {
-      alert(t('eventTab.pointSystem.couponEvent.messages.completed').replace('{days}', newStreak.toString()))
+
+    try {
+      // 서버에 출석체크 실행 요청
+      const response = await fetch('/api/coupon-attendance/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${encodeURIComponent(user.token)}`
+        },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0]
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '출석체크에 실패했습니다.')
+      }
+
+      const result = await response.json()
+      const data = result.data
+
+      if (!data.success) {
+        alert(data.message)
+        return
+      }
+
+      // 성공 시 상태 업데이트
+      setCouponStreak(data.currentStreak)
+      
+      if (data.isCompleted && data.couponGranted) {
+        alert('🎉 ' + data.couponMessage)
+        // 3일 완료 후 리셋
+        setTimeout(() => {
+          setCouponStreak(0)
+        }, 2000)
+      } else {
+        alert(t('eventTab.pointSystem.couponEvent.messages.completed').replace('{days}', data.currentStreak.toString()))
+      }
+
+    } catch (error) {
+      console.error('출석체크 오류:', error)
+      alert('출석체크 중 오류가 발생했습니다.')
     }
   }
 
-  // 쿠폰 출석 데이터 로드 (누적 방식)
+  // 쿠폰 출석 데이터 로드 (서버 기반)
   useEffect(() => {
-    const savedCouponStreak = localStorage.getItem('couponStreak')
-    
-    if (savedCouponStreak) {
-      // 누적 값 그대로 유지
-      setCouponStreak(parseInt(savedCouponStreak))
+    const loadCouponAttendance = async () => {
+      if (!user?.id) {
+        setCouponStreak(0)
+        return
+      }
+
+      try {
+        // 서버에서 출석체크 상태 조회
+        const response = await fetch('/api/coupon-attendance/check', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${encodeURIComponent(user.token)}`
+          }
+        })
+
+        if (!response.ok) {
+          console.error('출석체크 상태 조회 실패')
+          setCouponStreak(0)
+          return
+        }
+
+        const result = await response.json()
+        const data = result.data
+
+        if (data) {
+          setCouponStreak(data.currentStreak || 0)
+        } else {
+          setCouponStreak(0)
+        }
+
+      } catch (error) {
+        console.error('출석체크 상태 로드 오류:', error)
+        setCouponStreak(0)
+      }
     }
-  }, [])
+
+    loadCouponAttendance()
+  }, [user?.id])
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -478,9 +529,7 @@ export default function EventTab() {
             <div className="flex items-center justify-center gap-4 mb-3">
               {[1, 2, 3].map((day) => {
                 const isCompleted = couponStreak >= day
-                const today = new Date().toISOString().split('T')[0]
-                const todayStamp = localStorage.getItem(`couponStamp_${today}`)
-                const canClickToday = couponStreak < 3 && !todayStamp && !isCompleted // 3번 전이고, 오늘 안 찍었고, 이미 완료 안된 것만
+                const canClickToday = couponStreak < 3 && !isCompleted && user?.id // 3번 전이고, 이미 완료 안된 것만, 로그인된 사용자만
                 
                 return (
                   <div
