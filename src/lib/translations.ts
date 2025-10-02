@@ -250,7 +250,7 @@ export const translations = {
       meet: 'AI 화상 채팅',
       meetDescription: '한국인 친구와 AI 화상 채팅을 통해 한국 문화를 배워보세요',
       community: '커뮤니티',
-      communityDescription: '다양한 주제로 소통하고 경험을 공유하세요',
+      communityDescription: '',
       me: '내 프로필',
       meDescription: '내 활동 내역과 포인트를 확인하세요'
     },
@@ -330,7 +330,7 @@ export const translations = {
       writePost: '글쓰기',
       galleryList: {
         title: '갤러리',
-        subtitle: '다양한 주제로 소통하고 경험을 공유하세요',
+        subtitle: '',
         beauty: '뷰티 갤러리',
         fashion: '패션 갤러리',
         travel: '여행 갤러리',
@@ -1763,7 +1763,7 @@ export const translations = {
       meet: 'Conoce a Coreanos',
       meetDescription: 'Conoce a coreanos reales a través de videollamadas',
       community: 'Comunidad',
-      communityDescription: 'Comunícate sobre diversos temas y comparte experiencias',
+      communityDescription: '',
       me: 'Mi Perfil',
       meDescription: 'Revisa tu historial de actividad y puntos'
     },
@@ -1843,7 +1843,7 @@ export const translations = {
       writePost: 'Escribir',
       galleryList: {
         title: 'Galerías',
-        subtitle: 'Comunícate sobre diversos temas y comparte experiencias',
+        subtitle: '',
         beauty: 'Galería de Belleza',
         fashion: 'Galería de Moda',
         travel: 'Galería de Viajes',
