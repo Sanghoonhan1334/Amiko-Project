@@ -1610,15 +1610,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 뉴스 작성 함수
   const handleNewsWrite = async () => {
-    const hasTitle = newsWriteForm.title.trim() || newsWriteForm.title_es.trim()
-    if (!hasTitle) {
-      toast.error('제목을 한국어 또는 스페인어로 입력해주세요.')
+    if (!newsWriteForm.title.trim()) {
+      toast.error('제목을 입력해주세요.')
       return
     }
     
-    const hasContent = newsWriteForm.content.trim() || newsWriteForm.content_es.trim()
-    if (!hasContent) {
-      toast.error('내용을 한국어 또는 스페인어로 입력해주세요.')
+    if (!newsWriteForm.content.trim()) {
+      toast.error('내용을 입력해주세요.')
       return
     }
     
@@ -1636,9 +1634,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         },
         body: JSON.stringify({
           title: newsWriteForm.title,
-          title_es: newsWriteForm.title_es,
+          title_es: newsWriteForm.title, // 한국어 제목을 스페인어 제목으로도 사용
           content: newsWriteForm.content,
-          content_es: newsWriteForm.content_es,
+          content_es: newsWriteForm.content, // 한국어 내용을 스페인어 내용으로도 사용
           source: newsWriteForm.source,
           author: newsWriteForm.author,
           category: newsWriteForm.category,
@@ -3233,21 +3231,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
             {/* 제목 */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목 (한국어)</Label>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목</Label>
               <Input
-                placeholder="한국어 제목을 입력하세요"
+                placeholder="제목을 입력하세요"
                 value={newsWriteForm.title}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
-                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목 (스페인어)</Label>
-              <Input
-                placeholder="스페인어 제목을 입력하세요"
-                value={newsWriteForm.title_es}
-                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title_es: e.target.value })}
                 className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
               />
             </div>
@@ -3255,7 +3243,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             {/* 내용 */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label className="text-sm font-medium text-gray-700">내용 (한국어)</Label>
+                <Label className="text-sm font-medium text-gray-700">내용</Label>
                 <div className="flex gap-2">
                   <input
                     type="file"
@@ -3265,13 +3253,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                       if (file) insertImageToContent(file, true)
                     }}
                     className="hidden"
-                    id="koreanImageUpload"
+                    id="contentImageUpload"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => document.getElementById('koreanImageUpload')?.click()}
+                    onClick={() => document.getElementById('contentImageUpload')?.click()}
                     className="text-xs"
                   >
                     📷 이미지 삽입
@@ -3279,43 +3267,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 </div>
               </div>
               <Textarea
-                placeholder="한국어 내용을 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
+                placeholder="내용을 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
                 value={newsWriteForm.content}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
-                rows={8}
-                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-sm font-medium text-gray-700">내용 (스페인어)</Label>
-                <div className="flex gap-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) insertImageToContent(file, false)
-                    }}
-                    className="hidden"
-                    id="spanishImageUpload"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => document.getElementById('spanishImageUpload')?.click()}
-                    className="text-xs"
-                  >
-                    📷 이미지 삽입
-                  </Button>
-                </div>
-              </div>
-              <Textarea
-                placeholder="스페인어 내용을 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
-                value={newsWriteForm.content_es}
-                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content_es: e.target.value })}
                 rows={8}
                 className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
               />
