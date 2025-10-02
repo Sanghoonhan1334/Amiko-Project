@@ -2336,6 +2336,25 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {currentView === 'freeboard' && (
         <div className="w-full">
+          {/* 주제별 게시판 헤더 */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-pink-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                📝
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">{t('community.freeBoard')}</h2>
+            </div>
+            <button
+              onClick={() => setCurrentView('home')}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="font-medium">{t('community.backToCommunityHome')}</span>
+            </button>
+          </div>
+          
           <BoardList 
             onPostSelect={(post) => {
               console.log('게시글 선택:', post)
@@ -2414,6 +2433,25 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           ) : (
             // 뉴스 목록
             <div className="space-y-6">
+              {/* 한국뉴스 헤더 */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                    📰
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800">{t('community.koreanNews')}</h2>
+                </div>
+                <button
+                  onClick={() => setCurrentView('home')}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span className="font-medium">{t('community.backToCommunityHome')}</span>
+                </button>
+              </div>
+              
               <div className="flex items-center justify-end">
                 {/* 번역 버튼 */}
                 <div className="flex items-center gap-2">
@@ -3504,6 +3542,25 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       {/* Tests 탭 */}
       {currentView === 'tests' && (
         <div className="w-full">
+          {/* 테스트 헤더 */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                🎯
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">{t('tests.title')}</h2>
+            </div>
+            <button
+              onClick={() => setCurrentView('home')}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="font-medium">{t('community.backToCommunityHome')}</span>
+            </button>
+          </div>
+          
           <QuizzesTab />
         </div>
       )}

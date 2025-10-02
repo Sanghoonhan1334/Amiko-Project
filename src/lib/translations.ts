@@ -310,6 +310,7 @@ export const translations = {
       qaDescription: '',
       loadingNews: '뉴스를 불러오는 중...',
       backToHome: '이전',
+      backToCommunityHome: '커뮤니티 홈으로',
       viewMoreNews: '더 많은 한국 뉴스 보기',
       categories: {
         all: '전체글',
@@ -1829,6 +1830,7 @@ export const translations = {
       qaDescription: '',
       loadingNews: 'Cargando noticias...',
       backToHome: 'Anterior',
+      backToCommunityHome: 'Volver al Inicio de la Comunidad',
       viewMoreNews: 'Ver más noticias de Corea',
       categories: {
         all: 'Todas las Publicaciones',
