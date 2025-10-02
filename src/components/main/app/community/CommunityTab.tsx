@@ -1771,10 +1771,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     key={story.id} 
                     className="relative overflow-hidden flex-shrink-0 cursor-pointer group" 
                     style={{ 
-                      width: 'calc(20vw - 0.5rem)',
-                      height: 'calc(max(min(20vw * 1.6, 320px), 240px))',
+                      width: 'calc(100vw / 4.5)',
+                      height: 'calc(100vw / 4.5 * 1.6)',
                       minWidth: '140px',
                       maxWidth: '180px',
+                      minHeight: '240px',
+                      maxHeight: '320px',
                       scrollSnapAlign: 'start'
                     }}
                   >
