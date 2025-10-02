@@ -244,7 +244,7 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   
   // 언어 설정 디버깅
   console.log('현재 언어 설정:', language)
-  console.log('스토리 번역:', t('community.story'))
+  console.log('스토리 번역:', t('communityTab.story'))
 
   // 운영진 상태 확인
   useEffect(() => {
