@@ -269,23 +269,35 @@ export default function Header() {
 
   // 메인페이지 네비게이션 클릭 핸들러
   const handleMainNavClick = (tab: string) => {
+    console.log('handleMainNavClick 호출됨:', tab)
+    console.log('현재 사용자:', user)
+    console.log('현재 경로:', pathname)
+    
     // 로그인하지 않은 상태에서 'me' 탭 클릭 시 로그인 페이지로 이동
     if (tab === 'me' && !user) {
+      console.log('로그인 필요 - 로그인 페이지로 이동')
       router.push('/sign-in')
       return
     }
     
+    console.log('활성 탭 설정:', tab)
     setActiveMainTab(tab)
+    
     if (pathname === '/main') {
+      console.log('메인 페이지에서 탭 변경')
       // 세션스토리지에 저장
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('lastActiveTab', tab)
+        console.log('세션스토리지에 저장됨:', tab)
       }
       
       // 커스텀 이벤트로 알림
       window.dispatchEvent(new CustomEvent('mainTabChanged', { 
         detail: { tab } 
       }))
+      console.log('커스텀 이벤트 발송됨:', tab)
+    } else {
+      console.log('메인 페이지가 아님 - 페이지 이동 없음')
     }
   }
 
@@ -642,58 +654,83 @@ export default function Header() {
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10">
                     <button 
-                      onClick={() => handleMainNavClick('home')}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Home 버튼 클릭됨')
+                        handleMainNavClick('home')
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'home' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 hover:text-purple-500'
                       }`}
-                      style={{ backgroundColor: 'transparent' }}
+                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.home')}
                     </button>
                     <button 
-                      onClick={() => handleMainNavClick('meet')}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Meet 버튼 클릭됨')
+                        handleMainNavClick('meet')
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'meet' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 hover:text-purple-500'
                       }`}
-                      style={{ backgroundColor: 'transparent' }}
+                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.videoCall')}
                     </button>
                     <button 
-                      onClick={() => handleMainNavClick('community')}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Community 버튼 클릭됨')
+                        handleMainNavClick('community')
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'community' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 hover:text-purple-500'
                       }`}
-                      style={{ backgroundColor: 'transparent' }}
+                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.community')}
                     </button>
                     <button 
-                      onClick={() => handleMainNavClick('charging')}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Charging 버튼 클릭됨')
+                        handleMainNavClick('charging')
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'charging' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 hover:text-purple-500'
                       }`}
-                      style={{ backgroundColor: 'transparent' }}
+                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       <span className="hidden lg:inline">{t('headerNav.chargingStation')}</span>
                       <span className="lg:hidden">{t('headerNav.chargingStationShort')}</span>
                     </button>
                     <button 
-                      onClick={() => handleMainNavClick('event')}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent ${
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Event 버튼 클릭됨')
+                        handleMainNavClick('event')
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'event' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 hover:text-purple-500'
                       }`}
-                      style={{ backgroundColor: 'transparent' }}
+                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.event')}
                     </button>
@@ -749,10 +786,16 @@ export default function Header() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleMainNavClick('me')}
-                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 ${
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Profile 버튼 클릭됨')
+                        handleMainNavClick('me')
+                      }}
+                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 cursor-pointer ${
                         activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
                       }`}
+                      style={{ pointerEvents: 'auto' }}
                     >
                       <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" />
                     </Button>
