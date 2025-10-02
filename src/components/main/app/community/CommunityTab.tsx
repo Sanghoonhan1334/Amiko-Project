@@ -1698,33 +1698,50 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               
               // 인증 상태 확인 (헤더와 동일한 로직 사용)
               try {
+                console.log('모바일 디버깅 - 사용자 정보:', {
+                  userId: currentUser.id,
+                  email: currentUser.email,
+                  isAdmin: isAdmin
+                })
+                
                 const baseUrl = window.location.origin
+                console.log('모바일 디버깅 - API URL:', `${baseUrl}/api/auth/status?userId=${currentUser.id}`)
+                
                 const response = await fetch(`${baseUrl}/api/auth/status?userId=${currentUser.id}`, {
                   method: 'GET',
                   headers: {
                     'Content-Type': 'application/json',
                   },
                 })
+                
+                console.log('모바일 디버깅 - API 응답 상태:', response.status)
+                
                 if (response.ok) {
                   const data = await response.json()
-                  console.log('스토리 업로드 인증 상태 확인:', data)
+                  console.log('모바일 디버깅 - API 응답 데이터:', data)
+                  console.log('모바일 디버깅 - 인증 상태:', {
+                    success: data.success,
+                    emailVerified: data.emailVerified,
+                    smsVerified: data.smsVerified,
+                    authLevel: data.authLevel
+                  })
                   
                   // 헤더와 동일한 조건: emailVerified 또는 smsVerified가 true인 경우
                   if (data.success && (data.emailVerified || data.smsVerified)) {
-                    console.log('인증 완료 - 업로드 모달 표시')
+                    console.log('모바일 디버깅 - 인증 완료, 업로드 모달 표시')
                     setShowStoryUploadModal(true)
                   } else {
                     // 인증 안 된 경우 인증 다이얼로그 표시
-                    console.log('인증 필요 - 인증 다이얼로그 표시')
+                    console.log('모바일 디버깅 - 인증 필요, 다이얼로그 표시')
                     setShowAuthDialog(true)
                   }
                 } else {
                   // API 오류 시 안전하게 인증 다이얼로그 표시
-                  console.log('API 오류 - 인증 다이얼로그 표시')
+                  console.log('모바일 디버깅 - API 오류, 다이얼로그 표시')
                   setShowAuthDialog(true)
                 }
               } catch (error) {
-                console.error('인증 상태 확인 오류:', error)
+                console.error('모바일 디버깅 - 인증 상태 확인 오류:', error)
                 setShowAuthDialog(true)
               }
             }}
