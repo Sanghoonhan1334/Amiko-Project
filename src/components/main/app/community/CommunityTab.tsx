@@ -1698,25 +1698,23 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       {/* 오늘의 스토리 섹션 - 홈에서만 표시 */}
       {currentView === 'home' && (
       <div className="mt-0 mb-6 w-full overflow-hidden" style={{ width: '100vw', marginRight: 'calc(-50vw + 50%)' }}>
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">📸</span>
-            </div>
-            <h2 className="text-lg font-bold text-gray-800 font-['Inter']">{t('communityTab.story')}</h2>
-            {stories.length > 1 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full hidden sm:inline">
-                  ← 좌우로 슬라이드 (마우스 휠/드래그)
-                </span>
-                <span className="text-xs text-blue-500 font-medium">
-                  {stories.length} {t('communityTab.story')}
-                </span>
-              </div>
-            )}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs">📸</span>
           </div>
+          <h2 className="text-lg font-bold text-gray-800 font-['Inter']">{t('communityTab.story')}</h2>
+          {stories.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full hidden sm:inline">
+                ← 좌우로 슬라이드 (마우스 휠/드래그)
+              </span>
+              <span className="text-xs text-blue-500 font-medium">
+                {stories.length} {t('communityTab.story')}
+              </span>
+            </div>
+          )}
           <Button 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap ml-auto"
             onClick={async () => {
               console.log('헤더 스토리 올리기 버튼 클릭됨')
               
