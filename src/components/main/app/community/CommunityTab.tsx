@@ -1769,7 +1769,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 {stories.map((story, index) => (
                   <div 
                     key={story.id} 
-                    className="relative overflow-hidden flex-shrink-0 cursor-pointer group w-48 h-64 sm:w-56 sm:h-72 md:w-60 md:h-80" 
+                    className="relative overflow-hidden flex-shrink-0 cursor-pointer group w-64 h-80 sm:w-72 sm:h-96 md:w-80 md:h-[28rem]" 
                     style={{ 
                       scrollSnapAlign: 'start'
                     }}
