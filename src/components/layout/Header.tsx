@@ -823,8 +823,8 @@ export default function Header() {
                           </svg>
                         </div>
                         <span className="text-sm text-emerald-700 font-medium">
-                          <span className="lg:hidden">Verificación<br/>completada</span>
-                          <span className="hidden lg:inline">{t('myTab.verificationComplete')}</span>
+                          <span className="lg:hidden">TEST<br/>SMALL</span>
+                          <span className="hidden lg:inline">TEST LARGE SCREEN</span>
                         </span>
                       </div>
                     ) : (
