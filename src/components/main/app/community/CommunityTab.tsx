@@ -557,7 +557,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     setNewsError(null)
     
     try {
-      const response = await fetch('/api/news?category=entertainment&limit=5')
+      const response = await fetch('/api/news?limit=5')
       const data = await response.json()
       
       if (data.success) {
@@ -1639,7 +1639,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           content_es: newsWriteForm.content, // 한국어 내용을 스페인어 내용으로도 사용
           source: newsWriteForm.source,
           author: newsWriteForm.author,
-          category: newsWriteForm.category,
+          category: 'entertainment', // 기본 카테고리 설정
           thumbnail: selectedThumbnail || null, // 썸네일이 선택되지 않으면 null
         })
       })
