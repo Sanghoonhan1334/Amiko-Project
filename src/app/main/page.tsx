@@ -235,11 +235,13 @@ function AppPageContent() {
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
                     <Video className="w-10 h-10 text-white" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-2xl font-bold text-gray-800">{t('main.meet')}</h2>
-                    <p className="text-gray-600">{t('main.meetDescription')}</p>
-                    <p className="text-sm text-blue-600 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
                   </div>
+                </div>
+                <div className="mb-6">
+                  <p className="text-gray-600">{t('main.meetDescription')}</p>
+                  <p className="text-sm text-blue-600 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
                 </div>
                 <MeetTab />
               </div>
@@ -259,7 +261,7 @@ function AppPageContent() {
                          '💬'}
                       </span>
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h2 className="text-2xl font-bold text-gray-800">
                         {communityView === 'home' ? t('main.community') :
                          communityView === 'freeboard' ? t('community.freeBoard') :
@@ -268,14 +270,6 @@ function AppPageContent() {
                          communityView === 'tests' ? t('tests.title') :
                          t('main.community')}
                       </h2>
-                      <p className="text-gray-600">
-                        {communityView === 'home' ? t('main.communityDescription') :
-                         communityView === 'freeboard' ? t('community.freeBoardDescription') :
-                         communityView === 'news' ? t('community.koreanNewsDescription') :
-                         communityView === 'qa' ? t('community.qaDescription') :
-                         communityView === 'tests' ? t('tests.description') :
-                         t('main.communityDescription')}
-                      </p>
                     </div>
                   </div>
                   
@@ -296,6 +290,16 @@ function AppPageContent() {
                     </button>
                   )}
                 </div>
+                <div className="mb-6">
+                  <p className="text-gray-600">
+                    {communityView === 'home' ? t('main.communityDescription') :
+                     communityView === 'freeboard' ? t('community.freeBoardDescription') :
+                     communityView === 'news' ? t('community.koreanNewsDescription') :
+                     communityView === 'qa' ? t('community.qaDescription') :
+                     communityView === 'tests' ? t('tests.description') :
+                     t('main.communityDescription')}
+                  </p>
+                </div>
                 <CommunityTab onViewChange={setCommunityView} />
               </div>
             )}
@@ -304,14 +308,19 @@ function AppPageContent() {
               <div className="card p-8 -mt-12 sm:mt-0">
                 {/* 일반 사용자만 헤더 섹션 표시 */}
                 {!isAdmin && (
-                  <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center gap-3 mb-0">
                     <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
                       <span className="text-2xl">👤</span>
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
-                      <p className="text-gray-600">{t('main.meDescription')}</p>
                     </div>
+                  </div>
+                )}
+                {/* 설명 섹션 */}
+                {!isAdmin && (
+                  <div className="mb-6">
+                    <p className="text-gray-600">{t('main.meDescription')}</p>
                   </div>
                 )}
                 {/* 운영자는 대시보드만 표시 (헤더 없음) */}
