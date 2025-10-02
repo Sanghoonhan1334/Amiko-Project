@@ -247,7 +247,7 @@ function AppPageContent() {
             )}
 
             {activeTab === 'community' && (
-              <div className="card p-8 -mt-12 sm:mt-0">
+              <div className="card px-2 py-8 -mt-12 sm:mt-0">
                 <div className="flex items-center justify-between mb-0">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
