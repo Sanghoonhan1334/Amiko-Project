@@ -751,90 +751,37 @@ export default function Header() {
                 </button>
               )}
 
-              {/* 우측 상단 영역 - 세로 배치 (데스크톱에서만) */}
+              {/* 데스크톱용 버튼들 - 데스크톱에서만 표시 */}
               {isMainPage && user && (
-                <div className="hidden md:flex flex-col items-end gap-0.5 sm:gap-1">
-                  {/* 포인트 표시 - 최상단 */}
-                  {verificationStatus === 'verified' && (
-                    <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 shadow-sm mb-1">
-                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white font-bold font-['Inter']">★</span>
-                      </div>
-                      <span className="text-xs text-purple-700 font-medium">{userPoints}P</span>
-                    </div>
-                  )}
+                <div className="hidden md:flex items-center gap-0.5 sm:gap-1">
+                  {/* 로그아웃 버튼 */}
+                  <button 
+                    onClick={() => handleLogout()}
+                    className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap text-sm"
+                  >
+                    {t('headerNav.logout')}
+                  </button>
                   
-                  {/* 상단 버튼들 - 가로 배치 */}
-                  <div className="flex items-center gap-0.5 sm:gap-1">
-                    {/* 로그아웃 버튼 */}
-                    {user && (
-                      <button 
-                        onClick={() => handleLogout()}
-                        className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap text-sm"
-                      >
-                        {t('headerNav.logout')}
-                      </button>
-                    )}
-                    
-                    {/* 알림 버튼 */}
-                    <NotificationBell />
-                    
-                    {/* 프로필 버튼 */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Profile 버튼 클릭됨')
-                        handleMainNavClick('me')
-                      }}
-                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 cursor-pointer ${
-                        activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
-                      }`}
-                      style={{ pointerEvents: 'auto' }}
-                    >
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" />
-                    </Button>
-                  </div>
+                  {/* 알림 버튼 */}
+                  <NotificationBell />
                   
-                  {/* 인증 상태 표시 */}
-                  <div className="flex items-center gap-2">
-                    {verificationStatus === 'loading' ? (
-                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-50 rounded-full border border-gray-200">
-                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-gray-600 font-medium">확인 중...</span>
-                      </div>
-                    ) : isAdmin ? (
-                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-full border border-purple-200 shadow-sm">
-                        <div className="flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full">
-                          <span className="text-xs text-white font-bold">👑</span>
-                        </div>
-                        <span className="text-xs text-purple-700 font-medium lg:whitespace-nowrap">운영자</span>
-                      </div>
-                    ) : verificationStatus === 'verified' ? (
-                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-emerald-50 to-green-50 rounded-full border border-emerald-200 shadow-sm">
-                        <div className="flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 rounded-full">
-                          <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className="text-sm text-emerald-700 font-medium">
-                          <span className="xl:hidden">Verificación<br/>completada</span>
-                          <span className="hidden xl:inline whitespace-nowrap">{t('myTab.verificationComplete')}</span>
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-50 rounded-full border border-amber-200">
-                        <div className="flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 bg-amber-500 rounded-full">
-                          <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className="text-xs text-amber-700 font-medium lg:whitespace-nowrap">{t('myTab.verificationRequired')}</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* 프로필 버튼 */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      console.log('Profile 버튼 클릭됨')
+                      handleMainNavClick('me')
+                    }}
+                    className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 cursor-pointer ${
+                      activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
+                    }`}
+                    style={{ pointerEvents: 'auto' }}
+                  >
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" />
+                  </Button>
                 </div>
               )}
 
