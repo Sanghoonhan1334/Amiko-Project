@@ -315,7 +315,7 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
-          <div className="flex justify-between items-center h-22 sm:h-26 md:h-30 relative">
+          <div className="flex justify-between items-center h-22 sm:h-26 md:h-30 lg:h-32 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
               {/* 언어 드롭다운 - 시계 위에 */}
