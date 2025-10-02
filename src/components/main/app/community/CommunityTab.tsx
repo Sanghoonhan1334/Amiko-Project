@@ -1632,6 +1632,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
     setNewsWriteLoading(true)
     try {
+      console.log('뉴스 작성 요청 데이터:', {
+        title: newsWriteForm.title,
+        content: newsWriteForm.content,
+        source: newsWriteForm.source,
+        author: newsWriteForm.author,
+        selectedThumbnail: selectedThumbnail,
+        thumbnailLength: selectedThumbnail?.length
+      })
+
       const response = await fetch('/api/news', {
         method: 'POST',
         headers: {
@@ -1667,6 +1676,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         await fetchRealNews()
       } else {
         const errorData = await response.json().catch(() => ({}))
+        console.error('뉴스 작성 실패:', errorData)
+        console.error('응답 상태:', response.status)
+        console.error('응답 헤더:', Object.fromEntries(response.headers.entries()))
         toast.error(errorData.error || '뉴스 작성에 실패했습니다.')
       }
     } catch (error) {
