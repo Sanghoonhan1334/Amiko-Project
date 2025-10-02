@@ -1703,18 +1703,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             <span className="text-white text-xs">📸</span>
           </div>
           <h2 className="text-lg font-bold text-gray-800 font-['Inter']">{t('communityTab.story')}</h2>
-          {stories.length > 1 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full hidden sm:inline">
-                ← 좌우로 슬라이드 (마우스 휠/드래그)
-              </span>
-              <span className="text-xs text-blue-500 font-medium">
-                {stories.length} {t('communityTab.story')}
-              </span>
-            </div>
-          )}
           <Button 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap ml-auto"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap"
             onClick={async () => {
               console.log('헤더 스토리 올리기 버튼 클릭됨')
               
