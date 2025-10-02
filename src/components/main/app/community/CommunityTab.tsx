@@ -3186,7 +3186,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                  출처 <span className="text-gray-400 text-xs">(선택사항)</span>
+                  사진 출처 <span className="text-gray-400 text-xs">(선택사항)</span>
                 </Label>
                 <Input
                   placeholder="예: NewsWA, 서울En"
@@ -3211,23 +3211,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               </div>
             </div>
 
-            {/* 카테고리 */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">카테고리</Label>
-              <Select value={newsWriteForm.category} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, category: value })}>
-                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="entertainment">엔터테인먼트</SelectItem>
-                  <SelectItem value="culture">문화</SelectItem>
-                  <SelectItem value="technology">기술</SelectItem>
-                  <SelectItem value="lifestyle">라이프스타일</SelectItem>
-                  <SelectItem value="food">음식</SelectItem>
-                  <SelectItem value="travel">여행</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
             {/* 제목 */}
             <div>
@@ -3348,7 +3331,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                  출처 <span className="text-gray-400 text-xs">(선택사항)</span>
+                  사진 출처 <span className="text-gray-400 text-xs">(선택사항)</span>
                 </Label>
                 <Input
                   placeholder="예: NewsWA, 서울En"
@@ -3373,23 +3356,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               </div>
             </div>
 
-            {/* 카테고리 */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">카테고리</Label>
-              <Select value={newsWriteForm.category} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, category: value })}>
-                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="entertainment">엔터테인먼트</SelectItem>
-                  <SelectItem value="politics">정치</SelectItem>
-                  <SelectItem value="economy">경제</SelectItem>
-                  <SelectItem value="sports">스포츠</SelectItem>
-                  <SelectItem value="technology">기술</SelectItem>
-                  <SelectItem value="culture">문화</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
             {/* 제목 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
