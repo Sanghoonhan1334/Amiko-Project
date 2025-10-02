@@ -65,97 +65,6 @@ const getCategories = (t: (key: string) => string) => [
   { id: 'spanish', name: '스페인어', icon: '🇪🇸', color: 'bg-red-100 text-red-700 border-red-300' }
 ]
 
-// 목업 데이터 - 질문
-const mockQuestions = [
-  {
-    id: 1,
-    title: '한국 화장품 브랜드 추천해주세요!',
-    preview: '한국에 처음 와서 화장품을 사려고 하는데, 어떤 브랜드가 좋을까요? 피부가 민감해서...',
-    author: '마리아',
-    authorType: 'latin',
-    category: 'beauty',
-    tags: ['화장품', '민감성피부', '추천'],
-    upvotes: 12,
-    answers: 5,
-    views: 89,
-    createdAt: '2024-01-15T10:30:00Z',
-    isSolved: false
-  },
-  {
-    id: 2,
-    title: '서울에서 데이트하기 좋은 곳',
-    preview: '여자친구와 서울에서 데이트할 계획인데, 로맨틱하고 특별한 장소가 있을까요?',
-    author: '카를로스',
-    authorType: 'latin',
-    category: 'travel',
-    tags: ['데이트', '서울', '로맨틱'],
-    upvotes: 8,
-    answers: 3,
-    views: 67,
-    createdAt: '2024-01-15T09:15:00Z',
-    isSolved: true
-  },
-  {
-    id: 3,
-    title: '한국 전통 음식 맛집 추천',
-    preview: '한국의 전통 음식을 제대로 맛볼 수 있는 맛집을 찾고 있어요. 특히 비빔밥과 김치찌개...',
-    author: '김민지',
-    authorType: 'korean',
-    category: 'culture',
-    tags: ['전통음식', '맛집', '비빔밥', '김치찌개'],
-    upvotes: 15,
-    answers: 7,
-    views: 124,
-    createdAt: '2024-01-15T08:45:00Z',
-    isSolved: false
-  },
-  {
-    id: 4,
-    title: '한국 패션 트렌드 2024',
-    preview: '올해 한국에서 유행하는 패션 아이템이나 스타일이 궁금해요. 어떤 것이 핫할까요?',
-    author: '소피아',
-    authorType: 'latin',
-    category: 'fashion',
-    tags: ['패션', '트렌드', '2024', '한국스타일'],
-    upvotes: 6,
-    answers: 2,
-    views: 45,
-    createdAt: '2024-01-15T07:20:00Z',
-    isSolved: false
-  }
-]
-
-// 목업 데이터 - 답변
-const mockAnswers = [
-  {
-    id: 1,
-    questionId: 1,
-    content: '민감성 피부라면 에뛰드하우스나 이니스프리가 좋아요! 특히 알로에 성분이 들어간 제품들이...',
-    author: '김수진',
-    authorType: 'korean',
-    upvotes: 8,
-    isAccepted: false,
-    createdAt: '2024-01-15T11:00:00Z'
-  },
-  {
-    id: 2,
-    questionId: 1,
-    content: '닥터벨벳도 추천해요. 약국에서 파는 브랜드라서 성분이 안전하고 피부에 자극이 적어요.',
-    author: '박지영',
-    authorType: 'korean',
-    upvotes: 5,
-    isAccepted: true,
-    createdAt: '2024-01-15T11:30:00Z'
-  }
-]
-
-// 목업 데이터 - 오늘의 활동
-const mockTodayActivity = {
-  questions: 2,
-  answers: 5,
-  points: 18,
-  upvotes: 3
-}
 
 interface CommunityTabProps {
   onViewChange?: (view: string) => void
@@ -637,68 +546,53 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 데이터 로딩 함수들
   const loadQuestions = async () => {
-    console.log('loadQuestions 호출됨 - 더미 데이터 사용')
+    console.log('loadQuestions 호출됨 - 실제 API 호출')
     
-    // 임시로 더미 질문 데이터 설정
-    const dummyQuestions = [
-      {
-        id: 1,
-        title: '한국어 학습에 도움이 되는 앱 추천해주세요!',
-        content: '한국어를 배우고 있는데 좋은 앱이 있을까요?',
-        author: '김학생',
-        createdAt: '2025-09-18',
-        upvotes: 5,
-        answers: 3
-      },
-      {
-        id: 2,
-        title: '한국 문화에 대해 궁금한 점이 있어요',
-        content: '한국의 전통 문화와 현대 문화의 차이점이 궁금합니다.',
-        author: '박문화',
-        createdAt: '2025-09-17',
-        upvotes: 8,
-        answers: 7
-      },
-      {
-        id: 3,
-        title: '한국 여행 계획 도움 요청',
-        content: '첫 한국 여행인데 어디를 가야 할지 모르겠어요.',
-        author: '이여행',
-        createdAt: '2025-09-16',
-        upvotes: 12,
-        answers: 15
+    try {
+      const response = await fetch('/api/questions', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || ''}`
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: 질문을 불러오는데 실패했습니다`)
       }
-    ]
-    
-    setQuestions(dummyQuestions)
-    console.log('더미 질문 데이터 설정 완료:', dummyQuestions.length, '개')
+      
+      const data = await response.json()
+      console.log('질문 데이터 로딩 성공:', data.questions?.length || 0, '개')
+      setQuestions(data.questions || [])
+    } catch (error) {
+      console.error('질문 로딩 오류:', error)
+      setQuestions([])
+    }
   }
 
   const loadAnswers = async (questionId: string) => {
-    console.log('loadAnswers 호출됨 - 더미 데이터 사용:', questionId)
+    console.log('loadAnswers 호출됨 - 실제 API 호출:', questionId)
     
-    // 임시로 더미 답변 데이터 설정
-    const dummyAnswers = [
-      {
-        id: 1,
-        content: '한국어 학습에는 "듀오링고"나 "헬로톡" 같은 앱이 좋아요!',
-        author: '한국어선생님',
-        createdAt: '2025-09-18',
-        upvotes: 3,
-        isAccepted: false
-      },
-      {
-        id: 2,
-        content: '저는 "토픽" 앱을 사용하고 있는데 정말 도움이 됩니다.',
-        author: '학습자',
-        createdAt: '2025-09-18',
-        upvotes: 2,
-        isAccepted: false
+    try {
+      const response = await fetch(`/api/questions/${questionId}/answers`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || ''}`
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: 답변을 불러오는데 실패했습니다`)
       }
-    ]
-    
-    setAnswers(dummyAnswers)
-    console.log('더미 답변 데이터 설정 완료:', dummyAnswers.length, '개')
+      
+      const data = await response.json()
+      console.log('답변 데이터 로딩 성공:', data.answers?.length || 0, '개')
+      setAnswers(data.answers || [])
+    } catch (error) {
+      console.error('답변 로딩 오류:', error)
+      setAnswers([])
+    }
   }
 
   // 스토리 로딩 함수
@@ -1074,14 +968,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   }
 
   // 답변 좋아요 숫자 관리
-  const [answerUpvotes, setAnswerUpvotes] = useState<{ [key: number]: number }>(() => {
-    // mockAnswers의 upvotes 값으로 초기화
-          const initialUpvotes: { [key: number]: number } = {}
-    mockAnswers.forEach(answer => {
-      initialUpvotes[answer.id] = answer.upvotes
-    })
-    return initialUpvotes
-  })
+  const [answerUpvotes, setAnswerUpvotes] = useState<{ [key: number]: number }>({})
 
   // 이미지 파일 선택 핸들러
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2753,12 +2640,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   <div className="space-y-4">
                     <h4 className="font-semibold text-gray-800 flex items-center gap-2">
                       <MessageSquare className="w-4 h-4" />
-                      답변 ({mockAnswers.filter(a => a.questionId === selectedQuestion.id).length})
+                      답변 ({answers.length})
                     </h4>
                     
-                    {mockAnswers
-                      .filter(answer => answer.questionId === selectedQuestion.id)
-                      .map((answer) => (
+                    {answers.map((answer) => (
                         <Card key={answer.id} className="p-4 !opacity-100 !bg-white">
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col items-center gap-1 min-w-[50px]">
