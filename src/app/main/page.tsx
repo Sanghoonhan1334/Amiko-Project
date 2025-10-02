@@ -240,8 +240,7 @@ function AppPageContent() {
                   </div>
                 </div>
                 <div className="mb-6">
-                  <p className="text-gray-600">{t('main.meetDescription')}</p>
-                  <p className="text-sm text-blue-600 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
+                  <p className="text-sm text-blue-600 font-medium">{t('mainPage.akoExplanation')}</p>
                 </div>
                 <MeetTab />
               </div>
