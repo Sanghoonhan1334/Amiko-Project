@@ -6,7 +6,14 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    reactCompiler: false,
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -18,20 +25,52 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // React 19 호환성 설정
+  // React Strict Mode 설정
   reactStrictMode: true,
   // 웹팩 설정
   webpack: (config, { dev, isServer }) => {
-    // React 19 호환성을 위한 설정
+    // Node.js 모듈 폴백 설정
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       net: false,
       tls: false,
+      crypto: false,
+      stream: false,
+      url: false,
+      zlib: false,
+      http: false,
+      https: false,
+      assert: false,
+      os: false,
+      path: false,
     };
     
-    // 빌드 시 환경변수 검증 (TypeScript 파일이므로 제거)
-    // 환경변수 검증은 런타임에 middleware.ts에서 처리됩니다
+    // 모듈 해결 문제 해결
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
+    
+    // 모듈 로딩 최적화
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          default: {
+            minChunks: 1,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+          },
+        },
+      },
+    };
     
     return config;
   },

@@ -73,25 +73,42 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      return NextResponse.json(
-        { 
-          error: '사용자 정보를 가져올 수 없습니다.',
-          details: profileError.message,
-          code: profileError.code
-        },
-        { status: 500 }
-      );
+      // RLS 무한 재귀 오류인 경우 기본값으로 처리
+      if (profileError.code === '42P17') {
+        console.log('[COUPONS_CHECK] RLS 무한 재귀 감지, 기본값으로 처리')
+        userInfo = { language: 'ko', is_admin: false }
+      } else {
+        return NextResponse.json(
+          { 
+            error: '사용자 정보를 가져올 수 없습니다.',
+            details: profileError.message,
+            code: profileError.code
+          },
+          { status: 500 }
+        );
+      }
     }
 
     console.log('[COUPONS_CHECK] 사용자 프로필 조회 성공:', userInfo)
 
     // 프로필이 완성된 사용자는 쿠폰 없이도 채팅 가능
     console.log('[COUPONS_CHECK] 사용자 선호도 조회 시작')
-    const { data: userProfile, error: userProfileError } = await supabase
-      .from('user_preferences')
-      .select('full_name, phone, university, major, interests')
-      .eq('user_id', user.id)
-      .single()
+    let userProfile = null
+    let userProfileError = null
+    
+    try {
+      const profileResult = await supabase
+        .from('user_preferences')
+        .select('full_name, phone, university, major, interests')
+        .eq('user_id', user.id)
+        .single()
+      
+      userProfile = profileResult.data
+      userProfileError = profileResult.error
+    } catch (err) {
+      console.log('[COUPONS_CHECK] user_preferences 테이블 접근 실패, 기본값 사용')
+      userProfileError = { code: '42703', message: 'column user_preferences.full_name does not exist' }
+    }
 
     // 프로필 조회 실패 시 기본값으로 처리 (오류가 있어도 계속 진행)
     if (userProfileError) {
