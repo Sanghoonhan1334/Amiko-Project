@@ -159,11 +159,54 @@ const mockTodayActivity = {
 
 interface CommunityTabProps {
   onViewChange?: (view: string) => void
+  verificationStatus?: 'loading' | 'verified' | 'unverified'
 }
 
-export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
+export default function CommunityTab({ onViewChange, verificationStatus = 'loading' }: CommunityTabProps = {}) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
+  
+  // 인증 상태 관리 (Header와 동일한 로직)
+  const [localVerificationStatus, setLocalVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
+  
+  // 인증 상태 확인 함수 (Header와 동일한 로직)
+  const checkVerificationStatus = async () => {
+    if (!user) {
+      setLocalVerificationStatus('unverified')
+      return
+    }
+
+    try {
+      const baseUrl = window.location.origin
+      const response = await fetch(`${baseUrl}/api/auth/status?userId=${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && (data.emailVerified || data.smsVerified)) {
+          setLocalVerificationStatus('verified')
+        } else {
+          setLocalVerificationStatus('unverified')
+        }
+      } else {
+        setLocalVerificationStatus('unverified')
+      }
+    } catch (error) {
+      console.error('인증 상태 확인 오류:', error)
+      setLocalVerificationStatus('unverified')
+    }
+  }
+
+  // 컴포넌트 마운트 시 인증 상태 확인
+  useEffect(() => {
+    if (user) {
+      checkVerificationStatus()
+    }
+  }, [user])
   
   // 운영진 상태 관리
   const [refreshTrigger, setRefreshTrigger] = useState(0)
@@ -1708,53 +1751,18 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 return
               }
               
-              // 인증 상태 확인 (헤더와 동일한 로직 사용)
-              try {
-                console.log('모바일 디버깅 - 사용자 정보:', {
-                  userId: currentUser.id,
-                  email: currentUser.email,
-                  isAdmin: isAdmin
-                })
-                
-                const baseUrl = window.location.origin
-                console.log('모바일 디버깅 - API URL:', `${baseUrl}/api/auth/status?userId=${currentUser.id}`)
-                
-                const response = await fetch(`${baseUrl}/api/auth/status?userId=${currentUser.id}`, {
-                  method: 'GET',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                })
-                
-                console.log('모바일 디버깅 - API 응답 상태:', response.status)
-                
-                if (response.ok) {
-                  const data = await response.json()
-                  console.log('모바일 디버깅 - API 응답 데이터:', data)
-                  console.log('모바일 디버깅 - 인증 상태:', {
-                    success: data.success,
-                    emailVerified: data.emailVerified,
-                    smsVerified: data.smsVerified,
-                    authLevel: data.authLevel
-                  })
-                  
-                  // 헤더와 동일한 조건: emailVerified 또는 smsVerified가 true인 경우
-                  if (data.success && (data.emailVerified || data.smsVerified)) {
-                    console.log('모바일 디버깅 - 인증 완료, 업로드 모달 표시')
-                    setShowStoryUploadModal(true)
-                  } else {
-                    // 인증 안 된 경우 인증 다이얼로그 표시
-                    console.log('모바일 디버깅 - 인증 필요, 다이얼로그 표시')
-                    setShowAuthDialog(true)
-                  }
-                } else {
-                  // API 오류 시 안전하게 인증 다이얼로그 표시
-                  console.log('모바일 디버깅 - API 오류, 다이얼로그 표시')
-                  setShowAuthDialog(true)
-                }
-              } catch (error) {
-                console.error('모바일 디버깅 - 인증 상태 확인 오류:', error)
+              // 로컬 인증 상태를 직접 사용 (API 호출 없이)
+              console.log('모바일 디버깅 - 로컬 인증 상태 사용:', localVerificationStatus)
+              
+              if (localVerificationStatus === 'verified') {
+                console.log('모바일 디버깅 - 로컬에서 인증 완료 확인, 업로드 모달 표시')
+                setShowStoryUploadModal(true)
+              } else if (localVerificationStatus === 'unverified') {
+                console.log('모바일 디버깅 - 로컬에서 인증 필요 확인, 다이얼로그 표시')
                 setShowAuthDialog(true)
+              } else {
+                console.log('모바일 디버깅 - 인증 상태 로딩 중, 잠시 후 다시 시도')
+                toast.error('인증 상태를 확인하는 중입니다. 잠시 후 다시 시도해주세요.')
               }
             }}
           >
