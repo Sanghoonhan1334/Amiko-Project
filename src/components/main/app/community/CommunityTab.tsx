@@ -1139,19 +1139,32 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         formData.append('file', selectedFile)
         
         const baseUrl = window.location.origin
+        console.log('모바일 디버깅 - 이미지 업로드 시작:', {
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+          fileType: selectedFile.type,
+          apiUrl: `${baseUrl}/api/upload/image`
+        })
+        
         const uploadResponse = await fetch(`${baseUrl}/api/upload/image`, {
           method: 'POST',
           body: formData
         })
         
+        console.log('모바일 디버깅 - 업로드 응답 상태:', uploadResponse.status)
+        
         if (uploadResponse.ok) {
           const uploadResult = await uploadResponse.json()
           imageUrl = uploadResult.imageUrl
-          console.log('이미지 업로드 성공:', imageUrl)
+          console.log('모바일 디버깅 - 이미지 업로드 성공:', uploadResult)
         } else {
           const errorData = await uploadResponse.json()
-          console.error('이미지 업로드 실패:', errorData)
-          toast.error(`이미지 업로드에 실패했습니다: ${errorData.error}`)
+          console.error('모바일 디버깅 - 이미지 업로드 실패:', {
+            status: uploadResponse.status,
+            error: errorData,
+            responseText: await uploadResponse.text()
+          })
+          toast.error(`이미지 업로드에 실패했습니다: ${errorData.error || '알 수 없는 오류'}`)
           return
         }
       } else {

@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     const fileBuffer = await file.arrayBuffer()
 
     // Supabase Storage에 업로드 (stories 버킷 사용)
+    console.log('Supabase Storage 업로드 시작:', fileName)
     const { data, error } = await supabaseServer.storage
       .from('stories')
       .upload(fileName, fileBuffer, {
@@ -55,12 +56,14 @@ export async function POST(request: NextRequest) {
       })
 
     if (error) {
-      console.error('이미지 업로드 실패:', error)
+      console.error('Supabase Storage 업로드 실패:', error)
       return NextResponse.json(
-        { error: '이미지 업로드에 실패했습니다.' },
+        { error: `이미지 업로드에 실패했습니다: ${error.message}` },
         { status: 500 }
       )
     }
+    
+    console.log('Supabase Storage 업로드 성공:', data)
 
     // 공개 URL 생성
     const { data: urlData } = supabaseServer.storage
