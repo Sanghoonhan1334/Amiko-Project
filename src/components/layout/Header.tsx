@@ -751,9 +751,9 @@ export default function Header() {
                 </button>
               )}
 
-              {/* 우측 상단 영역 - 세로 배치 */}
+              {/* 우측 상단 영역 - 세로 배치 (데스크톱에서만) */}
               {isMainPage && user && (
-                <div className="flex flex-col items-end gap-0.5 sm:gap-1">
+                <div className="hidden md:flex flex-col items-end gap-0.5 sm:gap-1">
                   {/* 포인트 표시 - 최상단 */}
                   {verificationStatus === 'verified' && (
                     <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 shadow-sm mb-1">
@@ -838,10 +838,16 @@ export default function Header() {
                 </div>
               )}
 
-              {/* 모바일용 알림 - 모바일에서만 표시 */}
-              {isMainPage && (
-                <div className="md:hidden">
-                  <NotificationBell />
+              {/* 모바일용 간단한 인증 표시 - 모바일에서만 표시 */}
+              {isMainPage && user && (
+                <div className="md:hidden flex items-center">
+                  {verificationStatus === 'verified' ? (
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  ) : verificationStatus === 'unverified' ? (
+                    <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                  ) : (
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                  )}
                 </div>
               )}
 
