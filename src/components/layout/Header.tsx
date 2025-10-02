@@ -797,7 +797,7 @@ export default function Header() {
                     {verificationStatus === 'verified' ? (
                       <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-lg border border-green-200">
                         <span className="text-green-600 text-sm">✅</span>
-                        <span className="text-green-700 text-sm font-medium">{t('notifications.verified')} - {language}</span>
+                        <span className="text-green-700 text-sm font-medium">{t('notifications.verified')} | {t('notifications.title')}</span>
                       </div>
                     ) : verificationStatus === 'unverified' ? (
                       <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-lg border border-amber-200">
