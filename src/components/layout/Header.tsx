@@ -753,7 +753,7 @@ export default function Header() {
 
               {/* 우측 상단 영역 - 세로 배치 */}
               {isMainPage && user && (
-                <div className="hidden md:flex flex-col items-end gap-0.5 sm:gap-1">
+                <div className="flex flex-col items-end gap-0.5 sm:gap-1">
                   {/* 포인트 표시 - 최상단 */}
                   {verificationStatus === 'verified' && (
                     <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 shadow-sm mb-1">
