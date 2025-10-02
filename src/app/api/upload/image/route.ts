@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 파일 크기 제한 (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // 파일 크기 제한 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json(
-        { error: '파일 크기는 5MB를 초과할 수 없습니다.' },
+        { error: '파일 크기는 10MB를 초과할 수 없습니다.' },
         { status: 400 }
       )
     }
@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 15)
     const fileExtension = file.name.split('.').pop()
-    const fileName = `news-images/${timestamp}-${randomString}.${fileExtension}`
+    const fileName = `stories/${timestamp}-${randomString}.${fileExtension}`
 
     // 파일을 ArrayBuffer로 변환
     const fileBuffer = await file.arrayBuffer()
 
-    // Supabase Storage에 업로드
+    // Supabase Storage에 업로드 (stories 버킷 사용)
     const { data, error } = await supabaseServer.storage
-      .from('news-images')
+      .from('stories')
       .upload(fileName, fileBuffer, {
         contentType: file.type,
         cacheControl: '3600',
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // 공개 URL 생성
     const { data: urlData } = supabaseServer.storage
-      .from('news-images')
+      .from('stories')
       .getPublicUrl(fileName)
 
     return NextResponse.json({

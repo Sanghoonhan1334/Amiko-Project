@@ -1125,12 +1125,39 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
     setIsUploading(true)
     try {
-      // 이미지를 임시 URL로 변환 (실제로는 Supabase Storage에 업로드해야 함)
-      const imageUrl = imagePreview || 'https://picsum.photos/400/600'
+      let imageUrl = ''
+      
+      // 실제 이미지 파일이 있는 경우 Supabase Storage에 업로드
+      if (selectedFile) {
+        console.log('이미지 파일 업로드 시작:', selectedFile.name)
+        
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        
+        const baseUrl = window.location.origin
+        const uploadResponse = await fetch(`${baseUrl}/api/upload/image`, {
+          method: 'POST',
+          body: formData
+        })
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          imageUrl = uploadResult.imageUrl
+          console.log('이미지 업로드 성공:', imageUrl)
+        } else {
+          const errorData = await uploadResponse.json()
+          console.error('이미지 업로드 실패:', errorData)
+          toast.error(`이미지 업로드에 실패했습니다: ${errorData.error}`)
+          return
+        }
+      } else {
+        console.log('선택된 파일이 없음, 기본 이미지 사용')
+        imageUrl = 'https://picsum.photos/400/600'
+      }
       
       console.log('API 요청 데이터 준비:', { imageUrl, text: storyText.trim(), userId: currentUser.id })
       
-      console.log('API 요청 시작')
+      console.log('스토리 API 요청 시작')
       const baseUrl = window.location.origin
       const response = await fetch(`${baseUrl}/api/stories`, {
         method: 'POST',
