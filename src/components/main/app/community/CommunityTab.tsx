@@ -1815,7 +1815,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   e.currentTarget.scrollLeft = scrollLeft - walk
                 }}
               >
-                <div className="flex gap-3 pb-4 overflow-x-auto story-container sm:-mr-16 sm:pr-16 md:-mr-20 md:pr-20 lg:-mr-24 lg:pr-24 xl:-mr-32 xl:pr-32">
+                <div className="flex gap-3 pb-4 overflow-x-auto story-container" style={{ paddingRight: 'calc(50vw - 50%)' }}>
                 {stories.map((story, index) => (
                   <div 
                     key={story.id} 
