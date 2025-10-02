@@ -1760,7 +1760,7 @@ export const translations = {
 
     // 메인 화상채팅 섹션
     main: {
-      meet: 'Conoce a Coreanos',
+      meet: 'AI Videollamada',
       meetDescription: 'Conoce a coreanos reales a través de videollamadas',
       community: 'Comunidad',
       communityDescription: '',
