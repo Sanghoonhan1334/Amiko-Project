@@ -279,22 +279,6 @@ function AppPageContent() {
                     </div>
                   </div>
                   
-                  {/* 커뮤니티 홈으로 돌아가기 버튼 - 제목과 같은 줄 */}
-                  {communityView !== 'home' && (
-                    <button
-                      onClick={() => {
-                        // CommunityTab의 goToHome 함수 호출을 위해 이벤트 전달
-                        const event = new CustomEvent('goToHome')
-                        window.dispatchEvent(event)
-                      }}
-                      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                      </svg>
-                      <span className="font-medium">{t('community.backToHome')}</span>
-                    </button>
-                  )}
                 </div>
                 <div className="mb-6">
                   <p className="text-gray-600">

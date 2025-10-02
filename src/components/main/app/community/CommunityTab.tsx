@@ -594,6 +594,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     if (news && news.id) {
       setSelectedNews(news)
       setShowNewsDetail(true)
+      onViewChange?.('news-detail')
     } else {
       console.error('뉴스 데이터가 올바르지 않습니다:', news)
     }
@@ -2353,17 +2354,36 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         <div className="w-full">
           {showNewsDetail && selectedNews ? (
             // 뉴스 상세 내용 (전체 영역)
-            <NewsDetail 
+            <div className="space-y-4">
+              {/* 목록으로 돌아가기 버튼 */}
+              <div className="flex items-center">
+                <button
+                  onClick={() => {
+                    setShowNewsDetail(false)
+                    setSelectedNews(null)
+                    onViewChange?.('news')
+                  }}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span className="font-medium">목록으로 돌아가기</span>
+                </button>
+              </div>
+              <NewsDetail 
               news={selectedNews} 
               onBack={() => {
                 setShowNewsDetail(false)
                 setSelectedNews(null)
+                onViewChange?.('news')
               }}
               showSpanish={showSpanishNews}
               isAdmin={isAdmin}
               onEdit={(news) => {
                 setShowNewsDetail(false)
                 setSelectedNews(null)
+                onViewChange?.('news')
                 setEditingNews(news)
                 setShowNewsEditModal(true)
                 // 편집 폼에 기존 데이터 설정
@@ -2390,6 +2410,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 ))
               }}
             />
+            </div>
           ) : (
             // 뉴스 목록
             <div className="space-y-6">
