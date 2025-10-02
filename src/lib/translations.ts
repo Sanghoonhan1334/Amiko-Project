@@ -185,7 +185,7 @@ export const translations = {
           },
           koreanTest: {
             title: '한국성향테스트',
-            description: '재미있는 테스트로 자신을 알아보세요.'
+            description: ''
           }
         },
         startButton: {
@@ -304,9 +304,9 @@ export const translations = {
       qa: 'Q&A',
       freeBoard: '주제별 게시판',
       koreanNews: '한국 뉴스',
-      freeBoardDescription: '다양한 주제로 자유롭게 소통하세요',
-      koreanNewsDescription: '한국의 최신 뉴스를 확인하세요',
-      qaDescription: '질문하고 답변을 받아보세요',
+      freeBoardDescription: '',
+      koreanNewsDescription: '',
+      qaDescription: '',
       loadingNews: '뉴스를 불러오는 중...',
       backToHome: '이전',
       viewMoreNews: '더 많은 한국 뉴스 보기',
@@ -947,7 +947,7 @@ export const translations = {
     // 테스트 탭
     tests: {
       title: '테스트',
-      subtitle: '재미있는 테스트로 자신을 알아보세요',
+      subtitle: '',
       description: '성향 테스트로 나를 알아보세요',
       categories: {
         all: '전체',
@@ -1697,7 +1697,7 @@ export const translations = {
           },
           koreanTest: {
             title: 'Test de Personalidad Coreana',
-            description: 'Descubre más sobre ti mismo con tests divertidos.'
+            description: ''
           }
         },
         startButton: {
@@ -1817,9 +1817,9 @@ export const translations = {
       qa: 'P&R',
       freeBoard: 'Tablero por Temas',
       koreanNews: 'Noticias de Corea',
-      freeBoardDescription: 'Comunícate libremente sobre diversos temas',
-      koreanNewsDescription: 'Consulta las últimas noticias de Corea',
-      qaDescription: 'Haz preguntas y recibe respuestas',
+      freeBoardDescription: '',
+      koreanNewsDescription: '',
+      qaDescription: '',
       loadingNews: 'Cargando noticias...',
       backToHome: 'Anterior',
       viewMoreNews: 'Ver más noticias de Corea',
