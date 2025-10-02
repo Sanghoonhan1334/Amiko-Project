@@ -1518,18 +1518,18 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       // 업로드된 이미지 목록에 추가
       setUploadedImages(prev => [...prev, { url: imageUrl, name: imageName }])
       
-      // 마크다운 형태로 이미지 삽입
-      const imageMarkdown = `![${imageName}](${imageUrl})`
+      // 간단한 이미지 플레이스홀더 삽입
+      const imagePlaceholder = `[이미지: ${imageName}]`
       
       if (isKorean) {
         setNewsWriteForm(prev => ({
           ...prev,
-          content: prev.content + '\n\n' + imageMarkdown
+          content: prev.content + '\n\n' + imagePlaceholder
         }))
       } else {
         setNewsWriteForm(prev => ({
           ...prev,
-          content_es: prev.content_es + '\n\n' + imageMarkdown
+          content_es: prev.content_es + '\n\n' + imagePlaceholder
         }))
       }
       
