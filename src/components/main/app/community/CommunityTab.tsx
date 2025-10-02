@@ -1924,18 +1924,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             </div>
           </button>
 
-          <button
-            onClick={() => handleViewChange('news')}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
-          >
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                📰
-              </div>
-              <h3 className="text-lg font-bold text-gray-800">{t('community.koreanNews')}</h3>
-              <p className="text-sm text-gray-600 text-center">{t('community.koreanNewsDescription')}</p>
-            </div>
-          </button>
 
           <button
             onClick={() => handleViewChange('qa')}
