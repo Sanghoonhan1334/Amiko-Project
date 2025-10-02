@@ -3,270 +3,341 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  CheckCircle, 
+  Clock,
+  Users,
+  Star
+} from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
-
-interface QuizOption {
-  id: string
-  option_text: string
-  result_type: string
-  option_order: number
-}
-
-interface QuizQuestion {
-  id: string
-  question_text: string
-  question_order: number
-  quiz_options: QuizOption[]
-}
 
 interface Quiz {
   id: string
   title: string
   description: string
   category: string
-  thumbnail_url: string | null
   total_questions: number
-  questions: QuizQuestion[]
+  total_participants: number
 }
 
-export default function QuizPage() {
+interface Question {
+  id: string
+  question_text: string
+  question_order: number
+  quiz_options: Option[]
+}
+
+interface Option {
+  id: string
+  option_text: string
+  option_order: number
+  mbti_axis?: string
+  axis_weight?: number
+}
+
+interface QuizData {
+  quiz: Quiz
+  questions: Question[]
+  results: any[]
+}
+
+export default function QuizParticipationPage() {
   const params = useParams()
   const router = useRouter()
   const { t } = useLanguage()
   const { user } = useAuth()
+  
+  const [quizData, setQuizData] = useState<QuizData | null>(null)
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({})
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const quizId = params.id as string
 
-  const [quiz, setQuiz] = useState<Quiz | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<{ question_id: string; option_id: string }[]>([])
-  const [selectedOption, setSelectedOption] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-
   useEffect(() => {
-    fetchQuiz()
+    if (quizId) {
+      loadQuizData()
+    }
   }, [quizId])
 
-  const fetchQuiz = async () => {
+  const loadQuizData = async () => {
     try {
       setLoading(true)
+      setError(null)
+
       const response = await fetch(`/api/quizzes/${quizId}`)
       
       if (!response.ok) {
-        throw new Error('퀴즈 조회 실패')
+        throw new Error('퀴즈를 불러올 수 없습니다.')
       }
 
-      const data = await response.json()
-      setQuiz(data.quiz)
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || '퀴즈 데이터를 불러올 수 없습니다.')
+      }
+
+      setQuizData(result.data)
     } catch (error) {
-      console.error('퀴즈 불러오기 실패:', error)
-      toast.error(t('tests.errorLoading'))
-      router.push('/main?tab=community&view=tests')
+      console.error('퀴즈 로드 오류:', error)
+      setError(error instanceof Error ? error.message : '퀴즈를 불러올 수 없습니다.')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleOptionSelect = (optionId: string) => {
-    setSelectedOption(optionId)
+  const handleOptionSelect = (questionId: string, optionId: string) => {
+    setSelectedOptions(prev => ({
+      ...prev,
+      [questionId]: optionId
+    }))
   }
 
   const handleNext = () => {
-    if (!selectedOption || !quiz) return
-
-    const currentQuestionData = quiz.questions[currentQuestion]
-    
-    // 현재 질문의 답변 저장
-    const newAnswers = answers.filter(a => a.question_id !== currentQuestionData.id)
-    newAnswers.push({
-      question_id: currentQuestionData.id,
-      option_id: selectedOption
-    })
-    setAnswers(newAnswers)
-
-    // 다음 질문으로 이동
-    if (currentQuestion < quiz.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-      // 다음 질문에 이미 답변이 있는지 확인
-      const nextQuestionId = quiz.questions[currentQuestion + 1].id
-      const existingAnswer = newAnswers.find(a => a.question_id === nextQuestionId)
-      setSelectedOption(existingAnswer?.option_id || null)
-    } else {
-      // 마지막 질문이면 제출
-      handleSubmit(newAnswers)
+    if (currentQuestion < (quizData?.questions.length || 0) - 1) {
+      setCurrentQuestion(prev => prev + 1)
     }
   }
 
   const handlePrevious = () => {
-    if (currentQuestion > 0 && quiz) {
-      setCurrentQuestion(currentQuestion - 1)
-      // 이전 질문의 답변 불러오기
-      const prevQuestionId = quiz.questions[currentQuestion - 1].id
-      const existingAnswer = answers.find(a => a.question_id === prevQuestionId)
-      setSelectedOption(existingAnswer?.option_id || null)
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1)
     }
   }
 
-  const handleSubmit = async (finalAnswers: { question_id: string; option_id: string }[]) => {
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다.')
+      router.push('/sign-in')
+      return
+    }
+
+    if (!quizData) return
+
+    // 모든 질문에 답변했는지 확인
+    const unansweredQuestions = quizData.questions.filter(
+      question => !selectedOptions[question.id]
+    )
+
+    if (unansweredQuestions.length > 0) {
+      toast.error('모든 질문에 답변해주세요.')
+      return
+    }
+
     try {
       setSubmitting(true)
-      
-      const response = await fetch(`/api/quizzes/${quizId}/submit`, {
+
+      // 응답 데이터 준비
+      const responses = quizData.questions.map(question => ({
+        questionId: question.id,
+        optionId: selectedOptions[question.id]
+      }))
+
+      const response = await fetch('/api/quizzes/submit', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${encodeURIComponent(user.token)}`
         },
         body: JSON.stringify({
-          answers: finalAnswers,
-          userId: user?.id || null
+          quizId: quizData.quiz.id,
+          responses
         })
       })
 
       if (!response.ok) {
-        throw new Error('답변 제출 실패')
+        const errorData = await response.json()
+        throw new Error(errorData.error || '퀴즈 제출에 실패했습니다.')
       }
 
-      const data = await response.json()
+      const result = await response.json()
       
-      // 결과를 localStorage에 저장
-      localStorage.setItem(`quiz_result_${quizId}`, JSON.stringify(data))
-      
-      // 결과 페이지로 이동 (MBTI 코드 전달)
-      router.push(`/quiz/${quizId}/result?mbti=${data.mbti_code}`)
+      if (!result.success) {
+        throw new Error(result.error || '퀴즈 제출에 실패했습니다.')
+      }
+
+      // 결과 페이지로 이동
+      router.push(`/quiz/${quizId}/result?mbti=${result.data.mbtiType || result.data.resultType}`)
       
     } catch (error) {
-      console.error('답변 제출 실패:', error)
-      toast.error('답변 제출 중 오류가 발생했습니다')
+      console.error('퀴즈 제출 오류:', error)
+      toast.error(error instanceof Error ? error.message : '퀴즈 제출에 실패했습니다.')
+    } finally {
       setSubmitting(false)
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <div className="w-16 h-16 bg-blue-200 rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">로딩 중...</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">퀴즈를 불러오는 중...</p>
         </div>
       </div>
     )
   }
 
-  if (!quiz) {
-    return null
+  if (error || !quizData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="text-red-500 text-4xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">오류 발생</h2>
+            <p className="text-gray-600 mb-4">{error || '퀴즈를 찾을 수 없습니다.'}</p>
+            <Button onClick={() => router.back()} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              돌아가기
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
-  const currentQuestionData = quiz.questions[currentQuestion]
-  const progress = ((currentQuestion + 1) / quiz.questions.length) * 100
+  const currentQuestionData = quizData.questions[currentQuestion]
+  const progress = ((currentQuestion + 1) / quizData.questions.length) * 100
+  const isLastQuestion = currentQuestion === quizData.questions.length - 1
+  const isFirstQuestion = currentQuestion === 0
+  const hasAnswered = selectedOptions[currentQuestionData.id]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
-        {/* 헤더 */}
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/main?tab=community&view=tests')}
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {t('tests.title')}
-          </Button>
-
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{quiz.title}</h1>
-            <p className="text-sm text-gray-600 mb-4">{quiz.description}</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+      {/* 헤더 */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Button 
+              onClick={() => router.back()} 
+              variant="ghost" 
+              size="sm"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              돌아가기
+            </Button>
             
-            {/* 진행률 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">
-                  {t('tests.question')} {currentQuestion + 1} {t('tests.of')} {quiz.questions.length}
-                </span>
-                <span className="text-blue-600 font-medium">{Math.round(progress)}%</span>
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                <span>{quizData.quiz.total_participants}명 참여</span>
               </div>
-              <Progress value={progress} className="h-2" />
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                <span>약 5분 소요</span>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* 질문 카드 */}
-        <Card className="p-8 shadow-xl">
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Q{currentQuestion + 1}. {currentQuestionData.question_text}
-            </h2>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* 퀴즈 정보 */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                {quizData.quiz.category === 'celebrity' ? 'K-POP 스타 매칭' : '성격 테스트'}
+              </Badge>
+            </div>
+            <CardTitle className="text-2xl">{quizData.quiz.title}</CardTitle>
+            <p className="text-gray-600">{quizData.quiz.description}</p>
+          </CardHeader>
+        </Card>
+
+        {/* 진행률 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              {currentQuestion + 1} / {quizData.questions.length}
+            </span>
+            <span className="text-sm text-gray-500">
+              {Math.round(progress)}% 완료
+            </span>
           </div>
+          <Progress value={progress} className="h-2" />
+        </div>
 
-          {/* 선택지 */}
-          <div className="space-y-3">
-            {currentQuestionData.quiz_options.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => handleOptionSelect(option.id)}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                  selectedOption === option.id
-                    ? 'border-blue-500 bg-blue-50 shadow-md'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center">
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      selectedOption === option.id
-                        ? 'border-blue-500 bg-blue-500'
-                        : 'border-gray-300'
-                    }`}
-                  >
-                    {selectedOption === option.id && (
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
+        {/* 질문 */}
+        <Card className="mb-8">
+          <CardContent className="p-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              {currentQuestionData.question_text}
+            </h2>
+            
+            <div className="space-y-3">
+              {currentQuestionData.quiz_options.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleOptionSelect(currentQuestionData.id, option.id)}
+                  className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 ${
+                    selectedOptions[currentQuestionData.id] === option.id
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-25'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{option.option_text}</span>
+                    {selectedOptions[currentQuestionData.id] === option.id && (
+                      <CheckCircle className="w-5 h-5 text-purple-500" />
                     )}
                   </div>
-                  <span className="text-gray-900">{option.option_text}</span>
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* 버튼 */}
-          <div className="flex items-center justify-between mt-8">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentQuestion === 0}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t('tests.previous')}
-            </Button>
+        {/* 네비게이션 */}
+        <div className="flex items-center justify-between">
+          <Button
+            onClick={handlePrevious}
+            disabled={isFirstQuestion}
+            variant="outline"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            이전
+          </Button>
 
+          {isLastQuestion ? (
             <Button
-              onClick={handleNext}
-              disabled={!selectedOption || submitting}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              onClick={handleSubmit}
+              disabled={!hasAnswered || submitting}
+              className="bg-purple-600 hover:bg-purple-700"
             >
               {submitting ? (
-                '제출 중...'
-              ) : currentQuestion === quiz.questions.length - 1 ? (
                 <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  {t('tests.submit')}
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  제출 중...
                 </>
               ) : (
                 <>
-                  {t('tests.next')}
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <Star className="w-4 h-4 mr-2" />
+                  결과 보기
                 </>
               )}
             </Button>
-          </div>
-        </Card>
+          ) : (
+            <Button
+              onClick={handleNext}
+              disabled={!hasAnswered}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              다음
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )
 }
-
