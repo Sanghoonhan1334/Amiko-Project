@@ -49,6 +49,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[NEWS_CREATE] POST 요청 시작')
+    
     if (!supabaseServer) {
       console.log('[NEWS_API] Supabase 서버 클라이언트가 없음, 뉴스 생성 불가')
       return NextResponse.json(
@@ -66,7 +68,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, title_es, content, content_es, source, category, thumbnail, author, published } = body
 
-    console.log('[NEWS_CREATE] 요청 데이터:', { title, title_es, content, content_es, source, category, thumbnail, author })
+    console.log('[NEWS_CREATE] 요청 데이터:', { 
+      title, 
+      title_es, 
+      content: content?.substring(0, 100) + '...', 
+      content_es: content_es?.substring(0, 100) + '...', 
+      source, 
+      category, 
+      thumbnail: thumbnail ? `Base64 data (${thumbnail.length} chars)` : null, 
+      author 
+    })
 
     // 필수 필드 검증: 제목과 내용은 한국어나 스페인어 중 하나라도 있으면 통과
     const hasTitle = title?.trim() || title_es?.trim()
@@ -98,7 +109,13 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('[NEWS_CREATE] 뉴스 생성 오류:', error)
-      return NextResponse.json({ error: '뉴스 생성 실패' })
+      console.error('[NEWS_CREATE] 오류 상세:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      return NextResponse.json({ error: '뉴스 생성 실패: ' + error.message }, { status: 500 })
     }
 
     console.log('[NEWS_CREATE] 뉴스 생성 성공:', data[0])
