@@ -741,27 +741,14 @@ export default function Header() {
 
             {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0 w-20 sm:w-24 md:w-28 justify-end">
-              {/* 로그인/로그아웃 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
-              {isMainPage && (
-                <>
-                  {user ? (
-                    <button 
-                      onClick={() => handleLogout()}
-                      className={`hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap ${
-                        language === 'es' ? 'ml-2' : ''
-                      }`}
-                    >
-                      {t('headerNav.logout')}
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => router.push('/sign-in')}
-                      className="hidden md:block font-semibold transition-all duration-300 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg whitespace-nowrap mt-5"
-                    >
-{t('buttons.login')}
-                    </button>
-                  )}
-                </>
+              {/* 로그인 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
+              {isMainPage && !user && (
+                <button 
+                  onClick={() => router.push('/sign-in')}
+                  className="hidden md:block font-semibold transition-all duration-300 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg whitespace-nowrap mt-5"
+                >
+                  {t('buttons.login')}
+                </button>
               )}
 
               {/* 우측 상단 영역 - 세로 배치 */}
@@ -779,6 +766,16 @@ export default function Header() {
                   
                   {/* 상단 버튼들 - 가로 배치 */}
                   <div className="flex items-center gap-0.5 sm:gap-1">
+                    {/* 로그아웃 버튼 */}
+                    {user && (
+                      <button 
+                        onClick={() => handleLogout()}
+                        className="hidden md:block font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap text-sm"
+                      >
+                        {t('headerNav.logout')}
+                      </button>
+                    )}
+                    
                     {/* 알림 버튼 */}
                     <NotificationBell />
                     
