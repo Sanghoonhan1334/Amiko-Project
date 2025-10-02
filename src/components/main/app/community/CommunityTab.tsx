@@ -561,6 +561,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   const [answers, setAnswers] = useState<any[]>([])
   const [stories, setStories] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [storiesLoading, setStoriesLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
   // 좋아요 상태 관리
@@ -659,6 +660,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 스토리 로딩 함수
   const loadStories = async () => {
     console.log('loadStories 호출됨')
+    setStoriesLoading(true)
     
     try {
       // 토큰이 없어도 공개 스토리는 조회 가능하도록 수정
@@ -741,6 +743,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       if (process.env.NODE_ENV === 'development') {
         console.warn('스토리 로딩 중 오류 발생, 빈 목록으로 대체:', err)
       }
+    } finally {
+      setStoriesLoading(false)
     }
   }
 
@@ -1732,7 +1736,30 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         
         {/* 인스타그램 감성 카드 스타일 스토리 */}
         <div className="w-full relative overflow-hidden" style={{ maxWidth: '100%' }}>
-          {stories.length > 0 ? (
+          {storiesLoading ? (
+            /* 스토리 로딩 중 - 스켈레톤 */
+            <div className="flex gap-3 pb-4 overflow-x-auto">
+              {[...Array(3)].map((_, index) => (
+                <div 
+                  key={index}
+                  className="relative overflow-hidden flex-shrink-0 animate-pulse" 
+                  style={{ 
+                    width: 'calc(20vw - 0.5rem)',
+                    height: 'calc(max(min(20vw * 1.6, 320px), 240px))',
+                    minWidth: '140px',
+                    maxWidth: '180px',
+                    scrollSnapAlign: 'start'
+                  }}
+                >
+                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl"></div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : stories.length > 0 ? (
             /* 스토리가 있을 때 - 인스타그램 감성 카드 */
             <div className="relative">
               
