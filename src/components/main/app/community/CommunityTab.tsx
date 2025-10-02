@@ -1741,7 +1741,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 style={{ 
                   WebkitOverflowScrolling: 'touch',
                   scrollSnapType: 'x mandatory',
-                  width: '100%',
+                  width: 'calc(100vw - 2rem)',
                   maxWidth: '100%'
                 }}
                 onWheel={(e) => {
