@@ -25,9 +25,23 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 사용자 정보 조회 (RLS 우회를 위해 직접 쿼리 사용)
-    const { data: user, error: userError } = await supabaseServer
-      .rpc('get_user_by_id', { user_id: userId })
+    // 사용자 정보 조회 (RLS 오류 방지)
+    let user = null
+    let userError = null
+    
+    try {
+      const userResult = await supabaseServer
+        .from('users')
+        .select('id, email, phone')
+        .eq('id', userId)
+        .single()
+      
+      user = userResult.data
+      userError = userResult.error
+    } catch (err) {
+      console.log('[AUTH_STATUS] users 테이블 접근 실패, 기본값 사용')
+      userError = { code: '42P17', message: 'infinite recursion detected in policy for relation "users"' }
+    }
 
     if (userError) {
       console.error('사용자 조회 오류:', userError)
