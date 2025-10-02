@@ -24,7 +24,7 @@ interface AttendanceRecord {
 }
 
 export default function EventTab() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const { t, language } = useLanguage()
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
   const [currentStreak, setCurrentStreak] = useState(0)
@@ -414,7 +414,7 @@ export default function EventTab() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(user.token)}`
+          'Authorization': `Bearer ${encodeURIComponent(token || '')}`
         },
         body: JSON.stringify({
           date: new Date().toISOString().split('T')[0]
@@ -466,7 +466,7 @@ export default function EventTab() {
         const response = await fetch('/api/coupon-attendance/check', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${encodeURIComponent(user.token)}`
+            'Authorization': `Bearer ${encodeURIComponent(token || '')}`
           }
         })
 

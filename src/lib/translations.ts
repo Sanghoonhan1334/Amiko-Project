@@ -949,7 +949,7 @@ export const translations = {
     tests: {
       title: '테스트',
       subtitle: '',
-      description: '성향 테스트로 나를 알아보세요',
+      description: '',
       categories: {
         all: '전체',
         personality: '성격',
@@ -1068,7 +1068,9 @@ export const translations = {
       markAllAsRead: '모두 읽음',
       viewAllNotifications: '모든 알림 보기',
       verificationComplete: '인증 완료',
-      verificationRequired: '인증 필요',
+      verified: '인증완료',
+      unverified: '인증필요',
+      checking: '확인중',
       authRequired: '인증이 필요합니다',
       authRequiredDescription: '이 기능을 이용하려면 인증이 필요합니다. 인증센터로 이동하시겠습니까?',
       goToAuthCenter: '인증센터로 이동'
@@ -2671,7 +2673,9 @@ export const translations = {
       markAllAsRead: 'Marcar todo como leído',
       viewAllNotifications: 'Ver todas las notificaciones',
       verificationComplete: 'Verificación completada',
-      verificationRequired: 'Verificación requerida',
+      verified: 'Verificado',
+      unverified: 'Verificación requerida',
+      checking: 'Verificando',
       authRequired: 'Se requiere autenticación',
       authRequiredDescription: 'Se requiere autenticación para usar esta función. ¿Desea ir al centro de autenticación?',
       goToAuthCenter: 'Ir al centro de autenticación'

@@ -753,35 +753,64 @@ export default function Header() {
 
               {/* 데스크톱용 버튼들 - 데스크톱에서만 표시 */}
               {isMainPage && user && (
-                <div className="hidden md:flex items-center gap-0.5 sm:gap-1">
-                  {/* 로그아웃 버튼 */}
-                  <button 
-                    onClick={() => handleLogout()}
-                    className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap text-sm"
-                  >
-                    {t('headerNav.logout')}
-                  </button>
+                <div className="hidden md:flex flex-col items-end gap-1">
+                  {/* 상단: 쿠폰(포인트) 표시 */}
+                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-lg border border-blue-200">
+                    <span className="text-blue-600 text-sm font-medium">💰</span>
+                    <span className="text-blue-700 text-sm font-bold">{userPoints.toLocaleString()}</span>
+                  </div>
                   
-                  {/* 알림 버튼 */}
-                  <NotificationBell />
+                  {/* 중간: 로그아웃, 알림, 프로필 버튼 */}
+                  <div className="flex items-center gap-0.5 sm:gap-1">
+                    {/* 로그아웃 버튼 */}
+                    <button 
+                      onClick={() => handleLogout()}
+                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap text-sm"
+                    >
+                      {t('headerNav.logout')}
+                    </button>
+                    
+                    {/* 알림 버튼 */}
+                    <NotificationBell />
+                    
+                    {/* 프로필 버튼 */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Profile 버튼 클릭됨')
+                        handleMainNavClick('me')
+                      }}
+                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 cursor-pointer ${
+                        activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
+                      }`}
+                      style={{ pointerEvents: 'auto' }}
+                    >
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" />
+                    </Button>
+                  </div>
                   
-                  {/* 프로필 버튼 */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      console.log('Profile 버튼 클릭됨')
-                      handleMainNavClick('me')
-                    }}
-                    className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 cursor-pointer ${
-                      activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
-                    }`}
-                    style={{ pointerEvents: 'auto' }}
-                  >
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" />
-                  </Button>
+                  {/* 하단: 인증 상태 표시 */}
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg border">
+                    {verificationStatus === 'verified' ? (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-lg border border-green-200">
+                        <span className="text-green-600 text-sm">✅</span>
+                        <span className="text-green-700 text-sm font-medium">{t('notifications.verified')}</span>
+                      </div>
+                    ) : verificationStatus === 'unverified' ? (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-lg border border-amber-200">
+                        <span className="text-amber-600 text-sm">⚠️</span>
+                        <span className="text-amber-700 text-sm font-medium">{t('notifications.unverified')}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+                        <span className="text-gray-600 text-sm animate-pulse">⏳</span>
+                        <span className="text-gray-700 text-sm font-medium">{t('notifications.checking')}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
