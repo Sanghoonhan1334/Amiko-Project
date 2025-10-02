@@ -1785,12 +1785,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   marginLeft: 'calc(-50vw + 50%)',
                   marginRight: 'calc(-50vw + 50%)'
                 }}
-                onWheel={(e) => {
-                  e.preventDefault()
-                  const container = e.currentTarget
-                  const scrollAmount = e.deltaY > 0 ? 200 : -200
-                  container.scrollLeft += scrollAmount
-                }}
                 onMouseDown={(e) => {
                   setIsDragging(true)
                   setStartX(e.pageX - e.currentTarget.offsetLeft)
