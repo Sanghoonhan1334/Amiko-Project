@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
     console.log('[COUPONS_CHECK] 사용자 인증 성공:', user.id)
 
     // 사용자 프로필 정보 가져오기
+    console.log('[COUPONS_CHECK] 사용자 프로필 조회 시작')
     const { data: userInfo, error: profileError } = await supabase
       .from('users')
       .select('language, is_admin')
@@ -56,20 +57,47 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (profileError) {
+      console.log('[COUPONS_CHECK] 사용자 프로필 조회 실패:', profileError)
+      console.log('[COUPONS_CHECK] 사용자 ID:', user.id)
+      
+      // 사용자가 users 테이블에 없는 경우 기본값으로 처리
+      if (profileError.code === 'PGRST116') {
+        console.log('[COUPONS_CHECK] 사용자가 users 테이블에 없음, 기본값으로 처리')
+        return NextResponse.json({
+          canCall: false,
+          hasCoupon: false,
+          totalMinutes: 0,
+          availableCoupons: 0,
+          userType: 'unknown',
+          message: '사용자 정보를 찾을 수 없습니다. 프로필을 완성해주세요.'
+        });
+      }
+      
       return NextResponse.json(
-        { error: '사용자 정보를 가져올 수 없습니다.' },
+        { 
+          error: '사용자 정보를 가져올 수 없습니다.',
+          details: profileError.message,
+          code: profileError.code
+        },
         { status: 500 }
       );
     }
 
+    console.log('[COUPONS_CHECK] 사용자 프로필 조회 성공:', userInfo)
+
     // 프로필이 완성된 사용자는 쿠폰 없이도 채팅 가능
+    console.log('[COUPONS_CHECK] 사용자 선호도 조회 시작')
     const { data: userProfile, error: userProfileError } = await supabase
       .from('user_preferences')
       .select('full_name, phone, university, major, interests')
       .eq('user_id', user.id)
       .single()
 
-    // 프로필 조회 실패 시 기본값으로 처리
+    // 프로필 조회 실패 시 기본값으로 처리 (오류가 있어도 계속 진행)
+    if (userProfileError) {
+      console.log('[COUPONS_CHECK] 사용자 선호도 조회 실패:', userProfileError)
+    }
+
     const isProfileComplete = userProfile && !userProfileError && (
       userProfile.full_name || 
       userProfile.phone || 
@@ -77,6 +105,8 @@ export async function GET(request: NextRequest) {
       userProfile.major ||
       (userProfile.interests && userProfile.interests.length > 0)
     )
+
+    console.log('[COUPONS_CHECK] 프로필 완성도:', isProfileComplete)
 
     if (isProfileComplete) {
       return NextResponse.json({
@@ -102,6 +132,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 글로벌 사용자는 쿠폰 필요
+    console.log('[COUPONS_CHECK] 쿠폰 조회 시작')
     const { data: coupons, error: couponsError } = await supabase
       .from('coupons')
       .select('minutes_remaining, amount, used_amount, expires_at')
@@ -123,6 +154,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    console.log('[COUPONS_CHECK] 쿠폰 조회 성공, 쿠폰 수:', coupons?.length || 0)
+
     // 쿠폰 사용 가능 여부 계산
     const totalMinutes = coupons?.reduce((sum: number, coupon: any) => {
       if (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) {
@@ -142,15 +175,22 @@ export async function GET(request: NextRequest) {
     const canCall = hasCoupon;
 
     // VIP 상태 확인
-    const { data: vipSubscription } = await supabase
+    console.log('[COUPONS_CHECK] VIP 구독 조회 시작')
+    const { data: vipSubscription, error: vipError } = await supabase
       .from('vip_subscriptions')
       .select('status, end_date, features')
       .eq('user_id', user.id)
       .eq('status', 'active')
       .single();
 
+    if (vipError) {
+      console.log('[COUPONS_CHECK] VIP 구독 조회 실패 (정상):', vipError)
+    }
+
     const isVip = vipSubscription && 
       (!(vipSubscription as any).end_date || new Date((vipSubscription as any).end_date) > new Date());
+
+    console.log('[COUPONS_CHECK] VIP 상태:', isVip)
 
     return NextResponse.json({
       canCall,
