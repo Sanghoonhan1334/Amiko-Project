@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
@@ -2112,6 +2112,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
               <DialogHeader className="pb-4 border-b border-gray-200">
                 <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newQuestion')}</DialogTitle>
+                <DialogDescription className="sr-only">새로운 질문을 작성하는 모달입니다.</DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
@@ -2778,6 +2779,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         <DialogContent className="max-w-md w-full mx-4 bg-white border-2 border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4 border-b border-gray-200">
             <DialogTitle className="text-xl font-semibold text-gray-900">새 스토리 작성</DialogTitle>
+            <DialogDescription className="sr-only">새로운 스토리를 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -2896,6 +2898,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         <DialogContent className="max-w-4xl w-full h-full max-h-screen bg-white border-2 border-gray-200 shadow-xl">
           <DialogHeader className="sr-only">
             <DialogTitle>스토리 전체 보기</DialogTitle>
+            <DialogDescription>스토리를 전체 화면으로 보는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           {selectedStory && (
@@ -3017,6 +3020,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         <DialogContent className="max-w-md bg-white border-2 border-gray-200 shadow-xl">
           <DialogHeader className="pb-4 border-b border-gray-200">
             <DialogTitle className="text-xl font-semibold text-gray-900">댓글 작성</DialogTitle>
+            <DialogDescription className="sr-only">스토리에 댓글을 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           {selectedStoryForComment && (
@@ -3098,6 +3102,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             <DialogTitle className="text-xl font-semibold text-gray-900">
               {language === 'ko' ? '게시글 작성' : 'Write Post'}
             </DialogTitle>
+            <DialogDescription className="sr-only">새로운 게시글을 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -3190,6 +3195,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
           <DialogHeader className="pb-4 border-b border-gray-200">
             <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 작성</DialogTitle>
+            <DialogDescription className="sr-only">새로운 뉴스를 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
@@ -3335,6 +3341,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
           <DialogHeader className="pb-4 border-b border-gray-200">
             <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 편집</DialogTitle>
+            <DialogDescription className="sr-only">기존 뉴스를 편집하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
