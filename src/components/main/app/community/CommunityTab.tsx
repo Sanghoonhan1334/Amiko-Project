@@ -1903,7 +1903,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                   className={`w-4 h-4 transition-all duration-200 ${
                                     likedStories.has(story.id)
                                       ? 'text-red-500 fill-current'
-                                      : 'text-gray-400 hover:text-red-400'
+                                      : 'text-white hover:text-red-400'
                                   }`}
                                   viewBox="0 0 24 24"
                                   fill="none"
@@ -1924,7 +1924,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                 className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                               >
                                 <svg
-                                  className="w-4 h-4 transition-all duration-200 text-gray-400 hover:text-blue-400"
+                                  className="w-4 h-4 transition-all duration-200 text-white hover:text-blue-400"
                                   viewBox="0 0 24 24"
                                   fill="none"
                                   stroke="currentColor"
@@ -1953,7 +1953,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                 className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                               >
                                 <svg
-                                  className="w-4 h-4 transition-all duration-200 text-gray-400 hover:text-green-400"
+                                  className="w-4 h-4 transition-all duration-200 text-white hover:text-green-400"
                                   viewBox="0 0 24 24"
                                   fill="none"
                                   stroke="currentColor"
