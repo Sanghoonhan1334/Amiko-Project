@@ -938,7 +938,7 @@ export default function MyTab() {
                   variant="outline"
                   className="text-xs border-green-300 text-green-600"
                 >
-                  🔒 {t('myTab.verified')}
+                  🔒 {t('myTab.profileVerified')}
                 </Badge>
                 
                 {isEditing ? (
