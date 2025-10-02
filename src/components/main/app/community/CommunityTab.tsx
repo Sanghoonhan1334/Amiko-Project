@@ -897,6 +897,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     }
   }, [goToHome])
 
+  // 컴포넌트 마운트 시 currentView를 'home'으로 리셋
+  useEffect(() => {
+    setCurrentView('home')
+  }, [])
+
   // 필터링된 질문 목록
   const filteredQuestions = questions.filter(question => {
     const matchesCategory = activeCategory === 'all' || question.category === activeCategory
