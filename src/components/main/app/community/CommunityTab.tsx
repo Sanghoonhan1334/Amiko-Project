@@ -1697,7 +1697,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 오늘의 스토리 섹션 - 홈에서만 표시 */}
       {currentView === 'home' && (
-      <div className="mt-0 mb-6 w-full overflow-hidden">
+      <div className="mt-0 mb-6 w-full overflow-hidden" style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)' }}>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
