@@ -214,6 +214,13 @@ function AppPageContent() {
       }
     }
   }, [])
+
+  // 커뮤니티 탭으로 돌아올 때 communityView를 'home'으로 리셋
+  useEffect(() => {
+    if (activeTab === 'community') {
+      setCommunityView('home')
+    }
+  }, [activeTab])
   
   return (
     <div className="min-h-screen body-gradient pt-36 pb-20 md:pb-0">
