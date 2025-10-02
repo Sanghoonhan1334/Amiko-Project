@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
     // 파일을 ArrayBuffer로 변환
     const fileBuffer = await file.arrayBuffer()
 
-    // Supabase Storage에 업로드 (stories 버킷 사용)
+    // Supabase Storage에 업로드 (news-images 버킷 사용 - 임시 해결책)
     console.log('Supabase Storage 업로드 시작:', fileName)
     const { data, error } = await supabaseServer.storage
-      .from('stories')
+      .from('news-images')
       .upload(fileName, fileBuffer, {
         contentType: file.type,
         cacheControl: '3600',
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     // 공개 URL 생성
     const { data: urlData } = supabaseServer.storage
-      .from('stories')
+      .from('news-images')
       .getPublicUrl(fileName)
 
     return NextResponse.json({

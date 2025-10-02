@@ -1161,8 +1161,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           const errorData = await uploadResponse.json()
           console.error('모바일 디버깅 - 이미지 업로드 실패:', {
             status: uploadResponse.status,
-            error: errorData,
-            responseText: await uploadResponse.text()
+            error: errorData
           })
           toast.error(`이미지 업로드에 실패했습니다: ${errorData.error || '알 수 없는 오류'}`)
           return
