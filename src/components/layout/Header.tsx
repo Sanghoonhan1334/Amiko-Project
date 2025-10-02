@@ -788,9 +788,6 @@ export default function Header() {
               {/* 모바일용 알림 및 인증 표시 - 모바일에서만 표시 */}
               {isMainPage && user && (
                 <div className="md:hidden flex items-center gap-2">
-                  {/* 알림 버튼 */}
-                  <NotificationBell />
-                  
                   {/* 간단한 인증 표시 */}
                   {verificationStatus === 'verified' ? (
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -799,6 +796,9 @@ export default function Header() {
                   ) : (
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
                   )}
+                  
+                  {/* 알림 버튼 */}
+                  <NotificationBell />
                 </div>
               )}
 
