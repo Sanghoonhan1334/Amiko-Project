@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function POST(request: NextRequest) {
   try {
-    if (!supabaseServer) {
-      return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
-        { status: 500 }
-      )
-    }
-
     const formData = await request.formData()
     const file = formData.get('file') as File
 
@@ -20,10 +12,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 파일 크기 제한 (10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // 파일 크기 제한 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
-        { error: '파일 크기는 10MB를 초과할 수 없습니다.' },
+        { error: '파일 크기는 5MB를 초과할 수 없습니다.' },
         { status: 400 }
       )
     }
@@ -36,43 +28,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 파일을 Base64로 변환
+    const arrayBuffer = await file.arrayBuffer()
+    const base64 = Buffer.from(arrayBuffer).toString('base64')
+    const dataUrl = `data:${file.type};base64,${base64}`
+
     // 고유한 파일명 생성
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 15)
     const fileExtension = file.name.split('.').pop()
-    const fileName = `stories/${timestamp}-${randomString}.${fileExtension}`
+    const fileName = `news-${timestamp}-${randomString}.${fileExtension}`
 
-    // 파일을 ArrayBuffer로 변환
-    const fileBuffer = await file.arrayBuffer()
-
-    // Supabase Storage에 업로드 (news-images 버킷 사용 - 임시 해결책)
-    console.log('Supabase Storage 업로드 시작:', fileName)
-    const { data, error } = await supabaseServer.storage
-      .from('news-images')
-      .upload(fileName, fileBuffer, {
-        contentType: file.type,
-        cacheControl: '3600',
-        upsert: false
-      })
-
-    if (error) {
-      console.error('Supabase Storage 업로드 실패:', error)
-      return NextResponse.json(
-        { error: `이미지 업로드에 실패했습니다: ${error.message}` },
-        { status: 500 }
-      )
-    }
-    
-    console.log('Supabase Storage 업로드 성공:', data)
-
-    // 공개 URL 생성
-    const { data: urlData } = supabaseServer.storage
-      .from('news-images')
-      .getPublicUrl(fileName)
+    console.log('이미지 Base64 변환 완료:', fileName)
 
     return NextResponse.json({
       success: true,
-      imageUrl: urlData.publicUrl,
+      imageUrl: dataUrl,
       fileName: fileName
     })
 
