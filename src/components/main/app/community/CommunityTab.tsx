@@ -1033,14 +1033,48 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 이미지 파일 선택 핸들러
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    console.log('파일 선택 이벤트 발생:', { file: !!file, fileName: file?.name, fileSize: file?.size, fileType: file?.type })
+    
     if (file) {
+      console.log('파일 선택됨:', file.name, file.size, file.type)
+      
+      // 파일 크기 검증 (10MB 제한으로 증가)
+      if (file.size > 10 * 1024 * 1024) {
+        console.log('파일 크기 초과:', file.size)
+        toast.error('파일 크기는 10MB 이하로 선택해주세요.')
+        return
+      }
+      
+      // 파일 타입 검증
+      if (!file.type.startsWith('image/')) {
+        console.log('이미지 파일이 아님:', file.type)
+        toast.error('이미지 파일만 업로드 가능합니다.')
+        return
+      }
+      
+      console.log('파일 검증 통과, 미리보기 생성 시작')
+      
       setSelectedFile(file)
+      
+      // 미리보기 생성
       const reader = new FileReader()
       reader.onload = (e) => {
+        console.log('미리보기 생성 완료')
         setImagePreview(e.target?.result as string)
       }
+      reader.onerror = (e) => {
+        console.error('미리보기 생성 실패:', e)
+        toast.error('이미지 미리보기 생성에 실패했습니다.')
+      }
       reader.readAsDataURL(file)
+      
+      console.log('파일 상태 설정 완료')
+    } else {
+      console.log('선택된 파일이 없음')
     }
+    
+    // 파일 입력 초기화 (같은 파일을 다시 선택할 수 있도록)
+    e.target.value = ''
   }
 
   // 이미지 제거 핸들러
@@ -1055,6 +1089,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     console.log('사용자 상태:', { user: !!user, userId: user?.id })
     console.log('선택된 파일:', { selectedFile: !!selectedFile, fileName: selectedFile?.name })
     console.log('스토리 텍스트:', { text: storyText, length: storyText.length })
+    console.log('모바일 환경 감지:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
     
     if (isUploading) {
       console.log('이미 업로드 중')
@@ -1096,7 +1131,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       console.log('API 요청 데이터 준비:', { imageUrl, text: storyText.trim(), userId: currentUser.id })
       
       console.log('API 요청 시작')
-      const response = await fetch('/api/stories', {
+      const baseUrl = window.location.origin
+      const response = await fetch(`${baseUrl}/api/stories`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -2670,7 +2706,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           setStoryText('') // 스토리 텍스트도 초기화
         }
       }}>
-        <DialogContent className="max-w-md bg-white border-2 border-gray-200 shadow-xl">
+        <DialogContent className="max-w-md w-full mx-4 bg-white border-2 border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4 border-b border-gray-200">
             <DialogTitle className="text-xl font-semibold text-gray-900">새 스토리 작성</DialogTitle>
           </DialogHeader>
@@ -2708,10 +2744,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     onChange={handleFileSelect}
                     className="hidden"
                     id="imageUploadGallery"
+                    multiple={false}
+                    capture={undefined}
                   />
                   <label
                     htmlFor="imageUploadGallery"
-                    className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+                    className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center touch-manipulation"
                   >
                     <div className="flex flex-col items-center gap-2">
                       <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
@@ -2731,10 +2769,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     className="hidden"
                     id="imageUploadCamera"
                     capture="environment"
+                    multiple={false}
                   />
                   <label
                     htmlFor="imageUploadCamera"
-                    className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+                    className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center touch-manipulation"
                   >
                     <div className="flex flex-col items-center gap-2">
                       <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
