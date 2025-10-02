@@ -1174,9 +1174,29 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     try {
       let imageUrl = ''
       
-      // 임시 해결책: 이미지 업로드 건너뛰고 기본 이미지 사용
-      console.log('임시 해결책: 이미지 업로드 건너뛰고 기본 이미지 사용')
-      imageUrl = 'https://picsum.photos/400/600'
+      // 실제 이미지 파일을 Base64로 변환하여 사용
+      if (selectedFile) {
+        console.log('이미지 파일을 Base64로 변환 시작:', selectedFile.name)
+        
+        try {
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(selectedFile)
+          })
+          
+          imageUrl = base64
+          console.log('Base64 변환 성공, 길이:', base64.length)
+        } catch (error) {
+          console.error('Base64 변환 실패:', error)
+          toast.error('이미지 처리에 실패했습니다.')
+          return
+        }
+      } else {
+        console.log('선택된 파일이 없음, 기본 이미지 사용')
+        imageUrl = 'https://picsum.photos/400/600'
+      }
       
       console.log('API 요청 데이터 준비:', { imageUrl, text: storyText.trim(), userId: currentUser.id })
       
