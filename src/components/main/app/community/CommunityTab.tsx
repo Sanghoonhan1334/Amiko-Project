@@ -400,7 +400,7 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   
   // 뉴스 탭 활성화 시 실제 뉴스 로드
   useEffect(() => {
-    if (currentView === 'news' && newsData.length === 0) {
+    if (currentView === 'news') {
       fetchRealNews()
     }
   }, [currentView])
