@@ -308,7 +308,7 @@ export const translations = {
       koreanNewsDescription: '한국의 최신 뉴스를 확인하세요',
       qaDescription: '질문하고 답변을 받아보세요',
       loadingNews: '뉴스를 불러오는 중...',
-      backToHome: '커뮤니티 홈으로 돌아가기',
+      backToHome: '이전',
       viewMoreNews: '더 많은 한국 뉴스 보기',
       categories: {
         all: '전체글',
@@ -1821,7 +1821,7 @@ export const translations = {
       koreanNewsDescription: 'Consulta las últimas noticias de Corea',
       qaDescription: 'Haz preguntas y recibe respuestas',
       loadingNews: 'Cargando noticias...',
-      backToHome: 'Volver al Inicio de la Comunidad',
+      backToHome: 'Anterior',
       viewMoreNews: 'Ver más noticias de Corea',
       categories: {
         all: 'Todas las Publicaciones',
