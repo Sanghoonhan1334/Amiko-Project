@@ -22,9 +22,9 @@ export default function Hero() {
     <section className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 z-0 pointer-events-none">
       {/* 배경 장식 요소들 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-100/30 rounded-full blur-3xl"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-slate-100/40 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-blue-100/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-100/30 rounded-full blur-xl"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-slate-100/40 rounded-full blur-xl"></div>
+        <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-blue-100/20 rounded-full blur-xl"></div>
       </div>
 
       <div className="container-custom relative z-0 flex items-start justify-center min-h-screen px-0 sm:px-0 md:px-0 pt-24 sm:pt-32 md:pt-36">
