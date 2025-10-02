@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Share2, Heart, MessageCircle, Edit, Trash2, Pin, PinOff } from 'lucide-react'
+import { Share2, Heart, MessageCircle, Edit, Trash2, Pin, PinOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface NewsDetailProps {
@@ -47,7 +47,6 @@ export default function NewsDetail({
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-6">
           <Button onClick={onBack} variant="outline" size="sm">
-            <ArrowLeft className="w-4 h-4" />
             목록으로 돌아가기
           </Button>
         </div>
@@ -140,18 +139,6 @@ export default function NewsDetail({
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* 뒤로가기 버튼 */}
-      <div className="mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          목록으로 돌아가기
-        </Button>
-      </div>
-
       {/* 뉴스 상세 내용 */}
       <Card className="overflow-hidden">
         {/* 썸네일 이미지 */}
