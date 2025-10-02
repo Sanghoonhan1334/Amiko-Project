@@ -122,10 +122,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       newsItem: data[0] 
-    })
+    }, { status: 200 })
   } catch (error) {
-    console.error('뉴스 생성 API 오류:', error)
-    return NextResponse.json({ error: '서버 오류' }, { status: 500 })
+    console.error('[NEWS_CREATE] 뉴스 생성 API 오류:', error)
+    console.error('[NEWS_CREATE] 오류 스택:', error instanceof Error ? error.stack : 'No stack trace')
+    return NextResponse.json({ 
+      error: '서버 오류: ' + (error instanceof Error ? error.message : 'Unknown error'),
+      details: error instanceof Error ? error.stack : null
+    }, { status: 500 })
   }
 }
 
