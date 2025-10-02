@@ -1778,15 +1778,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 {stories.map((story, index) => (
                   <div 
                     key={story.id} 
-                    className="relative overflow-hidden flex-shrink-0 cursor-pointer group" 
+                    className="relative overflow-hidden flex-shrink-0 cursor-pointer group w-48 h-64 sm:w-56 sm:h-72 md:w-60 md:h-80" 
                     style={{ 
-                      width: '280px',
-                      height: '400px',
                       scrollSnapAlign: 'start'
                     }}
                   >
-                    {/* 전체 화면 스토리 카드 */}
-                    <div className="w-full h-full rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+                    {/* 전체 화면 스토리 카드 - 이중 카드 구조 제거 */}
+                    <div className="w-full h-full rounded-2xl overflow-hidden">
                       {/* 메인 이미지 영역 - 화면에 꽉차게 */}
                       <div className="relative w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
                         {story.image_url && (
@@ -1845,8 +1843,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                           </div>
                         )}
 
-                        {/* 하단 그라데이션 오버레이 */}
-                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                        {/* 하단 그라데이션 오버레이 - 안개 효과 제거 */}
+                        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/50 to-transparent">
                           {/* 스토리 텍스트 */}
                           {story.text && (
                             <div className="absolute bottom-16 left-4 right-4">
