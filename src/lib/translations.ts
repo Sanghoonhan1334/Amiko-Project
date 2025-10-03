@@ -176,7 +176,7 @@ export const translations = {
             description: '다양한 주제를 자유롭게 소통해보세요.'
           },
           koreanNews: {
-            title: '한국뉴스',
+            title: 'K-매거진',
             description: '한국의 최신 소식과 트렌드를 확인해보세요.'
           },
           story: {
@@ -289,6 +289,13 @@ export const translations = {
       uploadFirstStory: '첫 번째 스토리를 업로드해보세요!',
       searchQuestions: '게시글 검색',
       askQuestion: '글쓰기',
+      newQuestion: '새 질문 작성',
+      title: '제목',
+      titlePlaceholder: '제목을 입력하세요',
+      category: '카테고리',
+      tags: '태그',
+      tagsPlaceholder: '태그를 입력하세요 (쉼표로 구분)',
+      questionContent: '질문 내용',
       categories: {
         all: '전체',
         beauty: '뷰티',
@@ -304,14 +311,14 @@ export const translations = {
       story: '스토리',
       qa: 'Q&A',
       freeBoard: '주제별 게시판',
-      koreanNews: '한국 뉴스',
+      koreanNews: 'K-매거진',
       freeBoardDescription: '',
       koreanNewsDescription: '',
       qaDescription: '',
       loadingNews: '뉴스를 불러오는 중...',
       backToHome: '이전',
       backToCommunityHome: '커뮤니티 홈으로',
-      viewMoreNews: '더 많은 한국 뉴스 보기',
+      viewMoreNews: '더 많은 K-매거진 보기',
       categories: {
         all: '전체글',
         free: '자유게시판',
@@ -948,7 +955,7 @@ export const translations = {
 
     // 테스트 탭
     tests: {
-      title: '테스트',
+      title: '심리테스트',
       subtitle: '',
       description: '',
       categories: {
@@ -1696,7 +1703,7 @@ export const translations = {
             description: 'Comunícate libremente sobre diversos temas.'
           },
           koreanNews: {
-            title: 'Noticias Coreanas',
+            title: 'K-Magazine',
             description: 'Consulta las últimas noticias y tendencias de Corea.'
           },
           story: {
@@ -1810,6 +1817,13 @@ export const translations = {
       uploadFirstStory: '¡Sube tu primera historia!',
       searchQuestions: 'Buscar Publicaciones',
       askQuestion: 'Escribir',
+      newQuestion: 'Nueva Pregunta',
+      title: 'Título',
+      titlePlaceholder: 'Ingresa el título',
+      category: 'Categoría',
+      tags: 'Etiquetas',
+      tagsPlaceholder: 'Ingresa las etiquetas (separadas por comas)',
+      questionContent: 'Contenido de la Pregunta',
       categories: {
         all: 'Todos',
         beauty: 'Belleza',
@@ -1824,14 +1838,14 @@ export const translations = {
     community: {
       qa: 'P&R',
       freeBoard: 'Tablero por Temas',
-      koreanNews: 'Noticias de Corea',
+      koreanNews: 'K-Magazine',
       freeBoardDescription: '',
       koreanNewsDescription: '',
       qaDescription: '',
       loadingNews: 'Cargando noticias...',
       backToHome: 'Anterior',
       backToCommunityHome: 'Volver al Inicio de la Comunidad',
-      viewMoreNews: 'Ver más noticias de Corea',
+      viewMoreNews: 'Ver más K-Magazine',
       categories: {
         all: 'Todas las Publicaciones',
         free: 'Foro Libre',
@@ -2558,7 +2572,7 @@ export const translations = {
 
     // 테스트 탭
     tests: {
-      title: 'Tests',
+      title: 'Tests Psicológicos',
       subtitle: 'Descubre más sobre ti con tests divertidos',
       description: 'Descubre más sobre ti con tests de personalidad',
       categories: {

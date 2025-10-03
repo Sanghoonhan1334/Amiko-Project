@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,7 +21,11 @@ import {
   Eye,
   Target,
   ImageIcon,
-  Camera
+  Camera,
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon
 } from 'lucide-react'
 import CommunityMain from './CommunityMain'
 import BoardList from './BoardList'
@@ -31,7 +35,43 @@ import { useAuth } from '@/context/AuthContext'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
-import QuizzesTab from './QuizzesTab'
+
+// 퀴즈 관련 인터페이스 및 설정
+interface Quiz {
+  id: string
+  title: string
+  description: string
+  category: string
+  thumbnail_url: string | null
+  total_questions: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+// 카테고리 아이콘 및 색상 매핑
+const categoryConfig: { [key: string]: { icon: string; color: string; bgColor: string } } = {
+  personality: {
+    icon: '🎭',
+    color: 'text-purple-700',
+    bgColor: 'bg-purple-100'
+  },
+  celebrity: {
+    icon: '⭐',
+    color: 'text-yellow-700',
+    bgColor: 'bg-yellow-100'
+  },
+  knowledge: {
+    icon: '🧠',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100'
+  },
+  fun: {
+    icon: '🎉',
+    color: 'text-pink-700',
+    bgColor: 'bg-pink-100'
+  }
+}
 
 // 포인트 시스템 정의
 const pointSystem = {
@@ -121,6 +161,15 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [isAdmin, setIsAdmin] = useState(false)
   
+  // 테스트 작성 모달 상태
+  const [showTestWriteModal, setShowTestWriteModal] = useState(false)
+  const [testFormData, setTestFormData] = useState({
+    title: '',
+    description: '',
+    category: 'fun',
+    thumbnail_url: ''
+  })
+  
   // 운영자 권한 확인 함수
   const checkAdminStatus = () => {
     if (!user) {
@@ -192,6 +241,11 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   const [writeCategory, setWriteCategory] = useState('free')
   const [writeLoading, setWriteLoading] = useState(false)
   
+  // 퀴즈 관련 상태
+  const [quizzes, setQuizzes] = useState<Quiz[]>([])
+  const [quizzesLoading, setQuizzesLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  
   // 언어 변경 시 자동 번역 처리
   useEffect(() => {
     if (language === 'es' && !showSpanishNews) {
@@ -209,6 +263,38 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
       setIsTranslating(false)
     }
   }, [language, showSpanishNews])
+
+  // 퀴즈 목록 불러오기
+  useEffect(() => {
+    if (currentView === 'tests') {
+      fetchQuizzes()
+    }
+  }, [selectedCategory, currentView])
+
+  const fetchQuizzes = async () => {
+    try {
+      setQuizzesLoading(true)
+      const categoryParam = selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''
+      const response = await fetch(`/api/quizzes${categoryParam}`)
+      
+      if (!response.ok) {
+        throw new Error('퀴즈 목록 조회 실패')
+      }
+
+      const data = await response.json()
+      setQuizzes(data.quizzes || [])
+    } catch (error) {
+      console.error('퀴즈 목록 불러오기 실패:', error)
+      toast.error(t('tests.errorLoading'))
+      setQuizzes([])
+    } finally {
+      setQuizzesLoading(false)
+    }
+  }
+
+  const handleQuizClick = (quizId: string) => {
+    router.push(`/quiz/${quizId}`)
+  }
   
   // 글쓰기 함수
   const handleWritePost = async () => {
@@ -324,6 +410,10 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   const [isDragging, setIsDragging] = useState(false)
   const [startX, setStartX] = useState(0)
   const [scrollLeft, setScrollLeft] = useState(0)
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
+  const storyContainerRef = useRef<HTMLDivElement>(null)
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isScrollingRef = useRef(false)
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
   const [showHeartAnimation, setShowHeartAnimation] = useState<string | null>(null)
   const [showCommentModal, setShowCommentModal] = useState(false)
@@ -514,7 +604,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   const [answers, setAnswers] = useState<any[]>([])
   const [stories, setStories] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [storiesLoading, setStoriesLoading] = useState(true)
+  const [storiesLoading, setStoriesLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // 좋아요 상태 관리
@@ -597,8 +687,21 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 스토리 로딩 함수
   const loadStories = async () => {
+    // 이미 로딩 중인 경우 중복 호출 방지
+    if (storiesLoading) {
+      console.log('스토리 로딩 중복 호출 방지')
+      return
+    }
+    
     console.log('loadStories 호출됨')
     setStoriesLoading(true)
+    
+    // 타임아웃 설정으로 무한 대기 방지
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => {
+      console.log('스토리 로딩 타임아웃')
+      controller.abort()
+    }, 10000) // 10초 타임아웃으로 단축
     
     try {
       // 토큰이 없어도 공개 스토리는 조회 가능하도록 수정
@@ -609,10 +712,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       if (token) {
         headers['Authorization'] = `Bearer ${encodeURIComponent(token)}`
       }
-      
-      // 타임아웃 설정으로 무한 대기 방지
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15초 타임아웃
       
       const baseUrl = window.location.origin
       const response = await fetch(`${baseUrl}/api/stories?isPublic=true&limit=10`, {
@@ -667,6 +766,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       setStories(convertedStories)
       console.log('스토리 목록 설정 완료:', convertedStories.length, '개')
     } catch (err) {
+      clearTimeout(timeoutId) // 타임아웃 정리
       console.error('스토리 로딩 실패:', err)
       
       // AbortError인 경우 타임아웃으로 처리
@@ -747,13 +847,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       loadQuestions()
     }
     
-    // 스토리는 항상 로딩 시도 (에러가 발생해도 앱이 중단되지 않도록)
+    // 스토리 로딩 시도 (에러가 발생해도 앱이 중단되지 않도록)
     loadStories().catch((error) => {
       console.error('스토리 로딩 중 예외 발생:', error)
       // 에러가 발생해도 빈 배열로 설정하여 앱이 정상 작동하도록 함
       setStories([])
     })
-  }, [user, token, activeTab, activeCategory])
+  }, [user, token, activeTab])
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: string) => {
@@ -771,6 +871,25 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     setActiveTab(view)
     onViewChange?.(view) // 상위 컴포넌트에 뷰 변경 알림
   }
+
+  // 상위 컴포넌트에서 뷰 변경 시 내부 상태 동기화
+  useEffect(() => {
+    if (onViewChange) {
+      // 상위 컴포넌트의 communityView 변경을 감지하여 내부 currentView 동기화
+      const handleParentViewChange = (event: CustomEvent) => {
+        const newView = event.detail
+        if (newView === 'home') {
+          setCurrentView('home')
+        }
+      }
+      
+      window.addEventListener('communityViewChanged', handleParentViewChange as EventListener)
+      
+      return () => {
+        window.removeEventListener('communityViewChanged', handleParentViewChange as EventListener)
+      }
+    }
+  }, [onViewChange])
 
   // 커뮤니티 홈으로 돌아가기
   const goToHome = () => {
@@ -795,6 +914,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 컴포넌트 마운트 시 currentView를 'home'으로 리셋
   useEffect(() => {
     setCurrentView('home')
+  }, [])
+
+  // 컴포넌트 언마운트 시 스크롤 인터벌 정리
+  useEffect(() => {
+    return () => {
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current)
+      }
+    }
   }, [])
 
   // 필터링된 질문 목록
@@ -1339,6 +1467,100 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     return `${Math.floor(diffInHours / 24)}일 전`
   }
 
+  // 스토리 네비게이션 함수들
+  const scrollToStory = (index: number) => {
+    if (storyContainerRef.current) {
+      const container = storyContainerRef.current
+      const storyWidth = 200 // 고정된 스토리 카드 너비 (gap 포함)
+      const scrollLeft = index * storyWidth
+      
+      container.scrollTo({
+        left: scrollLeft,
+        behavior: 'smooth'
+      })
+      setCurrentStoryIndex(index)
+    }
+  }
+
+  const startContinuousScroll = (direction: 'left' | 'right') => {
+    if (isScrollingRef.current) return
+    
+    isScrollingRef.current = true
+    scrollIntervalRef.current = setInterval(() => {
+      if (storyContainerRef.current) {
+        const container = storyContainerRef.current
+        const scrollAmount = 50 // 스크롤 속도
+        const currentScroll = container.scrollLeft
+        
+        if (direction === 'left') {
+          container.scrollLeft = Math.max(0, currentScroll - scrollAmount)
+        } else {
+          container.scrollLeft = Math.min(
+            container.scrollWidth - container.clientWidth,
+            currentScroll + scrollAmount
+          )
+        }
+      }
+    }, 50) // 50ms마다 스크롤
+  }
+
+  const stopContinuousScroll = () => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current)
+      scrollIntervalRef.current = null
+    }
+    isScrollingRef.current = false
+  }
+
+  const scrollToPrevious = () => {
+    console.log('scrollToPrevious 호출됨')
+    if (storyContainerRef.current) {
+      const container = storyContainerRef.current
+      console.log('컨테이너 찾음:', container)
+      const scrollAmount = 200 // 한 번에 스크롤할 거리
+      const newScrollLeft = Math.max(0, container.scrollLeft - scrollAmount)
+      
+      console.log('현재 스크롤:', container.scrollLeft, '새 스크롤:', newScrollLeft)
+      
+      container.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      })
+    } else {
+      console.log('storyContainerRef.current가 null')
+    }
+  }
+
+  const scrollToNext = () => {
+    console.log('scrollToNext 호출됨')
+    if (storyContainerRef.current) {
+      const container = storyContainerRef.current
+      console.log('컨테이너 찾음:', container)
+      const scrollAmount = 200 // 한 번에 스크롤할 거리
+      const maxScrollLeft = container.scrollWidth - container.clientWidth
+      const newScrollLeft = Math.min(maxScrollLeft, container.scrollLeft + scrollAmount)
+      
+      console.log('현재 스크롤:', container.scrollLeft, '새 스크롤:', newScrollLeft)
+      
+      container.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      })
+    } else {
+      console.log('storyContainerRef.current가 null')
+    }
+  }
+
+  // 스토리 스크롤 이벤트 핸들러
+  const handleStoryScroll = () => {
+    if (storyContainerRef.current) {
+      const container = storyContainerRef.current
+      const storyWidth = 200 // 고정된 스토리 카드 너비
+      const newIndex = Math.round(container.scrollLeft / storyWidth)
+      setCurrentStoryIndex(newIndex)
+    }
+  }
+
   // 스토리 좋아요 토글
   const toggleStoryLike = (storyId: string) => {
     setLikedStories(prev => {
@@ -1496,6 +1718,56 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       toast.error('뉴스 수정 중 오류가 발생했습니다.')
     } finally {
       setNewsWriteLoading(false)
+    }
+  }
+
+  // 테스트 생성 함수
+  const handleCreateTest = async () => {
+    if (!testFormData.title.trim()) {
+      toast.error('테스트 제목을 입력해주세요.')
+      return
+    }
+    
+    if (!testFormData.description.trim()) {
+      toast.error('테스트 설명을 입력해주세요.')
+      return
+    }
+
+    try {
+      console.log('테스트 생성 요청 데이터:', testFormData)
+
+      const response = await fetch('/api/tests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: testFormData.title,
+          description: testFormData.description,
+          category: testFormData.category,
+          thumbnail_url: testFormData.thumbnail_url || null,
+        })
+      })
+
+      if (response.ok) {
+        toast.success('테스트가 생성되었습니다!')
+        setShowTestWriteModal(false)
+        setTestFormData({
+          title: '',
+          description: '',
+          category: 'fun',
+          thumbnail_url: ''
+        })
+        // 테스트 목록 새로고침
+        await fetchQuizzes()
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('테스트 생성 실패:', errorData)
+        toast.error(errorData.error || '테스트 생성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('테스트 생성 오류:', error)
+      toast.error('테스트 생성 중 오류가 발생했습니다.')
     }
   }
 
@@ -1672,31 +1944,63 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           ) : stories.length > 0 ? (
             /* 스토리가 있을 때 - 인스타그램 감성 카드 */
             <div className="relative">
+              {/* 데스크톱 네비게이션 버튼들 - 컨테이너 밖으로 이동 */}
+              <div className="hidden md:block">
+                <button
+                  onMouseDown={() => startContinuousScroll('left')}
+                  onMouseUp={stopContinuousScroll}
+                  onMouseLeave={stopContinuousScroll}
+                  onClick={scrollToPrevious}
+                  disabled={currentStoryIndex === 0}
+                  className={`fixed left-4 top-1/2 transform -translate-y-1/2 z-[9999] w-12 h-12 rounded-full bg-white hover:bg-gray-50 shadow-2xl flex items-center justify-center transition-all duration-200 border-2 border-gray-300 ${
+                    currentStoryIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:shadow-3xl'
+                  }`}
+                >
+                  <ChevronLeft className="w-6 h-6 text-gray-800" />
+                </button>
+                <button
+                  onMouseDown={() => startContinuousScroll('right')}
+                  onMouseUp={stopContinuousScroll}
+                  onMouseLeave={stopContinuousScroll}
+                  onClick={scrollToNext}
+                  className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[9999] w-12 h-12 rounded-full bg-white hover:bg-gray-50 shadow-2xl flex items-center justify-center transition-all duration-200 border-2 border-gray-300 hover:scale-110 hover:shadow-3xl"
+                >
+                  <ChevronRightIcon className="w-6 h-6 text-gray-800" />
+                </button>
+              </div>
               
               <div 
-                className={`overflow-x-auto scrollbar-hide scroll-smooth scroll-snap-x ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                ref={storyContainerRef}
+                className={`overflow-x-auto scrollbar-hide scroll-smooth scroll-snap-x ${
+                  isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                } md:cursor-default`}
                 style={{ 
                   WebkitOverflowScrolling: 'touch',
                   scrollSnapType: 'x mandatory',
                   width: '100vw',
                   maxWidth: '100%',
                   marginLeft: 'calc(-50vw + 50%)',
-                  marginRight: 'calc(-50vw + 50%)'
+                  marginRight: 'calc(-50vw + 50%)',
+                  paddingRight: '60px'
                 }}
                 onMouseDown={(e) => {
-                  setIsDragging(true)
-                  setStartX(e.pageX - e.currentTarget.offsetLeft)
-                  setScrollLeft(e.currentTarget.scrollLeft)
+                  // 모바일에서만 드래그 활성화
+                  if (window.innerWidth < 768) {
+                    setIsDragging(true)
+                    setStartX(e.pageX - e.currentTarget.offsetLeft)
+                    setScrollLeft(e.currentTarget.scrollLeft)
+                  }
                 }}
                 onMouseLeave={() => setIsDragging(false)}
                 onMouseUp={() => setIsDragging(false)}
                 onMouseMove={(e) => {
-                  if (!isDragging) return
+                  if (!isDragging || window.innerWidth >= 768) return
                   e.preventDefault()
                   const x = e.pageX - e.currentTarget.offsetLeft
                   const walk = (x - startX) * 2
                   e.currentTarget.scrollLeft = scrollLeft - walk
                 }}
+                onScroll={handleStoryScroll}
               >
                 <div className="flex gap-3 pb-4 overflow-x-auto story-container" style={{ paddingRight: 'calc(50vw - 50%)' }}>
                 {stories.map((story, index) => (
@@ -1975,23 +2279,23 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
       {/* 상단 컨트롤 */}
-      <div className="flex items-center justify-between">
-        <div className="relative">
-          <MessageSquare className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
+      <div className="flex items-center justify-between gap-2">
+        <div className="relative flex-1">
+          <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
           <Input
             placeholder={t('communityTab.searchQuestions')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-20 w-64 bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+            className="pl-12 sm:pl-20 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
           />
         </div>
         
         {/* 질문하기 버튼 - 오른쪽 끝 */}
         <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
           <DialogTrigger asChild>
-            <Button className="bg-purple-500 hover:bg-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              {t('communityTab.askQuestion')}
+            <Button className="bg-purple-500 hover:bg-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 text-white whitespace-nowrap">
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{t('communityTab.askQuestion')}</span>
             </Button>
           </DialogTrigger>
             
@@ -2223,24 +2527,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {currentView === 'freeboard' && (
         <div className="w-full">
-          {/* 주제별 게시판 헤더 */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-pink-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
-                📝
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800">{t('community.freeBoard')}</h2>
-            </div>
-            <button
-              onClick={() => setCurrentView('home')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="font-medium">{t('community.backToCommunityHome')}</span>
-            </button>
-          </div>
           
           <BoardList 
             onPostSelect={(post) => {
@@ -2277,7 +2563,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   <span className="font-medium">목록으로 돌아가기</span>
                 </button>
               </div>
-              <NewsDetail 
+            <NewsDetail 
               news={selectedNews} 
               onBack={() => {
                 setShowNewsDetail(false)
@@ -2320,52 +2606,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           ) : (
             // 뉴스 목록
             <div className="space-y-6">
-              {/* 한국뉴스 헤더 */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
-                    📰
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800">{t('community.koreanNews')}</h2>
-                </div>
-                <button
-                  onClick={() => setCurrentView('home')}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  <span className="font-medium">{t('community.backToCommunityHome')}</span>
-                </button>
-              </div>
-              
               <div className="flex items-center justify-end">
-                {/* 번역 버튼 */}
-                <div className="flex items-center gap-2">
-                  {/* 번역 버튼 */}
-                  <Button 
-                    variant={showSpanishNews ? "default" : "outline"} 
-                    size="sm"
-                    onClick={() => {
-                      if (!isTranslating) {
-                        setIsTranslating(true)
-                        setTimeout(() => {
-                          setShowSpanishNews(!showSpanishNews)
-                          setIsTranslating(false)
-                        }, 1000)
-                      }
-                    }}
-                    disabled={isTranslating}
-                    className="flex items-center gap-2"
-                  >
-                    <span className="text-sm">
-                      {isTranslating ? '⏳' : '🌐'}
-                    </span>
-                    <span>
-                      {isTranslating ? '번역중...' : (showSpanishNews ? 'ES' : 'KO')}
-                    </span>
-                  </Button>
-                  
                   {/* 운영진 전용 버튼들 */}
                   {isAdmin && (
                     <Button 
@@ -2376,7 +2617,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                       ➕ 뉴스 작성
                     </Button>
                   )}
-                </div>
               </div>
                   
                 {/* 뉴스 목록 */}
@@ -3427,28 +3667,235 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       {/* Tests 탭 */}
       {currentView === 'tests' && (
         <div className="w-full">
-          {/* 테스트 헤더 */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
-                🎯
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800">{t('tests.title')}</h2>
+          <div className="space-y-6">
+            {/* 카테고리 필터 및 운영진 버튼 */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1">
+                {[
+                  { id: 'all', name: t('tests.categories.all') },
+                  { id: 'personality', name: t('tests.categories.personality') },
+                  { id: 'celebrity', name: t('tests.categories.celebrity') },
+                  { id: 'knowledge', name: t('tests.categories.knowledge') },
+                  { id: 'fun', name: t('tests.categories.fun') }
+                ].map((category) => (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category.id)}
+                    className="whitespace-nowrap flex-1"
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+        </div>
+              
+              {/* 운영진 전용 테스트 작성 버튼 */}
+              {isAdmin && (
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 whitespace-nowrap"
+                  onClick={() => setShowTestWriteModal(true)}
+                >
+                  ➕ 테스트 작성
+                </Button>
+              )}
             </div>
-            <button
-              onClick={() => setCurrentView('home')}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="font-medium">{t('community.backToCommunityHome')}</span>
-            </button>
+
+            {/* 퀴즈 목록 */}
+            {quizzesLoading ? (
+              // 로딩 상태
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-32 bg-gray-200 rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            ) : quizzes.length === 0 ? (
+              // 빈 상태
+              <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Target className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <p className="text-lg font-medium">{t('tests.noPosts')}</p>
+                  <p className="text-sm text-gray-400">{t('tests.beFirst')}</p>
+                </div>
+              </div>
+            ) : (
+              // 퀴즈 카드 목록
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {quizzes.map((quiz) => {
+                  const config = categoryConfig[quiz.category] || categoryConfig.fun
+                  
+                  return (
+                    <div
+                      key={quiz.id}
+                      className="bg-white rounded-2xl p-6 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-blue-300"
+                      onClick={() => handleQuizClick(quiz.id)}
+                    >
+                      {/* 카테고리 배지 */}
+                      <div className="flex items-center justify-between mb-4">
+                        <Badge className={`${config.bgColor} ${config.color} border-0`}>
+                          <span className="mr-1">{config.icon}</span>
+                          {t(`tests.categories.${quiz.category}`)}
+                        </Badge>
+                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                      </div>
+
+                      {/* 제목 */}
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {quiz.title}
+                      </h3>
+
+                      {/* 설명 */}
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        {quiz.description}
+                      </p>
+
+                      {/* 정보 */}
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Sparkles className="w-4 h-4" />
+                          <span>{quiz.total_questions} {t('tests.questions')}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{Math.ceil(quiz.total_questions * 0.5)} {t('tests.minutes')}</span>
+                        </div>
+                      </div>
+
+                      {/* 시작 버튼 */}
+                      <Button 
+                        className="w-full mt-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleQuizClick(quiz.id)
+                        }}
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        {t('tests.startButton')}
+                      </Button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
-          
-          <QuizzesTab />
         </div>
       )}
+
+      {/* 테스트 작성 모달 */}
+      <Dialog open={showTestWriteModal} onOpenChange={setShowTestWriteModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <Target className="w-6 h-6 text-purple-600" />
+              새 테스트 작성
+            </DialogTitle>
+            <DialogDescription>
+              새로운 테스트를 작성하여 커뮤니티에 공유해보세요.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* 제목 */}
+            <div className="space-y-2">
+              <Label htmlFor="test-title" className="text-sm font-medium text-gray-700">
+                테스트 제목 *
+              </Label>
+              <Input
+                id="test-title"
+                placeholder="예: 나는 어떤 성격일까?"
+                value={testFormData.title}
+                onChange={(e) => setTestFormData(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+
+            {/* 설명 */}
+            <div className="space-y-2">
+              <Label htmlFor="test-description" className="text-sm font-medium text-gray-700">
+                테스트 설명 *
+              </Label>
+              <Textarea
+                id="test-description"
+                placeholder="테스트에 대한 간단한 설명을 작성해주세요."
+                value={testFormData.description}
+                onChange={(e) => setTestFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full min-h-[100px]"
+              />
+            </div>
+
+            {/* 카테고리 */}
+            <div className="space-y-2">
+              <Label htmlFor="test-category" className="text-sm font-medium text-gray-700">
+                카테고리 *
+              </Label>
+              <Select 
+                value={testFormData.category} 
+                onValueChange={(value) => setTestFormData(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="카테고리를 선택해주세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personality">성격</SelectItem>
+                  <SelectItem value="celebrity">연예인</SelectItem>
+                  <SelectItem value="knowledge">지식</SelectItem>
+                  <SelectItem value="fun">재미</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 썸네일 URL */}
+            <div className="space-y-2">
+              <Label htmlFor="test-thumbnail" className="text-sm font-medium text-gray-700">
+                썸네일 이미지 URL (선택사항)
+              </Label>
+              <Input
+                id="test-thumbnail"
+                placeholder="https://example.com/image.jpg"
+                value={testFormData.thumbnail_url}
+                onChange={(e) => setTestFormData(prev => ({ ...prev, thumbnail_url: e.target.value }))}
+                className="w-full"
+              />
+              {testFormData.thumbnail_url && (
+                <div className="mt-2">
+                  <img 
+                    src={testFormData.thumbnail_url} 
+                    alt="썸네일 미리보기" 
+                    className="w-32 h-32 object-cover rounded-lg border"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* 버튼들 */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowTestWriteModal(false)}
+                className="flex-1"
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleCreateTest}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
+                disabled={!testFormData.title.trim() || !testFormData.description.trim()}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                테스트 생성
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )

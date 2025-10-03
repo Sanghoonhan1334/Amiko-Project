@@ -495,7 +495,7 @@ export default function EventTab() {
   }, [user?.id])
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-12 sm:space-y-6">
       {/* 쿠폰 이벤트 안내 */}
       <div className="p-4 sm:p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl">
         {/* 데스크톱: 헤더 */}
@@ -614,6 +614,9 @@ export default function EventTab() {
         </div>
       </div>
 
+      {/* 구분선 */}
+      <div className="border-t-2 border-gray-300 my-8"></div>
+      
       {/* 특별 이벤트 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
@@ -723,6 +726,9 @@ export default function EventTab() {
           </div>
         </div>
 
+      {/* 구분선 */}
+      <div className="border-t-2 border-gray-300 my-8"></div>
+      
       {/* 포인트 랭킹 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4">
         <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
@@ -809,6 +815,9 @@ export default function EventTab() {
           </div>
         )}
 
+      {/* 구분선 */}
+      <div className="border-t-2 border-gray-300 my-8"></div>
+      
       {/* 포인트 시스템 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4">
         <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
@@ -816,8 +825,8 @@ export default function EventTab() {
       </div>
           
           {/* 포인트 획득 방법 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="sm:p-6 sm:bg-gradient-to-br sm:from-green-50 sm:to-green-100 sm:border sm:border-green-200 sm:rounded-xl">
+            <div className="flex items-center gap-3 mb-4 px-4 sm:px-0">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xl">🎯</span>
               </div>
@@ -871,7 +880,7 @@ export default function EventTab() {
             </div>
 
             {/* 모바일: 리스트 스타일 */}
-            <div className="block md:hidden space-y-2">
+            <div className="block md:hidden space-y-2 px-4 sm:px-0">
               <div className="py-3 px-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
@@ -921,7 +930,7 @@ export default function EventTab() {
               </div>
             </div>
             
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg mx-4 sm:mx-0">
               <div className="flex items-center gap-2">
                 <span className="text-lg">⚠️</span>
                 <span className='font-medium text-yellow-800'>{t('eventTab.pointSystem.earningMethods.warning.title')}</span>
@@ -932,9 +941,12 @@ export default function EventTab() {
             </div>
           </div>
 
+          {/* 구분선 */}
+          <div className="border-t-2 border-gray-300 my-8"></div>
+          
           {/* 포인트 사용처 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="sm:p-6 sm:bg-gradient-to-br sm:from-purple-50 sm:to-purple-100 sm:border sm:border-purple-200 sm:rounded-xl">
+            <div className="flex items-center gap-3 mb-4 px-4 sm:px-0">
               <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xl">🏆</span>
               </div>
@@ -984,7 +996,7 @@ export default function EventTab() {
             </div>
 
             {/* 모바일: 리스트 스타일 */}
-            <div className="block md:hidden space-y-2">
+            <div className="block md:hidden space-y-2 px-4 sm:px-0">
               <div className="py-3 px-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">✈️</span>

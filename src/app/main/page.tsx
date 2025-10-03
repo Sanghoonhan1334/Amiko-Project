@@ -267,18 +267,30 @@ function AppPageContent() {
                          '💬'}
                       </span>
                     </div>
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-gray-800">
-                        {communityView === 'home' ? t('main.community') :
-                         communityView === 'freeboard' ? t('community.freeBoard') :
-                         communityView === 'news' ? t('community.koreanNews') :
-                         communityView === 'qa' ? t('community.qa') :
-                         communityView === 'tests' ? t('tests.title') :
-                         t('main.community')}
-                      </h2>
-                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {communityView === 'home' ? t('main.community') :
+                       communityView === 'freeboard' ? t('community.freeBoard') :
+                       communityView === 'news' ? t('community.koreanNews') :
+                       communityView === 'qa' ? t('community.qa') :
+                       communityView === 'tests' ? t('tests.title') :
+                       t('main.community')}
+                    </h2>
                   </div>
-                  
+                  {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'qa') && (
+                    <button
+                      onClick={() => {
+                        setCommunityView('home')
+                        // CommunityTab에 뷰 변경 알림
+                        window.dispatchEvent(new CustomEvent('communityViewChanged', { detail: 'home' }))
+                      }}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      </svg>
+                      <span className="text-sm font-medium">이전</span>
+                    </button>
+                  )}
                 </div>
                 <div className="mb-6">
                   <p className="text-gray-600">

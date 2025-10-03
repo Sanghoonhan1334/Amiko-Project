@@ -38,7 +38,7 @@ export default function ChargingTab() {
   // 쿠폰 패키지 데이터 (1 AKO = $1.99 기준, 많이 살수록 할인, 1 AKO = 20분)
   const couponPackages = [
     { id: 1, count: 1, price: 1.99, minutes: 20, popular: false, discount: 0, perUnit: 1.99 },
-    { id: 2, count: 5, price: 9.45, minutes: 100, popular: true, discount: 5, perUnit: 1.89 },
+    { id: 2, count: 5, price: 9.45, minutes: 100, popular: false, discount: 5, perUnit: 1.89 },
     { id: 3, count: 10, price: 17.90, minutes: 200, popular: false, discount: 10, perUnit: 1.79 },
     { id: 4, count: 20, price: 33.80, minutes: 400, popular: false, discount: 15, perUnit: 1.69 }
   ]
@@ -224,18 +224,11 @@ export default function ChargingTab() {
               {couponPackages.map((pkg) => (
                 <div 
                   key={pkg.id}
-                  className={`bg-white rounded-lg p-2 text-center cursor-pointer transition-all hover:shadow-md border ${
-                    pkg.popular ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200'
-                  }`}
+                  className="bg-white rounded-lg p-2 text-center cursor-pointer transition-all hover:shadow-md border border-gray-200"
                   onClick={() => handleCouponPurchase(pkg)}
                 >
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <Video className="w-3 h-3 text-blue-500" />
-                    {pkg.popular && (
-                      <Badge className="text-xs px-1 py-0.5 bg-blue-100 text-blue-700 border-blue-300">
-                        {t('storeTab.charging.popular')}
-                      </Badge>
-                    )}
                   </div>
                   <h3 className="font-semibold text-xs">{pkg.count}{t('storeTab.charging.units')}</h3>
                   <div className="text-sm font-bold text-blue-600 mb-1">
@@ -302,7 +295,7 @@ export default function ChargingTab() {
                 </div>
 
                 {/* 연간 구독 */}
-                <div className="text-center p-1 border border-purple-300 ring-1 ring-purple-200 bg-white rounded-lg">
+                <div className="text-center p-1 border border-gray-200 bg-white rounded-lg">
                   <div className="p-1">
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Crown className="w-3 h-3 text-purple-500" />
@@ -310,15 +303,10 @@ export default function ChargingTab() {
                     </div>
                     <div className="text-base font-bold text-purple-600 mb-1">$80</div>
                     <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.yearly')}</div>
-                    <div className="text-xs text-green-600 mb-1">{t('storeTab.vip.save')} $3.3</div>
                     <Button size="sm" className="w-full text-xs h-8 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       {t('storeTab.vip.subscribe')}
                     </Button>
-                    <div className="mt-1">
-                      <Badge className="text-xs px-1 py-0.5 bg-purple-100 text-purple-700 border-purple-300">
-                        {t('storeTab.vip.popular')}
-                      </Badge>
-                    </div>
+                    <div className="text-xs text-green-600 mt-1">{t('storeTab.vip.save')} $3.3</div>
                   </div>
                 </div>
               </div>

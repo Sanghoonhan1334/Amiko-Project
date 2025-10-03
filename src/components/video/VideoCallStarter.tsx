@@ -109,12 +109,17 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       )}
 
       {/* 메인 화면 */}
-      <div className="space-y-1 sm:space-y-2">
+      <div className="space-y-6 sm:space-y-2">
         {/* 빠른 시작 */}
-        <Card className="p-3 sm:p-4 bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-lg mt-3 sm:mt-0">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-2">
+        <div className="sm:card sm:p-4 sm:bg-gradient-to-br sm:from-white sm:to-blue-50 sm:border sm:border-blue-100 sm:shadow-lg mt-3 sm:mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-2 px-4 sm:px-0">
             <div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-0">{t('videoCall.quickStart')}</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-6 h-6 bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">⚡</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-0">{t('videoCall.quickStart')}</h3>
+              </div>
               <p className="text-xs sm:text-sm text-gray-600">{t('videoCall.quickStartDescription')}</p>
             </div>
             <Button 
@@ -132,8 +137,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
-            <div className="text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-3 px-4 sm:px-0">
+            <div className="text-center p-3 sm:p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Video className="w-4 h-4 text-blue-600" />
               </div>
@@ -147,7 +152,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 ))}
               </p>
             </div>
-            <div className="text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center p-3 sm:p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Users className="w-4 h-4 text-purple-600" />
               </div>
@@ -161,7 +166,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 ))}
               </p>
             </div>
-            <div className="text-center p-2 sm:p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center p-3 sm:p-3 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Clock className="w-4 h-4 text-green-600" />
               </div>
@@ -176,12 +181,17 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               </p>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* 대화 상대 목록 */}
-        <Card className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-white to-purple-50 border border-purple-100 shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{t('videoCall.partners')}</h3>
+        <div className="sm:card sm:p-6 md:p-8 sm:bg-gradient-to-br sm:from-white sm:to-purple-50 sm:border sm:border-purple-100 sm:shadow-lg mt-8 sm:mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6 px-4 sm:px-0">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">👥</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{t('videoCall.partners')}</h3>
+            </div>
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="text-xs sm:text-sm text-gray-600">{t('videoCall.onlyKoreans')}</span>
               <button
@@ -198,7 +208,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               </button>
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 px-4 sm:px-0">
             {availablePartners.length > 0 ? (
               availablePartners.map((partner) => (
                 <div 
@@ -268,7 +278,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               </div>
             )}
           </div>
-        </Card>
+        </div>
 
       </div>
 
