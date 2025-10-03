@@ -261,19 +261,23 @@ function AppPageContent() {
                       <span className="text-2xl">
                         {communityView === 'home' ? '💬' :
                          communityView === 'freeboard' ? '📝' :
-                         communityView === 'news' ? '📰' :
+                         (communityView === 'news' || communityView === 'news-detail') ? '📰' :
                          communityView === 'qa' ? '💬' :
                          communityView === 'tests' ? '🎯' :
                          '💬'}
                       </span>
                     </div>
                     <h2 className="text-2xl font-bold text-gray-800">
-                      {communityView === 'home' ? t('main.community') :
-                       communityView === 'freeboard' ? t('community.freeBoard') :
-                       communityView === 'news' ? t('community.koreanNews') :
-                       communityView === 'qa' ? t('community.qa') :
-                       communityView === 'tests' ? t('tests.title') :
-                       t('main.community')}
+                      {(() => {
+                        const title = communityView === 'home' ? t('main.community') :
+                                     communityView === 'freeboard' ? t('community.freeBoard') :
+                                     (communityView === 'news' || communityView === 'news-detail') ? t('community.koreanNews') :
+                                     communityView === 'qa' ? t('community.qa') :
+                                     communityView === 'tests' ? t('tests.title') :
+                                     t('main.community')
+                        console.log('헤더 제목 디버그:', { communityView, title, koreanNews: t('community.koreanNews') })
+                        return title
+                      })()}
                     </h2>
                   </div>
                   {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'qa') && (

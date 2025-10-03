@@ -142,7 +142,7 @@ export default function NewsDetail({
       {/* 뉴스 상세 내용 */}
       <Card className="overflow-hidden">
         {/* 썸네일 이미지 */}
-        <div className="aspect-video w-full bg-gray-200">
+        <div className="aspect-video w-full max-w-2xl mx-auto bg-gray-200">
           {news.thumbnail ? (
             <img 
               src={news.thumbnail} 
@@ -231,15 +231,18 @@ export default function NewsDetail({
           {/* 메타 정보 */}
           <div className="flex items-center gap-4 mb-6 text-sm text-gray-500 border-b border-gray-200 pb-4">
             <span className="font-medium">{news.source}</span>
-            <span>{news.date}</span>
-            {news.author && <span>기자: {news.author}</span>}
-            <span>조회 {news.views || 0}</span>
+            <span>날짜: {news.date}</span>
+            <span>조회: {news.views || 0}</span>
           </div>
 
           {/* 본문 내용 */}
           <div className="prose max-w-none mb-8">
             <div className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {showSpanish && news.content_es ? news.content_es : news.content}
+              {(() => {
+                const content = showSpanish && news.content_es ? news.content_es : news.content
+                // [이미지: 숫자] 패턴을 제거
+                return content.replace(/\[이미지:\s*\d+\]/g, '')
+              })()}
             </div>
           </div>
           

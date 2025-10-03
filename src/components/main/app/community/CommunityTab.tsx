@@ -431,6 +431,7 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
     content_es: '',
     source: '',
     author: '',
+    date: '',
     category: 'entertainment'
   })
   const [newsWriteLoading, setNewsWriteLoading] = useState(false)
@@ -1703,6 +1704,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           content_es: '',
           source: '',
           author: '',
+          date: '',
           category: 'entertainment'
         })
         setUploadedImages([])
@@ -1811,6 +1813,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           content_es: newsWriteForm.content, // 한국어 내용을 스페인어 내용으로도 사용
           source: newsWriteForm.source,
           author: newsWriteForm.author,
+          date: newsWriteForm.date,
           category: 'entertainment', // 기본 카테고리 설정
           thumbnail: selectedThumbnail || null, // 썸네일이 선택되지 않으면 null
         })
@@ -1826,6 +1829,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           content_es: '',
           source: '',
           author: '',
+          date: '',
           category: 'entertainment'
         })
         setUploadedImages([])
@@ -1981,7 +1985,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   maxWidth: '100%',
                   marginLeft: 'calc(-50vw + 50%)',
                   marginRight: 'calc(-50vw + 50%)',
-                  paddingRight: '60px'
+                  paddingRight: '60px',
+                  msOverflowStyle: 'none',
+                  scrollbarWidth: 'none'
                 }}
                 onMouseDown={(e) => {
                   // 모바일에서만 드래그 활성화
@@ -2219,7 +2225,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             onClick={() => handleViewChange('freeboard')}
             className="bg-gradient-to-br from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border-2 border-pink-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
           >
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
                 📝
               </div>
@@ -2232,7 +2238,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             onClick={() => handleViewChange('news')}
             className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
           >
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
                 📰
               </div>
@@ -2245,7 +2251,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             onClick={() => handleViewChange('qa')}
             className="bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-2 border-purple-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
           >
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
                 💬
               </div>
@@ -2258,7 +2264,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             onClick={() => handleViewChange('tests')}
             className="bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
           >
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
                 🎯
               </div>
@@ -2586,6 +2592,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   content_es: news.content_es || '',
                   source: news.source || '',
                   author: news.author || '',
+                  date: news.date || '',
                   category: news.category || 'entertainment'
                 })
                 setSelectedThumbnail(news.thumbnail || '')
@@ -2742,6 +2749,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                         content_es: news.content_es || '',
                                         source: news.source || '',
                                         author: news.author || '',
+                                        date: news.date || '',
                                         category: news.category || 'entertainment'
                                       })
                                       setSelectedThumbnail(news.thumbnail || '')
@@ -3382,7 +3390,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           
           <div className="space-y-6">
             {/* 기본 정보 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700 mb-2 block">
                   사진 출처 <span className="text-gray-400 text-xs">(선택사항)</span>
@@ -3407,6 +3415,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">게시 날짜</Label>
+                <Input
+                  type="date"
+                  value={newsWriteForm.date}
+                  onChange={(e) => setNewsWriteForm({ ...newsWriteForm, date: e.target.value })}
+                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
               </div>
             </div>
 
