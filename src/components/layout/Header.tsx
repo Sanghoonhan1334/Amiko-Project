@@ -315,7 +315,7 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
-          <div className="flex justify-between items-center h-24 sm:h-28 md:h-32 lg:h-36 xl:h-40 2xl:h-36 3xl:h-36 relative">
+          <div className="flex justify-between items-center h-24 sm:h-28 md:h-32 lg:h-32 xl:h-32 2xl:h-32 3xl:h-32 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
               {/* 언어 드롭다운 - 시계 위에 */}
@@ -558,7 +558,7 @@ export default function Header() {
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
-                  className="h-24 sm:h-32 md:h-40 w-auto object-contain transition-all duration-300"
+                  className="h-24 sm:h-32 md:h-40 lg:h-40 xl:h-40 w-auto object-contain transition-all duration-300"
                   style={{ 
                     maxHeight: '160px'
                   }}
@@ -585,7 +585,7 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-14 relative z-20">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-8 lg:-mt-8 xl:-mt-8 relative z-20">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
@@ -652,7 +652,7 @@ export default function Header() {
                   </>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
-                  <div className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10">
+                  <div className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6">
                     <button 
                       onClick={(e) => {
                         e.preventDefault()

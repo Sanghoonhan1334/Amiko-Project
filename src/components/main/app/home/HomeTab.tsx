@@ -51,7 +51,7 @@ export default function HomeTab() {
               {/* AI 화상 채팅 이미지 */}
               <div className="relative w-24 h-20 mx-auto mb-0 -mb-2">
                 <img 
-                  src="/화상채팅.jpg" 
+                  src="/화상채팅.png" 
                   alt="AI 화상 채팅" 
                   className="w-full h-full object-cover rounded-lg shadow-lg"
                 />
