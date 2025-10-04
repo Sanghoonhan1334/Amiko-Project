@@ -74,6 +74,12 @@ export default function QuizParticipationPage() {
       setLoading(true)
       setError(null)
 
+      // 샘플/임베디드 퀴즈인 경우 다른 페이지로 리다이렉트
+      if (quizId.startsWith('sample-mbti') || quizId.startsWith('embedded-mbti')) {
+        router.push('/quiz/sample-mbti')
+        return
+      }
+
       const response = await fetch(`/api/quizzes/${quizId}`)
       
       if (!response.ok) {

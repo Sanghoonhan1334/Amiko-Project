@@ -100,20 +100,28 @@ export default function FreeBoard() {
   const [writeSurveyOptions, setWriteSurveyOptions] = useState(['', ''])
   const [writeLoading, setWriteLoading] = useState(false)
   
-  // 파일 첨부
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
-  const [filePreviews, setFilePreviews] = useState<string[]>([])
+  // 이미지 업로드
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
 
-  // 파일 첨부 핸들러
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 이미지 파일 업로드 핸들러
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
 
-    // 파일 크기 제한 (10MB)
-    const maxSize = 10 * 1024 * 1024
-    const validFiles = files.filter(file => {
+    // 이미지 파일만 필터링
+    const imageFiles = files.filter(file => file.type.startsWith('image/'))
+    if (imageFiles.length === 0) {
+      alert('이미지 파일만 업로드할 수 있습니다.')
+      return
+    }
+
+    // 파일 크기 제한 (5MB)
+    const maxSize = 5 * 1024 * 1024
+    const validFiles = imageFiles.filter(file => {
       if (file.size > maxSize) {
-        alert(`${file.name}은(는) 10MB를 초과합니다.`)
+        alert(`${file.name}은(는) 5MB를 초과합니다.`)
         return false
       }
       return true
@@ -121,31 +129,84 @@ export default function FreeBoard() {
 
     if (validFiles.length === 0) return
 
-    // 최대 5개 파일 제한
-    if (attachedFiles.length + validFiles.length > 5) {
-      alert('최대 5개까지 파일을 첨부할 수 있습니다.')
+    // 최대 5개 이미지 제한
+    if (uploadedImages.length + validFiles.length > 5) {
+      alert('최대 5개까지 이미지를 업로드할 수 있습니다.')
       return
     }
 
-    setAttachedFiles(prev => [...prev, ...validFiles])
-    
-    // 이미지 미리보기 생성
-    validFiles.forEach(file => {
-      if (file.type.startsWith('image/')) {
+    setUploadingImages(true)
+    setError(null)
+
+    try {
+      // 토큰 가져오기
+      let currentToken = token
+      if (!currentToken) {
+        try {
+          const { data: { session: directSession }, error } = await supabase.auth.getSession()
+          if (error) {
+            console.error('세션 가져오기 실패:', error)
+          } else {
+            currentToken = directSession?.access_token
+          }
+        } catch (error) {
+          console.error('세션 조회 중 오류:', error)
+        }
+      }
+
+      if (!currentToken) {
+        setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
+        return
+      }
+
+      // 각 이미지 파일 업로드
+      const uploadPromises = validFiles.map(async (file) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('folder', 'posts')
+
+        const response = await fetch('/api/upload/image', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
+          },
+          body: formData
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || '이미지 업로드에 실패했습니다.')
+        }
+
+        const result = await response.json()
+        return result.url
+      })
+
+      const uploadedUrls = await Promise.all(uploadPromises)
+      setUploadedImages(prev => [...prev, ...uploadedUrls])
+
+      // 미리보기 이미지 추가
+      validFiles.forEach(file => {
         const reader = new FileReader()
         reader.onload = (e) => {
-          setFilePreviews(prev => [...prev, e.target?.result as string])
+          setImagePreviews(prev => [...prev, e.target?.result as string])
         }
         reader.readAsDataURL(file)
-      } else {
-        setFilePreviews(prev => [...prev, ''])
-      }
-    })
+      })
+
+      console.log('이미지 업로드 완료:', uploadedUrls)
+
+    } catch (err) {
+      console.error('이미지 업로드 오류:', err)
+      setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploadingImages(false)
+    }
   }
 
-  const removeFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index))
-    setFilePreviews(prev => prev.filter((_, i) => i !== index))
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
   }
 
   const getFileIcon = (file: File) => {
@@ -345,10 +406,10 @@ export default function FreeBoard() {
         formData.append('survey_options', JSON.stringify(writeSurveyOptions.filter(option => option.trim())))
       }
       
-      // 파일 첨부
-      attachedFiles.forEach((file, index) => {
-        formData.append(`files`, file)
-      })
+      // 업로드된 이미지 URL들 추가
+      if (uploadedImages.length > 0) {
+        formData.append('uploaded_images', JSON.stringify(uploadedImages))
+      }
       
       console.log('요청 데이터:', { 
         title: writeTitle.trim(),
@@ -427,8 +488,8 @@ export default function FreeBoard() {
       setWriteIsNotice(false)
       setWriteIsSurvey(false)
       setWriteSurveyOptions(['', ''])
-      setAttachedFiles([])
-      setFilePreviews([])
+      setUploadedImages([])
+      setImagePreviews([])
       setShowWriteDialog(false)
       
       // 목록 새로고침
@@ -800,64 +861,44 @@ export default function FreeBoard() {
                       type="file"
                       multiple
                       accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                      onChange={handleFileChange}
+                      onChange={handleImageUpload}
                       className="hidden"
-                      id="file-upload"
+                      id="image-upload"
+                      disabled={uploadingImages}
                     />
                     <label
-                      htmlFor="file-upload"
-                      className="cursor-pointer flex flex-col items-center justify-center py-4 text-gray-600 hover:text-gray-800"
+                      htmlFor="image-upload"
+                      className={`cursor-pointer flex flex-col items-center justify-center py-4 text-gray-600 hover:text-gray-800 ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <div className="text-4xl mb-2">📎</div>
-                      <div className="text-sm font-medium">파일을 선택하거나 여기에 드래그하세요</div>
+                      <div className="text-4xl mb-2">📷</div>
+                      <div className='text-sm font-medium'>
+                        {uploadingImages ? '업로드 중...' : '이미지를 선택하거나 여기에 드래그하세요'}
+                      </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        이미지, 동영상, 문서 파일 (최대 5개, 각 10MB 이하)
+                        JPG, PNG, GIF 파일 (최대 5개, 각 5MB 이하)
                       </div>
                     </label>
                   </div>
                   
-                  {/* 첨부된 파일 목록 */}
-                  {attachedFiles.length > 0 && (
+                  {/* 업로드된 이미지 미리보기 */}
+                  {imagePreviews.length > 0 && (
                     <div className="mt-3 space-y-2">
-                      <div className="text-sm font-medium text-gray-700">첨부된 파일 ({attachedFiles.length}/5)</div>
-                      {attachedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{getFileIcon(file)}</span>
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{file.name}</div>
-                              <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
-                            </div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">업로드된 이미지 ({imagePreviews.length}/5)</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {imagePreviews.map((preview, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={preview}
+                              alt={`첨부 이미지 ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border"
+                            />
+                            <button
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-colors"
+                            >
+                              ×
+                            </button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeFile(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            삭제
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* 이미지 미리보기 */}
-                  {filePreviews.some(preview => preview) && (
-                    <div className="mt-3">
-                      <div className="text-sm font-medium text-gray-700 mb-2">이미지 미리보기</div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {filePreviews.map((preview, index) => (
-                          preview && (
-                            <div key={index} className="relative">
-                              <img
-                                src={preview}
-                                alt={`미리보기 ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg border"
-                              />
-                            </div>
-                          )
                         ))}
                       </div>
                     </div>
@@ -953,6 +994,9 @@ export default function FreeBoard() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             {getPostIcon(post)}
+                            {post.images && post.images.length > 0 && (
+                              <span className="text-sm">📷</span>
+                            )}
                             <span className="text-sm font-medium text-gray-900">
                               {post.title}
                             </span>

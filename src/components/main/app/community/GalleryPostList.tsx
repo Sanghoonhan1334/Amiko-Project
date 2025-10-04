@@ -46,7 +46,8 @@ interface PostListProps {
   onPopularPosts?: () => void
 }
 
-export default function PostList({ 
+// GalleryPostList.tsx - 갤러리 시스템 게시글 목록 (currentView === 'posts')
+export default function GalleryPostList({ 
   gallery, 
   onPostSelect, 
   onCreatePost, 
@@ -212,35 +213,35 @@ export default function PostList({
         />
       )}
 
-      {/* 필터 */}
-      <PostFilters
-        onFilterChange={handleFilterChange}
-        currentFilters={filters}
-      />
-
-      {/* 갤러리 헤더 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-            style={{ backgroundColor: gallery.color + '20' }}
-          >
-            {gallery.icon}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">{gallery.name_ko}</h1>
-            <p className="text-sm text-gray-600">{t('community.galleryList.totalPosts').replace('{count}', posts.length.toString())}</p>
-          </div>
-        </div>
+      {/* 필터 및 글쓰기 버튼 */}
+      <div className="flex items-center justify-between gap-4">
+        <PostFilters
+          onFilterChange={handleFilterChange}
+          currentFilters={filters}
+        />
         
         {user && (
           <Button 
             onClick={onCreatePost}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
+            className="bg-blue-500 hover:bg-blue-600 text-white whitespace-nowrap"
           >
             ✏️ {t('community.galleryList.writePost')}
           </Button>
         )}
+      </div>
+
+      {/* 갤러리 헤더 */}
+      <div className="flex items-center space-x-3">
+        <div 
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+          style={{ backgroundColor: gallery.color + '20' }}
+        >
+          {gallery.icon}
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">{gallery.name_ko}</h1>
+          <p className="text-sm text-gray-600">{t('community.galleryList.totalPosts').replace('{count}', posts.length.toString())}</p>
+        </div>
       </div>
 
 

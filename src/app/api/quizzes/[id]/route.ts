@@ -8,6 +8,36 @@ export async function GET(
   try {
     const { id } = await params;
     console.log('[QUIZ_DETAIL] API 호출 시작, 퀴즈 ID:', id);
+
+    // 문제가 있는 UUID 테스트들을 임시로 막음
+    if (id === '268caf0b-0031-4e58-9245-606e3421f1fd' || id.includes('-00') || id.includes('-01-')) {
+      console.log('[QUIZ_DETAIL] 문제가 있는 퀴즈 ID 감지, 빈 응답');
+      return NextResponse.json({
+        success: false,
+        error: '해당 테스트는 현재 사용할 수 없습니다.'
+      });
+    }
+    
+    // 샘플/임베디드 퀴즈인 경우 미리 정의된 데이터 반환
+    if (id.startsWith('sample-mbti') || id.startsWith('embedded-mbti')) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          quiz: {
+            id: id,
+            title: '🎯 간단 MBTI 테스트',
+            description: '당신의 성격 유형을 간단히 알아보세요',
+            category: 'personality',
+            total_questions: 4,
+            total_participants: 0,
+            is_active: true,
+            created_at: new Date().toISOString()
+          },
+          questions: [],
+          results: []
+        }
+      });
+    }
     
     if (!supabaseClient) {
       console.log('[QUIZ_DETAIL] Supabase 클라이언트 없음');

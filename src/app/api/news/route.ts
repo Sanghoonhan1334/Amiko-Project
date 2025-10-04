@@ -12,23 +12,41 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const limit = searchParams.get('limit')
+    const page = searchParams.get('page')
 
-    console.log('[NEWS_GET] 요청 파라미터:', { category, limit })
+    console.log('[NEWS_GET] 요청 파라미터:', { category, limit, page })
 
-    // 기본 쿼리 구성
+    // 페이지네이션 계산
+    const pageNum = page ? parseInt(page) : 1
+    const limitNum = limit ? parseInt(limit) : 10
+    const offset = (pageNum - 1) * limitNum
+
+    // 전체 개수 조회
+    let countQuery = supabaseServer
+      .from('korean_news')
+      .select('*', { count: 'exact', head: true })
+
+    if (category && category !== 'all') {
+      countQuery = countQuery.eq('category', category)
+    }
+
+    const { count, error: countError } = await countQuery
+
+    if (countError) {
+      console.error('[NEWS_GET] 개수 조회 오류:', countError)
+      return NextResponse.json({ success: true, newsItems: [], total: 0 })
+    }
+
+    // 데이터 조회
     let query = supabaseServer
       .from('korean_news')
       .select('*')
       .order('created_at', { ascending: false })
+      .range(offset, offset + limitNum - 1)
 
     // 카테고리 필터 적용
     if (category && category !== 'all') {
       query = query.eq('category', category)
-    }
-
-    // 제한 적용
-    if (limit) {
-      query = query.limit(parseInt(limit))
     }
 
     const { data, error } = await query
@@ -39,8 +57,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, newsItems: [] })
     }
 
-    console.log('[NEWS_GET] 뉴스 조회 성공:', data?.length || 0, '개')
-    return NextResponse.json({ success: true, newsItems: data })
+    console.log('[NEWS_GET] 뉴스 조회 성공:', data?.length || 0, '개, 총', count || 0, '개')
+    return NextResponse.json({ 
+      success: true, 
+      newsItems: data, 
+      total: count || 0,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil((count || 0) / limitNum)
+    })
   } catch (error) {
     console.error('[NEWS_GET] 뉴스 API 오류:', error)
     return NextResponse.json({ error: '서버 오류' }, { status: 500 })
@@ -59,14 +84,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 개발 환경에서는 인증 체크 생략
-    // const authHeader = request.headers.get('Authorization')
-    // if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    //   return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
-    // }
+    // 운영자 인증 체크
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    
+    // 운영자 확인
+    const operatorCheckResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/check-operator`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (!operatorCheckResponse.ok) {
+      return NextResponse.json({ error: '운영자 인증에 실패했습니다' }, { status: 401 })
+    }
+    
+    const operatorData = await operatorCheckResponse.json()
+    if (!operatorData.isOperator) {
+      return NextResponse.json({ error: '운영자만 뉴스를 작성할 수 있습니다' }, { status: 403 })
+    }
 
     const body = await request.json()
-    const { title, title_es, content, content_es, source, category, thumbnail, author, published } = body
+    const { title, title_es, content, content_es, source, category, thumbnail, author, published, date } = body
 
     console.log('[NEWS_CREATE] 요청 데이터:', { 
       title, 
@@ -76,7 +119,8 @@ export async function POST(request: NextRequest) {
       source, 
       category, 
       thumbnail: thumbnail ? `Base64 data (${thumbnail.length} chars)` : null, 
-      author 
+      author,
+      date
     })
 
     // 필수 필드 검증: 제목과 내용은 한국어나 스페인어 중 하나라도 있으면 통과
@@ -88,6 +132,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
     }
 
+    // 출처가 비어있으면 기본값 사용
+    const finalSource = source?.trim() || 'Amiko 편집팀'
+
     const { data, error } = await supabaseServer
       .from('korean_news')
       .insert({
@@ -96,13 +143,14 @@ export async function POST(request: NextRequest) {
         content,
         content_es: content_es || content, // 스페인어 내용이 없으면 한국어 내용 사용
         thumbnail,
-        source,
+        source: finalSource,
         category,
         view_count: 0,
         comment_count: 0,
         like_count: 0,
         author: author,
         published: published || true,
+        date: date || new Date().toISOString().split('T')[0], // 날짜 필드 추가
         created_at: new Date().toISOString()
       })
       .select()

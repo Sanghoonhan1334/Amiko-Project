@@ -1,26 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 
-// 게시물의 댓글 목록 조회
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    if (!supabaseServer) {
-      return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
-        { status: 500 }
-      )
-    }
-
-    const { id } = params
-
-    console.log('[COMMENTS] 댓글 조회 시작:', id)
-
-    // 댓글 조회 (삭제되지 않은 것만, 최신순)
-    const { data: comments, error } = await supabaseServer
-      .from('gallery_comments')
+    const postId = params.id
+    const authHeader = request.headers.get('authorization')
+    
+    // 댓글 목록 조회 (인증 없이도 가능) - 계층 구조로 조회
+    const { data: allComments, error: commentsError } = await supabaseServer
+      .from('post_comments')
       .select(`
         id,
         content,
@@ -28,104 +19,96 @@ export async function GET(
         dislike_count,
         created_at,
         updated_at,
-        user:users!gallery_comments_user_id_fkey (
+        parent_id,
+        user:users!post_comments_user_id_fkey (
           id,
           full_name,
-          avatar_url
+          avatar_url,
+          profile_image
         )
       `)
-      .eq('post_id', id)
+      .eq('post_id', postId)
       .eq('is_deleted', false)
-      .is('parent_id', null) // 대댓글 제외 (일단 기본 댓글만)
       .order('created_at', { ascending: true })
 
-    if (error) {
-      console.error('[COMMENTS] 댓글 조회 실패:', error)
-      return NextResponse.json(
-        { error: '댓글을 불러오는데 실패했습니다.' },
-        { status: 500 }
-      )
+    if (commentsError) {
+      console.error('댓글 조회 오류:', commentsError)
+      return NextResponse.json({
+        success: false,
+        error: '댓글을 불러오는데 실패했습니다.'
+      }, { status: 500 })
     }
 
-    console.log('[COMMENTS] 댓글 조회 성공:', comments?.length || 0, '개')
+    // 계층 구조로 댓글 정리
+    const comments = (allComments || []).filter(comment => !comment.parent_id)
+    const replies = (allComments || []).filter(comment => comment.parent_id)
+
+    // 답글을 부모 댓글에 연결
+    const commentsWithReplies = comments.map(comment => ({
+      ...comment,
+      replies: replies.filter(reply => reply.parent_id === comment.id)
+    }))
 
     return NextResponse.json({
       success: true,
-      comments: comments || []
+      comments: commentsWithReplies
     })
 
   } catch (error) {
-    console.error('[COMMENTS] 댓글 조회 오류:', error)
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 500 }
-    )
+    console.error('댓글 조회 오류:', error)
+    return NextResponse.json({
+      success: false,
+      error: '서버 오류가 발생했습니다.'
+    }, { status: 500 })
   }
 }
 
-// 댓글 작성
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    if (!supabaseServer) {
-      return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
-        { status: 500 }
-      )
-    }
-
-    const { id } = params
-    const body = await request.json()
-    const { content, parentId } = body
-
-    // Authorization 헤더에서 토큰 추출
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      )
+    const postId = params.id
+    const authHeader = request.headers.get('authorization')
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({
+        success: false,
+        error: '인증이 필요합니다.'
+      }, { status: 401 })
     }
 
     const token = authHeader.replace('Bearer ', '')
     
     // 토큰에서 사용자 정보 추출
-    const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(token)
+    const { data: { user }, error: userError } = await supabaseServer.auth.getUser(token)
     
-    if (authError || !authUser) {
-      return NextResponse.json(
-        { error: '인증에 실패했습니다.' },
-        { status: 401 }
-      )
+    if (userError || !user) {
+      return NextResponse.json({
+        success: false,
+        error: '유효하지 않은 토큰입니다.'
+      }, { status: 401 })
     }
 
-    console.log('[COMMENT_CREATE] 댓글 작성 시작:', { postId: id, userId: authUser.id })
-
-    // 게시물 존재 확인
-    const { data: post, error: postError } = await supabaseServer
-      .from('gallery_posts')
-      .select('id, gallery_id')
-      .eq('id', id)
-      .eq('is_deleted', false)
-      .single()
-
-    if (postError || !post) {
-      return NextResponse.json(
-        { error: '게시물을 찾을 수 없습니다.' },
-        { status: 404 }
-      )
+    const { content, parent_id } = await request.json()
+    
+    if (!content || !content.trim()) {
+      return NextResponse.json({
+        success: false,
+        error: '댓글 내용을 입력해주세요.'
+      }, { status: 400 })
     }
 
-    // 댓글 작성
-    const { data: newComment, error: commentError } = await supabaseServer
-      .from('gallery_comments')
+    // 댓글 생성
+    const { data: comment, error: commentError } = await supabaseServer
+      .from('post_comments')
       .insert({
-        post_id: id,
-        user_id: authUser.id,
+        post_id: postId,
+        user_id: user.id,
         content: content.trim(),
-        parent_id: parentId || null
+        parent_id: parent_id || null,
+        like_count: 0,
+        dislike_count: 0
       })
       .select(`
         id,
@@ -134,45 +117,53 @@ export async function POST(
         dislike_count,
         created_at,
         updated_at,
-        user:users!gallery_comments_user_id_fkey (
+        parent_id,
+        user:users!post_comments_user_id_fkey (
           id,
           full_name,
-          avatar_url
+          avatar_url,
+          profile_image
         )
       `)
       .single()
 
     if (commentError) {
-      console.error('[COMMENT_CREATE] 댓글 작성 실패:', commentError)
-      return NextResponse.json(
-        { error: '댓글 작성에 실패했습니다.' },
-        { status: 500 }
-      )
+      console.error('댓글 생성 오류:', commentError)
+      return NextResponse.json({
+        success: false,
+        error: '댓글 작성에 실패했습니다.'
+      }, { status: 500 })
     }
 
-    // 게시물의 댓글 수 증가
-    await supabaseServer
+    // 게시글의 댓글 수 증가
+    const { data: currentPost, error: postError } = await supabaseServer
       .from('gallery_posts')
-      .update({ comment_count: supabaseServer.sql`comment_count + 1` })
-      .eq('id', id)
+      .select('comment_count')
+      .eq('id', postId)
+      .single()
 
-    // 갤러리의 댓글 수 증가
-    await supabaseServer.rpc('increment_gallery_comment_count', {
-      gallery_id: post.gallery_id
-    })
-
-    console.log('[COMMENT_CREATE] 댓글 작성 성공:', newComment.id)
+    if (postError) {
+      console.error('게시글 조회 오류:', postError)
+    } else {
+      await supabaseServer
+        .from('gallery_posts')
+        .update({ 
+          comment_count: (currentPost.comment_count || 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', postId)
+    }
 
     return NextResponse.json({
       success: true,
-      comment: newComment
+      comment: comment
     })
 
   } catch (error) {
-    console.error('[COMMENT_CREATE] 댓글 작성 오류:', error)
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 500 }
-    )
+    console.error('댓글 작성 오류:', error)
+    return NextResponse.json({
+      success: false,
+      error: '서버 오류가 발생했습니다.'
+    }, { status: 500 })
   }
 }

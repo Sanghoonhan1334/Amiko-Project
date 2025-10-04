@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import GalleryList from './GalleryList'
-import PostList from './PostList'
+import GalleryPostList from './GalleryPostList'
 import PostDetail from './PostDetail'
 import PostCreate from './PostCreate'
 import PopularPosts from './PopularPosts'
@@ -44,6 +44,7 @@ interface Post {
 
 type ViewMode = 'galleries' | 'posts' | 'post-detail' | 'post-create' | 'popular'
 
+// CommunityMain.tsx - 갤러리 시스템 메인 컴포넌트 (주제별 게시판)
 export default function CommunityMain() {
   const [viewMode, setViewMode] = useState<ViewMode>('galleries')
   const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null)
@@ -151,7 +152,7 @@ export default function CommunityMain() {
         )}
 
         {viewMode === 'posts' && selectedGallery && (
-          <PostList
+          <GalleryPostList
             key={`posts-${selectedGallery.id}`} // 새로고침을 위한 key
             gallery={selectedGallery}
             onPostSelect={handlePostSelect}

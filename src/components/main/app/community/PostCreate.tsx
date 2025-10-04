@@ -36,35 +36,68 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
     const files = event.target.files
     if (!files || files.length === 0) return
 
+    // 이미지 파일만 필터링
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'))
+    if (imageFiles.length === 0) {
+      setError('이미지 파일만 업로드할 수 있습니다.')
+      return
+    }
+
+    // 파일 크기 제한 (5MB)
+    const maxSize = 5 * 1024 * 1024
+    const validFiles = imageFiles.filter(file => {
+      if (file.size > maxSize) {
+        setError(`${file.name}은(는) 5MB를 초과합니다.`)
+        return false
+      }
+      return true
+    })
+
+    if (validFiles.length === 0) return
+
+    // 최대 5개 이미지 제한
+    if (images.length + validFiles.length > 5) {
+      setError('최대 5개까지 이미지를 업로드할 수 있습니다.')
+      return
+    }
+
     setUploadingImages(true)
     setError(null)
 
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        // 파일 크기 체크 (5MB 제한)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`${file.name}: 파일 크기는 5MB를 초과할 수 없습니다`)
-        }
+      // 토큰 가져오기
+      if (!user?.access_token) {
+        throw new Error('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
+      }
 
-        // 파일 타입 체크
-        if (!file.type.startsWith('image/')) {
-          throw new Error(`${file.name}: 이미지 파일만 업로드 가능합니다`)
-        }
+      // 각 이미지 파일을 Supabase Storage에 업로드
+      const uploadPromises = validFiles.map(async (file) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('folder', 'gallery-posts')
 
-        // Base64로 변환
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = (e) => {
-            const result = e.target?.result as string
-            resolve(result)
-          }
-          reader.onerror = () => reject(new Error('파일 읽기 실패'))
-          reader.readAsDataURL(file)
+        const response = await fetch('/api/upload/image', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          },
+          body: formData
         })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || '이미지 업로드에 실패했습니다.')
+        }
+
+        const result = await response.json()
+        return result.url
       })
 
-      const uploadedImages = await Promise.all(uploadPromises)
-      setImages(prev => [...prev, ...uploadedImages])
+      const uploadedUrls = await Promise.all(uploadPromises)
+      setImages(prev => [...prev, ...uploadedUrls])
+
+      console.log('이미지 업로드 완료:', uploadedUrls)
+
     } catch (err) {
       console.error('이미지 업로드 오류:', err)
       setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다')

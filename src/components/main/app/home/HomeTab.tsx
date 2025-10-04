@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 // import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useRouter } from 'next/navigation'
 import {
   Video,
   MessageSquare,
@@ -16,6 +17,7 @@ import {
 export default function HomeTab() {
   // const { user } = useAuth()
   const { t } = useLanguage()
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -67,7 +69,10 @@ export default function HomeTab() {
           </Card>
 
           {/* 커뮤니티 카드 */}
-          <Card className="p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card 
+            className="p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm cursor-pointer"
+            onClick={() => router.push('/main?tab=community')}
+          >
             <div className="mb-0">
               {/* 커뮤니티 이미지 */}
               <div className="relative w-24 h-20 mx-auto mb-0">

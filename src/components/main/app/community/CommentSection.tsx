@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import VerificationGuard from '@/components/common/VerificationGuard'
 
 interface Comment {
   id: string
@@ -32,7 +31,7 @@ interface CommentSectionProps {
 
 export default function CommentSection({ postId, onCommentCountChange }: CommentSectionProps) {
   const { t, language } = useLanguage()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -51,8 +50,8 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       setError(null)
 
       const response = await fetch(`/api/posts/${postId}/comments`, {
-        headers: user ? {
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+        headers: user && token ? {
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         } : {}
       })
 
@@ -76,7 +75,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
 
   // 댓글 작성
   const handleSubmitComment = async () => {
-    if (!user) {
+    if (!user || !token) {
       setError('로그인이 필요합니다')
       return
     }
@@ -94,7 +93,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         },
         body: JSON.stringify({
           content: newComment.trim(),
@@ -132,7 +131,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
 
   // 답글 작성
   const handleSubmitReply = async (parentId: string) => {
-    if (!user) {
+    if (!user || !token) {
       setError('로그인이 필요합니다')
       return
     }
@@ -150,7 +149,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         },
         body: JSON.stringify({
           content: replyContent.trim(),
@@ -182,7 +181,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
 
   // 댓글 추천/비추천
   const handleVote = async (commentId: string, voteType: 'like' | 'dislike') => {
-    if (!user) {
+    if (!user || !token) {
       setError('로그인이 필요합니다')
       return
     }
@@ -192,7 +191,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         },
         body: JSON.stringify({ vote_type: voteType })
       })
@@ -286,39 +285,37 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         </div>
       </div>
 
-      {/* 댓글 작성 폼 - SMS 인증 필요 */}
+      {/* 댓글 작성 폼 */}
       {user ? (
-        <VerificationGuard requiredLevel="sms">
-          <Card className="p-4">
-            <div className="flex space-x-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                {user.user_metadata?.full_name?.charAt(0) || 'U'}
-              </div>
-              <div className="flex-1">
-                <textarea
-                  ref={textareaRef}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="댓글을 작성해주세요..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={3}
-                  maxLength={1000}
-                />
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-gray-500">{newComment.length}/1000</p>
-                  <Button
-                    onClick={handleSubmitComment}
-                    disabled={submitting || !newComment.trim()}
-                    size="sm"
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
-                    {submitting ? '작성 중...' : '댓글 작성'}
-                  </Button>
-                </div>
+        <Card className="p-4">
+          <div className="flex space-x-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+              {user.user_metadata?.full_name?.charAt(0) || 'U'}
+            </div>
+            <div className="flex-1">
+              <textarea
+                ref={textareaRef}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="댓글을 작성해주세요..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+                maxLength={1000}
+              />
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-500">{newComment.length}/1000</p>
+                <Button
+                  onClick={handleSubmitComment}
+                  disabled={submitting || !newComment.trim()}
+                  size="sm"
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  {submitting ? '작성 중...' : '댓글 작성'}
+                </Button>
               </div>
             </div>
-          </Card>
-        </VerificationGuard>
+          </div>
+        </Card>
       ) : (
         <Card className="p-4 bg-gray-50">
           <p className="text-gray-600 text-center">
@@ -369,33 +366,29 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                     </p>
                     
                     <div className="flex items-center space-x-4">
-                      <VerificationGuard requiredLevel="sms">
-                        <button
-                          onClick={() => handleVote(comment.id, 'like')}
-                          className={`flex items-center space-x-1 text-sm ${
-                            comment.user_vote === 'like' 
-                              ? 'text-blue-500' 
-                              : 'text-gray-500 hover:text-blue-500'
-                          }`}
-                        >
-                          <span>👍</span>
-                          <span>{comment.like_count}</span>
-                        </button>
-                      </VerificationGuard>
+                      <button
+                        onClick={() => handleVote(comment.id, 'like')}
+                        className={`flex items-center space-x-1 text-sm ${
+                          comment.user_vote === 'like' 
+                            ? 'text-blue-500' 
+                            : 'text-gray-500 hover:text-blue-500'
+                        }`}
+                      >
+                        <span>👍</span>
+                        <span>{comment.like_count}</span>
+                      </button>
                       
-                      <VerificationGuard requiredLevel="sms">
-                        <button
-                          onClick={() => handleVote(comment.id, 'dislike')}
-                          className={`flex items-center space-x-1 text-sm ${
-                            comment.user_vote === 'dislike' 
-                              ? 'text-red-500' 
-                              : 'text-gray-500 hover:text-red-500'
-                          }`}
-                        >
-                          <span>👎</span>
-                          <span>{comment.dislike_count}</span>
-                        </button>
-                      </VerificationGuard>
+                      <button
+                        onClick={() => handleVote(comment.id, 'dislike')}
+                        className={`flex items-center space-x-1 text-sm ${
+                          comment.user_vote === 'dislike' 
+                            ? 'text-red-500' 
+                            : 'text-gray-500 hover:text-red-500'
+                        }`}
+                      >
+                        <span>👎</span>
+                        <span>{comment.dislike_count}</span>
+                      </button>
                       
                       {user && (
                         <button
@@ -473,33 +466,29 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                           </p>
                           
                           <div className="flex items-center space-x-4">
-                            <VerificationGuard requiredLevel="sms">
-                              <button
-                                onClick={() => handleVote(reply.id, 'like')}
-                                className={`flex items-center space-x-1 text-sm ${
-                                  reply.user_vote === 'like' 
-                                    ? 'text-blue-500' 
-                                    : 'text-gray-500 hover:text-blue-500'
-                                }`}
-                              >
-                                <span>👍</span>
-                                <span>{reply.like_count}</span>
-                              </button>
-                            </VerificationGuard>
+                            <button
+                              onClick={() => handleVote(reply.id, 'like')}
+                              className={`flex items-center space-x-1 text-sm ${
+                                reply.user_vote === 'like' 
+                                  ? 'text-blue-500' 
+                                  : 'text-gray-500 hover:text-blue-500'
+                              }`}
+                            >
+                              <span>👍</span>
+                              <span>{reply.like_count}</span>
+                            </button>
                             
-                            <VerificationGuard requiredLevel="sms">
-                              <button
-                                onClick={() => handleVote(reply.id, 'dislike')}
-                                className={`flex items-center space-x-1 text-sm ${
-                                  reply.user_vote === 'dislike' 
-                                    ? 'text-red-500' 
-                                    : 'text-gray-500 hover:text-red-500'
-                                }`}
-                              >
-                                <span>👎</span>
-                                <span>{reply.dislike_count}</span>
-                              </button>
-                            </VerificationGuard>
+                            <button
+                              onClick={() => handleVote(reply.id, 'dislike')}
+                              className={`flex items-center space-x-1 text-sm ${
+                                reply.user_vote === 'dislike' 
+                                  ? 'text-red-500' 
+                                  : 'text-gray-500 hover:text-red-500'
+                              }`}
+                            >
+                              <span>👎</span>
+                              <span>{reply.dislike_count}</span>
+                            </button>
                           </div>
                         </div>
                       </div>

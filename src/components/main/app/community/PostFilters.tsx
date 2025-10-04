@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useLanguage } from '@/context/LanguageContext'
 
 interface PostFiltersProps {
@@ -19,6 +20,7 @@ export interface FilterOptions {
   searchQuery: string
 }
 
+// PostFilters.tsx - 갤러리 시스템용 필터 컴포넌트 (GalleryPostList에서 사용)
 export default function PostFilters({ onFilterChange, currentFilters }: PostFiltersProps) {
   const { t, language } = useLanguage()
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -109,23 +111,38 @@ export default function PostFilters({ onFilterChange, currentFilters }: PostFilt
   }
 
   return (
-    <Card className="p-4 mb-6">
+    <div className="flex-1">
       <div className="space-y-4">
-        {/* 기본 필터 */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 mr-2">{t('community.galleryList.sort')}:</span>
+        {/* 기본 필터 - 한 줄로 배치 */}
+        <div className="flex items-center gap-3">
+          {/* 전체글 드롭다운 */}
+          <Select value="all" onValueChange={() => {}}>
+            <SelectTrigger className="w-24">
+              <SelectValue placeholder="전체글" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체글</SelectItem>
+              <SelectItem value="kpop">K-POP</SelectItem>
+              <SelectItem value="kdrama">K-Drama</SelectItem>
+              <SelectItem value="beauty">뷰티</SelectItem>
+              <SelectItem value="korean">한국어</SelectItem>
+              <SelectItem value="spanish">스페인어</SelectItem>
+            </SelectContent>
+          </Select>
           
-          {(['latest', 'popular', 'hot', 'most_commented', 'most_viewed'] as const).map((sort) => (
-            <Button
-              key={sort}
-              onClick={() => handleSortChange(sort)}
-              variant={currentFilters.sortBy === sort ? 'default' : 'outline'}
-              size="sm"
-              className={currentFilters.sortBy === sort ? 'bg-blue-500 hover:bg-blue-600' : ''}
-            >
-              {getSortLabel(sort)}
-            </Button>
-          ))}
+          {/* 최신순 드롭다운 */}
+          <Select value={currentFilters.sortBy} onValueChange={(value: FilterOptions['sortBy']) => handleSortChange(value)}>
+            <SelectTrigger className="w-24">
+              <SelectValue placeholder="정렬" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">{t('community.galleryList.latest')}</SelectItem>
+              <SelectItem value="popular">{t('community.galleryList.popular')}</SelectItem>
+              <SelectItem value="hot">{t('community.galleryList.hot')}</SelectItem>
+              <SelectItem value="most_commented">{t('community.galleryList.mostCommented')}</SelectItem>
+              <SelectItem value="most_viewed">{t('community.galleryList.mostViewed')}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* 검색 */}
@@ -269,6 +286,6 @@ export default function PostFilters({ onFilterChange, currentFilters }: PostFilt
           </div>
         )}
       </div>
-    </Card>
+    </div>
   )
 }

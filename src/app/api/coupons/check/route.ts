@@ -50,11 +50,13 @@ export async function GET(request: NextRequest) {
 
     // 사용자 프로필 정보 가져오기
     console.log('[COUPONS_CHECK] 사용자 프로필 조회 시작')
-    const { data: userInfo, error: profileError } = await supabase
+    const { data: fetchedUserInfo, error: profileError } = await supabase
       .from('users')
       .select('language, is_admin')
       .eq('id', user.id)
       .single();
+
+    let userInfo = fetchedUserInfo; // 기본값 설정
 
     if (profileError) {
       console.log('[COUPONS_CHECK] 사용자 프로필 조회 실패:', profileError)

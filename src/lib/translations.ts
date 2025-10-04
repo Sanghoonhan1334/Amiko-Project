@@ -322,8 +322,8 @@ export const translations = {
       categories: {
         all: '전체글',
         free: '자유게시판',
-        kpop: 'K-POP게시판',
-        kdrama: 'K-Drama게시판',
+        kpop: 'K-POP',
+        kdrama: 'K-Drama',
         beauty: '뷰티',
         korean: '한국어',
         spanish: '스페인어'
@@ -975,6 +975,28 @@ export const translations = {
       retakeTest: '다시 하기',
       shareResult: '결과 공유',
       myResults: '내 결과',
+      mbti: {
+        title: 'MBTI 성격 유형 테스트',
+        description: '16가지 성격 유형으로 알아보는 나의 성격',
+        questionCount: '총 16개 질문',
+        estimatedTime: '약 5분 소요',
+        progress: '진행률',
+        nextQuestion: '다음 질문',
+        submitAnswers: '결과 보기',
+        backToQuiz: '테스트 목록으로',
+        yourType: '당신의 유형',
+        typeDescription: '유형 설명',
+        characteristics: '특징',
+        recommendations: '추천 활동'
+      },
+      loveStyle: {
+        title: '사랑 스타일 테스트',
+        description: '5가지 사랑의 언어로 알아보는 나의 사랑 방식'
+      },
+      kpopStar: {
+        title: '당신과 닮은 K-POP 스타는?',
+        description: '10가지 질문으로 알아보는 나와 닮은 K-POP 스타'
+      },
       question: '질문',
       of: '/',
       next: '다음',
@@ -2592,6 +2614,28 @@ export const translations = {
       retakeTest: 'Repetir',
       shareResult: 'Compartir Resultado',
       myResults: 'Mis Resultados',
+      mbti: {
+        title: 'Test de Personalidad MBTI',
+        description: 'Descubre tu personalidad con 16 tipos de personalidad',
+        questionCount: 'Total 16 preguntas',
+        estimatedTime: 'Aproximadamente 5 minutos',
+        progress: 'Progreso',
+        nextQuestion: 'Siguiente pregunta',
+        submitAnswers: 'Ver resultados',
+        backToQuiz: 'Volver al menú de tests',
+        yourType: 'Tu tipo',
+        typeDescription: 'Descripción del tipo',
+        characteristics: 'Características',
+        recommendations: 'Actividades recomendadas'
+      },
+      loveStyle: {
+        title: 'Test de Estilo de Amor',
+        description: 'Descubre tu estilo de amor con 5 lenguajes del amor'
+      },
+      kpopStar: {
+        title: '¿Qué celebridad K-POP se parece a ti?',
+        description: 'Descubre qué estrella K-POP se parece a ti con 10 preguntas'
+      },
       question: 'Pregunta',
       of: 'de',
       next: 'Siguiente',

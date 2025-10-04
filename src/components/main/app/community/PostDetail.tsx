@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import CommentSection from './CommentSection'
-import VerificationGuard from '@/components/common/VerificationGuard'
 
 interface Post {
   id: string
@@ -39,7 +39,7 @@ interface PostDetailProps {
 
 export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDetailProps) {
   const { t, language } = useLanguage()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -99,12 +99,12 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
 
   const loadUserVote = async () => {
-    if (!user) return
+    if (!user || !token) return
     
     try {
       const response = await fetch(`/api/posts/${postId}/vote`, {
         headers: {
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         }
       })
       
@@ -118,7 +118,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   }
 
   const handleVote = async (voteType: 'like' | 'dislike') => {
-    if (!user) {
+    if (!user || !token) {
       setError('로그인이 필요합니다')
       return
     }
@@ -128,7 +128,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         },
         body: JSON.stringify({ vote_type: voteType })
       })
@@ -199,35 +199,13 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   return (
     <div className="space-y-6">
-      {/* 뒤로가기 버튼 */}
-      <Button onClick={onBack} variant="outline" className="mb-4">
-        ← 목록으로 돌아가기
-      </Button>
-
       {/* 게시물 상세 */}
       <Card className="p-6">
         {/* 게시물 헤더 */}
         <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            {/* 작성자 아바타 */}
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-              {post.user.avatar_url ? (
-                <img 
-                  src={post.user.avatar_url} 
-                  alt={post.user.full_name}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-medium text-gray-600">
-                  {post.user.full_name.charAt(0)}
-                </span>
-              )}
-            </div>
-            
-            <div>
-              <p className="font-semibold text-gray-800">{post.user.full_name}</p>
-              <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-800 mb-1">{post.title}</h1>
+            <p className="text-sm text-gray-500">{post.user.full_name} / {formatDate(post.created_at)}</p>
           </div>
 
           {/* 상태 배지 및 액션 버튼 */}
@@ -243,28 +221,39 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               </Badge>
             )}
             
-            {canManage && (
-              <div className="flex space-x-2">
-                {isAuthor && (
-                  <Button size="sm" variant="outline" onClick={onEdit}>
-                    수정
+            <div className="flex flex-col space-y-2">
+              {/* 이전 페이지로 이동 버튼 */}
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={onBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                이전 페이지로 이동
+              </Button>
+              
+              {/* 수정/삭제 버튼 */}
+              {canManage && (
+                <div className="flex space-x-2">
+                  {isAuthor && (
+                    <Button size="sm" variant="outline" onClick={onEdit}>
+                      수정
+                    </Button>
+                  )}
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={onDelete}
+                    className={isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : ''}
+                  >
+                    {isAdmin && !isAuthor ? '🗑️ 운영자 삭제' : '삭제'}
                   </Button>
-                )}
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={onDelete}
-                  className={isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : ''}
-                >
-                  {isAdmin && !isAuthor ? '🗑️ 운영자 삭제' : '삭제'}
-                </Button>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* 게시물 제목 */}
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">{post.title}</h1>
 
         {/* 게시물 내용 */}
         <div 
@@ -303,42 +292,40 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
             </div>
           </div>
 
-          {/* 추천/비추천 버튼 - SMS 인증 필요 */}
-          <VerificationGuard requiredLevel="sms">
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => handleVote('like')}
-                disabled={!user}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-                  userVote === 'like'
-                    ? 'bg-green-500 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-600'
-                } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-              >
-                <span className="text-lg">👍</span>
-                <span className="font-medium">{post.like_count}</span>
-              </button>
-              
-              <button
-                onClick={() => handleVote('dislike')}
-                disabled={!user}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-                  userVote === 'dislike'
-                    ? 'bg-red-500 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
-                } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-              >
-                <span className="text-lg">👎</span>
-                <span className="font-medium">{post.dislike_count}</span>
-              </button>
-              
-              {!user && (
-                <span className="text-xs text-gray-500 ml-2">
-                  로그인 후 투표 가능
-                </span>
-              )}
-            </div>
-          </VerificationGuard>
+          {/* 추천/비추천 버튼 */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => handleVote('like')}
+              disabled={!user}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                userVote === 'like'
+                  ? 'bg-green-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-600'
+              } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span className="text-lg">👍</span>
+              <span className="font-medium">{post.like_count}</span>
+            </button>
+            
+            <button
+              onClick={() => handleVote('dislike')}
+              disabled={!user}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                userVote === 'dislike'
+                  ? 'bg-red-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
+              } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span className="text-lg">👎</span>
+              <span className="font-medium">{post.dislike_count}</span>
+            </button>
+            
+            {!user && (
+              <span className="text-xs text-gray-500 ml-2">
+                로그인 후 투표 가능
+              </span>
+            )}
+          </div>
         </div>
       </Card>
 

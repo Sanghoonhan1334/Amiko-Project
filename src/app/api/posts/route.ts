@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
         comment_count,
         is_pinned,
         is_hot,
-        is_popular,
         created_at,
         updated_at,
         user:users!gallery_posts_user_id_fkey (
@@ -54,12 +53,40 @@ export async function GET(request: NextRequest) {
     // 자유게시판 갤러리의 게시글 조회
     console.log('[POSTS_GET] 자유게시판 갤러리의 게시글 조회')
     
-    // 자유게시판 갤러리만 조회
-    const { data: freeGallery, error: galleryError } = await supabaseServer
+    // 자유게시판 갤러리 찾기 (free 우선, freeboard 대체)
+    let freeGallery = null
+    let galleryError = null
+    
+    // 먼저 free 갤러리 찾기 (스키마에서 생성된 갤러리)
+    const { data: freeGalleryData, error: freeError } = await supabaseServer
       .from('galleries')
       .select('id')
       .eq('slug', 'free')
       .single()
+    
+    console.log('[POSTS_GET] free 갤러리 조회 결과:', { 
+      freeGalleryData, 
+      freeError: freeError?.message 
+    })
+    
+    if (freeGalleryData) {
+      freeGallery = freeGalleryData
+    } else {
+      // free가 없으면 freeboard 갤러리 찾기 (호환성)
+      const { data: freeboardGallery, error: freeboardError } = await supabaseServer
+        .from('galleries')
+        .select('id')
+        .eq('slug', 'freeboard')
+        .single()
+      
+      console.log('[POSTS_GET] freeboard 갤러리 조회 결과:', { 
+        freeboardGallery, 
+        freeboardError: freeboardError?.message 
+      })
+      
+      freeGallery = freeboardGallery
+      galleryError = freeboardError
+    }
 
     if (galleryError) {
       console.log('[POSTS_GET] 갤러리 조회 실패:', galleryError.message)
@@ -78,7 +105,23 @@ export async function GET(request: NextRequest) {
     }
 
     if (freeGallery) {
+      console.log('[POSTS_GET] 자유게시판 갤러리 ID로 필터링:', freeGallery.id)
       query = query.eq('gallery_id', freeGallery.id)
+      
+      // 필터링된 쿼리로 실제 게시글 수 확인
+      const { count: postCount, error: countError } = await supabaseServer
+        .from('gallery_posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('gallery_id', freeGallery.id)
+        .eq('is_deleted', false)
+      
+      console.log('[POSTS_GET] 갤러리별 게시글 수 확인:', {
+        galleryId: freeGallery.id,
+        postCount,
+        countError: countError?.message
+      })
+    } else {
+      console.log('[POSTS_GET] 자유게시판 갤러리를 찾을 수 없음')
     }
 
     // 검색 필터
@@ -114,6 +157,17 @@ export async function GET(request: NextRequest) {
     query = query.range(offset, offset + limit - 1)
 
     const { data: posts, error: postsError } = await query
+
+    console.log('[POSTS_GET] 게시글 조회 결과:', {
+      postsCount: posts?.length || 0,
+      postsError: postsError?.message,
+      firstPost: posts?.[0] ? {
+        id: posts[0].id,
+        title: posts[0].title,
+        gallery_id: posts[0].gallery_id,
+        user_id: posts[0].user_id
+      } : null
+    })
 
     if (postsError) {
       console.error('[POSTS_GET] 게시물 조회 오류:', postsError)
@@ -196,8 +250,94 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { gallery_id, title, content, images, user_id } = body
+    // Content-Type에 따라 데이터 파싱 방식 결정
+    const contentType = request.headers.get('content-type') || ''
+    let body: any = {}
+    let gallery_id, title, content, images, user_id
+
+    if (contentType.includes('multipart/form-data')) {
+      // FormData 처리 (자유게시판)
+      const formData = await request.formData()
+      title = formData.get('title') as string
+      content = formData.get('content') as string
+      const category_name = formData.get('category_name') as string
+      const is_notice = formData.get('is_notice') === 'true'
+      const is_survey = formData.get('is_survey') === 'true'
+      const survey_options = formData.get('survey_options') as string
+      const uploaded_images_json = formData.get('uploaded_images') as string
+      const files = formData.getAll('files') as File[]
+      
+      // 업로드된 이미지 URL들 파싱
+      let uploadedImages: string[] = []
+      if (uploaded_images_json) {
+        try {
+          uploadedImages = JSON.parse(uploaded_images_json)
+        } catch (error) {
+          console.error('[POST_CREATE] 이미지 URL 파싱 실패:', error)
+        }
+      }
+      
+      console.log('[POST_CREATE] FormData 받음:', { title, content, category_name, is_notice, is_survey })
+      
+      // 자유게시판 갤러리 ID 찾기 (free 우선, freeboard 대체)
+      let freeGallery = null
+      let galleryError = null
+      
+      // 먼저 free 갤러리 찾기 (스키마에서 생성된 갤러리)
+      const { data: freeGalleryData, error: freeError } = await supabaseServer
+        .from('galleries')
+        .select('id')
+        .eq('slug', 'free')
+        .single()
+      
+      if (freeGalleryData) {
+        freeGallery = freeGalleryData
+      } else {
+        // free가 없으면 freeboard 갤러리 찾기 (호환성)
+        const { data: freeboardGallery, error: freeboardError } = await supabaseServer
+          .from('galleries')
+          .select('id')
+          .eq('slug', 'freeboard')
+          .single()
+        
+        freeGallery = freeboardGallery
+        galleryError = freeboardError
+      }
+      
+      if (galleryError || !freeGallery) {
+        console.error('[POST_CREATE] 자유게시판 갤러리 조회 실패:', galleryError)
+        return NextResponse.json(
+          { error: '자유게시판 갤러리를 찾을 수 없습니다.' },
+          { status: 404 }
+        )
+      }
+      
+      gallery_id = freeGallery.id
+      images = uploadedImages // 업로드된 이미지 URL들 사용
+      user_id = null // 토큰에서 가져올 예정
+      
+      // body 객체에 FormData 정보 저장
+      body = {
+        gallery_id,
+        title,
+        content,
+        images,
+        user_id,
+        category_name,
+        is_notice,
+        is_survey,
+        survey_options: survey_options ? JSON.parse(survey_options) : null,
+        files
+      }
+    } else {
+      // JSON 처리 (기존 갤러리)
+      body = await request.json()
+      gallery_id = body.gallery_id
+      title = body.title
+      content = body.content
+      images = body.images
+      user_id = body.user_id
+    }
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
@@ -338,14 +478,32 @@ export async function POST(request: NextRequest) {
 
     // gallery_id가 slug인 경우 실제 ID로 변환
     let actualGalleryId = gallery_id
-    if (gallery_id === 'free' || gallery_id === '자유') {
+    if (gallery_id === 'free' || gallery_id === '자유' || gallery_id === 'freeboard') {
       console.log('[POST_CREATE] 자유게시판 갤러리 ID 조회 중...')
       
-      const { data: freeGallery, error: galleryError } = await supabaseServer
+      // 먼저 free 갤러리 찾기 (스키마에서 생성된 갤러리)
+      let freeGallery = null
+      let galleryError = null
+      
+      const { data: freeGalleryData, error: freeError } = await supabaseServer
         .from('galleries')
         .select('id')
         .eq('slug', 'free')
         .single()
+      
+      if (freeGalleryData) {
+        freeGallery = freeGalleryData
+      } else {
+        // free가 없으면 freeboard 갤러리 찾기 (호환성)
+        const { data: freeboardGallery, error: freeboardError } = await supabaseServer
+          .from('galleries')
+          .select('id')
+          .eq('slug', 'freeboard')
+          .single()
+        
+        freeGallery = freeboardGallery
+        galleryError = freeboardError
+      }
       
       console.log('[POST_CREATE] 갤러리 조회 결과:', { 
         freeGallery, 
@@ -409,22 +567,42 @@ export async function POST(request: NextRequest) {
       contentLength: content.trim().length
     })
     
+    // 게시글 데이터 준비
+    const postData: any = {
+      gallery_id: actualGalleryId,
+      user_id: authUser.id,
+      title: title.trim(),
+      content: content.trim(),
+      images: images || [],
+      view_count: 0,
+      like_count: 0,
+      dislike_count: 0,
+      comment_count: 0,
+      is_pinned: false,
+      is_hot: false,
+      is_deleted: false
+    }
+
+    // 자유게시판 특별 필드 추가 (FormData에서 온 경우)
+    if (body.category_name || body.is_notice || body.is_survey) {
+      // 테이블에 컬럼이 추가되면 주석 해제
+      // postData.category = body.category_name || '자유게시판'
+      // postData.is_notice = body.is_notice || false
+      // postData.is_survey = body.is_survey || false
+      
+      // if (body.survey_options && body.survey_options.length > 0) {
+      //   postData.survey_options = body.survey_options
+      // }
+      
+      // 공지사항인 경우 고정으로 설정
+      if (body.is_notice) {
+        postData.is_pinned = true
+      }
+    }
+
     const { data: newPost, error: postError } = await supabaseServer
       .from('gallery_posts')
-      .insert({
-        gallery_id: actualGalleryId,
-        user_id: authUser.id,
-        title: title.trim(),
-        content: content.trim(),
-        images: images || [],
-        view_count: 0,
-        like_count: 0,
-        dislike_count: 0,
-        comment_count: 0,
-        is_pinned: false,
-        is_hot: false,
-        is_deleted: false
-      })
+      .insert(postData)
       .select(`
         id,
         title,

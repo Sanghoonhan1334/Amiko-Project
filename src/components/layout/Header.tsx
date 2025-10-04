@@ -161,7 +161,7 @@ export default function Header() {
 
   // 랜딩페이지와 메인페이지 구분
   const isLandingPage = pathname === '/' || pathname === '/about'
-  const isMainPage = pathname.startsWith('/main') || pathname.startsWith('/lounge')
+  const isMainPage = pathname.startsWith('/main') || pathname.startsWith('/lounge') || pathname.startsWith('/community')
 
   // pathname 변경 시 activeNavItem 업데이트
   useEffect(() => {
@@ -297,7 +297,13 @@ export default function Header() {
       }))
       console.log('커스텀 이벤트 발송됨:', tab)
     } else {
-      console.log('메인 페이지가 아님 - 페이지 이동 없음')
+      console.log('메인 페이지가 아님 - 페이지 이동')
+      // 메인 페이지가 아닐 때는 해당 탭으로 이동
+      if (tab === 'community') {
+        router.push('/main?tab=community')
+      } else {
+        router.push(`/main?tab=${tab}`)
+      }
     }
   }
 
@@ -585,7 +591,7 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-12 xl:-mt-12 2xl:-mt-12 3xl:-mt-12 relative z-20">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-12 xl:-mt-12 2xl:-mt-12 3xl:-mt-12 relative z-20 ml-[12px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>
@@ -793,7 +799,12 @@ export default function Header() {
                   </div>
                   
                   {/* 하단: 인증 상태 표시 */}
-                  {verificationStatus === 'verified' ? (
+                  {isAdmin ? (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 rounded-lg border border-purple-200">
+                      <span className="text-purple-600 text-sm">👑</span>
+                      <span className="text-purple-700 text-sm font-medium">운영자</span>
+                    </div>
+                  ) : verificationStatus === 'verified' ? (
                     <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-lg border border-green-200">
                       <span className="text-green-600 text-sm">✅</span>
                       <span className="text-green-700 text-sm font-medium">{t('notifications.verified')}</span>
@@ -816,7 +827,9 @@ export default function Header() {
               {isMainPage && user && (
                 <div className="md:hidden flex items-center gap-2">
                   {/* 간단한 인증 표시 */}
-                  {verificationStatus === 'verified' ? (
+                  {isAdmin ? (
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  ) : verificationStatus === 'verified' ? (
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   ) : verificationStatus === 'unverified' ? (
                     <div className="w-2 h-2 bg-amber-500 rounded-full"></div>

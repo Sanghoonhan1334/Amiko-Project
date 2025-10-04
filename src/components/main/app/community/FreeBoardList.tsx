@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,9 +31,14 @@ interface BoardListProps {
   showHeader?: boolean // 헤더 표시 여부
 }
 
-export default function BoardList({ onPostSelect, onWritePost, refreshTrigger, showHeader = true }: BoardListProps) {
+// FreeBoardList.tsx - 자유게시판 게시글 목록 (currentView === 'freeboard')
+export default function FreeBoardList({ onPostSelect, onWritePost, refreshTrigger, showHeader = true }: BoardListProps) {
   const { t, language } = useLanguage()
   const { user } = useAuth()
+  const router = useRouter()
+  
+  console.log('FreeBoardList 렌더링:', { showHeader })
+  
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -115,21 +121,36 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger, s
       
       const data = await response.json()
       console.log('API 응답 데이터:', data)
-      console.log('API 응답 상세:', {
+      
+      // API 응답을 컴포넌트가 기대하는 형태로 변환
+      const transformedPosts = (data.posts || []).map((post: any) => ({
+        id: post.id,
+        title: post.title,
+        title_es: post.title_es,
+        author: post.author?.full_name || post.author || 'Unknown',
+        date: post.created_at ? new Date(post.created_at).toLocaleDateString('ko-KR') : 'Unknown',
+        views: post.view_count || 0,
+        likes: post.like_count || 0,
+        comments: post.comment_count || 0,
+        category: post.category || '자유게시판',
+        isHot: post.is_hot || false,
+        isNotice: post.is_notice || false
+      }))
+      
+      console.log('변환된 게시글 데이터:', {
         success: data.success,
-        postsCount: data.posts?.length || 0,
-        posts: data.posts?.map(p => ({
+        postsCount: transformedPosts.length,
+        posts: transformedPosts.map(p => ({
           id: p.id,
           title: p.title,
-          author: p.author?.full_name || p.author,
-          created_at: p.created_at
+          author: p.author,
+          date: p.date,
+          views: p.views,
+          likes: p.likes
         }))
       })
       
-      // 성공적으로 빈 배열을 받아도 정상 처리
-      const posts = data.posts || []
-      console.log('게시글 개수:', posts.length)
-      setPosts(posts)
+      setPosts(transformedPosts)
       
     } catch (err) {
       console.error('게시글 로드 오류:', err)
@@ -162,7 +183,10 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger, s
     return category ? category.icon : '📝'
   }
 
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | undefined) => {
+    if (num === undefined || num === null) {
+      return '0'
+    }
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + 'k'
     }
@@ -260,22 +284,33 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger, s
         </div>
       )}
 
-      {/* 카테고리 필터 - 드롭다운 */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-3 flex-1">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 flex-1"
-            >
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.icon} {t(`community.categories.${category.id}`)}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* 필터 및 글쓰기 버튼 - 한 줄로 배치 */}
+      <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          {/* 전체글 드롭다운 */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-32"
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.icon} {t(`community.categories.${category.id}`)}
+              </option>
+            ))}
+          </select>
+          
+          {/* 최신순 드롭다운 */}
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">{t('community.sortOptions.latest')}</SelectItem>
+              <SelectItem value="popular">{t('community.sortOptions.popular')}</SelectItem>
+              <SelectItem value="views">{t('community.sortOptions.views')}</SelectItem>
+            </SelectContent>
+          </Select>
           
           {/* 글쓰기 버튼 */}
           <Button 
@@ -321,25 +356,20 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger, s
                 setShowAuthDialog(true)
               }
             }} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md transition-colors w-full sm:w-auto"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
           >
             {t('community.writePost')}
           </Button>
         </div>
-      </div>
-
-      {/* 정렬 옵션 */}
-      <div className="flex items-center gap-3 mb-4 sm:mb-6">
-        <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="latest">{t('community.sortOptions.latest')}</SelectItem>
-            <SelectItem value="popular">{t('community.sortOptions.popular')}</SelectItem>
-            <SelectItem value="views">{t('community.sortOptions.views')}</SelectItem>
-          </SelectContent>
-        </Select>
+        
+        {/* 이전 버튼 */}
+        <Button
+          variant="outline"
+          onClick={() => router.push('/main?tab=community')}
+          className="flex items-center gap-2"
+        >
+          ← 이전
+        </Button>
       </div>
 
       {/* 게시글 목록 */}
@@ -469,7 +499,8 @@ export default function BoardList({ onPostSelect, onWritePost, refreshTrigger, s
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
-                      onPostSelect(post)
+                      // 새로운 페이지로 이동
+                      router.push(`/community/post/${post.id}`)
                     }}
                   >
                     <td className="px-2 py-2 sm:px-4 sm:py-3 text-sm text-gray-500">

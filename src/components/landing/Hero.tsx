@@ -244,29 +244,11 @@ export default function Hero() {
                           </div>
                         </div>
                         
-                        {/* 스토리 카드 */}
-                        <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
-                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
-                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">03</span>
-                          </div>
-                          <div className="text-center">
-                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
-                              {/* 책 아이콘 */}
-                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
-                                <span className="text-gray-800 font-bold text-sm sm:text-base">📖</span>
-                              </div>
-                            </div>
-                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.story.title')}</h3>
-                            <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
-                              {t('heroSlides.slide3.cards.story.description')}
-                            </p>
-                          </div>
-                        </div>
                         
                         {/* 한국성향테스트 카드 */}
                         <div className="bg-white rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 relative h-28 sm:h-32 md:h-36 lg:h-40">
                           <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
-                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">04</span>
+                            <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">03</span>
                           </div>
                           <div className="text-center">
                             <div className="w-12 h-8 sm:w-16 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
@@ -277,7 +259,7 @@ export default function Hero() {
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanTest.title')}</h3>
                             <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
-                              {t('heroSlides.slide3.cards.koreanTest.description')}
+                              오늘의 운세와 나의 성향을 재밌게 알아보세요
                             </p>
                           </div>
                         </div>

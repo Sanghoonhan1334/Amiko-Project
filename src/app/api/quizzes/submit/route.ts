@@ -81,11 +81,11 @@ export async function POST(request: NextRequest) {
     if (quiz.category === 'celebrity' || quiz.category === 'personality') {
       console.log('[QUIZ_SUBMIT] MBTI 퀴즈 감지, MBTI 계산 시작');
       
-      // 선택된 옵션들의 MBTI 축 정보 조회
+      // 선택된 옵션들의 정보 조회 (result_type 기준으로 결과 계산)
       const optionIds = responses.map(r => r.optionId);
       const { data: options, error: optionsError } = await supabase
         .from('quiz_options')
-        .select('id, mbti_axis, axis_weight')
+        .select('id, result_type, mbti_axis, axis_weight')
         .in('id', optionIds);
 
       if (optionsError) {
@@ -99,53 +99,46 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // MBTI 축별 점수 계산
-      const mbtiScores = {
-        E: 0, I: 0,  // 외향성 vs 내향성
-        S: 0, N: 0,  // 감각 vs 직관
-        T: 0, F: 0,  // 사고 vs 감정
-        J: 0, P: 0   // 판단 vs 인식
-      };
-
+      // 결과 타입별 점수 계산 (result_type 기준)
+      const resultCounts: { [key: string]: number } = {};
+      
       options?.forEach(option => {
-        if (option.mbti_axis && option.axis_weight) {
-          const axis = option.mbti_axis;
-          if (axis in mbtiScores) {
-            mbtiScores[axis as keyof typeof mbtiScores] += option.axis_weight;
-          }
+        if (option.result_type) {
+          resultCounts[option.result_type] = (resultCounts[option.result_type] || 0) + 1;
         }
       });
 
-      // MBTI 타입 결정
-      const mbtiType = 
-        (mbtiScores.E > mbtiScores.I ? 'E' : 'I') +
-        (mbtiScores.S > mbtiScores.N ? 'S' : 'N') +
-        (mbtiScores.T > mbtiScores.F ? 'T' : 'F') +
-        (mbtiScores.J > mbtiScores.P ? 'J' : 'P');
+      // 가장 많이 선택된 결과 타입 찾기
+      const sortedResults = Object.entries(resultCounts)
+        .sort(([,a], [,b]) => b - a);
+      
+      const dominantResult = sortedResults[0]?.[0] || 'UNKNOWN';
+      
+      console.log('[QUIZ_SUBMIT] 결과 계산 완료:', { dominantResult, counts: resultCounts });
 
-      console.log('[QUIZ_SUBMIT] MBTI 계산 완료:', { mbtiType, scores: mbtiScores });
-
-      // 해당 MBTI 타입의 연예인 조회
-      const { data: celebrities, error: celebError } = await supabase
-        .from('celeb_profiles')
+      // 해당 결과 타입의 퀴즈 결과 조회
+      const { data: quizResult, error: resultError } = await supabase
+        .from('quiz_results')
         .select('*')
-        .eq('mbti_code', mbtiType)
-        .limit(3);
+        .eq('quiz_id', quizId)
+        .eq('result_type', dominantResult)
+        .single();
 
-      if (celebError) {
-        console.log('[QUIZ_SUBMIT] 연예인 조회 실패:', celebError);
+      if (resultError) {
+        console.log('[QUIZ_SUBMIT] 퀴즈 결과 조회 실패:', resultError);
       }
 
-      // 사용자 응답 저장
+      // 사용자 응답 저장 (각 질문별로 개별 저장)
+      const responseInserts = responses.map(response => ({
+        user_id: user.id,
+        quiz_id: quizId,
+        question_id: response.questionId,
+        option_id: response.optionId
+      }));
+
       const { error: responseError } = await supabase
         .from('user_quiz_responses')
-        .insert({
-          user_id: user.id,
-          quiz_id: quizId,
-          responses: responses,
-          mbti_result: mbtiType,
-          mbti_scores: mbtiScores
-        });
+        .insert(responseInserts);
 
       if (responseError) {
         console.log('[QUIZ_SUBMIT] 응답 저장 실패:', responseError);
@@ -169,9 +162,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: {
-          mbtiType,
-          mbtiScores,
-          celebrities: celebrities || [],
+          resultType: dominantResult,
+          resultCounts,
+          quizResult: quizResult || null,
           quiz: quiz
         }
       });

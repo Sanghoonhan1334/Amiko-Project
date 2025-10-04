@@ -45,9 +45,9 @@ export async function GET(request: NextRequest) {
 
     // 운영자 테이블에서 해당 사용자 확인
     const { data: operator, error: operatorError } = await supabase
-      .from('lounge_operators')
+      .from('admin_users')
       .select('*')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .eq('is_active', true)
       .single()
 
@@ -68,20 +68,20 @@ export async function GET(request: NextRequest) {
 
     // operator 타입을 명시적으로 정의
     const operatorData = operator as {
-      id: string;
+      user_id: string;
       email: string;
-      name: string;
       role: string;
+      permissions: any;
     };
 
     // 운영자 정보 반환
     return NextResponse.json({
       isOperator: true,
       operator: {
-        id: operatorData.id,
+        id: operatorData.user_id,
         email: operatorData.email,
-        name: operatorData.name,
-        role: operatorData.role
+        role: operatorData.role,
+        permissions: operatorData.permissions
       }
     })
 
