@@ -43,6 +43,7 @@ interface Quiz {
   category: string
   thumbnail_url: string | null
   total_questions: number
+  total_participants: number
   is_active: boolean
   created_at: string
   updated_at: string
@@ -725,8 +726,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   const [stories, setStories] = useState<any[]>([])
   const [news, setNews] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [storiesLoading, setStoriesLoading] = useState(false)
+  const [storiesLoading, setStoriesLoading] = useState<boolean | null>(true)
   const [newsLoading, setNewsLoading] = useState(false)
+  const [newsError, setNewsError] = useState<string | null>(null)
+  const [newsData, setNewsData] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
   
   // 좋아요 상태 관리
@@ -807,10 +810,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     }
   }
 
-  // 스토리 로딩 함수
+  // 스토리 로딩 함수 (실제 API 호출)
   const loadStories = async () => {
-    // 이미 로딩 중인 경우 중복 호출 방지
-    if (storiesLoading) {
+    // 이미 로딩 중인 경우 중복 호출 방지 (단, 초기 로딩은 제외)
+    if (storiesLoading === true && stories.length > 0) {
       console.log('스토리 로딩 중복 호출 방지')
       return
     }
@@ -821,8 +824,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       loadStoriesAbortControllerRef.current.abort()
     }
     
-    console.log('loadStories 호출됨')
-    setStoriesLoading(true)
+    console.log('loadStories 호출됨 - 실제 API 호출')
+    
+    // 스켈레톤을 보여주기 위한 최소 지연 시간
+    await new Promise(resolve => setTimeout(resolve, 1500))
     
     // 타임아웃 설정으로 무한 대기 방지
     const controller = new AbortController()
@@ -830,7 +835,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     const timeoutId = setTimeout(() => {
       console.log('스토리 로딩 타임아웃')
       controller.abort()
-    }, 10000) // 10초 타임아웃으로 단축
+    }, 30000) // 30초 타임아웃
     
     try {
       // 토큰이 없어도 공개 스토리는 조회 가능하도록 수정
@@ -843,7 +848,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }
       
       const baseUrl = window.location.origin
-      const response = await fetch(`${baseUrl}/api/stories?isPublic=true&limit=10`, {
+      console.log('스토리 API 호출:', `${baseUrl}/api/stories?isPublic=true&limit=20`)
+      
+      const response = await fetch(`${baseUrl}/api/stories?isPublic=true&limit=20`, {
         method: 'GET',
         headers,
         signal: controller.signal
@@ -920,6 +927,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         loadStoriesAbortControllerRef.current = null
       }
       setStoriesLoading(false)
+      console.log('스토리 로딩 상태를 false로 설정')
     }
   }
 
@@ -984,11 +992,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       loadQuestions()
     }
     
-    // 스토리 로딩 시도 (에러가 발생해도 앱이 중단되지 않도록)
+    // 스토리 로딩 시도 (커뮤니티 홈에서 항상 표시되므로 항상 로딩)
+    console.log('커뮤니티 홈 로딩, 스토리 로딩 시작')
     loadStories().catch((error) => {
       console.error('스토리 로딩 중 예외 발생:', error)
       // 에러가 발생해도 빈 배열로 설정하여 앱이 정상 작동하도록 함
       setStories([])
+      setStoriesLoading(false) // 에러 시에도 로딩 상태 해제
     })
   }, [user, token, activeTab])
 
@@ -2015,24 +2025,30 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6" style={{ paddingBottom: window.innerWidth < 768 ? '72px' : '0px' }}>
+      {/* 테스트 요소 - 컴포넌트가 렌더링되는지 확인 */}
       {/* 메인 컨텐츠 */}
       <div className="w-full space-y-6">
 
 
 
-      {/* 오늘의 스토리 섹션 - 홈에서만 표시 */}
-      {currentView === 'home' && (
-      <div className="mt-0 mb-6 w-full overflow-hidden" style={{ width: '100vw', marginRight: 'calc(-50vw + 50%)' }}>
-        <div className="flex items-center justify-between mb-4 flex-wrap px-4">
-          <div className="flex items-center gap-2">
+      {/* 모바일 전용 커뮤니티 제목 - 제거됨 */}
+      {/* <div className="md:hidden mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">커뮤니티</h1>
+      </div> */}
+
+      {/* 오늘의 스토리 섹션 */}
+      
+      <div className="mt-0 mb-6 w-full overflow-x-visible pt-16 md:pt-0 -mx-2 md:-mx-6 px-2 md:px-6">
+        <div className="flex items-center justify-between mb-4 px-4">
+          <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
             <span className="text-white text-xs">📸</span>
           </div>
           <h2 className="text-lg font-bold text-gray-800 font-['Inter']">{t('communityTab.story')}</h2>
           </div>
           <Button 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap flex-shrink-0"
             onClick={async () => {
               console.log('헤더 스토리 올리기 버튼 클릭됨')
               
@@ -2072,19 +2088,16 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </div>
         
         {/* 인스타그램 감성 카드 스타일 스토리 */}
-        <div className="w-full relative overflow-hidden" style={{ maxWidth: '100%' }}>
-          {storiesLoading ? (
+        <div className="w-full relative overflow-x-visible">
+          {storiesLoading !== false ? (
             /* 스토리 로딩 중 - 스켈레톤 */
             <div className="flex gap-3 pb-4 overflow-x-auto">
-              {[...Array(3)].map((_, index) => (
+              {[...Array(8)].map((_, index) => (
                 <div 
                   key={index}
                   className="relative overflow-hidden flex-shrink-0 animate-pulse" 
+                  className="w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
                   style={{ 
-                    width: 'calc(20vw - 0.5rem)',
-                    height: 'calc(max(min(20vw * 1.6, 320px), 240px))',
-                    minWidth: '140px',
-                    maxWidth: '180px',
                     scrollSnapAlign: 'start'
                   }}
                 >
@@ -2126,17 +2139,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               
               <div 
                 ref={storyContainerRef}
-                className={`overflow-x-auto scrollbar-hide scroll-smooth scroll-snap-x ${
+                className={`overflow-x-auto scrollbar-hide scroll-smooth scroll-snap-x w-[calc(100vw+200px)] relative left-[-20px] md:w-[calc(100%+200px)] md:left-[-160px] md:pl-[160px] md:pr-[120px] pl-4 pr-4 ${
                   isDragging ? 'cursor-grabbing' : 'cursor-grab'
                 } md:cursor-default`}
                 style={{ 
                   WebkitOverflowScrolling: 'touch',
                   scrollSnapType: 'x mandatory',
-                  width: '100vw',
-                  maxWidth: '100%',
-                  marginLeft: 'calc(-50vw + 50%)',
-                  marginRight: 'calc(-50vw + 50%)',
-                  paddingRight: '60px',
                   msOverflowStyle: 'none',
                   scrollbarWidth: 'none'
                 }}
@@ -2159,18 +2167,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 }}
                 onScroll={handleStoryScroll}
               >
-                <div className="flex gap-3 pb-4 overflow-x-auto story-container" style={{ paddingRight: 'calc(50vw - 50%)' }}>
+                <div className="flex gap-3 pb-4 overflow-x-auto story-container" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
                 {stories.map((story, index) => (
                   <div 
                     key={story.id} 
                     className="relative overflow-hidden flex-shrink-0 cursor-pointer group" 
+                    className="w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
                     style={{ 
-                      width: 'calc(100vw / 6)',
-                      height: 'calc(100vw / 6 * 1.6)',
-                      minWidth: '140px',
-                      maxWidth: '200px',
-                      minHeight: '240px',
-                      maxHeight: '320px',
                       scrollSnapAlign: 'start'
                     }}
                   >
@@ -2191,9 +2194,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                           <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 p-0.5">
                             <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
                               <div className="w-7 h-7 rounded-full overflow-hidden bg-gray-100">
-                                {story.image_url ? (
+                                {story.user?.profile_image_url ? (
                                   <img 
-                                    src={story.image_url} 
+                                    src={story.user.profile_image_url} 
                                     alt="프로필" 
                                     className="w-full h-full object-cover"
                                   />
@@ -2354,27 +2357,16 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">📸</span>
-                </div>
-                <p className="text-lg font-medium">{t('communityTab.noStories')}</p>
-                <p className="text-sm text-gray-400">{t('communityTab.uploadFirstStory')}</p>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
-      )}
 
       {/* 커뮤니티 홈 메뉴 - 큰 버튼 4개 */}
       {currentView === 'home' && (
         <div className="grid grid-cols-2 gap-4 mb-6">
           <button
             onClick={() => router.push('/community/freeboard')}
-            className="bg-gradient-to-br from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border-2 border-pink-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
+            className="bg-gradient-to-br from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border-2 border-pink-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
           >
             <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -2387,7 +2379,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
           <button
             onClick={() => router.push('/community/news')}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
+            className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
           >
             <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -2400,7 +2392,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
           <button
             onClick={() => router.push('/community/qa')}
-            className="bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-2 border-purple-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
+            className="bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-2 border-purple-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
           >
             <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -2413,7 +2405,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
           <button
             onClick={() => router.push('/community/tests')}
-            className="bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg group"
+            className="bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
           >
             <div className="flex flex-col items-center justify-end h-full gap-3">
               <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -3921,10 +3913,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                         title: '🎯 간단 MBTI 테스트',
                         description: '당신의 성격 유형을 간단히 알아보세요',
                         category: 'personality',
+                        thumbnail_url: null,
                         total_questions: 4,
                         total_participants: 0,
                         is_active: true,
-                        created_at: new Date().toISOString()
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
                       };
                       
                       // 기존 퀴즈 목록에 추가

@@ -121,11 +121,11 @@ export default function PostDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
-      <div className="max-w-4xl mx-auto px-4 pt-24 pb-6">
+      <div className="max-w-4xl mx-auto px-0 pt-16 pb-20 md:px-4 md:pt-24 md:pb-6">
         {/* 뒤로가기 버튼 */}
         <div className="mb-6">
           <Button

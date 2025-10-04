@@ -1,181 +1,149 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
+import { 
+  MessageSquare, 
+  ThumbsUp, 
+  Eye, 
+  Calendar, 
+  User, 
+  Search,
+  Plus,
+  Filter,
+  ChevronDown,
+  Clock,
+  TrendingUp,
+  Star
+} from 'lucide-react'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 
 interface Post {
   id: string
   title: string
-  title_es?: string
-  author: string
-  date: string
+  content: string
+  category_id: string
+  category_name: string
+  author_name: string
+  created_at: string
   views: number
   likes: number
-  comments: number
-  category: string
-  isHot?: boolean
-  isNotice?: boolean
+  comments_count: number
+  is_pinned?: boolean
+  is_hot?: boolean
 }
 
-interface BoardListProps {
-  onPostSelect: (post: Post) => void
-  onWritePost?: () => void
-  refreshTrigger?: number // 새로고침 트리거
-  showHeader?: boolean // 헤더 표시 여부
+interface Category {
+  id: string
+  name: string
+  icon: string
 }
 
-// FreeBoardList.tsx - 자유게시판 게시글 목록 (currentView === 'freeboard')
-export default function FreeBoardList({ onPostSelect, onWritePost, refreshTrigger, showHeader = true }: BoardListProps) {
-  const { t, language } = useLanguage()
-  const { user } = useAuth()
+interface FreeBoardListProps {
+  showHeader?: boolean
+}
+
+const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true }) => {
+  const { user, token, isAdmin } = useAuth()
+  const { language, t } = useLanguage()
   const router = useRouter()
   
-  console.log('FreeBoardList 렌더링:', { showHeader })
-  
   const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('latest')
-  const [showSpanish, setShowSpanish] = useState(false) // 번역 상태
-  const [isTranslating, setIsTranslating] = useState(false) // 번역 중 상태
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [showAuthDialog, setShowAuthDialog] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [hasMobileNavigation, setHasMobileNavigation] = useState(false)
 
-  // 운영자 권한 확인
-  const checkAdminStatus = () => {
-    if (!user) {
-      setIsAdmin(false)
-      return
-    }
-    
-    // 운영자 이메일 목록
-    const adminEmails = [
-      'admin@amiko.com',
-      'editor@amiko.com',
-      'manager@amiko.com'
-    ]
-    
-    // 운영자 ID 목록
-    const adminIds = [
-      '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
-    ]
-    
-    const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
-    setIsAdmin(isAdminUser)
-  }
-
-  useEffect(() => {
-    checkAdminStatus()
-  }, [user])
-
-  // refreshTrigger가 변경될 때 게시글 목록 새로고침
-  useEffect(() => {
-    if (refreshTrigger !== undefined) {
-      fetchPosts()
-    }
-  }, [refreshTrigger])
-
-  // 카테고리 옵션
-  const categories = [
-    { id: 'all', name: t('community.categories.all'), icon: '📝' },
-    { id: 'free', name: t('community.categories.free'), icon: '💬' },
-    { id: 'kpop', name: t('community.categories.kpop'), icon: '🎵' },
-    { id: 'kdrama', name: t('community.categories.kdrama'), icon: '📺' },
-    { id: 'beauty', name: t('community.categories.beauty'), icon: '💄' },
-    { id: 'korean', name: t('community.categories.korean'), icon: '🇰🇷' },
-    { id: 'spanish', name: t('community.categories.spanish'), icon: '🇪🇸' }
+  const categories: Category[] = [
+    { id: 'all', name: '전체', icon: '📝' },
+    { id: 'general', name: '자유게시판', icon: '💬' },
+    { id: 'question', name: '질문게시판', icon: '❓' },
+    { id: 'review', name: '후기게시판', icon: '⭐' },
+    { id: 'notice', name: '공지사항', icon: '📢' }
   ]
 
-  // 실제 게시글 API 호출 함수
-  const fetchPosts = async () => {
+  // 모바일 네비게이션 감지
+  useEffect(() => {
+    const checkMobileNavigation = () => {
+      setHasMobileNavigation(window.innerWidth < 768)
+    }
+    
+    checkMobileNavigation()
+    window.addEventListener('resize', checkMobileNavigation)
+    
+    return () => window.removeEventListener('resize', checkMobileNavigation)
+  }, [])
+
+  // 게시글 로딩
+  const loadPosts = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      setError(null)
-      
       console.log('게시글 API 호출 시작...')
       
-      // 타임아웃 설정으로 무한 대기 방지
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15초 타임아웃
-      
       const response = await fetch('/api/posts', {
-        signal: controller.signal
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       })
-      
-      clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error('API 오류 응답:', errorData)
-        throw new Error(errorData.error || `HTTP ${response.status}: 게시글을 불러오는데 실패했습니다`)
-      }
-      
+
       const data = await response.json()
       console.log('API 응답 데이터:', data)
-      
-      // API 응답을 컴포넌트가 기대하는 형태로 변환
-      const transformedPosts = (data.posts || []).map((post: any) => ({
-        id: post.id,
-        title: post.title,
-        title_es: post.title_es,
-        author: post.author?.full_name || post.author || 'Unknown',
-        date: post.created_at ? new Date(post.created_at).toLocaleDateString('ko-KR') : 'Unknown',
-        views: post.view_count || 0,
-        likes: post.like_count || 0,
-        comments: post.comment_count || 0,
-        category: post.category || '자유게시판',
-        isHot: post.is_hot || false,
-        isNotice: post.is_notice || false
-      }))
-      
-      console.log('변환된 게시글 데이터:', {
-        success: data.success,
-        postsCount: transformedPosts.length,
-        posts: transformedPosts.map(p => ({
-          id: p.id,
-          title: p.title,
-          author: p.author,
-          date: p.date,
-          views: p.views,
-          likes: p.likes
+
+      if (data.success) {
+        const transformedPosts = data.posts.map((post: any) => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          category_id: post.category_id || 'general',
+          category_name: post.category_name || '자유게시판',
+          author_name: post.author_name || '익명',
+          created_at: post.created_at,
+          views: post.views || 0,
+          likes: post.likes || 0,
+          comments_count: post.comments_count || 0,
+          is_pinned: post.is_pinned || false,
+          is_hot: post.likes > 10
         }))
-      })
-      
-      setPosts(transformedPosts)
-      
-    } catch (err) {
-      console.error('게시글 로드 오류:', err)
-      
-      // AbortError인 경우 타임아웃으로 처리
-      if (err instanceof Error && err.name === 'AbortError') {
-        console.log('게시글 로딩 타임아웃, 빈 배열 사용')
-        setError('요청 시간이 초과되었습니다. 다시 시도해주세요.')
+        
+        console.log('변환된 게시글 데이터:', { success: true, postsCount: transformedPosts.length, posts: transformedPosts })
+        setPosts(transformedPosts)
       } else {
-        setError(err instanceof Error ? err.message : '게시글을 불러오는데 실패했습니다')
+        console.error('게시글 로딩 실패:', data.error)
+        toast.error(data.error || '게시글을 불러오는데 실패했습니다.')
       }
-      
-      setPosts([]) // 오류 시 빈 배열
+    } catch (error) {
+      console.error('게시글 로딩 오류:', error)
+      toast.error('게시글을 불러오는데 실패했습니다.')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchPosts()
-  }, [selectedCategory, sortBy, currentPage])
+    loadPosts()
+  }, [currentPage, sortBy, selectedCategory])
 
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId)
-    return category ? category.name : categoryId
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) return '방금 전'
+    if (diffInHours < 24) return `${diffInHours}시간 전`
+    if (diffInHours < 48) return '어제'
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
   }
 
   const getCategoryIcon = (categoryId: string) => {
@@ -195,405 +163,309 @@ export default function FreeBoardList({ onPostSelect, onWritePost, refreshTrigge
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* 헤더 - showHeader가 true일 때만 표시 */}
-      {showHeader && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-                {t('community.freeBoard')}
-              </h2>
-              <p className="text-xs sm:text-base text-gray-600 hidden sm:block">
-                {t('community.freeBoardDescription')}
-              </p>
+      {/* 웹 형태일 때 섹션 카드 래퍼 */}
+      <div className="hidden md:block">
+        <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
+          <div className="space-y-4 sm:space-y-6">
+            {/* 페이지 제목 */}
+            <div className="text-center py-4 border-b border-gray-200">
+              <h1 className="text-2xl font-bold text-gray-800">주제별 게시판</h1>
+            </div>
+
+            {/* 헤더 - showHeader가 true일 때만 표시 */}
+            {showHeader && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Filter className="w-5 h-5 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">카테고리</span>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          <span className="flex items-center gap-2">
+                            <span>{category.icon}</span>
+                            <span>{category.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="latest">최신순</SelectItem>
+                      <SelectItem value="popular">인기순</SelectItem>
+                      <SelectItem value="views">조회순</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        if (!user && !token) {
+                          setShowAuthDialog(true)
+                          return
+                        }
+                        
+                        const { data: { user: currentUser } } = await supabase.auth.getUser()
+                        if (!currentUser) {
+                          setShowAuthDialog(true)
+                          return
+                        }
+                        
+                        router.push('/community/post/create')
+                      } catch (error) {
+                        console.error('인증 상태 확인 오류:', error)
+                        setShowAuthDialog(true)
+                      }
+                    }} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    {t('community.writePost')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* 게시글 목록 */}
+            {loading ? (
+              <div className="p-8 text-center">
+                <div className="inline-flex items-center gap-2 text-blue-600">
+                  <span className="animate-spin">📝</span>
+                  <span>{language === 'ko' ? '게시글을 불러오는 중...' : 'Loading posts...'}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {posts.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageSquare className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {language === 'ko' ? '게시글이 없습니다' : 'No posts yet'}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      {language === 'ko' ? '첫 번째 게시글을 작성해보세요!' : 'Be the first to write a post!'}
+                    </p>
+                    <Button 
+                      onClick={() => router.push('/community/post/create')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      {language === 'ko' ? '게시글 작성' : 'Write Post'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">번호</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">말머리</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">글쓴이</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작성일</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">조회</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">추천</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {posts.map((post, index) => (
+                          <tr key={post.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/community/post/${post.id}`)}>
+                            <td className="px-4 py-3 text-sm text-gray-500">{posts.length - index}</td>
+                            <td className="px-4 py-3 text-sm">
+                              <Badge variant="secondary" className="text-xs">
+                                {getCategoryIcon(post.category_id)} {post.category_name}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                              <div className="flex items-center gap-2">
+                                {post.is_pinned && <Star className="w-4 h-4 text-yellow-500" />}
+                                {post.is_hot && <TrendingUp className="w-4 h-4 text-red-500" />}
+                                <span className="truncate max-w-xs">{post.title}</span>
+                                {post.comments_count > 0 && (
+                                  <span className="text-blue-600 text-xs">[{post.comments_count}]</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{post.author_name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{formatDate(post.created_at)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{formatNumber(post.views)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{formatNumber(post.likes)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 페이지네이션 */}
+            <div className="flex items-center justify-center gap-2">
+              <Button variant="outline" size="sm" disabled={currentPage === 1}>
+                {language === 'ko' ? '이전' : 'Prev'}
+              </Button>
+              
+              {[1, 2, 3, 4, 5].map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Button>
+              ))}
+              
+              <Button variant="outline" size="sm" disabled={currentPage === 5}>
+                {language === 'ko' ? '다음' : 'Next'}
+              </Button>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* 번역 버튼 */}
-            <Button 
-              variant={showSpanish ? "default" : "outline"} 
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (!isTranslating) {
-                  setIsTranslating(true)
-                  setTimeout(() => {
-                    setShowSpanish(!showSpanish)
-                    setIsTranslating(false)
-                  }, 1000)
-                }
-              }}
-              disabled={isTranslating}
-              className="flex items-center gap-2"
-            >
-              <span className="text-sm">
-                {isTranslating ? '⏳' : '🌐'}
-              </span>
-              <span>
-                {isTranslating ? (language === 'ko' ? '번역중...' : 'Translating...') : (showSpanish ? 'ES' : 'KO')}
-              </span>
-            </Button>
-            
-            <Button onClick={async (e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              
-              // 로그인 체크
-              if (!user) {
-                setShowAuthDialog(true)
-                return
-              }
-              
-              // 운영자는 인증 없이 바로 글쓰기 가능
-              if (isAdmin) {
-                onWritePost?.()
-                return
-              }
-              
-              // 인증 상태 확인 (헤더와 동일한 로직 사용)
-              try {
-                const response = await fetch(`/api/auth/status?userId=${user.id}`)
-                if (response.ok) {
-                  const data = await response.json()
-                  console.log('게시글 작성 인증 상태 확인:', data)
-                  
-                  // 헤더와 동일한 조건: emailVerified 또는 smsVerified가 true인 경우
-                  if (data.success && (data.emailVerified || data.smsVerified)) {
-                    console.log('인증 완료 - 글쓰기 모달 표시')
-                    onWritePost?.()
-                  } else {
-                    // 인증 안 된 경우 인증 다이얼로그 표시
-                    console.log('인증 필요 - 인증 다이얼로그 표시')
-                    setShowAuthDialog(true)
-                  }
-                } else {
-                  // API 오류 시 안전하게 인증 다이얼로그 표시
-                  console.log('API 오류 - 인증 다이얼로그 표시')
-                  setShowAuthDialog(true)
-                }
-              } catch (error) {
-                console.error('인증 상태 확인 오류:', error)
-                setShowAuthDialog(true)
-              }
-            }} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {t('community.writePost')}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* 필터 및 글쓰기 버튼 - 한 줄로 배치 */}
-      <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
-        <div className="flex items-center gap-3">
-          {/* 전체글 드롭다운 */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-32"
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.icon} {t(`community.categories.${category.id}`)}
-              </option>
-            ))}
-          </select>
-          
-          {/* 최신순 드롭다운 */}
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="latest">{t('community.sortOptions.latest')}</SelectItem>
-              <SelectItem value="popular">{t('community.sortOptions.popular')}</SelectItem>
-              <SelectItem value="views">{t('community.sortOptions.views')}</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {/* 글쓰기 버튼 */}
-          <Button 
-            onClick={async (e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              
-              // 로그인 체크
-              if (!user) {
-                setShowAuthDialog(true)
-                return
-              }
-              
-              // 운영자는 인증 없이 바로 글쓰기 가능
-              if (isAdmin) {
-                onWritePost?.()
-                return
-              }
-              
-              // 인증 상태 확인 (헤더와 동일한 로직 사용)
-              try {
-                const response = await fetch(`/api/auth/status?userId=${user.id}`)
-                if (response.ok) {
-                  const data = await response.json()
-                  console.log('게시글 작성 인증 상태 확인:', data)
-                  
-                  // 헤더와 동일한 조건: emailVerified 또는 smsVerified가 true인 경우
-                  if (data.success && (data.emailVerified || data.smsVerified)) {
-                    console.log('인증 완료 - 글쓰기 모달 표시')
-                    onWritePost?.()
-                  } else {
-                    // 인증 안 된 경우 인증 다이얼로그 표시
-                    console.log('인증 필요 - 인증 다이얼로그 표시')
-                    setShowAuthDialog(true)
-                  }
-                } else {
-                  // API 오류 시 안전하게 인증 다이얼로그 표시
-                  console.log('API 오류 - 인증 다이얼로그 표시')
-                  setShowAuthDialog(true)
-                }
-              } catch (error) {
-                console.error('인증 상태 확인 오류:', error)
-                setShowAuthDialog(true)
-              }
-            }} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
-          >
-            {t('community.writePost')}
-          </Button>
-        </div>
-        
-        {/* 이전 버튼 */}
-        <Button
-          variant="outline"
-          onClick={() => router.push('/main?tab=community')}
-          className="flex items-center gap-2"
-        >
-          ← 이전
-        </Button>
+        </Card>
       </div>
 
-      {/* 게시글 목록 */}
-      <Card className="overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center">
-            <div className="inline-flex items-center gap-2 text-blue-600">
-              <span className="animate-spin">📝</span>
-              <span>{language === 'ko' ? '게시글을 불러오는 중...' : 'Loading posts...'}</span>
-            </div>
+      {/* 모바일: DC인사이드 스타일 */}
+      <div className="md:hidden bg-white min-h-screen">
+        {/* 검색바 */}
+        <div className="bg-gray-100 py-2">
+          <div className="flex items-center bg-white px-4 py-2 mx-0">
+            <input
+              type="text"
+              placeholder="갤러리 & 통합검색"
+              className="flex-1 text-sm outline-none"
+            />
+            <span className="text-gray-400">🔍</span>
           </div>
-        ) : error ? (
-          <div className="p-8 text-center text-red-500">
-            <span className="text-2xl">⚠️</span>
-            <p className="mt-2">{error}</p>
+        </div>
+
+        {/* 섹션 타이틀 */}
+        <div className="bg-white py-2 border-b border-gray-200">
+          <div className="flex items-center justify-between px-4">
+            <h1 className="text-lg font-medium text-gray-900">주제별 게시판</h1>
+            <span className="text-gray-400">▼</span>
           </div>
-        ) : isTranslating ? (
-          // 번역 중 스켈레톤 로딩
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '번호' : 'No'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '말머리' : 'Category'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '제목' : 'Title'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '글쓴이' : 'Author'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '작성일' : 'Date'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '조회' : 'Views'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '추천' : 'Likes'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {[1, 2, 3, 4, 5].map((index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="h-4 bg-gray-200 rounded w-8"></div>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="h-6 bg-gray-200 rounded w-16"></div>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="h-4 bg-gray-200 rounded w-48"></div>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="h-4 bg-gray-200 rounded w-16"></div>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="h-4 bg-gray-200 rounded w-12"></div>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="h-4 bg-gray-200 rounded w-12"></div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="text-center py-4">
-              <div className="inline-flex items-center gap-2 text-purple-600">
-                <span className="animate-spin">⏳</span>
-                <span>{language === 'ko' ? '번역 중...' : 'Translating...'}</span>
+        </div>
+
+        {/* 카테고리 필터 */}
+        <div className="bg-white py-2 border-b border-gray-200">
+          <div className="flex gap-2 overflow-x-auto pb-1 px-4">
+            <button className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm whitespace-nowrap">
+              추천
+            </button>
+            <button className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm whitespace-nowrap">
+              전체글
+            </button>
+            <button className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm whitespace-nowrap">
+              인기글
+            </button>
+            <button className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm whitespace-nowrap">
+              최신글
+            </button>
+          </div>
+        </div>
+
+        {/* 게시글 목록 */}
+        <div className="bg-white">
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="inline-flex items-center gap-2 text-blue-600">
+                <span className="animate-spin">📝</span>
+                <span>{language === 'ko' ? '게시글을 불러오는 중...' : 'Loading posts...'}</span>
               </div>
             </div>
-          </div>
-        ) : posts.length === 0 ? (
-          // 게시글이 없을 때
-          <div className="p-8 text-center">
-            <div className="text-gray-500">
-              <span className="text-4xl">📝</span>
-              <p className="mt-2 text-lg">
-                {t('community.noPosts')}
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {language === 'ko' ? '게시글이 없습니다' : 'No posts yet'}
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {language === 'ko' ? '첫 번째 게시글을 작성해보세요!' : 'Be the first to write a post!'}
               </p>
-              <p className="text-sm mt-1">
-                {t('community.beFirstToWrite')}
-              </p>
+              <Button 
+                onClick={() => router.push('/community/post/create')}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                {language === 'ko' ? '게시글 작성' : 'Write Post'}
+              </Button>
             </div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '번호' : 'No'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '말머리' : 'Category'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '제목' : 'Title'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '글쓴이' : 'Author'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '작성일' : 'Date'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '조회' : 'Views'}
-                  </th>
-                  <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {language === 'ko' ? '추천' : 'Likes'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {posts.map((post, index) => (
-                  <tr 
-                    key={post.id}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      // 새로운 페이지로 이동
-                      router.push(`/community/post/${post.id}`)
-                    }}
-                  >
-                    <td className="px-2 py-2 sm:px-4 sm:py-3 text-sm text-gray-500">
-                      {index + 1}
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-xs ${
-                          post.isHot ? 'bg-red-100 text-red-700' : 
-                          post.isNotice ? 'bg-blue-100 text-blue-700' : 
-                          'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        <span className="mr-1">{getCategoryIcon(post.category)}</span>
-                        {getCategoryName(post.category)}
-                      </Badge>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900 hover:text-blue-600">
-                          {showSpanish && post.title_es ? post.title_es : post.title}
-                        </span>
-                        {post.isHot && (
-                          <Badge variant="destructive" className="text-xs">
-                            🔥 HOT
-                          </Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {post.author}
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3 text-sm text-gray-500">
-                      {post.date}
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3 text-sm text-gray-500">
-                      {formatNumber(post.views)}
-                    </td>
-                    <td className="px-2 py-2 sm:px-4 sm:py-3 text-sm text-gray-500">
-                      {formatNumber(post.likes)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      {/* 페이지네이션 */}
-      <div className="flex items-center justify-center gap-2">
-        <Button variant="outline" size="sm" disabled={currentPage === 1}>
-          {language === 'ko' ? '이전' : 'Prev'}
-        </Button>
-        
-        {[1, 2, 3, 4, 5].map((page) => (
-          <Button
-            key={page}
-            variant={currentPage === page ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setCurrentPage(page)}
-          >
-            {page}
-          </Button>
-        ))}
-        
-        <Button variant="outline" size="sm">
-          {language === 'ko' ? '다음' : 'Next'}
-        </Button>
-      </div>
-
-      {/* 검색 바 */}
-      <div className="flex items-center gap-2">
-        <select className="px-3 py-2 border border-gray-300 rounded-md text-sm">
-          <option>{language === 'ko' ? '제목+내용' : 'Title+Content'}</option>
-          <option>{language === 'ko' ? '제목' : 'Title'}</option>
-          <option>{language === 'ko' ? '작성자' : 'Author'}</option>
-        </select>
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            placeholder={language === 'ko' ? '게시글 검색' : 'Search Posts'}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            style={{ paddingLeft: '3rem' }}
-          />
-          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-            💬
-          </span>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {posts.map((post, index) => (
+                <div 
+                  key={post.id} 
+                  className="py-4 cursor-pointer hover:bg-gray-50 px-4"
+                  onClick={() => router.push(`/community/post/${post.id}`)}
+                >
+                  <div className="space-y-2">
+                    {/* 제목 */}
+                    <h3 className="text-base font-medium text-gray-900 line-clamp-2">
+                      {post.title}
+                    </h3>
+                    
+                    {/* 카테고리와 날짜 */}
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <span>{getCategoryIcon(post.category_id)}</span>
+                        <span>{post.category_name}</span>
+                      </span>
+                      <span>{formatDate(post.created_at)}</span>
+                    </div>
+                    
+                    {/* 통계 */}
+                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        <span>{formatNumber(post.views)}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <ThumbsUp className="w-3 h-3" />
+                        <span>{formatNumber(post.likes)}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="w-3 h-3" />
+                        <span>{formatNumber(post.comments_count)}</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <Button variant="outline" size="sm">
-          🔍
-        </Button>
+
+        {/* 하단 네비게이션 */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 md:hidden">
+          <div className="flex items-center justify-around">
+            <Button variant="ghost" size="sm" className="flex flex-col items-center gap-1">
+              <span className="text-lg">📹</span>
+              <span className="text-xs">화상채팅</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex flex-col items-center gap-1">
+              <span className="text-lg">💬</span>
+              <span className="text-xs">커뮤니티</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex flex-col items-center gap-1">
+              <span className="text-lg">⚡</span>
+              <span className="text-xs">충전소</span>
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* 인증 확인 다이얼로그 */}
@@ -608,3 +480,5 @@ export default function FreeBoardList({ onPostSelect, onWritePost, refreshTrigge
     </div>
   )
 }
+
+export default FreeBoardList

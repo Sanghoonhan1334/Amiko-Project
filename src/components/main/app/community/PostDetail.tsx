@@ -198,9 +198,9 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   const canManage = isAuthor || isAdmin // 작성자이거나 운영자
 
   return (
-    <div className="space-y-6">
+    <Card className="bg-white shadow-lg border border-gray-200 rounded-xl overflow-hidden">
       {/* 게시물 상세 */}
-      <Card className="p-6">
+      <div className="p-4 md:p-6">
         {/* 게시물 헤더 */}
         <div className="flex items-start justify-between mb-6">
           <div>
@@ -327,16 +327,18 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
             )}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* 댓글 섹션 */}
-      <CommentSection 
-        postId={post.id} 
-        onCommentCountChange={(count) => {
-          // 댓글 수가 변경되면 게시물 정보 업데이트
-          setPost(prev => prev ? { ...prev, comment_count: count } : null)
-        }}
-      />
-    </div>
+      <div className="border-t border-gray-200">
+        <CommentSection 
+          postId={post.id} 
+          onCommentCountChange={(count) => {
+            // 댓글 수가 변경되면 게시물 정보 업데이트
+            setPost(prev => prev ? { ...prev, comment_count: count } : null)
+          }}
+        />
+      </div>
+    </Card>
   )
 }

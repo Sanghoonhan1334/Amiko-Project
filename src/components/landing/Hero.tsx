@@ -149,35 +149,6 @@ export default function Hero() {
                       </div>
                     </div>
 
-                    {/* 하단: 검증된 튜터 카드 */}
-                    <div className="mt-4 md:mt-6 flex justify-center">
-                      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 relative text-center w-full max-w-[740px]">
-                        {/* 메인 제목 */}
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight font-['Pretendard'] mb-4">
-                          {t('heroSlides.slide2.subtitle').split('\n').map((line, index) => (
-                            <span key={index}>
-                              {line}
-                              {index === 0 && <br />}
-                            </span>
-                          ))}
-                        </h2>
-                        
-                        {/* 질문 텍스트 */}
-                        <div className="space-y-2 text-sm sm:text-base text-gray-700 leading-relaxed">
-                          <p>
-                            {t('heroSlides.slide2.experience1').split('\n').map((line, index) => (
-                              <span key={index}>
-                                {line}
-                                {index < t('heroSlides.slide2.experience1').split('\n').length - 1 && <br />}
-                              </span>
-                            ))}
-                          </p>
-                          <p>
-                            {t('heroSlides.slide2.experience2')}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

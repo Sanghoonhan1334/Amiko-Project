@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { ArrowLeft, Plus, MessageSquare, ThumbsUp, User, Clock, Eye } from 'lucide-react'
 import Header from '@/components/layout/Header'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
@@ -316,7 +317,7 @@ export default function QAPage() {
   }, [user, token, loadQuestions])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
@@ -684,6 +685,9 @@ export default function QAPage() {
           </div>
         </DrawerContent>
       </Drawer>
+      
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }

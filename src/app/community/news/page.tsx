@@ -13,7 +13,8 @@ import { ArrowLeft, Plus, Eye, MessageCircle, ThumbsUp, ThumbsDown, Edit, Pin, P
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import Header from '@/components/layout/Header'
-import { toast } from 'react-hot-toast'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
+import { toast } from 'sonner'
 
 // 운영자 권한 체크 함수를 컴포넌트 내부로 이동
 const checkOperatorStatus = async (user: any, token: string | null): Promise<boolean> => {
@@ -385,11 +386,11 @@ export default function NewsPage() {
           title_es: newsWriteForm.title, // 한국어 제목을 스페인어 제목으로도 사용
           content: newsWriteForm.content,
           content_es: newsWriteForm.content, // 한국어 내용을 스페인어 내용으로도 사용
-          source: newsWriteForm.source,
+          source: newsWriteForm.source.trim() || null, // source가 비어있으면 null
           author: newsWriteForm.author,
           date: newsWriteForm.date,
           category: 'entertainment', // 기본 카테고리 설정
-          thumbnail: selectedThumbnail || null, // 썸네일이 선택되지 않으면 null
+          thumbnail: selectedThumbnail && selectedThumbnail.trim() ? selectedThumbnail : null, // 빈 문자열이면 null
         })
       })
 
@@ -498,7 +499,7 @@ export default function NewsPage() {
 
   if (showNewsDetail && selectedNews) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         {/* 기존 Header 컴포넌트 사용 */}
         <Header />
         
@@ -522,7 +523,7 @@ export default function NewsPage() {
 
         {/* 뉴스 상세 내용 */}
         <div className="max-w-6xl mx-auto px-2 pt-4 pb-8">
-          <Card className="p-8">
+          <Card className="p-8 bg-white shadow-lg border border-gray-200 rounded-xl">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-800 mb-4">{selectedNews.title}</h1>
               <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
@@ -576,12 +577,12 @@ export default function NewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
-      {/* 페이지별 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 pt-40">
+      {/* 페이지별 헤더 - 모바일용 */}
+      <div className="bg-white border-b border-gray-200 px-4 py-4 pt-40 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-bold text-gray-800">K-매거진</h1>
@@ -621,119 +622,348 @@ export default function NewsPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 pt-4 pb-6">
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">뉴스를 불러오는 중...</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* 뉴스 목록 */}
-            <div className="grid gap-6">
-              {news.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <div className="text-gray-400 text-6xl mb-4">📰</div>
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">아직 뉴스가 없습니다</h3>
-                  <p className="text-gray-500">첫 번째 뉴스를 작성해보세요!</p>
-                </Card>
+      <div className="max-w-6xl mx-auto px-4 pt-24 pb-6">
+        {/* 웹 형태일 때 섹션 카드 래퍼 */}
+        <div className="hidden md:block">
+          <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
+            <div className="space-y-6">
+              {/* 페이지 제목과 버튼들 */}
+              <div className="flex items-center justify-between py-4 border-b border-gray-200">
+                <h1 className="text-2xl font-bold text-gray-800">K-매거진</h1>
+                
+                <div className="flex items-center gap-4">
+                  {/* 사용자 정보 표시 */}
+                  {user && (
+                    <div className="text-sm text-gray-600">
+                      {user.email} {isOperatorUser && '(운영자)'}
+                    </div>
+                  )}
+                  
+                  {/* 운영자일 때만 글쓰기 버튼 표시 */}
+                  {isOperatorUser && (
+                    <Button
+                      onClick={() => setShowNewsWriteModal(true)}
+                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      뉴스 작성
+                    </Button>
+                  )}
+                  
+                  {/* 이전 버튼 */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBack}
+                    className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    이전
+                  </Button>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">뉴스를 불러오는 중...</p>
+                </div>
               ) : (
-                news.map((item) => (
-                  <Card key={item.id} className="p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex gap-4">
-                      <div 
-                        className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
-                        onClick={() => handleNewsClick(item)}
-                      >
-                        <img 
-                          src={item.thumbnail} 
-                          alt={item.title}
-                          className="w-full h-full object-cover rounded-lg"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            e.currentTarget.nextElementSibling.style.display = 'flex'
-                          }}
-                        />
-                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-2xl" style={{display: 'none'}}>
-                          📰
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 
-                            className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer flex-1 mr-4" 
-                            onClick={() => handleNewsClick(item)}
-                          >
-                            {item.title}
-                            {item.is_pinned && (
-                              <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                                📌 고정
-                              </span>
-                            )}
-                          </h3>
-                          
-                          {/* 운영자용 버튼들 */}
-                          {isOperatorUser && (
-                            <div className="flex items-center gap-2 ml-4">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleNewsEdit(item)
+                <div className="space-y-6">
+                  {/* 뉴스 목록 */}
+                  <div className="grid gap-6">
+                    {news.length === 0 ? (
+                      <Card className="p-8 text-center bg-white shadow-lg border border-gray-200 rounded-xl">
+                        <div className="text-gray-400 text-6xl mb-4">📰</div>
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">아직 뉴스가 없습니다</h3>
+                        <p className="text-gray-500">첫 번째 뉴스를 작성해보세요!</p>
+                      </Card>
+                    ) : (
+                      news.map((item) => (
+                        <Card key={item.id} className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl hover:shadow-xl transition-shadow">
+                          <div className="flex gap-4">
+                            <div 
+                              className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
+                              onClick={() => handleNewsClick(item)}
+                            >
+                              <img 
+                                src={item.thumbnail} 
+                                alt={item.title}
+                                className="w-full h-full object-cover rounded-lg"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                  e.currentTarget.nextElementSibling.style.display = 'flex'
                                 }}
-                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleNewsPin(item)
-                                }}
-                                className="h-8 w-8 p-0 text-orange-600 hover:text-orange-800 hover:bg-orange-50"
-                              >
-                                {item.is_pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleNewsDelete(item)
-                                }}
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              />
+                              <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-2xl" style={{display: 'none'}}>
+                                📰
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        
-                        <p 
-                          className="text-gray-600 text-sm mb-3 line-clamp-2 cursor-pointer" 
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between mb-2">
+                                <h3 
+                                  className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer flex-1 mr-4" 
+                                  onClick={() => handleNewsClick(item)}
+                                >
+                                  {item.title}
+                                  {item.is_pinned && (
+                                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                      📌 고정
+                                    </span>
+                                  )}
+                                </h3>
+                                
+                                {/* 운영자용 버튼들 */}
+                                {isOperatorUser && (
+                                  <div className="flex items-center gap-2 ml-4">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleNewsEdit(item)
+                                      }}
+                                      className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleNewsPin(item)
+                                      }}
+                                      className="h-8 w-8 p-0 text-orange-600 hover:text-orange-800 hover:bg-orange-50"
+                                    >
+                                      {item.is_pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleNewsDelete(item)
+                                      }}
+                                      className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <p 
+                                className="text-gray-600 text-sm mb-3 line-clamp-2 cursor-pointer" 
+                                onClick={() => handleNewsClick(item)}
+                              >
+                                {item.content}
+                              </p>
+                              <div className="flex items-center justify-between text-sm text-gray-500">
+                                <div className="flex items-center gap-4">
+                                  {item.source && item.source.trim() ? (
+                                    <>
+                                      <span>{item.source}</span>
+                                      <span>{item.author}</span>
+                                      <span>{item.date}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>{item.author}</span>
+                                      <span>{item.date}</span>
+                                    </>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-1">
+                                    <ThumbsUp className="w-4 h-4" />
+                                    <span>{item.likes || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <MessageCircle className="w-4 h-4" />
+                                    <span>{item.comments || 0}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* 페이지네이션 */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center mt-8 space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2"
+                      >
+                        이전
+                      </Button>
+                      
+                      {/* 페이지 번호들 */}
+                      <div className="flex items-center space-x-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`px-3 py-2 ${
+                                currentPage === pageNum 
+                                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                  : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2"
+                      >
+                        다음
+                      </Button>
+                    </div>
+                  )}
+            
+                  {/* 페이지 정보 */}
+                  <div className="text-center mt-4 text-sm text-gray-500">
+                    총 {totalNews}개의 뉴스 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalNews)}개 표시
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* 모바일 형태일 때 기존 레이아웃 */}
+        <div className="md:hidden">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">뉴스를 불러오는 중...</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* 뉴스 목록 */}
+              <div className="grid gap-6">
+                {news.length === 0 ? (
+                  <Card className="p-8 text-center bg-white shadow-lg border border-gray-200 rounded-xl">
+                    <div className="text-gray-400 text-6xl mb-4">📰</div>
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">아직 뉴스가 없습니다</h3>
+                    <p className="text-gray-500">첫 번째 뉴스를 작성해보세요!</p>
+                  </Card>
+                ) : (
+                  news.map((item) => (
+                    <Card key={item.id} className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl hover:shadow-xl transition-shadow">
+                      <div className="flex gap-4">
+                        <div 
+                          className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
                           onClick={() => handleNewsClick(item)}
                         >
-                          {item.content}
-                        </p>
-                        <div className="flex items-center justify-between text-sm text-gray-500">
-                          <div className="flex items-center gap-4">
-                            {item.source && item.source.trim() ? (
-                              <>
-                                <span>{item.source}</span>
-                                <span>{item.author}</span>
-                                <span>{item.date}</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>{item.author}</span>
-                                <span>{item.date}</span>
-                              </>
+                          <img 
+                            src={item.thumbnail} 
+                            alt={item.title}
+                            className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                              e.currentTarget.nextElementSibling.style.display = 'flex'
+                            }}
+                          />
+                          <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-2xl" style={{display: 'none'}}>
+                            📰
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 
+                              className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer flex-1 mr-4" 
+                              onClick={() => handleNewsClick(item)}
+                            >
+                              {item.title}
+                              {item.is_pinned && (
+                                <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                  📌 고정
+                                </span>
+                              )}
+                            </h3>
+                            
+                            {/* 운영자 액션 버튼들 */}
+                            {isOperatorUser && (
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleEditNews(item)
+                                  }}
+                                  className="p-2 h-8 w-8"
+                                >
+                                  <Edit className="w-4 h-4 text-blue-600" />
+                                </Button>
+                                
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleTogglePin(item)
+                                  }}
+                                  className={`p-2 h-8 w-8 ${item.is_pinned ? 'bg-yellow-100 border-yellow-300' : ''}`}
+                                >
+                                  {item.is_pinned ? (
+                                    <PinOff className="w-4 h-4 text-yellow-600" />
+                                  ) : (
+                                    <Pin className="w-4 h-4 text-orange-600" />
+                                  )}
+                                </Button>
+                                
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDeleteNews(item.id)
+                                  }}
+                                  className="p-2 h-8 w-8 hover:bg-red-50 hover:border-red-300"
+                                >
+                                  <Trash2 className="w-4 h-4 text-red-600" />
+                                </Button>
+                              </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-4">
+                          
+                          <div className="text-sm text-gray-600 mb-2">
+                            {item.source && <span className="mr-2">{item.source}</span>}
+                            <span className="mr-2">{item.author}</span>
+                            <span>{item.date}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
                             <div className="flex items-center gap-1">
                               <ThumbsUp className="w-4 h-4" />
                               <span>{item.likes || 0}</span>
@@ -745,75 +975,75 @@ export default function NewsPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
-            
-            {/* 페이지네이션 */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center mt-8 space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2"
-                >
-                  이전
-                </Button>
-                
-                {/* 페이지 번호들 */}
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-2 ${
-                          currentPage === pageNum 
-                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
-                </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2"
-                >
-                  다음
-                </Button>
+                    </Card>
+                  ))
+                )}
               </div>
-            )}
-            
-            {/* 페이지 정보 */}
-            <div className="text-center mt-4 text-sm text-gray-500">
-              총 {totalNews}개의 뉴스 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalNews)}개 표시
+              
+              {/* 페이지네이션 */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center mt-8 space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2"
+                  >
+                    이전
+                  </Button>
+                  
+                  {/* 페이지 번호들 */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-3 py-2 ${
+                            currentPage === pageNum 
+                              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2"
+                  >
+                    다음
+                  </Button>
+                </div>
+              )}
+              
+              {/* 페이지 정보 */}
+              <div className="text-center mt-4 text-sm text-gray-500">
+                총 {totalNews}개의 뉴스 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalNews)}개 표시
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* 뉴스 작성 모달 */}
@@ -1130,5 +1360,9 @@ export default function NewsPage() {
             </DialogContent>
           </Dialog>
         </div>
+        
+        {/* 모바일 하단 네비게이션 */}
+        <BottomTabNavigation />
+      </div>
   )
 }

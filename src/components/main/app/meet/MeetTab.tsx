@@ -16,7 +16,7 @@ export default function MeetTab() {
 
 
   return (
-    <div className="p-0 sm:p-1 md:p-2">
+    <div className="w-full">
       <VideoCallStarter onStartCall={handleStartCall} />
     </div>
   )

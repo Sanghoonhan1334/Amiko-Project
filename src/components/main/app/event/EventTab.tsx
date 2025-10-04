@@ -495,9 +495,9 @@ export default function EventTab() {
   }, [user?.id])
 
   return (
-    <div className="space-y-12 sm:space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24">
       {/* 쿠폰 이벤트 안내 */}
-      <div className="p-4 sm:p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl">
+      <div className="md:p-4 md:sm:p-6 md:bg-gradient-to-br md:from-orange-50 md:to-orange-100 md:border md:border-orange-200 md:rounded-xl">
         {/* 데스크톱: 헤더 */}
         <div className="hidden md:flex items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
@@ -698,7 +698,7 @@ export default function EventTab() {
         {/* 모바일: 리스트 스타일 */}
         <div className="block md:hidden space-y-4">
           {/* 현지인용 특별 이벤트 */}
-          <div className="py-3 px-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="py-3 px-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">✈️</span>
               <span className="font-semibold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</span>
@@ -713,7 +713,7 @@ export default function EventTab() {
           </div>
           
           {/* 한국인용 특별 이벤트 */}
-          <div className="py-3 px-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="py-3 px-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">🇰🇷</span>
               <span className="font-semibold text-green-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</span>
@@ -737,7 +737,7 @@ export default function EventTab() {
 
         {/* 랭킹 내용 */}
         {loading ? (
-          <div className="text-center py-8 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="text-center py-8 md:bg-white md:border md:border-gray-200 md:rounded-lg md:shadow-sm">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-2 text-gray-600">{t('eventTab.pointRanking.loading')}</p>
           </div>
@@ -745,7 +745,7 @@ export default function EventTab() {
           <div className="space-y-4">
             {/* 내 랭킹 */}
             {rankingData.userRank && (
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+              <div className="p-4 md:bg-gradient-to-r md:from-blue-50 md:to-purple-50 md:border md:border-blue-200 md:rounded-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
@@ -774,11 +774,11 @@ export default function EventTab() {
 
             {/* 상위 랭킹 */}
             {rankingData.ranking.length > 0 ? (
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+              <div className="md:bg-white md:border md:border-gray-200 md:rounded-lg md:shadow-sm p-4">
                 <h4 className="font-semibold text-gray-800 mb-3">🏆 {t('eventTab.pointRanking.topRanking')}</h4>
                 <div className="space-y-2">
                   {rankingData.ranking.slice(0, 5).map((user: any, index: number) => (
-                    <div key={user.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={user.userId} className="flex items-center justify-between p-3 md:bg-gray-50 md:rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
                           index === 0 ? 'bg-yellow-500' : 
@@ -806,7 +806,7 @@ export default function EventTab() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <div className="text-center py-8 text-gray-500 md:bg-white md:border md:border-gray-200 md:rounded-lg md:shadow-sm">
                 <Trophy className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>{t('eventTab.pointRanking.noData')}</p>
                 <p className="text-sm">{t('eventTab.pointRanking.startActivity')}</p>
@@ -825,7 +825,7 @@ export default function EventTab() {
       </div>
           
           {/* 포인트 획득 방법 */}
-          <div className="sm:p-6 sm:bg-gradient-to-br sm:from-green-50 sm:to-green-100 sm:border sm:border-green-200 sm:rounded-xl">
+          <div className="md:sm:p-6 md:sm:bg-gradient-to-br md:sm:from-green-50 md:sm:to-green-100 md:sm:border md:sm:border-green-200 md:sm:rounded-xl">
             <div className="flex items-center gap-3 mb-4 px-4 sm:px-0">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xl">🎯</span>
@@ -881,7 +881,7 @@ export default function EventTab() {
 
             {/* 모바일: 리스트 스타일 */}
             <div className="block md:hidden space-y-2 px-4 sm:px-0">
-              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+              <div className="py-3 px-4 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">💬</span>
@@ -893,7 +893,7 @@ export default function EventTab() {
                 <div className="text-xs text-blue-600 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
               </div>
               
-              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+              <div className="py-3 px-4 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">✍️</span>
@@ -905,7 +905,7 @@ export default function EventTab() {
                 <div className="text-xs text-green-600 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
               </div>
               
-              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+              <div className="py-3 px-4 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">📸</span>
@@ -917,7 +917,7 @@ export default function EventTab() {
                 <div className="text-xs text-purple-600 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
               </div>
               
-              <div className="py-3 px-4 border-b border-gray-200 bg-white">
+              <div className="py-3 px-4 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">💎</span>

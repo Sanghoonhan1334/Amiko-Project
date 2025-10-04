@@ -249,7 +249,7 @@ export default function StoryCarousel() {
       
       // 스토리 API 호출과 최소 로딩 시간을 동시에 실행
       const [apiResponse] = await Promise.all([
-        fetch('/api/stories?isPublic=true&limit=10', {
+        fetch('/api/stories?isPublic=true&limit=20', {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${encodeURIComponent(token)}`
@@ -719,20 +719,20 @@ export default function StoryCarousel() {
   return (
     <div className="mb-6">
       {/* 스토리 섹션 헤더 */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+      <div className="flex items-center justify-between mb-4 px-2">
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 flex-shrink-0">
           <Clock className="w-5 h-5 text-brand-500" />
           {t('communityTab.todayStory')}
         </h3>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* 스토리 업로드 버튼 - 운영자는 인증 없이 가능 */}
           {isAdmin ? (
             <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
               <DialogTrigger asChild>
                 <Button 
                   size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md whitespace-nowrap"
                   onClick={() => {
                     console.log('스토리 올리기 버튼 클릭됨 (운영자)')
                     setShowUploadModal(true)
@@ -749,7 +749,7 @@ export default function StoryCarousel() {
                 <DialogTrigger asChild>
                   <Button 
                     size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md whitespace-nowrap"
                     onClick={() => {
                       console.log('스토리 올리기 버튼 클릭됨')
                       setShowUploadModal(true)
@@ -763,9 +763,10 @@ export default function StoryCarousel() {
             </VerificationGuard>
           )}
         </div>
-            
-        {/* 스토리 업로드 모달 - 운영자와 일반 사용자 공통 */}
-        <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
+      </div>
+
+      {/* 스토리 업로드 모달 - 운영자와 일반 사용자 공통 */}
+      <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
           <DialogContent className="max-w-md bg-white border-2 border-gray-200 shadow-xl">
               <DialogHeader className="pb-4 border-b border-gray-200">
                 <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newStory')}</DialogTitle>
@@ -933,20 +934,12 @@ export default function StoryCarousel() {
         </div>
       )}
 
-      {/* 스토리 캐러셀 */}
+      {/* 스토리 캐러셀 또는 빈 상태 */}
       {!isLoading && (
         <div className="relative">
-
-          {/* 스크롤 가능한 스토리 그리드 */}
-          <div className="overflow-y-auto pr-2">
-            {(() => {
-              console.log('스토리 렌더링 조건 확인:', {
-                storiesLength: stories.length,
-                stories: stories,
-                isLoading: isLoading
-              })
-              return stories.length > 0
-            })() ? (
+          {stories.length > 0 ? (
+            /* 스크롤 가능한 스토리 그리드 */
+            <div className="overflow-y-auto pr-2">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {stories.map((story) => (
                 <div
@@ -1093,12 +1086,26 @@ export default function StoryCarousel() {
                 </div>
               ))}
               </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>{t('communityTab.noStories')}</p>
+            </div>
+          ) : (
+            /* 스토리가 없을 때 빈 상태 메시지 */
+            <div className="text-center py-12">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Clock className="w-8 h-8 text-gray-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {t('communityTab.noStories')}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    아직 올라온 스토리가 없습니다.<br />
+                    첫 번째 스토리를 올려보세요!
+                  </p>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

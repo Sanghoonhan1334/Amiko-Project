@@ -27,6 +27,9 @@ export default function BottomTabNavigation() {
       const urlParams = new URLSearchParams(window.location.search)
       const tab = urlParams.get('tab') || 'home'
       setActiveTab(tab)
+    } else if (pathname.startsWith('/community')) {
+      // 커뮤니티 서브페이지에서는 커뮤니티 탭을 활성화
+      setActiveTab('community')
     }
   }, [pathname])
 
@@ -77,7 +80,13 @@ export default function BottomTabNavigation() {
     }
     
     setActiveTab(tab.id)
-    router.push(tab.path)
+    
+    // 커뮤니티 서브페이지에서 다른 탭 클릭 시 메인 페이지로 이동
+    if (pathname.startsWith('/community') && tab.id !== 'community') {
+      router.push(tab.path)
+    } else {
+      router.push(tab.path)
+    }
     
     // 헤더 네비게이션과 동기화
     window.dispatchEvent(new CustomEvent('mainTabChanged', { 
@@ -85,8 +94,8 @@ export default function BottomTabNavigation() {
     }))
   }
 
-  // 메인 페이지가 아닐 때는 숨김
-  if (!pathname.startsWith('/main')) {
+  // 메인 페이지나 커뮤니티 서브페이지가 아닐 때는 숨김
+  if (!pathname.startsWith('/main') && !pathname.startsWith('/community')) {
     return null
   }
 

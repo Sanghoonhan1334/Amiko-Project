@@ -132,8 +132,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
     }
 
-    // 출처가 비어있으면 기본값 사용
-    const finalSource = source?.trim() || 'Amiko 편집팀'
+    // 출처가 비어있으면 null로 설정
+    const finalSource = source && source.trim() ? source.trim() : null
 
     const { data, error } = await supabaseServer
       .from('korean_news')
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
         title_es: title_es || title, // 스페인어 제목이 없으면 한국어 제목 사용
         content,
         content_es: content_es || content, // 스페인어 내용이 없으면 한국어 내용 사용
-        thumbnail,
+        thumbnail: thumbnail && thumbnail.trim() ? thumbnail : null,
         source: finalSource,
         category,
         view_count: 0,
@@ -276,8 +276,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
     }
 
-    // 출처가 비어있으면 기본값 사용
-    const finalSource = source?.trim() || 'Amiko 편집팀'
+    // 출처가 비어있으면 null로 설정
+    const finalSource = source && source.trim() ? source.trim() : null
 
     const updateData: any = {
       title,
@@ -291,9 +291,11 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString()
     }
 
-    // 썸네일이 제공된 경우에만 업데이트
-    if (thumbnail !== undefined) {
+    // 썸네일이 제공된 경우에만 업데이트 (빈 문자열이 아닌 경우)
+    if (thumbnail !== undefined && thumbnail && thumbnail.trim()) {
       updateData.thumbnail = thumbnail
+    } else if (thumbnail !== undefined) {
+      updateData.thumbnail = null
     }
 
     // 고정 상태가 제공된 경우에만 업데이트

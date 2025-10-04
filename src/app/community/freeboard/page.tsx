@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Plus } from 'lucide-react'
 import Header from '@/components/layout/Header'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import FreeBoardList from '@/components/main/app/community/FreeBoardList'
 import PostCreate from '@/components/main/app/community/PostCreate'
 
@@ -25,7 +26,7 @@ export default function FreeBoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
@@ -58,27 +59,30 @@ export default function FreeBoardPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 pt-24 pb-6">
+      <div className="max-w-6xl mx-auto px-0 pt-4 pb-20 md:px-4 md:pt-24 md:pb-6">
         {currentView === 'list' ? (
-          <div className="space-y-6">
-            {/* 페이지 제목 */}
-            <div className="text-center py-4">
-              <h1 className="text-2xl font-bold text-gray-800">주제별 게시판</h1>
-            </div>
-
-            {/* 게시글 목록 */}
-            <FreeBoardList
-              onPostSelect={() => {}}
-              showHeader={false}
-            />
-          </div>
+          <FreeBoardList
+            onPostSelect={() => {}}
+            onWritePost={handleCreatePost}
+            showHeader={false}
+          />
         ) : (
           <PostCreate
-            onBack={handleBackToList}
+            gallery={{
+              id: 'free',
+              slug: 'free',
+              name_ko: '자유게시판',
+              icon: '📝',
+              color: '#3B82F6'
+            }}
             onSuccess={handleBackToList}
+            onCancel={handleBackToList}
           />
         )}
       </div>
+      
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }

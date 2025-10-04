@@ -223,89 +223,115 @@ function AppPageContent() {
   }, [activeTab])
   
   return (
-    <div className="min-h-screen body-gradient pt-36 pb-20 md:pb-0">
+    <div className="min-h-screen body-gradient pt-20 sm:pt-36 pb-20 md:pb-0">
       {/* 메인 콘텐츠 섹션 */}
-      <div className="w-full px-4 py-0 sm:py-6 relative z-0">
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24 py-0 sm:py-2 md:py-6 relative z-0">
         <div className="w-full">
 
           {/* 콘텐츠 */}
           <div className="space-y-2 sm:space-y-8">
             {activeTab === 'home' && (
-              <div className="card p-8 -mt-12 sm:mt-0">
+              <div className="hidden md:block">
+                <div className="card p-8 -mt-12 sm:mt-0">
+                  <HomeTab />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'home' && (
+              <div className="block md:hidden -mt-8">
                 <HomeTab />
               </div>
             )}
 
             {activeTab === 'meet' && (
-              <div className="card p-8 -mt-12 sm:mt-0">
-                <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
-                    <Video className="w-10 h-10 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-800">{t('main.meet')}</h2>
+              <div className="hidden md:block">
+                <div className="w-full">
+                  <div className="card p-8 -mt-12 sm:mt-0">
+                    <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
+                        <Video className="w-10 h-10 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-bold text-gray-800">{t('main.meet')}</h2>
+                      </div>
+                    </div>
+                    <div className="mb-6">
+                      <p className="text-sm text-blue-600 font-medium">{t('mainPage.akoExplanation')}</p>
+                    </div>
+                    <MeetTab />
                   </div>
                 </div>
-                <div className="mb-6">
-                  <p className="text-sm text-blue-600 font-medium">{t('mainPage.akoExplanation')}</p>
-                </div>
+              </div>
+            )}
+
+            {activeTab === 'meet' && (
+              <div className="block md:hidden">
                 <MeetTab />
               </div>
             )}
 
             {activeTab === 'community' && (
-              <div className="card p-8 -mt-12 sm:mt-0">
-                <div className="flex items-center justify-between mb-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
-                      <span className="text-2xl">
-                        {communityView === 'home' ? '💬' :
-                         communityView === 'freeboard' ? '📝' :
-                         (communityView === 'news' || communityView === 'news-detail') ? '📰' :
-                         communityView === 'qa' ? '💬' :
-                         communityView === 'tests' ? '🎯' :
-                         '💬'}
-                      </span>
+              <div className="hidden md:block">
+                <div className="card p-8 -mt-12 sm:mt-0">
+                  <div className="flex items-center justify-between mb-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
+                        <span className="text-2xl">
+                          {communityView === 'home' ? '💬' :
+                           communityView === 'freeboard' ? '📝' :
+                           (communityView === 'news' || communityView === 'news-detail') ? '📰' :
+                           communityView === 'qa' ? '💬' :
+                           communityView === 'tests' ? '🎯' :
+                           '💬'}
+                        </span>
+                      </div>
+                      <h2 className="text-2xl font-bold text-gray-800">
+                        {(() => {
+                          const title = communityView === 'home' ? t('main.community') :
+                                       communityView === 'freeboard' ? t('community.freeBoard') :
+                                       (communityView === 'news' || communityView === 'news-detail') ? t('community.koreanNews') :
+                                       communityView === 'qa' ? t('community.qa') :
+                                       communityView === 'tests' ? t('tests.title') :
+                                       t('main.community')
+                          console.log('헤더 제목 디버그:', { communityView, title, koreanNews: t('community.koreanNews') })
+                          return title
+                        })()}
+                      </h2>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-800">
-                      {(() => {
-                        const title = communityView === 'home' ? t('main.community') :
-                                     communityView === 'freeboard' ? t('community.freeBoard') :
-                                     (communityView === 'news' || communityView === 'news-detail') ? t('community.koreanNews') :
-                                     communityView === 'qa' ? t('community.qa') :
-                                     communityView === 'tests' ? t('tests.title') :
-                                     t('main.community')
-                        console.log('헤더 제목 디버그:', { communityView, title, koreanNews: t('community.koreanNews') })
-                        return title
-                      })()}
-                    </h2>
+                    {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'qa') && (
+                      <button
+                        onClick={() => {
+                          setCommunityView('home')
+                          // CommunityTab에 뷰 변경 알림
+                          window.dispatchEvent(new CustomEvent('communityViewChanged', { detail: 'home' }))
+                        }}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        <span className="text-sm font-medium">이전</span>
+                      </button>
+                    )}
                   </div>
-                  {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'qa') && (
-                    <button
-                      onClick={() => {
-                        setCommunityView('home')
-                        // CommunityTab에 뷰 변경 알림
-                        window.dispatchEvent(new CustomEvent('communityViewChanged', { detail: 'home' }))
-                      }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                      </svg>
-                      <span className="text-sm font-medium">이전</span>
-                    </button>
-                  )}
+                  <div className="mb-6">
+                    <p className="text-gray-600">
+                      {communityView === 'home' ? t('main.communityDescription') :
+                       communityView === 'freeboard' ? t('community.freeBoardDescription') :
+                       communityView === 'news' ? t('community.koreanNewsDescription') :
+                       communityView === 'qa' ? t('community.qaDescription') :
+                       communityView === 'tests' ? t('tests.description') :
+                       t('main.communityDescription')}
+                    </p>
+                  </div>
+                  <CommunityTab onViewChange={setCommunityView} />
                 </div>
-                <div className="mb-6">
-                  <p className="text-gray-600">
-                    {communityView === 'home' ? t('main.communityDescription') :
-                     communityView === 'freeboard' ? t('community.freeBoardDescription') :
-                     communityView === 'news' ? t('community.koreanNewsDescription') :
-                     communityView === 'qa' ? t('community.qaDescription') :
-                     communityView === 'tests' ? t('tests.description') :
-                     t('main.communityDescription')}
-                  </p>
-                </div>
+              </div>
+            )}
+
+            {activeTab === 'community' && (
+              <div className="block md:hidden">
                 <CommunityTab onViewChange={setCommunityView} />
               </div>
             )}
@@ -336,8 +362,8 @@ function AppPageContent() {
 
 
             {activeTab === 'charging' && (
-              <>
-                <div className="card p-6 sm:p-8 -mt-12 sm:mt-0">
+              <div className="space-y-6 pt-16 md:pt-24">
+                <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-12 sm:mt-0">
                   {/* 헤더 섹션 */}
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
@@ -379,7 +405,7 @@ function AppPageContent() {
                   </div>
                 </div>
                 <ChargingTab />
-              </>
+              </div>
             )}
 
 

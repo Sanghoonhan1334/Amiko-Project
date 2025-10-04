@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, Plus, Target, Clock, Star } from 'lucide-react'
 import Header from '@/components/layout/Header'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
@@ -208,7 +209,7 @@ export default function TestsPage() {
   }, [selectedCategory])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
@@ -452,6 +453,9 @@ export default function TestsPage() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }

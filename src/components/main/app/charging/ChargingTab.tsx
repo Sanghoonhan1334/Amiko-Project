@@ -190,7 +190,7 @@ export default function ChargingTab() {
   }
 
   return (
-    <div className="card p-6 sm:p-8 -mt-8 sm:mt-0">
+    <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-8 sm:mt-0">
 
       {/* 슬라이드 컨테이너 */}
       <div className="relative">
@@ -209,7 +209,10 @@ export default function ChargingTab() {
             bulletActiveClass: 'swiper-pagination-bullet-active-custom',
           }}
           className="charging-swiper min-h-[400px]"
-          onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
+          onSlideChange={(swiper) => {
+            console.log('슬라이드 변경:', swiper.activeIndex)
+            setCurrentSlide(swiper.activeIndex)
+          }}
         >
         {/* 슬라이드 1: AKO 쿠폰 */}
         <SwiperSlide>
@@ -393,12 +396,22 @@ export default function ChargingTab() {
         </Swiper>
 
         {/* 좌우 화살표 네비게이션 버튼 */}
-        <button className="swiper-button-prev-custom sticky left-4 top-1/3 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 hover:bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ml-4">
+        <button className={`swiper-button-prev-custom sticky -left-2 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 hover:bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
+          currentSlide === 0 ? 'top-[calc(33.333%+50px)]' : 
+          currentSlide === 1 ? 'top-[calc(33.333%+100px)]' : 
+          currentSlide === 2 ? 'top-[calc(33.333%+100px)]' :
+          'top-[calc(33.333%+50px)]'
+        }`}>
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <button className="swiper-button-next-custom sticky right-4 top-1/3 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 hover:bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-200 mr-4">
+        <button className={`swiper-button-next-custom sticky -right-2 -translate-y-1/2 z-10 w-10 h-10 bg-white/80 hover:bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
+          currentSlide === 0 ? 'top-[calc(33.333%+50px)]' : 
+          currentSlide === 1 ? 'top-[calc(33.333%+100px)]' : 
+          currentSlide === 2 ? 'top-[calc(33.333%+100px)]' :
+          'top-[calc(33.333%+50px)]'
+        }`}>
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
