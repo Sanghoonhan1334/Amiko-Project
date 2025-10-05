@@ -774,6 +774,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 데이터 로딩 함수들
   const loadQuestions = async () => {
     console.log('loadQuestions 호출됨 - 실제 API 호출')
+    if (questionsLoading) {
+      console.log('이미 로딩 중이므로 건너뜀')
+      return
+    }
     setQuestionsLoading(true)
     
     try {
@@ -807,11 +811,14 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       
       console.log('변환된 질문 데이터:', transformedQuestions)
       setQuestions(transformedQuestions)
+      console.log('질문 데이터 설정 완료, 로딩 상태 해제')
     } catch (error) {
       console.error('질문 로딩 오류:', error)
       setQuestions([])
+      console.log('오류 발생, 로딩 상태 해제')
     } finally {
       setQuestionsLoading(false)
+      console.log('questionsLoading을 false로 설정 완료')
     }
   }
 
@@ -2483,10 +2490,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 </div>
               </div>
             ))}
-          </div>
-          
-          {/* 결과 없음 */}
-          {filteredQuestions.length === 0 && (
+              
+              {/* 결과 없음 */}
+              {filteredQuestions.length === 0 && (
             <Card className="p-12 text-center shadow-lg border border-gray-200">
               {questions.length === 0 ? (
                 // 질문이 아예 없는 경우
