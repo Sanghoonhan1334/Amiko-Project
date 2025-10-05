@@ -132,9 +132,13 @@ export default function QAPage() {
       const data = await response.json()
       console.log('질문 데이터 로딩 성공:', data.questions?.length || 0, '개')
       setQuestions(data.questions || [])
+      console.log('🔥 Q&A 페이지 - 질문 데이터 설정 완료, 로딩 해제')
+      setLoading(false)
     } catch (error) {
       console.error('질문 로딩 오류:', error)
       setQuestions([])
+      console.log('🔥 Q&A 페이지 - 오류 발생, 로딩 해제')
+      setLoading(false)
     }
   }, [token])
 
