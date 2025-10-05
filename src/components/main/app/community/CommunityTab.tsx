@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -772,7 +772,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   }, [searchParams])
 
   // 데이터 로딩 함수들
-  const loadQuestions = async () => {
+  const loadQuestions = useCallback(async () => {
     console.log('loadQuestions 호출됨 - 실제 API 호출')
     if (questionsLoading) {
       console.log('이미 로딩 중이므로 건너뜀')
@@ -820,7 +820,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       setQuestionsLoading(false)
       console.log('questionsLoading을 false로 설정 완료')
     }
-  }
+  }, [questionsLoading, token])
 
   const loadAnswers = async (questionId: string) => {
     console.log('loadAnswers 호출됨 - 실제 API 호출:', questionId)
@@ -1039,7 +1039,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       setStories([])
       setStoriesLoading(false) // 에러 시에도 로딩 상태 해제
     })
-  }, [user, token, activeTab])
+  }, [user, token, activeTab, loadQuestions])
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: string) => {
