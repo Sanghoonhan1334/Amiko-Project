@@ -736,6 +736,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   
   // 데이터 상태 관리
   const [questions, setQuestions] = useState<any[]>([])
+  const [questionsLoading, setQuestionsLoading] = useState<boolean>(true)
   const [answers, setAnswers] = useState<any[]>([])
   const [stories, setStories] = useState<any[]>([])
   const [storiesLoading, setStoriesLoading] = useState<boolean | null>(true)
@@ -773,6 +774,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 데이터 로딩 함수들
   const loadQuestions = async () => {
     console.log('loadQuestions 호출됨 - 실제 API 호출')
+    setQuestionsLoading(true)
     
     try {
       const response = await fetch('/api/questions', {
@@ -808,6 +810,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     } catch (error) {
       console.error('질문 로딩 오류:', error)
       setQuestions([])
+    } finally {
+      setQuestionsLoading(false)
     }
   }
 
@@ -2312,9 +2316,43 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 질문 목록 */}
       <div className="mt-8">
-          {/* 질문 카드 리스트 */}
-          <div className="space-y-8">
-            {filteredQuestions.map((question, index) => (
+          {questionsLoading ? (
+            // 로딩 중 스켈레톤
+            <div className="space-y-8">
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-lg">
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center gap-2 min-w-[60px]">
+                        <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                        <div className="h-6 w-8 bg-gray-200 rounded"></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="h-6 bg-gray-200 rounded mb-2 w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded mb-3 w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded mb-2 w-2/3"></div>
+                        <div className="flex items-center gap-4 mt-4">
+                          <div className="h-4 bg-gray-200 rounded w-20"></div>
+                          <div className="h-4 bg-gray-200 rounded w-16"></div>
+                          <div className="h-4 bg-gray-200 rounded w-12"></div>
+                          <div className="h-4 bg-gray-200 rounded w-16"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="text-center py-4">
+                <div className="inline-flex items-center gap-2 text-purple-600">
+                  <span className="animate-spin">❓</span>
+                  <span>질문을 불러오는 중...</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // 질문 카드 리스트
+            <div className="space-y-8">
+              {filteredQuestions.map((question, index) => (
               <div key={question.id}>
                 {/* 데스크톱: 카드 스타일 */}
                 <Card 
@@ -2485,6 +2523,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 </>
               )}
             </Card>
+          )}
+            </div>
           )}
       </div>
         </div>
