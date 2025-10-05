@@ -2095,8 +2095,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               {[...Array(8)].map((_, index) => (
                 <div 
                   key={index}
-                  className="relative overflow-hidden flex-shrink-0 animate-pulse" 
-                  className="w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
+                  className="relative overflow-hidden flex-shrink-0 animate-pulse w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
                   style={{ 
                     scrollSnapAlign: 'start'
                   }}
@@ -2171,8 +2170,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 {stories.map((story, index) => (
                   <div 
                     key={story.id} 
-                    className="relative overflow-hidden flex-shrink-0 cursor-pointer group" 
-                    className="w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
+                    className="relative overflow-hidden flex-shrink-0 cursor-pointer group w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
                     style={{ 
                       scrollSnapAlign: 'start'
                     }}
@@ -3424,7 +3422,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           setImagePreviews([])
         }
       }}>
-        <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl mx-4">
           <DialogHeader className="pb-4 border-b border-gray-200">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               {language === 'ko' ? '게시글 작성' : 'Write Post'}
@@ -3486,7 +3484,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               </Label>
               
               {/* 이미지 업로드 버튼 */}
-              <div className="flex items-center space-x-4 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
                 <input
                   type="file"
                   accept="image/*"
@@ -3498,11 +3496,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 />
                 <label
                   htmlFor="community-image-upload"
-                  className={`px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer transition-colors ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer transition-colors text-center ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {uploadingImages ? '업로드 중...' : '📷 이미지 선택'}
                 </label>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 text-center sm:text-left">
                   JPG, PNG, GIF (최대 5MB, 최대 5개)
                 </span>
               </div>
@@ -3513,13 +3511,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   <div className="text-sm font-medium text-gray-700 mb-2">
                     업로드된 이미지 ({imagePreviews.length}/5)
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative group">
                         <img
                           src={preview}
                           alt={`첨부 이미지 ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border"
+                          className="w-full h-24 sm:h-32 object-cover rounded-lg border"
                         />
                         <button
                           onClick={() => removeImage(index)}

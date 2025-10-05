@@ -1201,168 +1201,167 @@ export default function NewsPage() {
             </div>
           </div>
         </DialogContent>
-          </Dialog>
+      </Dialog>
 
-          {/* 뉴스 편집 모달 */}
-          <Dialog open={showNewsEditModal} onOpenChange={setShowNewsEditModal}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
-              <DialogHeader className="pb-4 border-b border-gray-200">
-                <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 수정</DialogTitle>
-                <DialogDescription className="sr-only">뉴스를 수정하는 모달입니다.</DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-6">
-                {/* 기본 정보 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="min-w-0">
-                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                      사진 출처 <span className="text-gray-400 text-xs">(선택사항)</span>
-                    </Label>
-                    <Input
-                      placeholder="예: NewsWA, 서울En"
-                      value={newsWriteForm.source}
-                      onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
-                      className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10"
-                    />
-                  </div>
-                  <div className="min-w-0 -ml-2">
-                    <Label className="text-sm font-medium text-gray-700 mb-2 block">작성자</Label>
-                    <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
-                      <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 pr-6">
-                        <SelectValue placeholder="작성자를 선택하세요" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Amiko">Amiko</SelectItem>
-                        <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
-                        <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
-                        <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="min-w-0">
-                    <Label className="text-sm font-medium text-gray-700 mb-2 block">게시 날짜</Label>
-                    <input
-                      type="date"
-                      value={newsWriteForm.date}
-                      onChange={(e) => setNewsWriteForm({ ...newsWriteForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10"
-                      style={{ 
-                        colorScheme: 'light'
-                      }}
-                    />
-                  </div>
-                </div>
+      {/* 뉴스 편집 모달 */}
+      <Dialog open={showNewsEditModal} onOpenChange={setShowNewsEditModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-200">
+            <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 수정</DialogTitle>
+            <DialogDescription className="sr-only">뉴스를 수정하는 모달입니다.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* 기본 정보 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="min-w-0">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  사진 출처 <span className="text-gray-400 text-xs">(선택사항)</span>
+                </Label>
+                <Input
+                  placeholder="예: NewsWA, 서울En"
+                  value={newsWriteForm.source}
+                  onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
+                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10"
+                />
+              </div>
+              <div className="min-w-0 -ml-2">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">작성자</Label>
+                <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
+                  <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 pr-6">
+                    <SelectValue placeholder="작성자를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Amiko">Amiko</SelectItem>
+                    <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
+                    <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
+                    <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="min-w-0">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">게시 날짜</Label>
+                <input
+                  type="date"
+                  value={newsWriteForm.date}
+                  onChange={(e) => setNewsWriteForm({ ...newsWriteForm, date: e.target.value })}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10"
+                  style={{ 
+                    colorScheme: 'light'
+                  }}
+                />
+              </div>
+            </div>
 
-                {/* 제목 */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">제목</Label>
-                  <Input
-                    placeholder="제목을 입력하세요"
-                    value={newsWriteForm.title}
-                    onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
-                    className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            {/* 제목 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목</Label>
+              <Input
+                placeholder="제목을 입력하세요"
+                value={newsWriteForm.title}
+                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
+                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* 내용 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium text-gray-700">내용</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) insertImageToContent(file, true)
+                    }}
+                    className="hidden"
+                    id="editContentImageUpload"
                   />
-                </div>
-
-                {/* 내용 */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium text-gray-700">내용</Label>
-                    <div className="flex gap-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) insertImageToContent(file, true)
-                        }}
-                        className="hidden"
-                        id="editContentImageUpload"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('editContentImageUpload')?.click()}
-                        className="text-xs"
-                      >
-                        📷 이미지 삽입
-                      </Button>
-                    </div>
-                  </div>
-                  <Textarea
-                    placeholder="내용을 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
-                    value={newsWriteForm.content}
-                    onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
-                    rows={8}
-                    className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
-                  />
-                </div>
-
-                {/* 썸네일 선택 */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">썸네일 선택</Label>
-                  <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
-                    <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                      <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {newsUploadedImages.length > 0 ? (
-                        newsUploadedImages.map((image, index) => (
-                          <SelectItem key={index} value={image.url}>
-                            <div className="flex items-center gap-2">
-                              <img src={image.url} alt={`이미지 ${index + 1}`} className="w-8 h-8 object-cover rounded" />
-                              <span>이미지 {index + 1}</span>
-                            </div>
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-images" disabled>
-                          <span className="text-gray-400">먼저 이미지를 삽입해주세요</span>
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {newsUploadedImages.length > 0 
-                      ? "본문에 삽입된 이미지 중에서 썸네일로 사용할 이미지를 선택하세요."
-                      : "본문에 이미지를 삽입하면 썸네일로 선택할 수 있습니다."
-                    }
-                  </p>
-                </div>
-
-                {/* 버튼들 */}
-                <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
                   <Button
+                    type="button"
                     variant="outline"
-                    onClick={() => setShowNewsEditModal(false)}
-                    disabled={newsWriteLoading}
-                    className="px-6"
+                    size="sm"
+                    onClick={() => document.getElementById('editContentImageUpload')?.click()}
+                    className="text-xs"
                   >
-                    취소
-                  </Button>
-                  <Button
-                    onClick={handleNewsUpdate}
-                    disabled={newsWriteLoading}
-                    className="px-6 bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {newsWriteLoading ? (
-                      <>
-                        <span className="animate-spin mr-2">⏳</span>
-                        수정 중...
-                      </>
-                    ) : (
-                      '뉴스 수정'
-                    )}
+                    📷 이미지 삽입
                   </Button>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
-        {/* 모바일 하단 네비게이션 */}
-        <BottomTabNavigation />
-      </div>
+              <Textarea
+                placeholder="내용을 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
+                value={newsWriteForm.content}
+                onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
+                rows={8}
+                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
+              />
+            </div>
+
+            {/* 썸네일 선택 */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">썸네일 선택</Label>
+              <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
+                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {newsUploadedImages.length > 0 ? (
+                    newsUploadedImages.map((image, index) => (
+                      <SelectItem key={index} value={image.url}>
+                        <div className="flex items-center gap-2">
+                          <img src={image.url} alt={`이미지 ${index + 1}`} className="w-8 h-8 object-cover rounded" />
+                          <span>이미지 {index + 1}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-images" disabled>
+                      <span className="text-gray-400">먼저 이미지를 삽입해주세요</span>
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                {newsUploadedImages.length > 0 
+                  ? "본문에 삽입된 이미지 중에서 썸네일로 사용할 이미지를 선택하세요."
+                  : "본문에 이미지를 삽입하면 썸네일로 선택할 수 있습니다."
+                }
+              </p>
+            </div>
+
+            {/* 버튼들 */}
+            <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setShowNewsEditModal(false)}
+                disabled={newsWriteLoading}
+                className="px-6"
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleNewsUpdate}
+                disabled={newsWriteLoading}
+                className="px-6 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {newsWriteLoading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    수정 중...
+                  </>
+                ) : (
+                  '뉴스 수정'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
+      {/* <BottomTabNavigation /> */}
+    </div>
   )
 }

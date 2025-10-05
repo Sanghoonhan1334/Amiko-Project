@@ -79,6 +79,55 @@ export default function StoryCarousel() {
   useEffect(() => {
     checkAdminStatus()
   }, [authUser])
+
+  // 화면 크기 감지
+  const [isSmallScreen, setIsSmallScreen] = useState(false)
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth
+      setIsMobileView(width < 360)
+      setIsSmallScreen(width <= 480)
+      console.log('Screen width:', width, 'isSmallScreen:', width <= 480)
+    }
+    
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+    
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
+  // 터치 이벤트 핸들러 (모바일 스와이프)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMobileView) return
+    setTouchStartX(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isMobileView) return
+    setTouchEndX(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!isMobileView) return
+    
+    const swipeThreshold = 50 // 최소 스와이프 거리
+    const diff = touchStartX - touchEndX
+
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0) {
+        // 왼쪽으로 스와이프 - 다음 스토리
+        if (currentIndex < stories.length - 1) {
+          setCurrentIndex(currentIndex + 1)
+        }
+      } else {
+        // 오른쪽으로 스와이프 - 이전 스토리
+        if (currentIndex > 0) {
+          setCurrentIndex(currentIndex - 1)
+        }
+      }
+    }
+  }
   
   // 사용자 이름 가져오기
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '한상훈'
@@ -91,6 +140,9 @@ export default function StoryCarousel() {
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isMobileView, setIsMobileView] = useState(false)
+  const [touchStartX, setTouchStartX] = useState(0)
+  const [touchEndX, setTouchEndX] = useState(0)
 
   
          // 스토리 업로드 관련 상태
@@ -767,7 +819,16 @@ export default function StoryCarousel() {
 
       {/* 스토리 업로드 모달 - 운영자와 일반 사용자 공통 */}
       <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
-          <DialogContent className="max-w-md bg-white border-2 border-gray-200 shadow-xl">
+          <DialogContent 
+            className="max-w-md bg-white border-2 border-gray-200 shadow-xl" 
+            style={{ 
+              margin: '0 auto',
+              maxWidth: 'calc(100vw - 48px)',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              position: 'fixed'
+            }}
+          >
               <DialogHeader className="pb-4 border-b border-gray-200">
                 <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newStory')}</DialogTitle>
               </DialogHeader>
@@ -938,13 +999,114 @@ export default function StoryCarousel() {
       {!isLoading && (
         <div className="relative">
           {stories.length > 0 ? (
-            /* 스크롤 가능한 스토리 그리드 */
-            <div className="overflow-y-auto pr-2">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {stories.map((story) => (
+            /* 모바일 뷰 (360px 미만) - 인스타그램 스타일 */
+            isMobileView ? (
+              <div 
+                className="relative h-96 overflow-hidden"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                {/* 현재 스토리만 표시 */}
+                {stories[currentIndex] && (
+                  <div className="relative w-full h-full">
+                    <Card className="overflow-hidden h-full bg-white shadow-lg">
+                      {/* 스토리 이미지 */}
+                      <div className="relative h-64 bg-gradient-to-br from-purple-500 to-blue-500">
+                        <img
+                          src={stories[currentIndex].imageUrl}
+                          alt="스토리 이미지"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/placeholder-image.png'
+                          }}
+                        />
+                        
+                        {/* 오버레이 그라데이션 */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        
+                        {/* 좋아요/댓글 버튼 */}
+                        <div className="absolute bottom-4 right-4 flex gap-3">
+                          <button
+                            onClick={() => handleLikeToggle(stories[currentIndex].id)}
+                            className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                          >
+                            {likedStories.has(stories[currentIndex].id) ? (
+                              <Heart className="w-5 h-5 text-red-500 fill-current" />
+                            ) : (
+                              <Heart className="w-5 h-5 text-red-500" />
+                            )}
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowCommentModal(stories[currentIndex].id)}
+                            className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                          >
+                            <MessageSquare className="w-5 h-5 text-blue-500" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* 스토리 내용 */}
+                      <div className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <User className="w-4 h-4 text-purple-600" />
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-gray-800">{stories[currentIndex].userName}</span>
+                            <div className="text-xs text-gray-500">
+                              {stories[currentIndex].createdAt.toLocaleTimeString('ko-KR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                          {stories[currentIndex].text}
+                        </p>
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>24시간 후 삭제</span>
+                          <span>{currentIndex + 1} / {stories.length}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                )}
+                
+                {/* 네비게이션 인디케이터 */}
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {stories.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-1 rounded-full transition-all duration-300 ${
+                        index === currentIndex 
+                          ? 'bg-white w-8' 
+                          : 'bg-white/50 w-2'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* 데스크톱 뷰 (360px 이상) - 기존 그리드 스타일 */
+              <div 
+                className="overflow-x-auto overflow-y-hidden scrollbar-hide story-carousel"
+                style={{
+                  scrollbarWidth: 'none', // Firefox
+                  msOverflowStyle: 'none', // IE and Edge
+                  WebkitOverflowScrolling: 'touch' // iOS smooth scrolling
+                }}
+              >
+                <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+                  {stories.map((story) => (
                 <div
                   key={story.id}
-                  className="relative"
+                  className="relative flex-shrink-0 w-80"
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full p-3 group">
                     <div className="relative">
@@ -1084,9 +1246,11 @@ export default function StoryCarousel() {
                     </div>
                   </Card>
                 </div>
-              ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )
+          )}
           ) : (
             /* 스토리가 없을 때 빈 상태 메시지 */
             <div className="text-center py-12">

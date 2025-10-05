@@ -688,7 +688,7 @@ export default function FreeBoard() {
                 </Button>
               </DialogTrigger>
             <DialogContent 
-              className="max-w-2xl bg-white border border-gray-200 shadow-xl"
+              className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl mx-4"
               style={{ 
                 backgroundColor: 'white',
                 opacity: 1
@@ -868,13 +868,13 @@ export default function FreeBoard() {
                     />
                     <label
                       htmlFor="image-upload"
-                      className={`cursor-pointer flex flex-col items-center justify-center py-4 text-gray-600 hover:text-gray-800 ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`cursor-pointer flex flex-col items-center justify-center py-6 text-gray-600 hover:text-gray-800 ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <div className="text-4xl mb-2">📷</div>
-                      <div className='text-sm font-medium'>
+                      <div className="text-4xl mb-3">📷</div>
+                      <div className='text-sm sm:text-base font-medium text-center px-2'>
                         {uploadingImages ? '업로드 중...' : '이미지를 선택하거나 여기에 드래그하세요'}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs sm:text-sm text-gray-500 mt-2 text-center px-2">
                         JPG, PNG, GIF 파일 (최대 5개, 각 5MB 이하)
                       </div>
                     </label>
@@ -884,13 +884,13 @@ export default function FreeBoard() {
                   {imagePreviews.length > 0 && (
                     <div className="mt-3 space-y-2">
                       <div className="text-sm font-medium text-gray-700 mb-2">업로드된 이미지 ({imagePreviews.length}/5)</div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                         {imagePreviews.map((preview, index) => (
                           <div key={index} className="relative group">
                             <img
                               src={preview}
                               alt={`첨부 이미지 ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border"
+                              className="w-full h-24 sm:h-32 object-cover rounded-lg border"
                             />
                             <button
                               onClick={() => removeImage(index)}
@@ -948,9 +948,37 @@ export default function FreeBoard() {
           
           {/* 게시글 상세 내용 */}
           <PostDetail
-            post={selectedPost}
-            onClose={() => setShowPostDetail(false)}
-            onUpdate={fetchPosts}
+            postId={selectedPost.id}
+            onBack={() => setShowPostDetail(false)}
+            onEdit={() => {
+              // 게시글 수정 모달 열기
+              console.log('게시글 수정:', selectedPost.id)
+              // TODO: 게시글 수정 모달 구현
+              alert('게시글 수정 기능은 준비 중입니다.')
+            }}
+            onDelete={async () => {
+              if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+                try {
+                  const response = await fetch(`/api/posts/${selectedPost.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                      'Authorization': `Bearer ${token}`
+                    }
+                  })
+                  
+                  if (response.ok) {
+                    alert('게시글이 삭제되었습니다.')
+                    setShowPostDetail(false)
+                    fetchPosts() // 목록 새로고침
+                  } else {
+                    alert('게시글 삭제에 실패했습니다.')
+                  }
+                } catch (error) {
+                  console.error('삭제 오류:', error)
+                  alert('게시글 삭제 중 오류가 발생했습니다.')
+                }
+              }
+            }}
           />
         </div>
       ) : (

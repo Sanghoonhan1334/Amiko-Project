@@ -30,22 +30,23 @@ export default function FreeBoardPage() {
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
-      {/* 페이지별 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4">
+      {/* 모바일 전용 헤더 */}
+      <div className="bg-white border-b border-gray-200 px-4 py-4 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <Button
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white shadow-sm hover:shadow-md px-3 py-2 text-sm font-medium min-w-[60px]"
             >
               <ArrowLeft className="w-4 h-4" />
-              이전
+              <span className="hidden sm:inline">이전</span>
             </Button>
-            <h1 className="text-xl font-bold text-gray-800">주제별 게시판</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800">주제별 게시판</h1>
           </div>
           
+          {/* 모바일 글쓰기 버튼 */}
           {currentView === 'list' && (
             <Button
               onClick={handleCreatePost}
@@ -81,8 +82,8 @@ export default function FreeBoardPage() {
         )}
       </div>
       
-      {/* 모바일 하단 네비게이션 */}
-      <BottomTabNavigation />
+      {/* 모바일 하단 네비게이션 - 주제별 게시판에서는 숨김 */}
+      {/* <BottomTabNavigation /> */}
     </div>
   )
 }

@@ -348,23 +348,24 @@ export default function QAPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 pt-20 pb-6">
+      <div className="max-w-6xl mx-auto px-4 pt-12 pb-6">
         {/* 페이지 제목 */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl font-bold text-gray-800">Q&A</h1>
-            <p className="text-gray-600 mt-1">궁금한 점을 질문하고 답변을 받아보세요</p>
+            
+            {/* 이전 버튼 - 제목 오른쪽으로 이동 */}
+            <Button 
+              onClick={() => router.push('/main?tab=community')}
+              variant="outline"
+              size="sm"
+              className="border-2 border-gray-400 hover:border-gray-500 text-gray-700 hover:text-gray-900 bg-white shadow-sm hover:shadow-md px-3 py-2 flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              이전
+            </Button>
           </div>
-          
-          {/* 이전 버튼 */}
-          <Button 
-            onClick={() => router.push('/main?tab=community')}
-            variant="outline"
-            className="border-2 border-gray-400 hover:border-gray-500 text-gray-700 hover:text-gray-900 bg-white shadow-sm hover:shadow-md px-3 py-2 flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            이전
-          </Button>
+          <p className="text-gray-600">궁금한 점을 질문하고 답변을 받아보세요</p>
         </div>
 
         {/* 상단 컨트롤 */}
@@ -390,9 +391,9 @@ export default function QAPage() {
         </div>
 
         {/* 질문 목록 */}
-        <div className="mt-8">
+        <div className="mt-4">
           {/* 질문 카드 리스트 */}
-          <div className="space-y-8">
+          <div className="space-y-2">
             {filteredQuestions.length === 0 ? (
               <Card className="p-8 text-center">
                 <div className="text-gray-400 text-6xl mb-4">❓</div>
@@ -404,14 +405,14 @@ export default function QAPage() {
                 <div key={question.id}>
                   {/* 데스크톱: 카드 스타일 */}
                   <Card 
-                    className="hidden md:block p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
+                    className="hidden md:block p-3 sm:p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-200 hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       handleQuestionClick(question)
                     }}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3">
                       {/* 업보트 영역 */}
                       <div className="flex flex-col items-center gap-2 min-w-[60px]">
                         <Button
@@ -462,14 +463,14 @@ export default function QAPage() {
 
                   {/* 모바일: 간단한 스타일 */}
                   <Card 
-                    className="md:hidden p-4 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    className="md:hidden p-3 hover:shadow-lg transition-all duration-300 cursor-pointer bg-white border border-gray-200"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       handleQuestionClick(question)
                     }}
                   >
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <h3 className="text-base font-semibold text-gray-800 line-clamp-2">{question.title}</h3>
                       <div className="flex items-center justify-between text-xs text-gray-800">
                         <span>{question.author?.full_name || '익명'}</span>
@@ -686,8 +687,8 @@ export default function QAPage() {
         </DrawerContent>
       </Drawer>
       
-      {/* 모바일 하단 네비게이션 */}
-      <BottomTabNavigation />
+      {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
+      {/* <BottomTabNavigation /> */}
     </div>
   )
 }

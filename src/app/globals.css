@@ -323,3 +323,29 @@
     }
   }
 }
+
+/* 스토리 업로드 모달 모바일 위치 조정 */
+@media (max-width: 480px) {
+  [data-radix-dialog-content] {
+    left: 24px !important;
+    right: 24px !important;
+    transform: none !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: calc(100vw - 48px) !important;
+  }
+}
+
+/* 스토리 캐러셀 스크롤바 완전 숨기기 */
+.story-carousel {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.story-carousel::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}

@@ -196,9 +196,20 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   const isAuthor = user && user.id === post.user.id
   const canManage = isAuthor || isAdmin // 작성자이거나 운영자
+  
+  console.log('PostDetail 권한 확인:', {
+    userId: user?.id,
+    postUserId: post.user.id,
+    isAuthor,
+    isAdmin,
+    canManage,
+    onEdit: !!onEdit,
+    onDelete: !!onDelete
+  })
 
   return (
-    <Card className="bg-white shadow-lg border border-gray-200 rounded-xl overflow-hidden">
+    <div className="pt-8 md:pt-12">
+      <Card className="bg-white shadow-lg border border-gray-200 rounded-xl overflow-hidden">
       {/* 게시물 상세 */}
       <div className="p-4 md:p-6">
         {/* 게시물 헤더 */}
@@ -222,29 +233,32 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
             )}
             
             <div className="flex flex-col space-y-2">
-              {/* 이전 페이지로 이동 버튼 */}
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={onBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                이전 페이지로 이동
-              </Button>
-              
               {/* 수정/삭제 버튼 */}
               {canManage && (
                 <div className="flex space-x-2">
                   {isAuthor && (
-                    <Button size="sm" variant="outline" onClick={onEdit}>
+                    <Button size="sm" variant="outline" onClick={() => {
+                      console.log('수정 버튼 클릭됨, onEdit 함수:', onEdit)
+                      if (onEdit) {
+                        onEdit()
+                      } else {
+                        console.error('onEdit 함수가 정의되지 않음')
+                      }
+                    }}>
                       수정
                     </Button>
                   )}
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    onClick={onDelete}
+                    onClick={() => {
+                      console.log('삭제 버튼 클릭됨, onDelete 함수:', onDelete)
+                      if (onDelete) {
+                        onDelete()
+                      } else {
+                        console.error('onDelete 함수가 정의되지 않음')
+                      }
+                    }}
                     className={isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : ''}
                   >
                     {isAdmin && !isAuthor ? '🗑️ 운영자 삭제' : '삭제'}
@@ -340,5 +354,6 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         />
       </div>
     </Card>
+    </div>
   )
 }

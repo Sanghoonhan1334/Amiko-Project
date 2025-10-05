@@ -321,23 +321,23 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
-          <div className="flex justify-between items-center h-24 sm:h-28 md:h-32 lg:h-32 xl:h-32 2xl:h-32 3xl:h-32 relative">
+          <div className="flex justify-between items-center h-16 sm:h-20 md:h-32 lg:h-32 xl:h-32 2xl:h-32 3xl:h-32 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
-            <div className="flex flex-col items-start gap-1 sm:gap-2 flex-shrink-0 w-20 sm:w-24 md:w-28">
+            <div className="flex flex-col items-start gap-0.5 sm:gap-2 flex-shrink-0 w-16 sm:w-24 md:w-28">
               {/* 언어 드롭다운 - 시계 위에 */}
               <div className="relative language-dropdown">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                  className="px-1.5 py-1 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200 flex items-center gap-1"
+                  className="px-1 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200 flex items-center gap-0.5 sm:gap-1"
                   title={t('selectLanguage')}
                 >
-                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                  <Globe className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-600" />
                   <span className="text-xs sm:text-sm font-medium">
                     {language === 'ko' ? '한국어' : 'Español'}
                   </span>
-                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
+                  <ChevronDown className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-500" />
                 </Button>
                 
                 {/* 언어 선택 드롭다운 */}
@@ -393,11 +393,11 @@ export default function Header() {
                 className="relative cursor-pointer group time-dropdown"
                 onClick={() => setShowTimeDetails(!showTimeDetails)}
               >
-                <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
-                  <div className="flex flex-row gap-1 sm:gap-2 text-xs font-medium">
-                    <span className="text-blue-700 whitespace-nowrap">🇰🇷 {koreanTime}</span>
-                    <span className="text-indigo-700 whitespace-nowrap">🇲🇽 {localTime}</span>
+                <div className="flex items-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-0.5 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+                  <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-blue-600" />
+                  <div className="flex flex-row gap-0.5 sm:gap-2 text-xs font-medium">
+                    <span className="text-blue-700 whitespace-nowrap" style={{ fontSize: '10px' }}>🇰🇷 {koreanTime}</span>
+                    <span className="text-indigo-700 whitespace-nowrap" style={{ fontSize: '10px' }}>🇲🇽 {localTime}</span>
                   </div>
                 </div>
                 
@@ -558,13 +558,13 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-4 sm:-top-6 md:-top-10 lg:-top-12 z-0 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 sm:-top-6 md:-top-10 lg:-top-12 z-0 flex flex-col items-center">
               {/* 로고 */}
               <div className="relative">
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
-                  className="h-24 sm:h-32 md:h-40 lg:h-40 xl:h-40 w-auto object-contain transition-all duration-300"
+                  className="h-20 sm:h-32 md:h-40 lg:h-40 xl:h-40 w-auto object-contain transition-all duration-300"
                   style={{ 
                     maxHeight: '160px'
                   }}
@@ -746,7 +746,7 @@ export default function Header() {
             </div>
 
             {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
-            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0 w-20 sm:w-24 md:w-28 justify-end">
+            <div className="flex items-center space-x-0.5 sm:space-x-2 md:space-x-4 flex-shrink-0 w-16 sm:w-24 md:w-28 justify-end">
               {/* 로그인 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
               {isMainPage && !user && (
                 <button 
@@ -848,7 +848,7 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleMobileMenu}
-                className="md:hidden p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 [&_svg]:!size-6"
+                className="md:hidden p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 [&_svg]:!size-5"
               >
                 {isMobileMenuOpen ? (
                   <X className="text-gray-600" />

@@ -337,89 +337,180 @@ function AppPageContent() {
             )}
 
             {activeTab === 'me' && (
-              <div className="card p-8 -mt-12 sm:mt-0">
-                {/* 일반 사용자만 헤더 섹션 표시 */}
-                {!isAdmin && (
-                  <div className="flex items-center gap-3 mb-0">
-                    <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
-                      <span className="text-2xl">👤</span>
-                    </div>
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
-                    </div>
+              <div className="pt-16 md:pt-24 pb-20 md:pb-8">
+                {/* 웹: 섹션 카드로 감싸기 */}
+                <div className="hidden md:block">
+                  <div className="card p-8 -mt-12 sm:mt-0">
+                    {/* 일반 사용자만 헤더 섹션 표시 */}
+                    {!isAdmin && (
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
+                          <span className="text-2xl">👤</span>
+                        </div>
+                        <div className="flex-1">
+                          <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
+                          <p className="text-sm text-gray-600">{t('main.meDescription')}</p>
+                        </div>
+                      </div>
+                    )}
+                    {/* 운영자는 대시보드만 표시 (헤더 없음) */}
+                    <MyTab />
                   </div>
-                )}
-                {/* 설명 섹션 */}
-                {!isAdmin && (
-                  <div className="mb-6">
-                    <p className="text-gray-600">{t('main.meDescription')}</p>
-                  </div>
-                )}
-                {/* 운영자는 대시보드만 표시 (헤더 없음) */}
-                <MyTab />
+                </div>
+                
+                {/* 모바일: 섹션 카드 없이 */}
+                <div className="block md:hidden">
+                  {/* 일반 사용자만 헤더 섹션 표시 */}
+                  {!isAdmin && (
+                    <div className="flex items-center gap-3 mb-0 px-2 sm:px-4">
+                      <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
+                        <span className="text-2xl">👤</span>
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
+                      </div>
+                    </div>
+                  )}
+                  {/* 설명 섹션 */}
+                  {!isAdmin && (
+                    <div className="mb-6 px-2 sm:px-4">
+                      <p className="text-gray-600">{t('main.meDescription')}</p>
+                    </div>
+                  )}
+                  {/* 운영자는 대시보드만 표시 (헤더 없음) */}
+                  <MyTab />
+                </div>
               </div>
             )}
 
 
             {activeTab === 'charging' && (
               <div className="space-y-6 pt-16 md:pt-24">
-                <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-12 sm:mt-0">
-                  {/* 헤더 섹션 */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
-                      <span className="text-2xl">⚡</span>
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-800">{t('storeTab.title')}</h2>
-                      <p className="text-sm text-gray-600">{t('storeTab.subtitle')}</p>
-                      <p className="text-xs text-purple-600 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
-                    </div>
-                  </div>
-                  
-                  {/* 포인트 카드 */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                      <span className='text-sm font-medium text-blue-800'>{t('storeTab.pointCard.title')}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                        {pointsLoading ? (
-                          <div className="text-xl font-bold text-blue-600 animate-pulse">...</div>
-                        ) : (
-                          <div className="text-xl font-bold text-blue-600">{availableAKO}</div>
-                        )}
-                        <div className='text-sm text-gray-600 mt-1'>{t('storeTab.pointCard.availableAKO')}</div>
+                {/* 웹: 섹션 카드로 감싸기 */}
+                <div className="hidden md:block">
+                  <div className="card p-8 -mt-12 sm:mt-0">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
+                        <span className="text-2xl">⚡</span>
                       </div>
-                      <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
-                        {pointsLoading ? (
-                          <div className="text-xl font-bold text-purple-600 animate-pulse">...</div>
-                        ) : (
-                          <div className="text-xl font-bold text-purple-600">{currentPoints}</div>
-                        )}
-                        <div className='text-sm text-gray-600 mt-1'>{t('storeTab.pointCard.currentPoints')}</div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-800">{t('storeTab.title')}</h2>
+                        <p className="text-sm text-gray-600">{t('storeTab.subtitle')}</p>
+                        <p className="text-xs text-purple-600 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
                       </div>
                     </div>
+                    
+                    {/* 포인트 카드 */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <span className='text-sm font-medium text-blue-800'>{t('storeTab.pointCard.title')}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                          {pointsLoading ? (
+                            <div className="text-xl font-bold text-blue-600 animate-pulse">...</div>
+                          ) : (
+                            <div className="text-xl font-bold text-blue-600">{availableAKO}</div>
+                          )}
+                          <div className='text-sm text-gray-600 mt-1'>{t('storeTab.pointCard.availableAKO')}</div>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
+                          {pointsLoading ? (
+                            <div className="text-xl font-bold text-purple-600 animate-pulse">...</div>
+                          ) : (
+                            <div className="text-xl font-bold text-purple-600">{currentPoints}</div>
+                          )}
+                          <div className='text-sm text-gray-600 mt-1'>{t('storeTab.pointCard.currentPoints')}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <ChargingTab />
                   </div>
                 </div>
-                <ChargingTab />
+                
+                {/* 모바일: 섹션 카드 없이 */}
+                <div className="block md:hidden">
+                  <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-12 sm:mt-0">
+                    {/* 헤더 섹션 */}
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
+                        <span className="text-2xl">⚡</span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-800">{t('storeTab.title')}</h2>
+                        <p className="text-sm text-gray-600">{t('storeTab.subtitle')}</p>
+                        <p className="text-xs text-purple-600 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
+                      </div>
+                    </div>
+                    
+                    {/* 포인트 카드 */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <span className='text-sm font-medium text-blue-800'>{t('storeTab.pointCard.title')}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                          {pointsLoading ? (
+                            <div className="text-xl font-bold text-blue-600 animate-pulse">...</div>
+                          ) : (
+                            <div className="text-xl font-bold text-blue-600">{availableAKO}</div>
+                          )}
+                          <div className='text-sm text-gray-600 mt-1'>{t('storeTab.pointCard.availableAKO')}</div>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
+                          {pointsLoading ? (
+                            <div className="text-xl font-bold text-purple-600 animate-pulse">...</div>
+                          ) : (
+                            <div className="text-xl font-bold text-purple-600">{currentPoints}</div>
+                          )}
+                          <div className='text-sm text-gray-600 mt-1'>{t('storeTab.pointCard.currentPoints')}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <ChargingTab />
+                </div>
               </div>
             )}
 
 
             {activeTab === 'event' && (
-              <div className="card p-8 -mt-12 sm:mt-0">
-                <EventTab />
+              <div className="pt-16 md:pt-24 pb-20 md:pb-8">
+                {/* 웹: 섹션 카드로 감싸기 */}
+                <div className="hidden md:block">
+                  <div className="card p-8 -mt-12 sm:mt-0">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-orange-100 rounded-3xl flex items-center justify-center">
+                        <span className="text-2xl">🎁</span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-800">{t('eventTab.title')}</h2>
+                        <p className="text-sm text-gray-600">{t('eventTab.subtitle')}</p>
+                      </div>
+                    </div>
+                    <EventTab />
+                  </div>
+                </div>
+                
+                {/* 모바일: 섹션 카드 없이 */}
+                <div className="block md:hidden">
+                  <EventTab />
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
       
-      {/* 하단 탭 네비게이션 */}
-      <BottomTabNavigation />
+      {/* 하단 탭 네비게이션 - 커뮤니티 탭에서는 숨김 */}
+      {activeTab !== 'community' && <BottomTabNavigation />}
     </div>
   )
 }
