@@ -3,10 +3,10 @@ import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { postId: string; commentId: string } }
+  { params }: { params: { id: string; commentId: string } }
 ) {
   try {
-    const { postId, commentId } = params
+    const { id: postId, commentId } = params
 
     if (!postId || !commentId) {
       return NextResponse.json({
