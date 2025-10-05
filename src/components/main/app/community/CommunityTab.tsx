@@ -1151,8 +1151,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       console.log('질문 작성 시도:', { title: questionForm.title, token: !!currentToken })
 
-      // 게시물 생성 API 호출
-      const response = await fetch('/api/posts', {
+      // Q&A 질문 생성 API 호출
+      const response = await fetch('/api/questions', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1160,10 +1160,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         },
         body: JSON.stringify({
           title: questionForm.title,
-          content: questionForm.content,
-          category_name: 'Q&A', // Q&A 전용 카테고리로 분리
-          is_notice: false,
-          is_survey: false
+          content: questionForm.content
         })
       })
 
@@ -1184,11 +1181,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }
 
       const result = await response.json()
-      console.log('새 질문 작성:', result.post)
+      console.log('새 질문 작성:', result.question)
 
       // 포인트 획득 시도
       if (user?.id) {
-        console.log('포인트 획득 시도:', { userId: user.id, postId: result.post.id })
+        console.log('포인트 획득 시도:', { userId: user.id, postId: result.question.id })
         
         const pointsResponse = await fetch('/api/community/points', {
           method: 'POST',
