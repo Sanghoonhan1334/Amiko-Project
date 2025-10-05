@@ -1161,7 +1161,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         body: JSON.stringify({
           title: questionForm.title,
           content: questionForm.content,
-          category_name: '자유게시판', // 질문은 자유게시판에 작성
+          category_name: 'Q&A', // Q&A 전용 카테고리로 분리
           is_notice: false,
           is_survey: false
         })

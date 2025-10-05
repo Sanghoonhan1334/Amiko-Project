@@ -12,17 +12,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 자유게시판 갤러리 ID 조회
+    // Q&A 갤러리 ID 조회 (Q&A 전용)
     const { data: gallery, error: galleryError } = await supabaseServer
       .from('galleries')
       .select('id')
-      .eq('slug', 'free')
+      .eq('slug', 'qa')
       .single()
 
     if (galleryError || !gallery) {
       console.error('[QUESTIONS_API] 갤러리 조회 오류:', galleryError)
       return NextResponse.json(
-        { error: '자유게시판을 찾을 수 없습니다.' },
+        { error: 'Q&A 게시판을 찾을 수 없습니다.' },
         { status: 500 }
       )
     }
@@ -140,17 +140,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 자유게시판 갤러리 ID 조회
+    // Q&A 갤러리 ID 조회 (Q&A 전용)
     const { data: freeGallery, error: freeGalleryError } = await supabaseServer
       .from('galleries')
       .select('id')
-      .eq('slug', 'free')
+      .eq('slug', 'qa')
       .single()
 
     if (freeGalleryError || !freeGallery) {
       console.error('[QUESTIONS_API] 갤러리 조회 오류:', freeGalleryError)
       return NextResponse.json(
-        { error: '게시판을 찾을 수 없습니다.' },
+        { error: 'Q&A 게시판을 찾을 수 없습니다.' },
         { status: 500 }
       )
     }

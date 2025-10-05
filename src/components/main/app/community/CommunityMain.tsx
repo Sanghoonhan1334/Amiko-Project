@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import GalleryList from './GalleryList'
 import GalleryPostList from './GalleryPostList'
 import PostDetail from './PostDetail'
@@ -47,6 +48,7 @@ type ViewMode = 'galleries' | 'posts' | 'post-detail' | 'post-create' | 'popular
 
 // CommunityMain.tsx - 갤러리 시스템 메인 컴포넌트 (주제별 게시판)
 export default function CommunityMain() {
+  const { user, token } = useAuth()
   const [viewMode, setViewMode] = useState<ViewMode>('galleries')
   const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
@@ -112,8 +114,7 @@ export default function CommunityMain() {
       try {
         console.log('게시물 삭제 시도:', selectedPost.id)
         
-        // 토큰 가져오기
-        const token = localStorage.getItem('token')
+        // 토큰 확인
         if (!token) {
           alert('로그인이 필요합니다.')
           return
