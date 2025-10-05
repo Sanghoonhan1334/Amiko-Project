@@ -740,7 +740,7 @@ export default function MyTab() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto -mt-4 sm:mt-32 md:mt-36 lg:mt-40 px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto -mt-4 sm:-mt-4 md:-mt-4 lg:-mt-4 px-1 sm:px-1 md:px-2 lg:px-4 xl:px-6">
       {/* 인증이 필요한 경우 인증하기 버튼 표시 */}
       {authStatus.loading ? (
         <div className="flex items-center justify-center p-8">

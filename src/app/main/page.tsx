@@ -235,7 +235,7 @@ function AppPageContent() {
             {activeTab === 'meet' && (
               <div className="hidden md:block pt-20 sm:pt-36">
                 <div className="w-full">
-                  <div className="card p-8 -mt-12 sm:mt-0">
+                  <div className="card p-8 pt-12 -mt-12 sm:mt-0">
                     <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
                       <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
                         <Video className="w-10 h-10 text-white" />
@@ -328,7 +328,7 @@ function AppPageContent() {
               <div className="pt-28 md:pt-8 pb-20 md:pb-8">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
-                  <div className="card p-8 -mt-12 sm:-mt-16 md:-mt-24 lg:-mt-32 xl:-mt-40">
+                  <div className="card px-10 py-8 pt-12 mt-8 sm:mt-16 md:mt-20 lg:mt-24 xl:mt-28">
                     {/* 일반 사용자만 헤더 섹션 표시 */}
                     {!isAdmin && (
                       <div className="flex items-center gap-3 mb-6">
@@ -473,7 +473,7 @@ function AppPageContent() {
               <div className="pb-20 md:pb-8 pt-16 sm:pt-36">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
-                  <div className="card p-8 -mt-12 sm:mt-0">
+                  <div className="card px-2 py-8 -mt-12 sm:mt-0">
                     <div className="pt-12">
                       <EventTab />
                     </div>
