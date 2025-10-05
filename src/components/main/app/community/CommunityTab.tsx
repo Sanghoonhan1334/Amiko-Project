@@ -789,7 +789,22 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       
       const data = await response.json()
       console.log('질문 데이터 로딩 성공:', data.questions?.length || 0, '개')
-      setQuestions(data.questions || [])
+      
+      // API 응답을 프론트엔드 형식으로 변환
+      const transformedQuestions = (data.questions || []).map((q: any) => ({
+        ...q,
+        createdAt: new Date(q.created_at),
+        upvotes: q.like_count || 0,
+        answers: q.comment_count || 0,
+        views: q.view_count || 0,
+        authorType: 'korean', // 기본값으로 설정 (실제로는 사용자 정보에서 판단해야 함)
+        isSolved: false, // 기본값
+        preview: q.content?.substring(0, 100) + (q.content?.length > 100 ? '...' : ''),
+        category: 'all' // 기본 카테고리
+      }))
+      
+      console.log('변환된 질문 데이터:', transformedQuestions)
+      setQuestions(transformedQuestions)
     } catch (error) {
       console.error('질문 로딩 오류:', error)
       setQuestions([])
