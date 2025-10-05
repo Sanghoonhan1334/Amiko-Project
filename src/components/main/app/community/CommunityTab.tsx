@@ -2416,7 +2416,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             </div>
           </button>
         </div>
-        </div>
       )}
 
       {/* 탭 컨텐츠 */}
@@ -4153,6 +4152,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </DialogContent>
       </Dialog>
 
+      </div>
     </div>
   )
 }
