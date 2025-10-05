@@ -806,15 +806,17 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }))
       
       console.log('변환된 질문 데이터:', transformedQuestions)
+      console.log('🔥 setQuestions 호출 전 - questionsLoading:', questionsLoading)
       setQuestions(transformedQuestions)
-      console.log('질문 데이터 설정 완료, 로딩 상태 해제')
+      console.log('🔥 setQuestions 호출 후 - 질문 데이터 설정 완료')
     } catch (error) {
       console.error('질문 로딩 오류:', error)
       setQuestions([])
       console.log('오류 발생, 로딩 상태 해제')
     } finally {
+      console.log('🔥 finally 블록 시작 - questionsLoading을 false로 설정')
       setQuestionsLoading(false)
-      console.log('questionsLoading을 false로 설정 완료')
+      console.log('🔥 questionsLoading을 false로 설정 완료')
     }
   }, [token])
 
