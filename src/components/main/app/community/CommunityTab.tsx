@@ -774,10 +774,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 데이터 로딩 함수들
   const loadQuestions = useCallback(async () => {
     console.log('loadQuestions 호출됨 - 실제 API 호출')
-    if (questionsLoading) {
-      console.log('이미 로딩 중이므로 건너뜀')
-      return
-    }
     setQuestionsLoading(true)
     
     try {
@@ -820,7 +816,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       setQuestionsLoading(false)
       console.log('questionsLoading을 false로 설정 완료')
     }
-  }, [questionsLoading, token])
+  }, [token])
 
   const loadAnswers = async (questionId: string) => {
     console.log('loadAnswers 호출됨 - 실제 API 호출:', questionId)
