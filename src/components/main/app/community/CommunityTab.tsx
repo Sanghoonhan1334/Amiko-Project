@@ -2438,20 +2438,40 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           {/* 결과 없음 */}
           {filteredQuestions.length === 0 && (
             <Card className="p-12 text-center shadow-lg border border-gray-200">
-              <div className="text-4xl mb-4">🔍</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('chargingTab.search.noResults')}</h3>
-              <p className="text-gray-600 mb-4">
-                {t('chargingTab.search.adjustFilters')}
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchTerm('')
-                  setActiveCategory('all')
-                }}
-              >
-                {t('chargingTab.search.resetFilters')}
-              </Button>
+              {questions.length === 0 ? (
+                // 질문이 아예 없는 경우
+                <>
+                  <div className="text-4xl mb-4">❓</div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">아직 질문이 없습니다</h3>
+                  <p className="text-gray-600 mb-4">
+                    궁금한 점이 있으시면 첫 번째 질문을 작성해보세요!
+                  </p>
+                  <Button 
+                    onClick={() => setShowQuestionForm(true)}
+                    className="bg-purple-500 hover:bg-purple-600 text-white"
+                  >
+                    질문 작성하기
+                  </Button>
+                </>
+              ) : (
+                // 검색/필터 결과가 없는 경우
+                <>
+                  <div className="text-4xl mb-4">🔍</div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">검색 결과가 없습니다</h3>
+                  <p className="text-gray-600 mb-4">
+                    다른 키워드나 카테고리로 검색해보세요
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSearchTerm('')
+                      setActiveCategory('all')
+                    }}
+                  >
+                    필터 초기화
+                  </Button>
+                </>
+              )}
             </Card>
           )}
       </div>

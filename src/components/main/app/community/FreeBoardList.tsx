@@ -553,13 +553,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               </SelectContent>
             </Select>
             <div className="flex items-center gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => router.push('/main?tab=community')}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                title="이전"
+                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
               >
-                <ArrowLeft className="w-4 h-4 text-gray-600" />
-              </button>
+                <ArrowLeft className="w-4 h-4" />
+                이전
+              </Button>
             </div>
           </div>
         </div>

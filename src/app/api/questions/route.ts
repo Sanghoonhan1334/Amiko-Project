@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 질문 목록 조회 (자유게시판의 게시물들을 질문으로 사용)
+    // 질문 목록 조회 (Q&A 게시판의 게시물들을 질문으로 사용)
     const { data: questions, error } = await supabaseServer
       .from('gallery_posts')
       .select(`
@@ -104,17 +104,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 자유게시판 갤러리 ID 조회
+    // Q&A 갤러리 ID 조회 (Q&A 전용)
     const { data: gallery, error: galleryError } = await supabaseServer
       .from('galleries')
       .select('id')
-      .eq('slug', 'free')
+      .eq('slug', 'qa')
       .single()
 
     if (galleryError || !gallery) {
       console.error('[QUESTIONS_API] 갤러리 조회 오류:', galleryError)
       return NextResponse.json(
-        { error: '게시판을 찾을 수 없습니다.' },
+        { error: 'Q&A 게시판을 찾을 수 없습니다.' },
         { status: 500 }
       )
     }
@@ -140,28 +140,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Q&A 갤러리 ID 조회 (Q&A 전용)
-    const { data: freeGallery, error: freeGalleryError } = await supabaseServer
-      .from('galleries')
-      .select('id')
-      .eq('slug', 'qa')
-      .single()
-
-    if (freeGalleryError || !freeGallery) {
-      console.error('[QUESTIONS_API] 갤러리 조회 오류:', freeGalleryError)
-      return NextResponse.json(
-        { error: 'Q&A 게시판을 찾을 수 없습니다.' },
-        { status: 500 }
-      )
-    }
-
     // 질문 생성
     const { data: question, error: insertError } = await supabaseServer
       .from('gallery_posts')
       .insert({
         title: title.trim(),
         content: content.trim(),
-        gallery_id: freeGallery.id,
+        gallery_id: gallery.id,
         user_id: user.id,
         view_count: 0,
         like_count: 0,

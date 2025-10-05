@@ -38,10 +38,10 @@ export default function FreeBoardPage() {
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white shadow-sm hover:shadow-md px-3 py-2 text-sm font-medium min-w-[60px]"
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">이전</span>
+              이전
             </Button>
             <h1 className="text-lg sm:text-xl font-bold text-gray-800">주제별 게시판</h1>
           </div>
