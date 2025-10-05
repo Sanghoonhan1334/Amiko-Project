@@ -143,13 +143,47 @@ export default function PostDetailPage() {
           postId={post.id}
           onBack={handleBack}
           onEdit={() => {
-            // 게시글 수정 로직 (나중에 구현)
-            console.log('게시글 수정')
+            // 게시글 수정 기능 (나중에 구현)
+            console.log('게시글 수정:', post.id)
+            alert('수정 기능은 준비 중입니다.')
           }}
-          onDelete={() => {
-            // 게시글 삭제 로직 (나중에 구현)
-            console.log('게시글 삭제')
-            handleBack()
+          onDelete={async () => {
+            if (confirm('정말로 이 게시물을 삭제하시겠습니까?\n삭제된 게시물은 복구할 수 없습니다.')) {
+              try {
+                console.log('게시물 삭제 시도:', post.id)
+                
+                // 토큰 가져오기
+                const token = localStorage.getItem('amiko_token')
+                if (!token) {
+                  alert('로그인이 필요합니다.')
+                  return
+                }
+
+                // DELETE API 호출
+                const response = await fetch(`/api/posts/${post.id}`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                })
+
+                if (!response.ok) {
+                  const errorData = await response.json()
+                  throw new Error(errorData.error || '삭제에 실패했습니다.')
+                }
+
+                const result = await response.json()
+                console.log('삭제 성공:', result)
+                
+                alert('게시물이 삭제되었습니다.')
+                handleBack() // 성공 시에만 뒤로가기
+                
+              } catch (error) {
+                console.error('게시물 삭제 오류:', error)
+                alert(error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.')
+              }
+            }
           }}
         />
       </div>

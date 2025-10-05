@@ -51,9 +51,10 @@ interface Category {
 
 interface FreeBoardListProps {
   showHeader?: boolean
+  onPostSelect?: (post: Post) => void
 }
 
-const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true }) => {
+const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPostSelect }) => {
   const { user, token } = useAuth()
   const { language, t } = useLanguage()
   const router = useRouter()
@@ -458,7 +459,13 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true }) => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {posts.map((post, index) => (
-                          <tr key={post.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/community/post/${post.id}`)}>
+                          <tr key={post.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                            if (onPostSelect) {
+                              onPostSelect(post)
+                            } else {
+                              router.push(`/community/post/${post.id}`)
+                            }
+                          }}>
                             <td className="px-4 py-3 text-sm text-gray-500">{posts.length - index}</td>
                             <td className="px-4 py-3 text-sm">
                               <Badge variant="secondary" className="text-xs">
@@ -609,7 +616,13 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true }) => {
                 <div 
                   key={post.id} 
                   className="py-4 cursor-pointer hover:bg-gray-50 px-4"
-                  onClick={() => router.push(`/community/post/${post.id}`)}
+                  onClick={() => {
+                    if (onPostSelect) {
+                      onPostSelect(post)
+                    } else {
+                      router.push(`/community/post/${post.id}`)
+                    }
+                  }}
                 >
                   <div className="space-y-2">
                     {/* 제목 */}

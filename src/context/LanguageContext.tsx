@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react'
 import { translations, Language } from '@/lib/translations'
 
 interface LanguageContextType {
@@ -38,7 +38,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const t = (key: string, params?: Record<string, string | number>): string => {
+  // useCallback으로 t 함수 최적화 (불필요한 리렌더링 방지)
+  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
     try {
       const keys = key.split('.')
       let value: unknown = translations[language]
@@ -71,9 +72,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       console.error(`Error translating key ${key}:`, error)
       return key
     }
-  }
+  }, [language])
 
-  const toggleLanguage = () => {
+  // useCallback으로 toggleLanguage 함수 최적화
+  const toggleLanguage = useCallback(() => {
     const newLanguage = language === 'ko' ? 'es' : 'ko'
     setLanguage(newLanguage)
     try {
@@ -81,14 +83,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error saving language to localStorage:', error)
     }
-  }
+  }, [language])
 
-  const contextValue: LanguageContextType = {
+  // useMemo로 contextValue 최적화 (불필요한 리렌더링 방지)
+  const contextValue: LanguageContextType = useMemo(() => ({
     language,
     setLanguage,
     t,
     toggleLanguage
-  }
+  }), [language, setLanguage, t, toggleLanguage])
 
   return (
     <LanguageContext.Provider value={contextValue}>

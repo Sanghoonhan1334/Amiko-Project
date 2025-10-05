@@ -8,15 +8,24 @@ function CommunityRedirectContent() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const cTab = searchParams.get('tab') || 'lounge'
-    const params = new URLSearchParams(searchParams.toString())
+    const cTab = searchParams.get('tab') || 'galleries'
     
-    // 기존 tab 파라미터가 있으면 유지, 없으면 community로 설정
-    if (!params.get('tab')) {
-      params.set('tab', 'community')
+    // 새로운 URL 구조로 리다이렉트
+    switch (cTab) {
+      case 'galleries':
+        router.replace('/community/galleries')
+        break
+      case 'popular':
+        router.replace('/community/popular')
+        break
+      case 'lounge':
+      case 'freeboard':
+        router.replace('/community/freeboard')
+        break
+      default:
+        router.replace('/community/galleries')
+        break
     }
-    params.set('cTab', cTab)
-    router.replace(`/main?${params.toString()}`)
   }, [router, searchParams])
 
   return null

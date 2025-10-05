@@ -17,16 +17,29 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation, Pagination } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
+import dynamic from 'next/dynamic'
+
+// Swiper를 동적 임포트로 최적화 (무거운 라이브러리)
+const Swiper = dynamic(() => import('swiper/react').then(mod => ({ default: mod.Swiper })), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
+})
+
+const SwiperSlide = dynamic(() => import('swiper/react').then(mod => ({ default: mod.SwiperSlide })), {
+  ssr: false
+})
+
+// Swiper 모듈들도 동적 임포트
+const loadSwiperModules = () => import('swiper/modules').then(mod => ({
+  Navigation: mod.Navigation,
+  Pagination: mod.Pagination
+}))
 
 export default function ChargingTab() {
   const { t } = useLanguage()
   const { user } = useAuth()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [swiperModules, setSwiperModules] = useState<any[]>([])
   
   console.log('ChargingTab 마운트됨, 사용자 상태:', { user: !!user, userId: user?.id })
   
@@ -34,6 +47,13 @@ export default function ChargingTab() {
   const [availablePoints, setAvailablePoints] = useState(0)
   const [totalPoints, setTotalPoints] = useState(0)
   const [loading, setLoading] = useState(true)
+
+  // Swiper 모듈들을 동적으로 로드
+  useEffect(() => {
+    loadSwiperModules().then(modules => {
+      setSwiperModules([modules.Navigation, modules.Pagination])
+    })
+  }, [])
 
   // 쿠폰 패키지 데이터 (1 AKO = $1.99 기준, 많이 살수록 할인, 1 AKO = 20분)
   const couponPackages = [
@@ -195,7 +215,7 @@ export default function ChargingTab() {
       {/* 슬라이드 컨테이너 */}
       <div className="relative">
         <Swiper
-          modules={[Navigation, Pagination]}
+          modules={swiperModules}
           spaceBetween={20}
           slidesPerView={1}
           autoHeight={true}

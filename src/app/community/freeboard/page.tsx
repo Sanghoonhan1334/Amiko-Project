@@ -63,9 +63,11 @@ export default function FreeBoardPage() {
       <div className="max-w-6xl mx-auto px-0 pt-4 pb-20 md:px-4 md:pt-24 md:pb-6">
         {currentView === 'list' ? (
           <FreeBoardList
-            onPostSelect={() => {}}
-            onWritePost={handleCreatePost}
             showHeader={false}
+            onPostSelect={(post) => {
+              // 게시물 상세 페이지로 이동
+              router.push(`/community/post/${post.id}`)
+            }}
           />
         ) : (
           <PostCreate

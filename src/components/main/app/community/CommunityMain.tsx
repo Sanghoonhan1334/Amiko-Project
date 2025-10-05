@@ -89,15 +89,52 @@ export default function CommunityMain() {
   }
 
   const handlePostEdit = () => {
-    // 게시물 수정 기능 (나중에 구현)
-    console.log('게시물 수정')
+    if (!selectedPost) return
+    
+    // 수정 페이지로 이동 (나중에 모달 방식으로 변경 가능)
+    console.log('게시물 수정:', selectedPost.id)
+    // TODO: 수정 페이지/모달 구현
+    alert('수정 기능은 준비 중입니다.')
   }
 
-  const handlePostDelete = () => {
-    if (confirm('정말로 이 게시물을 삭제하시겠습니까?')) {
-      // 게시물 삭제 로직
-      console.log('게시물 삭제')
-      handleBackToPosts()
+  const handlePostDelete = async () => {
+    if (!selectedPost) return
+    
+    if (confirm('정말로 이 게시물을 삭제하시겠습니까?\n삭제된 게시물은 복구할 수 없습니다.')) {
+      try {
+        console.log('게시물 삭제 시도:', selectedPost.id)
+        
+        // 토큰 가져오기
+        const token = localStorage.getItem('token')
+        if (!token) {
+          alert('로그인이 필요합니다.')
+          return
+        }
+
+        // DELETE API 호출
+        const response = await fetch(`/api/posts/${selectedPost.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || '삭제에 실패했습니다.')
+        }
+
+        const result = await response.json()
+        console.log('삭제 성공:', result)
+        
+        alert('게시물이 삭제되었습니다.')
+        handleBackToPosts() // 성공 시에만 뒤로가기
+        
+      } catch (error) {
+        console.error('게시물 삭제 오류:', error)
+        alert(error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.')
+      }
     }
   }
 
