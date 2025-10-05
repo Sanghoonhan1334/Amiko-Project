@@ -47,6 +47,9 @@ export default function StoriesPage() {
 
   // 화면 크기 감지
   const [isMobile, setIsMobile] = useState(false)
+  
+  // 플로팅 버튼 상태
+  const [isFabExpanded, setIsFabExpanded] = useState(false)
 
   const isAdmin = user?.role === 'admin'
 
@@ -276,43 +279,50 @@ export default function StoriesPage() {
       <Header />
       
       {/* 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-6 pt-36">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 p-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">뒤로 가기</span>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">스토리</h1>
-              <p className="text-base text-gray-500">일상을 공유하고 소통해보세요</p>
+      <div className="bg-white border-b border-gray-200 px-4 py-6 pt-20 md:pt-40">
+        <div className="max-w-6xl mx-auto">
+          {/* 첫 번째 줄: 스토리 제목과 이전 버튼 */}
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-gray-800">스토리</h1>
+            <div className="flex items-center gap-2">
+              {/* 이전 버튼 */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/main')}
+                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                이전
+              </Button>
             </div>
           </div>
-          <Button 
-            size="lg"
-            className="hidden md:flex bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
-            onClick={() => {
-              if (!user) {
-                toast.error('로그인이 필요합니다.')
-                router.push('/sign-in')
-                return
-              }
-              setShowStoryUploadModal(true)
-            }}
-          >
-            <Plus className="w-6 h-6 mr-3" />
-            스토리 올리기
-          </Button>
+          
+          {/* 두 번째 줄: 설명과 스토리 올리기 버튼 */}
+          <div className="flex items-center justify-between">
+            <p className="text-base text-gray-500">일상을 공유하고 소통해보세요</p>
+            
+            <Button 
+              size="lg"
+              className="hidden md:flex bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
+              onClick={() => {
+                if (!user) {
+                  toast.error('로그인이 필요합니다.')
+                  router.push('/sign-in')
+                  return
+                }
+                setShowStoryUploadModal(true)
+              }}
+            >
+              <Plus className="w-6 h-6 mr-3" />
+              스토리 올리기
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* 스토리 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-2 py-4">
+      <div className="max-w-6xl mx-auto px-2 py-4 md:pt-12">
         {storiesLoading ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
             {[...Array(16)].map((_, index) => (
@@ -586,21 +596,47 @@ export default function StoriesPage() {
 
       {/* 모바일 플로팅 버튼 */}
       {isMobile && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Button
-            size="lg"
-            className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 animate-pulse"
-            onClick={() => {
-              if (!user) {
-                toast.error('로그인이 필요합니다.')
-                router.push('/sign-in')
-                return
-              }
-              setShowStoryUploadModal(true)
-            }}
-          >
-            <Plus className="w-6 h-6" />
-          </Button>
+        <div className="fixed bottom-24 right-4 z-50">
+          <div className="flex items-center">
+            {/* 스토리작성 텍스트 - 원에서 확장되는 효과 */}
+            <div className={`transition-all duration-300 ease-in-out ${
+              isFabExpanded ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-4 scale-95'
+            }`}>
+              <button
+                onClick={() => {
+                  if (!user) {
+                    toast.error('로그인이 필요합니다.')
+                    router.push('/sign-in')
+                    return
+                  }
+                  setShowStoryUploadModal(true)
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-full text-sm font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                스토리작성
+              </button>
+            </div>
+            
+            {/* 메인 버튼 */}
+            <Button
+              onClick={() => {
+                if (isFabExpanded) {
+                  // X 버튼을 눌렀을 때 - 확장 상태 닫기
+                  setIsFabExpanded(false)
+                } else {
+                  // + 버튼을 눌렀을 때 - 확장
+                  setIsFabExpanded(true)
+                }
+              }}
+              className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center border-2 border-white hover:scale-110 active:scale-95"
+            >
+              {isFabExpanded ? (
+                <X className="w-5 h-5 drop-shadow-sm font-bold" strokeWidth={3} />
+              ) : (
+                <Plus className="w-5 h-5 drop-shadow-sm font-bold" strokeWidth={3} />
+              )}
+            </Button>
+          </div>
         </div>
       )}
 

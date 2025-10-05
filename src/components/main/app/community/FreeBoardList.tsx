@@ -306,7 +306,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 pt-8 md:pt-12">
+    <div className="space-y-4 sm:space-y-6 pt-4 md:pt-12">
       {/* 웹 형태일 때 섹션 카드 래퍼 */}
       <div className="hidden md:block">
         <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">

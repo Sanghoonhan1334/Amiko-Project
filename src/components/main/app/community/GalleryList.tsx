@@ -92,8 +92,8 @@ export default function GalleryList({ onGallerySelect, onPopularPosts }: Gallery
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="text-center">
+      {/* 헤더 - 모바일에서 숨김 */}
+      <div className="text-center hidden md:block">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">
           {t('community.galleryList.title')}
         </h1>

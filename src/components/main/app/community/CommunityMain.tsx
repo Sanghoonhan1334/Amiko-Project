@@ -149,9 +149,9 @@ export default function CommunityMain() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* 네비게이션 브레드크럼 */}
-        <div className="mb-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:py-6 pt-4 pb-0">
+        {/* 네비게이션 브레드크럼 - 모바일에서 숨김 */}
+        <div className="mb-6 hidden md:block">
           <nav className="flex items-center space-x-2 text-sm text-gray-600">
             <button
               onClick={handleBackToGalleries}

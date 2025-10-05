@@ -357,7 +357,7 @@ export default function QAPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 pt-12 pb-6">
+      <div className="max-w-6xl mx-auto px-4 pt-4 md:pt-28 pb-6">
         {/* 페이지 제목 */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">

@@ -291,7 +291,7 @@ export default function TestsPage() {
       <Header />
       
       {/* 페이지별 헤더 - 모바일 컴팩트 */}
-      <div className="bg-white border-b border-gray-200 px-3 py-2 pt-24">
+      <div className="bg-white border-b border-gray-200 px-3 py-2 pt-8 md:pt-24">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <h1 className="text-lg font-bold text-gray-800">심리테스트</h1>
@@ -325,7 +325,7 @@ export default function TestsPage() {
       </div>
 
       {/* 메인 컨텐츠 - 모바일 컴팩트 */}
-      <div className="max-w-6xl mx-auto px-3 pt-2 pb-4">
+      <div className="max-w-6xl mx-auto px-3 pt-1 pb-4">
         {/* 환영 메시지 - 모바일 우선 */}
         <div className="text-center mb-4 px-1">
           <h2 className="text-lg font-bold text-gray-800 mb-1">{t('tests.subtitle')}</h2>
@@ -333,21 +333,34 @@ export default function TestsPage() {
         </div>
 
         {/* 카테고리 필터 - 모바일 우선 */}
-        <div className="mb-3 px-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-700">{t('tests.category')}</span>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[140px] h-7 text-xs">
-                <SelectValue placeholder={t('tests.selectCategory')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('tests.categories.all')}</SelectItem>
-                <SelectItem value="fortune">🔮 {t('tests.categories.fortune')}</SelectItem>
-                <SelectItem value="psychology">🧠 {t('tests.categories.psychology')}</SelectItem>
-                <SelectItem value="meme">🎭 {t('tests.categories.meme')}</SelectItem>
-                <SelectItem value="culture">🌐 {t('tests.categories.culture')}</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="mb-6 px-1">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-700">{t('tests.category')}</span>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[140px] h-7 text-xs">
+                  <SelectValue placeholder={t('tests.selectCategory')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('tests.categories.all')}</SelectItem>
+                  <SelectItem value="fortune">🔮 {t('tests.categories.fortune')}</SelectItem>
+                  <SelectItem value="psychology">🧠 {t('tests.categories.psychology')}</SelectItem>
+                  <SelectItem value="meme">🎭 {t('tests.categories.meme')}</SelectItem>
+                  <SelectItem value="culture">🌐 {t('tests.categories.culture')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* 이전 버튼 */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBack}
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2 relative z-50"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              이전
+            </Button>
           </div>
         </div>
 

@@ -673,7 +673,7 @@ export default function NewsPage() {
         <Header />
         
         {/* 페이지별 헤더 */}
-        <div className="bg-white border-b border-gray-200 px-4 py-4 pt-24">
+        <div className="bg-white border-b border-gray-200 px-4 py-4 pt-16 md:pt-64">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -962,7 +962,7 @@ export default function NewsPage() {
       <Header />
       
       {/* 페이지별 헤더 - 모바일용 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 pt-24 md:hidden">
+      <div className="bg-white border-b border-gray-200 px-4 py-4 pt-20 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-bold text-gray-800">K-매거진</h1>
@@ -995,7 +995,7 @@ export default function NewsPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 pt-8 pb-6">
+      <div className="max-w-6xl mx-auto px-4 pt-4 md:pt-40 pb-6">
         {/* 웹 형태일 때 섹션 카드 래퍼 */}
         <div className="hidden md:block">
           <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">

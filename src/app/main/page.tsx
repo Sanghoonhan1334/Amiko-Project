@@ -223,7 +223,7 @@ function AppPageContent() {
   }, [activeTab])
   
   return (
-    <div className="min-h-screen body-gradient pt-20 sm:pt-36 pb-20 md:pb-0">
+    <div className="min-h-screen body-gradient pb-20 md:pb-0">
       {/* 메인 콘텐츠 섹션 */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24 py-0 sm:py-2 md:py-6 relative z-0">
         <div className="w-full">
@@ -233,7 +233,7 @@ function AppPageContent() {
             {/* 홈 탭 제거됨 - 커뮤니티로 통합 */}
 
             {activeTab === 'meet' && (
-              <div className="hidden md:block">
+              <div className="hidden md:block pt-20 sm:pt-36">
                 <div className="w-full">
                   <div className="card p-8 -mt-12 sm:mt-0">
                     <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
@@ -254,13 +254,13 @@ function AppPageContent() {
             )}
 
             {activeTab === 'meet' && (
-              <div className="block md:hidden">
+              <div className="block md:hidden pt-28">
                 <MeetTab />
               </div>
             )}
 
             {activeTab === 'community' && (
-              <div className="hidden md:block">
+              <div className="hidden md:block pt-24 sm:pt-40">
                 <div className="card px-8 pt-8 pb-0 -mt-12 sm:mt-0">
                   <div className="flex items-center justify-between mb-0">
                     <div className="flex items-center gap-3">
@@ -319,16 +319,16 @@ function AppPageContent() {
             )}
 
             {activeTab === 'community' && (
-              <div className="block md:hidden">
+              <div className="block md:hidden pt-20">
                 <CommunityTab onViewChange={setCommunityView} />
               </div>
             )}
 
             {activeTab === 'me' && (
-              <div className="pt-16 md:pt-24 pb-20 md:pb-8">
+              <div className="pt-28 md:pt-8 pb-20 md:pb-8">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
-                  <div className="card p-8 -mt-12 sm:mt-0">
+                  <div className="card p-8 -mt-12 sm:-mt-16 md:-mt-24 lg:-mt-32 xl:-mt-40">
                     {/* 일반 사용자만 헤더 섹션 표시 */}
                     {!isAdmin && (
                       <div className="flex items-center gap-3 mb-6">
@@ -373,7 +373,7 @@ function AppPageContent() {
 
 
             {activeTab === 'charging' && (
-              <div className="space-y-6">
+              <div className="space-y-6 pt-10 sm:pt-36">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
                   <div className="card p-8 -mt-12 sm:mt-0">
@@ -421,7 +421,7 @@ function AppPageContent() {
                 </div>
                 
                 {/* 모바일: 섹션 카드 없이 */}
-                <div className="block md:hidden">
+                <div className="block md:hidden pt-20">
                   <div className="px-2 sm:px-4 py-2 sm:py-8 pt-8 -mt-16 sm:mt-0">
                     {/* 헤더 섹션 */}
                     <div className="flex items-center gap-3 mb-6">
@@ -470,7 +470,7 @@ function AppPageContent() {
 
 
             {activeTab === 'event' && (
-              <div className="pb-20 md:pb-8">
+              <div className="pb-20 md:pb-8 pt-16 sm:pt-36">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
                   <div className="card p-8 -mt-12 sm:mt-0">
@@ -481,8 +481,8 @@ function AppPageContent() {
                 </div>
                 
                 {/* 모바일: 섹션 카드 없이 */}
-                <div className="block md:hidden">
-                  <div className="px-2 sm:px-4 pt-8">
+                <div className="block md:hidden pt-12">
+                  <div className="px-2 sm:px-4 pt-6">
                     <EventTab />
                   </div>
                 </div>
