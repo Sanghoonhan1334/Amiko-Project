@@ -2040,7 +2040,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       {/* 오늘의 스토리 섹션 */}
       
       <div className="mt-0 mb-6 w-full overflow-x-visible pt-16 md:pt-0 -mx-2 md:-mx-6 px-2 md:px-6">
-        {/* 스토리 섹션을 흰색 배경으로 감싸기 */}
+        {/* 스토리 섹션과 커뮤니티 카드들을 함께 흰색 배경으로 감싸기 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -2359,7 +2359,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             </div>
           ) : null}
         </div>
-        </div>
       </div>
 
       {/* 커뮤니티 홈 메뉴 - 큰 버튼 4개 */}
@@ -2416,6 +2415,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               <p className="text-sm text-gray-600 text-center">{t('tests.description')}</p>
             </div>
           </button>
+        </div>
         </div>
       )}
 
