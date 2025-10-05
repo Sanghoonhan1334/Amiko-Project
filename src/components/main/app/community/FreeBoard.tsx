@@ -27,6 +27,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { createClientComponentClient } from '@/lib/supabase'
 import PostDetail from './PostDetail'
+import PostEditModal from './PostEditModal'
 import { CardGridSkeleton } from '@/components/ui/skeleton'
 import VerificationGuard from '@/components/common/VerificationGuard'
 
@@ -78,6 +79,8 @@ export default function FreeBoard() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showPostDetail, setShowPostDetail] = useState(false)
   const [showWriteDialog, setShowWriteDialog] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingPost, setEditingPost] = useState<Post | null>(null)
   
   // 필터 및 검색
   const [currentCategory, setCurrentCategory] = useState('all')
@@ -550,6 +553,7 @@ export default function FreeBoard() {
   const handleSearch = () => {
     console.log('검색 실행:', searchQuery)
     setCurrentPage(1)
+    fetchPosts()
   }
 
   // 카테고리 변경
@@ -564,6 +568,30 @@ export default function FreeBoard() {
     console.log('정렬 변경:', sort)
     setSortBy(sort)
     setCurrentPage(1)
+  }
+
+  // 게시글 수정 핸들러
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post)
+    setShowEditModal(true)
+  }
+
+  // 게시글 수정 완료 핸들러
+  const handlePostUpdated = (updatedPost: Post) => {
+    // 게시글 목록에서 해당 게시글 업데이트
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === updatedPost.id ? { ...post, ...updatedPost } : post
+      )
+    )
+    
+    // 선택된 게시글이 수정된 게시글이면 업데이트
+    if (selectedPost && selectedPost.id === updatedPost.id) {
+      setSelectedPost({ ...selectedPost, ...updatedPost })
+    }
+    
+    setShowEditModal(false)
+    setEditingPost(null)
   }
 
   // 초기 로드 및 의존성 변경 시 재조회
@@ -643,6 +671,19 @@ export default function FreeBoard() {
         <Button onClick={handleSearch} variant="outline">
           검색
         </Button>
+        {searchQuery && (
+          <Button 
+            onClick={() => {
+              setSearchQuery('')
+              setCurrentPage(1)
+              fetchPosts()
+            }} 
+            variant="ghost" 
+            size="sm"
+          >
+            초기화
+          </Button>
+        )}
       </div>
 
       {/* 필터 및 정렬 */}
@@ -951,10 +992,7 @@ export default function FreeBoard() {
             postId={selectedPost.id}
             onBack={() => setShowPostDetail(false)}
             onEdit={() => {
-              // 게시글 수정 모달 열기
-              console.log('게시글 수정:', selectedPost.id)
-              // TODO: 게시글 수정 모달 구현
-              alert('게시글 수정 기능은 준비 중입니다.')
+              handleEditPost(selectedPost)
             }}
             onDelete={async () => {
               if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
@@ -1116,6 +1154,17 @@ export default function FreeBoard() {
           )}
         </Card>
       )}
+
+      {/* 게시글 수정 모달 */}
+      <PostEditModal
+        post={editingPost}
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false)
+          setEditingPost(null)
+        }}
+        onSave={handlePostUpdated}
+      />
     </div>
   )
 }

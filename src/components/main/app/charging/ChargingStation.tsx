@@ -25,7 +25,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
-export default function ChargingTab() {
+export default function ChargingStation() {
   const { t } = useLanguage()
   const { user } = useAuth()
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -192,10 +192,10 @@ export default function ChargingTab() {
   }
 
   return (
-    <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-8 sm:mt-0">
+    <div className="px-2 sm:px-4 py-0 sm:py-2 -mt-8 sm:mt-0">
 
       {/* 슬라이드 컨테이너 */}
-      <div className="relative mt-8">
+      <div className="relative">
         <Swiper
           modules={[Navigation, Pagination]}
           spaceBetween={20}
@@ -216,7 +216,63 @@ export default function ChargingTab() {
             setCurrentSlide(swiper.activeIndex)
           }}
         >
-        {/* 슬라이드 1: VIP 멤버십 */}
+        {/* 슬라이드 1: AKO 쿠폰 */}
+        <SwiperSlide>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.charging.title')}</h3>
+            </div>
+            <p className="text-sm text-gray-600">{t('storeTab.charging.subtitle')}</p>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {couponPackages.map((pkg) => (
+                <div 
+                  key={pkg.id}
+                  className="bg-white rounded-lg p-2 text-center cursor-pointer transition-all hover:shadow-md border-2 border-gray-300"
+                  onClick={() => handleCouponPurchase(pkg)}
+                >
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <Video className="w-3 h-3 text-blue-500" />
+                  </div>
+                  <h3 className="font-semibold text-xs">{pkg.count}{t('storeTab.charging.units')}</h3>
+                  <div className="text-sm font-bold text-blue-600 mb-1">
+                    ${pkg.price}
+                  </div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {t('storeTab.charging.perUnit')} ${pkg.perUnit}
+                  </div>
+                  <div className="text-xs text-gray-600 mb-2">
+                    {pkg.minutes}{t('storeTab.charging.minutes')}
+                  </div>
+                  <Button 
+                    size="sm" 
+                    className="w-full text-xs h-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleCouponPurchase(pkg)
+                    }}
+                  >
+                    {t('storeTab.charging.chargeButton')}
+                  </Button>
+                </div>
+              ))}
+            </div>
+            
+            {/* 무료 AKO 안내 문구 */}
+            <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">💡 {t('storeTab.charging.freeAkoTitle')}</p>
+                  <p dangerouslySetInnerHTML={{ __html: t('storeTab.charging.freeAkoDescription') }}></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </SwiperSlide>
+
+        {/* 슬라이드 2: VIP 멤버십 */}
         <SwiperSlide>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -284,62 +340,6 @@ export default function ChargingTab() {
           </div>
         </SwiperSlide>
 
-        {/* 슬라이드 2: AKO 쿠폰 */}
-        <SwiperSlide>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.charging.title')}</h3>
-            </div>
-            <p className="text-sm text-gray-600">{t('storeTab.charging.subtitle')}</p>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {couponPackages.map((pkg) => (
-                <div 
-                  key={pkg.id}
-                  className="bg-white rounded-lg p-2 text-center cursor-pointer transition-all hover:shadow-md border-2 border-gray-300"
-                  onClick={() => handleCouponPurchase(pkg)}
-                >
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <Video className="w-3 h-3 text-blue-500" />
-                  </div>
-                  <h3 className="font-semibold text-xs">{pkg.count}{t('storeTab.charging.units')}</h3>
-                  <div className="text-sm font-bold text-blue-600 mb-1">
-                    ${pkg.price}
-                  </div>
-                  <div className="text-xs text-gray-500 mb-1">
-                    {t('storeTab.charging.perUnit')} ${pkg.perUnit}
-                  </div>
-                  <div className="text-xs text-gray-600 mb-2">
-                    {pkg.minutes}{t('storeTab.charging.minutes')}
-                  </div>
-                  <Button 
-                    size="sm" 
-                    className="w-full text-xs h-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleCouponPurchase(pkg)
-                    }}
-                  >
-                    {t('storeTab.charging.chargeButton')}
-                  </Button>
-                </div>
-              ))}
-            </div>
-            
-            {/* 무료 AKO 안내 문구 */}
-            <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">💡 {t('storeTab.charging.freeAkoTitle')}</p>
-                  <p dangerouslySetInnerHTML={{ __html: t('storeTab.charging.freeAkoDescription') }}></p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </SwiperSlide>
-
         {/* 슬라이드 3: 포인트 상점 */}
         <SwiperSlide>
           <div className="space-y-4 relative">
@@ -399,20 +399,20 @@ export default function ChargingTab() {
 
         {/* 좌우 화살표 네비게이션 버튼 */}
         <button className={`swiper-button-prev-custom sticky -left-2 -translate-y-1/2 z-10 w-10 h-10 bg-white border-2 border-gray-300 hover:bg-gray-50 shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
-          currentSlide === 0 ? 'top-[calc(33.333%+100px)]' : 
+          currentSlide === 0 ? 'top-[calc(33.333%+50px)]' : 
           currentSlide === 1 ? 'top-[calc(33.333%+100px)]' : 
           currentSlide === 2 ? 'top-[calc(33.333%+100px)]' :
-          'top-[calc(33.333%+100px)]'
+          'top-[calc(33.333%+50px)]'
         }`}>
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <button className={`swiper-button-next-custom sticky -right-2 -translate-y-1/2 z-10 w-10 h-10 bg-white border-2 border-gray-300 hover:bg-gray-50 shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
-          currentSlide === 0 ? 'top-[calc(33.333%+100px)]' : 
+          currentSlide === 0 ? 'top-[calc(33.333%+50px)]' : 
           currentSlide === 1 ? 'top-[calc(33.333%+100px)]' : 
           currentSlide === 2 ? 'top-[calc(33.333%+100px)]' :
-          'top-[calc(33.333%+100px)]'
+          'top-[calc(33.333%+50px)]'
         }`}>
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

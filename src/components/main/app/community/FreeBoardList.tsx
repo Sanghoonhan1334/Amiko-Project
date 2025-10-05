@@ -523,7 +523,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       {/* 모바일: DC인사이드 스타일 */}
       <div className="md:hidden bg-white min-h-screen">
         {/* 검색바 */}
-        <div className="bg-gray-100 py-2">
+        <div className="bg-gray-100 py-1 md:py-2">
           <div className="flex items-center bg-white px-4 py-2 mx-0">
             <input
               type="text"

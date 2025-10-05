@@ -286,7 +286,7 @@ export default function TestsPage() {
   }, [selectedCategory])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
+    <div className="min-h-screen bg-white">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
@@ -359,13 +359,13 @@ export default function TestsPage() {
               <p className="text-xs text-gray-600">{t('tests.loading')}</p>
             </div>
           ) : quizzes.length === 0 ? (
-            <Card className="p-4 text-center bg-gradient-to-br from-yellow-50 to-blue-50">
+            <Card className="p-4 text-center bg-white">
               <div className="text-gray-400 text-3xl mb-2">✨</div>
               <h3 className="text-sm font-semibold text-gray-600 mb-1">{t('tests.noPosts')}</h3>
               <p className="text-xs text-gray-500">{t('tests.beFirst')}</p>
             </Card>
           ) : (
-            <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-2 grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
               {quizzes.map((quiz, index) => {
                 const config = categoryConfig[quiz.category] || categoryConfig.fun
                 const isNew = index < 3 // 처음 3개는 NEW로 표시
@@ -402,7 +402,7 @@ export default function TestsPage() {
                       }`}>
                         <div className="text-xl">{config.icon}</div>
                         {/* 그라데이션 오버레이 */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+                        <div className="absolute inset-0 bg-white/20"></div>
                       </div>
                       
                       {/* 콘텐츠 영역 */}

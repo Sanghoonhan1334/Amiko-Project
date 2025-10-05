@@ -309,7 +309,8 @@ export async function POST(request: NextRequest) {
           debug: {
             verificationCode: verificationCode,
             environment: 'development',
-            note: '하이웍스 SMTP 인증 문제로 콘솔에 인증코드 출력'
+            note: '하이웍스 SMTP 인증 문제로 콘솔에 인증코드 출력',
+            troubleshooting: '서버 콘솔에서 인증코드를 확인하세요. 실제 이메일은 발송되지 않습니다.'
           }
         })
       }
@@ -317,7 +318,7 @@ export async function POST(request: NextRequest) {
       if (!emailSent) {
         console.error('[EMAIL_VERIFICATION] 이메일 발송 실패')
         return NextResponse.json(
-          { error: '이메일 발송에 실패했습니다.' },
+          { error: '이메일 발송에 실패했습니다. SMTP 서버 연결을 확인해주세요.' },
           { status: 500 }
         )
       }

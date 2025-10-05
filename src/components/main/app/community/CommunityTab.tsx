@@ -523,6 +523,24 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   }, [currentView])
   const [showStoryUploadModal, setShowStoryUploadModal] = useState(false)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // 화면 크기 체크
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    const timer = setTimeout(() => {
+      checkScreenSize()
+    }, 100)
+    
+    window.addEventListener('resize', checkScreenSize)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', checkScreenSize)
+    }
+  }, [])
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [storyText, setStoryText] = useState('')
@@ -895,7 +913,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       const convertedStories = (data.stories || []).map((story: any) => ({
         ...story,
         user: {
-          full_name: story.user_name || '익명'
+          id: story.user_id,
+          full_name: story.user_name || '익명',
+          profile_image_url: story.user_profile_image || null
         }
       }))
       
@@ -2025,7 +2045,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6" style={{ paddingBottom: window.innerWidth < 768 ? '72px' : '0px' }}>
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6 bg-white min-h-screen" style={{ paddingBottom: isMobile ? '20px' : '0px' }}>
       {/* 테스트 요소 - 컴포넌트가 렌더링되는지 확인 */}
       {/* 메인 컨텐츠 */}
       <div className="w-full space-y-6">
@@ -2037,398 +2057,169 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         <h1 className="text-2xl font-bold text-gray-800">커뮤니티</h1>
       </div> */}
 
-      {/* 오늘의 스토리 섹션 */}
-      
-      <div className="mt-0 mb-6 w-full overflow-x-visible pt-16 md:pt-0 -mx-2 md:-mx-6 px-2 md:px-6">
-        {/* 스토리 섹션과 커뮤니티 카드들을 함께 흰색 배경으로 감싸기 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs">📸</span>
+      {/* 스토리 섹션 제거됨 - 이제 아이콘으로 대체 */}
+
+      {/* 커뮤니티 홈 메뉴 - 제목과 5개 아이콘 */}
+      {currentView === 'home' && (
+            <div className="w-full">
+              {/* 제목 섹션 */}
+              <div className="text-center mb-4">
+                <div className="flex justify-center mb-3">
+                  <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
           </div>
-          <h2 className="text-lg font-bold text-gray-800 font-['Inter']">{t('communityTab.story')}</h2>
           </div>
-          <Button 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 text-sm font-['Inter'] whitespace-nowrap flex-shrink-0"
-            onClick={async () => {
-              console.log('헤더 스토리 올리기 버튼 클릭됨')
-              
-              // 로그인 체크
-              const currentUser = user
-              if (!currentUser) {
-                console.log('로그인 필요 - 로그인 페이지로 이동')
-                window.location.href = '/sign-in'
-                return
-              }
-              
-              // 운영자는 인증 건너뛰기
-              if (isAdmin) {
-                console.log('운영자 - 인증 건너뛰고 업로드 모달 표시')
-                setShowStoryUploadModal(true)
-                return
-              }
-              
-              // 로컬 인증 상태를 직접 사용 (API 호출 없이)
-              console.log('모바일 디버깅 - 로컬 인증 상태 사용:', localVerificationStatus)
-              
-              if (localVerificationStatus === 'verified') {
-                console.log('모바일 디버깅 - 로컬에서 인증 완료 확인, 업로드 모달 표시')
-                setShowStoryUploadModal(true)
-              } else if (localVerificationStatus === 'unverified') {
-                console.log('모바일 디버깅 - 로컬에서 인증 필요 확인, 다이얼로그 표시')
-                setShowAuthDialog(true)
-              } else {
-                console.log('모바일 디버깅 - 인증 상태 로딩 중, 잠시 후 다시 시도')
-                toast.error('인증 상태를 확인하는 중입니다. 잠시 후 다시 시도해주세요.')
-              }
-            }}
-          >
-            <span className="hidden sm:inline">+ {t('communityTab.uploadStory')}</span>
-            <span className="sm:hidden">+ {t('buttons.upload')}</span>
-          </Button>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2 font-['Inter']">{t('mainPage.title')}</h2>
+                <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
         </div>
         
-        {/* 인스타그램 감성 카드 스타일 스토리 */}
-        <div className="w-full relative overflow-x-visible">
-          {storiesLoading !== false ? (
-            /* 스토리 로딩 중 - 스켈레톤 */
-            <div className="flex gap-3 pb-4 overflow-x-auto">
-              {[...Array(8)].map((_, index) => (
-                <div 
-                  key={index}
-                  className="relative overflow-hidden flex-shrink-0 animate-pulse w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
-                  style={{ 
-                    scrollSnapAlign: 'start'
-                  }}
-                >
-                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-300 rounded w-2/3"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : stories.length > 0 ? (
-            /* 스토리가 있을 때 - 인스타그램 감성 카드 */
-            <div className="relative">
-              {/* 데스크톱 네비게이션 버튼들 - 컨테이너 밖으로 이동 */}
-              <div className="hidden md:block">
+                 {/* 5개 아이콘 - 3개 위, 2개 아래 */}
+                 <div className="w-full flex flex-col items-center gap-2">
+                   {/* 위쪽 3개 아이콘 */}
+                   <div className="flex gap-4 justify-center">
                 <button
-                  onMouseDown={() => startContinuousScroll('left')}
-                  onMouseUp={stopContinuousScroll}
-                  onMouseLeave={stopContinuousScroll}
-                  onClick={scrollToPrevious}
-                  disabled={currentStoryIndex === 0}
-                  className={`fixed left-4 top-1/2 transform -translate-y-1/2 z-[9999] w-12 h-12 rounded-full bg-white hover:bg-gray-50 shadow-2xl flex items-center justify-center transition-all duration-200 border-2 border-gray-300 ${
-                    currentStoryIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:shadow-3xl'
-                  }`}
+                  onClick={() => router.push('/community/freeboard')}
+                  className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
                 >
-                  <ChevronLeft className="w-6 h-6 text-gray-800" />
-                </button>
-                <button
-                  onMouseDown={() => startContinuousScroll('right')}
-                  onMouseUp={stopContinuousScroll}
-                  onMouseLeave={stopContinuousScroll}
-                  onClick={scrollToNext}
-                  className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[9999] w-12 h-12 rounded-full bg-white hover:bg-gray-50 shadow-2xl flex items-center justify-center transition-all duration-200 border-2 border-gray-300 hover:scale-110 hover:shadow-3xl"
-                >
-                  <ChevronRightIcon className="w-6 h-6 text-gray-800" />
-                </button>
-              </div>
-              
-              <div 
-                ref={storyContainerRef}
-                className={`overflow-x-auto scrollbar-hide scroll-smooth scroll-snap-x w-[calc(100vw+200px)] relative left-[-20px] md:w-[calc(100%+200px)] md:left-[-160px] md:pl-[160px] md:pr-[120px] pl-4 pr-4 ${
-                  isDragging ? 'cursor-grabbing' : 'cursor-grab'
-                } md:cursor-default`}
-                style={{ 
-                  WebkitOverflowScrolling: 'touch',
-                  scrollSnapType: 'x mandatory',
-                  msOverflowStyle: 'none',
-                  scrollbarWidth: 'none'
-                }}
-                onMouseDown={(e) => {
-                  // 모바일에서만 드래그 활성화
-                  if (window.innerWidth < 768) {
-                  setIsDragging(true)
-                  setStartX(e.pageX - e.currentTarget.offsetLeft)
-                  setScrollLeft(e.currentTarget.scrollLeft)
-                  }
-                }}
-                onMouseLeave={() => setIsDragging(false)}
-                onMouseUp={() => setIsDragging(false)}
-                onMouseMove={(e) => {
-                  if (!isDragging || window.innerWidth >= 768) return
-                  e.preventDefault()
-                  const x = e.pageX - e.currentTarget.offsetLeft
-                  const walk = (x - startX) * 2
-                  e.currentTarget.scrollLeft = scrollLeft - walk
-                }}
-                onScroll={handleStoryScroll}
-              >
-                <div className="flex gap-3 pb-4 overflow-x-auto story-container" style={{ paddingLeft: '0px', paddingRight: '0px' }}>
-                {stories.map((story, index) => (
-                  <div 
-                    key={story.id} 
-                    className="relative overflow-hidden flex-shrink-0 cursor-pointer group w-[calc(100vw/6)] h-[calc(100vw/6*1.6)] min-w-[140px] max-w-[200px] min-h-[240px] max-h-[320px] max-sm:w-[160px] max-sm:h-[256px] max-sm:min-w-[160px] max-sm:max-w-[160px] max-sm:min-h-[256px] max-sm:max-h-[256px]"
-                    style={{ 
-                      scrollSnapAlign: 'start'
-                    }}
-                  >
-                    {/* 전체 화면 스토리 카드 - 이중 카드 구조 제거 */}
-                    <div className="w-full h-full rounded-2xl overflow-hidden">
-                      {/* 메인 이미지 영역 - 화면에 꽉차게 */}
-                      <div className="relative w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
-                        {story.image_url && (
-                          <img 
-                            src={story.image_url} 
-                            alt="스토리 이미지" 
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                        
-                        {/* 상단 사용자 정보 오버레이 */}
-                        <div className="absolute top-4 left-4 flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 p-0.5">
-                            <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                              <div className="w-7 h-7 rounded-full overflow-hidden bg-gray-100">
-                                {story.user?.profile_image_url ? (
-                                  <img 
-                                    src={story.user.profile_image_url} 
-                                    alt="프로필" 
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                                    <span className="text-white font-bold text-sm">
-                                      {story.user?.full_name?.charAt(0) || 'U'}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-white font-semibold text-sm drop-shadow-lg">
-                              {story.user?.full_name || '익명'}
-                            </p>
-                            <p className="text-white/80 text-xs drop-shadow-lg">
-                              {formatTime(story.created_at)}
-                            </p>
-                          </div>
-                        </div>
-                      
-                        {/* 좋아요 하트 애니메이션 */}
-                        {showHeartAnimation === story.id && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <svg
-                              className="w-20 h-20 text-red-500 fill-current animate-pulse"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                          </div>
-                        )}
-
-                        {/* 하단 그라데이션 오버레이 - 안개 효과 제거 */}
-                        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/50 to-transparent">
-                          {/* 스토리 텍스트 */}
-                          {story.text && (
-                            <div className="absolute bottom-16 left-4 right-4">
-                              <p className="text-white text-sm leading-relaxed font-medium drop-shadow-lg">
-                                {story.text}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* 하단 액션 버튼들 */}
-                          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toggleStoryLike(story.id)
-                                }}
-                                className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                              >
-                                <svg
-                                  className={`w-4 h-4 transition-all duration-200 ${
-                                    likedStories.has(story.id)
-                                      ? 'text-red-500 fill-current'
-                                      : 'text-white hover:text-red-400'
-                                  }`}
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                              </button>
-
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  openCommentModal(story)
-                                }}
-                                className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                              >
-                                <svg
-                                  className="w-4 h-4 transition-all duration-200 text-white hover:text-blue-400"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                </svg>
-                              </button>
-
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  if (navigator.share) {
-                                    navigator.share({
-                                      title: 'Amiko 스토리',
-                                      text: story.text || '재미있는 스토리를 확인해보세요!',
-                                      url: window.location.href
-                                    })
-                                  } else {
-                                    navigator.clipboard.writeText(window.location.href)
-                                    alert('링크가 클립보드에 복사되었습니다!')
-                                  }
-                                }}
-                                className="w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                              >
-                                <svg
-                                  className="w-4 h-4 transition-all duration-200 text-white hover:text-green-400"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                                  <polyline points="16,6 12,2 8,6"/>
-                                  <line x1="12" y1="2" x2="12" y2="15"/>
-                                </svg>
-                              </button>
-                            </div>
-
-                            {/* 좋아요 수 표시 */}
-                            <div className="flex items-center gap-1">
-                              <span className="text-white text-sm font-medium drop-shadow-lg">
-                                {story.likes_count || 0}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                    </div>
-                    
-                    {/* 스토리 클릭 시 전체 보기 모달 (좋아요 버튼 제외) */}
-                    <div 
-                      className="absolute inset-0 z-10"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        setSelectedStory(story)
-                        setShowStoryModal(true)
-                      }}
-                      style={{ 
-                        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 60px), 0 calc(100% - 60px))'
-                      }}
-                    ></div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                    <img src="/주제별게시판.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
                   </div>
-                ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
+                  <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('community.freeBoard')}</h3>
+                </button>
 
-      {/* 커뮤니티 홈 메뉴 - 큰 버튼 4개 */}
-      {currentView === 'home' && (
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <button
-            onClick={() => router.push('/community/freeboard')}
-            className="bg-gradient-to-br from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border-2 border-pink-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
-          >
-            <div className="flex flex-col items-center justify-end h-full gap-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                📝
+                 <button
+                   onClick={() => router.push('/community/news')}
+                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                 >
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                    <img src="/K-매거진.png" alt="K-매거진" className="w-8 h-8 object-contain" />
               </div>
-              <h3 className="text-lg font-bold text-gray-800">{t('community.freeBoard')}</h3>
-              <p className="text-sm text-gray-600 text-center">{t('community.freeBoardDescription')}</p>
-            </div>
-          </button>
+                  <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('community.koreanNews')}</h3>
+                </button>
 
-          <button
-            onClick={() => router.push('/community/news')}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
-          >
-            <div className="flex flex-col items-center justify-end h-full gap-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                📰
-              </div>
-              <h3 className="text-lg font-bold text-gray-800">{t('community.koreanNews')}</h3>
-              <p className="text-sm text-gray-600 text-center">{t('community.koreanNewsDescription')}</p>
-            </div>
-          </button>
+                               <button
+                   onClick={() => router.push('/community/qa')}
+                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                 >
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                    <img src="/Q&A.png" alt="Q&A" className="w-8 h-8 object-contain" />
+                  </div>
+                  <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('community.qa')}</h3>
+                              </button>
 
-          <button
-            onClick={() => router.push('/community/qa')}
-            className="bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-2 border-purple-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
-          >
-            <div className="flex flex-col items-center justify-end h-full gap-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                💬
-              </div>
-              <h3 className="text-lg font-bold text-gray-800">{t('community.qa')}</h3>
-              <p className="text-sm text-gray-600 text-center">{t('community.qaDescription')}</p>
-            </div>
-          </button>
+                   </div>
+                   
+                   {/* 아래쪽 2개 아이콘 */}
+                   <div className="flex gap-4 justify-center">
+                               <button
+                   onClick={() => router.push('/community/tests')}
+                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                 >
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                    <img src="/심리테스트.png" alt="심리테스트" className="w-8 h-8 object-contain" />
+                  </div>
+                  <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('tests.title')}</h3>
+                              </button>
+                     
+                     <button
+                       onClick={() => router.push('/community/stories')}
+                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                     >
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                         <span className="text-2xl">📸</span>
+                       </div>
+                       <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">스토리</h3>
+                     </button>
+                   </div>
+                 </div>
+                      
+                 {/* 홈페이지 카드들 */}
+                 <div className="grid grid-cols-3 md:grid-cols-3 gap-1 md:gap-4 mt-4 md:mt-6 -mb-2">
+                   {/* AI 화상 채팅 카드 */}
+                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm relative">
+                     {/* 위쪽 그림자 효과 */}
+                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-gray-600/15 to-transparent rounded-t-lg"></div>
+                     <div className="mb-0">
+                       {/* AI 화상 채팅 이미지 */}
+                       <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0 -mb-2">
+                         <img 
+                           src="/화상채팅.png" 
+                           alt="AI 화상 채팅" 
+                           className="w-full h-full object-cover rounded-lg shadow-lg"
+                         />
+                       </div>
+                     </div>
+                     <h3 className="text-xs md:text-lg font-bold text-gray-800 mb-0 mt-0 font-['Inter']">{t('mainPage.videoCall')}</h3>
+                     <p className="text-[10px] md:text-sm text-gray-600 -mt-0.5 md:-mt-1 font-['Inter'] leading-tight">{t('mainPage.videoCallDescription')}</p>
+                   </Card>
 
-          <button
-            onClick={() => router.push('/community/tests')}
-            className="bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-200 rounded-2xl p-2 md:p-6 transition-all duration-300 hover:shadow-lg group"
-          >
-            <div className="flex flex-col items-center justify-end h-full gap-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                🎯
-              </div>
-              <h3 className="text-lg font-bold text-gray-800">{t('tests.title')}</h3>
-              <p className="text-sm text-gray-600 text-center">{t('tests.description')}</p>
-            </div>
-          </button>
+                   {/* 커뮤니티 카드 */}
+                   <Card 
+                     className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm cursor-pointer relative"
+                     onClick={() => router.push('/main?tab=community')}
+                   >
+                     {/* 위쪽 그림자 효과 */}
+                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-gray-600/15 to-transparent rounded-t-lg"></div>
+                     <div className="mb-0">
+                       {/* 커뮤니티 이미지 */}
+                       <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0">
+                         <img 
+                           src="/커뮤니티.png" 
+                           alt="커뮤니티" 
+                           className="w-full h-full object-cover rounded-lg shadow-lg"
+                         />
+                       </div>
+                     </div>
+                     <h3 className="text-xs md:text-lg font-bold text-gray-800 mb-0 mt-0 font-['Inter']">{t('homeTab.community')}</h3>
+                     <p className="text-[10px] md:text-sm text-gray-600 -mt-0.5 md:-mt-1 font-['Inter'] leading-tight">
+                       {t('mainPage.communityDescription').split('\n').map((line, index) => (
+                         <span key={index}>
+                           {line}
+                           {index < t('mainPage.communityDescription').split('\n').length - 1 && <br />}
+                         </span>
+                       ))}
+                     </p>
+                   </Card>
+
+                   {/* 오픈 기념 이벤트 카드 */}
+                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm relative overflow-hidden">
+                     {/* 위쪽 그림자 효과 */}
+                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-gray-400/10 to-transparent rounded-t-lg z-20"></div>
+                     {/* 이벤트 리본 */}
+                     <div className="absolute top-0 left-0 w-full h-2 bg-white"></div>
+                     <div className="absolute top-1 right-1 z-10">
+                       <Badge className="bg-red-500 text-white border-red-500 text-[8px] px-1 py-0.5 transform rotate-45 origin-center">
+                         EVENT
+                       </Badge>
+                     </div>
+                     
+                     <div className="mb-0">
+                       {/* 오픈 이벤트 이미지 */}
+                       <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0">
+                         <img 
+                           src="/오픈이벤트.png" 
+                           alt="오픈 이벤트" 
+                           className="w-full h-full object-cover rounded-lg shadow-lg"
+                         />
+                       </div>
+                     </div>
+                     <h3 className="text-xs md:text-lg font-bold text-gray-800 mb-0 mt-0 font-['Inter']">{t('mainPage.openEvent')}</h3>
+                     <p className="text-[10px] md:text-sm text-gray-600 mt-0.5 md:mt-1 font-['Inter'] whitespace-pre-line leading-tight">{t('mainPage.openEventDescription')}</p>
+                   </Card>
+                 </div>
         </div>
       )}
 
       {/* 탭 컨텐츠 */}
-
       {currentView === 'qa' && (
-        <div className="w-full">
+        <div className="w-full bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6">
 
 
 
 
 
       {/* 상단 컨트롤 */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 pt-2 md:pt-0">
         <div className="relative flex-1">
           <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
           <Input
@@ -2522,7 +2313,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               <div key={question.id}>
                 {/* 데스크톱: 카드 스타일 */}
                 <Card 
-                  className="hidden md:block p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
+                  className="hidden md:block p-4 sm:p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -2616,7 +2407,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
                 {/* 모바일: 리스트 스타일 */}
                 <div 
-                  className="block md:hidden py-3 px-4 border-b border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="block md:hidden py-3 px-4 border-b border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-300 shadow-md"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -2653,7 +2444,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           
           {/* 결과 없음 */}
           {filteredQuestions.length === 0 && (
-            <Card className="p-12 text-center">
+            <Card className="p-12 text-center shadow-lg border border-gray-200">
               <div className="text-4xl mb-4">🔍</div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('chargingTab.search.noResults')}</h3>
               <p className="text-gray-600 mb-4">
@@ -3019,7 +2810,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     </h4>
                     
                     {answers.map((answer) => (
-                        <Card key={answer.id} className="p-4 !opacity-100 !bg-white">
+                        <Card key={answer.id} className="p-4 !opacity-100 !bg-white shadow-lg border border-gray-200">
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col items-center gap-1 min-w-[50px]">
                               <Button
@@ -3875,7 +3666,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* Tests 탭 */}
       {currentView === 'tests' && (
-        <div className="w-full max-w-none">
+        <div className="w-full max-w-none bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6">
           <div className="space-y-6 w-full">
             {/* 카테고리 필터 및 운영진 버튼 */}
             <div className="flex items-center justify-between gap-4">
@@ -4152,7 +3943,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </DialogContent>
       </Dialog>
 
-      </div>
     </div>
   )
 }

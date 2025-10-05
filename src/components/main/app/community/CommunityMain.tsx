@@ -5,6 +5,7 @@ import GalleryList from './GalleryList'
 import GalleryPostList from './GalleryPostList'
 import PostDetail from './PostDetail'
 import PostCreate from './PostCreate'
+import PostEditModal from './PostEditModal'
 import PopularPosts from './PopularPosts'
 
 interface Gallery {
@@ -49,6 +50,8 @@ export default function CommunityMain() {
   const [viewMode, setViewMode] = useState<ViewMode>('galleries')
   const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingPost, setEditingPost] = useState<Post | null>(null)
 
   const handleGallerySelect = (gallery: Gallery) => {
     setSelectedGallery(gallery)
@@ -91,10 +94,15 @@ export default function CommunityMain() {
   const handlePostEdit = () => {
     if (!selectedPost) return
     
-    // 수정 페이지로 이동 (나중에 모달 방식으로 변경 가능)
-    console.log('게시물 수정:', selectedPost.id)
-    // TODO: 수정 페이지/모달 구현
-    alert('수정 기능은 준비 중입니다.')
+    setEditingPost(selectedPost)
+    setShowEditModal(true)
+  }
+
+  const handlePostUpdated = (updatedPost: Post) => {
+    // 선택된 게시글 업데이트
+    setSelectedPost({ ...selectedPost, ...updatedPost })
+    setShowEditModal(false)
+    setEditingPost(null)
   }
 
   const handlePostDelete = async () => {
@@ -220,6 +228,17 @@ export default function CommunityMain() {
         {viewMode === 'popular' && (
           <PopularPosts onPostSelect={handlePostSelect} />
         )}
+
+        {/* 게시글 수정 모달 */}
+        <PostEditModal
+          post={editingPost}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false)
+            setEditingPost(null)
+          }}
+          onSave={handlePostUpdated}
+        />
       </div>
     </div>
   )

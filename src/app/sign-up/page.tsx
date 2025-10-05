@@ -241,9 +241,20 @@ export default function SignUpPage() {
       if (!response.ok) throw new Error(result.error)
 
       console.log('이메일 인증코드 발송 성공')
+      
+      // 개발 환경에서 디버그 정보가 있으면 콘솔에 표시
+      if (result.debug && result.debug.verificationCode) {
+        console.log('\n' + '='.repeat(60))
+        console.log('📧 [개발환경] 이메일 인증코드 (사용자용)')
+        console.log('='.repeat(60))
+        console.log(`이메일: ${authData.email}`)
+        console.log(`인증코드: ${result.debug.verificationCode}`)
+        console.log('='.repeat(60) + '\n')
+      }
     } catch (error) {
       console.error('이메일 인증 발송 실패:', error)
-      alert('이메일 인증코드 발송에 실패했습니다.')
+      const errorMessage = error instanceof Error ? error.message : '이메일 인증코드 발송에 실패했습니다.'
+      alert(`이메일 인증코드 발송에 실패했습니다.\n\n오류: ${errorMessage}\n\n잠시 후 다시 시도해주세요.`)
     } finally {
       setIsLoading(false)
     }

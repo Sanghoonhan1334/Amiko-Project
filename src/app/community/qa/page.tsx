@@ -13,6 +13,7 @@ import Header from '@/components/layout/Header'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 
 export default function QAPage() {
@@ -23,7 +24,8 @@ export default function QAPage() {
   // 상태 관리
   const [questions, setQuestions] = useState<any[]>([])
   const [answers, setAnswers] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [answersLoading, setAnswersLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // 질문 관련 상태
@@ -139,6 +141,7 @@ export default function QAPage() {
   // 답변 로딩 함수
   const loadAnswers = useCallback(async (questionId: string) => {
     console.log('loadAnswers 호출됨 - 실제 API 호출:', questionId)
+    setAnswersLoading(true)
     
     try {
       const response = await fetch(`/api/questions/${questionId}/answers`, {
@@ -159,6 +162,8 @@ export default function QAPage() {
     } catch (error) {
       console.error('답변 로딩 오류:', error)
       setAnswers([])
+    } finally {
+      setAnswersLoading(false)
     }
   }, [token])
 
@@ -317,7 +322,7 @@ export default function QAPage() {
   }, [user, token, loadQuestions])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
+    <div className="min-h-screen bg-white">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
@@ -394,18 +399,63 @@ export default function QAPage() {
         <div className="mt-4">
           {/* 질문 카드 리스트 */}
           <div className="space-y-2">
-            {filteredQuestions.length === 0 ? (
-              <Card className="p-8 text-center">
+            {loading ? (
+              // 로딩 중일 때 스켈레톤 표시
+              <>
+                {/* 데스크톱 스켈레톤 */}
+                <div className="hidden md:block space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="p-4 shadow-md">
+                      <div className="flex items-start gap-4">
+                        <div className="flex flex-col items-center gap-2 min-w-[60px]">
+                          <Skeleton className="h-8 w-8 rounded" />
+                          <Skeleton className="h-6 w-8" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-6 w-3/4" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-2/3" />
+                          <div className="flex items-center gap-4">
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-4 w-12" />
+                            <Skeleton className="h-4 w-16" />
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                
+                {/* 모바일 스켈레톤 */}
+                <div className="md:hidden space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="p-3 shadow-md">
+                      <div className="space-y-2">
+                        <Skeleton className="h-5 w-full" />
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-4 w-20" />
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="h-4 w-12" />
+                            <Skeleton className="h-4 w-12" />
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            ) : filteredQuestions.length === 0 ? (
+              <Card className="p-8 text-center shadow-md">
                 <div className="text-gray-400 text-6xl mb-4">❓</div>
-                <h3 className="text-lg font-semibold text-white mb-2">아직 질문이 없습니다</h3>
-                <p className="text-gray-300">첫 번째 질문을 작성해보세요!</p>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">아직 질문이 없습니다</h3>
+                <p className="text-gray-600">첫 번째 질문을 작성해보세요!</p>
               </Card>
             ) : (
               filteredQuestions.map((question, index) => (
                 <div key={question.id}>
                   {/* 데스크톱: 카드 스타일 */}
                   <Card 
-                    className="hidden md:block p-3 sm:p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-200 hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
+                    className="hidden md:block p-3 sm:p-4 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-200 shadow-md hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
@@ -463,7 +513,7 @@ export default function QAPage() {
 
                   {/* 모바일: 간단한 스타일 */}
                   <Card 
-                    className="md:hidden p-3 hover:shadow-lg transition-all duration-300 cursor-pointer bg-white border border-gray-200"
+                    className="md:hidden p-3 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border border-gray-200 shadow-md"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
@@ -638,9 +688,26 @@ export default function QAPage() {
             
             {/* 답변 목록 */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-white">답변 ({answers.length})</h4>
-              {answers.length === 0 ? (
-                <div className="text-center py-8 text-gray-300">
+              <h4 className="font-semibold text-gray-800">답변 ({answers.length})</h4>
+              {answersLoading ? (
+                // 답변 로딩 중일 때 스켈레톤 표시
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="border-l-4 border-gray-200 pl-4 py-3 bg-gray-50 rounded-r-lg">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <div className="flex items-center gap-4 mt-3">
+                          <Skeleton className="h-3 w-16" />
+                          <Skeleton className="h-3 w-12" />
+                          <Skeleton className="h-3 w-12" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : answers.length === 0 ? (
+                <div className="text-center py-8 text-gray-600">
                   <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                   <p>아직 답변이 없습니다.</p>
                   <p className="text-sm">첫 번째 답변을 작성해보세요!</p>

@@ -16,6 +16,20 @@ import Header from '@/components/layout/Header'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { toast } from 'sonner'
 
+// 댓글 관련 타입 정의
+interface Comment {
+  id: string
+  content: string
+  author: string
+  author_id: string
+  created_at: string
+  updated_at: string
+  parent_id?: string
+  replies?: Comment[]
+  likes: number
+  dislikes: number
+}
+
 // 운영자 권한 체크 함수를 컴포넌트 내부로 이동
 const checkOperatorStatus = async (user: any, token: string | null): Promise<boolean> => {
   try {
@@ -126,6 +140,14 @@ export default function NewsPage() {
   // 이미지 관련 상태
   const [newsUploadedImages, setNewsUploadedImages] = useState<Array<{url: string, name: string}>>([])
   const [selectedThumbnail, setSelectedThumbnail] = useState<string>('')
+  
+  // 댓글 관련 상태
+  const [comments, setComments] = useState<Comment[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyContent, setReplyContent] = useState('')
+  const [editingComment, setEditingComment] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
 
   const handleBack = () => {
     router.push('/main?tab=community')
@@ -139,6 +161,8 @@ export default function NewsPage() {
   const handleNewsClick = (newsItem: any) => {
     setSelectedNews(newsItem)
     setShowNewsDetail(true)
+    // 댓글 로드
+    fetchComments(newsItem.id)
   }
 
   const handleBackToList = () => {
@@ -352,6 +376,151 @@ export default function NewsPage() {
     }
   }
 
+  // 댓글 관련 함수들
+  const fetchComments = async (newsId: string) => {
+    try {
+      const response = await fetch(`/api/news/${newsId}/comments`)
+      if (response.ok) {
+        const data = await response.json()
+        setComments(data.comments || [])
+      }
+    } catch (error) {
+      console.error('댓글 로드 오류:', error)
+    }
+  }
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || !selectedNews?.id || !user || !token) return
+
+    try {
+      const response = await fetch(`/api/news/${selectedNews.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: newComment.trim()
+        })
+      })
+
+      if (response.ok) {
+        setNewComment('')
+        toast.success('댓글이 작성되었습니다!')
+        fetchComments(selectedNews.id)
+      } else {
+        toast.error('댓글 작성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('댓글 작성 오류:', error)
+      toast.error('댓글 작성 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleSubmitReply = async (parentId: string) => {
+    if (!replyContent.trim() || !selectedNews?.id || !user || !token) return
+
+    try {
+      const response = await fetch(`/api/news/${selectedNews.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: replyContent.trim(),
+          parent_id: parentId
+        })
+      })
+
+      if (response.ok) {
+        setReplyContent('')
+        setReplyingTo(null)
+        toast.success('답글이 작성되었습니다!')
+        fetchComments(selectedNews.id)
+      } else {
+        toast.error('답글 작성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('답글 작성 오류:', error)
+      toast.error('답글 작성 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editContent.trim() || !selectedNews?.id || !user || !token) return
+
+    try {
+      const response = await fetch(`/api/news/${selectedNews.id}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: editContent.trim()
+        })
+      })
+
+      if (response.ok) {
+        setEditContent('')
+        setEditingComment(null)
+        toast.success('댓글이 수정되었습니다!')
+        fetchComments(selectedNews.id)
+      } else {
+        toast.error('댓글 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('댓글 수정 오류:', error)
+      toast.error('댓글 수정 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('댓글을 삭제하시겠습니까?')) return
+    if (!selectedNews?.id || !user || !token) return
+
+    try {
+      const response = await fetch(`/api/news/${selectedNews.id}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        toast.success('댓글이 삭제되었습니다!')
+        fetchComments(selectedNews.id)
+      } else {
+        toast.error('댓글 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('댓글 삭제 오류:', error)
+      toast.error('댓글 삭제 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleCommentVote = async (commentId: string, type: 'like' | 'dislike') => {
+    if (!selectedNews?.id || !user || !token) return
+
+    try {
+      const response = await fetch(`/api/news/${selectedNews.id}/comments/${commentId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ type })
+      })
+
+      if (response.ok) {
+        fetchComments(selectedNews.id)
+      }
+    } catch (error) {
+      console.error('댓글 투표 오류:', error)
+    }
+  }
+
   // 뉴스 작성 함수 (CommunityTab.tsx에서 가져옴)
   const handleNewsWrite = async () => {
     if (!newsWriteForm.content.trim()) {
@@ -504,7 +673,7 @@ export default function NewsPage() {
         <Header />
         
         {/* 페이지별 헤더 */}
-        <div className="bg-white border-b border-gray-200 px-4 py-4 pt-48">
+        <div className="bg-white border-b border-gray-200 px-4 py-4 pt-24">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -516,59 +685,270 @@ export default function NewsPage() {
                 <ArrowLeft className="w-4 h-4" />
                 목록으로
               </Button>
-              <h1 className="text-xl font-bold text-gray-800">뉴스 상세</h1>
+              <h1 className="text-lg font-bold text-gray-800">뉴스 상세</h1>
             </div>
           </div>
         </div>
 
         {/* 뉴스 상세 내용 */}
         <div className="max-w-6xl mx-auto px-2 pt-4 pb-8">
-          <Card className="p-8 bg-white shadow-lg border border-gray-200 rounded-xl">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-800 mb-4">{selectedNews.title}</h1>
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+          <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
+            <div className="mb-4">
+              <h1 className="text-sm font-bold text-gray-800 mb-3">{selectedNews.title}</h1>
+              <div className="flex items-center justify-between text-[10px] text-gray-500 mb-3">
                 <div className="flex items-center gap-4">
-                  {selectedNews.source && selectedNews.source.trim() ? (
-                    <>
-                      <span>{selectedNews.source}</span>
-                      <span>{selectedNews.author}</span>
-                      <span>{selectedNews.date}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{selectedNews.author}</span>
-                      <span>{selectedNews.date}</span>
-                    </>
-                  )}
+                  <span>{selectedNews.author}</span>
+                  <span>{selectedNews.date}</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    <span>{selectedNews.views || 0}</span>
+                    <Eye className="w-3 h-3" />
+                    <span className="text-[10px]">{selectedNews.views || 0}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>{selectedNews.comments || 0}</span>
+                    <MessageCircle className="w-3 h-3" />
+                    <span className="text-[10px]">{selectedNews.comments || 0}</span>
                   </div>
                 </div>
               </div>
             </div>
             
             <div className="prose max-w-none">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+              <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">
                 {selectedNews.content}
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-200">
-              <Button variant="outline" className="flex items-center gap-2">
-                <ThumbsUp className="w-4 h-4" />
+            <div className="flex items-center justify-center gap-1 md:gap-4 mt-3 md:mt-6 pt-2 md:pt-4 border-t border-gray-200">
+              <Button variant="outline" className="flex items-center gap-0.5 md:gap-2 text-[10px] md:text-sm px-1 md:px-4 py-0.5 md:py-2">
+                <ThumbsUp className="w-2 h-2 md:w-4 md:h-4" />
                 {selectedNews.likes || 0}
               </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <ThumbsDown className="w-4 h-4" />
+              <Button variant="outline" className="flex items-center gap-0.5 md:gap-2 text-[10px] md:text-sm px-1 md:px-4 py-0.5 md:py-2">
+                <ThumbsDown className="w-2 h-2 md:w-4 md:h-4" />
                 0
               </Button>
+            </div>
+          </Card>
+
+          {/* 댓글 섹션 */}
+          <Card className="mt-2 md:mt-6 p-2 md:p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
+            <h2 className="text-xs md:text-lg font-bold text-gray-800 mb-1 md:mb-4">댓글 ({comments.length})</h2>
+            
+            {/* 댓글 작성 폼 */}
+            {user ? (
+              <div className="mb-2 md:mb-6">
+                <Textarea
+                  placeholder="댓글을 작성해주세요..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={1}
+                  className="mb-1 md:mb-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none text-xs md:text-sm"
+                />
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSubmitComment}
+                    disabled={!newComment.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] md:text-sm px-2 py-1 md:px-4 md:py-2"
+                  >
+                    댓글 작성
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
+                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">댓글을 작성하려면 로그인이 필요합니다.</p>
+                <Button onClick={() => router.push('/sign-in')} variant="outline" className="text-[10px] md:text-sm">
+                  로그인하기
+                </Button>
+              </div>
+            )}
+
+            {/* 댓글 목록 */}
+            <div className="space-y-1 md:space-y-4">
+              {comments.length === 0 ? (
+                <div className="text-center py-2 md:py-8 text-gray-500">
+                  <MessageCircle className="w-6 h-6 md:w-12 md:h-12 mx-auto mb-1 md:mb-2 text-gray-300" />
+                  <p className="text-[10px] md:text-sm">첫 번째 댓글을 작성해보세요!</p>
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="border-b border-gray-100 pb-1 md:pb-4 last:border-b-0">
+                    <div className="flex items-start justify-between mb-1 md:mb-2">
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <span className="font-semibold text-[10px] md:text-sm text-gray-800">{comment.author}</span>
+                        <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
+                      </div>
+                      {user?.id === comment.author_id && (
+                        <div className="flex gap-0.5 md:gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingComment(comment.id)
+                              setEditContent(comment.content)
+                            }}
+                            className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
+                          >
+                            수정
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs text-red-600 hover:text-red-800"
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {editingComment === comment.id ? (
+                      <div className="mb-1 md:mb-3">
+                        <Textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          rows={1}
+                          className="mb-1 md:mb-2 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none text-[10px] md:text-sm"
+                        />
+                        <div className="flex gap-0.5 md:gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleEditComment(comment.id)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
+                          >
+                            저장
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingComment(null)
+                              setEditContent('')
+                            }}
+                            className="text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] md:text-sm text-gray-700 mb-1 md:mb-2 whitespace-pre-wrap">{comment.content}</p>
+                    )}
+                    
+                    <div className="flex items-center gap-1 md:gap-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCommentVote(comment.id, 'like')}
+                        className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
+                      >
+                        <ThumbsUp className="w-3 h-3 mr-0.5 md:mr-1" />
+                        {comment.likes}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCommentVote(comment.id, 'dislike')}
+                        className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
+                      >
+                        <ThumbsDown className="w-3 h-3 mr-0.5 md:mr-1" />
+                        {comment.dislikes}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setReplyingTo(comment.id)}
+                        className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
+                      >
+                        답글
+                      </Button>
+                    </div>
+
+                    {/* 답글 작성 폼 */}
+                    {replyingTo === comment.id && (
+                      <div className="mt-1 md:mt-3 ml-1 md:ml-4 p-1 md:p-3 bg-gray-50 rounded-lg">
+                        <Textarea
+                          placeholder="답글을 작성해주세요..."
+                          value={replyContent}
+                          onChange={(e) => setReplyContent(e.target.value)}
+                          rows={1}
+                          className="mb-1 md:mb-2 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none text-[10px] md:text-sm"
+                        />
+                        <div className="flex gap-0.5 md:gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleSubmitReply(comment.id)}
+                            disabled={!replyContent.trim()}
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
+                          >
+                            답글 작성
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setReplyingTo(null)
+                              setReplyContent('')
+                            }}
+                            className="text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 답글 목록 */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="mt-1 md:mt-3 ml-1 md:ml-4 space-y-1 md:space-y-3">
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="p-1 md:p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-start justify-between mb-1 md:mb-2">
+                              <div className="flex items-center gap-0.5 md:gap-2">
+                                <span className="font-semibold text-[9px] md:text-xs text-gray-800">{reply.author}</span>
+                                <span className="text-[8px] md:text-xs text-gray-500">{new Date(reply.created_at).toLocaleDateString()}</span>
+                              </div>
+                              {user?.id === reply.author_id && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteComment(reply.id)}
+                                  className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-red-600 hover:text-red-800"
+                                >
+                                  삭제
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-[9px] md:text-xs text-gray-700 mb-1 md:mb-2 whitespace-pre-wrap">{reply.content}</p>
+                            <div className="flex items-center gap-1 md:gap-3">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCommentVote(reply.id, 'like')}
+                                className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-gray-600"
+                              >
+                                <ThumbsUp className="w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1" />
+                                {reply.likes}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCommentVote(reply.id, 'dislike')}
+                                className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-gray-600"
+                              >
+                                <ThumbsDown className="w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1" />
+                                {reply.dislikes}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </div>
@@ -577,25 +957,18 @@ export default function NewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
+    <div className="min-h-screen bg-white">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
       {/* 페이지별 헤더 - 모바일용 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 pt-40 md:hidden">
+      <div className="bg-white border-b border-gray-200 px-4 py-4 pt-24 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-bold text-gray-800">K-매거진</h1>
           </div>
           
           <div className="flex items-center gap-4">
-            {/* 사용자 정보 표시 */}
-            {user && (
-              <div className="text-sm text-gray-600">
-                {user.email} {isOperatorUser && '(운영자)'}
-              </div>
-            )}
-            
             {/* 운영자일 때만 글쓰기 버튼 표시 */}
             {isOperatorUser && (
               <Button
@@ -622,7 +995,7 @@ export default function NewsPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 pt-24 pb-6">
+      <div className="max-w-6xl mx-auto px-4 pt-8 pb-6">
         {/* 웹 형태일 때 섹션 카드 래퍼 */}
         <div className="hidden md:block">
           <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
@@ -632,13 +1005,6 @@ export default function NewsPage() {
                 <h1 className="text-2xl font-bold text-gray-800">K-매거진</h1>
                 
                 <div className="flex items-center gap-4">
-                  {/* 사용자 정보 표시 */}
-                  {user && (
-                    <div className="text-sm text-gray-600">
-                      {user.email} {isOperatorUser && '(운영자)'}
-                    </div>
-                  )}
-                  
                   {/* 운영자일 때만 글쓰기 버튼 표시 */}
                   {isOperatorUser && (
                     <Button
@@ -867,9 +1233,9 @@ export default function NewsPage() {
               <p className="text-gray-600">뉴스를 불러오는 중...</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* 뉴스 목록 */}
-              <div className="grid gap-6">
+              <div className="grid gap-4">
                 {news.length === 0 ? (
                   <Card className="p-8 text-center bg-white shadow-lg border border-gray-200 rounded-xl">
                     <div className="text-gray-400 text-6xl mb-4">📰</div>
@@ -878,10 +1244,10 @@ export default function NewsPage() {
                   </Card>
                 ) : (
                   news.map((item) => (
-                    <Card key={item.id} className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl hover:shadow-xl transition-shadow">
+                    <Card key={item.id} className="p-4 bg-white shadow-lg border border-gray-200 rounded-xl hover:shadow-xl transition-shadow">
                       <div className="flex gap-4">
                         <div 
-                          className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
+                          className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
                           onClick={() => handleNewsClick(item)}
                         >
                           <img 
@@ -898,9 +1264,9 @@ export default function NewsPage() {
                           </div>
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-start justify-between mb-1">
                             <h3 
-                              className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer flex-1 mr-4" 
+                              className="text-sm font-semibold text-gray-800 line-clamp-2 cursor-pointer flex-1 mr-4" 
                               onClick={() => handleNewsClick(item)}
                             >
                               {item.title}
@@ -957,19 +1323,18 @@ export default function NewsPage() {
                             )}
                           </div>
                           
-                          <div className="text-sm text-gray-600 mb-2">
-                            {item.source && <span className="mr-2">{item.source}</span>}
-                            <span className="mr-2">{item.author}</span>
-                            <span>{item.date}</span>
+                          <div className="text-xs text-gray-600 mb-1">
+                            <div className="block">{item.author}</div>
+                            <div className="block">{item.date}</div>
                           </div>
                           
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
                             <div className="flex items-center gap-1">
-                              <ThumbsUp className="w-4 h-4" />
+                              <ThumbsUp className="w-3 h-3" />
                               <span>{item.likes || 0}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <MessageCircle className="w-4 h-4" />
+                              <MessageCircle className="w-3 h-3" />
                               <span>{item.comments || 0}</span>
                             </div>
                           </div>

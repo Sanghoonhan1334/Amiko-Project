@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
         title,
         content,
         images,
+        category,
         view_count,
         like_count,
         dislike_count,
@@ -277,7 +278,14 @@ export async function POST(request: NextRequest) {
         }
       }
       
-      console.log('[POST_CREATE] FormData 받음:', { title, content, category_name, is_notice, is_survey })
+      console.log('[POST_CREATE] FormData 받음:', { 
+        title: title?.substring(0, 50), 
+        contentLength: content?.length, 
+        category_name, 
+        is_notice, 
+        is_survey,
+        uploadedImagesCount: uploadedImages?.length 
+      })
       
       // 자유게시판 갤러리 ID 찾기 (free 우선, freeboard 대체)
       let freeGallery = null
@@ -290,6 +298,8 @@ export async function POST(request: NextRequest) {
         .eq('slug', 'free')
         .single()
       
+      console.log('[POST_CREATE] free 갤러리 조회 결과:', { freeGalleryData, freeError })
+      
       if (freeGalleryData) {
         freeGallery = freeGalleryData
       } else {
@@ -300,12 +310,46 @@ export async function POST(request: NextRequest) {
           .eq('slug', 'freeboard')
           .single()
         
+        console.log('[POST_CREATE] freeboard 갤러리 조회 결과:', { freeboardGallery, freeboardError })
+        
         freeGallery = freeboardGallery
         galleryError = freeboardError
+        
+        // 둘 다 없으면 free 갤러리 생성
+        if (galleryError && !freeGallery) {
+          console.log('[POST_CREATE] 자유게시판 갤러리가 없음 - 생성 시도')
+          
+          const { data: newGallery, error: createError } = await supabaseServer
+            .from('galleries')
+            .insert({
+              slug: 'free',
+              name_ko: '자유주제 갤러리',
+              description_ko: '자유롭게 이야기하는 공간',
+              icon: '💭',
+              color: '#98D8C8',
+              sort_order: 7,
+              is_active: true
+            })
+            .select('id')
+            .single()
+          
+          console.log('[POST_CREATE] 갤러리 생성 결과:', { newGallery, createError })
+          
+          if (createError || !newGallery) {
+            console.error('[POST_CREATE] 갤러리 생성 실패:', createError)
+            return NextResponse.json(
+              { error: '자유게시판 갤러리 생성에 실패했습니다.' },
+              { status: 500 }
+            )
+          }
+          
+          freeGallery = newGallery
+          galleryError = null
+        }
       }
       
       if (galleryError || !freeGallery) {
-        console.error('[POST_CREATE] 자유게시판 갤러리 조회 실패:', galleryError)
+        console.error('[POST_CREATE] 자유게시판 갤러리 조회/생성 실패:', galleryError)
         return NextResponse.json(
           { error: '자유게시판 갤러리를 찾을 수 없습니다.' },
           { status: 404 }
@@ -574,6 +618,7 @@ export async function POST(request: NextRequest) {
       title: title.trim(),
       content: content.trim(),
       images: images || [],
+      category: body.category_name || '자유게시판',
       view_count: 0,
       like_count: 0,
       dislike_count: 0,
@@ -599,6 +644,15 @@ export async function POST(request: NextRequest) {
         postData.is_pinned = true
       }
     }
+
+    console.log('[POST_CREATE] 게시글 삽입 데이터:', {
+      gallery_id: postData.gallery_id,
+      user_id: postData.user_id,
+      title: postData.title?.substring(0, 50),
+      contentLength: postData.content?.length,
+      category: postData.category,
+      imagesCount: postData.images?.length
+    })
 
     const { data: newPost, error: postError } = await supabaseServer
       .from('gallery_posts')

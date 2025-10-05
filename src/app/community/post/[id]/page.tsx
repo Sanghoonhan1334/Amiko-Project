@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, ThumbsUp, ThumbsDown, MessageSquare, Eye, Calendar, User } from 'lucide-react'
 import PostDetail from '@/components/main/app/community/PostDetail'
+import PostEditModal from '@/components/main/app/community/PostEditModal'
 import Header from '@/components/layout/Header'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -43,6 +44,8 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingPost, setEditingPost] = useState<Post | null>(null)
 
   const postId = params.id as string
 
@@ -81,6 +84,13 @@ export default function PostDetailPage() {
   const handleBack = () => {
     // 새로운 자유게시판 페이지로 이동
     router.push('/community/freeboard')
+  }
+
+  const handlePostUpdated = (updatedPost: Post) => {
+    // 게시글 정보 업데이트
+    setPost({ ...post, ...updatedPost })
+    setShowEditModal(false)
+    setEditingPost(null)
   }
 
   if (loading) {
@@ -143,9 +153,8 @@ export default function PostDetailPage() {
           postId={post.id}
           onBack={handleBack}
           onEdit={() => {
-            // 게시글 수정 기능 (나중에 구현)
-            console.log('게시글 수정:', post.id)
-            alert('수정 기능은 준비 중입니다.')
+            setEditingPost(post)
+            setShowEditModal(true)
           }}
           onDelete={async () => {
             if (confirm('정말로 이 게시물을 삭제하시겠습니까?\n삭제된 게시물은 복구할 수 없습니다.')) {
@@ -185,6 +194,17 @@ export default function PostDetailPage() {
               }
             }
           }}
+        />
+
+        {/* 게시글 수정 모달 */}
+        <PostEditModal
+          post={editingPost}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false)
+            setEditingPost(null)
+          }}
+          onSave={handlePostUpdated}
         />
       </div>
     </div>

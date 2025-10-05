@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import HomeTab from '@/components/main/app/home/HomeTab'
+// import HomeTab from '@/components/main/app/home/HomeTab' // 제거됨
 import MeetTab from '@/components/main/app/meet/MeetTab'
 import CommunityTab from '@/components/main/app/community/CommunityTab'
 import MyTab from '@/components/main/app/me/MyTab'
@@ -19,7 +19,7 @@ function AppPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
-  const [activeTab, setActiveTab] = useState('home')
+  const [activeTab, setActiveTab] = useState('community')
   const [availableAKO, setAvailableAKO] = useState(0)
   const [currentPoints, setCurrentPoints] = useState(0)
   const [pointsLoading, setPointsLoading] = useState(true)
@@ -174,16 +174,16 @@ function AppPageContent() {
     const tabParam = searchParams.get('tab')
     console.log('MainPage: tabParam from URL:', tabParam)
     
-    let targetTab = 'home' // 기본값
+    let targetTab = 'community' // 기본값을 community로 변경
     
-    if (tabParam && ['home', 'meet', 'community', 'me', 'charging', 'event'].includes(tabParam)) {
+    if (tabParam && ['meet', 'community', 'me', 'charging', 'event'].includes(tabParam)) {
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
     } else {
       // URL 파라미터가 없으면 기본값 사용하고 URL 업데이트
-      console.log('MainPage: no tab param, using default: home')
-      router.replace('/main?tab=home')
+      console.log('MainPage: no tab param, using default: community')
+      router.replace('/main?tab=community')
       return // URL 업데이트 후 다시 실행될 것이므로 여기서 종료
     }
     
@@ -230,19 +230,7 @@ function AppPageContent() {
 
           {/* 콘텐츠 */}
           <div className="space-y-2 sm:space-y-8">
-            {activeTab === 'home' && (
-              <div className="hidden md:block">
-                <div className="card p-8 -mt-12 sm:mt-0">
-                  <HomeTab />
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'home' && (
-              <div className="block md:hidden -mt-8">
-                <HomeTab />
-              </div>
-            )}
+            {/* 홈 탭 제거됨 - 커뮤니티로 통합 */}
 
             {activeTab === 'meet' && (
               <div className="hidden md:block">
@@ -273,7 +261,7 @@ function AppPageContent() {
 
             {activeTab === 'community' && (
               <div className="hidden md:block">
-                <div className="card p-8 -mt-12 sm:mt-0">
+                <div className="card px-8 pt-8 pb-0 -mt-12 sm:mt-0">
                   <div className="flex items-center justify-between mb-0">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
@@ -385,7 +373,7 @@ function AppPageContent() {
 
 
             {activeTab === 'charging' && (
-              <div className="space-y-6 pt-16 md:pt-24">
+              <div className="space-y-6">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
                   <div className="card p-8 -mt-12 sm:mt-0">
@@ -434,7 +422,7 @@ function AppPageContent() {
                 
                 {/* 모바일: 섹션 카드 없이 */}
                 <div className="block md:hidden">
-                  <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-12 sm:mt-0">
+                  <div className="px-2 sm:px-4 py-2 sm:py-8 pt-8 -mt-16 sm:mt-0">
                     {/* 헤더 섹션 */}
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
@@ -482,26 +470,21 @@ function AppPageContent() {
 
 
             {activeTab === 'event' && (
-              <div className="pt-16 md:pt-24 pb-20 md:pb-8">
+              <div className="pb-20 md:pb-8">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
                   <div className="card p-8 -mt-12 sm:mt-0">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 bg-orange-100 rounded-3xl flex items-center justify-center">
-                        <span className="text-2xl">🎁</span>
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-800">{t('eventTab.title')}</h2>
-                        <p className="text-sm text-gray-600">{t('eventTab.subtitle')}</p>
-                      </div>
+                    <div className="pt-12">
+                      <EventTab />
                     </div>
-                    <EventTab />
                   </div>
                 </div>
                 
                 {/* 모바일: 섹션 카드 없이 */}
                 <div className="block md:hidden">
-                  <EventTab />
+                  <div className="px-2 sm:px-4 pt-8">
+                    <EventTab />
+                  </div>
                 </div>
               </div>
             )}
@@ -509,8 +492,8 @@ function AppPageContent() {
         </div>
       </div>
       
-      {/* 하단 탭 네비게이션 - 커뮤니티 탭에서는 숨김 */}
-      {activeTab !== 'community' && <BottomTabNavigation />}
+      {/* 하단 탭 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }

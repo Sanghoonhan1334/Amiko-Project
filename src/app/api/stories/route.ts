@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
           // 먼저 user_profiles 테이블에서 조회
           const { data: profileData, error: profileError } = await supabaseServer
             .from('user_profiles')
-            .select('display_name')
+            .select('display_name, avatar_url')
             .eq('user_id', story.user_id)
             .single()
 
@@ -88,14 +88,15 @@ export async function GET(request: NextRequest) {
             return {
               ...story,
               user_name: profileData.display_name,
-              user_email: null
+              user_email: null,
+              user_profile_image: profileData.avatar_url
             }
           }
 
           // user_profiles에 없으면 users 테이블에서 조회
           const { data: userData, error: userError } = await supabaseServer
             .from('users')
-            .select('id, full_name, email')
+            .select('id, full_name, email, profile_image')
             .eq('id', story.user_id)
             .single()
 
@@ -104,21 +105,24 @@ export async function GET(request: NextRequest) {
             return {
               ...story,
               user_name: '익명',
-              user_email: null
+              user_email: null,
+              user_profile_image: null
             }
           }
 
           return {
             ...story,
             user_name: userData?.full_name || userData?.email?.split('@')[0] || '익명',
-            user_email: userData?.email || null
+            user_email: userData?.email || null,
+            user_profile_image: userData?.profile_image
           }
         } catch (err) {
           console.error(`[STORIES_LIST] 사용자 정보 처리 실패 (${story.user_id}):`, err)
           return {
             ...story,
             user_name: '익명',
-            user_email: null
+            user_email: null,
+            user_profile_image: null
           }
         }
       })

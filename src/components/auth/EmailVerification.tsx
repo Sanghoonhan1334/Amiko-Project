@@ -42,10 +42,15 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
   }, [timeLeft])
 
   const handleSendCode = async () => {
-    setIsWaitingForCode(true)
-    setTimeLeft(300) // 5분 타이머 시작
-    await onResend()
-    setCodeSent(true)
+    try {
+      setIsWaitingForCode(true)
+      setTimeLeft(300) // 5분 타이머 시작
+      await onResend()
+      setCodeSent(true)
+    } catch (error) {
+      console.error('코드 발송 실패:', error)
+      // 에러는 상위 컴포넌트에서 처리됨
+    }
   }
 
   const handleVerify = () => {

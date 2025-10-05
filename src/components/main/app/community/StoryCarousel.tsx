@@ -818,7 +818,8 @@ export default function StoryCarousel() {
       </div>
 
       {/* 스토리 업로드 모달 - 운영자와 일반 사용자 공통 */}
-      <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
+      <VerificationGuard requiredLevel="sms">
+        <Dialog open={showUploadModal} onOpenChange={(open) => !open && handleModalClose()}>
           <DialogContent 
             className="max-w-md bg-white border-2 border-gray-200 shadow-xl" 
             style={{ 
@@ -982,11 +983,7 @@ export default function StoryCarousel() {
               </div>
             </DialogContent>
           </Dialog>
-          </VerificationGuard>
-          
-
-        </div>
-      </div>
+      </VerificationGuard>
 
       {/* 로딩 상태 - 스켈레톤 */}
       {isLoading && (
@@ -999,8 +996,8 @@ export default function StoryCarousel() {
       {!isLoading && (
         <div className="relative">
           {stories.length > 0 ? (
-            /* 모바일 뷰 (360px 미만) - 인스타그램 스타일 */
-            isMobileView ? (
+            <>
+              {isMobileView ? (
               <div 
                 className="relative h-96 overflow-hidden"
                 onTouchStart={handleTouchStart}
@@ -1092,165 +1089,164 @@ export default function StoryCarousel() {
                   ))}
                 </div>
               </div>
-            ) : (
-              /* 데스크톱 뷰 (360px 이상) - 기존 그리드 스타일 */
-              <div 
-                className="overflow-x-auto overflow-y-hidden scrollbar-hide story-carousel"
-                style={{
-                  scrollbarWidth: 'none', // Firefox
-                  msOverflowStyle: 'none', // IE and Edge
-                  WebkitOverflowScrolling: 'touch' // iOS smooth scrolling
-                }}
-              >
-                <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
-                  {stories.map((story) => (
-                <div
-                  key={story.id}
-                  className="relative flex-shrink-0 w-80"
+              ) : (
+                /* 데스크톱 뷰 (360px 이상) - 기존 그리드 스타일 */
+                <div 
+                  className="overflow-x-auto overflow-y-hidden scrollbar-hide story-carousel"
+                  style={{
+                    scrollbarWidth: 'none', // Firefox
+                    msOverflowStyle: 'none', // IE and Edge
+                    WebkitOverflowScrolling: 'touch' // iOS smooth scrolling
+                  }}
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full p-3 group">
-                    <div className="relative">
-                      {/* 스토리 이미지 */}
-                      <div className="aspect-square bg-gray-200 relative overflow-hidden rounded-lg">
-                        <img
-                          src={story.imageUrl}
-                          alt="스토리 이미지"
-                          className="w-full h-full object-cover cursor-pointer"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setSelectedStory(story)
-                            setShowStoryModal(true)
-                          }}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.src = `https://picsum.photos/400/400?random=${story.id}`
-                          }}
-                        />
-                        
-                        {/* 만료 시간 표시 */}
-                        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                          {Math.max(0, Math.floor((story.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)))}시간
-                        </div>
-                        
-                        {/* 공개/비공개 표시 */}
-                        <div className="absolute top-2 left-2">
-                          {story.isPublic ? (
-                            <div className="bg-green-500 text-white p-1 rounded-full">
-                              <Eye className="w-3 h-3" />
-                            </div>
-                          ) : (
-                            <div className="bg-gray-500 text-white p-1 rounded-full">
-                              <EyeOff className="w-3 h-3" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* 스토리 오버레이 메뉴 (마우스 오버 시) */}
-                        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100 pointer-events-none">
-                          <div className="flex gap-3 pointer-events-auto">
-                            {/* 좋아요 버튼 - SMS 인증 필요 */}
-                            <VerificationGuard requiredLevel="sms">
-                              <button
+                  <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+                    {stories.map((story) => (
+                      <div
+                        key={story.id}
+                        className="relative flex-shrink-0 w-80"
+                      >
+                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full p-3 group">
+                          <div className="relative">
+                            {/* 스토리 이미지 */}
+                            <div className="aspect-square bg-gray-200 relative overflow-hidden rounded-lg">
+                              <img
+                                src={story.imageUrl}
+                                alt="스토리 이미지"
+                                className="w-full h-full object-cover cursor-pointer"
                                 onClick={(e) => {
+                                  e.preventDefault()
                                   e.stopPropagation()
-                                  handleLikeToggle(story.id)
+                                  setSelectedStory(story)
+                                  setShowStoryModal(true)
                                 }}
-                                className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
-                              >
-                                {likedStories.has(story.id) ? (
-                                  <Heart className="w-5 h-5 text-red-500 fill-current" />
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = `https://picsum.photos/400/400?random=${story.id}`
+                                }}
+                              />
+                              
+                              {/* 만료 시간 표시 */}
+                              <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                                {Math.max(0, Math.floor((story.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)))}시간
+                              </div>
+                              
+                              {/* 공개/비공개 표시 */}
+                              <div className="absolute top-2 left-2">
+                                {story.isPublic ? (
+                                  <div className="bg-green-500 text-white p-1 rounded-full">
+                                    <Eye className="w-3 h-3" />
+                                  </div>
                                 ) : (
-                                  <Heart className="w-5 h-5 text-red-500" />
+                                  <div className="bg-gray-500 text-white p-1 rounded-full">
+                                    <EyeOff className="w-3 h-3" />
+                                  </div>
                                 )}
-                              </button>
-                            </VerificationGuard>
+                              </div>
+                              
+                              {/* 스토리 오버레이 메뉴 (마우스 오버 시) */}
+                              <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100 pointer-events-none">
+                                <div className="flex gap-3 pointer-events-auto">
+                                  {/* 좋아요 버튼 - SMS 인증 필요 */}
+                                  <VerificationGuard requiredLevel="sms">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleLikeToggle(story.id)
+                                      }}
+                                      className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                                    >
+                                      {likedStories.has(story.id) ? (
+                                        <Heart className="w-5 h-5 text-red-500 fill-current" />
+                                      ) : (
+                                        <Heart className="w-5 h-5 text-red-500" />
+                                      )}
+                                    </button>
+                                  </VerificationGuard>
+                                  
+                                  {/* 댓글 버튼 - SMS 인증 필요 */}
+                                  <VerificationGuard requiredLevel="sms">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setShowCommentModal(story.id)
+                                      }}
+                                      className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                                    >
+                                      <MessageSquare className="w-5 h-5 text-blue-500" />
+                                    </button>
+                                  </VerificationGuard>
+                                </div>
+                              </div>
+                            </div>
                             
-                            {/* 댓글 버튼 - SMS 인증 필요 */}
-                            <VerificationGuard requiredLevel="sms">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setShowCommentModal(story.id)
-                                }}
-                                className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
-                              >
-                                <MessageSquare className="w-5 h-5 text-blue-500" />
-                              </button>
-                            </VerificationGuard>
+                            {/* 스토리 내용 */}
+                            <div className="p-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="w-5 h-5 bg-brand-100 rounded-full flex items-center justify-center">
+                                  <User className="w-3 h-3 text-brand-600" />
+                                </div>
+                                <span className="text-xs font-medium text-gray-800">{story.userName}</span>
+                              </div>
+                              
+                              <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words leading-relaxed" style={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                wordBreak: 'break-word'
+                              }}>
+                                {story.text}
+                              </p>
+                              
+                              <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span>{story.createdAt.toLocaleTimeString('ko-KR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}</span>
+                                <span>24시간 후 삭제</span>
+                              </div>
+                              
+                              {/* 좋아요와 댓글 버튼 */}
+                              <div className="flex items-center justify-end gap-4 pt-2 border-t border-gray-100">
+                                <VerificationGuard requiredLevel="sms">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleLikeToggle(story.id)
+                                    }}
+                                    className="flex items-center gap-1 text-xs text-gray-600 hover:text-red-500 transition-colors"
+                                  >
+                                    {likedStories.has(story.id) ? (
+                                      <Heart className="w-4 h-4 text-red-500 fill-current" />
+                                    ) : (
+                                      <Heart className="w-4 h-4" />
+                                    )}
+                                    <span>{t('communityTab.like')}</span>
+                                  </button>
+                                </VerificationGuard>
+                                
+                                <VerificationGuard requiredLevel="sms">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setShowCommentModal(story.id)
+                                    }}
+                                    className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
+                                  >
+                                    <MessageSquare className="w-4 h-4" />
+                                    <span>{t('communityTab.comment')}</span>
+                                  </button>
+                                </VerificationGuard>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        </Card>
                       </div>
-                      
-                      {/* 스토리 내용 */}
-                      <div className="p-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-5 h-5 bg-brand-100 rounded-full flex items-center justify-center">
-                            <User className="w-3 h-3 text-brand-600" />
-                          </div>
-                          <span className="text-xs font-medium text-gray-800">{story.userName}</span>
-                        </div>
-                        
-                        <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words leading-relaxed" style={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          wordBreak: 'break-word'
-                        }}>
-                          {story.text}
-                        </p>
-                        
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                          <span>{story.createdAt.toLocaleTimeString('ko-KR', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}</span>
-                          <span>24시간 후 삭제</span>
-                        </div>
-                        
-                        {/* 좋아요와 댓글 버튼 */}
-                        <div className="flex items-center justify-end gap-4 pt-2 border-t border-gray-100">
-                            <VerificationGuard requiredLevel="sms">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleLikeToggle(story.id)
-                                }}
-                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-red-500 transition-colors"
-                              >
-                                {likedStories.has(story.id) ? (
-                                  <Heart className="w-4 h-4 text-red-500 fill-current" />
-                                ) : (
-                                  <Heart className="w-4 h-4" />
-                                )}
-                                <span>{t('communityTab.like')}</span>
-                              </button>
-                            </VerificationGuard>
-                            
-                            <VerificationGuard requiredLevel="sms">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setShowCommentModal(story.id)
-                                }}
-                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
-                              >
-                                <MessageSquare className="w-4 h-4" />
-                                <span>{t('communityTab.comment')}</span>
-                              </button>
-                            </VerificationGuard>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
+                    ))}
+                  </div>
                 </div>
-                  ))}
-                </div>
-              </div>
-            )
-          )}
+              )}
+            </>
           ) : (
             /* 스토리가 없을 때 빈 상태 메시지 */
             <div className="text-center py-12">

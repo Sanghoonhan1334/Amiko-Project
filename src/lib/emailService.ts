@@ -334,8 +334,16 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
       },
       tls: {
         rejectUnauthorized: false // 개발 환경에서 SSL 인증서 오류 방지
-      }
+      },
+      connectionTimeout: 10000, // 10초 연결 타임아웃
+      greetingTimeout: 10000, // 10초 인사 타임아웃
+      socketTimeout: 10000 // 10초 소켓 타임아웃
     })
+    
+    // 연결 테스트
+    console.log('[EMAIL_SEND] SMTP 연결 테스트 중...')
+    await transporter.verify()
+    console.log('[EMAIL_SEND] SMTP 연결 테스트 성공')
     
     // 이메일 발송
     const info = await transporter.sendMail({
@@ -352,6 +360,11 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
     
   } catch (error) {
     console.error('❌ 하이웍스 SMTP 이메일 발송 실패:', error)
+    console.error('❌ 에러 상세:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    })
     return false
   }
 }

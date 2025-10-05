@@ -124,10 +124,17 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
             </div>
             <Button 
               onClick={() => {
+                // 로그인하지 않은 사용자는 로그인 페이지로 이동
+                if (!user) {
+                  router.push('/sign-in')
+                  return
+                }
+                
+                // 로그인한 사용자는 인증 상태에 따라 처리
                 if (verificationStatus === 'verified') {
                   setShowStartDialog(true)
                 } else {
-                  router.push('/main?tab=me')
+                  router.push('/verification')
                 }
               }}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-2 text-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"

@@ -61,12 +61,48 @@ export default function AuthGuard({ children, requiredLevel, fallback }: AuthGua
     return currentIndex >= requiredIndex
   }
 
+  // 로그인하지 않은 사용자 - 로그인 페이지로 이동
+  if (!user) {
+    if (fallback) {
+      return <>{fallback}</>
+    }
+    
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Shield className="w-12 h-12 text-blue-600" />
+          </div>
+          <CardTitle>로그인이 필요합니다</CardTitle>
+          <CardDescription>
+            게시글을 작성하려면 먼저 로그인해주세요.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button 
+            onClick={() => window.location.href = '/sign-in'}
+            className="w-full"
+          >
+            로그인하기
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => window.history.back()}
+            className="w-full"
+          >
+            돌아가기
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   // 인증 레벨이 충족된 경우
   if (hasRequiredLevel(requiredLevel, userAuthLevel)) {
     return <>{children}</>
   }
 
-  // 인증이 필요한 경우
+  // 인증이 필요한 경우 (로그인은 했지만 인증 레벨이 부족)
   if (fallback) {
     return <>{fallback}</>
   }

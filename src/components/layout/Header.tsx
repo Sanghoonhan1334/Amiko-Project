@@ -15,7 +15,7 @@ export default function Header() {
   const pathname = usePathname()
   const { language, t, toggleLanguage } = useLanguage()
   const { user, signOut } = useAuth()
-  const [activeMainTab, setActiveMainTab] = useState('home')
+  const [activeMainTab, setActiveMainTab] = useState('community')
 
   // 모바일 메뉴 상태
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -659,21 +659,22 @@ export default function Header() {
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6">
+                    {/* 홈 버튼 제거됨 - 커뮤니티로 통합 */}
                     <button 
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        console.log('Home 버튼 클릭됨')
-                        handleMainNavClick('home')
+                        console.log('Community 버튼 클릭됨')
+                        handleMainNavClick('community')
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
-                        activeMainTab === 'home' 
+                        activeMainTab === 'community' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
-                      {t('headerNav.home')}
+                      {t('headerNav.community')}
                     </button>
                     <button 
                       onClick={(e) => {
@@ -690,22 +691,6 @@ export default function Header() {
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.videoCall')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Community 버튼 클릭됨')
-                        handleMainNavClick('community')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
-                        activeMainTab === 'community' 
-                          ? 'text-purple-500' 
-                          : 'text-gray-800 hover:text-purple-500'
-                      }`}
-                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
-                    >
-                      {t('headerNav.community')}
                     </button>
                     <button 
                       onClick={(e) => {

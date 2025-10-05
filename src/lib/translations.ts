@@ -486,6 +486,8 @@ export const translations = {
 
     // 이벤트 탭
     eventTab: {
+      title: '이벤트',
+      subtitle: '다양한 이벤트와 혜택을 확인하세요',
       attendanceCheck: {
         specialEvents: {
           title: '특별 이벤트',
@@ -2155,6 +2157,8 @@ export const translations = {
 
     // 이벤트 탭
     eventTab: {
+      title: 'Eventos',
+      subtitle: 'Descubre diversos eventos y beneficios',
       attendanceCheck: {
         specialEvents: {
           title: 'Eventos Especiales',
