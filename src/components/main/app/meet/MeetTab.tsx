@@ -1,12 +1,10 @@
 'use client'
 
-import { useLanguage } from '@/context/LanguageContext'
 import VideoCallStarter from '@/components/video/VideoCallStarter'
 
 
 
 export default function MeetTab() {
-  const { t } = useLanguage()
 
   const handleStartCall = (channelName: string) => {
     console.log('Starting video call with channel:', channelName)

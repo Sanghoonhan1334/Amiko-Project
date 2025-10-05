@@ -115,7 +115,7 @@ interface CommunityTabProps {
 // 'news' → 뉴스 시스템
 // 'qa' → Q&A 시스템  
 // 'tests' → 퀴즈 시스템
-export default function CommunityTab({ onViewChange, verificationStatus = 'loading' }: CommunityTabProps = {}) {
+export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
   const router = useRouter()
@@ -163,7 +163,6 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   }, [user])
   
   // 운영진 상태 관리
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [isAdmin, setIsAdmin] = useState(false)
   
   // 테스트 작성 모달 상태
@@ -545,18 +544,12 @@ export default function CommunityTab({ onViewChange, verificationStatus = 'loadi
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [storyText, setStoryText] = useState('')
   const [isUploading, setIsUploading] = useState(false)
-  const [selectedStory, setSelectedStory] = useState<any>(null)
   const [showStoryModal, setShowStoryModal] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [startX, setStartX] = useState(0)
-  const [scrollLeft, setScrollLeft] = useState(0)
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
   const storyContainerRef = useRef<HTMLDivElement>(null)
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const isScrollingRef = useRef(false)
   const loadStoriesAbortControllerRef = useRef<AbortController | null>(null)
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
-  const [showHeartAnimation, setShowHeartAnimation] = useState<string | null>(null)
   const [showCommentModal, setShowCommentModal] = useState(false)
   const [selectedStoryForComment, setSelectedStoryForComment] = useState<any>(null)
   const [commentText, setCommentText] = useState('')
@@ -742,13 +735,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   const [questions, setQuestions] = useState<any[]>([])
   const [answers, setAnswers] = useState<any[]>([])
   const [stories, setStories] = useState<any[]>([])
-  const [news, setNews] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
   const [storiesLoading, setStoriesLoading] = useState<boolean | null>(true)
   const [newsLoading, setNewsLoading] = useState(false)
   const [newsError, setNewsError] = useState<string | null>(null)
   const [newsData, setNewsData] = useState<any[]>([])
-  const [error, setError] = useState<string | null>(null)
   
   // 좋아요 상태 관리
   const [likedAnswers, setLikedAnswers] = useState<Set<number>>(new Set())

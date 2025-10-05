@@ -40,7 +40,7 @@ export async function GET(
 
     // 정렬 옵션 설정
     let orderBy = 'created_at'
-    let ascending = false
+    const ascending = false
 
     switch (sortBy) {
       case 'popular':

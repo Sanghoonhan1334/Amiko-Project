@@ -35,22 +35,6 @@ export default function StorySettings() {
     maxArchived: 100
   })
 
-  // 개별 스토리 설정
-  const [storySettings, setStorySettings] = useState({
-    allowComments: true,
-    allowLikes: true,
-    allowShares: true,
-    showInFeed: true,
-    notifyOnInteraction: true
-  })
-
-  // 스토리 가시성 설정
-  const [visibilitySettings, setVisibilitySettings] = useState({
-    defaultVisibility: 'public', // 'public' | 'friends' | 'private'
-    showToFollowers: true,
-    showToFriends: true,
-    allowReposts: true
-  })
 
   // 사용자 스토리 로드
   const loadUserStories = async () => {
@@ -84,7 +68,6 @@ export default function StorySettings() {
         }))
         
         // 만료된 스토리 필터링 (사용자 설정에서는 만료된 스토리도 보여줌)
-        const now = new Date()
         const filteredStories = mappedStories.filter(story => {
           // 만료되었지만 아직 삭제되지 않은 스토리는 보여줌 (사용자가 직접 삭제할 수 있도록)
           return true
