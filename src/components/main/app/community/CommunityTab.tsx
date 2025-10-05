@@ -2348,10 +2348,20 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 </div>
               ))}
               <div className="text-center py-4">
-                <div className="inline-flex items-center gap-2 text-purple-600">
+                <div className="inline-flex items-center gap-2 text-purple-600 mb-4">
                   <span className="animate-spin">❓</span>
                   <span>질문을 불러오는 중...</span>
                 </div>
+                <Button 
+                  onClick={() => {
+                    console.log('🚨 강제 로딩 해제 버튼 클릭')
+                    setQuestionsLoading(false)
+                  }}
+                  variant="outline"
+                  className="text-sm"
+                >
+                  🚨 강제로 로딩 해제 (버전 2)
+                </Button>
               </div>
             </div>
           ) : (
