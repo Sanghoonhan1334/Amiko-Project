@@ -293,7 +293,7 @@ export default function StoriesPage() {
                 className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                이전
+                {t('buttons.back')}
               </Button>
             </div>
           </div>

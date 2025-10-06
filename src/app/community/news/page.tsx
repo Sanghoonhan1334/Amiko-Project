@@ -69,6 +69,7 @@ const tempNewsData = [
     title: '"한국 문화가 세계를 휩쓸고 있다!" 글로벌 K-콘텐츠 열풍',
     title_es: '"¡La cultura coreana está arrasando el mundo!" Torbellino global de contenido K',
     source: 'NewsWA',
+    author: 'Amiko 뉴스팀',
     date: '2025.09.18',
     thumbnail: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face',
     content: `한국의 전통문화와 현대문화가 조화롭게 발전하고 있습니다. K-팝, K-드라마, K-푸드 등 한국 문화 콘텐츠가 전 세계적으로 큰 인기를 얻고 있으며, 이를 통해 한국의 문화적 가치가 더욱 널리 알려지고 있습니다.
@@ -82,6 +83,7 @@ const tempNewsData = [
     title: '"한국어 배우기 열풍" 전 세계 한국어 학습자 급증',
     title_es: '"Torbellino de aprendizaje del coreano" Aumento drástico de estudiantes de coreano en todo el mundo',
     source: 'NewsWA',
+    author: 'Amiko 뉴스팀',
     date: '2025.09.18',
     thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
     content: `한류 콘텐츠의 인기로 인해 전 세계적으로 한국어 학습 열풍이 불고 있습니다. K-팝 가사와 드라마 대사를 이해하고 싶어하는 팬들이 한국어를 배우기 시작하고 있으며, 이는 한국 문화에 대한 깊은 관심으로 이어지고 있습니다.
@@ -94,6 +96,7 @@ const tempNewsData = [
     id: 3,
     title: '"한국이 다시 핫하다!" 외국인 관광객 몰려드는 충격 현황',
     source: 'NewsWA',
+    author: 'Amiko 뉴스팀',
     date: '2025.09.18',
     thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
     content: `한국 관광산업이 코로나19 이후 빠르게 회복되고 있습니다. 서울, 부산, 제주도 등 주요 관광지에 외국인 관광객들이 다시 찾아오고 있으며, 한국의 아름다운 자연과 문화를 경험하고자 하는 관심이 높아지고 있습니다.
@@ -965,7 +968,7 @@ export default function NewsPage() {
       <div className="bg-white border-b border-gray-200 px-4 py-4 pt-20 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-gray-800">K-매거진</h1>
+            <h1 className="text-xl font-bold text-gray-800">{t('community.koreanNews')}</h1>
           </div>
           
           <div className="flex items-center gap-4">
@@ -988,7 +991,7 @@ export default function NewsPage() {
               className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              이전
+              {t('buttons.back')}
             </Button>
           </div>
         </div>
@@ -1002,7 +1005,7 @@ export default function NewsPage() {
             <div className="space-y-6">
               {/* 페이지 제목과 버튼들 */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <h1 className="text-2xl font-bold text-gray-800">K-매거진</h1>
+                <h1 className="text-2xl font-bold text-gray-800">{t('community.koreanNews')}</h1>
                 
                 <div className="flex items-center gap-4">
                   {/* 운영자일 때만 글쓰기 버튼 표시 */}
@@ -1024,7 +1027,7 @@ export default function NewsPage() {
                     className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    이전
+                    {t('buttons.back')}
                   </Button>
                 </div>
               </div>
@@ -1032,7 +1035,7 @@ export default function NewsPage() {
               {loading ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                  <p className="text-gray-600">뉴스를 불러오는 중...</p>
+                  <p className="text-gray-600">{t('community.loadingNews')}</p>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -1130,12 +1133,12 @@ export default function NewsPage() {
                                   {item.source && item.source.trim() ? (
                                     <>
                                       <span>{item.source}</span>
-                                      <span>{item.author}</span>
+                                      <span>{item.author === 'Amiko 뉴스팀' ? `Amiko ${t('community.newsTeam')}` : item.author}</span>
                                       <span>{item.date}</span>
                                     </>
                                   ) : (
                                     <>
-                                      <span>{item.author}</span>
+                                      <span>{item.author === 'Amiko 뉴스팀' ? `Amiko ${t('community.newsTeam')}` : item.author}</span>
                                       <span>{item.date}</span>
                                     </>
                                   )}
@@ -1168,7 +1171,7 @@ export default function NewsPage() {
                         disabled={currentPage === 1}
                         className="px-3 py-2"
                       >
-                        이전
+                        {t('buttons.back')}
                       </Button>
                       
                       {/* 페이지 번호들 */}
@@ -1217,7 +1220,11 @@ export default function NewsPage() {
             
                   {/* 페이지 정보 */}
                   <div className="text-center mt-4 text-sm text-gray-500">
-                    총 {totalNews}개의 뉴스 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalNews)}개 표시
+                    {t('community.newsDisplay', { 
+                      total: totalNews, 
+                      start: ((currentPage - 1) * itemsPerPage) + 1, 
+                      end: Math.min(currentPage * itemsPerPage, totalNews) 
+                    })}
                   </div>
                 </div>
               )}
@@ -1230,7 +1237,7 @@ export default function NewsPage() {
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">뉴스를 불러오는 중...</p>
+              <p className="text-gray-600">{t('community.loadingNews')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -1324,7 +1331,7 @@ export default function NewsPage() {
                           </div>
                           
                           <div className="text-xs text-gray-600 mb-1">
-                            <div className="block">{item.author}</div>
+                            <div className="block">{item.author === 'Amiko 뉴스팀' ? `Amiko ${t('community.newsTeam')}` : item.author}</div>
                             <div className="block">{item.date}</div>
                           </div>
                           
@@ -1355,7 +1362,7 @@ export default function NewsPage() {
                     disabled={currentPage === 1}
                     className="px-3 py-2"
                   >
-                    이전
+                    {t('buttons.back')}
                   </Button>
                   
                   {/* 페이지 번호들 */}
@@ -1404,7 +1411,11 @@ export default function NewsPage() {
               
               {/* 페이지 정보 */}
               <div className="text-center mt-4 text-sm text-gray-500">
-                총 {totalNews}개의 뉴스 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalNews)}개 표시
+                {t('community.newsDisplay', { 
+                  total: totalNews, 
+                  start: ((currentPage - 1) * itemsPerPage) + 1, 
+                  end: Math.min(currentPage * itemsPerPage, totalNews) 
+                })}
               </div>
             </div>
           )}
@@ -1442,7 +1453,7 @@ export default function NewsPage() {
                   <SelectContent>
                     <SelectItem value="Amiko">Amiko</SelectItem>
                     <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
-                    <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
+                    <SelectItem value="Amiko {t('community.newsTeam')}">Amiko {t('community.newsTeam')}</SelectItem>
                     <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1599,7 +1610,7 @@ export default function NewsPage() {
                   <SelectContent>
                     <SelectItem value="Amiko">Amiko</SelectItem>
                     <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
-                    <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
+                    <SelectItem value="Amiko {t('community.newsTeam')}">Amiko {t('community.newsTeam')}</SelectItem>
                     <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
                   </SelectContent>
                 </Select>

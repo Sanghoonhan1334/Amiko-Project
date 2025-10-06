@@ -558,13 +558,13 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 sm:-top-6 md:-top-10 lg:-top-12 z-0 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-6 sm:-top-10 md:-top-10 lg:-top-12 z-0 flex flex-col items-center">
               {/* 로고 */}
               <div className="relative">
                 <img 
                   src="/amiko-foto.png" 
                   alt="Amiko" 
-                  className="h-20 sm:h-32 md:h-40 lg:h-40 xl:h-40 w-auto object-contain transition-all duration-300"
+                  className="h-28 sm:h-32 md:h-40 lg:h-40 xl:h-40 w-auto object-contain transition-all duration-300"
                   style={{ 
                     maxHeight: '160px'
                   }}
@@ -591,7 +591,7 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-12 xl:-mt-12 2xl:-mt-12 3xl:-mt-12 relative z-20 ml-[12px]">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-12 xl:-mt-12 2xl:-mt-12 3xl:-mt-12 relative z-20 ml-[48px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
                   <>

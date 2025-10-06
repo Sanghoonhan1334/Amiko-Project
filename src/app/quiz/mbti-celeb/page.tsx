@@ -162,62 +162,62 @@ export default function MBTICelebTestPage() {
       <Header />
       
       {/* 테스트 진행 화면 */}
-      <div className="pt-32 pb-8 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="pt-32 pb-8 px-2">
+        <div className="max-w-2xl mx-auto px-2">
           {/* 헤더 */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="mb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full mb-2"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-800">
-                {language === 'ko' ? 'MBTI × 셀럽 매칭 테스트' : 'Test de Compatibilidad MBTI × Celebridades'}
+            <div>
+              <h1 className="text-lg font-bold text-gray-800">
+                {t('tests.mbti.title')}
               </h1>
-              <p className="text-sm text-gray-600">
-                {language === 'ko' ? '나와 같은 MBTI 유형의 셀럽과 궁합이 좋은 유형을 찾아보세요!' : '¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!'}
+              <p className="text-xs text-gray-600">
+                {t('tests.mbti.description')}
               </p>
             </div>
           </div>
 
           {/* 진행률 */}
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>{language === 'ko' ? '질문' : 'Pregunta'} {currentQuestion + 1} / {questions.length}</span>
+            <div className="flex justify-between text-xs text-gray-600 mb-2">
+              <span>{t('tests.question')} {currentQuestion + 1} / {questions.length}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2 transition-all duration-500 ease-out" />
           </div>
 
           {/* 질문 카드 */}
-          <Card className={`p-6 mb-6 bg-white shadow-lg transition-all duration-300 ${
+          <Card className={`p-3 mb-3 bg-white shadow-lg transition-all duration-300 ${
             isTransitioning 
               ? transitionDirection === 'next' 
                 ? 'opacity-0 transform translate-x-8' 
                 : 'opacity-0 transform -translate-x-8'
               : 'opacity-100 transform translate-x-0'
           }`}>
-            <h2 className="text-lg font-semibold text-gray-800 mb-6">
+            <h2 className="text-sm font-semibold text-gray-800 mb-2">
               {questions[currentQuestion].question}
             </h2>
             
-            <div className="space-y-3 mb-6">
+            <div className="space-y-1 mb-2">
               {questions[currentQuestion].options.map((option, index) => (
                 <Button
                   key={index}
                   variant={selectedAnswer === index ? "default" : "outline"}
-                  className={`w-full p-4 h-auto text-left justify-start transition-all duration-200 ${
+                  className={`w-full p-1.5 h-auto text-left justify-start transition-all duration-200 text-xs whitespace-normal ${
                     selectedAnswer === index 
                       ? "bg-purple-500 text-white border-purple-500" 
                       : "hover:bg-purple-50 hover:border-purple-300"
                   }`}
                   onClick={() => handleAnswerSelect(index)}
                 >
-                  <span className={selectedAnswer === index ? "text-white" : "text-gray-700"}>{option}</span>
+                  <span className={`${selectedAnswer === index ? "text-white" : "text-gray-700"} leading-relaxed`}>{option}</span>
                 </Button>
               ))}
             </div>
@@ -228,7 +228,7 @@ export default function MBTICelebTestPage() {
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentQuestion === 0 || isTransitioning}
-                className="px-6"
+                className="px-2 text-xs"
               >
                 {t('tests.mbti.navigation.previous')}
               </Button>
@@ -236,7 +236,7 @@ export default function MBTICelebTestPage() {
               <Button
                 onClick={handleNext}
                 disabled={selectedAnswer === null || isTransitioning}
-                className="px-6 bg-purple-500 hover:bg-purple-600 text-white disabled:text-gray-400"
+                className="px-2 bg-purple-500 hover:bg-purple-600 text-white disabled:text-gray-400 text-xs"
               >
                 {currentQuestion === questions.length - 1 
                   ? t('tests.mbti.navigation.seeResult')
@@ -267,28 +267,28 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
     <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       <Header />
       
-      <div className="pt-32 pb-8 px-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="pt-24 pb-8 px-2">
+        <div className="max-w-4xl mx-auto px-2">
           {/* 결과 헤더 */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-4">
-              <Users className="w-10 h-10 text-white" />
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-3">
+              <Users className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-xl font-bold text-gray-800 mb-2">
               {language === 'ko' ? `당신의 유형은 ${result.mbti}입니다!` : `¡Tu tipo es ${result.mbti}!`}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm text-gray-600">
               {language === 'ko' ? '나와 같은 MBTI 유형의 셀럽과 궁합이 좋은 유형을 찾아보세요!' : '¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!'}
             </p>
           </div>
 
           {/* 나와 같은 유형의 셀럽 */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500" />
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-500" />
               {language === 'ko' ? '나와 같은 유형의 셀럽' : 'Celebridades de mi tipo'}
             </h2>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-3">
               {result.myType.male && (
                 <CelebCard celeb={result.myType.male} language={language} />
               )}
@@ -300,17 +300,17 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
 
           {/* 궁합이 좋은 유형 */}
           {result.bestMatchMbti && (
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Heart className="w-5 h-5 text-red-500" />
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <Heart className="w-4 h-4 text-red-500" />
                 {language === 'ko' ? `나와 잘 맞는 유형: ${result.bestMatchMbti}` : `Tipo compatible: ${result.bestMatchMbti}`}
               </h2>
               {result.compatibility && (
-                <p className="text-gray-600 mb-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-gray-600 mb-3 p-2 bg-blue-50 rounded-lg">
                   {language === 'ko' ? result.compatibility.note_ko : result.compatibility.note_es}
                 </p>
               )}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-3">
                 {result.bestMatch.male && (
                   <CelebCard celeb={result.bestMatch.male} language={language} />
                 )}
@@ -322,17 +322,17 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
           )}
 
           {/* 주의사항 */}
-          <Card className="p-4 bg-yellow-50 border-yellow-200">
-            <p className="text-sm text-yellow-800">
+          <Card className="p-3 bg-yellow-50 border-yellow-200">
+            <p className="text-xs text-yellow-800">
               ⚠️ {language === 'ko' ? '엔터테인먼트용 비공식 매칭이며, MBTI·셀럽 정보는 시점/출처에 따라 달라질 수 있어요.' : 'Emparejamiento no oficial para entretenimiento. La información de MBTI y celebridades puede variar según el momento y la fuente.'}
             </p>
           </Card>
 
           {/* 재시작 버튼 */}
-          <div className="text-center mt-8">
+          <div className="text-center mt-6">
             <Button
               onClick={onRestart}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3"
+              className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 text-sm"
             >
               {language === 'ko' ? '다시 테스트하기' : 'Hacer test de nuevo'}
             </Button>
@@ -346,10 +346,10 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
 // 셀럽 카드 컴포넌트
 function CelebCard({ celeb, language }: { celeb: any, language: string }) {
   return (
-    <Card className="p-4 bg-white shadow-md hover:shadow-lg transition-shadow">
-      <div className="flex items-center gap-4">
+    <Card className="p-3 bg-white shadow-md hover:shadow-lg transition-shadow">
+      <div className="flex items-center gap-3">
         {/* 프로필 이미지 */}
-        <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
+        <div className="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
           {celeb.image_url ? (
             <img 
               src={celeb.image_url} 
@@ -357,20 +357,20 @@ function CelebCard({ celeb, language }: { celeb: any, language: string }) {
               className="w-full h-full rounded-full object-cover"
             />
           ) : (
-            <Users className="w-8 h-8 text-gray-500" />
+            <Users className="w-6 h-6 text-gray-500" />
           )}
         </div>
         
         {/* 정보 */}
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-800">
+          <h3 className="text-sm font-semibold text-gray-800">
             {celeb.stage_name}
             {celeb.group_name && (
-              <span className="text-sm text-gray-500 ml-2">({celeb.group_name})</span>
+              <span className="text-xs text-gray-500 ml-1">({celeb.group_name})</span>
             )}
           </h3>
           <div className="flex items-center gap-2 mt-1">
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
               {celeb.mbti_code}
             </span>
             <span className="text-xs text-gray-500">

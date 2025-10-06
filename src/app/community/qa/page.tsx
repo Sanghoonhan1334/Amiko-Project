@@ -341,7 +341,7 @@ export default function QAPage() {
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
             >
               <ArrowLeft className="w-4 h-4" />
-              이전
+              {t('buttons.back')}
             </Button>
             <h1 className="text-xl font-bold text-white">Q&A</h1>
           </div>
@@ -357,72 +357,72 @@ export default function QAPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 pt-4 md:pt-28 pb-6">
+      <div className="max-w-6xl mx-auto px-2 pt-2 md:pt-20 pb-4">
         {/* 페이지 제목 */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold text-gray-800">Q&A</h1>
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-lg font-bold text-gray-800">Q&A</h1>
             
             {/* 이전 버튼 - 제목 오른쪽으로 이동 */}
             <Button 
               onClick={() => router.push('/main?tab=community')}
               variant="outline"
               size="sm"
-              className="border-2 border-gray-400 hover:border-gray-500 text-gray-700 hover:text-gray-900 bg-white shadow-sm hover:shadow-md px-3 py-2 flex items-center gap-2"
+              className="border-2 border-gray-400 hover:border-gray-500 text-gray-700 hover:text-gray-900 bg-white shadow-sm hover:shadow-md px-2 py-1 flex items-center gap-1 text-xs"
             >
-              <ArrowLeft className="w-4 h-4" />
-              이전
+              <ArrowLeft className="w-3 h-3" />
+              {t('buttons.back')}
             </Button>
           </div>
-          <p className="text-gray-600">궁금한 점을 질문하고 답변을 받아보세요</p>
+          <p className="text-sm text-gray-600">{t('community.qaDescription')}</p>
         </div>
 
         {/* 상단 컨트롤 */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 mb-4">
           <div className="relative flex-1">
-            <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" />
+            <MessageSquare className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-600 flex-shrink-0" />
             <Input
-              placeholder="질문 검색..."
+              placeholder={t('community.qaSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 sm:pl-20 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 border border-gray-400"
+              className="pl-8 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 border border-gray-400 text-sm h-8"
             />
           </div>
           
           {/* 질문하기 버튼 - 오른쪽 끝 */}
           <Button 
             onClick={() => setShowQuestionModal(true)}
-            className="bg-purple-500 hover:bg-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 text-white whitespace-nowrap"
+            className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 text-sm h-8"
           >
-            <Plus className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">질문하기</span>
+            <Plus className="w-3 h-3 mr-1" />
+            질문하기
           </Button>
         </div>
 
         {/* 질문 목록 */}
-        <div className="mt-4">
+        <div className="mt-2">
           {/* 질문 카드 리스트 */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             {loading ? (
               // 로딩 중일 때 스켈레톤 표시
               <>
                 {/* 데스크톱 스켈레톤 */}
-                <div className="hidden md:block space-y-2">
+                <div className="hidden md:block space-y-1">
                   {[1, 2, 3].map((i) => (
-                    <Card key={i} className="p-4 shadow-md">
-                      <div className="flex items-start gap-4">
-                        <div className="flex flex-col items-center gap-2 min-w-[60px]">
-                          <Skeleton className="h-8 w-8 rounded" />
-                          <Skeleton className="h-6 w-8" />
+                    <Card key={i} className="p-2 shadow-md">
+                      <div className="flex items-start gap-2">
+                        <div className="flex flex-col items-center gap-1 min-w-[50px]">
+                          <Skeleton className="h-6 w-6 rounded" />
+                          <Skeleton className="h-4 w-6" />
                         </div>
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-6 w-3/4" />
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-2/3" />
-                          <div className="flex items-center gap-4">
-                            <Skeleton className="h-4 w-16" />
-                            <Skeleton className="h-4 w-12" />
-                            <Skeleton className="h-4 w-16" />
+                        <div className="flex-1 space-y-1">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-3 w-2/3" />
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="h-3 w-12" />
+                            <Skeleton className="h-3 w-10" />
+                            <Skeleton className="h-3 w-12" />
                           </div>
                         </div>
                       </div>
@@ -431,16 +431,16 @@ export default function QAPage() {
                 </div>
                 
                 {/* 모바일 스켈레톤 */}
-                <div className="md:hidden space-y-2">
+                <div className="md:hidden space-y-1">
                   {[1, 2, 3].map((i) => (
-                    <Card key={i} className="p-3 shadow-md">
-                      <div className="space-y-2">
-                        <Skeleton className="h-5 w-full" />
+                    <Card key={i} className="p-2 shadow-md">
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-full" />
                         <div className="flex items-center justify-between">
-                          <Skeleton className="h-4 w-20" />
-                          <div className="flex items-center gap-3">
-                            <Skeleton className="h-4 w-12" />
-                            <Skeleton className="h-4 w-12" />
+                          <Skeleton className="h-3 w-20" />
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-3 w-12" />
+                            <Skeleton className="h-3 w-12" />
                           </div>
                         </div>
                       </div>
@@ -449,65 +449,65 @@ export default function QAPage() {
                 </div>
               </>
             ) : filteredQuestions.length === 0 ? (
-              <Card className="p-8 text-center shadow-md">
-                <div className="text-gray-400 text-6xl mb-4">❓</div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">아직 질문이 없습니다</h3>
-                <p className="text-gray-600">첫 번째 질문을 작성해보세요!</p>
+              <Card className="p-4 text-center shadow-md">
+                <div className="text-gray-400 text-4xl mb-2">❓</div>
+                <h3 className="text-base font-semibold text-gray-800 mb-1">아직 질문이 없습니다</h3>
+                <p className="text-sm text-gray-600">첫 번째 질문을 작성해보세요!</p>
               </Card>
             ) : (
               filteredQuestions.map((question, index) => (
                 <div key={question.id}>
                   {/* 데스크톱: 카드 스타일 */}
                   <Card 
-                    className="hidden md:block p-3 sm:p-4 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-200 shadow-md hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
+                    className="hidden md:block p-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-200 shadow-md hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       handleQuestionClick(question)
                     }}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2">
                       {/* 업보트 영역 */}
-                      <div className="flex flex-col items-center gap-2 min-w-[60px]">
+                      <div className="flex flex-col items-center gap-1 min-w-[50px]">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 hover:bg-purple-50"
+                          className="h-6 w-6 p-0 hover:bg-purple-50"
                           onClick={(e) => {
                             e.stopPropagation()
                             // handleUpvote(question.id)
                           }}
                         >
-                          <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
+                          <ThumbsUp className="w-3 h-3 text-purple-500 flex-shrink-0" />
                         </Button>
-                        <span className="text-lg font-semibold text-purple-600">{question.like_count || 0}</span>
+                        <span className="text-sm font-semibold text-purple-600">{question.like_count || 0}</span>
                       </div>
                       
                       {/* 질문 내용 */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-800 truncate">{question.title}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm font-semibold text-gray-800 truncate">{question.title}</h3>
                         </div>
                         
                         {/* 질문 내용과 이미지는 상세보기에서만 표시 */}
                         
-                        <div className="flex items-center justify-between text-sm text-gray-800">
-                          <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between text-xs text-gray-800">
+                          <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1">
-                              <User className="w-4 h-4" />
+                              <User className="w-3 h-3" />
                               <span>{question.author?.full_name || '익명'}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
+                              <Clock className="w-3 h-3" />
                               <span>{new Date(question.created_at).toLocaleDateString()}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <MessageSquare className="w-4 h-4" />
-                              <span>{question.comment_count || 0} 답변</span>
+                              <MessageSquare className="w-3 h-3" />
+                              <span>{question.comment_count || 0} {t('community.qaAnswers')}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <Eye className="w-4 h-4" />
-                              <span>{question.view_count || 0} 조회</span>
+                              <Eye className="w-3 h-3" />
+                              <span>{question.view_count || 0} {t('community.qaViews')}</span>
                             </div>
                           </div>
                         </div>
@@ -517,7 +517,7 @@ export default function QAPage() {
 
                   {/* 모바일: 간단한 스타일 */}
                   <Card 
-                    className="md:hidden p-3 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border border-gray-200 shadow-md"
+                    className="md:hidden p-2 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border border-gray-200 shadow-md"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
@@ -525,12 +525,12 @@ export default function QAPage() {
                     }}
                   >
                     <div className="space-y-1">
-                      <h3 className="text-base font-semibold text-gray-800 line-clamp-2">{question.title}</h3>
+                      <h3 className="text-sm font-semibold text-gray-800 line-clamp-2">{question.title}</h3>
                       <div className="flex items-center justify-between text-xs text-gray-800">
                         <span>{question.author?.full_name || '익명'}</span>
-                        <div className="flex items-center gap-3">
-                          <span>{question.comment_count || 0} 답변</span>
-                          <span>{question.view_count || 0} 조회</span>
+                        <div className="flex items-center gap-2">
+                          <span>{question.comment_count || 0} {t('community.qaAnswers')}</span>
+                          <span>{question.view_count || 0} {t('community.qaViews')}</span>
                         </div>
                       </div>
                     </div>
@@ -692,7 +692,7 @@ export default function QAPage() {
             
             {/* 답변 목록 */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-800">답변 ({answers.length})</h4>
+              <h4 className="font-semibold text-gray-800">{t('community.qaAnswers')} ({answers.length})</h4>
               {answersLoading ? (
                 // 답변 로딩 중일 때 스켈레톤 표시
                 <div className="space-y-3">
@@ -713,8 +713,8 @@ export default function QAPage() {
               ) : answers.length === 0 ? (
                 <div className="text-center py-8 text-gray-600">
                   <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                  <p>아직 답변이 없습니다.</p>
-                  <p className="text-sm">첫 번째 답변을 작성해보세요!</p>
+                  <p>{t('community.qaNoAnswers')}</p>
+                  <p className="text-sm">{t('community.qaFirstAnswer')}</p>
                 </div>
               ) : (
                 answers.map((answer) => (
@@ -736,9 +736,9 @@ export default function QAPage() {
             {/* 답변 작성 폼 */}
             <form onSubmit={handleAnswerSubmit} className="space-y-3 pt-4 border-t border-gray-200">
               <div>
-                <label className="text-sm font-medium text-gray-800 mb-2 block">답변 작성</label>
+                <label className="text-sm font-medium text-gray-800 mb-2 block">{t('community.qaWriteAnswer')}</label>
                 <Textarea
-                  placeholder="답변을 입력하세요..."
+                  placeholder={t('community.qaAnswerPlaceholder')}
                   value={answerForm.content}
                   onChange={(e) => setAnswerForm({ content: e.target.value })}
                   rows={3}
@@ -747,10 +747,10 @@ export default function QAPage() {
               </div>
               <div className="flex gap-3 justify-end">
                 <Button type="button" variant="outline" onClick={() => setShowAnswerDrawer(false)}>
-                  닫기
+                  {t('community.close')}
                 </Button>
                 <Button type="submit" disabled={loading} className="bg-purple-500 hover:bg-purple-600">
-                  {loading ? '작성 중...' : '답변 작성'}
+                  {loading ? t('community.qaWriting') : t('community.qaWriteAnswer')}
                 </Button>
               </div>
             </form>

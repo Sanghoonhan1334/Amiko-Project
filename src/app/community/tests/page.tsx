@@ -315,10 +315,10 @@ export default function TestsPage() {
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-1 text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white text-xs px-2 py-1 h-7"
+              className="flex items-center gap-1 text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white text-[10px] px-1 py-1 h-6"
             >
-              <ArrowLeft className="w-3 h-3" />
-              이전
+              <ArrowLeft className="w-2.5 h-2.5" />
+              {t('buttons.back')}
             </Button>
           </div>
         </div>
@@ -336,17 +336,17 @@ export default function TestsPage() {
         <div className="mb-6 px-1">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-700">{t('tests.category')}</span>
+              <span className="text-[10px] font-medium text-gray-700">{t('tests.category')}</span>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[140px] h-7 text-xs">
+                <SelectTrigger className="w-[120px] h-6 text-[10px]">
                   <SelectValue placeholder={t('tests.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('tests.categories.all')}</SelectItem>
-                  <SelectItem value="fortune">🔮 {t('tests.categories.fortune')}</SelectItem>
-                  <SelectItem value="psychology">🧠 {t('tests.categories.psychology')}</SelectItem>
-                  <SelectItem value="meme">🎭 {t('tests.categories.meme')}</SelectItem>
-                  <SelectItem value="culture">🌐 {t('tests.categories.culture')}</SelectItem>
+                  <SelectItem value="all" className="text-[10px]">{t('tests.categories.all')}</SelectItem>
+                  <SelectItem value="fortune" className="text-[10px]">🔮 {t('tests.categories.fortune')}</SelectItem>
+                  <SelectItem value="psychology" className="text-[10px]">🧠 {t('tests.categories.psychology')}</SelectItem>
+                  <SelectItem value="meme" className="text-[10px]">🎭 {t('tests.categories.meme')}</SelectItem>
+                  <SelectItem value="culture" className="text-[10px]">🌐 {t('tests.categories.culture')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -356,10 +356,10 @@ export default function TestsPage() {
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2 relative z-50"
+              className="flex items-center gap-1 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-2 py-1 h-6 text-[10px] relative z-50"
             >
-              <ArrowLeft className="w-4 h-4" />
-              이전
+              <ArrowLeft className="w-3 h-3" />
+              {t('buttons.back')}
             </Button>
           </div>
         </div>

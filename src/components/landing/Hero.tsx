@@ -183,11 +183,8 @@ export default function Hero() {
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">01</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
-                              {/* 음악 노트 아이콘 */}
-                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
-                                <span className="text-gray-800 font-bold text-sm sm:text-base">🎵</span>
-                              </div>
+                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
+                              <img src="/주제별게시판.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.topicBoard.title')}</h3>
                             <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
@@ -202,11 +199,8 @@ export default function Hero() {
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">02</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
-                              {/* 뉴스 아이콘 */}
-                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
-                                <span className="text-gray-800 font-bold text-sm sm:text-base">📰</span>
-                              </div>
+                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
+                              <img src="/K-매거진.png" alt="K-매거진" className="w-8 h-8 object-contain" />
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanNews.title')}</h3>
                             <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
@@ -222,11 +216,8 @@ export default function Hero() {
                             <span className="bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded">03</span>
                           </div>
                           <div className="text-center">
-                            <div className="w-12 h-8 sm:w-16 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3 relative">
-                              {/* 테스트 아이콘 */}
-                              <div className="w-10 h-6 sm:w-12 sm:h-8 bg-white border-2 border-gray-800 rounded-lg relative flex items-center justify-center">
-                                <span className="text-gray-800 font-bold text-sm sm:text-base">🎯</span>
-                              </div>
+                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
+                              <img src="/심리테스트.png" alt="한국성향테스트" className="w-8 h-8 object-contain" />
                             </div>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanTest.title')}</h3>
                             <p className="text-gray-600 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">

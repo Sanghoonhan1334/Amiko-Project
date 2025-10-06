@@ -146,26 +146,26 @@ export default function PartnershipPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
-      <section className="pt-40 pb-16 md:pt-48 md:pb-20">
-        <div className="container mx-auto px-4">
+      <section className="pt-24 pb-8 md:pt-48 md:pb-20">
+        <div className="container mx-auto px-2">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
-                <Handshake className="h-8 w-8 text-white" />
+            <div className="flex justify-center mb-3">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg">
+                <Handshake className="h-6 w-6 text-white" />
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-xl md:text-4xl font-bold text-gray-900 mb-3">
               {t('partnership.title')}
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 mb-6 leading-relaxed">
+            <p className="text-sm md:text-xl text-gray-600 mb-4 leading-relaxed">
               {t('partnership.subtitle')}
             </p>
             <Button 
               onClick={() => setIsPartnershipModalOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 text-base font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-3 py-2 text-xs font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 whitespace-nowrap"
             >
-              <Handshake className="mr-2 h-4 w-4" />
+              <Handshake className="mr-1 h-3 w-3" />
               {t('partnership.submit')}
             </Button>
           </div>
@@ -173,35 +173,35 @@ export default function PartnershipPage() {
       </section>
 
       {/* Features Section */}
-      <section className="pt-6 pb-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100">
-              <div className="p-3 bg-blue-500 rounded-xl w-fit mx-auto mb-4">
-                <Building2 className="h-6 w-6 text-white" />
+      <section className="pt-4 pb-8 bg-white">
+        <div className="container mx-auto px-2">
+          <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            <div className="text-center p-4 md:p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="p-2 md:p-3 bg-blue-500 rounded-lg w-fit mx-auto mb-3">
+                <Building2 className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('partnership.benefits.brandExpansion.title')}</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-sm md:text-base font-bold text-gray-900 mb-2">{t('partnership.benefits.brandExpansion.title')}</h3>
+              <p className="text-xs md:text-sm text-gray-600">
                 {t('partnership.benefits.brandExpansion.description')}
               </p>
             </div>
             
-            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100">
-              <div className="p-3 bg-purple-500 rounded-xl w-fit mx-auto mb-4">
-                <Users className="h-6 w-6 text-white" />
+            <div className="text-center p-4 md:p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="p-2 md:p-3 bg-purple-500 rounded-lg w-fit mx-auto mb-3">
+                <Users className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('partnership.benefits.customerExpansion.title')}</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-sm md:text-base font-bold text-gray-900 mb-2">{t('partnership.benefits.customerExpansion.title')}</h3>
+              <p className="text-xs md:text-sm text-gray-600">
                 {t('partnership.benefits.customerExpansion.description')}
               </p>
             </div>
             
-            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-green-50 to-green-100">
-              <div className="p-3 bg-green-500 rounded-xl w-fit mx-auto mb-4">
-                <DollarSign className="h-6 w-6 text-white" />
+            <div className="text-center p-4 md:p-6 rounded-xl bg-gradient-to-br from-green-50 to-green-100 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="p-2 md:p-3 bg-green-500 rounded-lg w-fit mx-auto mb-3">
+                <DollarSign className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('partnership.benefits.revenueIncrease.title')}</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-sm md:text-base font-bold text-gray-900 mb-2">{t('partnership.benefits.revenueIncrease.title')}</h3>
+              <p className="text-xs md:text-sm text-gray-600">
                 {t('partnership.benefits.revenueIncrease.description')}
               </p>
             </div>
@@ -211,79 +211,79 @@ export default function PartnershipPage() {
 
       {/* Partnership Modal */}
       <Dialog open={isPartnershipModalOpen} onOpenChange={setIsPartnershipModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent className="w-[98vw] max-w-sm max-h-[95vh] overflow-y-auto bg-white mx-1">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center text-gray-900 mb-4">
-              <Handshake className="h-6 w-6 inline mr-2 text-blue-500" />
+            <DialogTitle className="text-sm font-bold text-center text-gray-900 mb-2 whitespace-normal leading-tight">
+              <Handshake className="h-4 w-4 inline mr-1 text-blue-500" />
               {t('partnership.partnershipInquiry')}
             </DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-2">
             {/* 회사 정보 */}
-            <div className="space-y-3">
-              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
+            <div className="space-y-1">
+              <h3 className="text-xs font-semibold text-gray-900 border-b pb-1 whitespace-normal leading-tight">
                 {t('partnership.companyInfo')}
               </h3>
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-1">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
                     {t('partnership.companyName')} *
                   </label>
                   <Input
                     value={formData.companyName}
                     onChange={(e) => handleInputChange('companyName', e.target.value)}
                     placeholder={t('partnership.companyNamePlaceholder')}
-                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    대표자명 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.representativeName')} *
                   </label>
                   <Input
                     value={formData.representativeName}
                     onChange={(e) => handleInputChange('representativeName', e.target.value)}
-                    placeholder="대표자명을 입력해주세요"
-                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                    placeholder={t('partnership.representativeNamePlaceholder')}
+                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    직책 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.position')} *
                   </label>
                   <Input
                     value={formData.position}
                     onChange={(e) => handleInputChange('position', e.target.value)}
-                    placeholder="직책을 입력해주세요"
-                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                    placeholder={t('partnership.positionPlaceholder')}
+                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이메일 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.email')} *
                   </label>
                   <Input
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="이메일을 입력해주세요"
-                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                    placeholder={t('partnership.emailPlaceholder')}
+                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    연락처 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.phone')} *
                   </label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="연락처를 입력해주세요"
-                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                    placeholder={t('partnership.phonePlaceholder')}
+                    className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8"
                     required
                   />
                 </div>
@@ -291,25 +291,25 @@ export default function PartnershipPage() {
             </div>
 
             {/* 사업 정보 */}
-            <div className="space-y-3">
-              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
-                사업 정보
+            <div className="space-y-1">
+              <h3 className="text-xs font-semibold text-gray-900 border-b pb-1 whitespace-normal leading-tight">
+                {t('partnership.businessInfo')}
               </h3>
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-1">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    사업 분야 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.businessField')} *
                   </label>
                   <Select value={formData.businessField} onValueChange={(value) => handleInputChange('businessField', value)}>
-                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
-                      <SelectValue placeholder="사업 분야를 선택해주세요" />
+                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
+                      <SelectValue placeholder={t('partnership.businessFieldPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {businessFields.map((field) => (
                         <SelectItem key={field.value} value={field.value}>
                           <div>
-                            <div className="font-medium">{field.label}</div>
-                            <div className="text-sm text-gray-500">{field.description}</div>
+                            <div className="font-medium text-[10px]">{field.label}</div>
+                            <div className="text-[9px] text-gray-500">{field.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -317,19 +317,19 @@ export default function PartnershipPage() {
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    회사 규모 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.companySize')} *
                   </label>
                   <Select value={formData.companySize} onValueChange={(value) => handleInputChange('companySize', value)}>
-                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
-                      <SelectValue placeholder="회사 규모를 선택해주세요" />
+                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
+                      <SelectValue placeholder={t('partnership.companySizePlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {companySizes.map((size) => (
                         <SelectItem key={size.value} value={size.value}>
                           <div>
-                            <div className="font-medium">{size.label}</div>
-                            <div className="text-sm text-gray-500">{size.description}</div>
+                            <div className="font-medium text-[10px]">{size.label}</div>
+                            <div className="text-[9px] text-gray-500">{size.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -340,25 +340,25 @@ export default function PartnershipPage() {
             </div>
 
             {/* 제휴 정보 */}
-            <div className="space-y-3">
-              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
-                제휴 정보
+            <div className="space-y-1">
+              <h3 className="text-xs font-semibold text-gray-900 border-b pb-1 whitespace-normal leading-tight">
+                {t('partnership.partnershipInfo')}
               </h3>
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-1">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    제휴 유형 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.partnershipType')} *
                   </label>
                   <Select value={formData.partnershipType} onValueChange={(value) => handleInputChange('partnershipType', value)}>
-                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
-                      <SelectValue placeholder="제휴 유형을 선택해주세요" />
+                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
+                      <SelectValue placeholder={t('partnership.partnershipTypePlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {partnershipTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           <div>
-                            <div className="font-medium">{type.label}</div>
-                            <div className="text-sm text-gray-500">{type.description}</div>
+                            <div className="font-medium text-[10px]">{type.label}</div>
+                            <div className="text-[9px] text-gray-500">{type.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -366,19 +366,19 @@ export default function PartnershipPage() {
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    예산 범위 *
+                  <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                    {t('partnership.budget')} *
                   </label>
                   <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
-                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
-                      <SelectValue placeholder="예산 범위를 선택해주세요" />
+                    <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
+                      <SelectValue placeholder={t('partnership.budgetPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {budgetRanges.map((range) => (
                         <SelectItem key={range.value} value={range.value}>
                           <div>
-                            <div className="font-medium">{range.label}</div>
-                            <div className="text-sm text-gray-500">{range.description}</div>
+                            <div className="font-medium text-[10px]">{range.label}</div>
+                            <div className="text-[9px] text-gray-500">{range.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -387,49 +387,61 @@ export default function PartnershipPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  기대 효과
+                <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                  {t('partnership.expectedEffect')}
                 </label>
                 <Textarea
                   value={formData.expectedEffect}
                   onChange={(e) => handleInputChange('expectedEffect', e.target.value)}
-                  placeholder="제휴를 통해 기대하는 효과나 목표를 자세히 설명해주세요"
+                  placeholder={t('partnership.expectedEffectPlaceholder')}
                   rows={2}
-                  className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                  className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px]"
                 />
               </div>
             </div>
 
             {/* 상세 내용 */}
-            <div className="space-y-3">
-              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
-                상세 내용
+            <div className="space-y-1">
+              <h3 className="text-xs font-semibold text-gray-900 border-b pb-1 whitespace-normal leading-tight">
+                {t('partnership.details')}
               </h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  제휴 제안 내용 *
+                <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                  {t('partnership.proposalContent')} *
                 </label>
                 <Textarea
                   value={formData.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
-                  placeholder="구체적인 제휴 제안 내용을 자세히 작성해주세요"
+                  placeholder={t('partnership.proposalContentPlaceholder')}
                   rows={3}
-                  className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                  className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px]"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  첨부파일 (선택사항)
+                <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
+                  {t('partnership.attachments')}
                 </label>
-                <Input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
-                  className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  회사 소개서, 제안서 등을 첨부해주세요 (PDF, DOC, PPT, 이미지 파일)
+                <div className="relative">
+                  <Input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="border border-gray-400 rounded-md p-2 bg-white hover:bg-gray-50 cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] text-gray-600 truncate flex-1 mr-2">
+                        {formData.attachments ? formData.attachments.name : t('partnership.noFileSelected')}
+                      </span>
+                      <button className="text-[9px] text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
+                        {t('partnership.selectFile')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[9px] text-gray-500 mt-1 whitespace-normal leading-tight">
+                  {t('partnership.attachmentsDescription')}
                 </p>
               </div>
             </div>
@@ -447,35 +459,35 @@ export default function PartnershipPage() {
               <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  제휴 문의가 성공적으로 제출되었습니다. 검토 후 연락드리겠습니다.
+                  {t('partnership.submitSuccess')}
                 </AlertDescription>
               </Alert>
             )}
 
             {/* 제출 버튼 */}
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-2 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsPartnershipModalOpen(false)}
-                className="px-6"
+                className="px-3 text-[10px] whitespace-normal"
               >
-                취소
+                {t('partnership.cancel')}
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-6"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-3 text-[10px] whitespace-normal text-white"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    제출 중...
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                    {t('partnership.submitting')}
                   </>
                 ) : (
                   <>
-                    <Send className="mr-2 h-4 w-4" />
-                    제휴 문의 제출
+                    <Send className="mr-1 h-3 w-3" />
+                    {t('partnership.submitProposal')}
                   </>
                 )}
               </Button>

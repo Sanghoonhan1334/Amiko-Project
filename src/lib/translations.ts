@@ -29,7 +29,8 @@ export const translations = {
       writing: '작성 중...',
       deleting: '삭제 중...',
       retry: '다시 시도',
-      required: '필수'
+      required: '필수',
+      back: '이전'
     },
 
     // 인증 관련
@@ -314,8 +315,22 @@ export const translations = {
       koreanNews: 'K-매거진',
       freeBoardDescription: '',
       koreanNewsDescription: '',
-      qaDescription: '',
+      qaDescription: '궁금한 점을 질문하고 답변을 받아보세요',
+      qaSearchPlaceholder: '질문 검색...',
+      qaAnswers: '답변',
+      qaViews: '조회',
+      qaNoAnswers: '아직 답변이 없습니다.',
+      qaFirstAnswer: '첫 번째 답변을 작성해보세요!',
+      qaWriteAnswer: '답변 작성',
+      qaAnswerPlaceholder: '답변을 입력하세요...',
+      qaWriting: '작성 중...',
+      close: '닫기',
       loadingNews: '뉴스를 불러오는 중...',
+      newsTeam: '뉴스팀',
+      newsDisplay: '총 {total}개의 뉴스 중 {start}-{end}개 표시',
+      newsTitle1: '"한국 문화가 세계를 휩쓸고 있다!" 글로벌 K-콘텐츠 열풍',
+      newsTitle2: '"한국어 배우기 열풍" 전 세계 한국어 학습자 급증',
+      newsTitle3: '"한국이 다시 핫하다!" 외국인 관광객 몰려드는 충격 현황',
       backToHome: '이전',
       backToCommunityHome: '커뮤니티 홈으로',
       viewMoreNews: '더 많은 K-매거진 보기',
@@ -328,6 +343,13 @@ export const translations = {
         korean: '한국어',
         spanish: '스페인어'
       },
+      tabs: {
+        recommended: '추천',
+        all: '전체글',
+        popular: '인기글',
+        latest: '최신글'
+      },
+      searchPlaceholder: '갤러리 & 통합검색',
       noPosts: '게시물이 없습니다',
       beFirstToWrite: '첫 번째 게시글을 작성해보세요!',
       sortBy: '정렬:',
@@ -937,6 +959,37 @@ export const translations = {
       companyInfo: '회사 정보',
       companyName: '회사명',
       companyNamePlaceholder: '회사명을 입력하세요',
+      representativeName: '대표자명',
+      representativeNamePlaceholder: '대표자명을 입력해주세요',
+      position: '직책',
+      positionPlaceholder: '직책을 입력해주세요',
+      email: '이메일',
+      emailPlaceholder: '이메일을 입력해주세요',
+      phone: '연락처',
+      phonePlaceholder: '연락처를 입력해주세요',
+      businessInfo: '사업 정보',
+      businessField: '사업 분야',
+      businessFieldPlaceholder: '사업 분야를 선택해주세요',
+      companySize: '회사 규모',
+      companySizePlaceholder: '회사 규모를 선택해주세요',
+      partnershipInfo: '제휴 정보',
+      partnershipType: '제휴 유형',
+      partnershipTypePlaceholder: '제휴 유형을 선택해주세요',
+      budget: '예산 범위',
+      budgetPlaceholder: '예산 범위를 선택해주세요',
+      expectedEffect: '기대 효과',
+      expectedEffectPlaceholder: '제휴를 통해 기대하는 효과나 목표를 자세히 설명해주세요',
+      details: '상세 내용',
+      proposalContent: '제휴 제안 내용',
+      proposalContentPlaceholder: '구체적인 제휴 제안 내용을 자세히 작성해주세요',
+      attachments: '첨부파일 (선택사항)',
+      attachmentsDescription: '회사 소개서, 제안서 등을 첨부해주세요 (PDF, DOC, PPT, 이미지 파일)',
+      selectFile: '파일 선택',
+      noFileSelected: '선택된 파일 없음',
+      cancel: '취소',
+      submitting: '제출 중...',
+      submitProposal: '제출',
+      submitSuccess: '제휴 문의가 성공적으로 제출되었습니다. 검토 후 연락드리겠습니다.',
       submitError: '제휴 문의 전송 중 오류가 발생했습니다',
       networkError: '네트워크 오류가 발생했습니다',
       benefits: {
@@ -1068,6 +1121,12 @@ export const translations = {
           q24a: '구체적인 계획과 일정을 세운다',
           q24b: '유연하게 목표를 조정할 수 있도록 한다'
         },
+        navigation: {
+          previous: '이전',
+          next: '다음',
+          seeResult: '결과 보기',
+          selectAnswer: '답변을 선택해주세요'
+        },
         results: {
           analyzing: '결과를 분석하고 있어요...',
           yourType: '당신의 유형은 {mbti}입니다!',
@@ -1075,12 +1134,6 @@ export const translations = {
           bestMatchType: '나와 잘 맞는 유형: {mbti}',
           restart: '다시 테스트하기',
           disclaimer: '엔터테인먼트용 비공식 매칭이며, MBTI·셀럽 정보는 시점/출처에 따라 달라질 수 있어요.'
-        },
-        navigation: {
-          previous: '이전',
-          next: '다음',
-          seeResult: '결과 보기',
-          selectAnswer: '답변을 선택해주세요'
         },
         progress: '진행률',
         question: '질문',
@@ -1700,7 +1753,8 @@ export const translations = {
       writing: 'Escribiendo...',
       deleting: 'Eliminando...',
       retry: 'Reintentar',
-      required: 'Requerido'
+      required: 'Requerido',
+      back: 'Atrás'
     },
 
     // 인증 관련
@@ -1890,7 +1944,7 @@ export const translations = {
     // 메인 페이지
     mainPage: {
       title: 'Disfruta de diversas formas',
-      videoCall: 'Videollamada',
+      videoCall: 'Video Call',
       videoCallDescription: 'Participa en las actividades de la comunidad y habla con el coreano que quieras usando AKO.',
       community: 'Comunidad',
       communityDescription: 'Conócete unos a otros a través de la comunidad\ny comunícate',
@@ -1919,7 +1973,7 @@ export const translations = {
 
     // 메인 화상채팅 섹션
     main: {
-      meet: 'AI Videollamada',
+      meet: 'AI Video Call',
       meetDescription: 'Conoce a coreanos reales a través de videollamadas',
       community: 'Comunidad',
       communityDescription: '',
@@ -1985,8 +2039,22 @@ export const translations = {
       koreanNews: 'K-Magazine',
       freeBoardDescription: '',
       koreanNewsDescription: '',
-      qaDescription: '',
+      qaDescription: 'Haz preguntas sobre lo que te interesa y recibe respuestas',
+      qaSearchPlaceholder: 'Buscar pregunta...',
+      qaAnswers: 'Respuestas',
+      qaViews: 'Vistas',
+      qaNoAnswers: 'Aún no hay respuestas.',
+      qaFirstAnswer: '¡Escribe la primera respuesta!',
+      qaWriteAnswer: 'Escribir respuesta',
+      qaAnswerPlaceholder: 'Escribe tu respuesta...',
+      qaWriting: 'Escribiendo...',
+      close: 'Cerrar',
       loadingNews: 'Cargando noticias...',
+      newsTeam: 'Equipo de Noticias',
+      newsDisplay: 'Mostrando {start}-{end} de {total} noticias',
+      newsTitle1: '"¡La cultura coreana está arrasando el mundo!" La fiebre global del contenido K',
+      newsTitle2: '"Fiebre por aprender coreano" Aumento explosivo de estudiantes de coreano en todo el mundo',
+      newsTitle3: '"¡Corea está de moda otra vez!" Impactante situación de turistas extranjeros',
       backToHome: 'Anterior',
       backToCommunityHome: 'Volver al Inicio de la Comunidad',
       viewMoreNews: 'Ver más K-Magazine',
@@ -1999,6 +2067,13 @@ export const translations = {
         korean: 'Coreano',
         spanish: 'Español'
       },
+      tabs: {
+        recommended: 'Recomendado',
+        all: 'Todos',
+        popular: 'Popular',
+        latest: 'Reciente'
+      },
+      searchPlaceholder: 'Galería & Búsqueda Integrada',
       noPosts: 'No hay publicaciones disponibles',
       beFirstToWrite: '¡Sé el primero en escribir una publicación!',
       sortBy: 'Ordenar por:',
@@ -2386,7 +2461,7 @@ export const translations = {
           services: {
             title: 'Servicios principales',
             items: [
-              'Videollamadas: Intercambio de idiomas a través de videollamadas 1:1 con coreanos',
+              'Video Calls: Intercambio de idiomas a través de videollamadas 1:1 con coreanos',
               'Comunidad: Comunidad para compartir cultura coreana, K-POP, estilo de vida',
               'Sistema de puntos: Acumulación y uso de puntos según actividades',
               'Eventos: Varios eventos de experiencia cultural coreana'
@@ -2554,7 +2629,7 @@ export const translations = {
       totalQuestions: 'Total {count}',
       categories: {
         lounge: 'Sala',
-        videoChat: 'Videollamadas',
+        videoChat: 'Video Calls',
         meeting: 'Reunión',
         community: 'Comunidad',
         points: 'Puntos',
@@ -2691,13 +2766,44 @@ export const translations = {
     partnership: {
       title: 'Consulta de Asociación',
       subtitle: 'Crece junto con AMIKO',
-      submit: 'Enviar Consulta de Asociación',
+      submit: 'Enviar Consulta',
       benefitsTitle: 'Beneficios de Asociación',
       benefitsSubtitle: 'Beneficios que puedes obtener con la asociación de AMIKO',
-      partnershipInquiry: 'Enviar Consulta de Asociación',
+      partnershipInquiry: 'Consulta de Asociación',
       companyInfo: 'Información de la Empresa',
       companyName: 'Nombre de la Empresa',
       companyNamePlaceholder: 'Ingresa el nombre de la empresa',
+      representativeName: 'Nombre del Representante',
+      representativeNamePlaceholder: 'Ingresa el nombre del representante',
+      position: 'Cargo',
+      positionPlaceholder: 'Ingresa tu cargo',
+      email: 'Correo Electrónico',
+      emailPlaceholder: 'Ingresa tu correo electrónico',
+      phone: 'Teléfono',
+      phonePlaceholder: 'Ingresa tu número de teléfono',
+      businessInfo: 'Información del Negocio',
+      businessField: 'Campo de Negocio',
+      businessFieldPlaceholder: 'Selecciona el campo de negocio',
+      companySize: 'Tamaño de la Empresa',
+      companySizePlaceholder: 'Selecciona el tamaño de la empresa',
+      partnershipInfo: 'Información de Asociación',
+      partnershipType: 'Tipo de Asociación',
+      partnershipTypePlaceholder: 'Selecciona el tipo de asociación',
+      budget: 'Rango de Presupuesto',
+      budgetPlaceholder: 'Selecciona el rango de presupuesto',
+      expectedEffect: 'Efecto Esperado',
+      expectedEffectPlaceholder: 'Describe el efecto o objetivo esperado de la asociación',
+      details: 'Detalles',
+      proposalContent: 'Contenido de la Propuesta',
+      proposalContentPlaceholder: 'Describe detalladamente el contenido específico de la propuesta de asociación',
+      attachments: 'Archivos Adjuntos (Opcional)',
+      attachmentsDescription: 'Adjunta presentación de la empresa, propuesta, etc. (PDF, DOC, PPT, archivos de imagen)',
+      selectFile: 'Seleccionar Archivo',
+      noFileSelected: 'Ningún archivo seleccionado',
+      cancel: 'Cancelar',
+      submitting: 'Enviando...',
+      submitProposal: 'Enviar',
+      submitSuccess: 'La consulta de asociación se ha enviado exitosamente. Te contactaremos después de revisar.',
       submitError: 'Ocurrió un error al enviar la consulta de asociación',
       networkError: 'Ocurrió un error de red',
       benefits: {
@@ -2752,7 +2858,7 @@ export const translations = {
       shareResult: 'Compartir resultado',
       myResults: 'Mis resultados',
       mbti: {
-        title: 'Test de Compatibilidad MBTI × Celebridades',
+        title: 'Test MBTI × Celebridades',
         description: '¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!',
         questionCount: 'Total 24 preguntas',
         questions: {
@@ -2837,12 +2943,6 @@ export const translations = {
           restart: 'Hacer test de nuevo',
           disclaimer: 'Emparejamiento no oficial para entretenimiento. La información de MBTI y celebridades puede variar según el momento y la fuente.'
         },
-        navigation: {
-          previous: 'Anterior',
-          next: 'Siguiente',
-          seeResult: 'Ver resultado',
-          selectAnswer: 'Por favor selecciona una respuesta'
-        },
         progress: 'Progreso',
         question: 'Pregunta'
       },
@@ -2885,7 +2985,87 @@ export const translations = {
         yourType: 'Tu tipo',
         typeDescription: 'Descripción del tipo',
         characteristics: 'Características',
-        recommendations: 'Actividades recomendadas'
+        recommendations: 'Actividades recomendadas',
+        questions: {
+          q1: 'En una fiesta con gente nueva...',
+          q1a: 'Converso con muchas personas y obtengo energía',
+          q1b: 'Tengo conversaciones profundas con pocas personas cercanas',
+          q2: 'Al resolver problemas...',
+          q2a: 'Me acerco basándome en experiencia y hechos reales',
+          q2b: 'Exploro nuevas ideas y posibilidades',
+          q3: 'Al tomar decisiones importantes...',
+          q3a: 'Priorizo el análisis lógico y criterios objetivos',
+          q3b: 'Considero importantes los valores y emociones personales',
+          q4: 'En la vida diaria...',
+          q4a: 'Hago planes y procedo de manera sistemática',
+          q4b: 'Me adapto flexiblemente a la situación',
+          q5: 'Cuando estoy estresado...',
+          q5a: 'Paso tiempo con otras personas para aliviarlo',
+          q5b: 'Tengo tiempo a solas para recargarme',
+          q6: 'Al comenzar un nuevo proyecto...',
+          q6a: 'Consulto métodos probados existentes',
+          q6b: 'Intento métodos innovadores y originales',
+          q7: 'En situaciones de conflicto...',
+          q7a: 'Juzgo basándome en hechos objetivos y principios',
+          q7b: 'Trato de entender las emociones y situación de la otra persona',
+          q8: 'Al planear un viaje...',
+          q8a: 'Preparo un itinerario detallado y reservas con anticipación',
+          q8b: 'Disfruto de manera espontánea y libre',
+          q9: 'En reuniones o discusiones grupales...',
+          q9a: 'Participo activamente y expreso mis opiniones',
+          q9b: 'Escucho las opiniones de otros y pienso cuidadosamente',
+          q10: 'Al aprender nuevas tecnologías o herramientas...',
+          q10a: 'Sigo paso a paso y aprendo gradualmente',
+          q10b: 'Aprendo experimentando y cometiendo errores',
+          q11: 'Cuando un amigo comparte sus preocupaciones...',
+          q11a: 'Trato de ofrecer soluciones lógicas',
+          q11b: 'Empatizo y ofrezco apoyo emocional',
+          q12: 'Al planificar el fin de semana...',
+          q12a: 'Hago planes con anticipación y los ejecuto',
+          q12b: 'Hago lo que me apetece en el momento',
+          q13: 'Al adaptarme a un nuevo entorno...',
+          q13a: 'Me adapto rápidamente y me relaciono con nuevas personas',
+          q13b: 'Observo lentamente y me adapto gradualmente',
+          q14: 'Al basarme en experiencias pasadas...',
+          q14a: 'Prefiero métodos probados',
+          q14b: 'Pruebo nuevos enfoques',
+          q15: 'Cuando me siento emocionalmente agitado...',
+          q15a: 'Analizo la situación lógicamente',
+          q15b: 'Acepto y expreso mis emociones',
+          q16: 'Al manejar tareas o proyectos...',
+          q16a: 'Hago planes y procedo en orden',
+          q16b: 'Ajusto las prioridades de manera flexible',
+          q17: 'En reuniones sociales...',
+          q17a: 'Participo activamente en conversaciones grupales',
+          q17b: 'Prefiero conversaciones uno a uno',
+          q18: 'Al procesar información...',
+          q18a: 'Me enfoco en detalles específicos y concretos',
+          q18b: 'Veo el panorama general y las conexiones',
+          q19: 'Al tomar decisiones importantes...',
+          q19a: 'Analizo pros y contras objetivamente',
+          q19b: 'Considero cómo afectará a las personas involucradas',
+          q20: 'En mi rutina diaria...',
+          q20a: 'Prefiero tener un horario estructurado',
+          q20b: 'Me gusta mantener flexibilidad en mi agenda',
+          q21: 'En situaciones nuevas...',
+          q21a: 'Me adapto rápidamente y tomo la iniciativa',
+          q21b: 'Observo primero y luego participo gradualmente',
+          q22: 'Al recibir información...',
+          q22a: 'Prefiero información concreta y clara',
+          q22b: 'Prefiero información abstracta y con posibilidades',
+          q23: 'Al resolver conflictos...',
+          q23a: 'Aplico criterios justos y lógicos',
+          q23b: 'Busco soluciones flexibles considerando la situación y las personas',
+          q24: 'Al establecer metas a largo plazo...',
+          q24a: 'Hago planes concretos y cronogramas',
+          q24b: 'Permito ajustar las metas de manera flexible'
+        },
+        navigation: {
+          previous: 'Atrás',
+          next: 'Siguiente',
+          seeResult: 'Ver resultado',
+          selectAnswer: 'Por favor selecciona una respuesta'
+        }
       },
       loveStyle: {
         title: 'Test de Estilo de Amor',
@@ -3086,7 +3266,7 @@ export const translations = {
           title: 'Funciones VIP',
           beautyFilter: 'Filtro de Belleza',
           aiTranslation: 'Función de Interpretación Simultánea con IA',
-          gameFunction: 'Función de Juegos durante Videollamadas'
+          gameFunction: 'Función de Juegos durante Video Calls'
         }
       },
       pointStore: {
@@ -3148,7 +3328,7 @@ export const translations = {
       pointEarning: {
         title: 'Cómo ganar puntos',
         communityActivities: 'Actividades de la comunidad',
-        videoCalls: 'Videollamadas'
+        videoCalls: 'Video Calls'
       },
       footerMessage: '✨ ¡Se agregarán más recompensas en el futuro! Acumula puntos 🙌'
     },
@@ -3206,7 +3386,7 @@ export const translations = {
           ]
         },
         videoChat: {
-          title: 'Videollamadas',
+          title: 'Video Calls',
           content: 'Ayuda para usar el servicio de videollamadas.',
           items: [
             'Método de inicio y finalización de videollamadas',

@@ -164,10 +164,10 @@ export default function InquiryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
       {/* Hero 섹션 */}
-      <section className="pt-32 pb-16 md:pt-40 md:pb-20 bg-gradient-to-br from-green-50 via-white to-emerald-50">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
+      <section className="pt-24 pb-8 md:pt-32 md:pb-12 md:pt-48 bg-gradient-to-br from-green-50 via-white to-emerald-50">
+        <div className="container max-w-4xl mx-auto px-2 text-center">
           {/* 메인 타이틀 */}
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 leading-tight">
             {t('inquiry.heroTitle').split('\n').map((line, index) => (
               <span key={index}>
                 {line}
@@ -177,7 +177,7 @@ export default function InquiryPage() {
           </h1>
           
           {/* 서브 텍스트 */}
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8 whitespace-nowrap">
+          <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto mb-6 whitespace-normal">
             {t('inquiry.heroSubtitle')}
           </p>
           
@@ -186,7 +186,7 @@ export default function InquiryPage() {
             <Button
               onClick={() => setIsInquiryModalOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-4 py-2 text-sm font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-3 py-2 text-xs font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {t('inquiry.submit')}
             </Button>
@@ -195,21 +195,21 @@ export default function InquiryPage() {
       </section>
 
       {/* 문의 유형 섹션 */}
-      <section className="bg-white py-8" id="inquiry-types">
-        <div className="container max-w-5xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('inquiry.inquiryType')}</h2>
+      <section className="bg-white py-6" id="inquiry-types">
+        <div className="container max-w-5xl mx-auto px-2">
+          <div className="text-center mb-6">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2">{t('inquiry.inquiryType')}</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {inquiryTypes.map((type) => (
-              <div key={type.value} className="bg-white rounded-lg p-4 shadow-lg border border-gray-100">
+              <div key={type.value} className="bg-white rounded-lg p-3 shadow-lg border border-gray-100">
                 <div className="text-center">
-                  <div className={`w-12 h-12 ${type.bgColor} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                    <span className="text-xl">{type.icon}</span>
+                  <div className={`w-10 h-10 ${type.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
+                    <span className="text-lg">{type.icon}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{type.label}</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">{type.label}</h3>
+                  <p className="text-gray-600 text-xs">
                     {type.description}
                   </p>
                 </div>
@@ -222,28 +222,28 @@ export default function InquiryPage() {
 
       {/* 문의 모달 */}
       <Dialog open={isInquiryModalOpen} onOpenChange={setIsInquiryModalOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent className="w-[95vw] max-w-xs max-h-[90vh] overflow-y-auto bg-white mx-1">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <MessageSquare className="w-4 h-4 text-green-600" />
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <MessageSquare className="w-3 h-3 text-green-600" />
               {t('inquiry.submit')}
             </DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {/* 문의 유형 선택 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t('inquiry.inquiryType')}</label>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-700">{t('inquiry.inquiryType')}</label>
               <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
-                <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
+                <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-xs h-8">
                   <SelectValue placeholder={t('inquiry.selectInquiryType')} />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-300">
                   {inquiryTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       <div>
-                        <div className="font-medium">{type.label}</div>
-                        <div className="text-xs text-gray-500">{type.description}</div>
+                        <div className="font-medium text-xs">{type.label}</div>
+                        <div className="text-[10px] text-gray-500">{type.description}</div>
                       </div>
                     </SelectItem>
                   ))}
@@ -252,10 +252,10 @@ export default function InquiryPage() {
             </div>
 
             {/* 우선순위 선택 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t('inquiry.priority')}</label>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-700">{t('inquiry.priority')}</label>
               <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
-                <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200">
+                <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-xs h-8">
                   <SelectValue placeholder={t('inquiry.selectPriority')} />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-300">
@@ -269,30 +269,30 @@ export default function InquiryPage() {
             </div>
 
             {/* 제목 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t('inquiry.subject')}</label>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-700">{t('inquiry.subject')}</label>
               <Input
                 placeholder={t('inquiry.subjectPlaceholder')}
                 value={formData.subject}
                 onChange={(e) => handleInputChange('subject', e.target.value)}
-                className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
+                className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-xs h-8"
                 required
               />
             </div>
 
             {/* 내용 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t('inquiry.message')}</label>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-700">{t('inquiry.message')}</label>
               <Textarea
                 placeholder={t('inquiry.messagePlaceholder')}
                 value={formData.content}
                 onChange={(e) => handleInputChange('content', e.target.value)}
-                className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200"
-                rows={4}
+                className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-xs"
+                rows={3}
                 required
               />
               {selectedType && (
-                <p className="text-xs text-gray-500">
+                <p className="text-[10px] text-gray-500">
                   💡 {selectedType.description}
                 </p>
               )}
@@ -317,23 +317,24 @@ export default function InquiryPage() {
             )}
 
             {/* 버튼 */}
-            <div className="flex gap-2 justify-end pt-2">
+            <div className="flex gap-2 justify-end pt-1">
               <Button 
                 type="button" 
                 variant="outline"
                 onClick={() => setIsInquiryModalOpen(false)}
+                className="text-xs px-3 py-1"
               >
 {t('buttons.cancel')}
               </Button>
-              <Button type="submit" disabled={isSubmitting || !formData.type || !formData.subject || !formData.content}>
+              <Button type="submit" disabled={isSubmitting || !formData.type || !formData.subject || !formData.content} className="text-xs px-3 py-1">
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
 {t('inquiry.submitting')}
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-3 h-3 mr-1" />
 {t('inquiry.submitInquiry')}
                   </>
                 )}
