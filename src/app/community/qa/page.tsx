@@ -121,7 +121,7 @@ export default function QAPage() {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token || ''}`
+          ...(token && { 'Authorization': `Bearer ${token}` })
         }
       })
       
@@ -319,11 +319,10 @@ export default function QAPage() {
   // 초기 데이터 로딩
   useEffect(() => {
     console.log('초기 데이터 로딩 useEffect:', { user: !!user, token: !!token })
-    if (user || token) {
-      console.log('초기 데이터 로딩 시작')
-      loadQuestions()
-    }
-  }, [user, token, loadQuestions])
+    // 모바일에서도 데이터가 로드되도록 조건 완화
+    console.log('초기 데이터 로딩 시작')
+    loadQuestions()
+  }, [loadQuestions])
 
   return (
     <div className="min-h-screen bg-white">
