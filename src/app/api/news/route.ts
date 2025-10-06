@@ -132,8 +132,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
     }
 
-    // 출처가 비어있으면 null로 설정
-    const finalSource = source && source.trim() ? source.trim() : null
+    // 출처가 비어있으면 기본값으로 설정
+    const finalSource = source && source.trim() ? source.trim() : 'Amiko 뉴스팀'
 
     const { data, error } = await supabaseServer
       .from('korean_news')
@@ -276,8 +276,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
     }
 
-    // 출처가 비어있으면 null로 설정
-    const finalSource = source && source.trim() ? source.trim() : null
+    // 출처가 비어있으면 기본값으로 설정
+    const finalSource = source && source.trim() ? source.trim() : 'Amiko 뉴스팀'
 
     const updateData: any = {
       title,
