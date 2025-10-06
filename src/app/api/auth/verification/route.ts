@@ -291,29 +291,6 @@ export async function POST(request: NextRequest) {
       console.log(`[VERIFICATION_SEND] 감지된 언어: ${language} (국적: ${nationality || '미지정'}, 이메일: ${oldEmail})`)
       const emailSent = await sendVerificationEmail(oldEmail, verificationCode, language)
       
-      // 개발 환경에서는 이메일 발송 실패해도 콘솔 로그로 진행
-      if (!emailSent && process.env.NODE_ENV === 'development') {
-        console.log('\n' + '='.repeat(60))
-        console.log('📧 [개발환경] 이메일 인증코드 (콘솔 로그)')
-        console.log('='.repeat(60))
-        console.log(`이메일: ${oldEmail}`)
-        console.log(`인증코드: ${verificationCode}`)
-        console.log(`만료시간: ${expiresAt.toLocaleString('ko-KR')}`)
-        console.log('='.repeat(60) + '\n')
-        
-        return NextResponse.json({
-          success: true,
-          message: '이메일로 인증코드가 발송되었습니다. (개발환경: 콘솔 확인)',
-          expiresIn: 300, // 5분
-          emailService: getEmailServiceStatus(),
-          debug: {
-            verificationCode: verificationCode,
-            environment: 'development',
-            note: '하이웍스 SMTP 인증 문제로 콘솔에 인증코드 출력',
-            troubleshooting: '서버 콘솔에서 인증코드를 확인하세요. 실제 이메일은 발송되지 않습니다.'
-          }
-        })
-      }
       
       if (!emailSent) {
         console.error('[EMAIL_VERIFICATION] 이메일 발송 실패')

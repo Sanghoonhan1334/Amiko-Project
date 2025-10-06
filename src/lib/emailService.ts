@@ -281,7 +281,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       subject = subject.replace(regex, data[key])
     })
     
-    // 실제 이메일 발송
+    // 실제 이메일 발송 (하이웍스 SMTP 사용)
     return await sendRealEmail(to, subject, html)
     
   } catch (error) {
@@ -323,11 +323,11 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
     console.log(`- 사용자: ${smtpUser}`)
     console.log(`- 비밀번호: ${smtpPass ? '설정됨' : '미설정'}`)
     
-    // Nodemailer 트랜스포터 생성
+    // Nodemailer 트랜스포터 생성 (465 포트용 SSL)
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: smtpPort === 465, // 465 포트는 SSL 사용
+      secure: true, // 465 포트는 SSL 사용
       auth: {
         user: smtpUser,
         pass: smtpPass
@@ -345,9 +345,9 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
     await transporter.verify()
     console.log('[EMAIL_SEND] SMTP 연결 테스트 성공')
     
-    // 이메일 발송
+    // 이메일 발송 (하이웍스 계정과 동일한 발송자 주소 사용)
     const info = await transporter.sendMail({
-      from: `"Amiko 인증센터" <${smtpUser}>`,
+      from: smtpUser, // 하이웍스 계정과 동일한 주소 사용
       to: to,
       subject: subject,
       html: html,
@@ -365,6 +365,7 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : undefined
     })
+    
     return false
   }
 }

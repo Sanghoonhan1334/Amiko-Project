@@ -567,12 +567,12 @@ export default function QAPage() {
                 onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
                 className="w-full p-3 border-2 border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white"
               >
-                <option value="free">자유</option>
-                <option value="kpop">K-POP</option>
-                <option value="kdrama">K-Drama</option>
-                <option value="beauty">뷰티</option>
-                <option value="korean">한국어</option>
-                <option value="spanish">스페인어</option>
+                <option value="free">{t('community.categoryFree')}</option>
+                <option value="kpop">{t('community.categoryKpop')}</option>
+                <option value="kdrama">{t('community.categoryKdrama')}</option>
+                <option value="beauty">{t('community.categoryBeauty')}</option>
+                <option value="korean">{t('community.categoryKorean')}</option>
+                <option value="spanish">{t('community.categorySpanish')}</option>
               </select>
             </div>
             

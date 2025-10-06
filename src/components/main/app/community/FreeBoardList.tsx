@@ -253,10 +253,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const previews = Array.from(files).map(file => URL.createObjectURL(file))
       setImagePreviews(prev => [...prev, ...previews])
       
-      toast.success('이미지가 업로드되었습니다!')
+      toast.success(language === 'es' ? '¡Imagen subida exitosamente!' : '이미지가 업로드되었습니다!')
     } catch (error) {
       console.error('이미지 업로드 실패:', error)
-      toast.error('이미지 업로드에 실패했습니다.')
+      toast.error(language === 'es' ? 'Error al subir la imagen.' : '이미지 업로드에 실패했습니다.')
     } finally {
       setUploadingImages(false)
     }
@@ -271,7 +271,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   // 글 작성 완료
   const handleSubmitPost = async () => {
     if (!postTitle.trim() || !postContent.trim()) {
-      toast.error('제목과 내용을 모두 입력해주세요.')
+      toast.error(language === 'es' ? 'Por favor ingresa título y contenido.' : '제목과 내용을 모두 입력해주세요.')
       return
     }
 
@@ -291,16 +291,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       })
 
       if (response.ok) {
-        toast.success('글이 성공적으로 작성되었습니다!')
+        toast.success(t('community.postCreatedSuccess'))
         handleClosePostModal()
         // 게시글 목록 새로고침
         loadPosts()
       } else {
-        toast.error('글 작성에 실패했습니다.')
+        toast.error(t('community.postCreateFailed'))
       }
     } catch (error) {
       console.error('Error creating post:', error)
-      toast.error('글 작성 중 오류가 발생했습니다.')
+      toast.error(t('community.postCreateError'))
     }
   }
 
@@ -435,7 +435,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-xs font-medium"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                글쓰기
+                {t('community.writePost')}
               </Button>
             </div>
 
@@ -822,7 +822,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               onClick={handleOpenPostModal}
               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-xs font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
             >
-              글쓰기
+              {t('community.writePost')}
             </button>
             </div>
             
@@ -851,28 +851,28 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
       {/* 글쓰기 모달 */}
       {showPostModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl w-full max-w-6xl max-h-[calc(100vh-80px)] overflow-hidden my-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl border border-gray-100">
             {/* 모달 헤더 */}
-            <div className="flex items-center justify-between p-2 border-b border-gray-200">
-              <h2 className="text-base font-bold text-gray-800">새 글 작성</h2>
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+              <h2 className="text-lg font-bold text-gray-800">{t('community.newPost')}</h2>
               <button
                 onClick={handleClosePostModal}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-200 rounded-full transition-all duration-200"
               >
                 <X className="w-4 h-4 text-gray-500" />
               </button>
             </div>
 
             {/* 모달 내용 */}
-            <div className="p-2 space-y-2 max-h-[calc(100vh-160px)] overflow-y-auto">
+            <div className="p-4 space-y-4 max-h-[calc(85vh-120px)] overflow-y-auto">
               {/* 카테고리 선택 */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  카테고리
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700">
+                  {t('community.category')}
                 </label>
                 <Select value={postCategory} onValueChange={setPostCategory}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full h-10 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -889,45 +889,45 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               </div>
 
               {/* 제목 입력 */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  제목
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700">
+                  {t('community.postTitle')}
                 </label>
                 <input
                   type="text"
                   value={postTitle}
                   onChange={(e) => setPostTitle(e.target.value)}
-                  placeholder="제목을 입력하세요"
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={t('community.postTitlePlaceholder')}
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
                   maxLength={100}
                 />
-                <div className="text-right text-xs text-gray-500 mt-1">
+                <div className="text-right text-xs text-gray-500">
                   {postTitle.length}/100
                 </div>
               </div>
 
               {/* 내용 입력 */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  내용
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700">
+                  {t('community.postContent')}
                 </label>
                 <textarea
                   value={postContent}
                   onChange={(e) => setPostContent(e.target.value)}
-                  placeholder="내용을 입력하세요"
+                  placeholder={t('community.postContentPlaceholder')}
                   rows={6}
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
                   maxLength={2000}
                 />
-                <div className="text-right text-xs text-gray-500 mt-1">
+                <div className="text-right text-xs text-gray-500">
                   {postContent.length}/2000
                 </div>
               </div>
 
               {/* 이미지 업로드 */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  이미지 첨부
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700">
+                  {t('community.attachImage')}
                 </label>
                 <div className="space-y-2">
                   <input
@@ -941,28 +941,28 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   />
                   <label
                     htmlFor="post-image-upload"
-                    className={`inline-flex items-center gap-2 px-3 py-2 text-xs border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-xs border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 font-medium ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <span>📷</span>
-                    {uploadingImages ? '업로드 중...' : '이미지 선택'}
+                    {uploadingImages ? '업로드 중...' : t('community.selectImage')}
                   </label>
                   <div className="text-xs text-gray-500">
-                    JPG, PNG, GIF (최대 5MB, 최대 5개)
+                    {t('community.imageRestrictions')}
                   </div>
                   
                   {/* 이미지 미리보기 */}
                   {imagePreviews.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                       {imagePreviews.map((preview, index) => (
                         <div key={index} className="relative group">
                           <img
                             src={preview}
                             alt={`첨부 이미지 ${index + 1}`}
-                            className="w-full h-20 object-cover rounded-lg border"
+                            className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
                           />
                           <button
                             onClick={() => handleRemoveImage(index)}
-                            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                           >
                             ×
                           </button>
@@ -975,18 +975,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             </div>
 
             {/* 모달 푸터 */}
-            <div className="flex items-center justify-end gap-2 p-2 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-3 p-3 border-t border-gray-100 bg-gray-50">
               <button
                 onClick={handleClosePostModal}
-                className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-xs text-gray-600 hover:text-gray-800 border-2 border-gray-300 rounded-lg hover:border-gray-400 transition-all duration-200 font-medium"
               >
-                취소
+                {t('buttons.cancel')}
               </button>
               <button
                 onClick={handleSubmitPost}
-                className="px-4 py-1.5 text-xs bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                className="px-6 py-2 text-xs bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
               >
-                작성하기
+                {t('community.createPost')}
               </button>
             </div>
           </div>
@@ -997,10 +997,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       <AuthConfirmDialog
         open={showAuthDialog}
         onOpenChange={setShowAuthDialog}
-        title="인증이 필요합니다"
-        description="게시글 작성을 위해 인증이 필요합니다. 인증센터로 이동하시겠습니까?"
-        confirmText="인증센터로 이동"
-        cancelText="취소"
+        title={t('community.authRequired')}
+        description={t('community.authRequiredDescription')}
+        confirmText={t('community.goToAuthCenter')}
+        cancelText={t('buttons.cancel')}
       />
     </div>
   )
