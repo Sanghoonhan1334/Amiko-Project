@@ -402,7 +402,7 @@ export default function EventTab() {
 
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-0 py-0 sm:py-2 md:py-6 -mt-8">
+    <div className="space-y-6 max-w-6xl mx-auto px-0 md:px-8 py-0 sm:py-2 md:py-6 -mt-8">
       {/* 특별 이벤트 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
