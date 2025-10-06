@@ -111,7 +111,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   // 글쓰기 모달 열기
   const handleOpenPostModal = () => {
     if (!user) {
-      setShowAuthDialog(true)
+      router.push('/sign-in')
       return
     }
     setShowPostModal(true)
