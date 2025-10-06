@@ -16,10 +16,6 @@ function normalizePhoneNumber(phone: string): string {
     if (cleaned.startsWith('010') || cleaned.startsWith('011') || cleaned.startsWith('016') || cleaned.startsWith('017') || cleaned.startsWith('018') || cleaned.startsWith('019')) {
       cleaned = '+82' + cleaned.substring(1) // 0 제거하고 +82 추가
       console.log(`[NORMALIZE] 한국 번호 감지: ${cleaned}`)
-    } else if (cleaned.startsWith('10') && cleaned.length === 10) {
-      // 10으로 시작하는 10자리 번호 (010-xxxx-xxxx)
-      cleaned = '+82' + cleaned
-      console.log(`[NORMALIZE] 10자리 한국 번호 감지: ${cleaned}`)
     } else {
       // 다른 국가는 +1 (미국)로 가정 (필요에 따라 확장)
       cleaned = '+1' + cleaned

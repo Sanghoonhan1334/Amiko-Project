@@ -27,6 +27,14 @@ function getTwilioClient(): Twilio {
 // SMS 발송
 export async function sendTwilioSMS(to: string, message: string): Promise<boolean> {
   try {
+    // 개발 환경에서 테스트용 더미 번호는 콘솔에만 출력
+    if (process.env.NODE_ENV === 'development' && to.includes('12345678')) {
+      console.log(`[TWILIO_SMS] 개발환경 - 테스트용 더미 번호: ${to}`)
+      console.log(`[TWILIO_SMS] 메시지: ${message}`)
+      console.log(`[TWILIO_SMS] 실제 발송하지 않음`)
+      return true
+    }
+
     console.log(`[TWILIO_SMS] 발송 시도 시작: ${to}`)
     console.log(`[TWILIO_SMS] 환경변수 확인:`, {
       accountSid: !!process.env.TWILIO_ACCOUNT_SID,
@@ -73,6 +81,14 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
 // WhatsApp 발송
 export async function sendTwilioWhatsApp(to: string, message: string): Promise<boolean> {
   try {
+    // 개발 환경에서 테스트용 더미 번호는 콘솔에만 출력
+    if (process.env.NODE_ENV === 'development' && to.includes('12345678')) {
+      console.log(`[TWILIO_WHATSAPP] 개발환경 - 테스트용 더미 번호: ${to}`)
+      console.log(`[TWILIO_WHATSAPP] 메시지: ${message}`)
+      console.log(`[TWILIO_WHATSAPP] 실제 발송하지 않음`)
+      return true
+    }
+
     const client = getTwilioClient()
     const whatsappFrom = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886' // Twilio 샌드박스 번호
     const whatsappTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`
