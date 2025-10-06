@@ -237,8 +237,12 @@ function AppPageContent() {
                 <div className="w-full">
                   <div className="card p-8 pt-12 -mt-12 sm:mt-0">
                     <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
-                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg">
-                        <Video className="w-10 h-10 text-white" />
+                      <div className="w-16 h-16 rounded-3xl flex items-center justify-center overflow-hidden">
+                        <img 
+                          src="/화상통화(제목).png" 
+                          alt="화상통화" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <div className="flex-1">
                         <h2 className="text-2xl font-bold text-gray-800">{t('main.meet')}</h2>
@@ -264,15 +268,12 @@ function AppPageContent() {
                 <div className="card px-8 pt-8 pb-0 -mt-12 sm:mt-0">
                   <div className="flex items-center justify-between mb-0">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
-                        <span className="text-2xl">
-                          {communityView === 'home' ? '💬' :
-                           communityView === 'freeboard' ? '📝' :
-                           (communityView === 'news' || communityView === 'news-detail') ? '📰' :
-                           communityView === 'qa' ? '💬' :
-                           communityView === 'tests' ? '🎯' :
-                           '💬'}
-                        </span>
+                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
+                        <img 
+                          src="/커뮤니티(제목).png" 
+                          alt="커뮤니티" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <h2 className="text-2xl font-bold text-gray-800">
                         {(() => {
@@ -378,8 +379,12 @@ function AppPageContent() {
                 <div className="hidden md:block">
                   <div className="card p-8 -mt-12 sm:mt-0">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 bg-purple-100 rounded-3xl flex items-center justify-center">
-                        <span className="text-2xl">⚡</span>
+                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
+                        <img 
+                          src="/충전소(제목).png" 
+                          alt="충전소" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <div>
                         <h2 className="text-xl font-bold text-gray-800">{t('storeTab.title')}</h2>
@@ -473,8 +478,20 @@ function AppPageContent() {
               <div className="pb-20 md:pb-8 pt-16 sm:pt-36">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
-                  <div className="card px-2 py-8 -mt-12 sm:mt-0">
-                    <div className="pt-12">
+                  <div className="card px-8 py-8 -mt-12 sm:mt-0">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
+                        <img 
+                          src="/이벤트(제목).png" 
+                          alt="이벤트" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800">{t('headerNav.event')}</h2>
+                      </div>
+                    </div>
+                    <div>
                       <EventTab />
                     </div>
                   </div>

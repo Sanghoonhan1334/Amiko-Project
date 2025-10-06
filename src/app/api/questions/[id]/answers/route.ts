@@ -15,24 +15,14 @@ export async function GET(
       )
     }
 
-    // 질문의 답변 목록 조회 (댓글을 답변으로 사용)
+    // 질문의 답변 목록 조회 (사용자 정보는 별도로 가져옴)
     const { data: answers, error } = await supabaseServer
       .from('post_comments')
-      .select(`
-        id,
-        content,
-        created_at,
-        updated_at,
-        like_count,
-        dislike_count,
-        author:users!post_comments_user_id_fkey (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('id, content, created_at, updated_at, like_count, dislike_count, user_id, is_accepted, accepted_at')
       .eq('post_id', params.id)
       .eq('is_deleted', false)
+      .is('parent_comment_id', null)
+      .order('is_accepted', { ascending: false })
       .order('created_at', { ascending: true })
 
     if (error) {
@@ -45,9 +35,37 @@ export async function GET(
 
     console.log('[ANSWERS_API] 답변 조회 성공:', answers?.length || 0, '개')
 
+    // 사용자 ID 목록 추출
+    const userIds = [...new Set(answers?.map(a => a.user_id).filter(Boolean))]
+    
+    // 사용자 정보 조회
+    let usersMap: { [key: string]: any } = {}
+    if (userIds.length > 0) {
+      const { data: users } = await supabaseServer
+        .from('users')
+        .select('id, full_name, email')
+        .in('id', userIds)
+
+      if (users) {
+        usersMap = users.reduce((acc, user) => {
+          acc[user.id] = user
+          return acc
+        }, {} as { [key: string]: any })
+      }
+    }
+
+    // 답변 데이터 변환
+    const answersWithAuthors = answers?.map(answer => {
+      const author = usersMap[answer.user_id] || { id: answer.user_id, full_name: '알 수 없음', email: null }
+      return {
+        ...answer,
+        author
+      }
+    }) || []
+
     return NextResponse.json({
       success: true,
-      answers: answers || []
+      answers: answersWithAuthors
     })
 
   } catch (error) {
@@ -139,16 +157,7 @@ export async function POST(
         dislike_count: 0,
         is_deleted: false
       })
-      .select(`
-        id,
-        content,
-        created_at,
-        author:users!post_comments_user_id_fkey (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('id, content, created_at, user_id')
       .single()
 
     if (insertError) {
@@ -165,14 +174,26 @@ export async function POST(
       )
     }
 
-    // 게시물의 댓글 수 증가 (임시로 비활성화)
-    console.log('[ANSWERS_API] 댓글 수 업데이트는 나중에 구현')
+    // 사용자 정보 조회
+    const { data: author } = await supabaseServer
+      .from('users')
+      .select('id, full_name, email')
+      .eq('id', answer.user_id)
+      .single()
+
+    // 게시물의 댓글 수 증가
+    await supabaseServer.rpc('increment_comment_count', {
+      post_id: params.id
+    })
 
     console.log('[ANSWERS_API] 답변 생성 성공:', answer.id)
 
     return NextResponse.json({
       success: true,
-      answer
+      answer: {
+        ...answer,
+        author: author || { id: answer.user_id, full_name: '알 수 없음', email: null }
+      }
     })
 
   } catch (error) {

@@ -27,26 +27,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 질문 목록 조회 (Q&A 게시판의 게시물들을 질문으로 사용)
+    // 질문 목록 조회 (사용자 정보는 별도로 가져옴)
     const { data: questions, error } = await supabaseServer
       .from('gallery_posts')
-      .select(`
-        id,
-        title,
-        content,
-        created_at,
-        updated_at,
-        view_count,
-        like_count,
-        comment_count,
-        user_id,
-        images,
-        author:users!gallery_posts_user_id_fkey (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('id, title, content, created_at, updated_at, view_count, like_count, comment_count, user_id, images, accepted_answer_id')
       .eq('gallery_id', gallery.id)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
@@ -68,9 +52,37 @@ export async function GET(request: NextRequest) {
 
     console.log('[QUESTIONS_API] 질문 조회 성공:', questions?.length || 0, '개')
 
+    // 사용자 ID 목록 추출
+    const userIds = [...new Set(questions?.map(q => q.user_id).filter(Boolean))]
+    
+    // 사용자 정보 조회
+    let usersMap: { [key: string]: any } = {}
+    if (userIds.length > 0) {
+      const { data: users } = await supabaseServer
+        .from('users')
+        .select('id, full_name, email')
+        .in('id', userIds)
+
+      if (users) {
+        usersMap = users.reduce((acc, user) => {
+          acc[user.id] = user
+          return acc
+        }, {} as { [key: string]: any })
+      }
+    }
+
+    // 질문 데이터 변환
+    const questionsWithAuthors = questions?.map(question => {
+      const author = usersMap[question.user_id] || { id: question.user_id, full_name: '알 수 없음', email: null }
+      return {
+        ...question,
+        author
+      }
+    }) || []
+
     return NextResponse.json({
       success: true,
-      questions: questions || []
+      questions: questionsWithAuthors
     })
 
   } catch (error) {
@@ -154,23 +166,7 @@ export async function POST(request: NextRequest) {
         is_deleted: false,
         images: images // 이미지 정보 저장
       })
-      .select(`
-        id,
-        title,
-        content,
-        created_at,
-        updated_at,
-        view_count,
-        like_count,
-        comment_count,
-        user_id,
-        images,
-        author:users!gallery_posts_user_id_fkey (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('id, title, content, created_at, updated_at, view_count, like_count, comment_count, user_id, images')
       .single()
 
     if (insertError) {
@@ -187,11 +183,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 사용자 정보 조회
+    const { data: author } = await supabaseServer
+      .from('users')
+      .select('id, full_name, email')
+      .eq('id', question.user_id)
+      .single()
+
     console.log('[QUESTIONS_API] 질문 생성 성공:', question.id)
 
     return NextResponse.json({
       success: true,
-      question
+      question: {
+        ...question,
+        author: author || { id: question.user_id, full_name: '알 수 없음', email: null }
+      }
     })
 
   } catch (error) {

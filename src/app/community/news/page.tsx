@@ -1034,7 +1034,14 @@ export default function NewsPage() {
       {/* 페이지별 헤더 - 모바일용 */}
       <div className="bg-white border-b border-gray-200 px-4 py-4 pt-20 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
+              <img 
+                src="/K-매거진.png" 
+                alt="K-매거진" 
+                className="w-full h-full object-contain"
+              />
+            </div>
             <h1 className="text-xl font-bold text-gray-800">{t('community.koreanNews')}</h1>
           </div>
           

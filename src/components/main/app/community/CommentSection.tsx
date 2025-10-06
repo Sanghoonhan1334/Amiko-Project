@@ -14,12 +14,17 @@ interface Comment {
   dislike_count: number
   created_at: string
   updated_at: string
-  user: {
+  author?: {
+    id: string
+    full_name: string
+    profile_image?: string
+  }
+  user?: {
     id: string
     full_name: string
     avatar_url?: string
   }
-  parent_id?: string
+  parent_comment_id?: string
   replies?: Comment[]
   user_vote?: 'like' | 'dislike' | null
 }
@@ -57,8 +62,37 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
-          setComments(data.comments || [])
-          onCommentCountChange?.(data.comments?.length || 0)
+          const allComments = data.comments || []
+          
+          // 댓글을 계층 구조로 재구성
+          const commentMap = new Map()
+          const rootComments: Comment[] = []
+          
+          // 1단계: 모든 댓글을 Map에 저장
+          allComments.forEach((comment: Comment) => {
+            commentMap.set(comment.id, { ...comment, replies: [] })
+          })
+          
+          // 2단계: 부모-자식 관계 설정
+          allComments.forEach((comment: any) => {
+            const commentWithReplies = commentMap.get(comment.id)
+            if (comment.parent_comment_id) {
+              // 대댓글인 경우 부모의 replies에 추가
+              const parent = commentMap.get(comment.parent_comment_id)
+              if (parent) {
+                parent.replies.push(commentWithReplies)
+              } else {
+                // 부모를 찾을 수 없으면 루트로 추가
+                rootComments.push(commentWithReplies)
+              }
+            } else {
+              // 루트 댓글
+              rootComments.push(commentWithReplies)
+            }
+          })
+          
+          setComments(rootComments)
+          onCommentCountChange?.(allComments.length)
         }
       }
     } catch (error) {
@@ -82,7 +116,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         },
         body: JSON.stringify({
           content: commentContent.trim(),
-          parent_id: null
+          parent_comment_id: null
         })
       })
 
@@ -111,7 +145,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         },
         body: JSON.stringify({
           content: replyContent.trim(),
-          parent_id: parentId
+          parent_comment_id: parentId
         })
       })
 
@@ -129,6 +163,89 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
 
   // 추천/비추천
   const handleVote = async (commentId: string, voteType: 'like' | 'dislike') => {
+    if (!user || !token) return
+
+    // Optimistic UI Update - 즉시 UI에 반영
+    setComments(prevComments => {
+      return prevComments.map(comment => {
+        if (comment.id === commentId) {
+          const prevVote = comment.user_vote
+          let newLikeCount = comment.like_count
+          let newDislikeCount = comment.dislike_count
+          let newUserVote: 'like' | 'dislike' | null = voteType
+
+          // 이전 투표 취소
+          if (prevVote === 'like') {
+            newLikeCount--
+          } else if (prevVote === 'dislike') {
+            newDislikeCount--
+          }
+
+          // 새 투표 또는 취소
+          if (prevVote === voteType) {
+            // 같은 버튼 클릭 시 취소
+            newUserVote = null
+          } else {
+            // 다른 버튼 클릭 시 적용
+            if (voteType === 'like') {
+              newLikeCount++
+            } else {
+              newDislikeCount++
+            }
+          }
+
+          return {
+            ...comment,
+            like_count: newLikeCount,
+            dislike_count: newDislikeCount,
+            user_vote: newUserVote
+          }
+        }
+        
+        // 대댓글도 처리
+        if (comment.replies) {
+          return {
+            ...comment,
+            replies: comment.replies.map(reply => {
+              if (reply.id === commentId) {
+                const prevVote = reply.user_vote
+                let newLikeCount = reply.like_count
+                let newDislikeCount = reply.dislike_count
+                let newUserVote: 'like' | 'dislike' | null = voteType
+
+                if (prevVote === 'like') {
+                  newLikeCount--
+                } else if (prevVote === 'dislike') {
+                  newDislikeCount--
+                }
+
+                if (prevVote === voteType) {
+                  newUserVote = null
+                } else {
+                  if (voteType === 'like') {
+                    newLikeCount++
+                  } else {
+                    newDislikeCount++
+                  }
+                }
+
+                return {
+                  ...reply,
+                  like_count: newLikeCount,
+                  dislike_count: newDislikeCount,
+                  user_vote: newUserVote
+                }
+              }
+              return reply
+            })
+          }
+        }
+        
+        return comment
+      })
+    })
+
+    // 백그라운드에서 API 호출 (에러 시에만 복구)
     try {
       const response = await fetch(`/api/posts/${postId}/comments/${commentId}/vote`, {
         method: 'POST',
@@ -139,11 +256,14 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         body: JSON.stringify({ vote_type: voteType })
       })
 
-      if (response.ok) {
+      if (!response.ok) {
+        // 실패 시 원래 상태로 복구
         await loadComments()
       }
     } catch (error) {
       console.error('투표 오류:', error)
+      // 에러 시 원래 상태로 복구
+      await loadComments()
     }
   }
 
@@ -271,12 +391,12 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
               <div className={`p-4 ${index > 0 ? 'border-t border-gray-200' : ''}`}>
                 <div className="flex space-x-3">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm font-medium">
-                    {comment.user.full_name?.charAt(0) || 'U'}
+                    {comment.author?.full_name?.charAt(0) || 'U'}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="font-medium text-gray-800">
-                        {comment.user.full_name || '익명'}
+                        {comment.author?.full_name || '익명'}
                       </span>
                       <span className="text-xs text-gray-500">
                         {formatTime(comment.created_at)}
@@ -336,7 +456,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                           ref={replyTextareaRef}
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
-                          placeholder={`${comment.user.full_name}님에게 답글...`}
+                          placeholder={`${comment.author?.full_name || '사용자'}님에게 답글...`}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                           rows={2}
                           maxLength={1000}
@@ -370,12 +490,12 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                       <div key={reply.id} className="p-4 bg-gray-50">
                         <div className="flex space-x-3">
                           <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                            {reply.user.full_name?.charAt(0) || 'U'}
+                            {reply.author?.full_name?.charAt(0) || 'U'}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <span className="font-medium text-gray-800">
-                                {reply.user.full_name || '익명'}
+                                {reply.author?.full_name || '익명'}
                               </span>
                               <span className="text-xs text-gray-500">
                                 {formatTime(reply.created_at)}

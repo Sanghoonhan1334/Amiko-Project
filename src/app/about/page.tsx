@@ -182,15 +182,6 @@ export default function AboutPage() {
                         {t('about.koreanInterest')}
                       </p>
                       
-                      <p className={`text-gray-700 ${language === 'es' ? 'text-xs' : 'text-sm'} leading-relaxed tracking-wide`}>
-                        {t('about.culturalExchange').split('\n').map((line, index) => (
-                          <span key={index}>
-                            {line}
-                            {index === 0 && <br />}
-                          </span>
-                        ))}
-                      </p>
-                      
                       <p className="text-gray-800 text-sm leading-relaxed font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tracking-wide">
                         {t('about.bridgePromise')}
                       </p>

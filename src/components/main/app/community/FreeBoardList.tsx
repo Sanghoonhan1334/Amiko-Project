@@ -77,6 +77,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false)
 
   const categories: Category[] = [
     { id: 'free', name: '자유게시판', icon: '📝' },
@@ -133,56 +135,30 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
   // 게시판 변경 핸들러
   const handleBoardChange = (board: string) => {
+    console.log('[BOARD_CHANGE] 게시판 변경:', board)
+    
+    // 이전 요청 취소
+    if (abortController) {
+      abortController.abort()
+    }
+    
     setSelectedBoard(board)
-    setCurrentPage(1) // 게시판 변경 시 첫 페이지로 이동
+    setCurrentPage(1)
+    setPosts([]) // 이전 데이터 즉시 초기화
+    setLoading(true)
+    // loadPosts는 useEffect에서 자동으로 호출됨
   }
 
-  // 검색어에 따라 게시글 필터링
+  // 검색어에 따라 게시글 필터링 - 단순화
   const filteredPosts = posts.filter(post => {
-    // 검색어 필터링
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
-      const matchesSearch = (
+      return (
         post.title.toLowerCase().includes(query) ||
         post.content.toLowerCase().includes(query) ||
-        post.author_name.toLowerCase().includes(query) ||
-        post.category_name.toLowerCase().includes(query)
+        post.author_name.toLowerCase().includes(query)
       )
-      if (!matchesSearch) return false
     }
-    
-    // 게시판 필터링 - "자유게시판"이 아닐 때만 특정 게시판으로 필터링
-    if (selectedBoard !== '자유게시판' && selectedBoard !== 'Foro Libre') {
-      const boardName = selectedBoard.replace(' 게시판', '').replace('Foro ', '')
-      const categoryName = post.category_name.replace(' 게시판', '').replace('Foro ', '')
-      
-      // 한국어와 스페인어 매칭
-      const koreanToSpanish: { [key: string]: string } = {
-        'K-POP': 'K-POP',
-        'K-Drama': 'K-Drama', 
-        '뷰티': 'Belleza',
-        '한국어': 'Coreano',
-        '스페인어': 'Español'
-      }
-      
-      const spanishToKorean: { [key: string]: string } = {
-        'K-POP': 'K-POP',
-        'K-Drama': 'K-Drama',
-        'Belleza': '뷰티', 
-        'Coreano': '한국어',
-        'Español': '스페인어'
-      }
-      
-      if (language === 'es') {
-        const koreanCategory = spanishToKorean[boardName] || boardName
-        return categoryName.includes(koreanCategory) || categoryName.includes(boardName)
-      } else {
-        const spanishCategory = koreanToSpanish[boardName] || boardName
-        return categoryName.includes(boardName) || categoryName.includes(spanishCategory)
-      }
-    }
-    
-    // "자유게시판" 선택 시 모든 게시글 표시 (필터링 없음)
     return true
   })
 
@@ -270,10 +246,25 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
   // 글 작성 완료
   const handleSubmitPost = async () => {
+    // 중복 요청 방지
+    if (isSubmittingPost) {
+      console.log('[POST_CREATE] 이미 제출 중 - 중복 요청 무시')
+      return
+    }
+
+    console.log('[POST_CREATE] 글쓰기 시작:', {
+      postTitle,
+      postContent: postContent.substring(0, 50),
+      postCategory,
+      uploadedImages: uploadedImages.length
+    })
+
     if (!postTitle.trim() || !postContent.trim()) {
       toast.error(language === 'es' ? 'Por favor ingresa título y contenido.' : '제목과 내용을 모두 입력해주세요.')
       return
     }
+
+    setIsSubmittingPost(true) // 제출 상태 설정
 
     try {
       // 카테고리별 갤러리 ID 매핑
@@ -287,8 +278,27 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       }
 
       const galleryId = categoryGalleryMap[postCategory] || 'free'
+      console.log('[POST_CREATE] 갤러리 ID 매핑:', { postCategory, galleryId })
       
-      const response = await fetch('http://localhost:3000/api/posts', {
+      console.log('[POST_CREATE] API 요청 준비:', {
+        url: 'http://localhost:3000/api/posts',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token ? '토큰있음' : '토큰없음'}`
+        },
+        body: {
+          gallery_id: galleryId,
+          title: postTitle,
+          content: postContent.substring(0, 50) + '...',
+          images: uploadedImages.length,
+          category_name: categories.find(cat => cat.id === postCategory)?.name || '자유게시판'
+        }
+      })
+      
+      console.log('[POST_CREATE] fetch 요청 시작...')
+      
+        const response = await fetch('http://localhost:3000/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -301,6 +311,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           images: uploadedImages,
           category_name: categories.find(cat => cat.id === postCategory)?.name || '자유게시판'
         })
+      })
+      
+      console.log('[POST_CREATE] fetch 응답 받음:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       })
 
       if (response.ok) {
@@ -317,8 +333,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         toast.error(t('community.postCreateFailed'))
       }
     } catch (error) {
-      console.error('Error creating post:', error)
+      console.error('[POST_CREATE] 게시글 작성 실패:', error)
+      console.error('[POST_CREATE] 에러 상세:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
       toast.error(t('community.postCreateError'))
+    } finally {
+      setIsSubmittingPost(false) // 제출 상태 해제
     }
   }
 
@@ -334,48 +357,88 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     }
   }, [isFabExpanded])
 
-  // 게시글 로딩
+  // 게시글 로딩 - AbortController 지원
   const loadPosts = async () => {
+    // 이전 요청 취소
+    if (abortController) {
+      abortController.abort()
+    }
+    
+    // 새로운 AbortController 생성
+    const newController = new AbortController()
+    setAbortController(newController)
+    
     setLoading(true)
     try {
-      console.log('게시글 API 호출 시작...')
+      console.log('[LOAD_POSTS] 게시글 로딩 시작:', { selectedBoard })
       
-      const response = await fetch('http://localhost:3000/api/posts', {
+      // 게시판 이름을 갤러리 슬러그로 변환
+      const boardToSlugMap: { [key: string]: string } = {
+        '자유게시판': 'free',
+        'Foro Libre': 'free',
+        'K-POP 게시판': 'kpop',
+        'Foro K-POP': 'kpop',
+        'K-Drama 게시판': 'drama',
+        'Foro K-Drama': 'drama',
+        '뷰티 게시판': 'beauty',
+        'Foro de Belleza': 'beauty',
+        '한국어 게시판': 'korean',
+        'Foro de Coreano': 'korean',
+        '스페인어 게시판': 'spanish',
+        'Foro de Español': 'spanish'
+      }
+      
+      const gallerySlug = boardToSlugMap[selectedBoard] || 'free'
+      console.log('[LOAD_POSTS] 갤러리 슬러그:', gallerySlug)
+      
+        const response = await fetch(`http://localhost:3000/api/posts?gallery=${gallerySlug}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        signal: newController.signal // AbortController 시그널 추가
       })
 
-      const data = await response.json()
-      console.log('API 응답 데이터:', data)
+      console.log('[LOAD_POSTS] API 응답 상태:', response.status)
 
-      if (data.success) {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('[LOAD_POSTS] API 응답 데이터:', data)
+
+      if (data.success && data.posts) {
+        // API 응답을 Post 인터페이스에 맞게 변환
         const transformedPosts = data.posts.map((post: any) => ({
           id: post.id,
           title: post.title,
           content: post.content,
           category_id: post.category_id || 'general',
-          category_name: post.category_name || '자유게시판',
-          author_name: post.author_name || '익명',
+          category_name: post.category || '자유게시판',
+          author_name: post.author?.full_name || '익명',
           created_at: post.created_at,
-          views: post.views || 0,
-          likes: post.likes || 0,
-          comments_count: post.comments_count || 0,
+          views: post.view_count || 0,
+          likes: post.like_count || 0,
+          comments_count: post.comment_count || 0,
           is_pinned: post.is_pinned || false,
-          is_hot: post.likes > 10
+          is_hot: post.is_hot || false
         }))
-        
-        console.log('변환된 게시글 데이터:', { success: true, postsCount: transformedPosts.length, posts: transformedPosts })
+
+        console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
         setPosts(transformedPosts)
       } else {
-        console.error('게시글 로딩 실패:', data.error)
-        toast.error(data.error || '게시글을 불러오는데 실패했습니다.')
+        console.log('[LOAD_POSTS] 성공하지 않음 또는 게시글 없음')
+        setPosts([])
       }
     } catch (error) {
-      console.error('게시글 로딩 오류:', error)
-      toast.error('게시글을 불러오는데 실패했습니다.')
+      if (error.name === 'AbortError') {
+        console.log('[LOAD_POSTS] 요청 취소됨')
+        return
+      }
+      console.error('[LOAD_POSTS] 게시글 로딩 실패:', error)
+      setPosts([])
     } finally {
       setLoading(false)
     }
@@ -383,7 +446,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
   useEffect(() => {
     loadPosts()
-  }, [currentPage, sortBy, selectedCategory])
+  }, [selectedBoard, currentPage, sortBy])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -430,8 +493,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 {t('buttons.back')}
               </Button>
               
-              {/* 가운데 드롭다운 */}
-              <Select value={selectedBoard} onValueChange={handleBoardChange}>
+              {/* 가운데 아이콘 + 드롭다운 */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="/주제별게시판.png" 
+                    alt="주제별 게시판" 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <Select value={selectedBoard} onValueChange={handleBoardChange}>
                 <SelectTrigger className="w-auto border-none shadow-none text-lg font-bold text-gray-800 bg-transparent">
                   <SelectValue />
                 </SelectTrigger>
@@ -446,6 +517,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   ))}
                 </SelectContent>
               </Select>
+              </div>
               
               {/* 오른쪽 끝에 글쓰기 버튼 */}
               <Button
@@ -574,7 +646,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                             <td className="px-4 py-3 text-sm text-gray-500">{posts.length - index}</td>
                             <td className="px-4 py-3 text-sm">
                               <Badge variant="secondary" className="text-xs">
-                                {getCategoryIcon(post.category_id)} {post.category_name}
+                                {getCategoryIcon(post.category_id)} {post.category || post.category_name}
                               </Badge>
                             </td>
                             <td className="px-4 py-3 text-sm font-medium text-gray-900">
@@ -1001,10 +1073,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 {t('buttons.cancel')}
               </button>
               <button
-                onClick={handleSubmitPost}
-                className="px-6 py-2 text-xs bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                onClick={() => {
+                  console.log('[BUTTON] 작성하기 버튼 클릭됨!')
+                  handleSubmitPost()
+                }}
+                disabled={isSubmittingPost}
+                className={`px-6 py-2 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${
+                  isSubmittingPost 
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
+                }`}
               >
-                {t('community.createPost')}
+                {isSubmittingPost ? '작성 중...' : t('community.createPost')}
               </button>
             </div>
           </div>

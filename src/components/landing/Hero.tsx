@@ -69,7 +69,7 @@ export default function Hero() {
           >
             {/* 첫 번째 슬라이드 - Global Community */}
             <SwiperSlide className="pointer-events-auto">
-              <div className="min-h-screen flex flex-col items-center justify-start pt-12 md:justify-start md:pt-[12vh] lg:pt-[15vh]">
+              <div className="min-h-screen flex flex-col items-center justify-start pt-8 md:justify-start md:pt-[8vh] lg:pt-[10vh]">
                 <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
                   <div className="w-full">
                     {/* 상단 텍스트 */}

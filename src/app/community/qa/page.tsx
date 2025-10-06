@@ -300,6 +300,42 @@ export default function QAPage() {
     }
   }
 
+  // 답변 채택 처리
+  const handleAcceptAnswer = async (answerId: string) => {
+    if (!user || !token) {
+      toast.error('로그인이 필요합니다.')
+      return
+    }
+
+    // 질문 작성자 확인
+    if (selectedQuestion?.author?.id !== user.id) {
+      toast.error('질문 작성자만 답변을 채택할 수 있습니다.')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/questions/${selectedQuestion.id}/answers/${answerId}/accept`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '답변 채택에 실패했습니다.')
+      }
+
+      // 답변 목록 새로고침
+      await loadAnswers(selectedQuestion.id)
+      toast.success('✅ 답변이 채택되었습니다!')
+    } catch (err) {
+      console.error('답변 채택 실패:', err)
+      toast.error(err instanceof Error ? err.message : '답변 채택에 실패했습니다.')
+    }
+  }
+
   // 질문 클릭 시 답변 로딩
   const handleQuestionClick = async (question: any) => {
     setSelectedQuestion(question)
@@ -360,7 +396,16 @@ export default function QAPage() {
         {/* 페이지 제목 */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1">
-            <h1 className="text-lg font-bold text-gray-800">Q&A</h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
+                <img 
+                  src="/Q&A.png" 
+                  alt="Q&A" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <h1 className="text-lg font-bold text-gray-800">Q&A</h1>
+            </div>
             
             {/* 이전 버튼 - 제목 오른쪽으로 이동 */}
             <Button 
@@ -486,6 +531,12 @@ export default function QAPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-sm font-semibold text-gray-800 truncate">{question.title}</h3>
+                          {/* 채택된 답변이 있으면 표시 */}
+                          {question.accepted_answer_id && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 flex-shrink-0">
+                              ✅ 해결됨
+                            </span>
+                          )}
                         </div>
                         
                         {/* 질문 내용과 이미지는 상세보기에서만 표시 */}
@@ -524,7 +575,15 @@ export default function QAPage() {
                     }}
                   >
                     <div className="space-y-1">
-                      <h3 className="text-sm font-semibold text-gray-800 line-clamp-2">{question.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 flex-1">{question.title}</h3>
+                        {/* 채택된 답변이 있으면 표시 */}
+                        {question.accepted_answer_id && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 flex-shrink-0">
+                            ✅
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center justify-between text-xs text-gray-800">
                         <span>{question.author?.full_name || '익명'}</span>
                         <div className="flex items-center gap-2">
@@ -717,15 +776,45 @@ export default function QAPage() {
                 </div>
               ) : (
                 answers.map((answer) => (
-                  <div key={answer.id} className="border-l-4 border-purple-200 pl-4 py-3 bg-white rounded-r-lg">
-                    <p className="text-gray-800 mb-2">{answer.content}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-800">
-                      <span>{answer.author?.full_name || '익명'}</span>
-                      <span>{new Date(answer.created_at).toLocaleDateString()}</span>
-                      <div className="flex items-center gap-1">
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>{answer.like_count || 0}</span>
+                  <div 
+                    key={answer.id} 
+                    className={`border-l-4 pl-4 py-3 rounded-r-lg ${
+                      answer.is_accepted 
+                        ? 'border-green-500 bg-green-50' 
+                        : 'border-purple-200 bg-white'
+                    }`}
+                  >
+                    {/* 채택 배지 */}
+                    {answer.is_accepted && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-500 text-white">
+                          ✅ 채택된 답변
+                        </span>
+                        <span className="text-xs text-green-700">
+                          {new Date(answer.accepted_at).toLocaleDateString()}
+                        </span>
                       </div>
+                    )}
+                    
+                    <p className="text-gray-800 mb-3">{answer.content}</p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <span className="font-medium">{answer.author?.full_name || '익명'}</span>
+                        <span>{new Date(answer.created_at).toLocaleDateString()}</span>
+                      </div>
+                      
+                      {/* 채택 버튼 (질문 작성자에게만 표시) */}
+                      {user && selectedQuestion?.author?.id === user.id && !answer.is_accepted && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAcceptAnswer(answer.id)}
+                          className="border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700"
+                        >
+                          ✓ 채택하기
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))

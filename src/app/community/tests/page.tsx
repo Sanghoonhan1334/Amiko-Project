@@ -293,7 +293,14 @@ export default function TestsPage() {
       {/* 페이지별 헤더 - 모바일 컴팩트 */}
       <div className="bg-white border-b border-gray-200 px-3 py-2 pt-8 md:pt-24">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
+              <img 
+                src="/심리테스트.png" 
+                alt="심리테스트" 
+                className="w-full h-full object-contain"
+              />
+            </div>
             <h1 className="text-lg font-bold text-gray-800">심리테스트</h1>
           </div>
           

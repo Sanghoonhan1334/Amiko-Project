@@ -22,10 +22,10 @@ interface Post {
   is_hot: boolean
   created_at: string
   updated_at: string
-  user: {
+  author: {
     id: string
     full_name: string
-    avatar_url?: string
+    profile_image?: string
   }
 }
 
@@ -123,6 +123,50 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       return
     }
 
+    // 즉시 UI 업데이트 (Optimistic Update)
+    const previousVote = userVote
+    const previousLikeCount = post?.like_count || 0
+    const previousDislikeCount = post?.dislike_count || 0
+
+    // 새로운 투표 상태 계산
+    let newVote: 'like' | 'dislike' | null = voteType
+    let newLikeCount = previousLikeCount
+    let newDislikeCount = previousDislikeCount
+
+    if (previousVote === voteType) {
+      // 같은 버튼을 다시 누르면 취소
+      newVote = null
+      if (voteType === 'like') {
+        newLikeCount = Math.max(0, previousLikeCount - 1)
+      } else {
+        newDislikeCount = Math.max(0, previousDislikeCount - 1)
+      }
+    } else {
+      // 다른 투표로 변경
+      if (voteType === 'like') {
+        newLikeCount = previousLikeCount + 1
+        if (previousVote === 'dislike') {
+          newDislikeCount = Math.max(0, previousDislikeCount - 1)
+        }
+      } else {
+        newDislikeCount = previousDislikeCount + 1
+        if (previousVote === 'like') {
+          newLikeCount = Math.max(0, previousLikeCount - 1)
+        }
+      }
+    }
+
+    // 즉시 UI 업데이트
+    setUserVote(newVote)
+    if (post) {
+      setPost({
+        ...post,
+        like_count: newLikeCount,
+        dislike_count: newDislikeCount
+      })
+    }
+
+    // 서버에 투표 요청 (백그라운드)
     try {
       const response = await fetch(`/api/posts/${postId}/vote`, {
         method: 'POST',
@@ -141,6 +185,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       const data = await response.json()
       console.log('투표 성공:', data)
       
+      // 서버 응답으로 최종 동기화
       setUserVote(data.vote_type)
       if (post) {
         setPost({
@@ -151,6 +196,17 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       }
     } catch (err) {
       console.error('투표 오류:', err)
+      
+      // 에러 발생 시 이전 상태로 롤백
+      setUserVote(previousVote)
+      if (post) {
+        setPost({
+          ...post,
+          like_count: previousLikeCount,
+          dislike_count: previousDislikeCount
+        })
+      }
+      
       setError(err instanceof Error ? err.message : '투표 처리 중 오류가 발생했습니다')
     }
   }
@@ -194,12 +250,12 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     )
   }
 
-  const isAuthor = user && user.id === post.user.id
+  const isAuthor = user && user.id === post.author?.id
   const canManage = isAuthor || isAdmin // 작성자이거나 운영자
   
   console.log('PostDetail 권한 확인:', {
     userId: user?.id,
-    postUserId: post.user.id,
+    postUserId: post.author?.id,
     isAuthor,
     isAdmin,
     canManage,
@@ -216,7 +272,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-bold text-gray-800 mb-1">{post.title}</h1>
-            <p className="text-sm text-gray-500">{post.user.full_name} / {formatDate(post.created_at)}</p>
+            <p className="text-sm text-gray-500">{post.author?.full_name || '익명'} / {formatDate(post.created_at)}</p>
           </div>
 
           {/* 상태 배지 및 액션 버튼 */}
