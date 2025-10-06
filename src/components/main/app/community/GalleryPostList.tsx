@@ -78,6 +78,13 @@ export default function GalleryPostList({
       setLoading(true)
       setError(null)
 
+      console.log('[GalleryPostList] 게시물 로드 시작:', {
+        galleryId: gallery.id,
+        gallerySlug: gallery.slug,
+        galleryName: gallery.name_ko,
+        filters
+      })
+
       // 필터 파라미터를 URL에 추가
       const params = new URLSearchParams({
         sortBy: filters.sortBy,
@@ -89,7 +96,10 @@ export default function GalleryPostList({
         offset: '0'
       })
 
-      const response = await fetch(`/api/galleries/${gallery.slug}/posts/filtered?${params}`, {
+      const apiUrl = `/api/galleries/${gallery.slug}/posts/filtered?${params}`
+      console.log('[GalleryPostList] API 호출 URL:', apiUrl)
+
+      const response = await fetch(apiUrl, {
         headers: user ? {
           'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
         } : {}
@@ -100,6 +110,16 @@ export default function GalleryPostList({
       }
       
       const data = await response.json()
+      console.log('[GalleryPostList] API 응답:', {
+        galleryId: gallery.id,
+        galleryName: gallery.name_ko,
+        postsCount: data.posts?.length || 0,
+        posts: data.posts?.map((post: any) => ({
+          id: post.id,
+          title: post.title,
+          gallery: post.gallery
+        })) || []
+      })
       setPosts(data.posts || [])
       setUserVotes(data.userVotes || {})
     } catch (err) {
@@ -212,6 +232,42 @@ export default function GalleryPostList({
           onPopularPosts={onPopularPosts}
         />
       )}
+
+      {/* 탭 버튼들 */}
+      <div className="flex items-center space-x-2 mb-4">
+        <Button
+          onClick={() => handleFilterChange({ ...filters, sortBy: 'hot', status: 'hot' })}
+          variant={filters.sortBy === 'hot' && filters.status === 'hot' ? 'default' : 'outline'}
+          size="sm"
+          className={filters.sortBy === 'hot' && filters.status === 'hot' ? 'bg-blue-500 hover:bg-blue-600 text-white' : ''}
+        >
+          추천
+        </Button>
+        <Button
+          onClick={() => handleFilterChange({ ...filters, sortBy: 'latest', status: 'all' })}
+          variant={filters.sortBy === 'latest' && filters.status === 'all' ? 'default' : 'outline'}
+          size="sm"
+          className={filters.sortBy === 'latest' && filters.status === 'all' ? 'bg-blue-500 hover:bg-blue-600 text-white' : ''}
+        >
+          전체글
+        </Button>
+        <Button
+          onClick={() => handleFilterChange({ ...filters, sortBy: 'popular', status: 'popular' })}
+          variant={filters.sortBy === 'popular' && filters.status === 'popular' ? 'default' : 'outline'}
+          size="sm"
+          className={filters.sortBy === 'popular' && filters.status === 'popular' ? 'bg-blue-500 hover:bg-blue-600 text-white' : ''}
+        >
+          인기글
+        </Button>
+        <Button
+          onClick={() => handleFilterChange({ ...filters, sortBy: 'latest', status: 'all' })}
+          variant={filters.sortBy === 'latest' && filters.status === 'all' ? 'default' : 'outline'}
+          size="sm"
+          className={filters.sortBy === 'latest' && filters.status === 'all' ? 'bg-blue-500 hover:bg-blue-600 text-white' : ''}
+        >
+          최신글
+        </Button>
+      </div>
 
       {/* 필터 및 글쓰기 버튼 */}
       <div className="flex items-center justify-between gap-4">
