@@ -422,12 +422,20 @@ export default function FreeBoard() {
         is_survey: writeIsSurvey,
         fileCount: attachedFiles.length
       })
+      
+      // FormData 내용 확인
+      console.log('FormData 내용:')
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value)
+      }
+      
       console.log('API 요청 시작')
       
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
+          // Content-Type을 명시하지 않음 (FormData 자동 설정)
         },
         body: formData
       })
