@@ -611,14 +611,48 @@ export async function POST(request: NextRequest) {
       contentLength: content.trim().length
     })
     
+    // 주제별 갤러리 ID 결정
+    let finalGalleryId = actualGalleryId
+    const selectedCategory = body.category_name || '자유게시판'
+    
+    // 주제별 갤러리 매핑
+    const categoryGalleryMap: { [key: string]: string } = {
+      'K-POP': 'kpop',
+      '드라마': 'drama', 
+      '뷰티': 'beauty',
+      '한국어': 'korean',
+      '스페인어': 'spanish',
+      '자유게시판': 'free'
+    }
+    
+    // 선택한 주제에 해당하는 갤러리가 있는지 확인
+    const gallerySlug = categoryGalleryMap[selectedCategory] || 'free'
+    
+    if (gallerySlug !== 'free') {
+      console.log('[POST_CREATE] 주제별 갤러리 확인:', gallerySlug)
+      
+      const { data: categoryGallery, error: categoryError } = await supabaseServer
+        .from('galleries')
+        .select('id')
+        .eq('slug', gallerySlug)
+        .single()
+      
+      if (categoryGallery && !categoryError) {
+        finalGalleryId = categoryGallery.id
+        console.log('[POST_CREATE] 주제별 갤러리 사용:', gallerySlug, finalGalleryId)
+      } else {
+        console.log('[POST_CREATE] 주제별 갤러리 없음, 자유게시판 사용:', categoryError?.message)
+      }
+    }
+
     // 게시글 데이터 준비
     const postData: any = {
-      gallery_id: actualGalleryId,
+      gallery_id: finalGalleryId,
       user_id: authUser.id,
       title: title.trim(),
       content: content.trim(),
       images: images || [],
-      category: body.category_name || '자유게시판',
+      category: selectedCategory,
       view_count: 0,
       like_count: 0,
       dislike_count: 0,
