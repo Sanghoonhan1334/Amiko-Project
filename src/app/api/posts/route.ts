@@ -381,6 +381,28 @@ export async function POST(request: NextRequest) {
       content = body.content
       images = body.images
       user_id = body.user_id
+      
+      // gallery_id가 slug인 경우 실제 UUID로 변환
+      if (gallery_id && typeof gallery_id === 'string' && !gallery_id.includes('-')) {
+        console.log('[POST_CREATE] 갤러리 slug로 UUID 조회:', gallery_id)
+        
+        const { data: gallery, error: galleryError } = await supabaseServer
+          .from('galleries')
+          .select('id')
+          .eq('slug', gallery_id)
+          .single()
+        
+        if (galleryError || !gallery) {
+          console.error('[POST_CREATE] 갤러리 조회 실패:', galleryError)
+          return NextResponse.json(
+            { error: `갤러리 '${gallery_id}'를 찾을 수 없습니다.` },
+            { status: 404 }
+          )
+        }
+        
+        gallery_id = gallery.id
+        console.log('[POST_CREATE] 갤러리 UUID 변환 완료:', gallery_id)
+      }
     }
 
     // Authorization 헤더에서 토큰 추출
