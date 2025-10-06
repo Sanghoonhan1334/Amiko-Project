@@ -529,13 +529,6 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                         : (language === 'ko' ? '첫 번째 게시글을 작성해보세요!' : 'Be the first to write a post!')
                       }
                     </p>
-                    <Button 
-                      onClick={() => router.push('/community/post/create')}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      {language === 'ko' ? '게시글 작성' : 'Write Post'}
-                    </Button>
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -748,13 +741,6 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   : (language === 'ko' ? '첫 번째 게시글을 작성해보세요!' : 'Be the first to write a post!')
                 }
               </p>
-              <Button 
-                onClick={() => router.push('/community/post/create')}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                {language === 'ko' ? '게시글 작성' : 'Write Post'}
-              </Button>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
