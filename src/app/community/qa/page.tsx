@@ -385,7 +385,7 @@ export default function QAPage() {
               placeholder={t('community.qaSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-14 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 border border-gray-400 text-sm h-8"
+              className="!pl-16 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 border border-gray-400 text-sm h-8"
             />
           </div>
           
