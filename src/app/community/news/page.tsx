@@ -134,8 +134,8 @@ export default function NewsPage() {
     content: '',
     content_es: '',
     source: '',
-    author: '',
-    date: '',
+    author: 'Amiko 편집팀',
+    date: new Date().toISOString().split('T')[0],
     category: 'entertainment'
   })
   const [newsWriteLoading, setNewsWriteLoading] = useState(false)
@@ -157,8 +157,20 @@ export default function NewsPage() {
   }
 
   const handleCreateNews = () => {
-    // 뉴스 작성 로직 (나중에 구현)
-    console.log('뉴스 작성')
+    // 뉴스 작성 폼 초기화
+    setNewsWriteForm({
+      title: '',
+      title_es: '',
+      content: '',
+      content_es: '',
+      source: '',
+      author: 'Amiko 편집팀',
+      date: new Date().toISOString().split('T')[0],
+      category: 'entertainment'
+    })
+    setNewsUploadedImages([])
+    setSelectedThumbnail('')
+    setShowNewsWriteModal(true)
   }
 
   const handleNewsClick = (newsItem: any) => {
@@ -524,8 +536,29 @@ export default function NewsPage() {
     }
   }
 
+  // 모바일용 뉴스 편집 함수들
+  const handleEditNews = (newsItem: any) => {
+    handleNewsEdit(newsItem)
+  }
+
+  const handleTogglePin = (newsItem: any) => {
+    handleNewsPin(newsItem)
+  }
+
+  const handleDeleteNews = async (newsId: string) => {
+    const newsItem = news.find(item => item.id === newsId)
+    if (newsItem) {
+      await handleNewsDelete(newsItem)
+    }
+  }
+
   // 뉴스 작성 함수 (CommunityTab.tsx에서 가져옴)
   const handleNewsWrite = async () => {
+    if (!newsWriteForm.title.trim()) {
+      toast.error('제목을 입력해주세요.')
+      return
+    }
+    
     if (!newsWriteForm.content.trim()) {
       toast.error('내용을 입력해주세요.')
       return
@@ -975,7 +1008,7 @@ export default function NewsPage() {
             {/* 운영자일 때만 글쓰기 버튼 표시 */}
             {isOperatorUser && (
               <Button
-                onClick={() => setShowNewsWriteModal(true)}
+                onClick={handleCreateNews}
                 className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -1011,7 +1044,7 @@ export default function NewsPage() {
                   {/* 운영자일 때만 글쓰기 버튼 표시 */}
                   {isOperatorUser && (
                     <Button
-                      onClick={() => setShowNewsWriteModal(true)}
+                      onClick={handleCreateNews}
                       className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                     >
                       <Plus className="w-4 h-4 mr-2" />
