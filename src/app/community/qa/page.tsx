@@ -380,12 +380,12 @@ export default function QAPage() {
         {/* 상단 컨트롤 */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="relative flex-1">
-            <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 flex-shrink-0" />
+            <MessageSquare className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 flex-shrink-0" />
             <Input
               placeholder={t('community.qaSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 border border-gray-400 text-sm h-8"
+              className="pl-12 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 border border-gray-400 text-sm h-8"
             />
           </div>
           
