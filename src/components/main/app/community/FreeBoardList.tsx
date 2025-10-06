@@ -230,7 +230,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         const formData = new FormData()
         formData.append('file', file)
 
-        const response = await fetch('/api/upload/image', {
+        const response = await fetch('http://localhost:3001/api/upload/image', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -288,7 +288,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
       const galleryId = categoryGalleryMap[postCategory] || 'free'
       
-      const response = await fetch('/api/posts', {
+      const response = await fetch('http://localhost:3001/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -335,7 +335,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     try {
       console.log('게시글 API 호출 시작...')
       
-      const response = await fetch('/api/posts', {
+      const response = await fetch('http://localhost:3001/api/posts', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
