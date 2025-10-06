@@ -276,6 +276,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     }
 
     try {
+      // 카테고리별 갤러리 ID 매핑
+      const categoryGalleryMap: { [key: string]: string } = {
+        'free': 'free',
+        'kpop': 'kpop',
+        'kdrama': 'drama',
+        'beauty': 'beauty',
+        'korean': 'korean',
+        'spanish': 'spanish'
+      }
+
+      const galleryId = categoryGalleryMap[postCategory] || 'free'
+      
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
@@ -283,10 +295,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          gallery_id: 'free', // 자유게시판 갤러리 ID
+          gallery_id: galleryId,
           title: postTitle,
           content: postContent,
-          images: uploadedImages
+          images: uploadedImages,
+          category_name: categories.find(cat => cat.id === postCategory)?.name || '자유게시판'
         })
       })
 
