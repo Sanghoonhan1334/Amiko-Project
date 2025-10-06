@@ -306,6 +306,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       if (response.ok) {
         toast.success(t('community.postCreatedSuccess'))
         handleClosePostModal()
+        
+        // 작성한 카테고리로 필터 변경
+        const categoryName = categories.find(cat => cat.id === postCategory)?.name || '자유게시판'
+        setSelectedBoard(categoryName)
+        
         // 게시글 목록 새로고침
         loadPosts()
       } else {
