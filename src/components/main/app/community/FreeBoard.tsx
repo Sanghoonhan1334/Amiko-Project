@@ -1043,6 +1043,8 @@ export default function FreeBoard() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">번호</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">말머리</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('communityTab.title')}</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.author')}</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.createdAt')}</th>
@@ -1057,6 +1059,15 @@ export default function FreeBoard() {
                         className="hover:bg-gray-50 cursor-pointer"
                         onClick={() => handlePostClick(post)}
                       >
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {posts.length - index}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs">📄</span>
+                            <span>{post.category || '자유게시판'}</span>
+                          </div>
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             {getPostIcon(post)}
