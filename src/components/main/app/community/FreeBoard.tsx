@@ -389,8 +389,8 @@ export default function FreeBoard() {
       
       console.log('토큰 확인 완료, 요청 데이터 준비 중')
       
-      // 카테고리 자동 설정
-      let category_name = '자유게시판' // 기본값
+      // 카테고리 설정 (사용자가 선택한 카테고리 사용)
+      let category_name = writeCategory // 사용자가 선택한 카테고리 사용
       if (writeIsNotice) {
         category_name = '공지'
       } else if (writeIsSurvey) {
