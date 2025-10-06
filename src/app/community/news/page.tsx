@@ -752,9 +752,9 @@ export default function NewsPage() {
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
               >
                 <ArrowLeft className="w-4 h-4" />
-                목록으로
+                {t('buttons.backToList')}
               </Button>
-              <h1 className="text-lg font-bold text-gray-800">뉴스 상세</h1>
+              <h1 className="text-lg font-bold text-gray-800">{t('community.newsDetail')}</h1>
             </div>
           </div>
         </div>

@@ -30,7 +30,8 @@ export const translations = {
       deleting: '삭제 중...',
       retry: '다시 시도',
       required: '필수',
-      back: '이전'
+      back: '이전',
+      backToList: '목록으로'
     },
 
     // 인증 관련
@@ -313,6 +314,7 @@ export const translations = {
       qa: 'Q&A',
       freeBoard: '주제별 게시판',
       koreanNews: 'K-매거진',
+      newsDetail: '뉴스 상세',
       freeBoardDescription: '',
       koreanNewsDescription: '',
       qaDescription: '궁금한 점을 질문하고 답변을 받아보세요',
@@ -1754,7 +1756,8 @@ export const translations = {
       deleting: 'Eliminando...',
       retry: 'Reintentar',
       required: 'Requerido',
-      back: 'Atrás'
+      back: 'Atrás',
+      backToList: 'Volver a la lista'
     },
 
     // 인증 관련
@@ -2037,6 +2040,7 @@ export const translations = {
       qa: 'P&R',
       freeBoard: 'Tablero por Temas',
       koreanNews: 'K-Magazine',
+      newsDetail: 'Detalle de Noticias',
       freeBoardDescription: '',
       koreanNewsDescription: '',
       qaDescription: 'Haz preguntas sobre lo que te interesa y recibe respuestas',
