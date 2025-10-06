@@ -2156,9 +2156,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                  {/* 홈페이지 카드들 */}
                  <div className="grid grid-cols-3 md:grid-cols-3 gap-1 md:gap-4 mt-4 md:mt-6 -mb-2">
                    {/* AI 화상 채팅 카드 */}
-                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm relative rounded-lg">
-                     {/* 위쪽 그림자 효과 */}
-                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-gray-600/15 to-transparent rounded-t-lg"></div>
+                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm relative rounded-lg">
                      <div className="mb-0">
                        {/* AI 화상 채팅 이미지 */}
                        <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0 -mb-2">
@@ -2175,11 +2173,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
                    {/* 커뮤니티 카드 */}
                    <Card 
-                     className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm cursor-pointer relative rounded-lg"
+                     className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm cursor-pointer relative rounded-lg"
                      onClick={() => router.push('/main?tab=community')}
                    >
-                     {/* 위쪽 그림자 효과 */}
-                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-gray-600/15 to-transparent rounded-t-lg"></div>
                      <div className="mb-0">
                        {/* 커뮤니티 이미지 */}
                        <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0">
@@ -2202,9 +2198,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    </Card>
 
                    {/* 오픈 기념 이벤트 카드 */}
-                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm relative overflow-hidden rounded-lg">
-                     {/* 위쪽 그림자 효과 */}
-                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-gray-400/10 to-transparent rounded-t-lg z-20"></div>
+                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm relative overflow-hidden rounded-lg">
                      {/* 이벤트 리본 */}
                      <div className="absolute top-0 left-0 w-full h-2 bg-white"></div>
                      <div className="absolute top-1 right-1 z-10">
