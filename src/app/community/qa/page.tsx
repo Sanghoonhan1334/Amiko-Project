@@ -450,7 +450,7 @@ export default function QAPage() {
             ) : filteredQuestions.length === 0 ? (
               <Card className="p-4 text-center shadow-md">
                 <div className="text-gray-400 text-4xl mb-2">❓</div>
-                <h3 className="text-base font-semibold text-gray-800 mb-1">아직 질문이 없습니다</h3>
+                <h3 className="text-base font-semibold text-gray-800 mb-1">{t('community.noQuestionsYet')}</h3>
                 <p className="text-sm text-gray-600">첫 번째 질문을 작성해보세요!</p>
               </Card>
             ) : (
@@ -545,15 +545,15 @@ export default function QAPage() {
       <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
         <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
           <DialogHeader className="pb-4 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold text-gray-900">새 질문 작성</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-900">{t('community.newQuestion')}</DialogTitle>
             <DialogDescription className="sr-only">새로운 질문을 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-800 mb-2 block">제목</label>
+              <label className="text-sm font-medium text-gray-800 mb-2 block">{t('community.questionTitle')}</label>
               <Input
-                placeholder="질문 제목을 입력하세요"
+                placeholder={t('community.questionTitlePlaceholder')}
                 value={questionForm.title}
                 onChange={(e) => setQuestionForm({ ...questionForm, title: e.target.value })}
                 className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
@@ -561,7 +561,7 @@ export default function QAPage() {
             </div>
             
             <div>
-              <label className="text-sm font-medium text-gray-800 mb-2 block">카테고리</label>
+              <label className="text-sm font-medium text-gray-800 mb-2 block">{t('community.category')}</label>
               <select
                 value={questionForm.category}
                 onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
@@ -578,7 +578,7 @@ export default function QAPage() {
             
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-800">내용</label>
+                <label className="text-sm font-medium text-gray-800">{t('community.content')}</label>
                 <div className="flex gap-2">
                   <input
                     type="file"
@@ -599,12 +599,12 @@ export default function QAPage() {
                     onClick={() => document.getElementById('questionImageUpload')?.click()}
                     className="text-xs"
                   >
-                    📷 이미지 삽입
+                    📷 {t('community.insertImage')}
                   </Button>
                 </div>
               </div>
               <Textarea
-                placeholder="질문 내용을 자세히 입력하세요. 이미지를 삽입하려면 위의 '이미지 삽입' 버튼을 클릭하세요."
+                    placeholder={t('community.questionContentPlaceholder')}
                 value={questionForm.content}
                 onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
                 rows={6}
@@ -641,10 +641,10 @@ export default function QAPage() {
             
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={() => setShowQuestionModal(false)}>
-                취소
+                {t('buttons.cancel')}
               </Button>
               <Button onClick={handleSubmitQuestion} className="bg-purple-500 hover:bg-purple-600">
-                질문 작성
+                {t('community.createQuestion')}
               </Button>
             </div>
           </div>
