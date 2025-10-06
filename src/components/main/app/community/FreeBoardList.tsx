@@ -63,10 +63,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [sortBy, setSortBy] = useState('latest')
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState('free')
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [hasMobileNavigation, setHasMobileNavigation] = useState(false)
-  const [selectedBoard, setSelectedBoard] = useState(language === 'es' ? 'Todos' : '전체')
+  const [selectedBoard, setSelectedBoard] = useState(language === 'es' ? 'Foro Libre' : '자유게시판')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('recommended')
   const [isFabExpanded, setIsFabExpanded] = useState(false)
@@ -79,7 +79,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [uploadingImages, setUploadingImages] = useState(false)
 
   const categories: Category[] = [
-    { id: 'all', name: '전체', icon: '📝' },
+    { id: 'free', name: '자유게시판', icon: '📝' },
     { id: 'kpop', name: 'K-POP 게시판', icon: '🎵' },
     { id: 'kdrama', name: 'K-Drama 게시판', icon: '📺' },
     { id: 'beauty', name: '뷰티 게시판', icon: '💄' },
@@ -88,7 +88,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   ]
 
   const boardOptions = [
-    { id: 'all', name: language === 'es' ? 'Todos' : '전체', icon: '📝' },
+    { id: 'free', name: language === 'es' ? 'Foro Libre' : '자유게시판', icon: '📝' },
     { id: 'kpop', name: language === 'es' ? 'Foro K-POP' : 'K-POP 게시판', icon: '🎵' },
     { id: 'kdrama', name: language === 'es' ? 'Foro K-Drama' : 'K-Drama 게시판', icon: '📺' },
     { id: 'beauty', name: language === 'es' ? 'Foro de Belleza' : '뷰티 게시판', icon: '💄' },
@@ -151,8 +151,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       if (!matchesSearch) return false
     }
     
-    // 게시판 필터링 - "전체"가 아닐 때만 특정 게시판으로 필터링
-    if (selectedBoard !== '전체' && selectedBoard !== 'Todos') {
+    // 게시판 필터링 - "자유게시판"이 아닐 때만 특정 게시판으로 필터링
+    if (selectedBoard !== '자유게시판' && selectedBoard !== 'Foro Libre') {
       const boardName = selectedBoard.replace(' 게시판', '').replace('Foro ', '')
       const categoryName = post.category_name.replace(' 게시판', '').replace('Foro ', '')
       
@@ -182,7 +182,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       }
     }
     
-    // "전체" 선택 시 모든 게시글 표시 (필터링 없음)
+    // "자유게시판" 선택 시 모든 게시글 표시 (필터링 없음)
     return true
   })
 
