@@ -2101,7 +2101,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   onClick={() => router.push('/community/freeboard')}
                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
                 >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/주제별게시판.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
                   </div>
                   <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('community.freeBoard')}</h3>
@@ -2111,7 +2111,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    onClick={() => router.push('/community/news')}
                    className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
                  >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/K-매거진.png" alt="K-매거진" className="w-8 h-8 object-contain" />
               </div>
                   <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('community.koreanNews')}</h3>
@@ -2121,7 +2121,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    onClick={() => router.push('/community/qa')}
                    className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
                  >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/Q&A.png" alt="Q&A" className="w-8 h-8 object-contain" />
                   </div>
                   <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('community.qa')}</h3>
@@ -2135,7 +2135,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    onClick={() => router.push('/community/tests')}
                    className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
                  >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/심리테스트.png" alt="심리테스트" className="w-8 h-8 object-contain" />
                   </div>
                   <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">{t('tests.title')}</h3>
@@ -2145,7 +2145,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        onClick={() => router.push('/community/stories')}
                        className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
                      >
-                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:shadow-lg transition-shadow duration-300 mb-2 overflow-hidden">
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-xl transition-shadow duration-300 mb-2 overflow-hidden">
                          <span className="text-2xl">📸</span>
                        </div>
                        <h3 className="text-xs font-medium text-gray-700 text-center leading-tight">스토리</h3>
