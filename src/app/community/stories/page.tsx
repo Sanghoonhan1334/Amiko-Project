@@ -455,21 +455,7 @@ export default function StoriesPage() {
               <ImageIcon className="w-10 h-10 text-purple-500" />
             </div>
             <h3 className="text-xl font-semibold text-gray-800 mb-3">아직 스토리가 없습니다</h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">첫 번째 스토리를 올리고<br />다른 사람들과 일상을 공유해보세요!</p>
-            <Button 
-              className="hidden md:flex bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => {
-                if (!user) {
-                  toast.error('로그인이 필요합니다.')
-                  router.push('/sign-in')
-                  return
-                }
-                setShowStoryUploadModal(true)
-              }}
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              첫 스토리 올리기
-            </Button>
+            <p className="text-gray-600 max-w-md mx-auto">첫 번째 스토리를 올리고<br />다른 사람들과 일상을 공유해보세요!</p>
           </div>
         )}
       </div>
