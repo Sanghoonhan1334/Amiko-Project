@@ -305,8 +305,10 @@ export default function FreeBoard() {
 
   // 게시글 작성
   const handleWritePost = async () => {
+    // 로그인 체크 먼저
     if (!user) {
-      setError('로그인이 필요합니다.')
+      // 로그인 페이지로 이동
+      window.location.href = '/sign-in'
       return
     }
 

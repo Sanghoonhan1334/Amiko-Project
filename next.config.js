@@ -55,26 +55,26 @@ const nextConfig = {
       ...config.resolve.alias,
     };
     
-    // 모듈 로딩 최적화
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          default: {
-            minChunks: 1,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: -10,
-            chunks: 'all',
-          },
-        },
-      },
-    };
+    // 모듈 로딩 최적화 (vendors 설정 제거)
+    // config.optimization = {
+    //   ...config.optimization,
+    //   splitChunks: {
+    //     chunks: 'all',
+    //     cacheGroups: {
+    //       default: {
+    //         minChunks: 1,
+    //         priority: -20,
+    //         reuseExistingChunk: true,
+    //       },
+    //       vendor: {
+    //         test: /[\\/]node_modules[\\/]/,
+    //         name: 'vendors',
+    //         priority: -10,
+    //         chunks: 'all',
+    //       },
+    //     },
+    //   },
+    // };
     
     return config;
   },
