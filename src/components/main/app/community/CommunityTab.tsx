@@ -2096,7 +2096,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                  {/* 5개 아이콘 - 3개 위, 2개 아래 */}
                  <div className="w-full flex flex-col items-center gap-2">
                    {/* 위쪽 3개 아이콘 */}
-                   <div className="flex gap-4 justify-start pr-2">
+                   <div className="flex gap-4 justify-start pr-3">
                 <button
                   onClick={() => router.push('/community/freeboard')}
                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
