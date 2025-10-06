@@ -29,7 +29,6 @@ import { createClientComponentClient } from '@/lib/supabase'
 import PostDetail from './PostDetail'
 import PostEditModal from './PostEditModal'
 import { CardGridSkeleton } from '@/components/ui/skeleton'
-import VerificationGuard from '@/components/common/VerificationGuard'
 
 // 게시글 타입 정의
 interface Post {
@@ -730,14 +729,22 @@ export default function FreeBoard() {
             </SelectContent>
           </Select>
           
-          <VerificationGuard requiredLevel="sms">
-            <Dialog open={showWriteDialog} onOpenChange={setShowWriteDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-400 hover:bg-blue-500 text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('buttons.write')}
-                </Button>
-              </DialogTrigger>
+          <Dialog open={showWriteDialog} onOpenChange={setShowWriteDialog}>
+            <DialogTrigger asChild>
+              <Button 
+                className="bg-blue-400 hover:bg-blue-500 text-white"
+                onClick={() => {
+                  if (!user) {
+                    window.location.href = '/sign-in'
+                    return
+                  }
+                  setShowWriteDialog(true)
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {t('buttons.write')}
+              </Button>
+            </DialogTrigger>
             <DialogContent 
               className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl mx-4"
               style={{ 
@@ -977,7 +984,6 @@ export default function FreeBoard() {
               </div>
             </DialogContent>
           </Dialog>
-          </VerificationGuard>
         </div>
       </div>
 
