@@ -380,7 +380,7 @@ export default function QAPage() {
         {/* 상단 컨트롤 */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="relative flex-1">
-            <MessageSquare className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 flex-shrink-0" />
+            <MessageSquare className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 flex-shrink-0" />
             <Input
               placeholder={t('community.qaSearchPlaceholder')}
               value={searchTerm}
