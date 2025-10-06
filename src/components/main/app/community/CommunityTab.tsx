@@ -2094,12 +2094,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </div>
         
                  {/* 5개 아이콘 - 3개 위, 2개 아래 */}
-                 <div className="w-full flex flex-col items-center gap-2">
+                 <div className="w-full flex flex-col items-center gap-2 overflow-visible">
                    {/* 위쪽 3개 아이콘 */}
-                   <div className="flex justify-start pr-3" style={{ gap: '16px' }}>
+                   <div className="flex justify-start pr-3 overflow-visible" style={{ gap: '16px' }}>
                 <button
                   onClick={() => router.push('/community/freeboard')}
-                  className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                  className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                 >
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/주제별게시판.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
@@ -2109,7 +2109,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
                  <button
                    onClick={() => router.push('/community/news')}
-                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                  >
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/K-매거진.png" alt="K-매거진" className="w-8 h-8 object-contain" />
@@ -2119,7 +2119,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
                                <button
                    onClick={() => router.push('/community/qa')}
-                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                  >
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/Q&A.png" alt="Q&A" className="w-8 h-8 object-contain" />
@@ -2130,10 +2130,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    </div>
                    
                    {/* 아래쪽 2개 아이콘 */}
-                   <div className="flex justify-center" style={{ gap: '16px' }}>
+                   <div className="flex justify-center overflow-visible" style={{ gap: '16px' }}>
                                <button
                    onClick={() => router.push('/community/tests')}
-                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                  >
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                     <img src="/심리테스트.png" alt="심리테스트" className="w-8 h-8 object-contain" />
@@ -2143,7 +2143,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      
                      <button
                        onClick={() => router.push('/community/stories')}
-                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                      >
                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                          <span className="text-2xl">📸</span>
