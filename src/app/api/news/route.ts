@@ -92,19 +92,22 @@ export async function POST(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '')
     
-    // 운영자 확인
-    const operatorCheckResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/check-operator`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
+    // 운영자 확인 - 직접 Supabase에서 확인
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
     
-    if (!operatorCheckResponse.ok) {
-      return NextResponse.json({ error: '운영자 인증에 실패했습니다' }, { status: 401 })
+    if (authError || !user) {
+      return NextResponse.json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
     }
-    
-    const operatorData = await operatorCheckResponse.json()
-    if (!operatorData.isOperator) {
+
+    // 운영자 테이블에서 확인
+    const { data: operator, error: operatorError } = await supabaseServer
+      .from('admin_users')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single()
+
+    if (operatorError || !operator) {
       return NextResponse.json({ error: '운영자만 뉴스를 작성할 수 있습니다' }, { status: 403 })
     }
 
