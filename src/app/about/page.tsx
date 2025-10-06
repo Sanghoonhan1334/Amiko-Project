@@ -22,7 +22,7 @@ export default function AboutPage() {
         <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-blue-100/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container-custom relative z-10 flex items-center justify-center min-h-screen px-4 pt-20">
+      <div className="container-custom relative z-10 flex items-center justify-center min-h-screen px-4 pt-20 md:pt-32">
         <div className="w-full max-w-6xl">
 
           {/* 슬라이더 */}
@@ -94,9 +94,9 @@ export default function AboutPage() {
             <SwiperSlide>
               <div className="min-h-[600px] py-0 md:py-3 bg-gradient-to-br from-slate-50 to-blue-50 relative">
                 <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8">
-                  <div className="space-y-4 pt-0 md:pt-2">
+                  <div className="space-y-4 pt-0 md:pt-8">
                     {/* 첫 번째 카드 */}
-                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100">
+                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
                           src="/1.png" 
@@ -112,7 +112,7 @@ export default function AboutPage() {
                     </div>
 
                     {/* 두 번째 카드 */}
-                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100">
+                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
                           src="/2.png" 
@@ -136,7 +136,7 @@ export default function AboutPage() {
                     </div>
 
                     {/* 세 번째 카드 */}
-                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100">
+                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
                           src="/3.png" 
