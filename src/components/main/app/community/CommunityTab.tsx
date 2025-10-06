@@ -923,7 +923,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('스토리 API 에러 응답:', errorData)
-        throw new Error(errorData.error || `스토리를 불러오는데 실패했습니다. (${response.status})`)
+        
+        // 빈 객체나 유효하지 않은 응답 처리
+        const errorMessage = errorData?.error || 
+                           (typeof errorData === 'object' && Object.keys(errorData).length === 0 ? 'Empty response' : 'Unknown error')
+        
+        throw new Error(errorMessage || `스토리를 불러오는데 실패했습니다. (${response.status})`)
       }
       
       const data = await response.json()

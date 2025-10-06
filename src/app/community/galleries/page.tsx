@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import GalleryList from '@/components/main/app/community/GalleryList'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function GalleriesPage() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   const handleBack = () => {
     router.push('/main?tab=community')
