@@ -109,7 +109,8 @@ const tempNewsData = [
 
 export default function NewsPage() {
   const router = useRouter()
-  const { t, language } = useLanguage()
+  const languageContext = useLanguage()
+  const { t, language } = languageContext || { t: (key: string) => key, language: 'ko' }
   const { user, token } = useAuth()
   const [news, setNews] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
