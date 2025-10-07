@@ -46,10 +46,7 @@ export async function GET(request: NextRequest) {
         is_expired,
         expires_at,
         created_at,
-        user_id,
-        like_count,
-        comment_count,
-        view_count
+        user_id
       `, { count: 'exact' })
       .eq('is_expired', false)
       .gt('expires_at', new Date().toISOString()) // 만료되지 않은 스토리만 조회
@@ -116,7 +113,7 @@ export async function GET(request: NextRequest) {
           return {
             ...story,
             text: story.text_content, // API 응답에 text 필드 추가
-            likes: story.like_count || 0,
+            likes: 0, // 임시로 0으로 설정
             user_name: userData?.full_name || userData?.email?.split('@')[0] || '익명',
             user_email: userData?.email || null,
             user_profile_image: userData?.profile_image
@@ -126,7 +123,7 @@ export async function GET(request: NextRequest) {
           return {
             ...story,
             text: story.text_content,
-            likes: story.like_count || 0,
+            likes: 0, // 임시로 0으로 설정
             user_name: '익명',
             user_email: null,
             user_profile_image: null
