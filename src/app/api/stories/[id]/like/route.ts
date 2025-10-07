@@ -47,10 +47,10 @@ export async function POST(
         .eq('story_id', storyId)
         .eq('user_id', userId)
 
-      // 좋아요 수 감소
-      await supabaseServer.rpc('decrement_story_like_count', {
-        story_id_param: storyId
-      })
+      // 좋아요 수 감소 (DB 컬럼 추가 후 활성화)
+      // await supabaseServer.rpc('decrement_story_like_count', {
+      //   story_id_param: storyId
+      // })
 
       return NextResponse.json({
         success: true,
@@ -66,10 +66,10 @@ export async function POST(
           user_id: userId
         })
 
-      // 좋아요 수 증가
-      await supabaseServer.rpc('increment_story_like_count', {
-        story_id_param: storyId
-      })
+      // 좋아요 수 증가 (DB 컬럼 추가 후 활성화)
+      // await supabaseServer.rpc('increment_story_like_count', {
+      //   story_id_param: storyId
+      // })
 
       return NextResponse.json({
         success: true,

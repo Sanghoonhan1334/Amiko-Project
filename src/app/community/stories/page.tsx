@@ -183,23 +183,26 @@ export default function StoriesPage() {
       })
 
       if (response.ok) {
-        const isLiked = likedStories.has(storyId)
+        const result = await response.json()
+        const isLiked = result.liked
+        
         setLikedStories(prev => {
           const newSet = new Set(prev)
           if (isLiked) {
-            newSet.delete(storyId)
-          } else {
             newSet.add(storyId)
             setShowHeartAnimation(storyId)
             setTimeout(() => setShowHeartAnimation(null), 1000)
+          } else {
+            newSet.delete(storyId)
           }
           return newSet
         })
         
-        // 스토리 목록 업데이트
+        // 서버에서 최신 좋아요 수를 받아서 업데이트
+        // 임시로 프론트엔드에서만 업데이트 (DB 컬럼 추가 후 서버 응답 사용)
         setStories(prev => prev.map(story => 
           story.id === storyId 
-            ? { ...story, likes: story.likes + (isLiked ? -1 : 1) }
+            ? { ...story, likes: story.likes + (isLiked ? 1 : -1) }
             : story
         ))
       }
