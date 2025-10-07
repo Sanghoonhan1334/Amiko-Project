@@ -218,9 +218,13 @@ export default function StoriesPage() {
     setIsUploading(true)
     
     try {
-      const formData = new FormData()
-      formData.append('image', selectedFile)
-      formData.append('text', storyText)
+      // 이미지를 Base64로 변환
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(selectedFile)
+      })
       
       const token = localStorage.getItem('amiko_token')
       if (!token) {
@@ -228,7 +232,7 @@ export default function StoriesPage() {
       }
       
       console.log('업로드 요청 전송:', { 
-        hasImage: !!selectedFile, 
+        hasImage: !!base64Image, 
         textLength: storyText.length,
         hasToken: !!token 
       })
@@ -236,9 +240,15 @@ export default function StoriesPage() {
       const response = await fetch('/api/stories', {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: formData
+        body: JSON.stringify({
+          imageUrl: base64Image,
+          text: storyText,
+          isPublic: true,
+          userId: user.id
+        })
       })
       
       console.log('업로드 응답:', { 

@@ -158,8 +158,9 @@ async function handleProfileUpdate(request: NextRequest) {
 
       if (updateError) {
         console.error('[PROFILE] 사용자 업데이트 실패:', updateError)
+        console.error('[PROFILE] updateData:', JSON.stringify(updateData, null, 2))
         return NextResponse.json(
-          { error: '사용자 정보 업데이트에 실패했습니다.' },
+          { error: '사용자 정보 업데이트에 실패했습니다.', details: updateError.message, code: updateError.code },
           { status: 500 }
         )
       }

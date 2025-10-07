@@ -3011,6 +3011,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 {/* 갤러리에서 선택 */}
                 <div className="flex gap-2">
                   <input
+                    ref={(el) => {
+                      if (el) (window as any).imageUploadGalleryRef = el
+                    }}
                     type="file"
                     accept="image/*"
                     onChange={handleFileSelect}
@@ -3019,8 +3022,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     multiple={false}
                     capture={undefined}
                   />
-                  <label
-                    htmlFor="imageUploadGallery"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.getElementById('imageUploadGallery') as HTMLInputElement
+                      input?.click()
+                    }}
                     className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center touch-manipulation"
                   >
                     <div className="flex flex-col items-center gap-2">
@@ -3029,12 +3036,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                         {imagePreview ? '다른 사진 선택' : '📱 갤러리에서 선택'}
                       </span>
                     </div>
-                  </label>
+                  </button>
                 </div>
                 
                 {/* 카메라로 촬영 */}
                 <div className="flex gap-2">
                   <input
+                    ref={(el) => {
+                      if (el) (window as any).imageUploadCameraRef = el
+                    }}
                     type="file"
                     accept="image/*"
                     onChange={handleFileSelect}
@@ -3043,8 +3053,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     capture="environment"
                     multiple={false}
                   />
-                  <label
-                    htmlFor="imageUploadCamera"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.getElementById('imageUploadCamera') as HTMLInputElement
+                      input?.click()
+                    }}
                     className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors text-center touch-manipulation"
                   >
                     <div className="flex flex-col items-center gap-2">
@@ -3053,7 +3067,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                         📷 카메라로 촬영
                       </span>
                     </div>
-                  </label>
+                  </button>
                 </div>
               </div>
             </div>
