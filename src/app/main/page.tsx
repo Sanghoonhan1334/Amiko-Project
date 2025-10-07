@@ -9,6 +9,7 @@ import MyTab from '@/components/main/app/me/MyTab'
 import ChargingTab from '@/components/main/app/charging/ChargingTab'
 import EventTab from '@/components/main/app/event/EventTab'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { Video } from 'lucide-react'
@@ -519,8 +520,10 @@ export default function AppPage() {
   const { t } = useLanguage()
   
   return (
-    <Suspense fallback={<div className="min-h-screen body-gradient pt-40 flex items-center justify-center">{t('buttons.loading')}</div>}>
-      <AppPageContent />
-    </Suspense>
+    <ProtectedRoute redirectTo="/">
+      <Suspense fallback={<div className="min-h-screen body-gradient pt-40 flex items-center justify-center">{t('buttons.loading')}</div>}>
+        <AppPageContent />
+      </Suspense>
+    </ProtectedRoute>
   )
 }

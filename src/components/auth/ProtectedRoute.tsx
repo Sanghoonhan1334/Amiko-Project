@@ -20,6 +20,7 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     if (!loading && !user) {
+      console.log('[ProtectedRoute] 인증되지 않은 사용자, 랜딩페이지로 리다이렉트')
       router.push(redirectTo)
     }
   }, [user, loading, router, redirectTo])
