@@ -73,7 +73,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [showPostModal, setShowPostModal] = useState(false)
   const [postTitle, setPostTitle] = useState('')
   const [postContent, setPostContent] = useState('')
-  const [postCategory, setPostCategory] = useState('kpop')
+  const [postCategory, setPostCategory] = useState('')
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -186,7 +186,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     setShowPostModal(false)
     setPostTitle('')
     setPostContent('')
-    setPostCategory('kpop')
+    setPostCategory('')
     setUploadedImages([])
     setImagePreviews([])
   }
@@ -258,6 +258,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       postCategory,
       uploadedImages: uploadedImages.length
     })
+
+    if (!postCategory) {
+      toast.error(language === 'es' ? 'Por favor selecciona un foro.' : '게시판을 선택해주세요.')
+      return
+    }
 
     if (!postTitle.trim() || !postContent.trim()) {
       toast.error(language === 'es' ? 'Por favor ingresa título y contenido.' : '제목과 내용을 모두 입력해주세요.')
@@ -475,7 +480,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 pt-6 md:pt-12">
+    <div className="space-y-4 sm:space-y-6 pt-8 md:pt-12">
       {/* 웹 형태일 때 섹션 카드 래퍼 */}
       <div className="hidden md:block">
         <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
@@ -954,7 +959,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 </label>
                 <Select value={postCategory} onValueChange={setPostCategory}>
                   <SelectTrigger className="w-full h-10 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                    <SelectValue />
+                    <SelectValue placeholder="게시판을 선택해주세요" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.filter(cat => cat.id !== 'all').map((category) => (

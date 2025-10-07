@@ -563,18 +563,30 @@ export default function MyTab() {
       const existingImages = profile?.profile_images || []
       const allProfileImages = [...existingImages, ...profileImagesBase64]
       
+      // 대표 프로필 이미지 결정: mainProfileImage 상태를 우선 사용
+      let finalMainImage = mainProfileImage
+      if (!finalMainImage || finalMainImage.trim() === '') {
+        // mainProfileImage가 없으면 새로 업로드한 첫 번째 이미지 사용
+        if (profileImagesBase64.length > 0) {
+          finalMainImage = profileImagesBase64[0]
+        } else if (allProfileImages.length > 0) {
+          // 기존 이미지가 있으면 첫 번째 이미지 사용
+          finalMainImage = allProfileImages[0]
+        }
+      }
+      
       const requestData = {
         ...profile,
         profile_images: allProfileImages,
-        main_profile_image: getCurrentMainImage()
+        main_profile_image: finalMainImage
       }
       
       console.log('프로필 저장 요청 데이터:', {
         existing_images_count: existingImages.length,
         new_images_count: profileImagesBase64.length,
         total_images_count: allProfileImages.length,
-        main_profile_image: getCurrentMainImage() ? '있음' : '없음',
-        main_profile_image_preview: getCurrentMainImage()?.substring(0, 50) + '...',
+        main_profile_image: finalMainImage ? '있음' : '없음',
+        main_profile_image_preview: finalMainImage?.substring(0, 50) + '...',
         full_request_data: requestData
       })
 
@@ -621,22 +633,8 @@ export default function MyTab() {
         setIsEditing(false)
         setProfileImages([]) // 업로드 후 초기화
         
-        // 저장된 데이터로 프로필 상태 직접 업데이트
-        if (responseData.user) {
-          const updatedProfile = {
-            ...responseData.user,
-            profile_images: allProfileImages,
-            main_profile_image: getCurrentMainImage(),
-            points: profile.points || 0,
-            daily_points: profile.daily_points || 0
-          }
-          setProfile(updatedProfile)
-          
-          // 메인 프로필 이미지도 업데이트
-          if (getCurrentMainImage()) {
-            setMainProfileImage(getCurrentMainImage())
-          }
-        }
+        // 서버에서 최신 프로필 데이터 다시 로드
+        await loadUserProfile(false)
         
         alert(t('myTab.profileSaved'))
       } else {

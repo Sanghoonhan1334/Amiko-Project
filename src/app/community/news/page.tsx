@@ -118,7 +118,6 @@ export default function NewsPage() {
   const [selectedNews, setSelectedNews] = useState<any>(null)
   const [showNewsDetail, setShowNewsDetail] = useState(false)
   const [isOperatorUser, setIsOperatorUser] = useState(false)
-  const [addingOperator, setAddingOperator] = useState(false)
   
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1)
@@ -551,38 +550,6 @@ export default function NewsPage() {
     const newsItem = news.find(item => item.id === newsId)
     if (newsItem) {
       await handleNewsDelete(newsItem)
-    }
-  }
-
-  // 운영자 등록 함수
-  const handleAddOperator = async () => {
-    if (!user || !token) {
-      toast.error('로그인이 필요합니다.')
-      return
-    }
-
-    setAddingOperator(true)
-    try {
-      const response = await fetch('/api/admin/add-operator', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      const result = await response.json()
-      
-      if (response.ok) {
-        toast.success(result.message)
-        setIsOperatorUser(true)
-      } else {
-        toast.error(result.error || '운영자 등록에 실패했습니다.')
-      }
-    } catch (error) {
-      console.error('운영자 등록 오류:', error)
-      toast.error('운영자 등록 중 오류가 발생했습니다.')
-    } finally {
-      setAddingOperator(false)
     }
   }
 
@@ -1057,27 +1024,6 @@ export default function NewsPage() {
               </Button>
             )}
             
-            {/* 운영자가 아닐 때 운영자 등록 버튼 표시 */}
-            {!isOperatorUser && user && (
-              <Button
-                onClick={handleAddOperator}
-                disabled={addingOperator}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                {addingOperator ? (
-                  <>
-                    <span className="animate-spin mr-2">⏳</span>
-                    등록 중...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4 mr-2" />
-                    운영자 등록
-                  </>
-                )}
-              </Button>
-            )}
-            
             {/* 이전 버튼 */}
             <Button
               variant="outline"
@@ -1111,27 +1057,6 @@ export default function NewsPage() {
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       뉴스 작성
-                    </Button>
-                  )}
-                  
-                  {/* 운영자가 아닐 때 운영자 등록 버튼 표시 */}
-                  {!isOperatorUser && user && (
-                    <Button
-                      onClick={handleAddOperator}
-                      disabled={addingOperator}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                    >
-                      {addingOperator ? (
-                        <>
-                          <span className="animate-spin mr-2">⏳</span>
-                          등록 중...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-4 h-4 mr-2" />
-                          운영자 등록
-                        </>
-                      )}
                     </Button>
                   )}
                   
