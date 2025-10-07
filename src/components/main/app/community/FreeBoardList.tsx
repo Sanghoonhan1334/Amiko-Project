@@ -206,7 +206,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         const formData = new FormData()
         formData.append('file', file)
 
-        const response = await fetch('http://localhost:3000/api/upload/image', {
+        const response = await fetch('/api/upload/image', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -281,7 +281,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       console.log('[POST_CREATE] 갤러리 ID 매핑:', { postCategory, galleryId })
       
       console.log('[POST_CREATE] API 요청 준비:', {
-        url: 'http://localhost:3000/api/posts',
+        url: '/api/posts',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -298,7 +298,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       
       console.log('[POST_CREATE] fetch 요청 시작...')
       
-        const response = await fetch('http://localhost:3000/api/posts', {
+        const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -391,7 +391,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const gallerySlug = boardToSlugMap[selectedBoard] || 'free'
       console.log('[LOAD_POSTS] 갤러리 슬러그:', gallerySlug)
       
-        const response = await fetch(`http://localhost:3000/api/posts?gallery=${gallerySlug}`, {
+        const response = await fetch(`/api/posts?gallery=${gallerySlug}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
