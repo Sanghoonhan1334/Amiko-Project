@@ -396,16 +396,7 @@ export default function QAPage() {
         {/* 페이지 제목 */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
-                <img 
-                  src="/Q&A.png" 
-                  alt="Q&A" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <h1 className="text-lg font-bold text-gray-800">Q&A</h1>
-            </div>
+            <h1 className="text-2xl font-bold text-gray-800">Q&A</h1>
             
             {/* 이전 버튼 - 제목 오른쪽으로 이동 */}
             <Button 

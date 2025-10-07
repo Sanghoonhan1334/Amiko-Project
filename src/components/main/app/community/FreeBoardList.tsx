@@ -493,16 +493,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 {t('buttons.back')}
               </Button>
               
-              {/* 가운데 아이콘 + 드롭다운 */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
-                  <img 
-                    src="/주제별게시판.png" 
-                    alt="주제별 게시판" 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <Select value={selectedBoard} onValueChange={handleBoardChange}>
+              {/* 가운데 드롭다운 */}
+              <Select value={selectedBoard} onValueChange={handleBoardChange}>
                 <SelectTrigger className="w-auto border-none shadow-none text-lg font-bold text-gray-800 bg-transparent">
                   <SelectValue />
                 </SelectTrigger>
@@ -517,7 +509,6 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   ))}
                 </SelectContent>
               </Select>
-              </div>
               
               {/* 오른쪽 끝에 글쓰기 버튼 */}
               <Button

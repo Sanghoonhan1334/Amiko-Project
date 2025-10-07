@@ -283,16 +283,7 @@ export default function StoriesPage() {
         <div className="max-w-6xl mx-auto">
           {/* 첫 번째 줄: 스토리 제목과 이전 버튼 */}
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
-                <img 
-                  src="/스토리.png" 
-                  alt="스토리" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-800">스토리</h1>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-800">스토리</h1>
             <div className="flex items-center gap-2">
               {/* 이전 버튼 */}
               <Button
