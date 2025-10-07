@@ -37,6 +37,10 @@ export default function StoriesPage() {
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [showCommentModal, setShowCommentModal] = useState(false)
+  const [showStoryViewer, setShowStoryViewer] = useState(false)
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
+  const touchStartX = useRef(0)
+  const touchEndX = useRef(0)
 
   // 스토리 업로드 모달 관련 상태
   const [showStoryUploadModal, setShowStoryUploadModal] = useState(false)
@@ -108,6 +112,58 @@ export default function StoriesPage() {
     if (diffInDays < 7) return `${diffInDays}일 전`
     
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+  }
+
+  // 스토리 클릭 시 전체 화면 뷰어 열기
+  const openStoryViewer = (index: number) => {
+    setCurrentStoryIndex(index)
+    setShowStoryViewer(true)
+  }
+
+  // 스토리 뷰어 닫기
+  const closeStoryViewer = () => {
+    setShowStoryViewer(false)
+  }
+
+  // 다음 스토리로 이동
+  const goToNextStory = () => {
+    if (currentStoryIndex < stories.length - 1) {
+      setCurrentStoryIndex(currentStoryIndex + 1)
+    } else {
+      closeStoryViewer()
+    }
+  }
+
+  // 이전 스토리로 이동
+  const goToPrevStory = () => {
+    if (currentStoryIndex > 0) {
+      setCurrentStoryIndex(currentStoryIndex - 1)
+    }
+  }
+
+  // 터치 스와이프 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX
+    handleSwipe()
+  }
+
+  const handleSwipe = () => {
+    const swipeDistance = touchStartX.current - touchEndX.current
+    const minSwipeDistance = 50
+
+    if (Math.abs(swipeDistance) > minSwipeDistance) {
+      if (swipeDistance > 0) {
+        // 왼쪽으로 스와이프 → 다음 스토리
+        goToNextStory()
+      } else {
+        // 오른쪽으로 스와이프 → 이전 스토리
+        goToPrevStory()
+      }
+    }
   }
 
   // 스토리 좋아요 토글
@@ -357,8 +413,13 @@ export default function StoriesPage() {
           </div>
         ) : stories.length > 0 ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
-            {stories.map((story) => (
-              <div key={story.id} className="relative overflow-hidden rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer" style={{ aspectRatio: '9/16' }}>
+            {stories.map((story, index) => (
+              <div 
+                key={story.id} 
+                className="relative overflow-hidden rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer" 
+                style={{ aspectRatio: '9/16' }}
+                onClick={() => openStoryViewer(index)}
+              >
                   {story.image_url ? (
                     <img 
                       src={story.image_url} 
@@ -633,6 +694,142 @@ export default function StoriesPage() {
               )}
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* 전체 화면 스토리 뷰어 */}
+      {showStoryViewer && stories[currentStoryIndex] && (
+        <div 
+          className="fixed inset-0 z-50 bg-black"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* 닫기 버튼 */}
+          <button
+            onClick={closeStoryViewer}
+            className="absolute top-4 right-4 z-50 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* 진행 바 */}
+          <div className="absolute top-0 left-0 right-0 z-40 px-4 pt-2">
+            <div className="flex gap-1">
+              {stories.map((_, index) => (
+                <div
+                  key={index}
+                  className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
+                >
+                  {index === currentStoryIndex && (
+                    <div className="h-full bg-white rounded-full w-full"></div>
+                  )}
+                  {index < currentStoryIndex && (
+                    <div className="h-full bg-white rounded-full w-full"></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 사용자 정보 */}
+          <div className="absolute top-6 left-4 right-16 z-40 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+              {stories[currentStoryIndex].user?.profile_image_url ? (
+                <img 
+                  src={stories[currentStoryIndex].user.profile_image_url} 
+                  alt="프로필" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-4 h-4 text-white" />
+              )}
+            </div>
+            <span className="text-white font-semibold text-sm drop-shadow-lg">
+              {stories[currentStoryIndex].user?.full_name || '익명'}
+            </span>
+            <span className="text-white/80 text-xs drop-shadow-lg">
+              {formatTime(stories[currentStoryIndex].created_at)}
+            </span>
+          </div>
+
+          {/* 스토리 이미지 */}
+          <div className="w-full h-full flex items-center justify-center">
+            <img
+              src={stories[currentStoryIndex].image_url}
+              alt="스토리"
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+
+          {/* 스토리 텍스트 */}
+          <div className="absolute bottom-20 left-0 right-0 z-40 px-4">
+            <p className="text-white text-center drop-shadow-lg text-lg">
+              {stories[currentStoryIndex].text}
+            </p>
+          </div>
+
+          {/* 좋아요/댓글 버튼 */}
+          <div className="absolute bottom-6 left-0 right-0 z-40 px-4 flex items-center justify-center gap-6">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleStoryLike(stories[currentStoryIndex].id)
+              }}
+              className="flex items-center gap-2 text-white hover:scale-110 transition-transform"
+            >
+              <Heart
+                className={`w-6 h-6 ${likedStories.has(stories[currentStoryIndex].id) ? 'fill-red-500 text-red-500' : ''}`}
+              />
+              <span className="text-sm font-semibold drop-shadow-lg">
+                {stories[currentStoryIndex].likes || 0}
+              </span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                openCommentModal(stories[currentStoryIndex])
+              }}
+              className="flex items-center gap-2 text-white hover:scale-110 transition-transform"
+            >
+              <MessageSquare className="w-6 h-6" />
+              <span className="text-sm font-semibold drop-shadow-lg">
+                {stories[currentStoryIndex].comments?.length || 0}
+              </span>
+            </button>
+          </div>
+
+          {/* 네비게이션 영역 (좌/우 클릭) */}
+          <div className="absolute inset-0 flex">
+            {/* 왼쪽 절반 클릭 → 이전 */}
+            <div 
+              className="flex-1 cursor-pointer"
+              onClick={goToPrevStory}
+            ></div>
+            {/* 오른쪽 절반 클릭 → 다음 */}
+            <div 
+              className="flex-1 cursor-pointer"
+              onClick={goToNextStory}
+            ></div>
+          </div>
+
+          {/* 좌우 화살표 (데스크톱) */}
+          {currentStoryIndex > 0 && (
+            <button
+              onClick={goToPrevStory}
+              className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            >
+              ‹
+            </button>
+          )}
+          {currentStoryIndex < stories.length - 1 && (
+            <button
+              onClick={goToNextStory}
+              className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            >
+              ›
+            </button>
+          )}
         </div>
       )}
 
