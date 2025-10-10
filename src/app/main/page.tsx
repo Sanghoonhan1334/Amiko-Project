@@ -9,6 +9,7 @@ import MyTab from '@/components/main/app/me/MyTab'
 import ChargingTab from '@/components/main/app/charging/ChargingTab'
 import EventTab from '@/components/main/app/event/EventTab'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
+import HomeDashboard from '@/components/main/app/home/HomeDashboard'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { Video } from 'lucide-react'
@@ -19,7 +20,7 @@ function AppPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
-  const [activeTab, setActiveTab] = useState('community')
+  const [activeTab, setActiveTab] = useState('home')
   const [availableAKO, setAvailableAKO] = useState(0)
   const [currentPoints, setCurrentPoints] = useState(0)
   const [pointsLoading, setPointsLoading] = useState(true)
@@ -174,16 +175,16 @@ function AppPageContent() {
     const tabParam = searchParams.get('tab')
     console.log('MainPage: tabParam from URL:', tabParam)
     
-    let targetTab = 'community' // 기본값을 community로 변경
+    let targetTab = 'home' // 기본값을 home으로 변경
     
-    if (tabParam && ['meet', 'community', 'me', 'charging', 'event'].includes(tabParam)) {
+    if (tabParam && ['home', 'meet', 'community', 'me', 'charging', 'event'].includes(tabParam)) {
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
     } else {
       // URL 파라미터가 없으면 기본값 사용하고 URL 업데이트
-      console.log('MainPage: no tab param, using default: community')
-      router.replace('/main?tab=community')
+      console.log('MainPage: no tab param, using default: home')
+      router.replace('/main?tab=home')
       return // URL 업데이트 후 다시 실행될 것이므로 여기서 종료
     }
     
@@ -230,7 +231,23 @@ function AppPageContent() {
 
           {/* 콘텐츠 */}
           <div className="space-y-2 sm:space-y-8">
-            {/* 홈 탭 제거됨 - 커뮤니티로 통합 */}
+            {activeTab === 'home' && (
+              <div className="hidden md:block pt-20 sm:pt-36">
+                <div className="w-full">
+                  <div className="card p-8 pt-12 -mt-12 sm:mt-0">
+                    <HomeDashboard />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'home' && (
+              <div className="block md:hidden pt-28">
+                <div className="px-4">
+                  <HomeDashboard />
+                </div>
+              </div>
+            )}
 
             {activeTab === 'meet' && (
               <div className="hidden md:block pt-20 sm:pt-36">
@@ -330,18 +347,7 @@ function AppPageContent() {
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
                   <div className="card px-10 py-8 pt-12 mt-8 sm:mt-16 md:mt-20 lg:mt-24 xl:mt-28">
-                    {/* 일반 사용자만 헤더 섹션 표시 */}
-                    {!isAdmin && (
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
-                          <span className="text-2xl">👤</span>
-                        </div>
-                        <div className="flex-1">
-                          <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
-                          <p className="text-sm text-gray-600">{t('main.meDescription')}</p>
-                        </div>
-                      </div>
-                    )}
+                    {/* 일반 사용자만 헤더 섹션 표시 - 제거됨 */}
                     {/* 운영자는 대시보드만 표시 (헤더 없음) */}
                     <MyTab />
                   </div>
@@ -349,23 +355,7 @@ function AppPageContent() {
                 
                 {/* 모바일: 섹션 카드 없이 */}
                 <div className="block md:hidden">
-                  {/* 일반 사용자만 헤더 섹션 표시 */}
-                  {!isAdmin && (
-                    <div className="flex items-center gap-3 mb-0 px-2 sm:px-4">
-                      <div className="w-12 h-12 bg-sky-100 rounded-3xl flex items-center justify-center">
-                        <span className="text-2xl">👤</span>
-                      </div>
-                      <div className="flex-1">
-                        <h2 className="text-2xl font-bold text-gray-800">{t('main.me')}</h2>
-                      </div>
-                    </div>
-                  )}
-                  {/* 설명 섹션 */}
-                  {!isAdmin && (
-                    <div className="mb-6 px-2 sm:px-4">
-                      <p className="text-gray-600">{t('main.meDescription')}</p>
-                    </div>
-                  )}
+                  {/* 일반 사용자만 헤더 섹션 표시 - 제거됨 */}
                   {/* 운영자는 대시보드만 표시 (헤더 없음) */}
                   <MyTab />
                 </div>

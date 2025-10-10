@@ -104,7 +104,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     try {
       const response = await fetch(`/api/posts/${postId}/vote`, {
         headers: {
-          'Authorization': `Bearer ${encodeURIComponent(token)}`
+          'Authorization': `Bearer ${token}`
         }
       })
       
@@ -172,7 +172,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(token)}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ vote_type: voteType })
       })

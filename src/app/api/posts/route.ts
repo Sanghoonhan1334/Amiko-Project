@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const sortBy = searchParams.get('sortBy') || 'latest'
     const searchQuery = searchParams.get('searchQuery') || ''
-    const gallerySlug = searchParams.get('gallery') || 'free' // 갤러리 슬러그 파라미터 추가
+    const gallerySlug = searchParams.get('gallery') // 갤러리 슬러그 파라미터 (전체 선택 시 null)
     const offset = (page - 1) * limit
 
     console.log('[POSTS_GET] 게시물 목록 조회:', { page, limit, sortBy, searchQuery, gallerySlug })
@@ -42,32 +42,33 @@ export async function GET(request: NextRequest) {
       `)
       .eq('is_deleted', false)
 
-    // 요청된 갤러리의 게시글 조회
-    console.log('[POSTS_GET] 요청된 갤러리:', gallerySlug)
-    
-    // 요청된 갤러리 찾기
-    let targetGallery = null
-    let galleryError = null
-    
-    const { data: galleryData, error: galleryQueryError } = await supabaseServer
-      .from('galleries')
-      .select('id, slug, name_ko')
-      .eq('slug', gallerySlug)
-      .single()
-    
-    console.log('[POSTS_GET] 갤러리 조회 결과:', { 
-      gallerySlug,
-      galleryData, 
-      galleryQueryError: galleryQueryError?.message 
-    })
-    
-    if (galleryData) {
-      targetGallery = galleryData
-      console.log('[POSTS_GET] 갤러리 ID로 필터링:', targetGallery.id)
-      query = query.eq('gallery_id', targetGallery.id)
+    // 갤러리 필터링 처리
+    if (gallerySlug) {
+      console.log('[POSTS_GET] 특정 갤러리 조회:', gallerySlug)
+      
+      // 요청된 갤러리 찾기
+      const { data: galleryData, error: galleryQueryError } = await supabaseServer
+        .from('galleries')
+        .select('id, slug, name_ko')
+        .eq('slug', gallerySlug)
+        .single()
+      
+      console.log('[POSTS_GET] 갤러리 조회 결과:', { 
+        gallerySlug,
+        galleryData, 
+        galleryQueryError: galleryQueryError?.message 
+      })
+      
+      if (galleryData) {
+        console.log('[POSTS_GET] 갤러리 ID로 필터링:', galleryData.id)
+        query = query.eq('gallery_id', galleryData.id)
+      } else {
+        console.log('[POSTS_GET] 갤러리를 찾을 수 없음 - 모든 게시글 조회')
+        // 갤러리가 없으면 모든 게시글 조회 (필터링 없음)
+      }
     } else {
-      console.log('[POSTS_GET] 갤러리를 찾을 수 없음 - 모든 게시글 조회')
-      // 갤러리가 없으면 모든 게시글 조회 (필터링 없음)
+      console.log('[POSTS_GET] 전체 게시글 조회 (갤러리 필터링 없음)')
+      // gallery 파라미터가 없으면 모든 게시글 조회
     }
 
     // 검색 쿼리 적용
@@ -129,28 +130,47 @@ export async function GET(request: NextRequest) {
       created_at: p.created_at
     })))
 
-    // FreeBoard 형식으로 변환
-    const transformedPosts = posts?.map(post => ({
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      category: post.category || '자유게시판', // 카테고리 필드 추가
-      is_notice: false,
-      is_survey: false,
-      is_verified: false,
-      is_pinned: post.is_pinned,
-      view_count: post.view_count,
-      like_count: post.like_count,
-      dislike_count: post.dislike_count,
-      comment_count: post.comment_count,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      author: {
-        id: post.user_id,
-        full_name: '익명', // 기본값
-        profile_image: null
+    // 사용자 정보 조회
+    let userMap = new Map()
+    if (posts && posts.length > 0) {
+      const userIds = [...new Set(posts.map(p => p.user_id).filter(Boolean))]
+      
+      if (userIds.length > 0) {
+        const { data: users } = await supabaseServer
+          .from('users')
+          .select('id, full_name, nickname, avatar_url')
+          .in('id', userIds)
+        
+        userMap = new Map(users?.map(u => [u.id, u]) || [])
       }
-    })) || []
+    }
+
+    // FreeBoard 형식으로 변환
+    const transformedPosts = posts?.map(post => {
+      const user = userMap.get(post.user_id)
+      return {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        category: post.category || '자유게시판', // 카테고리 필드 추가
+        is_notice: false,
+        is_survey: false,
+        is_verified: false,
+        is_pinned: post.is_pinned,
+        view_count: post.view_count,
+        like_count: post.like_count,
+        dislike_count: post.dislike_count,
+        comment_count: post.comment_count,
+        created_at: post.created_at,
+        updated_at: post.updated_at,
+        user: {
+          id: post.user_id,
+          full_name: user?.full_name || '익명',
+          nickname: user?.nickname,
+          avatar_url: user?.avatar_url
+        }
+      }
+    }) || []
 
     console.log(`[POSTS_GET] 조회 완료: ${transformedPosts.length}개 게시물`)
 

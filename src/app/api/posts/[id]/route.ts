@@ -67,7 +67,7 @@ export async function GET(
     if (post.user_id) {
       const { data: userData } = await supabaseServer
         .from('users')
-        .select('id, full_name, profile_image, avatar_url')
+        .select('id, full_name, nickname, profile_image, avatar_url')
         .eq('id', post.user_id)
         .single()
       
@@ -75,6 +75,7 @@ export async function GET(
         author = {
           id: userData.id,
           full_name: userData.full_name || '익명',
+          nickname: userData.nickname,
           profile_image: userData.profile_image || userData.avatar_url
         }
       }

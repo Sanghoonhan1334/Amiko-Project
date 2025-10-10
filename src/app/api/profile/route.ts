@@ -23,7 +23,7 @@ async function handleProfileUpdate(request: NextRequest) {
     console.log('[PROFILE] 요청 데이터:', body)
     console.log('[PROFILE] 요청 데이터 타입:', typeof body)
     console.log('[PROFILE] 요청 데이터 키들:', Object.keys(body))
-    const { full_name, spanish_name, phone, one_line_intro, language, profile_image, profile_images, main_profile_image, user_type, university, major, grade, occupation, company, work_experience } = body
+    const { full_name, spanish_name, nickname, phone, one_line_intro, language, profile_image, profile_images, main_profile_image, user_type, university, major, grade, occupation, company, work_experience } = body
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
@@ -93,6 +93,7 @@ async function handleProfileUpdate(request: NextRequest) {
     const updateData: any = {
       full_name,
       spanish_name,
+      nickname,
       phone,
       one_line_intro,
       language,
@@ -417,6 +418,8 @@ export async function GET(request: NextRequest) {
         id: (user as any).id,
         email: (user as any).email,
         full_name: (user as any).full_name,
+        nickname: (user as any).nickname,
+        spanish_name: (user as any).spanish_name,
         phone: (user as any).phone,
         one_line_intro: (user as any).one_line_intro,
         language: (user as any).language,
@@ -432,6 +435,8 @@ export async function GET(request: NextRequest) {
       profile: {
         user_id: userId,
         display_name: (user as any).full_name,
+        nickname: (user as any).nickname,
+        spanish_name: (user as any).spanish_name,
         bio: (user as any).one_line_intro,
         avatar_url: (user as any).avatar_url,
         country: 'KR',

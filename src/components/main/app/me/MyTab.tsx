@@ -544,6 +544,34 @@ export default function MyTab() {
   // 프로필 편집 처리
   const handleSaveProfile = async () => {
     try {
+      // 닉네임 검증
+      if (profile.nickname) {
+        if (profile.nickname.length < 3 || profile.nickname.length > 20) {
+          alert('닉네임은 3-20자 사이여야 합니다.')
+          return
+        }
+        if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(profile.nickname)) {
+          alert('닉네임은 알파벳, 숫자, 특수문자만 사용할 수 있습니다.')
+          return
+        }
+
+        // 닉네임 중복 확인 (닉네임이 변경된 경우만)
+        const originalNickname = user?.user_metadata?.nickname || ''
+        if (profile.nickname.toLowerCase() !== originalNickname.toLowerCase()) {
+          const nicknameCheckResponse = await fetch('/api/auth/check-nickname', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname: profile.nickname })
+          })
+          
+          const nicknameCheckData = await nicknameCheckResponse.json()
+          if (!nicknameCheckData.available) {
+            alert('이미 사용 중인 닉네임입니다.')
+            return
+          }
+        }
+      }
+
       // 프로필 사진들을 Base64로 변환
       let profileImagesBase64: string[] = []
       if (profileImages.length > 0) {
@@ -748,7 +776,7 @@ export default function MyTab() {
           </div>
         </div>
       ) : !authStatus.smsVerified && !profile ? (
-        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200/50 rounded-3xl p-8 text-center">
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200/50 rounded-xl p-8 text-center">
           <div className="flex justify-center mb-6">
             <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center">
               <Settings className="w-10 h-10 text-orange-600" />
@@ -773,7 +801,7 @@ export default function MyTab() {
       ) : (
         <>
           {/* 내 프로필 - 맨 위로 이동 */}
-          <div className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-3xl p-3 sm:p-6 pt-2 sm:pt-6">
+          <div className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-xl p-3 sm:p-6 pt-2 sm:pt-6">
         <div className="space-y-4 sm:space-y-6">
           {/* 프로필 사진 관리 - 맨 위로 이동 */}
           <div className="flex flex-col items-center gap-4">
@@ -972,6 +1000,28 @@ export default function MyTab() {
               </div>
             </div>
 
+            {/* 닉네임 미설정 안내 배너 */}
+            {!profile.nickname && !isEditing && (
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-5 h-5 text-yellow-600">⚠️</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-yellow-800 mb-1">닉네임을 설정해주세요</h3>
+                    <p className="text-sm text-yellow-700 mb-2">
+                      커뮤니티 활동 시 실명 대신 닉네임이 표시됩니다. 지금 바로 설정해보세요!
+                    </p>
+                    <Button
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                    >
+                      지금 설정하기
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 기본 정보 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               <div className="space-y-2">
@@ -999,6 +1049,45 @@ export default function MyTab() {
                   />
                 ) : (
                   <p className="text-gray-800 font-medium">{profile.spanish_name || t('profile.noSpanishName')}</p>
+                )}
+              </div>
+
+              {/* 닉네임 필드 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 block font-['Inter']">
+                  닉네임 (알파벳, 숫자, 특수문자)
+                  <span className="text-xs text-gray-500 ml-2">커뮤니티 활동 시 표시됩니다</span>
+                </label>
+                {isEditing ? (
+                  <div className="space-y-1">
+                    <Input
+                      value={profile.nickname || ''}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        // 알파벳, 숫자, 특수문자 허용 (공백 제외)
+                        if (value === '' || /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(value)) {
+                          setProfile({ ...profile, nickname: value })
+                        }
+                      }}
+                      className="border-brand-200 focus:border-brand-500"
+                      placeholder="예: john123! 또는 user_2024"
+                      maxLength={20}
+                    />
+                    {profile.nickname && (
+                      <p className={`text-xs ${
+                        profile.nickname.length >= 3 && profile.nickname.length <= 20 && /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(profile.nickname)
+                          ? 'text-green-600'
+                          : 'text-red-500'
+                      }`}>
+                        {profile.nickname.length < 3 ? '최소 3자 이상 입력해주세요' : 
+                         profile.nickname.length > 20 ? '최대 20자까지 가능합니다' :
+                         !/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(profile.nickname) ? '알파벳, 숫자, 특수문자만 사용 가능합니다' :
+                         '사용 가능한 닉네임입니다'}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-800 font-medium">{profile.nickname || '닉네임 미설정'}</p>
                 )}
               </div>
               
@@ -1179,7 +1268,7 @@ export default function MyTab() {
       {!profile?.isKorean && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {/* 쿠폰 리스트 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-3xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-brand-100 rounded-xl flex items-center justify-center">
                 <Gift className="w-4 h-4 text-brand-600" />
@@ -1209,7 +1298,7 @@ export default function MyTab() {
           </div>
 
           {/* 구매내역 리스트 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-mint-100 border-2 border-mint-200/50 rounded-3xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-mint-100 border-2 border-mint-200/50 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-mint-100 rounded-xl flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-mint-600" />
@@ -1249,7 +1338,7 @@ export default function MyTab() {
       <StorySettings />
 
       {/* 알림 설정 */}
-      <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200/50 rounded-3xl">
+      <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200/50 rounded-xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
             <Settings className="w-4 h-4 text-purple-600" />

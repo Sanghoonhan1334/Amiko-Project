@@ -96,12 +96,12 @@ const pointSystem = {
 
 // 카테고리 정의 함수
 const getCategories = (t: (key: string) => string) => [
-  { id: 'free', name: t('communityTab.categories.free'), icon: '💬', color: 'bg-gray-100 text-gray-700 border-gray-300' },
-  { id: 'kpop', name: 'K-POP', icon: '🎵', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-  { id: 'kdrama', name: 'K-Drama', icon: '📺', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { id: 'beauty', name: t('communityTab.categories.beauty'), icon: '💄', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-  { id: 'korean', name: '한국어', icon: '🇰🇷', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { id: 'spanish', name: '스페인어', icon: '🇪🇸', color: 'bg-red-100 text-red-700 border-red-300' }
+  { id: 'free', name: t('communityTab.categories.free'), icon: '', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+  { id: 'kpop', name: 'K-POP', icon: '', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { id: 'kdrama', name: 'K-Drama', icon: '', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { id: 'beauty', name: t('communityTab.categories.beauty'), icon: '', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { id: 'korean', name: '한국어', icon: '', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { id: 'spanish', name: '스페인어', icon: '', color: 'bg-red-100 text-red-700 border-red-300' }
 ]
 
 
@@ -2070,7 +2070,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6 bg-white min-h-screen" style={{ paddingTop: isMobile ? '0px' : '0px', paddingBottom: isMobile ? '20px' : '0px' }}>
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6 bg-white" style={{ paddingTop: isMobile ? '0px' : '0px', paddingBottom: isMobile ? '20px' : '48px' }}>
       {/* 테스트 요소 - 컴포넌트가 렌더링되는지 확인 */}
       {/* 메인 컨텐츠 */}
       <div className="w-full space-y-6">
@@ -2098,56 +2098,55 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
         </div>
         
-                 {/* 5개 아이콘 - 3개 위, 2개 아래 */}
-                 <div className="w-full flex flex-col items-center gap-2 overflow-visible">
-                   {/* 위쪽 3개 아이콘 */}
-                   <div className="flex justify-start overflow-visible px-4" style={{ marginLeft: language === 'es' ? (isMobile ? '-8px' : '40px') : (isMobile ? '8px' : '0px'), paddingRight: language === 'es' ? '40px' : '0px' }}>
-                <button
-                  onClick={() => router.push('/community/freeboard')}
-                  className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                  style={{ marginRight: language === 'es' ? '4px' : '14px', marginLeft: language === 'es' ? '-4px' : '0px' }}
-                >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                    <img src="/주제별게시판.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
-                  </div>
-                  <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.freeBoard')}</h3>
-                </button>
+                 {/* 5개 아이콘 - 모바일: 3개 위 2개 아래, 데스크톱: 한 줄 */}
+                 <div className="w-full flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 overflow-visible mb-0">
+                   {/* 모바일: 위쪽 3개 아이콘 */}
+                   <div className="flex md:hidden justify-start overflow-visible px-4" style={{ marginLeft: language === 'es' ? '-8px' : '8px', paddingRight: language === 'es' ? '40px' : '0px' }}>
+                     <button
+                       onClick={() => router.push('/community/freeboard')}
+                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       style={{ marginRight: language === 'es' ? '4px' : '14px', marginLeft: language === 'es' ? '-4px' : '0px' }}
+                     >
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/주제별게시판.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.freeBoard')}</h3>
+                     </button>
 
-                 <button
-                   onClick={() => router.push('/community/news')}
-                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                   style={{ marginRight: language === 'es' ? '24px' : '16px' }}
-                 >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                    <img src="/K-매거진.png" alt="K-매거진" className="w-8 h-8 object-contain" />
-              </div>
-                  <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.koreanNews')}</h3>
-                </button>
+                     <button
+                       onClick={() => router.push('/community/news')}
+                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       style={{ marginRight: language === 'es' ? '24px' : '16px' }}
+                     >
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/K-매거진.png" alt="K-매거진" className="w-8 h-8 object-contain" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.koreanNews')}</h3>
+                     </button>
 
-                               <button
-                   onClick={() => router.push('/community/qa')}
-                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                   style={{ marginRight: '32px' }}
-                 >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                    <img src="/Q&A.png" alt="Q&A" className="w-8 h-8 object-contain" />
-                  </div>
-                  <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.qa')}</h3>
-                              </button>
-
+                     <button
+                       onClick={() => router.push('/community/qa')}
+                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       style={{ marginRight: '32px' }}
+                     >
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/Q&A.png" alt="Q&A" className="w-8 h-8 object-contain" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.qa')}</h3>
+                     </button>
                    </div>
                    
-                   {/* 아래쪽 2개 아이콘 */}
-                   <div className="flex justify-start overflow-visible px-4" style={{ gap: '16px', paddingRight: '32px', paddingLeft: language === 'es' ? '16px' : '24px' }}>
-                               <button
-                   onClick={() => router.push('/community/tests')}
-                   className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                 >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                    <img src="/심리테스트.png" alt="심리테스트" className="w-8 h-8 object-contain" />
-                  </div>
-                  <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('tests.title')}</h3>
-                              </button>
+                   {/* 모바일: 아래쪽 2개 아이콘 */}
+                   <div className="flex md:hidden justify-start overflow-visible px-4" style={{ gap: '16px', paddingRight: '32px', paddingLeft: language === 'es' ? '16px' : '24px' }}>
+                     <button
+                       onClick={() => router.push('/community/tests')}
+                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                     >
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/심리테스트.png" alt="심리테스트" className="w-8 h-8 object-contain" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('tests.title')}</h3>
+                     </button>
                      
                      <button
                        onClick={() => router.push('/community/stories')}
@@ -2159,81 +2158,59 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('communityTab.story')}</h3>
                      </button>
                    </div>
-                 </div>
-                      
-                 {/* 홈페이지 카드들 */}
-                 <div className="grid grid-cols-3 md:grid-cols-3 gap-1 md:gap-4 mt-4 md:mt-6 -mb-2">
-                   {/* AI 화상 채팅 카드 */}
-                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-2xl bg-white/80 backdrop-blur-sm relative rounded-lg">
-                     {/* 위쪽 모서리 그림자 효과 */}
-                     <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-gray-200/30 to-transparent rounded-t-lg"></div>
-                     <div className="mb-0">
-                       {/* AI 화상 채팅 이미지 */}
-                       <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0 -mb-2">
-                         <img 
-                           src="/화상채팅.png" 
-                           alt="AI 화상 채팅" 
-                           className="w-full h-full object-cover rounded-lg shadow-lg"
-                         />
-                       </div>
-                     </div>
-                     <h3 className="text-xs md:text-lg font-bold text-gray-800 mb-0 mt-0 font-['Inter']">{t('mainPage.videoCall')}</h3>
-                     <p className="text-[10px] md:text-sm text-gray-600 -mt-0.5 md:-mt-1 font-['Inter'] leading-tight">{t('mainPage.videoCallDescription')}</p>
-                   </Card>
 
-                   {/* 커뮤니티 카드 */}
-                   <Card 
-                     className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-2xl bg-white/80 backdrop-blur-sm cursor-pointer relative rounded-lg"
-                     onClick={() => router.push('/main?tab=community')}
-                   >
-                     {/* 위쪽 모서리 그림자 효과 */}
-                     <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-gray-200/30 to-transparent rounded-t-lg"></div>
-                     <div className="mb-0">
-                       {/* 커뮤니티 이미지 */}
-                       <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0">
-                         <img 
-                           src="/커뮤니티.png" 
-                           alt="커뮤니티" 
-                           className="w-full h-full object-cover rounded-lg shadow-lg"
-                         />
+                   {/* 데스크톱: 한 줄로 5개 아이콘 */}
+                   <div className="hidden md:flex items-center justify-center gap-8">
+                     <button
+                       onClick={() => router.push('/community/freeboard')}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                     >
+                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/주제별게시판.png" alt="주제별 게시판" className="w-16 h-16 object-contain" />
                        </div>
-                     </div>
-                     <h3 className="text-xs md:text-lg font-bold text-gray-800 mb-0 mt-0 font-['Inter']">{t('homeTab.community')}</h3>
-                     <p className="text-[10px] md:text-sm text-gray-600 -mt-0.5 md:-mt-1 font-['Inter'] leading-tight">
-                       {t('mainPage.communityDescription').split('\n').map((line, index) => (
-                         <span key={index}>
-                           {line}
-                           {index < t('mainPage.communityDescription').split('\n').length - 1 && <br />}
-                         </span>
-                       ))}
-                     </p>
-                   </Card>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('community.freeBoard')}</h3>
+                     </button>
 
-                   {/* 오픈 기념 이벤트 카드 */}
-                   <Card className="p-2 md:p-4 text-center hover:shadow-xl transition-all duration-300 border-0 shadow-2xl bg-white/80 backdrop-blur-sm relative overflow-hidden rounded-lg">
-                     {/* 위쪽 모서리 그림자 효과 */}
-                     <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-gray-200/30 to-transparent rounded-t-lg z-20"></div>
-                     {/* 이벤트 리본 */}
-                     <div className="absolute top-0 left-0 w-full h-2 bg-white"></div>
-                     <div className="absolute top-1 right-1 z-10">
-                       <Badge className="bg-red-500 text-white border-red-500 text-[8px] px-1 py-0.5 transform rotate-45 origin-center">
-                         EVENT
-                       </Badge>
-                     </div>
+                     <button
+                       onClick={() => router.push('/community/news')}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                     >
+                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/K-매거진.png" alt="K-매거진" className="w-16 h-16 object-contain" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('community.koreanNews')}</h3>
+                     </button>
+
+                     <button
+                       onClick={() => router.push('/community/qa')}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                     >
+                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/Q&A.png" alt="Q&A" className="w-16 h-16 object-contain" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('community.qa')}</h3>
+                     </button>
+
+                     <button
+                       onClick={() => router.push('/community/tests')}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                     >
+                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/심리테스트.png" alt="심리테스트" className="w-16 h-16 object-contain" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('tests.title')}</h3>
+                     </button>
                      
-                     <div className="mb-0">
-                       {/* 오픈 이벤트 이미지 */}
-                       <div className="relative w-20 h-16 md:w-40 md:h-28 mx-auto mb-0">
-                         <img 
-                           src="/오픈이벤트.png" 
-                           alt="오픈 이벤트" 
-                           className="w-full h-full object-cover rounded-lg shadow-lg"
-                         />
+                     <button
+                       onClick={() => router.push('/community/stories')}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                     >
+                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/스토리.png" alt="스토리" className="w-16 h-16 object-contain" />
                        </div>
-                     </div>
-                     <h3 className="text-xs md:text-lg font-bold text-gray-800 mb-0 mt-0 font-['Inter']">{t('mainPage.openEvent')}</h3>
-                     <p className="text-[10px] md:text-sm text-gray-600 mt-0.5 md:mt-1 font-['Inter'] whitespace-pre-line leading-tight">{t('mainPage.openEventDescription')}</p>
-                   </Card>
+                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('communityTab.story')}</h3>
+                     </button>
+                   </div>
                  </div>
         </div>
       )}

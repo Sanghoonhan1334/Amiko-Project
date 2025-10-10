@@ -15,7 +15,7 @@ export default function Header() {
   const pathname = usePathname()
   const { language, t, toggleLanguage } = useLanguage()
   const { user, signOut } = useAuth()
-  const [activeMainTab, setActiveMainTab] = useState('community')
+  const [activeMainTab, setActiveMainTab] = useState('home')
 
   // 모바일 메뉴 상태
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -188,6 +188,15 @@ export default function Header() {
       return () => clearTimeout(timer)
     }
   }, [isLandingPage])
+
+  // URL 파라미터에 따라 상단 네비게이션 활성 탭 설정
+  useEffect(() => {
+    if (pathname === '/main') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const tab = urlParams.get('tab') || 'home'
+      setActiveMainTab(tab)
+    }
+  }, [pathname])
 
   // 인증 상태 및 포인트 확인
   useEffect(() => {
@@ -591,75 +600,29 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-12 xl:-mt-12 2xl:-mt-12 3xl:-mt-12 relative z-20 ml-[-28px]">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-12 xl:-mt-12 2xl:-mt-12 3xl:-mt-12 relative z-20 ml-[12px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
-                  // 랜딩페이지 및 문의페이지 네비게이션 - 홈, 회사소개, 문의, 제휴문의, 시작하기
-                  <>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setActiveNavItem('/')
-                        router.push('/')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
-                        activeNavItem === '/'
-                          ? 'text-purple-600'
-                          : 'text-gray-800 hover:text-purple-600'
-                      }`}
-                      style={{ backgroundColor: 'transparent' }}
-                    >
-                      {t('header.home')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setActiveNavItem('/about')
-                        router.push('/about')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
-                        activeNavItem === '/about' 
-                          ? 'text-purple-600' 
-                          : 'text-gray-800 hover:text-purple-600'
-                      }`}
-                      style={{ backgroundColor: 'transparent' }}
-                    >
-                      {t('header.about')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setActiveNavItem('/inquiry')
-                        router.push('/inquiry')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
-                        activeNavItem === '/inquiry' 
-                          ? 'text-purple-600' 
-                          : 'text-gray-800 hover:text-purple-600'
-                      }`}
-                      style={{ backgroundColor: 'transparent' }}
-                    >
-                      {t('header.inquiry')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setActiveNavItem('/partnership')
-                        router.push('/partnership')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 relative z-30 whitespace-nowrap bg-transparent focus:outline-none active:outline-none hover:bg-transparent ${
-                        activeNavItem === '/partnership' 
-                          ? 'text-purple-600' 
-                          : 'text-gray-800 hover:text-purple-600'
-                      }`}
-                      style={{ backgroundColor: 'transparent' }}
-                    >
-                      {t('header.partnership')}
-                    </button>
-                  </>
+                  // 랜딩페이지에서는 네비게이션 제거 - 아코디언으로 모든 정보 제공
+                  <></>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6">
-                    {/* 홈 버튼 제거됨 - 커뮤니티로 통합 */}
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Home 버튼 클릭됨')
+                        handleMainNavClick('home')
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
+                        activeMainTab === 'home' 
+                          ? 'text-purple-500' 
+                          : 'text-gray-800 hover:text-purple-500'
+                      }`}
+                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
+                    >
+                      홈
+                    </button>
                     <button 
                       onClick={(e) => {
                         e.preventDefault()

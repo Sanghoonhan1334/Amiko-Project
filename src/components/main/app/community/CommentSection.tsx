@@ -391,12 +391,12 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
               <div className={`p-4 ${index > 0 ? 'border-t border-gray-200' : ''}`}>
                 <div className="flex space-x-3">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm font-medium">
-                    {comment.author?.full_name?.charAt(0) || 'U'}
+                    {(comment.author?.nickname || comment.author?.full_name)?.charAt(0) || 'U'}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="font-medium text-gray-800">
-                        {comment.author?.full_name || '익명'}
+                        {comment.author?.nickname || comment.author?.full_name || '익명'}
                       </span>
                       <span className="text-xs text-gray-500">
                         {formatTime(comment.created_at)}
@@ -490,12 +490,12 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                       <div key={reply.id} className="p-4 bg-gray-50">
                         <div className="flex space-x-3">
                           <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                            {reply.author?.full_name?.charAt(0) || 'U'}
+                            {(reply.author?.nickname || reply.author?.full_name)?.charAt(0) || 'U'}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <span className="font-medium text-gray-800">
-                                {reply.author?.full_name || '익명'}
+                                {reply.author?.nickname || reply.author?.full_name || '익명'}
                               </span>
                               <span className="text-xs text-gray-500">
                                 {formatTime(reply.created_at)}

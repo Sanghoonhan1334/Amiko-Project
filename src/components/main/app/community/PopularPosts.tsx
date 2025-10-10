@@ -264,11 +264,11 @@ export default function PopularPosts({ onPostSelect }: PopularPostsProps) {
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
                     <span className="text-xs font-medium text-gray-600">
-                      {post.user.full_name?.charAt(0) || 'U'}
+                      {(post.user.nickname || post.user.full_name)?.charAt(0) || 'U'}
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{post.user.full_name}</p>
+                    <p className="text-sm font-medium text-gray-800">{post.user.nickname || post.user.full_name || '익명'}</p>
                     <p className="text-xs text-gray-500">{formatDate(post.created_at)}</p>
                   </div>
                 </div>

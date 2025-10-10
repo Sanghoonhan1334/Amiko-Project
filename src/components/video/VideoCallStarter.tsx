@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import VideoCallTutorial from '@/components/common/VideoCallTutorial'
 
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
@@ -44,6 +45,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [selectedPartner, setSelectedPartner] = useState<any>(null)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
+  const [showTutorial, setShowTutorial] = useState(false)
   
   // 헤더와 동일한 인증 상태 확인
   useEffect(() => {
@@ -72,6 +74,17 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
     checkAuthStatus()
   }, [user?.id])
 
+  // 튜토리얼 자동 시작 (테스트용 - 매번 시작)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && verificationStatus === 'verified') {
+      // 테스트용: 매번 튜토리얼 시작 (로컬스토리지 체크 제거)
+      const timer = setTimeout(() => {
+        setShowTutorial(true)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [verificationStatus])
+
 
   const handleStartCall = () => {
     if (!channelName.trim()) {
@@ -90,12 +103,63 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   }
 
 
-  // 실제 파트너 데이터는 API에서 가져올 예정
-  const allPartners: any[] = []
+  // 목업 파트너 데이터
+  const allPartners: any[] = [
+    {
+      id: '1',
+      name: '김민수',
+      language: '한국어 (모국어)',
+      country: '대한민국',
+      status: 'online',
+      interests: ['영화', '음악', '여행', '요리'],
+      bio: '안녕하세요! 한국어를 가르치고 싶은 김민수입니다. 다양한 문화에 관심이 많아요!',
+      avatar: '/celebs/jin.webp'
+    },
+    {
+      id: '2',
+      name: '이지은',
+      language: '한국어 (모국어)',
+      country: '대한민국',
+      status: 'online',
+      interests: ['K-POP', '드라마', '패션', '맛집'],
+      bio: 'K-POP과 한국 드라마를 좋아하는 이지은이에요. 함께 한국 문화를 나눠요!',
+      avatar: '/celebs/rm.jpg'
+    },
+    {
+      id: '3',
+      name: '박준호',
+      language: '한국어 (모국어)',
+      country: '대한민국',
+      status: 'offline',
+      interests: ['스포츠', '게임', '기술', '독서'],
+      bio: '스포츠와 게임을 좋아하는 박준호입니다. 활발한 대화를 좋아해요!',
+      avatar: '/celebs/suga.jpg'
+    },
+    {
+      id: '4',
+      name: 'Carlos Rodriguez',
+      language: '스페인어 (모국어)',
+      country: '멕시코',
+      status: 'online',
+      interests: ['한국어', 'K-POP', '요리', '여행'],
+      bio: '한국어를 배우고 있는 카를로스입니다. 한국 문화에 매료되었어요!',
+      avatar: null
+    },
+    {
+      id: '5',
+      name: 'Ana Martinez',
+      language: '스페인어 (모국어)',
+      country: '스페인',
+      status: 'online',
+      interests: ['한국 드라마', 'K-POP', '패션', '언어교환'],
+      bio: '한국 드라마를 사랑하는 아나입니다. 언어교환을 통해 소통하고 싶어요!',
+      avatar: null
+    }
+  ]
 
   // 필터링된 파트너 목록
   const availablePartners = showOnlyKoreans 
-    ? allPartners.filter(partner => partner.country === '한국')
+    ? allPartners.filter(partner => partner.country === '대한민국')
     : allPartners
 
   return (
@@ -111,7 +175,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       {/* 메인 화면 */}
       <div className="space-y-6">
         {/* 빠른 시작 */}
-        <div className="w-full bg-white rounded-3xl shadow-xl border border-blue-100 p-6 bg-gradient-to-br from-white to-blue-50">
+        <div className="w-full bg-white rounded-3xl shadow-xl border border-blue-100 p-6 bg-gradient-to-br from-white to-blue-50" data-tutorial="quick-start">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -191,13 +255,10 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         </div>
 
         {/* 대화 상대 목록 */}
-        <div className="w-full bg-white rounded-3xl shadow-xl border border-purple-100 p-6 bg-gradient-to-br from-white to-purple-50">
+        <div className="w-full bg-white rounded-3xl shadow-xl border border-purple-100 p-6 bg-gradient-to-br from-white to-purple-50" data-tutorial="partner-section">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">👥</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-800">{t('videoCall.partners')}</h3>
+              <h3 className="text-xl font-bold text-gray-800" data-tutorial="partner-title">{t('videoCall.partners')}</h3>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">{t('videoCall.onlyKoreans')}</span>
@@ -206,6 +267,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   showOnlyKoreans ? 'bg-purple-600' : 'bg-gray-200'
                 }`}
+                data-tutorial="korean-filter"
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -220,26 +282,107 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               availablePartners.map((partner) => (
                 <div 
                   key={partner.id}
-                  className="flex items-center justify-between p-6 bg-white border border-purple-100 rounded-xl hover:shadow-md transition-all duration-300 hover:scale-[1.02]"
+                  className="bg-white border border-purple-100 rounded-xl hover:shadow-md transition-all duration-300"
+                  data-tutorial="partner-card"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <Avatar className="w-12 h-12 border-2 border-white shadow-md">
-                        <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium">
-                          {partner.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                        partner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                      }`} />
+                  {/* 데스크톱 레이아웃 */}
+                  <div className="hidden md:flex items-center justify-between p-6 hover:scale-[1.02]">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          {partner.avatar ? (
+                            <AvatarImage src={partner.avatar} alt={partner.name} />
+                          ) : null}
+                          <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium">
+                            {partner.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                          partner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                        }`} data-tutorial="online-status" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-800 text-lg">{partner.name}</h4>
+                        <p className="text-sm text-purple-600 font-medium">{partner.language}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          관심사: {partner.interests.join(', ')}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1 italic">
+                          "{partner.bio}"
+                        </p>
+                        {!showOnlyKoreans && (
+                          <p className="text-xs text-blue-600 mt-1 font-medium">
+                            {partner.country}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-gray-800 text-lg">{partner.name}</h4>
-                      <p className="text-sm text-purple-600 font-medium">{partner.language}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        관심사: {partner.interests.join(', ')}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPartner(partner)
+                          setShowProfileDialog(true)
+                        }}
+                        className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                      >
+                        {t('videoCall.viewInfo')}
+                      </Button>
+                      <Button 
+                        variant={partner.status === 'online' ? 'default' : 'outline'}
+                        size="sm"
+                        disabled={partner.status === 'offline'}
+                        className={partner.status === 'online' 
+                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
+                          : ''
+                        }
+                        data-tutorial="start-conversation"
+                      >
+                        {partner.status === 'online' ? t('videoCall.startConversation') : t('videoCall.offline')}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 모바일 레이아웃 */}
+                  <div className="md:hidden p-4">
+                    {/* 상단: 아바타와 기본 정보 */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="relative">
+                        <Avatar className="w-10 h-10 border-2 border-white shadow-md">
+                          {partner.avatar ? (
+                            <AvatarImage src={partner.avatar} alt={partner.name} />
+                          ) : null}
+                          <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium text-sm">
+                            {partner.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
+                          partner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                        }`} data-tutorial="online-status-mobile" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-800 text-base truncate">{partner.name}</h4>
+                        <p className="text-xs text-purple-600 font-medium">{partner.language}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          partner.status === 'online' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {partner.status === 'online' ? '온라인' : '오프라인'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 중간: 관심사와 자기소개 */}
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-1">
+                        관심사: <span className="text-gray-700">{partner.interests.slice(0, 2).join(', ')}</span>
+                        {partner.interests.length > 2 && <span className="text-gray-400"> 외 {partner.interests.length - 2}개</span>}
                       </p>
-                      <p className="text-xs text-gray-600 mt-1 italic">
+                      <p className="text-xs text-gray-600 italic line-clamp-2">
                         "{partner.bio}"
                       </p>
                       {!showOnlyKoreans && (
@@ -248,30 +391,34 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         </p>
                       )}
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedPartner(partner)
-                        setShowProfileDialog(true)
-                      }}
-                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
-                    >
-                      {t('videoCall.viewInfo')}
-                    </Button>
-                    <Button 
-                      variant={partner.status === 'online' ? 'default' : 'outline'}
-                      size="sm"
-                      disabled={partner.status === 'offline'}
-                      className={partner.status === 'online' 
-                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
-                        : ''
-                      }
-                    >
-                      {partner.status === 'online' ? t('videoCall.startConversation') : t('videoCall.offline')}
-                    </Button>
+
+                    {/* 하단: 버튼들 */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPartner(partner)
+                          setShowProfileDialog(true)
+                        }}
+                        className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 text-xs py-2"
+                      >
+                        정보보기
+                      </Button>
+                      <Button 
+                        variant={partner.status === 'online' ? 'default' : 'outline'}
+                        size="sm"
+                        disabled={partner.status === 'offline'}
+                        className={`flex-1 text-xs py-2 ${
+                          partner.status === 'online' 
+                            ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
+                            : ''
+                        }`}
+                        data-tutorial="start-conversation-mobile"
+                      >
+                        {partner.status === 'online' ? '대화시작' : '오프라인'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -485,6 +632,11 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         </DialogContent>
       </Dialog>
 
+      {/* 튜토리얼 */}
+      <VideoCallTutorial
+        isVisible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+      />
     </>
   )
 }

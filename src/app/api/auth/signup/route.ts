@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       email, 
       password, 
       name, 
+      nickname,
       phone, 
       country, 
       isKorean,
@@ -34,9 +35,24 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // 필수 필드 검증
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !nickname) {
       return NextResponse.json(
         { error: '필수 정보가 누락되었습니다.' },
+        { status: 400 }
+      )
+    }
+
+    // 닉네임 검증
+    if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(nickname)) {
+      return NextResponse.json(
+        { error: '닉네임은 알파벳, 숫자, 특수문자만 사용할 수 있습니다.' },
+        { status: 400 }
+      )
+    }
+
+    if (nickname.length < 3 || nickname.length > 20) {
+      return NextResponse.json(
+        { error: '닉네임은 3-20자 사이여야 합니다.' },
         { status: 400 }
       )
     }
@@ -139,6 +155,7 @@ export async function POST(request: NextRequest) {
               id: userId,
               email: email,
               full_name: name,
+              nickname: nickname.toLowerCase(), // 소문자로 저장
               phone: phone,
               language: country === 'KR' ? 'ko' : 'en',
               email_verified: false, // 이메일 인증은 별도로 진행

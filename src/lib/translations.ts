@@ -604,7 +604,7 @@ export const translations = {
           current: {
             title: '현재 진행 중',
             description: '누적 포인트 1등에게 비행기 티켓 지급!',
-            detail: '매월 누적 포인트 1등 사용자에게 한국 왕복 항공권을 지급합니다!'
+            detail: '커뮤니티 이용 누적포인트 1등 사용자에게 한국 왕복 항공권을 지급합니다!'
           },
           upcoming: {
             title: '준비 중',
@@ -1294,6 +1294,8 @@ export const translations = {
       pending: '대기중',
       cancelled: '취소됨',
       notificationSettings: '알림 설정',
+      notifications: '알림',
+      noNewNotifications: '새로운 알림이 없습니다',
       webPushNotification: '웹 푸시 알림',
       webPushDescription: '브라우저를 통한 알림을 받습니다',
       emailNotification: '이메일 알림',
@@ -3230,6 +3232,8 @@ export const translations = {
       pending: 'Pendiente',
       cancelled: 'Cancelado',
       notificationSettings: 'Configuración de Notificaciones',
+      notifications: 'Notificaciones',
+      noNewNotifications: 'No hay nuevas notificaciones',
       webPushNotification: 'Notificaciones Push Web',
       webPushDescription: 'Recibe notificaciones a través del navegador',
       emailNotification: 'Notificaciones por Email',

@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         user:users!gallery_posts_user_id_fkey (
           id,
           full_name,
+          nickname,
           avatar_url
         ),
         gallery:galleries!gallery_posts_gallery_id_fkey (

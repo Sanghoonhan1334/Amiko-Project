@@ -516,6 +516,50 @@ export default function NewsPage() {
     }
   }
 
+  // 뉴스 좋아요/싫어요 처리
+  const handleNewsVote = async (type: 'like' | 'dislike') => {
+    if (!selectedNews?.id) return
+
+    try {
+      const response = await fetch(`/api/news/${selectedNews.id}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ vote_type: type })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('뉴스 투표 성공:', data)
+        
+        // 뉴스 목록에서 해당 뉴스 업데이트
+        setNews(prevNews => 
+          prevNews.map(news => 
+            news.id === selectedNews.id 
+              ? { ...news, likes: data.like_count, dislikes: data.dislike_count }
+              : news
+          )
+        )
+        
+        // 현재 선택된 뉴스도 업데이트
+        setSelectedNews(prev => ({
+          ...prev,
+          likes: data.like_count,
+          dislikes: data.dislike_count
+        }))
+        
+        toast.success(type === 'like' ? '좋아요를 눌렀습니다!' : '싫어요를 눌렀습니다!')
+      } else {
+        toast.error('투표에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('뉴스 투표 오류:', error)
+      toast.error('투표 중 오류가 발생했습니다.')
+    }
+  }
+
   const handleCommentVote = async (commentId: string, type: 'like' | 'dislike') => {
     if (!selectedNews?.id || !user || !token) return
 
@@ -757,13 +801,21 @@ export default function NewsPage() {
             </div>
 
             <div className="flex items-center justify-center gap-1 md:gap-4 mt-3 md:mt-6 pt-2 md:pt-4 border-t border-gray-200">
-              <Button variant="outline" className="flex items-center gap-0.5 md:gap-2 text-[10px] md:text-sm px-1 md:px-4 py-0.5 md:py-2">
+              <Button 
+                variant="outline" 
+                onClick={() => handleNewsVote('like')}
+                className="flex items-center gap-0.5 md:gap-2 text-[10px] md:text-sm px-1 md:px-4 py-0.5 md:py-2 hover:bg-green-50 hover:border-green-300"
+              >
                 <ThumbsUp className="w-2 h-2 md:w-4 md:h-4" />
                 {selectedNews.likes || 0}
               </Button>
-              <Button variant="outline" className="flex items-center gap-0.5 md:gap-2 text-[10px] md:text-sm px-1 md:px-4 py-0.5 md:py-2">
+              <Button 
+                variant="outline" 
+                onClick={() => handleNewsVote('dislike')}
+                className="flex items-center gap-0.5 md:gap-2 text-[10px] md:text-sm px-1 md:px-4 py-0.5 md:py-2 hover:bg-red-50 hover:border-red-300"
+              >
                 <ThumbsDown className="w-2 h-2 md:w-4 md:h-4" />
-                0
+                {selectedNews.dislikes || 0}
               </Button>
             </div>
           </Card>
@@ -813,7 +865,7 @@ export default function NewsPage() {
                   <div key={comment.id} className="border-b border-gray-100 pb-1 md:pb-4 last:border-b-0">
                     <div className="flex items-start justify-between mb-1 md:mb-2">
                       <div className="flex items-center gap-1 md:gap-2">
-                        <span className="font-semibold text-[10px] md:text-sm text-gray-800">{comment.author}</span>
+                        <span className="font-semibold text-[10px] md:text-sm text-gray-800">{comment.users?.nickname || comment.users?.full_name || '익명'}</span>
                         <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
                       </div>
                       {user?.id === comment.author_id && (
@@ -944,7 +996,7 @@ export default function NewsPage() {
                           <div key={reply.id} className="p-1 md:p-3 bg-gray-50 rounded-lg">
                             <div className="flex items-start justify-between mb-1 md:mb-2">
                               <div className="flex items-center gap-0.5 md:gap-2">
-                                <span className="font-semibold text-[9px] md:text-xs text-gray-800">{reply.author}</span>
+                                <span className="font-semibold text-[9px] md:text-xs text-gray-800">{reply.users?.nickname || reply.users?.full_name || '익명'}</span>
                                 <span className="text-[8px] md:text-xs text-gray-500">{new Date(reply.created_at).toLocaleDateString()}</span>
                               </div>
                               {user?.id === reply.author_id && (

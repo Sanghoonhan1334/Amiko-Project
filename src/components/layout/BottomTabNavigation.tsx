@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { 
+  Home,
   Video, 
   MessageSquare, 
   User, 
@@ -18,13 +19,13 @@ export default function BottomTabNavigation() {
   const pathname = usePathname()
   const { t } = useLanguage()
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState('community')
+  const [activeTab, setActiveTab] = useState('home')
 
   // 현재 경로에 따라 활성 탭 설정
   useEffect(() => {
     if (pathname === '/main') {
       const urlParams = new URLSearchParams(window.location.search)
-      const tab = urlParams.get('tab') || 'community'
+      const tab = urlParams.get('tab') || 'home'
       setActiveTab(tab)
     } else if (pathname.startsWith('/community')) {
       // 커뮤니티 서브페이지에서는 커뮤니티 탭을 활성화
@@ -33,6 +34,12 @@ export default function BottomTabNavigation() {
   }, [pathname])
 
   const tabs = [
+    {
+      id: 'home',
+      label: '홈',
+      icon: Home,
+      path: '/main?tab=home'
+    },
     {
       id: 'community',
       label: t('headerNav.community'),

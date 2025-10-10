@@ -69,6 +69,7 @@ export async function GET(
         author: {
           id: user.id,
           full_name: user.full_name,
+          nickname: user.nickname,
           profile_image: user.profile_image || user.avatar_url
         }
       }
@@ -125,7 +126,7 @@ export async function POST(
       const defaultUserId = '5f83ab21-fd61-4666-94b5-087d73477476'
       const { data: defaultUser, error: defaultUserError } = await supabaseServer
         .from('users')
-        .select('id, email, full_name')
+        .select('id, email, full_name, nickname')
         .eq('id', defaultUserId)
         .single()
 
