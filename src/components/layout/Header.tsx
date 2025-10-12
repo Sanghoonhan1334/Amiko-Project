@@ -825,7 +825,7 @@ export default function Header() {
               {isLandingPage && (
                 <Button
                   onClick={() => router.push(user ? '/main' : '/sign-in')}
-                  className="md:hidden px-2 py-0 text-[8px] bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded transition-all duration-300 flex items-center gap-0.5"
+                  className="md:hidden px-2 py-0 text-[8px] bg-gray-800 hover:bg-gray-700 text-white rounded transition-all duration-300 flex items-center gap-0.5"
                 >
                   {user ? t('buttons.start') : t('buttons.login')}
                 </Button>
