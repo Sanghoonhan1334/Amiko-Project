@@ -382,27 +382,35 @@ export default function TestsPage() {
                     onClick={() => handleQuizClick(quiz.id)}
                   >
                     <div className="relative">
-                      {/* 배지 */}
-                      <div className="absolute top-0.5 left-0.5 z-10 flex gap-0.5">
-                        {isNew && quiz.isCompleted && (
-                          <span className="bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
-                            NEW
-                          </span>
-                        )}
-                        {isHot && quiz.isCompleted && (
-                          <span className="bg-orange-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
-                            HOT
-                          </span>
-                        )}
-                      </div>
-                      
-                      {/* 썸네일 영역 */}
-                      <div className={`h-16 ${config.bgColor} flex items-center justify-center relative overflow-hidden ${
+                      {/* 썸네일 영역 - BTS 이미지가 전체 상단을 차지 */}
+                      <div className={`h-16 ${quiz.category === 'culture' && quiz.isCompleted ? '' : config.bgColor} flex items-center justify-center relative overflow-hidden ${
                         !quiz.isCompleted ? 'grayscale opacity-60' : ''
                       }`}>
-                        <div className="text-xl">{config.icon}</div>
+                        {quiz.category === 'culture' && quiz.isCompleted ? (
+                          <img 
+                            src="/celebs/bts.webp" 
+                            alt="BTS" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-xl">{config.icon}</div>
+                        )}
                         {/* 그라데이션 오버레이 */}
                         <div className="absolute inset-0 bg-white/20"></div>
+                        
+                        {/* 배지 - 이미지 위에 오버레이 */}
+                        <div className="absolute top-0.5 left-0.5 z-10 flex gap-0.5">
+                          {isNew && quiz.isCompleted && (
+                            <span className="bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
+                              NEW
+                            </span>
+                          )}
+                          {isHot && quiz.isCompleted && (
+                            <span className="bg-orange-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
+                              HOT
+                            </span>
+                          )}
+                        </div>
                       </div>
                       
                       {/* 콘텐츠 영역 */}

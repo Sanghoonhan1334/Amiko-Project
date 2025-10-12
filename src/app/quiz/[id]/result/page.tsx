@@ -32,6 +32,7 @@ interface Celebrity {
   group_name?: string
   mbti_code: string
   profile_image_url?: string
+  image_url?: string
   source_url?: string
   source_note?: string
   is_verified: boolean
@@ -310,8 +311,20 @@ export default function QuizResultPage() {
                     className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200"
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
-                        <Music className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-yellow-400 to-orange-400">
+                        {celebrity.image_url ? (
+                          <img 
+                            src={celebrity.image_url} 
+                            alt={celebrity.stage_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.style.display = 'none'
+                              target.nextElementSibling?.classList.remove('hidden')
+                            }}
+                          />
+                        ) : null}
+                        <Music className="w-6 h-6 text-white" style={{ display: celebrity.image_url ? 'none' : 'block' }} />
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-800">{celebrity.stage_name}</h3>

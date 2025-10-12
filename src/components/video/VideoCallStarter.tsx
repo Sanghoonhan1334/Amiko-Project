@@ -74,14 +74,18 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
     checkAuthStatus()
   }, [user?.id])
 
-  // 튜토리얼 자동 시작 (테스트용 - 매번 시작)
+  // 튜토리얼 자동 시작 (첫 방문자만)
   useEffect(() => {
     if (typeof window !== 'undefined' && verificationStatus === 'verified') {
-      // 테스트용: 매번 튜토리얼 시작 (로컬스토리지 체크 제거)
-      const timer = setTimeout(() => {
-        setShowTutorial(true)
-      }, 2000)
-      return () => clearTimeout(timer)
+      // 로컬스토리지에서 튜토리얼 완료 여부 확인
+      const tutorialCompleted = localStorage.getItem('video-call-tutorial-completed')
+      
+      if (!tutorialCompleted) {
+        const timer = setTimeout(() => {
+          setShowTutorial(true)
+        }, 2000)
+        return () => clearTimeout(timer)
+      }
     }
   }, [verificationStatus])
 
