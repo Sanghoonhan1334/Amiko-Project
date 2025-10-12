@@ -831,19 +831,21 @@ export default function Header() {
                 </Button>
               )}
 
-              {/* 모바일 메뉴 버튼 - 모든 페이지에서 표시 */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleMobileMenu}
-                className="md:hidden p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 [&_svg]:!size-5"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="text-gray-600" />
-                ) : (
-                  <Menu className="text-gray-600" />
-                )}
-              </Button>
+              {/* 모바일 메뉴 버튼 - 랜딩페이지에서는 숨김 */}
+              {!isLandingPage && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleMobileMenu}
+                  className="md:hidden p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 [&_svg]:!size-5"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="text-gray-600" />
+                  ) : (
+                    <Menu className="text-gray-600" />
+                  )}
+                </Button>
+              )}
 
               {/* 시작하기 버튼 - 랜딩페이지 및 문의페이지에서 표시 (데스크톱에서만) */}
               {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
