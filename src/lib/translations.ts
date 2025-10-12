@@ -2368,7 +2368,7 @@ export const translations = {
 
     // 메인 페이지
     mainPage: {
-      title: 'Disfruta de diversas formas',
+      title: 'Disfruta',
       videoCall: 'Video Call',
       videoCallDescription: 'Participa en las actividades de la comunidad y habla con el coreano que quieras usando AKO.',
       community: 'Comunidad',
