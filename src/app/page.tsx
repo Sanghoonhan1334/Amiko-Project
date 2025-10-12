@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import ScrollToTopButton from '@/components/common/ScrollToTopButton'
+// import ScrollToTopButton from '@/components/common/ScrollToTopButton'
 import {
   Accordion,
   AccordionContent,
@@ -573,8 +573,8 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
 
-      {/* 맨 위로 이동 버튼 */}
-      <ScrollToTopButton />
+      {/* 맨 위로 이동 버튼 - 제거됨 */}
+      {/* <ScrollToTopButton /> */}
     </div>
   )
 }
