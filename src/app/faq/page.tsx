@@ -83,18 +83,18 @@ export default function FaqPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
       {/* Hero Section */}
       <div className="text-center pt-32 md:pt-40 lg:pt-48 pb-16 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-6xl mb-4">❓</div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-100 mb-6">
             {t('faq.title')}
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
             {t('faq.subtitle')}
           </p>
-          <Badge className="bg-gradient-to-r from-brand-100 to-mint-100 text-brand-700 border-brand-200 text-lg px-6 py-3">
+          <Badge className="bg-gradient-to-r from-brand-100 to-mint-100 text-brand-700 border-brand-200 dark:from-gray-700 dark:to-gray-600 dark:text-gray-200 dark:border-gray-600 text-lg px-6 py-3">
             <MessageSquare className="w-5 h-5 mr-2" />
             {t('faq.totalQuestions', { count: faqs.reduce((acc, cat) => acc + cat.questions.length, 0) })}
           </Badge>
@@ -104,21 +104,21 @@ export default function FaqPage() {
       {/* FAQ Content */}
       <div className="max-w-4xl mx-auto px-4 pb-16 space-y-8">
         {faqs.map((category, catIndex) => (
-          <Card key={catIndex} className="bg-white/80 backdrop-blur-sm border-2 border-brand-200/50">
+          <Card key={catIndex} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-brand-200/50 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <Sparkles className="w-6 h-6 text-brand-600" />
+              <CardTitle className="flex items-center gap-3 text-2xl text-gray-900 dark:text-gray-100">
+                <Sparkles className="w-6 h-6 text-brand-600 dark:text-brand-400" />
                 {category.category}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 {category.questions.map((faq, faqIndex) => (
-                  <div key={faqIndex} className="border-l-4 border-brand-200 pl-6 py-4">
-                    <h4 className="font-semibold text-gray-800 text-lg mb-3">
+                  <div key={faqIndex} className="border-l-4 border-brand-200 dark:border-brand-700 pl-6 py-4">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-3">
                       Q. {faq.question}
                     </h4>
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                       A. {faq.answer}
                     </p>
                   </div>
@@ -129,7 +129,7 @@ export default function FaqPage() {
         ))}
 
         {/* Contact CTA */}
-        <Card className="bg-gradient-to-r from-brand-500 to-mint-500 text-white border-0">
+        <Card className="bg-gradient-to-r from-brand-500 to-mint-500 dark:from-gray-800 dark:to-gray-700 text-white border-0">
           <CardContent className="text-center py-12">
             <h3 className="text-2xl font-bold mb-4">
               {t('faq.moreQuestions')}
@@ -140,14 +140,14 @@ export default function FaqPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="mailto:support@amiko.com"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white text-brand-600 hover:bg-gray-100 rounded-xl font-medium transition-all duration-300"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-all duration-300"
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
                 {t('faq.emailInquiry')}
               </a>
               <a
                 href="/contact"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white/20 text-white hover:bg-white/30 rounded-xl font-medium transition-all duration-300"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white/20 dark:bg-gray-800/30 text-white hover:bg-white/30 dark:hover:bg-gray-700/40 rounded-xl font-medium transition-all duration-300"
               >
                 <Users className="w-5 h-5 mr-2" />
                 {t('faq.customerService')}

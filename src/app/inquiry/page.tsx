@@ -162,12 +162,12 @@ export default function InquiryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Hero 섹션 */}
-      <section className="pt-24 pb-8 md:pt-32 md:pb-12 md:pt-48 bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <section className="pt-24 pb-8 md:pt-32 md:pb-12 md:pt-48 bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800">
         <div className="container max-w-4xl mx-auto px-2 text-center">
           {/* 메인 타이틀 */}
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 leading-tight">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight">
             {t('inquiry.heroTitle').split('\n').map((line, index) => (
               <span key={index}>
                 {line}
@@ -177,7 +177,7 @@ export default function InquiryPage() {
           </h1>
           
           {/* 서브 텍스트 */}
-          <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto mb-6 whitespace-normal">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-6 whitespace-normal">
             {t('inquiry.heroSubtitle')}
           </p>
           
@@ -195,21 +195,21 @@ export default function InquiryPage() {
       </section>
 
       {/* 문의 유형 섹션 */}
-      <section className="bg-white py-6" id="inquiry-types">
+      <section className="bg-white dark:bg-gray-800 py-6" id="inquiry-types">
         <div className="container max-w-5xl mx-auto px-2">
           <div className="text-center mb-6">
-            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2">{t('inquiry.inquiryType')}</h2>
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('inquiry.inquiryType')}</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {inquiryTypes.map((type) => (
-              <div key={type.value} className="bg-white rounded-lg p-3 shadow-lg border border-gray-100">
+              <div key={type.value} className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-lg border border-gray-100 dark:border-gray-600">
                 <div className="text-center">
                   <div className={`w-10 h-10 ${type.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
                     <span className="text-lg">{type.icon}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 mb-1">{type.label}</h3>
-                  <p className="text-gray-600 text-xs">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">{type.label}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-xs">
                     {type.description}
                   </p>
                 </div>

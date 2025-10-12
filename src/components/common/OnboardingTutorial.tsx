@@ -1,121 +1,224 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { X, ChevronRight, ChevronLeft } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface TutorialStep {
-  id: string
+  selector: string
   title: string
   description: string
-  targetSelector: string
-  position: 'top' | 'bottom' | 'left' | 'right'
-  highlight?: boolean
 }
 
 interface OnboardingTutorialProps {
-  isVisible: boolean
+  isOpen: boolean
   onClose: () => void
   steps: TutorialStep[]
-  storageKey?: string
+  storageKey: string
 }
 
-export default function OnboardingTutorial({ 
-  isVisible, 
-  onClose, 
-  steps, 
-  storageKey = 'onboarding-completed' 
+export default function OnboardingTutorial({
+  isOpen,
+  onClose,
+  steps,
+  storageKey
 }: OnboardingTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null)
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
+  const [isMobile, setIsMobile] = useState(false)
+  const { t } = useLanguage()
 
-  // 로컬 스토리지에서 완료 상태 확인 (테스트용 - 비활성화)
+  // 모바일 감지
   useEffect(() => {
-    // 테스트용: 로컬스토리지 체크 비활성화
-    // if (typeof window !== 'undefined') {
-    //   const completed = localStorage.getItem(storageKey)
-    //   if (completed === 'true' && isVisible) {
-    //     onClose()
-    //   }
-    // }
-  }, [isVisible, storageKey, onClose])
-
-  // 현재 단계의 타겟 요소 찾기
-  useEffect(() => {
-    if (!isVisible || currentStep >= steps.length) return
-
-    // 모바일/데스크톱 구분하여 요소 찾기
-    const isMobile = window.innerWidth < 768
-    
-    let target: HTMLElement | null = null
-    let selectorUsed = ''
-    
-    // 모바일 전용 셀렉터가 있는 경우 우선 사용
-    if (isMobile) {
-      const mobileSelector = steps[currentStep].targetSelector.replace('online-status', 'online-status-mobile').replace('start-conversation', 'start-conversation-mobile')
-      target = document.querySelector(mobileSelector) as HTMLElement
-      selectorUsed = mobileSelector
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
     }
     
-    // 모바일에서 찾지 못했거나 데스크톱인 경우 기본 셀렉터 사용
-    if (!target) {
-      target = document.querySelector(steps[currentStep].targetSelector) as HTMLElement
-      selectorUsed = steps[currentStep].targetSelector
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // 현재 단계 데이터
+  const currentStepData = steps[currentStep]
+
+  // 🚀 최적화: 하이라이트 제거 함수 (메모리 누수 방지)
+  const removeAllHighlights = useCallback(() => {
+    // 하이라이트 오버레이 제거
+    const highlightOverlay = document.getElementById('tutorial-highlight-overlay')
+    if (highlightOverlay) {
+      // 이벤트 리스너 정리 (메모리 누수 방지)
+      const cleanup = (highlightOverlay as any).__cleanup
+      if (cleanup) {
+        cleanup()
+      }
+      // DOM에서 안전하게 제거
+      if (highlightOverlay.parentNode) {
+        highlightOverlay.parentNode.removeChild(highlightOverlay)
+      }
     }
     
-    // 디버깅 로그
+    setTargetElement(null)
+  }, [])
+
+  // 튜토리얼이 열릴 때 첫 번째 단계로 초기화
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStep(0)
+    } else {
+      // 튜토리얼이 닫힐 때 모든 하이라이트 제거
+      removeAllHighlights()
+    }
+  }, [isOpen, removeAllHighlights])
+
+  // 현재 단계에 따라 하이라이트 업데이트
+  useEffect(() => {
+    if (!isOpen || !currentStepData) return
+
     console.log(`튜토리얼 단계 ${currentStep + 1}:`, {
       isMobile,
-      selectorUsed,
-      targetFound: !!target,
-      targetElement: target,
-      stepTitle: steps[currentStep].title,
-      allElements: document.querySelectorAll(selectorUsed)
+      windowWidth: window.innerWidth,
+      selectorUsed: currentStepData.selector,
+      targetFound: !!document.querySelector(currentStepData.selector),
+      targetElement: document.querySelector(currentStepData.selector),
+      stepTitle: currentStepData.title
     })
+
+    // 이전 하이라이트 제거
+    const previousHighlight = document.querySelector('[data-tutorial-highlight]')
+    if (previousHighlight) {
+      previousHighlight.removeAttribute('data-tutorial-highlight')
+      // 인라인 스타일도 제거
+      const element = previousHighlight as HTMLElement
+      element.style.position = ''
+      element.style.zIndex = ''
+      element.style.boxShadow = ''
+      element.style.borderRadius = ''
+      element.style.backgroundColor = ''
+      element.style.border = ''
+      element.style.transform = ''
+      element.style.transition = ''
+    }
+    
+    const target = document.querySelector(currentStepData.selector) as HTMLElement
     
     if (target) {
       setTargetElement(target)
-      updateTooltipPosition(target)
       
-      // 하이라이트 속성 추가
-      target.setAttribute('data-tutorial-highlight', 'true')
+      // 기존 하이라이트 오버레이 제거
+      const existingHighlight = document.getElementById('tutorial-highlight-overlay')
+      if (existingHighlight) {
+        existingHighlight.remove()
+      }
       
-      // 하이라이트 위치 디버깅
+      // 요소의 위치와 크기 가져오기
       const rect = target.getBoundingClientRect()
-      console.log(`하이라이트 위치:`, {
-        element: target,
+      
+      console.log('🎯 타겟 요소 위치:', {
+        selector: currentStepData.selector,
+        element: target.tagName,
+        text: target.textContent?.trim().substring(0, 20),
         rect: {
           top: rect.top,
           left: rect.left,
           width: rect.width,
           height: rect.height
-        },
-        textContent: target.textContent?.trim()
+        }
       })
+      
+      // 하이라이트 오버레이 요소 생성
+      const highlightOverlay = document.createElement('div')
+      highlightOverlay.id = 'tutorial-highlight-overlay'
+      
+      // 모바일과 데스크톱 모두에서 하이라이트 표시
+      if (rect.width > 0 && rect.height > 0) {
+        highlightOverlay.style.cssText = `
+          position: fixed;
+          top: ${rect.top - 8}px;
+          left: ${rect.left - 8}px;
+          width: ${rect.width + 16}px;
+          height: ${rect.height + 16}px;
+          border: 3px solid rgba(147, 51, 234, 0.8);
+          border-radius: 12px;
+          box-shadow: 0 0 0 6px rgba(147, 51, 234, 0.7), 0 0 0 12px rgba(147, 51, 234, 0.4), inset 0 0 0 1000px rgba(147, 51, 234, 0.15);
+          z-index: 9999999;
+          pointer-events: none;
+          animation: tutorial-pulse-highlight 2s ease-in-out infinite;
+        `
+        
+        // body에 추가
+        document.body.appendChild(highlightOverlay)
+        console.log('✅ 하이라이트 오버레이 생성 완료! (모바일 포함)')
+      } else {
+        console.log('요소가 화면에 보이지 않음, 하이라이트 생성을 건너뜀')
+        return
+      }
+      
+      console.log('📍 하이라이트 오버레이 위치:', {
+        isMobile,
+        top: rect.top - 8,
+        left: rect.left - 8,
+        width: rect.width + 16,
+        height: rect.height + 16,
+        elementRect: {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height
+        }
+      })
+      
+      // 🚀 최적화: 스크롤 이벤트 리스너 최적화 (throttling 적용)
+      let scrollTimeout: NodeJS.Timeout | null = null
+      const updatePosition = () => {
+        if (scrollTimeout) return // 이미 예약된 업데이트가 있으면 건너뛰기
+        
+        scrollTimeout = setTimeout(() => {
+          const newRect = target.getBoundingClientRect()
+          highlightOverlay.style.top = `${newRect.top - 8}px`
+          highlightOverlay.style.left = `${newRect.left - 8}px`
+          scrollTimeout = null
+        }, 16) // 60fps로 제한 (16ms)
+      }
+      
+      window.addEventListener('scroll', updatePosition, { passive: true })
+      window.addEventListener('resize', updatePosition, { passive: true })
+      
+      // 정리 함수를 위해 저장
+      ;(highlightOverlay as any).__cleanup = () => {
+        window.removeEventListener('scroll', updatePosition)
+        window.removeEventListener('resize', updatePosition)
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout)
+        }
+      }
+      
+      // 하이라이트된 요소로 화면 스크롤
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      })
+      
+      // 하이라이트 위치 디버깅
+      console.log('✅ 하이라이트 오버레이 생성 완료!')
     } else {
-      // 요소를 찾지 못한 경우 하이라이트 제거
+      console.log(`튜토리얼 요소를 찾을 수 없습니다: ${currentStepData.selector}`)
       setTargetElement(null)
-      console.warn(`튜토리얼 요소를 찾을 수 없습니다: ${selectorUsed}`)
     }
-    
-    // 이전 하이라이트 제거
-    const previousHighlight = document.querySelector('[data-tutorial-highlight]')
-    if (previousHighlight && previousHighlight !== target) {
-      previousHighlight.removeAttribute('data-tutorial-highlight')
-    }
-  }, [currentStep, isVisible, steps])
-
-  // 툴팁 위치 계산 (하단 패널 방식으로 변경되어 더 이상 필요 없음)
-  const updateTooltipPosition = (element: HTMLElement) => {
-    // 하단 패널 방식으로 변경되어 위치 계산 불필요
-  }
+  }, [currentStep, isOpen, currentStepData, isMobile])
 
   // 다음 단계로
   const nextStep = () => {
+    console.log('다음 버튼 클릭됨! 현재 단계:', currentStep, '총 단계:', steps.length)
+    console.log('모바일 상태:', isMobile)
     if (currentStep < steps.length - 1) {
+      console.log('다음 단계로 이동:', currentStep + 1)
       setCurrentStep(currentStep + 1)
     } else {
+      console.log('튜토리얼 완료')
       completeTutorial()
     }
   }
@@ -127,127 +230,238 @@ export default function OnboardingTutorial({
     }
   }
 
-  // 튜토리얼 완료 (테스트용 - 로컬스토리지 저장 비활성화)
+  // 튜토리얼 완료
   const completeTutorial = () => {
-    // 하이라이트 제거
-    const highlightElement = document.querySelector('[data-tutorial-highlight]')
-    if (highlightElement) {
-      highlightElement.removeAttribute('data-tutorial-highlight')
-    }
+    // 모든 하이라이트 제거
+    removeAllHighlights()
     
-    // 테스트용: 로컬스토리지 저장 비활성화
-    // if (typeof window !== 'undefined') {
-    //   localStorage.setItem(storageKey, 'true')
-    // }
+    // 로컬스토리지에 완료 상태 저장
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(storageKey, 'true')
+    }
     onClose()
   }
 
   // 튜토리얼 건너뛰기
   const skipTutorial = () => {
-    completeTutorial()
+    // 모든 하이라이트 제거
+    removeAllHighlights()
+    
+    // 로컬스토리지에 완료 상태 저장
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(storageKey, 'true')
+    }
+    onClose()
   }
 
-  // 튜토리얼이 닫힐 때 하이라이트 제거
-  useEffect(() => {
-    if (!isVisible) {
-      const highlightElement = document.querySelector('[data-tutorial-highlight]')
-      if (highlightElement) {
-        highlightElement.removeAttribute('data-tutorial-highlight')
-      }
-    }
-  }, [isVisible])
-
-  if (!isVisible || currentStep >= steps.length) return null
-
-  const currentStepData = steps[currentStep]
+  if (!isOpen) return null
 
   return (
     <>
-      {/* 오버레이 배경 */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-50 transition-opacity duration-300"
-        onClick={skipTutorial}
-      />
-
-      {/* 최종 하이라이트 - CSS outline 방식 */}
-      {targetElement && (
-        <style>
-          {`
-            [data-tutorial-highlight] {
-              outline: 4px solid #9333ea !important;
-              outline-offset: 4px !important;
-              border-radius: 8px !important;
-              z-index: 1000 !important;
-            }
-          `}
-        </style>
+      {/* 배경 오버레이 - 모바일에서는 제거 */}
+      {!isMobile && (
+        <div className="fixed inset-0 bg-transparent z-40 pointer-events-none" />
       )}
+      
 
-      {/* 모바일에서 요소를 찾지 못한 경우 안내 메시지 */}
-      {!targetElement && window.innerWidth < 768 && (
-        <div className="fixed top-20 left-4 right-4 z-50 bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm text-center">
-          모바일에서는 화면을 스크롤하여 해당 요소를 찾아주세요
+      {/* 모바일 안내 메시지 */}
+      {isMobile && (
+        <div className="fixed bottom-20 left-4 right-4 bg-yellow-500 dark:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs text-center" style={{ zIndex: 9999998, fontSize: '10px' }}>
+          {t('tutorial.mobileScrollHint')}
         </div>
       )}
 
-      {/* 오버레이에 직접 설명 표시 */}
-      <div className="fixed inset-0 z-50 flex flex-col justify-center items-center text-white p-8">
-        {/* 상단 진행 표시 */}
-        <div className="absolute top-8 left-8 flex items-center gap-2">
-          <span className="text-sm text-gray-300">
-            {currentStep + 1} / {steps.length}
-          </span>
-        </div>
-
-        {/* 닫기 버튼 */}
-        <button
-          onClick={skipTutorial}
-          className="absolute top-8 right-8 text-gray-400 hover:text-white transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        {/* 중앙 설명 텍스트와 버튼 */}
-        <div className="text-center max-w-2xl px-4">
-          <h3 className="font-bold text-white mb-4 md:mb-6 text-xl md:text-3xl">
-            {currentStepData.title}
-          </h3>
-          <p className="text-gray-200 text-sm md:text-lg leading-relaxed mb-6 md:mb-8">
-            {currentStepData.description}
-          </p>
+      {/* 설명 패널 - 모바일과 데스크톱에 따라 다른 방식 */}
+      {targetElement && (() => {
+        const rect = targetElement.getBoundingClientRect()
+        
+        if (isMobile) {
+          // 모바일: 하이라이트된 요소 바로 위에 작은 툴팁 형태로 표시
+          const tooltipWidth = Math.min(280, window.innerWidth - 40)
+          const tooltipHeight = 120
+          const margin = 10
           
-          {/* 네비게이션 버튼 */}
-          <div className="flex items-center justify-center gap-2 md:gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevStep}
-              disabled={currentStep === 0}
-              className="flex items-center gap-1 md:gap-2 border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-3 md:px-6 py-2 md:py-3 text-xs md:text-sm"
+          let left = rect.left + (rect.width / 2)
+          let top = rect.top - tooltipHeight - margin
+          
+          // 화면 경계 체크
+          if (left - (tooltipWidth / 2) < margin) {
+            left = margin + (tooltipWidth / 2)
+          }
+          
+          if (left + (tooltipWidth / 2) > window.innerWidth - margin) {
+            left = window.innerWidth - margin - (tooltipWidth / 2)
+          }
+          
+          if (top < margin) {
+            // 위쪽에 공간이 없으면 아래쪽에 배치
+            top = rect.bottom + margin
+          }
+          
+          return (
+            <div
+              className="fixed pointer-events-none"
+              style={{
+                zIndex: 9999998, // 하이라이트보다 낮게
+                top: top,
+                left: left,
+                transform: 'translate(-50%, 0)'
+              }}
             >
-              <ChevronLeft className="w-3 h-3 md:w-5 md:h-5" />
-              이전
-            </Button>
+              <div className={`bg-black dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-95 backdrop-blur-sm rounded-lg shadow-2xl p-3 border border-white dark:border-gray-700 border-opacity-20 dark:border-opacity-30 pointer-events-auto relative`} style={{ width: tooltipWidth }}>
+                {/* 하이라이트된 요소를 가리키는 아래쪽 화살표 */}
+                <div 
+                  className="absolute w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black dark:border-t-gray-900 border-opacity-90 dark:border-opacity-95"
+                  style={{
+                    bottom: '-4px',
+                    left: '50%',
+                    transform: 'translateX(-50%)'
+                  }}
+                />
+                
+                {/* 진행 표시 */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
+                    <span className="text-xs text-white dark:text-gray-200 text-opacity-80 dark:text-opacity-90">
+                      {currentStep + 1} / {steps.length}
+                    </span>
+                  </div>
+                  <button
+                    onClick={skipTutorial}
+                    className="text-white text-opacity-60 hover:text-white transition-colors pointer-events-auto"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
 
-            {currentStep < steps.length - 1 ? (
-              <Button
-                onClick={nextStep}
-                className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1 md:gap-2 px-4 md:px-8 py-2 md:py-3 text-xs md:text-lg"
-              >
-                다음
-                <ChevronRight className="w-3 h-3 md:w-5 md:h-5" />
-              </Button>
-            ) : (
-              <Button
-                onClick={completeTutorial}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 md:px-8 py-2 md:py-3 text-xs md:text-lg"
-              >
-                완료
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+                {/* 제목과 설명 */}
+                <h3 className="font-bold text-white dark:text-gray-100 mb-1 text-sm">
+                  {currentStepData.title}
+                </h3>
+                <p className="text-white dark:text-gray-200 text-opacity-90 dark:text-opacity-80 text-xs leading-relaxed mb-2">
+                  {currentStepData.description}
+                </p>
+
+                {/* 네비게이션 버튼 */}
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    className="text-xs px-2 py-1 h-6 bg-white bg-opacity-10 border-white border-opacity-30 text-white hover:bg-white hover:bg-opacity-20 pointer-events-auto"
+                  >
+                    <ChevronLeft className="w-3 h-3 mr-1" />
+                    {t('buttons.previous')}
+                  </Button>
+                  
+                  <Button
+                    onClick={nextStep}
+                    className="text-xs px-3 py-1 h-6 bg-purple-500 hover:bg-purple-600 text-white pointer-events-auto"
+                  >
+                    {currentStep === steps.length - 1 ? t('buttons.complete') : t('buttons.next')}
+                    {currentStep < steps.length - 1 && <ChevronRight className="w-3 h-3 ml-1" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )
+        } else {
+          // 데스크톱: 기존 중앙 고정 방식
+          const panelWidth = 500
+          const panelHeight = 200
+          const margin = 20
+          
+          let left = window.innerWidth / 2
+          let top = window.innerHeight / 2
+          
+          // "한국인만 보기 필터" 단계일 때만 왼쪽으로 이동
+          if (currentStepData.title.includes('한국인만 보기') || currentStepData.title.includes('필터')) {
+            left = window.innerWidth * 0.3 // 화면 왼쪽 30% 위치로 이동
+          }
+          
+          // 화면 경계 체크
+          if (left - (panelWidth / 2) < margin) {
+            left = margin + (panelWidth / 2)
+          }
+          
+          if (left + (panelWidth / 2) > window.innerWidth - margin) {
+            left = window.innerWidth - margin - (panelWidth / 2)
+          }
+          
+          if (top - (panelHeight / 2) < margin) {
+            top = margin + (panelHeight / 2)
+          }
+          
+          if (top + (panelHeight / 2) > window.innerHeight - margin) {
+            top = window.innerHeight - margin - (panelHeight / 2)
+          }
+          
+          return (
+            <div
+              className="fixed pointer-events-none"
+              style={{
+                zIndex: 9999998, // 하이라이트보다 낮게
+                top: top,
+                left: left,
+                transform: 'translate(-50%, -50%)'
+              }}
+            >
+              <div className="bg-black dark:bg-gray-900 bg-opacity-40 dark:bg-opacity-95 backdrop-blur-sm rounded-lg shadow-2xl p-4 w-[500px] mx-4 border border-white dark:border-gray-700 border-opacity-20 dark:border-opacity-30 pointer-events-auto relative">
+                {/* 강조 테두리 */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-lg opacity-15 -z-10"></div>
+                
+                {/* 진행 표시 */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                    <span className="text-sm text-white dark:text-gray-200 text-opacity-80 dark:text-opacity-90">
+                      {currentStep + 1} / {steps.length}
+                    </span>
+                  </div>
+                  <button
+                    onClick={skipTutorial}
+                    className="text-white text-opacity-60 hover:text-white transition-colors pointer-events-auto"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* 제목과 설명 */}
+                <h3 className="font-bold text-white dark:text-gray-100 mb-2 text-base">
+                  {currentStepData.title}
+                </h3>
+                <p className="text-white dark:text-gray-200 text-opacity-90 dark:text-opacity-80 text-sm leading-relaxed mb-3">
+                  {currentStepData.description}
+                </p>
+
+                {/* 네비게이션 버튼 */}
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    className="bg-white bg-opacity-10 border-white border-opacity-30 text-white hover:bg-white hover:bg-opacity-20 pointer-events-auto"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    {t('buttons.previous')}
+                  </Button>
+                  
+                  <Button
+                    onClick={nextStep}
+                    className="bg-purple-500 hover:bg-purple-600 text-white pointer-events-auto"
+                  >
+                    {currentStep === steps.length - 1 ? t('buttons.complete') : t('buttons.next')}
+                    {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4 ml-1" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      })()}
     </>
   )
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseClient } from '@/lib/supabaseServer';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,15 +8,6 @@ export async function GET(request: NextRequest) {
       url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '있음' : '없음',
       anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '있음' : '없음'
     })
-    
-    if (!supabaseClient) {
-      console.log('[COUPONS_CHECK] Supabase 클라이언트 없음')
-      return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
-        { status: 500 }
-      );
-    }
-    const supabase = supabaseClient;
     
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('authorization')
@@ -31,12 +22,32 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const decodedToken = decodeURIComponent(token)
-    console.log('[COUPONS_CHECK] 토큰 디코딩 완료')
+    console.log('[COUPONS_CHECK] 원본 토큰 길이:', token.length)
     
-    // 토큰으로 사용자 정보 가져오기
+    let decodedToken
+    try {
+      decodedToken = decodeURIComponent(token)
+      console.log('[COUPONS_CHECK] 토큰 디코딩 완료, 길이:', decodedToken.length)
+    } catch (error) {
+      console.log('[COUPONS_CHECK] 토큰 디코딩 실패, 원본 사용:', error)
+      decodedToken = token
+    }
+    
+    // 토큰을 사용하여 Supabase 클라이언트 생성
     console.log('[COUPONS_CHECK] 사용자 인증 시작')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(decodedToken);
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${decodedToken}`
+          }
+        }
+      }
+    );
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       console.log('[COUPONS_CHECK] 사용자 인증 실패:', authError)
@@ -154,10 +165,10 @@ export async function GET(request: NextRequest) {
     console.log('[COUPONS_CHECK] 쿠폰 조회 시작')
     const { data: coupons, error: couponsError } = await supabase
       .from('coupons')
-      .select('minutes_remaining, amount, used_amount, expires_at')
+      .select('amount, used_amount, expires_at')
       .eq('user_id', user.id)
       .eq('is_active', true)
-      .gt('minutes_remaining', 0);
+      .gt('amount', 0);
 
     if (couponsError) {
       console.log('[COUPONS_CHECK] 쿠폰 조회 실패, 기본값 반환:', couponsError)
@@ -178,7 +189,7 @@ export async function GET(request: NextRequest) {
     // 쿠폰 사용 가능 여부 계산
     const totalMinutes = coupons?.reduce((sum: number, coupon: any) => {
       if (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) {
-        return sum + coupon.minutes_remaining;
+        return sum + (coupon.amount - coupon.used_amount) * 20; // AKO 1개 = 20분
       }
       return sum;
     }, 0) || 0;

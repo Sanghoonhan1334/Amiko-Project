@@ -200,13 +200,13 @@ export default function HomePage() {
       <Hero />
 
       {/* 통합 콘텐츠 섹션 */}
-      <div className="max-w-4xl mx-auto px-4 py-6 md:py-12 space-y-4 md:space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 md:py-12 space-y-4 md:space-y-6 bg-white dark:bg-gray-900">
         <div className="text-center mb-4 md:mb-8">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-4">
-            AMIKO에 대해 더 알아보세요
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2 md:mb-4">
+            {t('heroSlides.slide3.infoSection.title')}
           </h2>
-          <p className="text-sm md:text-base text-gray-600">
-            아래 섹션을 클릭하여 자세한 정보를 확인하세요
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+            {t('heroSlides.slide3.infoSection.subtitle')}
           </p>
         </div>
 
@@ -220,18 +220,18 @@ export default function HomePage() {
           } as React.CSSProperties}
         >
           {/* 소개 섹션 */}
-          <AccordionItem value="about" className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50">
+          <AccordionItem value="about" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="flex items-center gap-3">
                 <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
-                  <Building2 className="w-5 h-5 text-gray-900" />
+                  <Building2 className="w-5 h-5 text-gray-900 dark:text-gray-100" />
                 </div>
-                <span className="text-lg font-semibold">소개</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('heroSlides.slide3.infoSection.about.title')}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-4">
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <div className="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                   <iframe
                     src="https://www.youtube.com/embed/do4aDyGZmgM"
                     title="AMIKO 소개 영상"
@@ -242,19 +242,21 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <img src="/1.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2" />
-                    <p className="text-sm text-gray-700">AMIKO는 한국과 라틴아메리카를 연결하는 플랫폼입니다</p>
+                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <img src="/1.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
+                    <img src="/amiko-logo-dark.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.description')}</p>
                   </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <img src="/2.png" alt="Bridge" className="w-24 h-24 mx-auto mb-2" />
-                    <p className="text-sm text-gray-700">
-                      <span className="text-red-500">AM</span>erica와 <span className="text-blue-500">KO</span>rea를 잇는 다리
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {t('heroSlides.slide3.infoSection.about.bridgeDescription')}
                     </p>
                   </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <img src="/3.png" alt="Connect" className="w-24 h-24 mx-auto mb-2" />
-                    <p className="text-sm text-gray-700">더 가깝게, 더 쉽게 연결합니다</p>
+                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <img src="/3.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
+                    <img src="/amiko-logo-dark.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.connectDescription')}</p>
                   </div>
                 </div>
               </div>
@@ -262,28 +264,28 @@ export default function HomePage() {
           </AccordionItem>
 
           {/* 문의 섹션 */}
-          <AccordionItem value="contact" className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50">
+          <AccordionItem value="contact" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="flex items-center gap-3">
                 <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
-                  <MessageSquare className="w-5 h-5 text-gray-900" />
+                  <MessageSquare className="w-5 h-5 text-gray-900 dark:text-gray-100" />
                 </div>
-                <span className="text-lg font-semibold">문의</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('heroSlides.slide3.infoSection.contact.title')}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-4">
-                <p className="text-gray-600">
-                  궁금하신 사항이 있으시면 언제든지 문의해주세요. 빠른 시간 내에 답변드리겠습니다.
+                <p className="text-gray-600 dark:text-gray-300">
+                  {t('heroSlides.slide3.infoSection.contact.description')}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-blue-800 mb-2">이메일</h3>
-                    <p className="text-blue-700 text-sm">support@amiko.com</p>
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                    <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">{t('heroSlides.slide3.infoSection.contact.email')}</h3>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm">support@amiko.com</p>
                   </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-green-800 mb-2">운영 시간</h3>
-                    <p className="text-green-700 text-sm">평일 9:00 - 18:00 (KST)</p>
+                  <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                    <h3 className="font-semibold text-green-800 dark:text-green-300 mb-2">{t('heroSlides.slide3.infoSection.contact.operatingHours')}</h3>
+                    <p className="text-green-700 dark:text-green-300 text-sm">{t('heroSlides.slide3.infoSection.contact.hours')}</p>
                   </div>
                 </div>
                 <Button 
@@ -291,42 +293,42 @@ export default function HomePage() {
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
-                  문의하기
+                  {t('heroSlides.slide3.infoSection.contact.contactButton')}
                 </Button>
               </div>
             </AccordionContent>
           </AccordionItem>
 
           {/* 제휴문의 섹션 */}
-          <AccordionItem value="partnership" className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50">
+          <AccordionItem value="partnership" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="flex items-center gap-3">
                 <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
-                  <Handshake className="w-5 h-5 text-gray-900" />
+                  <Handshake className="w-5 h-5 text-gray-900 dark:text-gray-100" />
                 </div>
-                <span className="text-lg font-semibold">제휴문의</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('heroSlides.slide3.infoSection.partnership.title')}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-4">
-                <p className="text-gray-600">
-                  AMIKO와 함께 성장할 파트너를 찾고 있습니다. 다양한 형태의 협업을 환영합니다.
+                <p className="text-gray-600 dark:text-gray-300">
+                  {t('heroSlides.slide3.infoSection.partnership.description')}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <Building2 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                    <h3 className="font-semibold text-gray-900 mb-1">브랜드 확장</h3>
-                    <p className="text-xs text-gray-600">더 넓은 시장으로 진출하세요</p>
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                    <Building2 className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{t('heroSlides.slide3.infoSection.partnership.brandExpansion')}</h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t('heroSlides.slide3.infoSection.partnership.brandDescription')}</p>
                   </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <Users className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                    <h3 className="font-semibold text-gray-900 mb-1">고객 확대</h3>
-                    <p className="text-xs text-gray-600">새로운 고객층에 도달하세요</p>
+                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                    <Users className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{t('heroSlides.slide3.infoSection.partnership.customerExpansion')}</h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t('heroSlides.slide3.infoSection.partnership.customerDescription')}</p>
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                    <h3 className="font-semibold text-gray-900 mb-1">매출 증대</h3>
-                    <p className="text-xs text-gray-600">함께 성장하는 파트너십</p>
+                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                    <DollarSign className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{t('heroSlides.slide3.infoSection.partnership.revenueIncrease')}</h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t('heroSlides.slide3.infoSection.partnership.revenueDescription')}</p>
                   </div>
                 </div>
                 <Button 
@@ -334,74 +336,74 @@ export default function HomePage() {
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   <Handshake className="mr-2 h-4 w-4" />
-                  제휴 제안하기
+                  {t('heroSlides.slide3.infoSection.partnership.partnershipButton')}
                 </Button>
               </div>
             </AccordionContent>
           </AccordionItem>
 
           {/* FAQ 섹션 */}
-          <AccordionItem value="faq" className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50">
+          <AccordionItem value="faq" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="flex items-center gap-3">
                 <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
-                  <HelpCircle className="w-5 h-5 text-gray-900" />
+                  <HelpCircle className="w-5 h-5 text-gray-900 dark:text-gray-100" />
                 </div>
-                <span className="text-lg font-semibold">자주 묻는 질문</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('heroSlides.slide3.infoSection.faq.title')}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-6">
-                <div className="border-l-4 border-blue-200 pl-4 py-2">
-                  <h4 className="font-semibold text-gray-800 mb-2">Q. AMIKO는 어떤 서비스인가요?</h4>
-                  <p className="text-sm text-gray-600">A. AMIKO는 한국과 라틴아메리카를 연결하는 문화 교류 플랫폼입니다. 언어 교환, 커뮤니티, 영상 통화 등 다양한 기능을 제공합니다.</p>
+                <div className="border-l-4 border-blue-200 dark:border-blue-700 pl-4 py-2">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Q. {t('heroSlides.slide3.infoSection.faq.q1')}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">A. {t('heroSlides.slide3.infoSection.faq.a1')}</p>
                 </div>
-                <div className="border-l-4 border-blue-200 pl-4 py-2">
-                  <h4 className="font-semibold text-gray-800 mb-2">Q. 포인트는 어떻게 사용하나요?</h4>
-                  <p className="text-sm text-gray-600">A. 포인트는 게시글 작성, 댓글 작성, 출석 체크 등의 활동으로 획득할 수 있으며, 영상 통화 예약 시 사용할 수 있습니다.</p>
+                <div className="border-l-4 border-blue-200 dark:border-blue-700 pl-4 py-2">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Q. {t('heroSlides.slide3.infoSection.faq.q2')}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">A. {t('heroSlides.slide3.infoSection.faq.a2')}</p>
                 </div>
-                <div className="border-l-4 border-blue-200 pl-4 py-2">
-                  <h4 className="font-semibold text-gray-800 mb-2">Q. 인증은 왜 필요한가요?</h4>
-                  <p className="text-sm text-gray-600">A. 안전한 커뮤니티 환경 조성을 위해 본인 인증이 필요합니다. 이메일 또는 휴대폰 인증을 통해 간단하게 완료할 수 있습니다.</p>
+                <div className="border-l-4 border-blue-200 dark:border-blue-700 pl-4 py-2">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Q. {t('heroSlides.slide3.infoSection.faq.q3')}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">A. {t('heroSlides.slide3.infoSection.faq.a3')}</p>
                 </div>
               </div>
             </AccordionContent>
           </AccordionItem>
 
           {/* 도움말 섹션 */}
-          <AccordionItem value="help" className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50">
+          <AccordionItem value="help" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="flex items-center gap-3">
                 <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
-                  <HelpCircle className="w-5 h-5 text-gray-900" />
+                  <HelpCircle className="w-5 h-5 text-gray-900 dark:text-gray-100" />
                 </div>
-                <span className="text-lg font-semibold">도움말</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('heroSlides.slide3.infoSection.help.title')}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">시작하기</h3>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                    <li>회원가입 후 프로필을 완성하세요</li>
-                    <li>관심사에 맞는 커뮤니티에 참여하세요</li>
-                    <li>영상 통화로 실시간 대화를 나누세요</li>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('heroSlides.slide3.infoSection.help.gettingStarted')}</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                    <li>{t('heroSlides.slide3.infoSection.help.step1')}</li>
+                    <li>{t('heroSlides.slide3.infoSection.help.step2')}</li>
+                    <li>{t('heroSlides.slide3.infoSection.help.step3')}</li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">영상 통화</h3>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                    <li>3일에 한번씩 무료로 통화하세요</li>
-                    <li>실시간 번역 기능을 활용하세요</li>
-                    <li>예약 관리에서 일정을 확인하세요</li>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('heroSlides.slide3.infoSection.help.videoCall')}</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                    <li>{t('heroSlides.slide3.infoSection.help.videoStep1')}</li>
+                    <li>{t('heroSlides.slide3.infoSection.help.videoStep2')}</li>
+                    <li>{t('heroSlides.slide3.infoSection.help.videoStep3')}</li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">커뮤니티</h3>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                    <li>게시글을 작성하고 포인트를 받으세요</li>
-                    <li>댓글로 다른 사용자와 소통하세요</li>
-                    <li>좋아요와 공유로 인기 게시물을 만드세요</li>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('heroSlides.slide3.infoSection.help.community')}</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                    <li>{t('heroSlides.slide3.infoSection.help.communityStep1')}</li>
+                    <li>{t('heroSlides.slide3.infoSection.help.communityStep2')}</li>
+                    <li>{t('heroSlides.slide3.infoSection.help.communityStep3')}</li>
                   </ul>
                 </div>
               </div>

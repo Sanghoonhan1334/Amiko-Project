@@ -286,22 +286,34 @@ export default function TestsPage() {
   }, [selectedCategory])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
       {/* 페이지별 헤더 - 모바일 컴팩트 */}
-      <div className="bg-white border-b border-gray-200 px-3 py-2 pt-8 md:pt-24">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2 pt-28 sm:pt-32 md:pt-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
-              <img 
-                src="/심리테스트.png" 
-                alt="심리테스트" 
-                className="w-full h-full object-contain"
-              />
+            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">{t('tests.title')}</h1>
+          </div>
+          
+          {/* 카테고리 선택 - 헤더 중앙 */}
+          <div className="flex-1 text-center px-1 sm:px-4">
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
+              <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-300 hidden xs:inline">{t('tests.category')}</span>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[100px] sm:w-[120px] h-5 sm:h-6 text-[9px] sm:text-xs bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 truncate">
+                  <SelectValue placeholder={t('tests.selectCategory')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-[10px] sm:text-xs">{t('tests.categories.all')}</SelectItem>
+                  <SelectItem value="fortune" className="text-[10px] sm:text-xs">🔮 {t('tests.categories.fortune')}</SelectItem>
+                  <SelectItem value="psychology" className="text-[10px] sm:text-xs">🧠 {t('tests.categories.psychology')}</SelectItem>
+                  <SelectItem value="meme" className="text-[10px] sm:text-xs">🎭 {t('tests.categories.meme')}</SelectItem>
+                  <SelectItem value="culture" className="text-[10px] sm:text-xs">🌐 {t('tests.categories.culture')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <h1 className="text-lg font-bold text-gray-800">심리테스트</h1>
           </div>
           
           <div className="flex items-center gap-2">
@@ -322,10 +334,10 @@ export default function TestsPage() {
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-1 text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white text-[10px] px-1 py-1 h-6"
+              className="flex items-center gap-0.5 sm:gap-1 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border-0 sm:border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-transparent sm:bg-white dark:bg-transparent sm:dark:bg-gray-700 text-[9px] sm:text-[10px] px-1 py-1 h-5 sm:h-6"
             >
-              <ArrowLeft className="w-2.5 h-2.5" />
-              {t('buttons.back')}
+              <ArrowLeft className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+              <span className="hidden xs:inline">{t('buttons.back')}</span>
             </Button>
           </div>
         </div>
@@ -333,56 +345,24 @@ export default function TestsPage() {
 
       {/* 메인 컨텐츠 - 모바일 컴팩트 */}
       <div className="max-w-6xl mx-auto px-3 pt-1 pb-4">
-        {/* 환영 메시지 - 모바일 우선 */}
-        <div className="text-center mb-4 px-1">
-          <h2 className="text-lg font-bold text-gray-800 mb-1">{t('tests.subtitle')}</h2>
-          <p className="text-xs text-gray-600">{t('tests.description')}</p>
+        {/* 설명 메시지 - 모바일에서만 표시 */}
+        <div className="text-center mb-4 px-1 sm:hidden">
+          <p className="text-xs text-gray-600 dark:text-gray-400">{t('tests.description')}</p>
         </div>
 
-        {/* 카테고리 필터 - 모바일 우선 */}
-        <div className="mb-6 px-1">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-medium text-gray-700">{t('tests.category')}</span>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[120px] h-6 text-[10px]">
-                  <SelectValue placeholder={t('tests.selectCategory')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-[10px]">{t('tests.categories.all')}</SelectItem>
-                  <SelectItem value="fortune" className="text-[10px]">🔮 {t('tests.categories.fortune')}</SelectItem>
-                  <SelectItem value="psychology" className="text-[10px]">🧠 {t('tests.categories.psychology')}</SelectItem>
-                  <SelectItem value="meme" className="text-[10px]">🎭 {t('tests.categories.meme')}</SelectItem>
-                  <SelectItem value="culture" className="text-[10px]">🌐 {t('tests.categories.culture')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* 이전 버튼 */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleBack}
-              className="flex items-center gap-1 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-2 py-1 h-6 text-[10px] relative z-50"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              {t('buttons.back')}
-            </Button>
-          </div>
-        </div>
 
         {/* 테스트 목록 - 모바일 컴팩트 */}
         <div className="px-1">
           {quizzesLoading ? (
             <div className="text-center py-6">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-500 mx-auto mb-2"></div>
-              <p className="text-xs text-gray-600">{t('tests.loading')}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{t('tests.loading')}</p>
             </div>
           ) : quizzes.length === 0 ? (
-            <Card className="p-4 text-center bg-white">
-              <div className="text-gray-400 text-3xl mb-2">✨</div>
-              <h3 className="text-sm font-semibold text-gray-600 mb-1">{t('tests.noPosts')}</h3>
-              <p className="text-xs text-gray-500">{t('tests.beFirst')}</p>
+            <Card className="p-4 text-center bg-white dark:bg-gray-700">
+              <div className="text-gray-400 dark:text-gray-500 text-3xl mb-2">✨</div>
+              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">{t('tests.noPosts')}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('tests.beFirst')}</p>
             </Card>
           ) : (
             <div className="grid gap-2 grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
@@ -396,8 +376,8 @@ export default function TestsPage() {
                     key={quiz.id}
                     className={`group transition-all duration-300 ${
                       quiz.isCompleted 
-                        ? 'cursor-pointer hover:shadow-md hover:scale-105 bg-white border border-gray-200' 
-                        : 'cursor-not-allowed bg-gray-50 border border-gray-100 opacity-75'
+                        ? 'cursor-pointer hover:shadow-md hover:scale-105 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600' 
+                        : 'cursor-not-allowed bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 opacity-75'
                     } overflow-hidden`}
                     onClick={() => handleQuizClick(quiz.id)}
                   >
@@ -436,21 +416,21 @@ export default function TestsPage() {
                         {/* 제목 */}
                         <h3 className={`text-xs font-semibold line-clamp-2 mb-1 transition-colors ${
                           quiz.isCompleted 
-                            ? 'text-gray-800 group-hover:text-purple-600' 
-                            : 'text-gray-500'
+                            ? 'text-gray-800 dark:text-gray-100 group-hover:text-purple-600 dark:group-hover:text-purple-400' 
+                            : 'text-gray-500 dark:text-gray-500'
                         }`}>
                           {quiz.title}
                         </h3>
                         
                         {/* 설명 */}
                         <p className={`text-xs line-clamp-1 mb-1 ${
-                          quiz.isCompleted ? 'text-gray-600' : 'text-gray-400'
+                          quiz.isCompleted ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
                         }`}>
                           {quiz.description}
                         </p>
                         
                         {/* 메타 정보 */}
-                        <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-0.5">
                             <span className="flex items-center gap-0.5">
                               <Target className="w-2 h-2" />
@@ -458,12 +438,12 @@ export default function TestsPage() {
                             </span>
                             {/* 미완성 표시 */}
                             {!quiz.isCompleted && (
-                              <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                              <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
                                 {language === 'ko' ? '준비중' : 'Próximamente'}
                               </span>
                             )}
                           </div>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
                             {quiz.participantCount ? quiz.participantCount.toLocaleString() : 0}{t('tests.participants')}
                           </span>
                         </div>
@@ -479,12 +459,12 @@ export default function TestsPage() {
 
       {/* 테스트 작성 모달 */}
       <Dialog open={showTestWriteModal} onOpenChange={setShowTestWriteModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-gray-800">
+            <DialogTitle className="text-xl font-bold text-gray-800 dark:text-gray-100">
               새 테스트 작성
             </DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
               새로운 테스트를 작성하여 커뮤니티에 공유해보세요.
             </DialogDescription>
           </DialogHeader>
@@ -492,7 +472,7 @@ export default function TestsPage() {
           <div className="space-y-6">
             {/* 테스트 제목 */}
             <div>
-              <Label htmlFor="test-title" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="test-title" className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 테스트 제목 *
               </Label>
               <Input
@@ -500,13 +480,13 @@ export default function TestsPage() {
                 placeholder="테스트 제목을 입력하세요"
                 value={testFormData.title}
                 onChange={(e) => setTestFormData(prev => ({ ...prev, title: e.target.value }))}
-                className="mt-1"
+                className="mt-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
             
             {/* 테스트 설명 */}
             <div>
-              <Label htmlFor="test-description" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="test-description" className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 테스트 설명 *
               </Label>
               <Textarea
@@ -515,20 +495,20 @@ export default function TestsPage() {
                 value={testFormData.description}
                 onChange={(e) => setTestFormData(prev => ({ ...prev, description: e.target.value }))}
                 rows={4}
-                className="mt-1"
+                className="mt-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
             
             {/* 카테고리 선택 */}
             <div>
-              <Label htmlFor="test-category" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="test-category" className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 카테고리
               </Label>
               <Select
                 value={testFormData.category} 
                 onValueChange={(value) => setTestFormData(prev => ({ ...prev, category: value }))}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100">
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
@@ -542,7 +522,7 @@ export default function TestsPage() {
             
             {/* 썸네일 URL */}
             <div>
-              <Label htmlFor="test-thumbnail" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="test-thumbnail" className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 썸네일 URL (선택사항)
               </Label>
               <Input
@@ -550,14 +530,14 @@ export default function TestsPage() {
                 placeholder="이미지 URL을 입력하세요"
                 value={testFormData.thumbnail_url}
                 onChange={(e) => setTestFormData(prev => ({ ...prev, thumbnail_url: e.target.value }))}
-                className="mt-1"
+                className="mt-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
               {testFormData.thumbnail_url && (
                 <div className="mt-2">
                   <img 
                     src={testFormData.thumbnail_url} 
                     alt="썸네일 미리보기"
-                    className="w-32 h-32 object-cover rounded-lg border"
+                    className="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none'
                     }}
@@ -571,6 +551,7 @@ export default function TestsPage() {
             <Button
               variant="outline"
               onClick={() => setShowTestWriteModal(false)}
+              className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               취소
             </Button>

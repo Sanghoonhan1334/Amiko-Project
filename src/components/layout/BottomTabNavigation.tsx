@@ -36,7 +36,7 @@ export default function BottomTabNavigation() {
   const tabs = [
     {
       id: 'home',
-      label: '홈',
+      label: t('home.navigation.home'),
       icon: Home,
       path: '/main?tab=home'
     },
@@ -100,9 +100,9 @@ export default function BottomTabNavigation() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 border-t-2 border-blue-200 shadow-2xl md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 dark:bg-gray-800 border-t-2 border-blue-200 dark:border-gray-700 shadow-2xl md:hidden">
       
-      <div className="flex items-center justify-around px-1 py-2">
+      <div className="flex items-center justify-around px-1 py-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -111,14 +111,14 @@ export default function BottomTabNavigation() {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className={`relative flex flex-col items-center justify-center p-3 transition-all duration-200 active:scale-95 ${
+              className={`relative flex flex-col items-center justify-center p-2 transition-all duration-200 active:scale-95 ${
                 isActive 
-                  ? 'text-purple-600' 
-                  : 'text-blue-600'
+                  ? 'text-purple-600 dark:text-purple-400' 
+                  : 'text-blue-600 dark:text-blue-400'
               }`}
             >
-              <Icon className={`w-6 h-6 mb-1 transition-transform duration-200 ${isActive ? 'text-purple-600 scale-110' : 'text-blue-600'}`} />
-              <span className={`${t('language') === 'es' ? 'text-[10px]' : 'text-[9px] xs:text-[10px] sm:text-xs'} font-bold whitespace-nowrap ${isActive ? 'text-purple-600' : 'text-blue-600'}`}>
+              <Icon className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${isActive ? 'text-purple-600 dark:text-purple-400 scale-110' : 'text-blue-600 dark:text-blue-400'}`} />
+              <span className={`${t('language') === 'es' ? 'text-[9px]' : 'text-[8px] xs:text-[9px] sm:text-[10px]'} font-bold whitespace-nowrap ${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'}`}>
                 {tab.label}
               </span>
             </button>

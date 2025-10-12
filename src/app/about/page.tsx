@@ -96,16 +96,23 @@ export default function AboutPage() {
                 <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8">
                   <div className="space-y-4 pt-0 md:pt-8">
                     {/* 첫 번째 카드 */}
-                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 max-w-md mx-auto">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 dark:border-gray-700 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
                           src="/1.png" 
                           alt="AMIKO Logo 1" 
-                          className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10"
+                          className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10 dark:hidden"
                           loading="lazy"
                           decoding="async"
                         />
-                        <p className={`text-gray-700 ${language === 'es' ? 'text-xs md:text-sm' : 'text-xs md:text-sm'} leading-relaxed tracking-wide`}>
+                        <img 
+                          src="/amiko-logo-dark.png" 
+                          alt="AMIKO Logo 1" 
+                          className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10 hidden dark:block"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <p className={`text-gray-700 dark:text-gray-300 ${language === 'es' ? 'text-xs md:text-sm' : 'text-xs md:text-sm'} leading-relaxed tracking-wide`}>
                           : {t('about.companyDescription')}
                         </p>
                       </div>
@@ -136,16 +143,23 @@ export default function AboutPage() {
                     </div>
 
                     {/* 세 번째 카드 */}
-                    <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 max-w-md mx-auto">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 dark:border-gray-700 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
                           src="/3.png" 
                           alt="AMIKO Logo 3" 
-                          className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10"
+                          className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10 dark:hidden"
                           loading="lazy"
                           decoding="async"
                         />
-                        <p className={`text-gray-700 ${language === 'es' ? 'text-xs md:text-sm' : 'text-xs md:text-sm'} leading-relaxed tracking-wide`}>
+                        <img 
+                          src="/amiko-logo-dark.png" 
+                          alt="AMIKO Logo 3" 
+                          className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10 hidden dark:block"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <p className={`text-gray-700 dark:text-gray-300 ${language === 'es' ? 'text-xs md:text-sm' : 'text-xs md:text-sm'} leading-relaxed tracking-wide`}>
                           : {t('about.closerDescription')}
                         </p>
                       </div>

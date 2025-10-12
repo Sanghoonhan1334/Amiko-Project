@@ -678,14 +678,49 @@ export default function NewsPage() {
   useEffect(() => {
     console.log('NewsPage useEffect 실행')
     
-        // 뉴스 데이터 로딩 (페이지네이션 지원)
+    // 간단하고 안전한 튜토리얼 오버레이 제거
+    const removeTutorialOverlays = () => {
+      // Dialog 오버레이만 타겟팅하여 제거 (실제 콘텐츠는 건드리지 않음)
+      const dialogOverlays = document.querySelectorAll('[data-radix-dialog-overlay]')
+      dialogOverlays.forEach(overlay => {
+        if (overlay instanceof HTMLElement) {
+          overlay.style.display = 'none'
+          overlay.remove()
+        }
+      })
+      
+      // 특정 보라색 오버레이만 제거 (정확한 색상 코드로 타겟팅)
+      const specificPurpleOverlays = document.querySelectorAll('[style*="rgba(147, 51, 234"], [style*="rgba(168, 85, 247"]')
+      specificPurpleOverlays.forEach(overlay => {
+        if (overlay instanceof HTMLElement) {
+          overlay.style.display = 'none'
+          overlay.remove()
+        }
+      })
+    }
+    
+    // 페이지 로드 후 간단히 오버레이 제거
+    setTimeout(removeTutorialOverlays, 1000)
+    
+        // 뉴스 데이터 로딩 (페이지네이션 지원) - 성능 최적화
         const loadNews = async () => {
           console.log('뉴스 로딩 시작')
           setLoading(true)
           setError(null)
           
           try {
-            const response = await fetch(`/api/news?page=1&limit=${itemsPerPage}`)
+            // 타임아웃 설정 (10초)
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 10000)
+            
+            const response = await fetch(`/api/news?page=1&limit=${itemsPerPage}`, {
+              signal: controller.signal,
+              headers: {
+                'Cache-Control': 'max-age=300' // 5분 캐시
+              }
+            })
+            
+            clearTimeout(timeoutId)
             const data = await response.json()
             
             if (data.success) {
@@ -706,7 +741,11 @@ export default function NewsPage() {
             }
           } catch (error) {
             console.error('뉴스 API 오류:', error)
-            setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.')
+            if (error instanceof Error && error.name === 'AbortError') {
+              setError('뉴스 로딩 시간이 초과되었습니다. 다시 시도해주세요.')
+            } else {
+              setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.')
+            }
             // 오류 시 임시 데이터 사용
             setNews(tempNewsData)
             setTotalNews(tempNewsData.length)
@@ -832,7 +871,7 @@ export default function NewsPage() {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={1}
-                  className="mb-1 md:mb-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none text-xs md:text-sm"
+                  className="mb-1 md:mb-3 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-xs md:text-sm"
                 />
                 <div className="flex justify-end">
                   <Button
@@ -899,7 +938,7 @@ export default function NewsPage() {
                           value={editContent}
                           onChange={(e) => setEditContent(e.target.value)}
                           rows={1}
-                          className="mb-1 md:mb-2 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none text-[10px] md:text-sm"
+                          className="mb-1 md:mb-2 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-[10px] md:text-sm"
                         />
                         <div className="flex gap-0.5 md:gap-2">
                           <Button
@@ -963,7 +1002,7 @@ export default function NewsPage() {
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
                           rows={1}
-                          className="mb-1 md:mb-2 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none text-[10px] md:text-sm"
+                          className="mb-1 md:mb-2 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-[10px] md:text-sm"
                         />
                         <div className="flex gap-0.5 md:gap-2">
                           <Button
@@ -1046,22 +1085,15 @@ export default function NewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
       {/* 페이지별 헤더 - 모바일용 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 pt-20 md:hidden">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 pt-20 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden">
-              <img 
-                src="/K-매거진.png" 
-                alt="K-매거진" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <h1 className="text-xl font-bold text-gray-800">{t('community.koreanNews')}</h1>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('community.koreanNews')}</h1>
           </div>
           
           <div className="flex items-center gap-4">
@@ -1081,7 +1113,7 @@ export default function NewsPage() {
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 border-2 border-gray-400 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-3 py-2"
             >
               <ArrowLeft className="w-4 h-4" />
               {t('buttons.back')}
@@ -1094,11 +1126,11 @@ export default function NewsPage() {
       <div className="max-w-6xl mx-auto px-4 pt-4 md:pt-40 pb-6">
         {/* 웹 형태일 때 섹션 카드 래퍼 */}
         <div className="hidden md:block">
-          <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
+          <Card className="p-6 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 rounded-xl">
             <div className="space-y-6">
               {/* 페이지 제목과 버튼들 */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <h1 className="text-2xl font-bold text-gray-800">{t('community.koreanNews')}</h1>
+              <div className="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('community.koreanNews')}</h1>
                 
                 <div className="flex items-center gap-4">
                   {/* 운영자일 때만 글쓰기 버튼 표시 */}
@@ -1117,7 +1149,7 @@ export default function NewsPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleBack}
-                    className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
+                    className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 border-2 border-gray-400 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-3 py-2"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     {t('buttons.back')}
@@ -1126,50 +1158,67 @@ export default function NewsPage() {
               </div>
 
               {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                  <p className="text-gray-600">{t('community.loadingNews')}</p>
+                <div className="space-y-6">
+                  {/* 스켈레톤 뉴스 카드들 */}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-6 bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600 rounded-xl animate-pulse">
+                      <div className="flex gap-4">
+                        <div className="w-20 h-20 bg-gray-200 dark:bg-gray-600 rounded-lg flex-shrink-0"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full mb-1"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-2/3 mb-3"></div>
+                          <div className="flex items-center gap-4">
+                            <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-12"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-12"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="space-y-6">
                   {/* 뉴스 목록 */}
                   <div className="grid gap-6">
                     {news.length === 0 ? (
-                      <Card className="p-8 text-center bg-white shadow-lg border border-gray-200 rounded-xl">
-                        <div className="text-gray-400 text-6xl mb-4">📰</div>
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">아직 뉴스가 없습니다</h3>
-                        <p className="text-gray-500">첫 번째 뉴스를 작성해보세요!</p>
+                      <Card className="p-8 text-center bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600 rounded-xl">
+                        <div className="text-gray-400 dark:text-gray-500 text-6xl mb-4">📰</div>
+                        <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">아직 뉴스가 없습니다</h3>
+                        <p className="text-gray-500 dark:text-gray-400">첫 번째 뉴스를 작성해보세요!</p>
                       </Card>
                     ) : (
                       news.map((item) => (
-                        <Card key={item.id} className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl hover:shadow-xl transition-shadow">
+                        <Card key={item.id} className="p-6 bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600 rounded-xl hover:shadow-xl transition-shadow">
                           <div className="flex gap-4">
                             <div 
-                              className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
+                              className="w-20 h-20 bg-gray-200 dark:bg-gray-600 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
                               onClick={() => handleNewsClick(item)}
                             >
                               <img 
                                 src={item.thumbnail} 
                                 alt={item.title}
                                 className="w-full h-full object-cover rounded-lg"
+                                loading="lazy"
                                 onError={(e) => {
                                   e.currentTarget.style.display = 'none'
                                   e.currentTarget.nextElementSibling.style.display = 'flex'
                                 }}
                               />
-                              <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-2xl" style={{display: 'none'}}>
+                              <div className="w-full h-full bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center text-gray-400 dark:text-gray-500 text-2xl" style={{display: 'none'}}>
                                 📰
                               </div>
                             </div>
                             <div className="flex-1">
                               <div className="flex items-start justify-between mb-2">
                                 <h3 
-                                  className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer flex-1 mr-4" 
+                                  className="text-lg font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 cursor-pointer flex-1 mr-4" 
                                   onClick={() => handleNewsClick(item)}
                                 >
                                   {item.title}
                                   {item.is_pinned && (
-                                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                    <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full">
                                       📌 고정
                                     </span>
                                   )}
@@ -1216,12 +1265,12 @@ export default function NewsPage() {
                               </div>
                               
                               <p 
-                                className="text-gray-600 text-sm mb-3 line-clamp-2 cursor-pointer" 
+                                className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2 cursor-pointer" 
                                 onClick={() => handleNewsClick(item)}
                               >
                                 {item.content}
                               </p>
-                              <div className="flex items-center justify-between text-sm text-gray-500">
+                              <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <div className="flex items-center gap-4">
                                   {item.source && item.source.trim() ? (
                                     <>
@@ -1262,7 +1311,7 @@ export default function NewsPage() {
                         size="sm"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="px-3 py-2"
+                        className="px-3 py-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                       >
                         {t('buttons.back')}
                       </Button>
@@ -1290,7 +1339,7 @@ export default function NewsPage() {
                               className={`px-3 py-2 ${
                                 currentPage === pageNum 
                                   ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                                  : 'hover:bg-gray-50'
+                                  : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                               }`}
                             >
                               {pageNum}
@@ -1304,7 +1353,7 @@ export default function NewsPage() {
                         size="sm"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-2"
+                        className="px-3 py-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                       >
                         다음
                       </Button>
@@ -1312,7 +1361,7 @@ export default function NewsPage() {
                   )}
             
                   {/* 페이지 정보 */}
-                  <div className="text-center mt-4 text-sm text-gray-500">
+                  <div className="text-center mt-4 text-sm text-gray-500 dark:text-gray-400">
                     {t('community.newsDisplay', { 
                       total: totalNews, 
                       start: ((currentPage - 1) * itemsPerPage) + 1, 
@@ -1328,50 +1377,69 @@ export default function NewsPage() {
         {/* 모바일 형태일 때 기존 레이아웃 */}
         <div className="md:hidden">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">{t('community.loadingNews')}</p>
+            <div className="space-y-4">
+              {/* 모바일 스켈레톤 뉴스 카드들 */}
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-4 bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600 rounded-xl animate-pulse">
+                  <div className="flex gap-4">
+                    <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-lg flex-shrink-0"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full mb-1"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded w-12"></div>
+                        <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded w-10"></div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded w-8"></div>
+                        <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded w-8"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="space-y-4">
               {/* 뉴스 목록 */}
               <div className="grid gap-4">
                 {news.length === 0 ? (
-                  <Card className="p-8 text-center bg-white shadow-lg border border-gray-200 rounded-xl">
-                    <div className="text-gray-400 text-6xl mb-4">📰</div>
-                    <h3 className="text-lg font-semibold text-gray-600 mb-2">아직 뉴스가 없습니다</h3>
-                    <p className="text-gray-500">첫 번째 뉴스를 작성해보세요!</p>
+                  <Card className="p-8 text-center bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600 rounded-xl">
+                    <div className="text-gray-400 dark:text-gray-500 text-6xl mb-4">📰</div>
+                    <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-2">아직 뉴스가 없습니다</h3>
+                    <p className="text-gray-500 dark:text-gray-400">첫 번째 뉴스를 작성해보세요!</p>
                   </Card>
                 ) : (
                   news.map((item) => (
-                    <Card key={item.id} className="p-4 bg-white shadow-lg border border-gray-200 rounded-xl hover:shadow-xl transition-shadow">
+                    <Card key={item.id} className="p-4 bg-white dark:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600 rounded-xl hover:shadow-xl transition-shadow">
                       <div className="flex gap-4">
                         <div 
-                          className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
+                          className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer" 
                           onClick={() => handleNewsClick(item)}
                         >
                           <img 
                             src={item.thumbnail} 
                             alt={item.title}
                             className="w-full h-full object-cover rounded-lg"
+                            loading="lazy"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none'
                               e.currentTarget.nextElementSibling.style.display = 'flex'
                             }}
                           />
-                          <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-2xl" style={{display: 'none'}}>
+                          <div className="w-full h-full bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center text-gray-400 dark:text-gray-500 text-2xl" style={{display: 'none'}}>
                             📰
                           </div>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-1">
                             <h3 
-                              className="text-sm font-semibold text-gray-800 line-clamp-2 cursor-pointer flex-1 mr-4" 
+                              className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 cursor-pointer flex-1 mr-4" 
                               onClick={() => handleNewsClick(item)}
                             >
                               {item.title}
                               {item.is_pinned && (
-                                <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full">
                                   📌 고정
                                 </span>
                               )}
@@ -1423,12 +1491,12 @@ export default function NewsPage() {
                             )}
                           </div>
                           
-                          <div className="text-xs text-gray-600 mb-1">
+                          <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
                             <div className="block">{item.author === 'Amiko 뉴스팀' ? `Amiko ${t('community.newsTeam')}` : item.author}</div>
                             <div className="block">{item.date}</div>
                           </div>
                           
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                             <div className="flex items-center gap-1">
                               <ThumbsUp className="w-3 h-3" />
                               <span>{item.likes || 0}</span>
@@ -1517,9 +1585,9 @@ export default function NewsPage() {
 
       {/* 뉴스 작성 모달 */}
       <Dialog open={showNewsWriteModal} onOpenChange={setShowNewsWriteModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
-          <DialogHeader className="pb-4 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 작성</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">뉴스 작성</DialogTitle>
             <DialogDescription className="sr-only">새로운 뉴스를 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
@@ -1527,20 +1595,20 @@ export default function NewsPage() {
             {/* 기본 정보 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="min-w-0">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
                   사진 출처 <span className="text-gray-400 text-xs">(선택사항)</span>
                 </Label>
                 <Input
                   placeholder="예: NewsWA, 서울En"
                   value={newsWriteForm.source}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
-                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10"
+                  className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 />
               </div>
               <div className="min-w-0 -ml-2">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">작성자</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">작성자</Label>
                 <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
-                  <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 pr-6">
+                  <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 pr-6">
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1552,12 +1620,12 @@ export default function NewsPage() {
                 </Select>
               </div>
               <div className="min-w-0">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">게시 날짜</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">게시 날짜</Label>
                 <input
                   type="date"
                   value={newsWriteForm.date}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, date: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10"
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   style={{ 
                     colorScheme: 'light'
                   }}
@@ -1567,12 +1635,12 @@ export default function NewsPage() {
 
             {/* 제목 */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">제목</Label>
               <Input
                 placeholder="제목을 입력하세요"
                 value={newsWriteForm.title}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
-                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
 
@@ -1596,7 +1664,7 @@ export default function NewsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => document.getElementById('contentImageUpload')?.click()}
-                    className="text-xs"
+                    className="text-xs border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     📷 이미지 삽입
                   </Button>
@@ -1607,15 +1675,15 @@ export default function NewsPage() {
                 value={newsWriteForm.content}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
                 rows={8}
-                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none"
               />
             </div>
 
             {/* 썸네일 선택 */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">썸네일 선택</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">썸네일 선택</Label>
               <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
-                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400">
                   <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1649,7 +1717,7 @@ export default function NewsPage() {
                 variant="outline"
                 onClick={() => setShowNewsWriteModal(false)}
                 disabled={newsWriteLoading}
-                className="px-6"
+                className="px-6 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 취소
               </Button>
@@ -1674,9 +1742,9 @@ export default function NewsPage() {
 
       {/* 뉴스 편집 모달 */}
       <Dialog open={showNewsEditModal} onOpenChange={setShowNewsEditModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
-          <DialogHeader className="pb-4 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 수정</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">뉴스 수정</DialogTitle>
             <DialogDescription className="sr-only">뉴스를 수정하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
@@ -1684,20 +1752,20 @@ export default function NewsPage() {
             {/* 기본 정보 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="min-w-0">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
                   사진 출처 <span className="text-gray-400 text-xs">(선택사항)</span>
                 </Label>
                 <Input
                   placeholder="예: NewsWA, 서울En"
                   value={newsWriteForm.source}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
-                  className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10"
+                  className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 />
               </div>
               <div className="min-w-0 -ml-2">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">작성자</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">작성자</Label>
                 <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
-                  <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 pr-6">
+                  <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 pr-6">
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1709,12 +1777,12 @@ export default function NewsPage() {
                 </Select>
               </div>
               <div className="min-w-0">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">게시 날짜</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">게시 날짜</Label>
                 <input
                   type="date"
                   value={newsWriteForm.date}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, date: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10"
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   style={{ 
                     colorScheme: 'light'
                   }}
@@ -1724,12 +1792,12 @@ export default function NewsPage() {
 
             {/* 제목 */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">제목</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">제목</Label>
               <Input
                 placeholder="제목을 입력하세요"
                 value={newsWriteForm.title}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
-                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
 
@@ -1753,7 +1821,7 @@ export default function NewsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => document.getElementById('editContentImageUpload')?.click()}
-                    className="text-xs"
+                    className="text-xs border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     📷 이미지 삽입
                   </Button>
@@ -1764,15 +1832,15 @@ export default function NewsPage() {
                 value={newsWriteForm.content}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
                 rows={8}
-                className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none"
               />
             </div>
 
             {/* 썸네일 선택 */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">썸네일 선택</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">썸네일 선택</Label>
               <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
-                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400">
                   <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1806,7 +1874,7 @@ export default function NewsPage() {
                 variant="outline"
                 onClick={() => setShowNewsEditModal(false)}
                 disabled={newsWriteLoading}
-                className="px-6"
+                className="px-6 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 취소
               </Button>

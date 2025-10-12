@@ -62,7 +62,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalPosts, setTotalPosts] = useState(0)
   const [sortBy, setSortBy] = useState('latest')
+  const itemsPerPage = 10
   const [selectedCategory, setSelectedCategory] = useState('free')
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [hasMobileNavigation, setHasMobileNavigation] = useState(false)
@@ -146,6 +149,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     setSelectedBoard(board)
     setCurrentPage(1)
     setPosts([]) // 이전 데이터 즉시 초기화
+    setTotalPages(1)
+    setTotalPosts(0)
     setLoading(true)
     // loadPosts는 useEffect에서 자동으로 호출됨
   }
@@ -399,10 +404,19 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const gallerySlug = boardToSlugMap[selectedBoard] || 'free'
       console.log('[LOAD_POSTS] 갤러리 슬러그:', gallerySlug)
       
+      // 페이지네이션 파라미터 추가
+      const offset = (currentPage - 1) * itemsPerPage
+      const limit = itemsPerPage
+      
       // 전체 선택 시 모든 게시판의 글을 가져오기 위해 gallery 파라미터 제거
-      const apiUrl = gallerySlug === 'all' 
-        ? `/api/posts` 
-        : `/api/posts?gallery=${gallerySlug}`
+      let apiUrl
+      if (gallerySlug === 'all') {
+        apiUrl = `/api/posts?page=${currentPage}&limit=${limit}&offset=${offset}`
+      } else {
+        apiUrl = `/api/posts?gallery=${gallerySlug}&page=${currentPage}&limit=${limit}&offset=${offset}`
+      }
+      
+      console.log('[LOAD_POSTS] API URL:', apiUrl)
       
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -441,9 +455,24 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
         console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
         setPosts(transformedPosts)
+        
+        // 페이지네이션 정보 업데이트
+        const total = data.total || transformedPosts.length
+        const totalPagesCount = Math.ceil(total / itemsPerPage)
+        setTotalPosts(total)
+        setTotalPages(totalPagesCount)
+        
+        console.log('[LOAD_POSTS] 페이지네이션 정보:', {
+          total,
+          totalPages: totalPagesCount,
+          currentPage,
+          itemsPerPage
+        })
       } else {
         console.log('[LOAD_POSTS] 성공하지 않음 또는 게시글 없음')
         setPosts([])
+        setTotalPosts(0)
+        setTotalPages(1)
       }
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -508,16 +537,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     <div className="space-y-4 sm:space-y-6 pt-8 md:pt-12">
       {/* 웹 형태일 때 섹션 카드 래퍼 */}
       <div className="hidden md:block">
-        <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
+        <Card className="p-6 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 rounded-xl">
           <div className="space-y-4 sm:space-y-6">
             {/* 페이지 제목 - 드롭다운 */}
-            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
               {/* 왼쪽 끝에 이전 버튼 */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/main?tab=community')}
-                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white shadow-sm hover:shadow-md px-3 py-2 text-xs font-medium"
+                className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-3 py-2 text-xs font-medium"
               >
                 <ArrowLeft className="w-4 h-4" />
                 {t('buttons.back')}
@@ -532,7 +561,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200 rounded-lg flex-shrink-0 ${
                       selectedBoard === board.name
                         ? 'bg-blue-500 text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+                        : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 hover:shadow-sm'
                     }`}
                   >
                     {board.name}
@@ -655,21 +684,21 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">게시판</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">글쓴이</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">작성일</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">조회</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">추천</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">게시판</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">제목</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">글쓴이</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">작성일</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">조회</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">추천</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {sortedPosts.map((post, index) => (
-                          <tr key={post.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                          <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => {
                             if (onPostSelect) {
                               onPostSelect(post)
                             } else {
@@ -681,20 +710,20 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                                 {post.category || post.category_name}
                               </Badge>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                               <div className="flex items-center gap-2">
                                 {post.is_pinned && <Star className="w-4 h-4 text-yellow-500" />}
                                 {post.is_hot && <TrendingUp className="w-4 h-4 text-red-500" />}
                                 <span className="truncate max-w-xs">{post.title}</span>
                                 {post.comments_count > 0 && (
-                                  <span className="text-blue-600 text-xs">[{post.comments_count}]</span>
+                                  <span className="text-blue-600 dark:text-blue-400 text-xs">[{post.comments_count}]</span>
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">{post.author_name}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500">{formatDate(post.created_at)}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500">{formatNumber(post.views)}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500">{formatNumber(post.likes)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{post.author_name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{formatDate(post.created_at)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{formatNumber(post.views)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{formatNumber(post.likes)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -706,23 +735,56 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
             {/* 페이지네이션 */}
             <div className="flex items-center justify-center gap-2">
-              <Button variant="outline" size="sm" disabled={currentPage === 1}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                className="bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500"
+              >
                 {t('buttons.back')}
               </Button>
               
-              {[1, 2, 3, 4, 5].map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className={currentPage === page ? 'bg-blue-500 hover:bg-blue-600 text-white' : ''}
-                >
-                  {page}
-                </Button>
-              ))}
+              {/* 동적 페이지 번호 생성 */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  // 총 페이지가 5개 이하면 1부터 순서대로
+                  pageNum = i + 1;
+                } else {
+                  // 총 페이지가 5개 초과면 현재 페이지 중심으로 표시
+                  if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={currentPage === pageNum 
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                      : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500'
+                    }
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
               
-              <Button variant="outline" size="sm" disabled={currentPage === 5}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className="bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500"
+              >
                 {language === 'ko' ? '다음' : 'Next'}
               </Button>
             </div>
@@ -731,32 +793,32 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       </div>
 
       {/* 모바일: DC인사이드 스타일 */}
-      <div className="md:hidden bg-white min-h-screen">
+      <div className="md:hidden bg-white dark:bg-gray-900 min-h-screen">
         {/* 검색바 */}
-        <div className="bg-gray-100 py-1 md:py-2">
-          <div className="flex items-center bg-white px-4 py-2 mx-0">
+        <div className="bg-gray-100 dark:bg-gray-800 py-1 md:py-2">
+          <div className="flex items-center bg-white dark:bg-gray-700 px-4 py-2 mx-0">
             <input
               type="text"
               placeholder={t('community.searchPlaceholder')}
-              className="flex-1 text-xs outline-none"
+              className="flex-1 text-xs outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
             />
-            <span className="text-gray-400">🔍</span>
+            <span className="text-gray-400 dark:text-gray-500">🔍</span>
           </div>
           {/* 검색 결과 정보 */}
           {searchQuery.trim() && (
-            <div className="px-4 py-1 text-xs text-gray-600 bg-gray-50">
+            <div className="px-4 py-1 text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800">
               "{searchQuery}" 검색 결과: {sortedPosts.length}개
             </div>
           )}
         </div>
 
         {/* 섹션 타이틀 - 드롭다운 */}
-        <div className="bg-white py-2 border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 py-2 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between px-4">
             <Select value={selectedBoard} onValueChange={handleBoardChange}>
-              <SelectTrigger className="w-auto border-none shadow-none text-base font-medium text-gray-900 bg-transparent p-0">
+              <SelectTrigger className="w-auto border-none shadow-none text-base font-medium text-gray-900 dark:text-gray-100 bg-transparent p-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -772,7 +834,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/main?tab=community')}
-                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
+                className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 border-2 border-gray-400 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-3 py-2"
               >
                 <ArrowLeft className="w-4 h-4" />
                 {t('buttons.back')}
@@ -782,15 +844,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         </div>
 
         {/* 카테고리 필터 */}
-        <div className="bg-white py-2 border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 py-2 border-b border-gray-200 dark:border-gray-700">
           <div className={`flex gap-2 overflow-x-auto pb-1 px-4 ${language === 'es' ? 'gap-1' : 'gap-2'}`}>
             <button 
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
-              } ${
+              }               ${
                 activeTab === 'recommended' 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('recommended')}
             >
@@ -799,10 +861,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             <button 
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
-              } ${
+              }               ${
                 activeTab === 'all' 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('all')}
             >
@@ -811,10 +873,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             <button 
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
-              } ${
+              }               ${
                 activeTab === 'popular' 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('popular')}
             >
@@ -823,10 +885,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             <button 
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
-              } ${
+              }               ${
                 activeTab === 'latest' 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('latest')}
             >
@@ -836,7 +898,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         </div>
 
         {/* 게시글 목록 */}
-        <div className="bg-white">
+        <div className="bg-white dark:bg-gray-800">
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center gap-2 text-blue-600">
@@ -846,16 +908,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             </div>
           ) : sortedPosts.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="text-base font-medium text-gray-900 mb-2">
+              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {searchQuery.trim() 
                   ? (language === 'ko' ? '검색 결과가 없습니다' : 'No search results')
                   : (language === 'ko' ? '게시글이 없습니다' : 'No posts yet')
                 }
               </h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 {searchQuery.trim()
                   ? (language === 'ko' ? '다른 검색어로 시도해보세요' : 'Try a different search term')
                   : (language === 'ko' ? '첫 번째 게시글을 작성해보세요!' : 'Be the first to write a post!')
@@ -863,11 +925,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {sortedPosts.map((post, index) => (
                 <div 
                   key={post.id} 
-                  className="py-2 cursor-pointer hover:bg-gray-50 px-3"
+                  className="py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-3"
                   onClick={() => {
                     if (onPostSelect) {
                       onPostSelect(post)
@@ -878,18 +940,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 >
                   <div className="space-y-1">
                     {/* 제목 */}
-                    <h3 className="text-sm text-gray-900 line-clamp-2">
+                    <h3 className="text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
                       {post.title}
                     </h3>
                     
                     {/* 카테고리와 날짜 */}
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span className="font-bold">{post.category_name}</span>
                       <span>{formatDate(post.created_at)}</span>
                     </div>
                     
                     {/* 통계 */}
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
                       <span className="flex items-center gap-1">
                         <Eye className="w-3 h-3" />
                         <span>{formatNumber(post.views)}</span>
@@ -929,8 +991,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         </div> */}
 
         {/* 플로팅 글쓰기 버튼 */}
-        <div className="fixed bottom-24 right-4 z-50 md:hidden">
-          <div className="flex items-center">
+        <div className="fixed bottom-20 right-4 z-50 md:hidden">
+          <div className="flex items-center justify-end">
             {/* 글쓰기 텍스트 - 원에서 확장되는 효과 */}
             <div className={`transition-all duration-300 ease-in-out ${
               isFabExpanded ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-4 scale-95'
@@ -954,7 +1016,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   setIsFabExpanded(true)
                 }
               }}
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center border-2 border-white hover:scale-110 active:scale-95"
+              className="w-11 h-11 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center border-2 border-white hover:scale-110 active:scale-95"
             >
               {isFabExpanded ? (
                 <X className="w-5 h-5 drop-shadow-sm font-bold" strokeWidth={3} />
@@ -969,15 +1031,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       {/* 글쓰기 모달 */}
       {showPostModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-700">
             {/* 모달 헤더 */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
-              <h2 className="text-lg font-bold text-gray-800">{t('community.newPost')}</h2>
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-600">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">{t('community.newPost')}</h2>
               <button
                 onClick={handleClosePostModal}
-                className="p-2 hover:bg-gray-200 rounded-full transition-all duration-200"
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-all duration-200"
               >
-                <X className="w-4 h-4 text-gray-500" />
+                <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
 
@@ -985,16 +1047,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             <div className="p-4 space-y-4 max-h-[calc(85vh-120px)] overflow-y-auto">
               {/* 카테고리 선택 */}
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-700">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t('community.category')}
                 </label>
                 <Select value={postCategory} onValueChange={setPostCategory}>
-                  <SelectTrigger className="w-full h-10 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                  <SelectTrigger className="w-full h-10 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                     <SelectValue placeholder="게시판을 선택해주세요" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
                     {categories.filter(cat => cat.id !== 'all').map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
+                      <SelectItem key={category.id} value={category.id} className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
                         <span>{category.name}</span>
                       </SelectItem>
                     ))}
@@ -1004,7 +1066,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
               {/* 제목 입력 */}
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-700">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t('community.postTitle')}
                 </label>
                 <input
@@ -1012,17 +1074,17 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   value={postTitle}
                   onChange={(e) => setPostTitle(e.target.value)}
                   placeholder={t('community.postTitlePlaceholder')}
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                   maxLength={100}
                 />
-                <div className="text-right text-xs text-gray-500">
+                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
                   {postTitle.length}/100
                 </div>
               </div>
 
               {/* 내용 입력 */}
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-700">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t('community.postContent')}
                 </label>
                 <textarea
@@ -1030,17 +1092,17 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   onChange={(e) => setPostContent(e.target.value)}
                   placeholder={t('community.postContentPlaceholder')}
                   rows={6}
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                   maxLength={2000}
                 />
-                <div className="text-right text-xs text-gray-500">
+                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
                   {postContent.length}/2000
                 </div>
               </div>
 
               {/* 이미지 업로드 */}
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-700">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t('community.attachImage')}
                 </label>
                 <div className="space-y-2">
@@ -1055,12 +1117,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   />
                   <label
                     htmlFor="post-image-upload"
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-xs border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 font-medium ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-xs border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900 transition-all duration-200 font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <span>📷</span>
                     {uploadingImages ? '업로드 중...' : t('community.selectImage')}
                   </label>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {t('community.imageRestrictions')}
                   </div>
                   
@@ -1072,7 +1134,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                           <img
                             src={preview}
                             alt={`첨부 이미지 ${index + 1}`}
-                            className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
+                            className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200"
                           />
                           <button
                             onClick={() => handleRemoveImage(index)}
@@ -1089,10 +1151,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             </div>
 
             {/* 모달 푸터 */}
-            <div className="flex items-center justify-end gap-3 p-3 border-t border-gray-100 bg-gray-50">
+            <div className="flex items-center justify-end gap-3 p-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
               <button
                 onClick={handleClosePostModal}
-                className="px-4 py-2 text-xs text-gray-600 hover:text-gray-800 border-2 border-gray-300 rounded-lg hover:border-gray-400 transition-all duration-200 font-medium"
+                className="px-4 py-2 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 font-medium bg-white dark:bg-gray-600"
               >
                 {t('buttons.cancel')}
               </button>

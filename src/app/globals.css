@@ -3,6 +3,124 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 210 11% 7%; /* #121212 - 너무 어둡지 않은 짙은 회색 */
+    --foreground: 210 20% 90%; /* #E0E0E0 - 순백 대신 밝은 회색 */
+    --card: 210 11% 9%; /* #1A1A1A - 카드는 배경보다 살짝 밝게 */
+    --card-foreground: 210 20% 90%;
+    --popover: 210 11% 9%;
+    --popover-foreground: 210 20% 90%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 11% 15%; /* #2A2A2A - 보조 요소는 더 밝게 */
+    --secondary-foreground: 210 20% 90%;
+    --muted: 210 11% 15%;
+    --muted-foreground: 215 10% 65%; /* 60% 투명도 - 일반 텍스트 */
+    --accent: 210 11% 15%;
+    --accent-foreground: 210 20% 90%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 210 11% 20%; /* #3A3A3A - 경계선은 적절한 대비 */
+    --input: 210 11% 15%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-gray-200 dark:border-gray-700;
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  /* 다크모드에서 전체 배경 강제 적용 */
+  .dark html,
+  .dark body {
+    background-color: #111827 !important; /* gray-900 */
+  }
+  
+  /* 다크모드에서 모든 요소의 기본 배경색 강제 적용 */
+  .dark * {
+    background-color: inherit;
+  }
+  
+  /* 아이콘과 SVG 요소는 배경색 강제 적용에서 제외 */
+  .dark svg,
+  .dark [data-lucide],
+  .dark .lucide,
+  .dark icon,
+  .dark .icon,
+  .dark button svg,
+  .dark .btn svg,
+  .dark .button svg,
+  .dark [role="button"] svg,
+  .dark .clock-icon,
+  .dark .time-icon,
+  .dark .world-clock svg,
+  .dark .time-zone svg {
+    background-color: transparent !important;
+    background: transparent !important;
+    mix-blend-mode: normal !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+  
+  /* 버튼 내부의 아이콘들 특별 보호 */
+  .dark button *,
+  .dark .btn *,
+  .dark .button *,
+  .dark [role="button"] * {
+    background-color: transparent !important;
+    background: transparent !important;
+  }
+  
+  /* 모든 가능한 아이콘 요소들 보호 */
+  .dark [class*="icon"],
+  .dark [class*="Icon"],
+  .dark [data-icon],
+  .dark i,
+  .dark .fa,
+  .dark .fas,
+  .dark .far,
+  .dark .fab,
+  .dark .material-icons {
+    background-color: transparent !important;
+    background: transparent !important;
+    mix-blend-mode: normal !important;
+  }
+  
+  /* 흰색 배경을 가진 요소들을 다크모드에서 강제로 변경 */
+  .dark .bg-white {
+    background-color: #1f2937 !important; /* gray-800 */
+  }
+}
+
 /* 폰트 변수 */
 :root {
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
@@ -41,6 +159,52 @@
   /* 모든 스크롤 가능한 요소에 터치 스크롤 최적화 적용 */
   * {
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* 다크모드 로고 배경 조정 */
+  
+  /* Hero subtitle 강제 색상 적용 */
+  #hero-subtitle-mobile,
+  #hero-subtitle-desktop {
+    color: #6b7280 !important;
+    text-shadow: none !important;
+    position: relative !important;
+    z-index: 9999 !important;
+  }
+  
+  .dark #hero-subtitle-mobile,
+  .dark #hero-subtitle-desktop {
+    color: #ffffff !important;
+    position: relative !important;
+    z-index: 9999 !important;
+  }
+  
+  /* 모든 가능한 선택자로 강제 적용 */
+  .dark p[id*="hero-subtitle"],
+  .dark p#hero-subtitle-mobile,
+  .dark p#hero-subtitle-desktop {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    text-shadow: none !important;
+    position: relative !important;
+    z-index: 9999 !important;
+  }
+  
+  /* 다크모드에서 모든 p 태그 강제 흰색 적용 */
+  .dark p {
+    color: #ffffff !important;
+  }
+  
+  /* Hero 섹션 내 모든 텍스트 강제 흰색 */
+  .dark section p,
+  .dark section h1,
+  .dark section h2,
+  .dark section h3 {
+    color: #ffffff !important;
+  }
+  .dark .logo-container img {
+    background: transparent;
+    mix-blend-mode: screen;
   }
   
   /* 스크롤바 숨기기 */
@@ -152,7 +316,7 @@
   }
   
   .card {
-    @apply bg-white rounded-3xl shadow-xl border border-gray-200/50 backdrop-blur-sm;
+    @apply bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm;
   }
   
   .badge {
@@ -314,6 +478,68 @@
   .hamburger-menu-icon.open .hamburger-line:nth-child(3) {
     transform: rotate(-45deg) translate(7px, -6px);
   }
+  
+  /* 튜토리얼 하이라이트 효과 - 가상 요소로 하이라이트 표시 */
+  [data-tutorial-highlight] {
+    position: relative !important;
+    z-index: 99999 !important; /* 매우 높은 값으로 증가 */
+    isolation: isolate !important; /* 새로운 stacking context 생성 */
+  }
+  
+  /* 하이라이트 오버레이 (실제 하이라이트 표시) */
+  [data-tutorial-highlight]::after {
+    content: '' !important;
+    position: absolute !important;
+    top: -6px !important;
+    left: -6px !important;
+    right: -6px !important;
+    bottom: -6px !important;
+    border: 3px solid rgba(147, 51, 234, 0.8) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 0 6px rgba(147, 51, 234, 0.7), 0 0 0 12px rgba(147, 51, 234, 0.4),
+                inset 0 0 0 1000px rgba(147, 51, 234, 0.15) !important;
+    z-index: 1 !important; /* 부모(data-tutorial-highlight) 내에서만 1 */
+    pointer-events: none !important;
+    animation: tutorial-pulse-highlight 2s ease-in-out infinite !important;
+  }
+  
+  /* 펄스 애니메이션 */
+  [data-tutorial-highlight]::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -8px !important;
+    left: -8px !important;
+    right: -8px !important;
+    bottom: -8px !important;
+    border: 2px solid rgba(147, 51, 234, 0.8) !important;
+    border-radius: 14px !important;
+    z-index: 2 !important; /* ::after보다 위 */
+    pointer-events: none !important;
+    animation: tutorial-pulse 2s infinite !important;
+  }
+  
+  @keyframes tutorial-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(147, 51, 234, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(147, 51, 234, 0);
+    }
+  }
+  
+  @keyframes tutorial-pulse-highlight {
+    0%, 100% {
+      box-shadow: 0 0 0 6px rgba(147, 51, 234, 0.7), 0 0 0 12px rgba(147, 51, 234, 0.4),
+                  inset 0 0 0 1000px rgba(147, 51, 234, 0.15);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(147, 51, 234, 0.9), 0 0 0 16px rgba(147, 51, 234, 0.5),
+                  inset 0 0 0 1000px rgba(147, 51, 234, 0.2);
+    }
+  }
 }
 
 /* 깔끔한 흰색 배경 */
@@ -322,11 +548,31 @@
     background: white;
   }
   
+  .dark .body-gradient {
+    background: hsl(var(--background));
+  }
+  
   /* 온라인 상태 무지개 테두리 애니메이션 */
   @keyframes rainbow-border {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+  }
+  
+  /* 튜토리얼 하이라이트 펄스 애니메이션 */
+  @keyframes tutorial-pulse-highlight {
+    0% { 
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 1;
+      transform: scale(1.02);
+    }
+    100% { 
+      opacity: 0.6;
+      transform: scale(1);
+    }
   }
   
   /* 스토리 컨테이너 반응형 너비 */

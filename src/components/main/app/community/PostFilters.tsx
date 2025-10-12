@@ -111,7 +111,7 @@ export default function PostFilters({ onFilterChange, currentFilters }: PostFilt
   }
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="space-y-4">
         {/* 기본 필터 - 한 줄로 배치 */}
         <div className="flex items-center gap-3">
@@ -147,13 +147,13 @@ export default function PostFilters({ onFilterChange, currentFilters }: PostFilt
 
         {/* 검색 */}
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700">{t('community.galleryList.search')}:</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('community.galleryList.search')}:</span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('community.galleryList.searchPlaceholder')}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
           />
           <Button
@@ -198,10 +198,10 @@ export default function PostFilters({ onFilterChange, currentFilters }: PostFilt
 
         {/* 고급 필터 */}
         {showAdvanced && (
-          <div className="space-y-4 pt-4 border-t border-gray-200">
+          <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             {/* 시간 범위 */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700 mr-2">{t('community.galleryList.period')}:</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">{t('community.galleryList.period')}:</span>
               {(['all', 'today', 'week', 'month'] as const).map((timeRange) => (
                 <Button
                   key={timeRange}
@@ -217,7 +217,7 @@ export default function PostFilters({ onFilterChange, currentFilters }: PostFilt
 
             {/* 게시물 타입 */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700 mr-2">{t('community.galleryList.type')}:</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">{t('community.galleryList.type')}:</span>
               {(['all', 'with_images', 'text_only'] as const).map((postType) => (
                 <Button
                   key={postType}
@@ -233,7 +233,7 @@ export default function PostFilters({ onFilterChange, currentFilters }: PostFilt
 
             {/* 상태 필터 */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700 mr-2">{t('community.galleryList.status')}:</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">{t('community.galleryList.status')}:</span>
               {(['all', 'hot', 'popular', 'pinned'] as const).map((status) => (
                 <Button
                   key={status}

@@ -117,14 +117,14 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 pt-32 sm:pt-44">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-3 sm:p-4 pt-32 sm:pt-44">
       <div className="flex justify-center">
-      <Card className="w-full max-w-md bg-white border shadow-lg">
+      <Card className="w-full max-w-md bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-lg">
         <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
-          <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900">
+          <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-gray-100">
             {t('auth.signIn')}
           </CardTitle>
-          <CardDescription className="text-sm sm:text-base text-slate-600">
+          <CardDescription className="text-sm sm:text-base text-slate-600 dark:text-gray-400">
             {t('auth.signInDescription')}
           </CardDescription>
         </CardHeader>
@@ -132,18 +132,18 @@ export default function SignInPage() {
         <CardContent className="space-y-4 sm:space-y-6">
           <form onSubmit={handleSignIn} className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identifier" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="identifier" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.emailOrPhone')}
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="identifier"
                   type="text"
                   placeholder={t('auth.emailOrPhonePlaceholder')}
                   value={formData.identifier}
                   onChange={(e) => handleInputChange('identifier', e.target.value)}
-                  className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
                   style={{ paddingLeft: '2.5rem' }}
                   required
                 />
@@ -151,25 +151,25 @@ export default function SignInPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.password')}
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t('auth.passwordPlaceholder')}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="pr-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="pr-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
                   style={{ paddingLeft: '2.5rem' }}
                   required
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -178,7 +178,7 @@ export default function SignInPage() {
 
             <Button
               type="submit"
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 text-lg font-medium transition-colors"
+              className="w-full bg-slate-900 dark:bg-gray-700 hover:bg-slate-800 dark:hover:bg-gray-600 text-white py-3 text-lg font-medium transition-colors"
               disabled={isLoading || !formData.identifier || !formData.password}
             >
               {isLoading ? (
@@ -200,10 +200,10 @@ export default function SignInPage() {
             <div className="space-y-4">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-slate-200" />
+                  <span className="w-full border-t border-slate-200 dark:border-gray-600" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-slate-50 px-2 text-slate-500">또는</span>
+                  <span className="bg-slate-50 dark:bg-gray-800 px-2 text-slate-500 dark:text-gray-400">또는</span>
                 </div>
               </div>
               
@@ -220,18 +220,18 @@ export default function SignInPage() {
           {/* 추가 링크 */}
           <div className="space-y-3 text-center">
             <div className="flex items-center justify-center gap-6 text-sm">
-              <a href="/forgot-password" className="text-slate-900 hover:text-slate-700 font-medium transition-colors">
+              <a href="/forgot-password" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium transition-colors">
                 {t('auth.forgotPassword')}
               </a>
-              <span className="text-slate-400">•</span>
-              <a href="/help" className="text-slate-900 hover:text-slate-700 font-medium transition-colors">
+              <span className="text-slate-400 dark:text-gray-500">•</span>
+              <a href="/help" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium transition-colors">
                 {t('footer.help')}
               </a>
             </div>
             
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-gray-400">
               {t('auth.noAccount')}{' '}
-              <a href="/sign-up" className="text-slate-900 hover:text-slate-700 font-medium">
+              <a href="/sign-up" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium">
                 {t('auth.signUp')}
               </a>
             </p>

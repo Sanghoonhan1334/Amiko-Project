@@ -707,8 +707,8 @@ export default function FreeBoard() {
               className={`transition-all duration-200 ${
                 currentCategory === option.value 
                   ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'hover:bg-blue-50 hover:text-blue-600'
-              } active:scale-95 active:bg-blue-200 active:text-blue-800`}
+                  : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400'
+              } active:scale-95 active:bg-blue-200 dark:active:bg-blue-800 active:text-blue-800 dark:active:text-blue-200`}
             >
               {option.label}
             </Button>
@@ -1057,28 +1057,28 @@ export default function FreeBoard() {
               {/* 게시글 목록 테이블 */}
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-gray-600">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">번호</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">말머리</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('communityTab.title')}</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.author')}</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.createdAt')}</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.views')}</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('freeboard.likes')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">번호</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">말머리</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{t('communityTab.title')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{t('freeboard.author')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{t('freeboard.createdAt')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{t('freeboard.views')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">{t('freeboard.likes')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {posts.map((post, index) => (
                       <tr
                         key={post.id}
-                        className="hover:bg-gray-50 cursor-pointer"
+                        className="hover:bg-gray-50 dark:hover:bg-gray-500 cursor-pointer"
                         onClick={() => handlePostClick(post)}
                       >
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           {posts.length - index}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           <div className="flex items-center gap-1">
                             <span className="text-xs">📄</span>
                             <span>{post.category || '자유게시판'}</span>
@@ -1090,35 +1090,35 @@ export default function FreeBoard() {
                             {post.images && post.images.length > 0 && (
                               <span className="text-sm">📷</span>
                             )}
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
                               {post.title}
                             </span>
                             {post.comment_count > 0 && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 [{post.comment_count}]
                               </span>
                             )}
                             {post.is_pinned && (
-                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                              <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
                                 개념글
                               </Badge>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           {post.author?.full_name || '익명'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           {formatDate(post.created_at)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           {post.view_count}
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <div className="flex items-center gap-1">
-                            <span className="text-green-600">{post.like_count}</span>
-                            <span className="text-gray-400">-</span>
-                            <span className="text-red-600">{post.dislike_count}</span>
+                            <span className="text-green-600 dark:text-green-400">{post.like_count}</span>
+                            <span className="text-gray-400 dark:text-gray-500">-</span>
+                            <span className="text-red-600 dark:text-red-400">{post.dislike_count}</span>
                           </div>
                         </td>
                       </tr>
@@ -1129,12 +1129,13 @@ export default function FreeBoard() {
               
               {/* 페이지네이션 */}
               {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 p-4 border-t">
+                <div className="flex justify-center items-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
+                    className="bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500"
                   >
                     이전
                   </Button>
@@ -1159,7 +1160,11 @@ export default function FreeBoard() {
                           variant={currentPage === pageNum ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCurrentPage(pageNum)}
-                          className="min-w-[32px]"
+                          className={`min-w-[32px] ${
+                            currentPage === pageNum 
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                              : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500'
+                          }`}
                         >
                           {pageNum}
                         </Button>
@@ -1172,6 +1177,7 @@ export default function FreeBoard() {
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
                     disabled={currentPage === pagination.totalPages}
+                    className="bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500"
                   >
                     다음
                   </Button>

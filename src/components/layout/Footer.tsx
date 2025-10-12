@@ -16,13 +16,13 @@ export default function Footer() {
   const [isSupportMenuOpen, setIsSupportMenuOpen] = useState(false)
 
   return (
-    <footer className="hidden md:block bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 border-t border-brand-200/50">
+    <footer className="hidden md:block bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-t border-brand-200/50 dark:border-gray-700/50">
       <div className="w-full px-3 sm:px-4 py-4 sm:py-6 lg:max-w-6xl lg:mx-auto">
         {/* 메인 푸터 콘텐츠 - 모바일 최적화 */}
         <div className="space-y-6 md:grid md:grid-cols-3 md:gap-4 md:space-y-0 mb-4">
           {/* 모바일: SNS 섹션을 맨 위로 */}
           <div className="md:order-2 space-y-3">
-            <h5 className="text-sm md:text-base font-bold text-gray-800 text-center">{t('footer.officialSns')}</h5>
+            <h5 className="text-sm md:text-base font-bold text-gray-800 dark:text-gray-200 text-center">{t('footer.officialSns')}</h5>
             <div className="flex items-center justify-center gap-3">
               {/* TikTok */}
               <a 
@@ -70,10 +70,10 @@ export default function Footer() {
 
           {/* 모바일: 저작권 및 정책 */}
           <div className="md:order-1 space-y-2 text-center md:text-left">
-            <div className="text-gray-700 text-xs md:text-sm font-['Inter'] font-medium">
+            <div className="text-gray-700 dark:text-gray-300 text-xs md:text-sm font-['Inter'] font-medium">
               © 2025 Amiko. All rights reserved.
             </div>
-            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-gray-600 font-['Inter'] font-medium">
+            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400 font-['Inter'] font-medium">
               <Link href="/privacy" className="hover:text-brand-600 hover:underline transition-all duration-300">
                 {t('footer.privacy')}
               </Link>
@@ -90,29 +90,29 @@ export default function Footer() {
           <div className="md:order-3 space-y-2 text-center md:text-right">
             {/* 데스크톱: 기존 레이아웃 */}
             <div className="hidden md:block">
-              <h4 className="font-bold text-gray-800 text-sm font-['Inter']">{t('footer.support')}</h4>
+              <h4 className="font-bold text-gray-800 dark:text-gray-200 text-sm font-['Inter']">{t('footer.support')}</h4>
               <div className="space-y-1 text-right">
                 <Link 
                   href="/help" 
-                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-mint-600 dark:hover:text-mint-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.help')}
                 </Link>
                 <Link 
                   href="/faq" 
-                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-mint-600 dark:hover:text-mint-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.faq')}
                 </Link>
                 <Link 
                   href="/contact" 
-                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-mint-600 dark:hover:text-mint-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.contact')}
                 </Link>
                 <Link 
                   href="/feedback" 
-                  className="block text-gray-700 hover:text-mint-600 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-mint-600 dark:hover:text-mint-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
                 >
                   {t('footer.feedback')}
                 </Link>
@@ -123,13 +123,13 @@ export default function Footer() {
             <div className="md:hidden">
               <button
                 onClick={() => setIsSupportMenuOpen(!isSupportMenuOpen)}
-                className="flex items-center justify-center gap-2 mx-auto bg-white rounded-lg px-4 py-2 shadow-md hover:shadow-lg transition-shadow duration-300"
+                className="flex items-center justify-center gap-2 mx-auto bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-md hover:shadow-lg transition-shadow duration-300"
               >
-                <span className="text-sm font-bold text-gray-800 font-['Inter']">{t('footer.support')}</span>
+                <span className="text-sm font-bold text-gray-800 dark:text-gray-200 font-['Inter']">{t('footer.support')}</span>
                 {isSupportMenuOpen ? (
-                  <X className="w-4 h-4 text-gray-600" />
+                  <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 ) : (
-                  <Menu className="w-4 h-4 text-gray-600" />
+                  <Menu className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 )}
               </button>
               
@@ -173,7 +173,7 @@ export default function Footer() {
         {/* 추가 정보 */}
         <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-brand-200/30">
           <div className="text-center">
-            <p className="text-sm sm:text-base text-gray-700 font-['Inter'] font-bold">
+            <p className="text-sm sm:text-base text-gray-700 dark:text-white font-['Inter'] font-bold">
               {t('footer.bridgeDescription')}
             </p>
           </div>

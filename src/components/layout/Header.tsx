@@ -328,7 +328,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
           <div className="flex justify-between items-center h-16 sm:h-20 md:h-32 lg:h-32 xl:h-32 2xl:h-32 3xl:h-32 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
@@ -339,19 +339,19 @@ export default function Header() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                  className="px-1 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 transition-all duration-300 border border-gray-200 flex items-center gap-0.5 sm:gap-1"
+                  className="px-1 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 flex items-center gap-0.5 sm:gap-1"
                   title={t('selectLanguage')}
                 >
-                  <Globe className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-600" />
-                  <span className="text-xs sm:text-sm font-medium">
+                  <Globe className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-300" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">
                     {language === 'ko' ? '한국어' : 'Español'}
                   </span>
-                  <ChevronDown className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-500" />
+                  <ChevronDown className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-500 dark:text-gray-400" />
                 </Button>
                 
                 {/* 언어 선택 드롭다운 */}
                 {showLanguageDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-50">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-50">
                     <div className="space-y-1">
                       <button
                         onClick={() => {
@@ -362,14 +362,14 @@ export default function Header() {
                         }}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                           language === 'ko' 
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                            : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                         }`}
                       >
                         <span className="text-base">🇰🇷</span>
                         <span>한국어</span>
                         {language === 'ko' && (
-                          <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div className="ml-auto w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
                         )}
                       </button>
                       
@@ -382,14 +382,14 @@ export default function Header() {
                         }}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                           language === 'es' 
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                            : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                         }`}
                       >
                         <span className="text-base">🇲🇽</span>
                         <span>Español</span>
                         {language === 'es' && (
-                          <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div className="ml-auto w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
                         )}
                       </button>
                     </div>
@@ -402,26 +402,48 @@ export default function Header() {
                 className="relative cursor-pointer group time-dropdown"
                 onClick={() => setShowTimeDetails(!showTimeDetails)}
               >
-                <div className="flex items-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-0.5 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-                  <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-blue-600" />
+                <div className="flex items-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-0.5 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg border border-blue-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300">
+                  <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-blue-600 dark:text-blue-400" />
                   <div className="flex flex-row gap-0.5 sm:gap-2 text-xs font-medium">
-                    <span className="text-blue-700 whitespace-nowrap" style={{ fontSize: '10px' }}>🇰🇷 {koreanTime}</span>
-                    <span className="text-indigo-700 whitespace-nowrap" style={{ fontSize: '10px' }}>🇲🇽 {localTime}</span>
+                    <span 
+                      className="text-blue-700 dark:text-blue-300 whitespace-nowrap" 
+                      style={{ 
+                        fontSize: '10px',
+                        background: 'transparent !important',
+                        filter: 'none !important',
+                        textShadow: 'none !important',
+                        mixBlendMode: 'normal !important'
+                      }}
+                    >
+                      🇰🇷 {koreanTime}
+                    </span>
+                    <span 
+                      className="text-indigo-700 dark:text-indigo-300 whitespace-nowrap" 
+                      style={{ 
+                        fontSize: '10px',
+                        background: 'transparent !important',
+                        filter: 'none !important',
+                        textShadow: 'none !important',
+                        mixBlendMode: 'normal !important'
+                      }}
+                    >
+                      🇲🇽 {localTime}
+                    </span>
                   </div>
                 </div>
                 
                 {/* 상세 시간 정보 드롭다운 */}
                 {showTimeDetails && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-50">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-gray-800">🌏 세계 시간</span>
+                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">🌏 세계 시간</span>
                         <button 
                           onClick={(e) => {
                             e.stopPropagation()
                             setShowTimeDetails(false)
                           }}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                         >
                           ✕
                         </button>
@@ -429,27 +451,27 @@ export default function Header() {
                       
                       <div className="space-y-3">
                         {/* 한국 */}
-                        <div className="relative overflow-hidden bg-gradient-to-r from-red-50 to-pink-50 rounded-xl p-3 shadow-sm border border-red-100 hover:shadow-md transition-all duration-300">
+                        <div className="relative overflow-hidden bg-red-50 dark:bg-gray-700 rounded-xl p-3 border border-red-100 dark:border-gray-600 transition-all duration-300">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                              <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-500 dark:from-red-500 dark:to-pink-600 rounded-full flex items-center justify-center shadow-sm">
                                 <span className="text-sm">🇰🇷</span>
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-red-800">
+                                <div className="text-sm font-semibold text-red-800 dark:text-red-300">
                                   {language === 'ko' ? '한국' : 'Corea del Sur'}
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-red-700">
+                              <div className="text-sm font-mono font-bold text-red-700 dark:text-red-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
                                   timeZone: 'Asia/Seoul',
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
                               </div>
-                              <div className="text-xs text-red-500">
+                              <div className="text-xs text-red-500 dark:text-red-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
                                   timeZone: 'Asia/Seoul',
                                   month: '2-digit',
@@ -462,27 +484,27 @@ export default function Header() {
                         </div>
                         
                         {/* 멕시코 */}
-                        <div className="relative overflow-hidden bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-3 shadow-sm border border-blue-100 hover:shadow-md transition-all duration-300">
+                        <div className="relative overflow-hidden bg-blue-50 dark:bg-gray-700 rounded-xl p-3 border border-blue-100 dark:border-gray-600 transition-all duration-300">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center shadow-sm">
+                              <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 dark:from-blue-500 dark:to-cyan-600 rounded-full flex items-center justify-center shadow-sm">
                                 <span className="text-sm">🇲🇽</span>
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-blue-800">
+                                <div className="text-sm font-semibold text-blue-800 dark:text-blue-300">
                                   {language === 'ko' ? '멕시코' : 'México'}
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-blue-700">
+                              <div className="text-sm font-mono font-bold text-blue-700 dark:text-blue-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'America/Mexico_City',
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
                               </div>
-                              <div className="text-xs text-blue-500">
+                              <div className="text-xs text-blue-500 dark:text-blue-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'America/Mexico_City',
                                   month: '2-digit',
@@ -495,27 +517,27 @@ export default function Header() {
                         </div>
                         
                         {/* 페루 */}
-                        <div className="relative overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 shadow-sm border border-green-100 hover:shadow-md transition-all duration-300">
+                        <div className="relative overflow-hidden bg-green-50 dark:bg-gray-700 rounded-xl p-3 border border-green-100 dark:border-gray-600 transition-all duration-300">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                              <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 dark:from-green-500 dark:to-emerald-600 rounded-full flex items-center justify-center shadow-sm">
                                 <span className="text-sm">🇵🇪</span>
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-green-800">
+                                <div className="text-sm font-semibold text-green-800 dark:text-green-300">
                                   {language === 'ko' ? '페루' : 'Perú'}
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-green-700">
+                              <div className="text-sm font-mono font-bold text-green-700 dark:text-green-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
                                   timeZone: 'America/Lima',
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
                               </div>
-                              <div className="text-xs text-green-500">
+                              <div className="text-xs text-green-500 dark:text-green-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
                                   timeZone: 'America/Lima',
                                   month: '2-digit',
@@ -528,27 +550,27 @@ export default function Header() {
                         </div>
                         
                         {/* 콜롬비아 */}
-                        <div className="relative overflow-hidden bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-3 shadow-sm border border-purple-100 hover:shadow-md transition-all duration-300">
+                        <div className="relative overflow-hidden bg-purple-50 dark:bg-gray-700 rounded-xl p-3 border border-purple-100 dark:border-gray-600 transition-all duration-300">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-violet-500 rounded-full flex items-center justify-center shadow-sm">
+                              <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-violet-500 dark:from-purple-500 dark:to-violet-600 rounded-full flex items-center justify-center shadow-sm">
                                 <span className="text-sm">🇨🇴</span>
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-purple-800">
+                                <div className="text-sm font-semibold text-purple-800 dark:text-purple-300">
                                   {language === 'ko' ? '콜롬비아' : 'Colombia'}
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-purple-700">
+                              <div className="text-sm font-mono font-bold text-purple-700 dark:text-purple-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
                                   timeZone: 'America/Bogota',
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
                               </div>
-                              <div className="text-xs text-purple-500">
+                              <div className="text-xs text-purple-500 dark:text-purple-400">
                                 {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
                                   timeZone: 'America/Bogota',
                                   month: '2-digit',
@@ -567,35 +589,43 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-6 sm:-top-10 md:-top-10 lg:-top-12 z-0 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-4 sm:-top-6 md:-top-8 lg:-top-10 z-0 flex flex-col items-center">
               {/* 로고 */}
-              <div className="relative">
+              <div className="relative logo-container">
+                {/* 라이트 모드 로고 */}
                 <img 
-                  src="/amiko-foto.png" 
+                  src="/amiko-logo.png" 
                   alt="Amiko" 
-                  className="h-28 sm:h-32 md:h-40 lg:h-40 xl:h-40 w-auto object-contain transition-all duration-300"
+                  className="h-20 sm:h-24 md:h-32 lg:h-36 xl:h-40 w-auto object-contain transition-all duration-300 dark:hidden"
                   style={{ 
-                    maxHeight: '160px'
+                    maxHeight: '120px'
                   }}
                 />
-                {/* 로고 중앙 부분만 클릭 가능하도록 작은 클릭 영역 추가 */}
+                {/* 다크 모드 로고 - amiko-logo.png 사용 */}
+                <img 
+                  src="/amiko-logo.png?v=3" 
+                  alt="Amiko" 
+                  className="h-20 sm:h-24 md:h-32 lg:h-36 xl:h-40 w-auto object-contain transition-all duration-300 hidden dark:block"
+                  style={{ 
+                    maxHeight: '120px',
+                    filter: 'brightness(0) invert(1)',
+                    WebkitFilter: 'brightness(0) invert(1)'
+                  }}
+                />
+                {/* 로고 클릭 영역 - 완전 투명 */}
                 <div 
-                  className="absolute inset-0 flex items-center justify-center cursor-pointer hover:opacity-80 transition-all duration-300"
+                  className="absolute cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation()
                     router.push('/')
                   }}
                   style={{
-                    width: '40px',
-                    height: '40px',
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    borderRadius: '50%'
+                    width: '100%',
+                    height: '100%',
+                    left: '0',
+                    top: '0'
                   }}
                 >
-                  {/* 시각적 피드백을 위한 투명한 원 */}
-                  <div className="w-full h-full bg-transparent hover:bg-blue-100/20 rounded-full transition-all duration-300"></div>
                 </div>
               </div>
 
@@ -617,11 +647,11 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'home' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
-                      홈
+                      {t('home.navigation.home')}
                     </button>
                     <button 
                       onClick={(e) => {
@@ -633,7 +663,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'community' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
@@ -649,7 +679,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'meet' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
@@ -665,7 +695,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'charging' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
@@ -682,7 +712,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
                         activeMainTab === 'event' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 hover:text-purple-500'
+                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
@@ -709,9 +739,9 @@ export default function Header() {
               {isMainPage && user && (
                 <div className="hidden md:flex flex-col items-end gap-1">
                   {/* 상단: 쿠폰(포인트) 표시 */}
-                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-lg border border-blue-200">
-                    <span className="text-blue-600 text-sm font-medium">💰</span>
-                    <span className="text-blue-700 text-sm font-bold">{userPoints.toLocaleString()}</span>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">💰</span>
+                    <span className="text-blue-700 dark:text-blue-300 text-sm font-bold">{userPoints.toLocaleString()}</span>
                   </div>
                   
                   {/* 중간: 로그아웃, 알림, 프로필 버튼 */}
@@ -719,7 +749,7 @@ export default function Header() {
                     {/* 로그아웃 버튼 */}
                     <button 
                       onClick={() => handleLogout()}
-                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 hover:text-red-500 whitespace-nowrap text-sm"
+                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 dark:text-gray-200 hover:text-red-500 whitespace-nowrap text-sm"
                     >
                       {t('headerNav.logout')}
                     </button>
@@ -737,35 +767,35 @@ export default function Header() {
                         console.log('Profile 버튼 클릭됨')
                         handleMainNavClick('me')
                       }}
-                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 cursor-pointer ${
-                        activeMainTab === 'me' ? 'bg-blue-50 text-blue-600' : ''
+                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 cursor-pointer ${
+                        activeMainTab === 'me' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''
                       }`}
                       style={{ pointerEvents: 'auto' }}
                     >
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 flex-shrink-0" />
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
                     </Button>
                   </div>
                   
                   {/* 하단: 인증 상태 표시 */}
                   {isAdmin ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 rounded-lg border border-purple-200">
-                      <span className="text-purple-600 text-sm">👑</span>
-                      <span className="text-purple-700 text-sm font-medium">운영자</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <span className="text-purple-600 dark:text-purple-400 text-sm">👑</span>
+                      <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">운영자</span>
                     </div>
                   ) : verificationStatus === 'verified' ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-lg border border-green-200">
-                      <span className="text-green-600 text-sm">✅</span>
-                      <span className="text-green-700 text-sm font-medium">{t('notifications.verified')}</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <span className="text-green-600 dark:text-green-400 text-sm">✅</span>
+                      <span className="text-green-700 dark:text-green-300 text-sm font-medium">{t('notifications.verified')}</span>
                     </div>
                   ) : verificationStatus === 'unverified' ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-lg border border-amber-200">
-                      <span className="text-amber-600 text-sm">⚠️</span>
-                      <span className="text-amber-700 text-sm font-medium">{t('notifications.unverified')}</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <span className="text-amber-600 dark:text-amber-400 text-sm">⚠️</span>
+                      <span className="text-amber-700 dark:text-amber-300 text-sm font-medium">{t('notifications.unverified')}</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
-                      <span className="text-gray-600 text-sm animate-pulse">⏳</span>
-                      <span className="text-gray-700 text-sm font-medium">{t('notifications.checking')}</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-600 dark:text-gray-400 text-sm animate-pulse">⏳</span>
+                      <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t('notifications.checking')}</span>
                     </div>
                   )}
                 </div>
@@ -791,6 +821,16 @@ export default function Header() {
               )}
 
 
+              {/* 모바일 시작하기 버튼 - 랜딩페이지에서만 표시 */}
+              {isLandingPage && (
+                <Button
+                  onClick={() => router.push('/sign-in')}
+                  className="md:hidden px-1 py-0 text-[8px] bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-600 dark:to-pink-600 hover:from-purple-200 hover:to-pink-200 dark:hover:from-purple-500 dark:hover:to-pink-500 text-black dark:text-white rounded transition-all duration-300 flex items-center gap-0.5"
+                >
+                  {t('buttons.start')}
+                </Button>
+              )}
+
               {/* 모바일 메뉴 버튼 - 모든 페이지에서 표시 */}
               <Button
                 variant="ghost"
@@ -812,7 +852,7 @@ export default function Header() {
                     e.preventDefault()
                     router.push('/main')
                   }}
-                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 hover:bg-gray-800 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg shadow-lg hover:shadow-xl whitespace-nowrap"
+                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white dark:text-gray-100 px-3 sm:px-4 py-1 sm:py-1.5 text-sm rounded-lg shadow-lg hover:shadow-xl whitespace-nowrap"
                 >
                   {t('header.startButton')}
                 </button>
@@ -836,7 +876,7 @@ export default function Header() {
         />
         
         {/* 메뉴 패널 */}
-        <div className={`absolute left-0 top-14 sm:top-16 md:top-20 w-52 sm:w-56 md:w-64 max-h-80 sm:max-h-96 bg-white/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 rounded-r-2xl transition-all duration-300 transform ${
+        <div className={`absolute left-0 top-14 sm:top-16 md:top-20 w-52 sm:w-56 md:w-64 max-h-80 sm:max-h-96 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 dark:border-gray-700/50 rounded-r-2xl transition-all duration-300 transform ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="pt-4 sm:pt-6 px-3 sm:px-4 pb-3 sm:pb-4 space-y-1 sm:space-y-2 max-h-80 sm:max-h-96 overflow-y-auto scroll-smooth-touch">
@@ -849,7 +889,7 @@ export default function Header() {
                       handleLogout()
                       toggleMobileMenu()
                     }}
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-all duration-300 w-full text-left"
+                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-300 w-full text-left"
                   >
                     <LogOut className="w-5 h-5" />
                     로그아웃
@@ -858,7 +898,7 @@ export default function Header() {
               ) : (
                 <Link 
                   href="/sign-in"
-                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 text-gray-700 hover:text-brand-600 transition-all duration-300"
+                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all duration-300"
                   onClick={toggleMobileMenu}
                 >
                   <span className="text-base">🔐</span>
@@ -868,7 +908,7 @@ export default function Header() {
             </div>
             
             {/* 구분선 */}
-            <div className="border-t border-gray-200 my-3" />
+            <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
             
             {/* 메인 메뉴 */}
             <div className="space-y-1">
@@ -884,8 +924,8 @@ export default function Header() {
                     }}
                     className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
                       activeNavItem === '/' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                     }`}
                   >
                     <span className="text-sm sm:text-base">🏠</span>
@@ -900,8 +940,8 @@ export default function Header() {
                     }}
                     className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
                       activeNavItem === '/about' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                     }`}
                   >
                     <span className="text-sm sm:text-base">🏢</span>
@@ -947,19 +987,19 @@ export default function Header() {
             </div>
             
             {/* 구분선 */}
-            <div className="border-t border-gray-200 my-3" />
+            <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
             
             {/* 푸터 내용 - 모바일에서만 표시 */}
             <div className="space-y-1">
               {/* SNS 링크 */}
               <div className="p-2.5">
-                <div className="text-xs font-bold text-gray-800 mb-2">{t('footer.officialSns')}</div>
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 mb-2">{t('footer.officialSns')}</div>
                 <div className="flex gap-2">
                   <a 
                     href="https://www.tiktok.com/@amiko_latin" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all duration-300"
+                    className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg shadow-sm dark:shadow-gray-600/20 flex items-center justify-center hover:shadow-md dark:hover:shadow-gray-600/30 hover:scale-105 transition-all duration-300"
                   >
                     <img src="/tiktok.png" alt="TikTok" className="w-6 h-6 object-contain" />
                   </a>
@@ -967,7 +1007,7 @@ export default function Header() {
                     href="https://www.instagram.com/amiko_latin/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all duration-300"
+                    className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg shadow-sm dark:shadow-gray-600/20 flex items-center justify-center hover:shadow-md dark:hover:shadow-gray-600/30 hover:scale-105 transition-all duration-300"
                   >
                     <img src="/instagram.jpeg" alt="Instagram" className="w-6 h-6 object-contain" />
                   </a>
@@ -975,7 +1015,7 @@ export default function Header() {
                     href="https://www.youtube.com/@AMIKO_Officialstudio" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all duration-300"
+                    className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg shadow-sm dark:shadow-gray-600/20 flex items-center justify-center hover:shadow-md dark:hover:shadow-gray-600/30 hover:scale-105 transition-all duration-300"
                   >
                     <img src="/youtube.png" alt="YouTube" className="w-6 h-6 object-contain" />
                   </a>
@@ -984,18 +1024,18 @@ export default function Header() {
               
               {/* 고객지원 */}
               <div className="p-2.5">
-                <div className="text-xs font-bold text-gray-800 mb-2">{t('footer.support')}</div>
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 mb-2">{t('footer.support')}</div>
                 <div className="space-y-1">
-                  <Link href="/help" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  <Link href="/help" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
                     {t('footer.help')}
                   </Link>
-                  <Link href="/faq" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  <Link href="/faq" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
                     {t('footer.faq')}
                   </Link>
-                  <Link href="/contact" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  <Link href="/contact" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
                     {t('footer.contact')}
                   </Link>
-                  <Link href="/feedback" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  <Link href="/feedback" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
                     {t('footer.feedback')}
                   </Link>
                 </div>
@@ -1004,13 +1044,13 @@ export default function Header() {
               {/* 약관 및 정책 */}
               <div className="p-2.5">
                 <div className="space-y-1">
-                  <Link href="/privacy" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  <Link href="/privacy" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
                     {t('footer.privacy')}
                   </Link>
-                  <Link href="/terms" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  <Link href="/terms" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
                     {t('footer.terms')}
                   </Link>
-                  <Link href="/cookies" className="block text-xs text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  <Link href="/cookies" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
                     {t('footer.cookies')}
                   </Link>
                 </div>

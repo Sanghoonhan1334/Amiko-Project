@@ -352,14 +352,14 @@ export default function StoriesPage() {
         <div className="max-w-6xl mx-auto">
           {/* 첫 번째 줄: 스토리 제목과 이전 버튼 */}
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold text-gray-800">스토리</h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('stories.title')}</h1>
             <div className="flex items-center gap-2">
               {/* 이전 버튼 */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/main')}
-                className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-2 border-gray-400 hover:border-gray-500 bg-white shadow-sm hover:shadow-md px-3 py-2"
+                className="flex items-center gap-2 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border-2 border-gray-400 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-3 py-2"
               >
                 <ArrowLeft className="w-4 h-4" />
                 {t('buttons.back')}
@@ -369,7 +369,7 @@ export default function StoriesPage() {
           
           {/* 두 번째 줄: 설명과 스토리 올리기 버튼 */}
           <div className="flex items-center justify-between">
-            <p className="text-base text-gray-500">일상을 공유하고 소통해보세요</p>
+            <p className="text-base text-gray-500 dark:text-gray-400">{t('stories.description')}</p>
             
             <Button 
               size="lg"
@@ -384,7 +384,7 @@ export default function StoriesPage() {
               }}
             >
               <Plus className="w-6 h-6 mr-3" />
-              스토리 올리기
+              {t('stories.uploadStory')}
             </Button>
           </div>
         </div>
@@ -519,8 +519,8 @@ export default function StoriesPage() {
             <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <ImageIcon className="w-10 h-10 text-purple-500" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">아직 스토리가 없습니다</h3>
-            <p className="text-gray-600 max-w-md mx-auto">첫 번째 스토리를 올리고<br />다른 사람들과 일상을 공유해보세요!</p>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">{t('stories.noStories')}</h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">{t('stories.uploadFirstStory')}</p>
           </div>
         )}
       </div>
@@ -535,14 +535,14 @@ export default function StoriesPage() {
       }}>
         <DialogContent className="max-w-md w-full mx-4 bg-white border-2 border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold text-gray-900">새 스토리 작성</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('stories.newStory')}</DialogTitle>
             <DialogDescription className="sr-only">새로운 스토리를 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                사진 업로드
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                {t('stories.photoUpload')}
               </Label>
               
               {/* 이미지 미리보기 */}
@@ -615,11 +615,11 @@ export default function StoriesPage() {
             </div>
             
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                스토리 내용
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                {t('stories.storyContent')}
               </Label>
               <Textarea
-                placeholder="오늘의 이야기를 공유해보세요..."
+                placeholder={t('stories.storyPlaceholder')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 rows={4}
                 value={storyText}
@@ -633,7 +633,7 @@ export default function StoriesPage() {
                 onClick={() => setShowStoryUploadModal(false)}
                 className="flex-1"
               >
-                취소
+                {t('buttons.cancel')}
               </Button>
               <Button
                 onClick={handleStoryUpload}
@@ -643,10 +643,10 @@ export default function StoriesPage() {
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    업로드 중...
+                    {t('stories.uploading')}
                   </>
                 ) : (
-                  '업로드'
+                  t('stories.upload')
                 )}
               </Button>
             </div>
@@ -673,7 +673,7 @@ export default function StoriesPage() {
                 }}
                 className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-full text-sm font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
               >
-                스토리작성
+                {t('stories.createStory')}
               </button>
             </div>
             

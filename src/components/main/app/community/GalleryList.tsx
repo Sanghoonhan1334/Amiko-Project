@@ -94,10 +94,10 @@ export default function GalleryList({ onGallerySelect, onPopularPosts }: Gallery
     <div className="space-y-6">
       {/* 헤더 - 모바일에서 숨김 */}
       <div className="text-center hidden md:block">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
           {t('community.galleryList.title')}
         </h1>
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
           {t('community.galleryList.subtitle')}
         </p>
         
@@ -122,7 +122,7 @@ export default function GalleryList({ onGallerySelect, onPopularPosts }: Gallery
           .map((gallery) => (
             <Card 
               key={gallery.id}
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300 group"
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300 dark:border-gray-600 dark:hover:border-blue-400 bg-white dark:bg-gray-800 group"
               onClick={() => onGallerySelect(gallery)}
             >
               <div className="p-6">
@@ -135,17 +135,17 @@ export default function GalleryList({ onGallerySelect, onPopularPosts }: Gallery
                 </div>
 
                 {/* 갤러리 이름 */}
-                <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 text-center">
                   {getGalleryName(gallery)}
                 </h3>
 
                 {/* 갤러리 설명 */}
-                <p className="text-sm text-gray-600 mb-4 text-center line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center line-clamp-2">
                   {getGalleryDescription(gallery)}
                 </p>
 
                 {/* 통계 정보 */}
-                <div className="flex justify-center space-x-4 text-xs text-gray-500">
+                <div className="flex justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center">
                     <span className="mr-1">📝</span>
                     <span>{gallery.post_count}</span>

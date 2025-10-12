@@ -11,6 +11,7 @@ import { ArrowRight, ArrowLeft, User, Mail, Lock, Phone, Globe } from 'lucide-re
 import { useLanguage } from '@/context/LanguageContext'
 import EmailVerification from '@/components/auth/EmailVerification'
 import PhoneVerification from '@/components/auth/PhoneVerification'
+import { countries } from '@/constants/countries'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -49,34 +50,6 @@ export default function SignUpPage() {
     isSMSVerified: false,
     biometricEnabled: false
   })
-
-  const countries = [
-    { code: 'KR', isKorean: true, phoneCode: '+82' },
-    { code: 'MX', isKorean: false, phoneCode: '+52' },
-    { code: 'CO', isKorean: false, phoneCode: '+57' },
-    { code: 'AR', isKorean: false, phoneCode: '+54' },
-    { code: 'PE', isKorean: false, phoneCode: '+51' },
-    { code: 'VE', isKorean: false, phoneCode: '+58' },
-    { code: 'CL', isKorean: false, phoneCode: '+56' },
-    { code: 'EC', isKorean: false, phoneCode: '+593' },
-    { code: 'GT', isKorean: false, phoneCode: '+502' },
-    { code: 'HN', isKorean: false, phoneCode: '+504' },
-    { code: 'NI', isKorean: false, phoneCode: '+505' },
-    { code: 'PA', isKorean: false, phoneCode: '+507' },
-    { code: 'PY', isKorean: false, phoneCode: '+595' },
-    { code: 'UY', isKorean: false, phoneCode: '+598' },
-    { code: 'BO', isKorean: false, phoneCode: '+591' },
-    { code: 'CR', isKorean: false, phoneCode: '+506' },
-    { code: 'DO', isKorean: false, phoneCode: '+1' },
-    { code: 'SV', isKorean: false, phoneCode: '+503' },
-    { code: 'CU', isKorean: false, phoneCode: '+53' },
-    { code: 'PR', isKorean: false, phoneCode: '+1' },
-    { code: 'BR', isKorean: false, phoneCode: '+55' },
-    { code: 'US', isKorean: false, phoneCode: '+1' },
-    { code: 'CA', isKorean: false, phoneCode: '+1' },
-    { code: 'JP', isKorean: false, phoneCode: '+81' },
-    { code: 'CN', isKorean: false, phoneCode: '+86' }
-  ]
 
   const handleInputChange = (field: string, value: string) => {
     // 전화번호 입력 시 국가별 형식으로 변환
@@ -529,7 +502,7 @@ export default function SignUpPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleGoBack}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100"
+                className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-700"
               >
                 <ArrowLeft className="w-4 h-4" />
                 뒤로가기
@@ -552,7 +525,7 @@ export default function SignUpPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleGoBack}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100"
+                className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-700"
               >
                 <ArrowLeft className="w-4 h-4" />
                 뒤로가기
@@ -572,18 +545,18 @@ export default function SignUpPage() {
         return (
           <form onSubmit={handleFormSubmit} className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.name')}
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="name"
                   type="text"
                   placeholder={t('auth.namePlaceholder')}
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
                   style={{ paddingLeft: '2.5rem' }}
                   required
                 />
@@ -591,18 +564,18 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-          <Label htmlFor="nickname" className="text-sm font-medium text-slate-700">
+          <Label htmlFor="nickname" className="text-sm font-medium text-slate-700 dark:text-gray-300">
             닉네임 (알파벳, 숫자, 특수문자)
           </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="nickname"
                   type="text"
                   placeholder="예: john123! 또는 user_2024"
                   value={formData.nickname}
                   onChange={(e) => handleInputChange('nickname', e.target.value)}
-                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
                   style={{ paddingLeft: '2.5rem' }}
                   required
                 />
@@ -629,18 +602,18 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.email')}
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="example@email.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                  className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
                   style={{ paddingLeft: '2.5rem' }}
                   required
                   title="올바른 이메일 주소를 입력해주세요"
@@ -649,19 +622,19 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.password')}
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="password"
                   type="password"
                   placeholder={t('auth.passwordPlaceholder')}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className={`border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
-                    formData.password && !isPasswordValid ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                  className={`border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100 ${
+                    formData.password && !isPasswordValid ? 'border-red-300 dark:border-red-500 focus:border-red-400 dark:focus:border-red-400 focus:ring-red-400 dark:focus:ring-red-400' : ''
                   }`}
                   style={{ paddingLeft: '2.5rem' }}
                   required
@@ -692,19 +665,19 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.confirmPassword')}
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="confirmPassword"
                   type="password"
                   placeholder={t('auth.confirmPasswordPlaceholder')}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className={`border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
-                    formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                  className={`border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100 ${
+                    formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-300 dark:border-red-500 focus:border-red-400 dark:focus:border-red-400 focus:ring-red-400 dark:focus:ring-red-400' : ''
                   }`}
                   style={{ paddingLeft: '2.5rem' }}
                   required
@@ -716,24 +689,24 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.phone')}
               </Label>
               <div className="flex gap-2">
                 <Select value={formData.country} onValueChange={handleCountryChange} required>
-                  <SelectTrigger className="w-32 border-slate-200 focus:border-slate-400 focus:ring-slate-400">
+                  <SelectTrigger className="w-32 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100">
                     <SelectValue placeholder={t('auth.countryCode')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-slate-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                     {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50">
+                      <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100">
                         {country.phoneCode} {t(`auth.countries.${country.code}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <div className="relative flex-1">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                   <Input
                     id="phone"
                     type="tel"
@@ -741,7 +714,7 @@ export default function SignUpPage() {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     onKeyDown={handlePhoneKeyDown}
-                    className="pl-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                    className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
                     style={{ paddingLeft: '2.5rem' }}
                     required
                   />
@@ -750,18 +723,18 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="country" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.nationality')}
               </Label>
               <div className="relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Select value={formData.country} onValueChange={handleCountryChange} required>
-                  <SelectTrigger className="pl-12 border-slate-200 focus:border-slate-400 focus:ring-slate-400">
+                  <SelectTrigger className="pl-12 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100">
                     <SelectValue placeholder={t('auth.selectNationality')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-slate-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                     {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50">
+                      <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100">
                         {t(`auth.countries.${country.code}`)}
                       </SelectItem>
                     ))}
@@ -772,7 +745,7 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 text-lg font-medium transition-colors"
+              className="w-full bg-slate-900 dark:bg-gray-700 hover:bg-slate-800 dark:hover:bg-gray-600 text-white py-3 text-lg font-medium transition-colors"
               disabled={isLoading || !formData.name || !formData.nickname || !formData.email || !formData.password || !formData.confirmPassword || !formData.phone || !formData.country || !isPasswordValid || !isNicknameValid || formData.password !== formData.confirmPassword}
             >
               {isLoading ? (
@@ -793,25 +766,25 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 pt-32 sm:pt-44">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-3 sm:p-4 pt-32 sm:pt-44">
       <div className="flex justify-center">
-        <Card className="w-full max-w-md bg-white border shadow-lg">
+        <Card className="w-full max-w-md bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-lg">
           {currentStep === 'form' && (
             <>
               <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
-                <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900">
+                <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-gray-100">
                   {t('auth.signUp')}
                 </CardTitle>
-                <CardDescription className="text-sm sm:text-base text-slate-600">
+                <CardDescription className="text-sm sm:text-base text-slate-600 dark:text-gray-400">
                   {t('auth.signUpDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {renderStep()}
                 <div className="mt-6 text-center">
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-slate-600 dark:text-gray-400">
                     {t('auth.alreadyHaveAccount')}{' '}
-                    <a href="/sign-in" className="text-slate-900 hover:text-slate-700 font-medium">
+                    <a href="/sign-in" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium">
                       {t('auth.signIn')}
                     </a>
                   </p>

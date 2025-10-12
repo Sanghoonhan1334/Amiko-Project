@@ -7,6 +7,8 @@ import Footer from '@/components/layout/Footer'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { UserProvider } from '@/context/UserContext'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import QueryProvider from '@/providers/QueryProvider'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -39,20 +41,29 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         <style dangerouslySetInnerHTML={{ __html: pretendard.style }} />
       </head>
-      <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`}>
-        <AuthProvider>
-          <LanguageProvider>
-            <UserProvider>
-              <HeaderWrapper />
-              <main>{children}</main>
-              <Footer />
-            </UserProvider>
-          </LanguageProvider>
-        </AuthProvider>
+      <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`} suppressHydrationWarning>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange={false}
+          >
+            <AuthProvider>
+              <LanguageProvider>
+                <UserProvider>
+                  <HeaderWrapper />
+                  <main>{children}</main>
+                  <Footer />
+                </UserProvider>
+              </LanguageProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryProvider>
         <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
       </body>
     </html>

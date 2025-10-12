@@ -90,7 +90,14 @@ export async function GET(request: NextRequest) {
     // 고정 게시물 우선 표시
     query = query.order('is_pinned', { ascending: false })
 
-    // 페이지네이션
+    // 전체 게시글 수 조회 (페이지네이션 없이)
+    const { count: totalPosts, error: countError } = await query.select('*', { count: 'exact', head: true })
+    
+    if (countError) {
+      console.error('[POSTS_GET] 전체 게시글 수 조회 오류:', countError)
+    }
+
+    // 페이지네이션 적용하여 실제 데이터 조회
     query = query.range(offset, offset + limit - 1)
 
     const { data: posts, error: postsError } = await query
@@ -174,14 +181,18 @@ export async function GET(request: NextRequest) {
 
     console.log(`[POSTS_GET] 조회 완료: ${transformedPosts.length}개 게시물`)
 
+    const actualTotal = totalPosts || 0
+    const totalPagesCount = Math.ceil(actualTotal / limit)
+
     return NextResponse.json({
       success: true,
       posts: transformedPosts,
+      total: actualTotal,
       pagination: {
         currentPage: page,
-        totalPages: Math.ceil((posts?.length || 0) / limit),
-        totalPosts: posts?.length || 0,
-        hasNextPage: (posts?.length || 0) > offset + limit,
+        totalPages: totalPagesCount,
+        totalPosts: actualTotal,
+        hasNextPage: page < totalPagesCount,
         hasPrevPage: page > 1
       }
     })

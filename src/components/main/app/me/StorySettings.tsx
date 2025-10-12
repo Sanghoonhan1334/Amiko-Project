@@ -138,6 +138,7 @@ export default function StorySettings() {
       const responseData = await response.json()
 
       if (response.ok) {
+        // 🚀 최적화: 전체 목록 재로드 대신 로컬 상태만 업데이트
         setStories(prev => prev.filter(story => story.id !== storyId))
         console.log('스토리 삭제 성공:', responseData)
       } else {
@@ -195,9 +196,9 @@ export default function StorySettings() {
   return (
     <div className="space-y-6">
       {/* 전역 스토리 설정 */}
-      <Card>
+      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
             <Settings className="w-5 h-5" />
             {t('storySettings.globalSettings.title')}
           </CardTitle>
@@ -205,8 +206,8 @@ export default function StorySettings() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label>{t('storySettings.globalSettings.autoPublic.label')}</Label>
-              <p className="text-sm text-gray-500">{t('storySettings.globalSettings.autoPublic.description')}</p>
+              <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.globalSettings.autoPublic.label')}</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.autoPublic.description')}</p>
             </div>
             <Switch
               checked={globalStorySettings.autoPublic}
@@ -216,8 +217,8 @@ export default function StorySettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label>{t('storySettings.globalSettings.showInProfile.label')}</Label>
-              <p className="text-sm text-gray-500">{t('storySettings.globalSettings.showInProfile.description')}</p>
+              <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.globalSettings.showInProfile.label')}</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.showInProfile.description')}</p>
             </div>
             <Switch
               checked={globalStorySettings.showInProfile}
@@ -228,9 +229,9 @@ export default function StorySettings() {
       </Card>
 
       {/* 아카이브 설정 */}
-      <Card>
+      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
             <Calendar className="w-5 h-5" />
             {t('storySettings.archiveSettings.title')}
           </CardTitle>
@@ -238,8 +239,8 @@ export default function StorySettings() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label>{t('storySettings.archiveSettings.autoArchive.label')}</Label>
-              <p className="text-sm text-gray-500">{t('storySettings.archiveSettings.autoArchive.description')}</p>
+              <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.archiveSettings.autoArchive.label')}</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-300">{t('storySettings.archiveSettings.autoArchive.description')}</p>
             </div>
             <Switch
               checked={archiveSettings.autoArchive}
@@ -248,12 +249,12 @@ export default function StorySettings() {
           </div>
 
           <div className="space-y-2">
-            <Label>{t('storySettings.archiveSettings.archiveTiming.label')}</Label>
+            <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.archiveSettings.archiveTiming.label')}</Label>
             <Select
               value={archiveSettings.archiveAfter.toString()}
               onValueChange={(value) => setArchiveSettings(prev => ({ ...prev, archiveAfter: parseInt(value) }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -268,13 +269,14 @@ export default function StorySettings() {
       </Card>
 
       {/* 개별 스토리 설정 */}
-      <Card>
+      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{t('storySettings.individualSettings.title')}</CardTitle>
+            <CardTitle className="text-gray-800 dark:text-gray-100">{t('storySettings.individualSettings.title')}</CardTitle>
             <Button
               variant="outline"
               size="sm"
+              className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
               onClick={async () => {
                 try {
                   const response = await fetch('/api/stories/cleanup', {
@@ -288,7 +290,8 @@ export default function StorySettings() {
                   if (response.ok) {
                     const data = await response.json()
                     alert(`${data.deletedCount}개의 만료된 스토리가 삭제되었습니다.`)
-                    loadUserStories() // 스토리 목록 새로고침
+                    // 🚀 최적화: 만료된 스토리만 로컬에서 제거 (전체 재로드 방지)
+                    setStories(prev => prev.filter(story => !story.isExpired))
                   } else {
                     alert('만료된 스토리 정리에 실패했습니다.')
                   }
@@ -305,13 +308,13 @@ export default function StorySettings() {
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="text-gray-500">스토리를 불러오는 중...</div>
+              <div className="text-gray-500 dark:text-gray-300">스토리를 불러오는 중...</div>
             </div>
           ) : stories.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-300">
               <div className="text-lg mb-2">📸</div>
-              <div className="text-sm">아직 업로드한 스토리가 없습니다.</div>
-              <div className="text-xs mt-1">첫 번째 스토리를 업로드해보세요!</div>
+              <div className="text-sm dark:text-gray-200">아직 업로드한 스토리가 없습니다.</div>
+              <div className="text-xs mt-1 dark:text-gray-300">첫 번째 스토리를 업로드해보세요!</div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -321,7 +324,7 @@ export default function StorySettings() {
                 const timeLeft = Math.max(0, Math.floor((story.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)))
                 
                 return (
-                <div key={story.id} className={`flex items-center justify-between p-4 border rounded-lg ${isExpired ? 'bg-gray-50 opacity-60' : ''}`}>
+                <div key={story.id} className={`flex items-center justify-between p-4 border rounded-lg ${isExpired ? 'bg-gray-50 dark:bg-gray-700 opacity-60' : 'bg-white dark:bg-gray-800'} border-gray-200 dark:border-gray-600`}>
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <img
@@ -340,12 +343,12 @@ export default function StorySettings() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{story.text ? story.text.substring(0, 50) + '...' : '내용 없음'}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-sm text-gray-800 dark:text-gray-200">{story.text ? story.text.substring(0, 50) + '...' : '내용 없음'}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {story.createdAt ? `${story.createdAt.toLocaleDateString()} ${story.createdAt.toLocaleTimeString()}` : '날짜 정보 없음'}
                       </p>
                       {!isExpired && (
-                        <p className="text-xs text-orange-500">
+                        <p className="text-xs text-orange-500 dark:text-orange-400">
                           {timeLeft}시간 후 만료
                         </p>
                       )}
@@ -356,6 +359,7 @@ export default function StorySettings() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                     onClick={() => toggleStoryVisibility(story.id)}
                   >
                     {story.isPublic ? (
@@ -374,6 +378,7 @@ export default function StorySettings() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                     onClick={() => deleteStory(story.id)}
                   >
                     <Trash2 className="w-4 h-4 mr-1" />

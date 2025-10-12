@@ -10,26 +10,26 @@ export default function PrivacyPolicy() {
   console.log('privacy.lastUpdatedDate:', t('privacy.lastUpdatedDate'))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
       <div className="container mx-auto px-4 pt-32 md:pt-40 lg:pt-48 pb-12 max-w-4xl">
         {/* 헤더 */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-['Inter']">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-['Inter']">
             {t('privacy.title') || '개인정보처리방침'}
           </h1>
-          <p className="text-lg text-gray-600 font-['Inter']">
+          <p className="text-lg text-gray-600 dark:text-gray-400 font-['Inter']">
             {t('privacy.lastUpdated')}: {t('privacy.lastUpdatedDate')}
           </p>
         </div>
 
         {/* 본문 */}
-        <div className="bg-white/80 rounded-2xl shadow-lg p-8 space-y-8">
+        <div className="bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-lg p-8 space-y-8">
           {/* 1. 개인정보 수집 및 이용 목적 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-['Inter']">
               {t('privacy.sections.purpose.title')}
             </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
+            <div className="space-y-4 text-gray-700 dark:text-gray-300 font-['Inter']">
               <p>{t('privacy.sections.purpose.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
                 {(() => {
@@ -46,10 +46,10 @@ export default function PrivacyPolicy() {
 
           {/* 2. 수집하는 개인정보 항목 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-['Inter']">
               {t('privacy.sections.collection.title')}
             </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
+            <div className="space-y-4 text-gray-700 dark:text-gray-300 font-['Inter']">
               <p>{t('privacy.sections.collection.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
                 {(() => {
@@ -65,10 +65,10 @@ export default function PrivacyPolicy() {
 
           {/* 3. 개인정보 보유 및 이용기간 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-['Inter']">
               {t('privacy.sections.retention.title')}
             </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
+            <div className="space-y-4 text-gray-700 dark:text-gray-300 font-['Inter']">
               <p>{t('privacy.sections.retention.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
                 {(() => {
@@ -84,10 +84,10 @@ export default function PrivacyPolicy() {
 
           {/* 4. 개인정보 주체의 권리 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-['Inter']">
               {t('privacy.sections.rights.title')}
             </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
+            <div className="space-y-4 text-gray-700 dark:text-gray-300 font-['Inter']">
               <p>{t('privacy.sections.rights.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
                 {(() => {
@@ -103,10 +103,10 @@ export default function PrivacyPolicy() {
 
           {/* 5. 개인정보 보호책임자 */}
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-['Inter']">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-['Inter']">
               {t('privacy.sections.contactInfo.title')}
             </h2>
-            <div className="space-y-4 text-gray-700 font-['Inter']">
+            <div className="space-y-4 text-gray-700 dark:text-gray-300 font-['Inter']">
               <p>{t('privacy.sections.contactInfo.content')}</p>
               <ul className="list-disc pl-6 space-y-2">
                 {(() => {

@@ -173,18 +173,18 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       )}
 
       {/* 메인 화면 */}
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6 px-1 md:px-0">
         {/* 빠른 시작 */}
-        <div className="w-full bg-white rounded-3xl shadow-xl border border-blue-100 p-6 bg-gradient-to-br from-white to-blue-50" data-tutorial="quick-start">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-600 p-3 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-700" data-tutorial="quick-start">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 h-6 bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs">⚡</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">{t('videoCall.quickStart')}</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('videoCall.quickStart')}</h3>
               </div>
-              <p className="text-sm text-gray-600">{t('videoCall.quickStartDescription')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('videoCall.quickStartDescription')}</p>
             </div>
             <Button 
               onClick={() => {
@@ -209,12 +209,12 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-lg border border-blue-100 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Video className="w-5 h-5 text-blue-600" />
               </div>
-              <h4 className="font-semibold text-gray-800 mb-2">{t('videoCall.oneOnOne')}</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('videoCall.oneOnOne')}</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('videoCall.oneOnOneDescription').split('\n').map((line, index) => (
                   <span key={index}>
                     {line}
@@ -223,12 +223,12 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 ))}
               </p>
             </div>
-            <div className="text-center p-4 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-lg border border-blue-100 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Users className="w-5 h-5 text-purple-600" />
               </div>
-              <h4 className="font-semibold text-gray-800 mb-2">{t('videoCall.languageExchange')}</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('videoCall.languageExchange')}</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('videoCall.languageExchangeDescription').split('\n').map((line, index) => (
                   <span key={index}>
                     {line}
@@ -237,12 +237,12 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 ))}
               </p>
             </div>
-            <div className="text-center p-4 bg-white rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-lg border border-blue-100 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Clock className="w-5 h-5 text-green-600" />
               </div>
-              <h4 className="font-semibold text-gray-800 mb-2">{t('videoCall.sessionTime')}</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('videoCall.sessionTime')}</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('videoCall.sessionTimeDescription').split('\n').map((line, index) => (
                   <span key={index}>
                     {line}
@@ -255,13 +255,13 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         </div>
 
         {/* 대화 상대 목록 */}
-        <div className="w-full bg-white rounded-3xl shadow-xl border border-purple-100 p-6 bg-gradient-to-br from-white to-purple-50" data-tutorial="partner-section">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-purple-100 dark:border-gray-600 p-3 md:p-6 bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-700" data-tutorial="partner-section">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-gray-800" data-tutorial="partner-title">{t('videoCall.partners')}</h3>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100" data-tutorial="partner-title">{t('videoCall.partners')}</h3>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">{t('videoCall.onlyKoreans')}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">{t('videoCall.onlyKoreans')}</span>
               <button
                 onClick={() => setShowOnlyKoreans(!showOnlyKoreans)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -282,7 +282,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               availablePartners.map((partner) => (
                 <div 
                   key={partner.id}
-                  className="bg-white border border-purple-100 rounded-xl hover:shadow-md transition-all duration-300"
+                  className="bg-white dark:bg-gray-700 border border-purple-100 dark:border-gray-600 rounded-xl hover:shadow-md transition-all duration-300"
                   data-tutorial="partner-card"
                 >
                   {/* 데스크톱 레이아웃 */}
@@ -302,16 +302,16 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         }`} data-tutorial="online-status" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-800 text-lg">{partner.name}</h4>
-                        <p className="text-sm text-purple-600 font-medium">{partner.language}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <h4 className="font-bold text-gray-800 dark:text-gray-200 text-lg">{partner.name}</h4>
+                        <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">{partner.language}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           관심사: {partner.interests.join(', ')}
                         </p>
-                        <p className="text-xs text-gray-600 mt-1 italic">
+                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic">
                           "{partner.bio}"
                         </p>
                         {!showOnlyKoreans && (
-                          <p className="text-xs text-blue-600 mt-1 font-medium">
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
                             {partner.country}
                           </p>
                         )}
@@ -345,7 +345,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                   </div>
 
                   {/* 모바일 레이아웃 */}
-                  <div className="md:hidden p-4">
+                  <div className="md:hidden p-3">
                     {/* 상단: 아바타와 기본 정보 */}
                     <div className="flex items-center gap-3 mb-3">
                       <div className="relative">
@@ -362,8 +362,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         }`} data-tutorial="online-status-mobile" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-gray-800 text-base truncate">{partner.name}</h4>
-                        <p className="text-xs text-purple-600 font-medium">{partner.language}</p>
+                        <h4 className="font-bold text-gray-800 dark:text-gray-200 text-base truncate">{partner.name}</h4>
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">{partner.language}</p>
                       </div>
                       <div className="text-right">
                         <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -378,15 +378,15 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
                     {/* 중간: 관심사와 자기소개 */}
                     <div className="mb-3">
-                      <p className="text-xs text-gray-500 mb-1">
-                        관심사: <span className="text-gray-700">{partner.interests.slice(0, 2).join(', ')}</span>
-                        {partner.interests.length > 2 && <span className="text-gray-400"> 외 {partner.interests.length - 2}개</span>}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        관심사: <span className="text-gray-700 dark:text-gray-300">{partner.interests.slice(0, 2).join(', ')}</span>
+                        {partner.interests.length > 2 && <span className="text-gray-400 dark:text-gray-500"> 외 {partner.interests.length - 2}개</span>}
                       </p>
-                      <p className="text-xs text-gray-600 italic line-clamp-2">
+                      <p className="text-xs text-gray-600 dark:text-gray-300 italic line-clamp-2">
                         "{partner.bio}"
                       </p>
                       {!showOnlyKoreans && (
-                        <p className="text-xs text-blue-600 mt-1 font-medium">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
                           {partner.country}
                         </p>
                       )}
@@ -401,7 +401,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                           setSelectedPartner(partner)
                           setShowProfileDialog(true)
                         }}
-                        className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 text-xs py-2"
+                        className="flex-1 border-purple-200 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900 text-xs py-2"
                       >
                         정보보기
                       </Button>

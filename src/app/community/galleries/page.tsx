@@ -17,17 +17,17 @@ export default function GalleriesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       
       {/* 모바일 전용 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 md:hidden">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 md:hidden">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">주제별 게시판</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">주제별 게시판</h1>
           <div className="flex justify-end">
             <button
               onClick={handleBack}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 text-sm font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 text-sm font-medium px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               {t('buttons.back')}

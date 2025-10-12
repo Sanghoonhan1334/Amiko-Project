@@ -35,6 +35,7 @@ import { useAuth } from '@/context/AuthContext'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
+import CommunityTutorial from '@/components/common/CommunityTutorial'
 
 // 퀴즈 관련 인터페이스 및 설정
 interface Quiz {
@@ -121,45 +122,21 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { user, token } = useAuth()
   const router = useRouter()
   
-  // 인증 상태 관리 (Header와 동일한 로직)
-  const [localVerificationStatus, setLocalVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
-  
-  // 인증 상태 확인 함수 (Header와 동일한 로직)
-  const checkVerificationStatus = async () => {
-    if (!user) {
-      setLocalVerificationStatus('unverified')
-      return
-    }
+  // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
+  // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
 
-    try {
-      const baseUrl = window.location.origin
-      const response = await fetch(`${baseUrl}/api/auth/status?userId=${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && (data.emailVerified || data.smsVerified)) {
-          setLocalVerificationStatus('verified')
-        } else {
-          setLocalVerificationStatus('unverified')
-        }
-      } else {
-        setLocalVerificationStatus('unverified')
-      }
-    } catch (error) {
-      console.error('인증 상태 확인 오류:', error)
-      setLocalVerificationStatus('unverified')
-    }
-  }
-
-  // 컴포넌트 마운트 시 인증 상태 확인
+  // 튜토리얼 자동 시작 (첫 방문자만)
   useEffect(() => {
-    if (user) {
-      checkVerificationStatus()
+    if (typeof window !== 'undefined' && user) {
+      // 로컬스토리지에서 튜토리얼 완료 여부 확인
+      const tutorialCompleted = localStorage.getItem('community-tutorial-completed')
+      
+      if (!tutorialCompleted) {
+        const timer = setTimeout(() => {
+          setShowTutorial(true)
+        }, 2000)
+        return () => clearTimeout(timer)
+      }
     }
   }, [user])
 
@@ -506,7 +483,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
         setUploadedImages([])
         setImagePreviews([])
         // 게시글 목록 새로고침
-        setRefreshTrigger(prev => prev + 1)
+        // 🚀 최적화: 새로고침 트리거 제거 (불필요한 리렌더링 방지)
       } else {
         const errorData = await response.json().catch(() => ({}))
         console.error('게시글 작성 실패:', errorData)
@@ -562,6 +539,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const [showCommentModal, setShowCommentModal] = useState(false)
   const [selectedStoryForComment, setSelectedStoryForComment] = useState<any>(null)
   const [commentText, setCommentText] = useState('')
+  const [showTutorial, setShowTutorial] = useState(false)
   
   // 뉴스 작성 모달 상태
   const [showNewsWriteModal, setShowNewsWriteModal] = useState(false)
@@ -985,7 +963,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     e.preventDefault()
     if (!user || !selectedQuestion) return
     
-    setLoading(true)
+    // 🚀 최적화: 로딩 상태 제거 (불필요한 상태 관리 방지)
     
     try {
       const token = localStorage.getItem('amiko_session')
@@ -1021,7 +999,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       console.error('답변 작성 실패:', err)
       toast.error(err instanceof Error ? err.message : '답변 작성에 실패했습니다.')
     } finally {
-      setLoading(false)
+      // 🚀 최적화: 로딩 상태 제거
     }
   }
 
@@ -2070,7 +2048,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6 bg-white" style={{ paddingTop: isMobile ? '0px' : '0px', paddingBottom: isMobile ? '20px' : '48px' }}>
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6 bg-white dark:bg-gray-900" style={{ paddingTop: isMobile ? '0px' : '0px', paddingBottom: isMobile ? '20px' : '48px' }}>
       {/* 테스트 요소 - 컴포넌트가 렌더링되는지 확인 */}
       {/* 메인 컨텐츠 */}
       <div className="w-full space-y-6">
@@ -2094,45 +2072,48 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
           </div>
           </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2 font-['Inter']">{t('mainPage.title')}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 font-['Inter']">{t('mainPage.title')}</h2>
                 <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
         </div>
         
                  {/* 5개 아이콘 - 모바일: 3개 위 2개 아래, 데스크톱: 한 줄 */}
-                 <div className="w-full flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 overflow-visible mb-0">
+                 <div className="w-full flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 overflow-visible mb-0" data-tutorial="community-section">
                    {/* 모바일: 위쪽 3개 아이콘 */}
                    <div className="flex md:hidden justify-start overflow-visible px-4" style={{ marginLeft: language === 'es' ? '-8px' : '8px', paddingRight: language === 'es' ? '40px' : '0px' }}>
                      <button
                        onClick={() => router.push('/community/freeboard')}
                        className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                        style={{ marginRight: language === 'es' ? '4px' : '14px', marginLeft: language === 'es' ? '-4px' : '0px' }}
+                       data-tutorial="topic-board-mobile"
                      >
-                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/주제별게시판.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
-                       </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.freeBoard')}</h3>
+                      <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                        <img src="/topic-board.png" alt="주제별 게시판" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
+                      </div>
+                      <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.freeBoard')}</h3>
                      </button>
 
                      <button
                        onClick={() => router.push('/community/news')}
                        className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                        style={{ marginRight: language === 'es' ? '24px' : '16px' }}
+                       data-tutorial="k-magazine-mobile"
                      >
-                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/K-매거진.png" alt="K-매거진" className="w-8 h-8 object-contain" />
+                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/k-magazine.png" alt="K-매거진" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.koreanNews')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.koreanNews')}</h3>
                      </button>
 
                      <button
                        onClick={() => router.push('/community/qa')}
                        className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                        style={{ marginRight: '32px' }}
+                       data-tutorial="qa-mobile"
                      >
-                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/Q&A.png" alt="Q&A" className="w-8 h-8 object-contain" />
+                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/qa.png" alt="Q&A" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.qa')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.qa')}</h3>
                      </button>
                    </div>
                    
@@ -2141,21 +2122,23 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      <button
                        onClick={() => router.push('/community/tests')}
                        className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="psychology-test-mobile"
                      >
-                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/심리테스트.png" alt="심리테스트" className="w-8 h-8 object-contain" />
+                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/psychology-test.png" alt="심리테스트" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('tests.title')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('tests.title')}</h3>
                      </button>
                      
                      <button
                        onClick={() => router.push('/community/stories')}
                        className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="story-mobile"
                      >
-                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/스토리.png" alt="스토리" className="w-8 h-8 object-contain" />
+                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/story.png" alt="스토리" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight" style={{ fontSize: '10px' }}>{t('communityTab.story')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('communityTab.story')}</h3>
                      </button>
                    </div>
 
@@ -2164,51 +2147,56 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      <button
                        onClick={() => router.push('/community/freeboard')}
                        className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="topic-board-desktop"
                      >
-                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
-                         <img src="/주제별게시판.png" alt="주제별 게시판" className="w-16 h-16 object-contain" />
+                       <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/topic-board.png" alt="주제별 게시판" className="w-16 h-16 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('community.freeBoard')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-sm">{t('community.freeBoard')}</h3>
                      </button>
 
                      <button
                        onClick={() => router.push('/community/news')}
                        className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="k-magazine-desktop"
                      >
-                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
-                         <img src="/K-매거진.png" alt="K-매거진" className="w-16 h-16 object-contain" />
+                       <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/k-magazine.png" alt="K-매거진" className="w-16 h-16 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('community.koreanNews')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-sm">{t('community.koreanNews')}</h3>
                      </button>
 
                      <button
                        onClick={() => router.push('/community/qa')}
                        className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="qa-desktop"
                      >
-                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
-                         <img src="/Q&A.png" alt="Q&A" className="w-16 h-16 object-contain" />
+                       <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/qa.png" alt="Q&A" className="w-16 h-16 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('community.qa')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-sm">{t('community.qa')}</h3>
                      </button>
 
                      <button
                        onClick={() => router.push('/community/tests')}
                        className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="psychology-test-desktop"
                      >
-                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
-                         <img src="/심리테스트.png" alt="심리테스트" className="w-16 h-16 object-contain" />
+                       <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/psychology-test.png" alt="심리테스트" className="w-16 h-16 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('tests.title')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-sm">{t('tests.title')}</h3>
                      </button>
                      
                      <button
                        onClick={() => router.push('/community/stories')}
                        className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="story-desktop"
                      >
-                       <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center border-2 border-gray-200 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
-                         <img src="/스토리.png" alt="스토리" className="w-16 h-16 object-contain" />
+                       <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-3 overflow-hidden">
+                         <img src="/story.png" alt="스토리" className="w-16 h-16 object-contain" />
                        </div>
-                       <h3 className="font-medium text-gray-700 text-center leading-tight text-sm">{t('communityTab.story')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-sm">{t('communityTab.story')}</h3>
                      </button>
                    </div>
                  </div>
@@ -2217,7 +2205,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 탭 컨텐츠 */}
       {currentView === 'qa' && (
-        <div className="w-full bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-4 md:p-6">
 
 
 
@@ -2317,7 +2305,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             <div className="space-y-8">
               {[1, 2, 3].map((index) => (
                 <div key={index} className="animate-pulse">
-                  <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-lg">
+                  <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6 shadow-lg">
                     <div className="flex items-start gap-4">
                       <div className="flex flex-col items-center gap-2 min-w-[60px]">
                         <div className="w-8 h-8 bg-gray-200 rounded"></div>
@@ -2362,7 +2350,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               <div key={question.id}>
                 {/* 데스크톱: 카드 스타일 */}
                 <Card 
-                  className="hidden md:block p-4 sm:p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
+                  className="hidden md:block p-4 sm:p-6 shadow-lg border border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-700 hover:bg-purple-50/30 dark:hover:bg-purple-900/20 cursor-pointer !opacity-100 !transform-none"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -2456,7 +2444,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
                 {/* 모바일: 리스트 스타일 */}
                 <div 
-                  className="block md:hidden py-3 px-4 border-b border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-300 shadow-md"
+                  className="block md:hidden py-3 px-4 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 shadow-md"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -2464,13 +2452,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   }}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-semibold text-gray-800 truncate flex-1 mr-2">{question.title}</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 truncate flex-1 mr-2">{question.title}</h3>
                     <div className="flex items-center gap-1 text-purple-600">
                       <ThumbsUp className="w-3 h-3" />
                       <span className="text-sm font-medium">{question.upvotes}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-2">
                       <span>{question.author?.full_name || question.author || '익명'}</span>
                       <Badge className={`text-xs px-1 py-0 ${
@@ -2492,17 +2480,17 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               
               {/* 결과 없음 */}
               {filteredQuestions.length === 0 && (
-            <Card className="p-12 text-center shadow-lg border border-gray-200">
+            <Card className="p-12 text-center shadow-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
               {questions.length === 0 ? (
                 // 질문이 아예 없는 경우
                 <>
                   <div className="text-4xl mb-4">❓</div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">아직 질문이 없습니다</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">아직 질문이 없습니다</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
                     궁금한 점이 있으시면 첫 번째 질문을 작성해보세요!
                   </p>
                   <Button 
-                    onClick={() => setShowQuestionForm(true)}
+                    onClick={() => setQuestionForm(prev => ({ ...prev, show: true }))}
                     className="bg-purple-500 hover:bg-purple-600 text-white"
                   >
                     질문 작성하기
@@ -2512,8 +2500,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 // 검색/필터 결과가 없는 경우
                 <>
                   <div className="text-4xl mb-4">🔍</div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">검색 결과가 없습니다</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">검색 결과가 없습니다</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
                     다른 키워드나 카테고리로 검색해보세요
                   </p>
                   <Button 
@@ -2880,7 +2868,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     </h4>
                     
                     {answers.map((answer) => (
-                        <Card key={answer.id} className="p-4 !opacity-100 !bg-white shadow-lg border border-gray-200">
+                        <Card key={answer.id} className="p-4 !opacity-100 !bg-white dark:!bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600">
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col items-center gap-1 min-w-[50px]">
                               <Button
@@ -3750,7 +3738,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* Tests 탭 */}
       {currentView === 'tests' && (
-        <div className="w-full max-w-none bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6">
+        <div className="w-full max-w-none bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-4 md:p-6">
           <div className="space-y-6 w-full">
             {/* 카테고리 필터 및 버튼들 */}
             <div className="flex items-center justify-between gap-4">
@@ -3872,7 +3860,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   return (
                     <div
                       key={quiz.id}
-                      className="bg-white rounded-2xl p-6 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-blue-300"
+                      className="bg-white dark:bg-gray-700 rounded-2xl p-6 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500"
                       onClick={() => handleQuizClick(quiz.id)}
                     >
                       {/* 카테고리 배지 */}
@@ -4037,6 +4025,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </DialogContent>
       </Dialog>
 
+      {/* 커뮤니티 튜토리얼 */}
+      <CommunityTutorial
+        isVisible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+      />
     </div>
   )
 }

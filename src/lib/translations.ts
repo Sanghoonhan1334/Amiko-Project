@@ -2,7 +2,6 @@ export const translations = {
   ko: {
     // 헤더
     landingPage: '랜딩페이지',
-    start: '시작하기',
     lounge: '라운지',
     korean: '한국어',
     spanish: 'Español',
@@ -31,7 +30,113 @@ export const translations = {
       retry: '다시 시도',
       required: '필수',
       back: '이전',
-      backToList: '목록으로'
+      backToList: '목록으로',
+      next: '다음',
+      previous: '이전',
+      complete: '완료',
+      skip: '건너뛰기',
+      start: '시작하기'
+    },
+
+    // 테마 관련
+    theme: {
+      darkMode: '다크모드',
+      lightMode: '라이트모드'
+    },
+
+    // 홈 페이지 관련
+    home: {
+      // 네비게이션
+      navigation: {
+        home: '홈',
+        community: '커뮤니티',
+        videoCall: '화상채팅',
+        chargingStation: '충전소',
+        event: '이벤트',
+        me: '마이'
+      },
+      // 대시보드 콘텐츠
+      dashboard: {
+        popularPosts: '인기 게시글',
+        popularTests: '인기 심리테스트',
+        popularNews: '인기 한국뉴스',
+        recentStories: '최근 스토리',
+        recentActivities: '최근 활동',
+        participants: '명 참여',
+        comments: '댓글',
+        likes: '좋아요',
+        hoursAgo: '시간 전',
+        daysAgo: '일 전',
+        minutesAgo: '분 전'
+      },
+      // 공지사항
+      announcements: {
+        newVideoChatFeature: '새로운 화상채팅 기능이 추가되었습니다',
+        betterVideoCallExperience: '더 나은 화상 통화 경험을 제공합니다.',
+        systemMaintenanceNotice: '시스템 점검 안내',
+        maintenanceSchedule: '1월 20일 오전 2시-4시 점검이 예정되어 있습니다.'
+      },
+      // 샘플 콘텐츠
+      sampleContent: {
+        posts: {
+          dramaRecommendation: '한국 드라마 추천해주세요!',
+          koreanStudyMethod: '한국어 공부 방법 공유',
+          koreanFoodRecipes: '한국 음식 레시피 모음',
+          freeBoard: '자유게시판',
+          learningBoard: '학습게시판',
+          cultureBoard: '문화게시판'
+        },
+        tests: {
+          favoriteKoreanDrama: '내가 가장 좋아할 한국 드라마는?',
+          koreanLevelTest: '한국어 실력 레벨 테스트',
+          culturalAdaptationTest: '한국 문화 적응도 체크'
+        },
+        news: {
+          btsNewAlbum: 'BTS, 새로운 앨범 발표 예정',
+          koreanTourismIncrease: '한국 관광객 증가세 지속',
+          kFoodGlobalPopularity: 'K-푸드 글로벌 인기 상승'
+        },
+        activities: {
+          commentedOnPost: '게시글에 댓글을 남겼습니다',
+          likedPost: '게시글을 좋아요했습니다',
+          completedTest: '테스트를 완료했습니다',
+          commentedOnNews: '뉴스에 댓글을 남겼습니다'
+        }
+      }
+    },
+
+    // 튜토리얼 관련
+    tutorial: {
+      // 커뮤니티 튜토리얼
+      community: {
+        welcome: 'AMIKO 커뮤니티에 오신 것을 환영합니다!',
+        welcomeDescription: '이 튜토리얼을 통해 AMIKO 커뮤니티의 다양한 기능들을 쉽게 배워보세요. 각 단계를 따라가며 주요 기능들을 확인해보겠습니다.',
+        topicBoard: '주제별 게시판',
+        topicBoardDescription: '여기서 다양한 주제의 게시판을 확인할 수 있습니다. 자유게시판, K-POP 게시판 등 관심사에 맞는 게시판을 선택해보세요!',
+        kMagazine: 'K-매거진',
+        kMagazineDescription: '한국 문화와 뉴스를 확인할 수 있는 K-매거진입니다. 최신 한국 소식을 읽고 댓글을 남겨보세요!',
+        qa: 'Q&A',
+        qaDescription: '질문과 답변을 주고받을 수 있는 Q&A 섹션입니다. 궁금한 것이 있으면 질문하고, 다른 사람의 질문에 답변해보세요!',
+        psychologyTest: '심리테스트',
+        psychologyTestDescription: '재미있는 심리테스트를 통해 자신을 더 잘 알아보세요. 다양한 테스트를 통해 새로운 관점을 발견할 수 있습니다!',
+        story: '스토리',
+        storyDescription: '일상의 순간들을 사진과 함께 공유하는 스토리 기능입니다. 24시간 동안만 보여지는 스토리로 친구들과 소통해보세요!'
+      },
+      // 화상채팅 튜토리얼
+      videoCall: {
+        welcome: 'AMIKO 화상채팅에 오신 것을 환영합니다!',
+        welcomeDescription: '이 튜토리얼을 통해 AMIKO의 화상채팅 기능을 쉽게 배워보세요. 각 단계를 따라가며 주요 기능들을 확인해보겠습니다.',
+        partnerList: '대화 상대 목록',
+        partnerListDescription: '여기서 대화할 파트너를 선택할 수 있습니다. 각 파트너의 관심사, 자기소개, 온라인 상태를 확인해보세요.',
+        partnerCard: '파트너 정보 카드',
+        partnerCardDescription: '각 파트너 카드에서 상세 정보를 확인하고, "정보보기"로 더 자세한 프로필을 볼 수 있습니다. "대화시작" 버튼으로 바로 화상채팅을 시작하세요!',
+        onlineStatus: '온라인 상태 확인',
+        onlineStatusDescription: '초록색 점이 있는 파트너는 현재 온라인 상태입니다. 오프라인인 파트너는 회색 점으로 표시되며, 대화를 시작할 수 없어요.',
+        startConversation: '대화 시작하기',
+        startConversationDescription: '온라인인 파트너의 "대화시작" 버튼을 클릭하면 화상채팅이 시작됩니다. 안전하고 즐거운 대화를 즐겨보세요!'
+      },
+      // 공통 메시지
+      mobileScrollHint: '모바일에서는 화면을 스크롤하여 해당 요소를 찾아주세요'
     },
 
     // 인증 관련
@@ -181,18 +286,76 @@ export const translations = {
             title: 'K-매거진',
             description: '한국의 최신 소식과 트렌드를 확인해보세요.'
           },
-          story: {
-            title: '스토리',
-            description: '나의 일상을 공유하고 일상에 대해서 대화해보세요.'
-          },
           koreanTest: {
             title: '한국성향테스트',
-            description: ''
+            description: '오늘의 운세와 나의 성향을 재밌게 알아보세요'
+          },
+          story: {
+            title: '스토리',
+            description: '일상을 공유하고 소통해보세요'
           }
         },
         startButton: {
           title: '시작하기',
           subtitle: '지금 바로 AMIKO와 함께하세요'
+        },
+        bottomSection: {
+          title: '지금 시작하고 1분 만에 커뮤니티를 만나보세요',
+          description: '무료 커뮤니티. 한국인들과 영상통화 및 게임을 즐겨보세요',
+          startButton: '무료로 시작하기'
+        },
+        infoSection: {
+          title: 'AMIKO에 대해 더 알아보세요',
+          subtitle: '아래 섹션을 클릭하여 자세한 정보를 확인하세요',
+          about: {
+            title: '소개',
+            description: 'AMIKO는 한국과 라틴아메리카를 연결하는 플랫폼입니다',
+            bridgeDescription: 'AMerica와 KOrea를 잇는 다리',
+            connectDescription: '더 가깝게, 더 쉽게 연결합니다'
+          },
+          contact: {
+            title: '문의',
+            description: '궁금하신 사항이 있으시면 언제든지 문의해주세요. 빠른 시간 내에 답변드리겠습니다.',
+            email: '이메일',
+            operatingHours: '운영 시간',
+            hours: '평일 9:00 - 18:00 (KST)',
+            contactButton: '문의하기'
+          },
+          partnership: {
+            title: '제휴문의',
+            description: 'AMIKO와 함께 성장할 파트너를 찾고 있습니다. 다양한 형태의 협업을 환영합니다.',
+            brandExpansion: '브랜드 확장',
+            brandDescription: '더 넓은 시장으로 진출하세요',
+            customerExpansion: '고객 확대',
+            customerDescription: '새로운 고객층에 도달하세요',
+            revenueIncrease: '매출 증대',
+            revenueDescription: '함께 성장하는 파트너십',
+            partnershipButton: '제휴 제안하기'
+          },
+          faq: {
+            title: '자주 묻는 질문',
+            q1: 'AMIKO는 어떤 서비스인가요?',
+            a1: 'AMIKO는 한국과 라틴아메리카를 연결하는 문화 교류 플랫폼입니다. 언어 교환, 커뮤니티, 영상 통화 등 다양한 기능을 제공합니다.',
+            q2: '포인트는 어떻게 사용하나요?',
+            a2: '포인트는 게시글 작성, 댓글 작성, 출석 체크 등의 활동으로 획득할 수 있으며, 영상 통화 예약 시 사용할 수 있습니다.',
+            q3: '인증은 왜 필요한가요?',
+            a3: '안전한 커뮤니티 환경 조성을 위해 본인 인증이 필요합니다. 이메일 또는 휴대폰 인증을 통해 간단하게 완료할 수 있습니다.'
+          },
+          help: {
+            title: '도움말',
+            gettingStarted: '시작하기',
+            step1: '회원가입 후 프로필을 완성하세요',
+            step2: '관심사에 맞는 커뮤니티에 참여하세요',
+            step3: '영상 통화로 실시간 대화를 나누세요',
+            videoCall: '영상 통화',
+            videoStep1: '3일에 한번씩 무료로 통화하세요',
+            videoStep2: '실시간 번역 기능을 활용하세요',
+            videoStep3: '예약 관리에서 일정을 확인하세요',
+            community: '커뮤니티',
+            communityStep1: '게시글을 작성하고 포인트를 받으세요',
+            communityStep2: '댓글로 다른 사용자와 소통하세요',
+            communityStep3: '좋아요와 공유로 인기 게시물을 만드세요'
+          }
         }
       }
     },
@@ -392,7 +555,6 @@ export const translations = {
         popular: '인기순',
         views: '조회순'
       },
-      writePost: '글쓰기',
       galleryList: {
         title: '갤러리',
         subtitle: '',
@@ -561,7 +723,8 @@ export const translations = {
             description: '한국어 시험 응시료 지원',
             dele: 'DELE',
             flex: 'FLEX',
-            examFeeSupport: '시험 응시료 지원'
+            examFeeSupport: '시험 응시료 지원',
+            period: '기간'
           }
         }
       },
@@ -699,7 +862,7 @@ export const translations = {
     privacy: {
       title: '개인정보처리방침',
       lastUpdated: '최종 수정일',
-      lastUpdatedDate: '2025년 1월 17일',
+      lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'privacy@amiko.com',
       supportEmail: 'support@amiko.com',
       sections: {
@@ -756,7 +919,7 @@ export const translations = {
     terms: {
       title: '서비스 이용약관',
       lastUpdated: '최종 수정일',
-      lastUpdatedDate: '2025년 1월 17일',
+      lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'legal@amiko.com',
       supportEmail: 'support@amiko.com',
       sections: {
@@ -830,7 +993,7 @@ export const translations = {
     cookies: {
       title: '쿠키 정책',
       lastUpdated: '최종 수정일',
-      lastUpdatedDate: '2025년 1월 17일',
+      lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'privacy@amiko.com',
       supportEmail: 'support@amiko.com',
       sections: {
@@ -1205,19 +1368,33 @@ export const translations = {
         title: '당신과 닮은 K-POP 스타는?',
         description: '10가지 질문으로 알아보는 나와 닮은 K-POP 스타'
       },
-      question: '질문',
       of: '/',
       next: '다음',
       previous: '이전',
       submit: '제출',
       viewResult: '결과 보기',
-      errorLoading: '테스트를 불러오는 중 오류가 발생했습니다',
       result: {
         title: '테스트 결과',
         yourType: '당신의 타입은',
         description: '결과 설명',
         shareText: '나는 {result} 타입! 당신은?'
       }
+    },
+
+    // 스토리 탭
+    stories: {
+      title: '스토리',
+      description: '일상을 공유하고 소통해보세요',
+      uploadStory: '스토리 올리기',
+      noStories: '아직 스토리가 없습니다',
+      uploadFirstStory: '첫 번째 스토리를 올리고\n다른 사람들과 일상을 공유해보세요!',
+      newStory: '새 스토리 작성',
+      photoUpload: '사진 업로드',
+      storyContent: '스토리 내용',
+      storyPlaceholder: '오늘의 이야기를 공유해보세요...',
+      createStory: '스토리작성',
+      upload: '업로드',
+      uploading: '업로드 중...'
     },
 
     // 프로필 관련
@@ -1761,7 +1938,6 @@ export const translations = {
   es: {
     // 헤더
     landingPage: 'Página de Inicio',
-    start: 'Comenzar',
     lounge: 'Sala',
     korean: '한국어',
     spanish: 'Español',
@@ -1790,7 +1966,113 @@ export const translations = {
       retry: 'Reintentar',
       required: 'Requerido',
       back: 'Atrás',
-      backToList: 'Volver a la lista'
+      backToList: 'Volver a la lista',
+      next: 'Siguiente',
+      previous: 'Anterior',
+      complete: 'Completar',
+      skip: 'Omitir',
+      start: 'Comenzar'
+    },
+
+    // 테마 관련
+    theme: {
+      darkMode: 'Modo oscuro',
+      lightMode: 'Modo claro'
+    },
+
+    // 홈 페이지 관련
+    home: {
+      // 네비게이션
+      navigation: {
+        home: 'Inicio',
+        community: 'Comunidad',
+        videoCall: 'Videollamada',
+        chargingStation: 'Estación de Carga',
+        event: 'Eventos',
+        me: 'Mi'
+      },
+      // 대시보드 콘텐츠
+      dashboard: {
+        popularPosts: 'Publicaciones Populares',
+        popularTests: 'Pruebas Psicológicas Populares',
+        popularNews: 'Noticias Coreanas Populares',
+        recentStories: 'Historias Recientes',
+        recentActivities: 'Actividades Recientes',
+        participants: ' participantes',
+        comments: 'comentarios',
+        likes: 'me gusta',
+        hoursAgo: 'hace horas',
+        daysAgo: 'hace días',
+        minutesAgo: 'hace minutos'
+      },
+      // 공지사항
+      announcements: {
+        newVideoChatFeature: 'Se ha agregado una nueva función de videollamada',
+        betterVideoCallExperience: 'Proporciona una mejor experiencia de videollamada.',
+        systemMaintenanceNotice: 'Aviso de mantenimiento del sistema',
+        maintenanceSchedule: 'El mantenimiento está programado para el 20 de enero de 2:00 AM a 4:00 AM.'
+      },
+      // 샘플 콘텐츠
+      sampleContent: {
+        posts: {
+          dramaRecommendation: '¡Recomiéndame dramas coreanos!',
+          koreanStudyMethod: 'Compartir métodos de estudio de coreano',
+          koreanFoodRecipes: 'Colección de recetas de comida coreana',
+          freeBoard: 'Foro Libre',
+          learningBoard: 'Foro de Aprendizaje',
+          cultureBoard: 'Foro de Cultura'
+        },
+        tests: {
+          favoriteKoreanDrama: '¿Cuál es mi drama coreano favorito?',
+          koreanLevelTest: 'Prueba de nivel de coreano',
+          culturalAdaptationTest: 'Verificación de adaptación cultural coreana'
+        },
+        news: {
+          btsNewAlbum: 'BTS anuncia nuevo álbum',
+          koreanTourismIncrease: 'Continúa el aumento de turistas coreanos',
+          kFoodGlobalPopularity: 'Aumenta la popularidad global de la comida K'
+        },
+        activities: {
+          commentedOnPost: 'comentó en la publicación',
+          likedPost: 'le dio me gusta a la publicación',
+          completedTest: 'completó la prueba',
+          commentedOnNews: 'comentó en las noticias'
+        }
+      }
+    },
+
+    // 튜토리얼 관련
+    tutorial: {
+      // 커뮤니티 튜토리얼
+      community: {
+        welcome: '¡Bienvenido a la comunidad AMIKO!',
+        welcomeDescription: 'Aprende fácilmente las diversas funciones de la comunidad AMIKO a través de este tutorial. Vamos a revisar las funciones principales siguiendo cada paso.',
+        topicBoard: 'Foros por tema',
+        topicBoardDescription: 'Aquí puedes revisar varios foros por tema. ¡Selecciona un foro que coincida con tus intereses, como el foro libre o el foro de K-POP!',
+        kMagazine: 'K-Magazine',
+        kMagazineDescription: 'Esta es K-Magazine donde puedes revisar la cultura y noticias coreanas. ¡Lee las últimas noticias coreanas y deja comentarios!',
+        qa: 'Preguntas y Respuestas',
+        qaDescription: 'Esta es la sección de Preguntas y Respuestas donde puedes hacer y responder preguntas. ¡Haz preguntas si tienes curiosidad y responde las preguntas de otros!',
+        psychologyTest: 'Prueba psicológica',
+        psychologyTestDescription: 'Conoce mejor a ti mismo a través de pruebas psicológicas divertidas. ¡Descubre nuevas perspectivas a través de diversas pruebas!',
+        story: 'Historia',
+        storyDescription: 'Esta es la función de Historia para compartir momentos cotidianos con fotos. ¡Comunícate con amigos a través de historias que solo se muestran por 24 horas!'
+      },
+      // 화상채팅 튜토리얼
+      videoCall: {
+        welcome: '¡Bienvenido a las videollamadas AMIKO!',
+        welcomeDescription: 'Aprende fácilmente las funciones de videollamadas de AMIKO a través de este tutorial. Vamos a revisar las funciones principales siguiendo cada paso.',
+        partnerList: 'Lista de compañeros de conversación',
+        partnerListDescription: 'Aquí puedes seleccionar un compañero para conversar. Revisa los intereses, auto-introducción y estado en línea de cada compañero.',
+        partnerCard: 'Tarjeta de información del compañero',
+        partnerCardDescription: 'Revisa información detallada en cada tarjeta de compañero, y puedes ver un perfil más detallado con "Ver información". ¡Comienza una videollamada inmediatamente con el botón "Iniciar conversación"!',
+        onlineStatus: 'Verificar estado en línea',
+        onlineStatusDescription: 'Los compañeros con un punto verde están actualmente en línea. Los compañeros fuera de línea se muestran con un punto gris y no puedes iniciar una conversación.',
+        startConversation: 'Iniciar conversación',
+        startConversationDescription: 'Haz clic en el botón "Iniciar conversación" de un compañero en línea para comenzar una videollamada. ¡Disfruta de una conversación segura y agradable!'
+      },
+      // 공통 메시지
+      mobileScrollHint: 'En móvil, desplázate por la pantalla para encontrar el elemento correspondiente'
     },
 
     // 인증 관련
@@ -1940,18 +2222,76 @@ export const translations = {
             title: 'K-Magazine',
             description: 'Consulta las últimas noticias y tendencias de Corea.'
           },
-          story: {
-            title: 'Historia',
-            description: 'Comparte tu vida diaria y conversa sobre la vida cotidiana.'
-          },
           koreanTest: {
             title: 'Test de Personalidad Coreana',
-            description: ''
+            description: 'Descubre tu suerte del día y tu personalidad de manera divertida'
+          },
+          story: {
+            title: 'Historia',
+            description: 'Comparte tu vida diaria y comunícate'
           }
         },
         startButton: {
           title: 'Comenzar',
           subtitle: 'Únete a AMIKO ahora mismo'
+        },
+        bottomSection: {
+          title: 'Comienza ahora y conoce la comunidad en 1 minuto',
+          description: 'Comunidad gratuita. Disfruta de videollamadas y juegos con coreanos',
+          startButton: 'Comenzar gratis'
+        },
+        infoSection: {
+          title: 'Aprende más sobre AMIKO',
+          subtitle: 'Haz clic en las secciones a continuación para obtener información detallada',
+          about: {
+            title: 'Acerca de',
+            description: 'AMIKO es una plataforma que conecta Corea y América Latina',
+            bridgeDescription: 'Un puente que conecta AMérica y KOrea',
+            connectDescription: 'Conecta más cerca y más fácil'
+          },
+          contact: {
+            title: 'Contacto',
+            description: 'Si tienes alguna pregunta, no dudes en contactarnos. Te responderemos en poco tiempo.',
+            email: 'Email',
+            operatingHours: 'Horario de atención',
+            hours: 'Lunes a viernes 9:00 - 18:00 (KST)',
+            contactButton: 'Contactar'
+          },
+          partnership: {
+            title: 'Consulta de asociación',
+            description: 'Estamos buscando socios para crecer con AMIKO. Damos la bienvenida a varios tipos de colaboración.',
+            brandExpansion: 'Expansión de marca',
+            brandDescription: 'Expande a mercados más amplios',
+            customerExpansion: 'Ampliación de clientes',
+            customerDescription: 'Alcanza nuevas audiencias',
+            revenueIncrease: 'Aumento de ingresos',
+            revenueDescription: 'Asociación para crecer juntos',
+            partnershipButton: 'Proponer asociación'
+          },
+          faq: {
+            title: 'Preguntas frecuentes',
+            q1: '¿Qué tipo de servicio es AMIKO?',
+            a1: 'AMIKO es una plataforma de intercambio cultural que conecta Corea y América Latina. Ofrece diversas funciones como intercambio de idiomas, comunidad y videollamadas.',
+            q2: '¿Cómo se usan los puntos?',
+            a2: 'Los puntos se pueden obtener a través de actividades como escribir publicaciones, comentarios y registro de asistencia, y se pueden usar al reservar videollamadas.',
+            q3: '¿Por qué es necesaria la verificación?',
+            a3: 'La verificación de identidad es necesaria para crear un entorno comunitario seguro. Se puede completar fácilmente a través de verificación por email o teléfono móvil.'
+          },
+          help: {
+            title: 'Ayuda',
+            gettingStarted: 'Empezar',
+            step1: 'Completa tu perfil después del registro',
+            step2: 'Participa en comunidades que coincidan con tus intereses',
+            step3: 'Ten conversaciones en tiempo real a través de videollamadas',
+            videoCall: 'Videollamadas',
+            videoStep1: 'Habla gratis una vez cada 3 días',
+            videoStep2: 'Utiliza la función de traducción en tiempo real',
+            videoStep3: 'Revisa tu horario en la gestión de reservas',
+            community: 'Comunidad',
+            communityStep1: 'Escribe publicaciones y recibe puntos',
+            communityStep2: 'Comunícate con otros usuarios a través de comentarios',
+            communityStep3: 'Crea publicaciones populares con likes y compartir'
+          }
         }
       }
     },
@@ -2151,7 +2491,6 @@ export const translations = {
         popular: 'Más Populares',
         views: 'Más Vistos'
       },
-      writePost: 'Escribir',
       galleryList: {
         title: 'Galerías',
         subtitle: '',
@@ -2320,7 +2659,8 @@ export const translations = {
             description: 'Apoyo para tarifas de examen de coreano',
             dele: 'DELE',
             flex: 'FLEX',
-            examFeeSupport: 'Apoyo para Tarifa de Examen'
+            examFeeSupport: 'Apoyo para Tarifa de Examen',
+            period: 'Período'
           }
         }
       },
@@ -2460,7 +2800,7 @@ export const translations = {
       contactEmail: 'privacy@amiko.com',
       supportEmail: 'support@amiko.com',
       title: 'Política de Privacidad',
-      lastUpdatedDate: '17 de enero de 2025',
+      lastUpdatedDate: '19 de enero de 2025',
       sections: {
         purpose: {
           title: '1. Propósito de recolección y uso de información personal',
@@ -2521,7 +2861,7 @@ export const translations = {
       contactEmail: 'legal@amiko.com',
       supportEmail: 'support@amiko.com',
       title: 'Términos de Servicio',
-      lastUpdatedDate: '17 de enero de 2025',
+      lastUpdatedDate: '19 de enero de 2025',
       sections: {
         introduction: {
           title: 'Artículo 1 (Introducción del servicio)',
@@ -2587,7 +2927,7 @@ export const translations = {
       contactEmail: 'privacy@amiko.com',
       supportEmail: 'support@amiko.com',
       title: 'Política de Cookies',
-      lastUpdatedDate: '17 de enero de 2025',
+      lastUpdatedDate: '19 de enero de 2025',
       sections: {
         definition: {
           title: '1. ¿Qué son las cookies?',
@@ -3031,134 +3371,10 @@ export const translations = {
           title: 'Test de Personalidad por Memes',
           description: '¡Analiza tu personalidad con tus memes favoritos!'
         }
-      },
-      beFirst: '¡Sé el primero en crear un test!',
-      participants: 'Participantes',
-      questions: 'Preguntas',
-      minutes: 'min',
-      startTest: 'Iniciar Test',
-      startButton: 'Iniciar Test',
-      retakeTest: 'Repetir',
-      shareResult: 'Compartir Resultado',
-      myResults: 'Mis Resultados',
-      mbti: {
-        title: 'Test de Personalidad MBTI',
-        description: 'Descubre tu personalidad con 16 tipos de personalidad',
-        questionCount: 'Total 16 preguntas',
-        estimatedTime: 'Aproximadamente 5 minutos',
-        progress: 'Progreso',
-        nextQuestion: 'Siguiente pregunta',
-        submitAnswers: 'Ver resultados',
-        backToQuiz: 'Volver al menú de tests',
-        yourType: 'Tu tipo',
-        typeDescription: 'Descripción del tipo',
-        characteristics: 'Características',
-        recommendations: 'Actividades recomendadas',
-        questions: {
-          q1: 'En una fiesta con gente nueva...',
-          q1a: 'Converso con muchas personas y obtengo energía',
-          q1b: 'Tengo conversaciones profundas con pocas personas cercanas',
-          q2: 'Al resolver problemas...',
-          q2a: 'Me acerco basándome en experiencia y hechos reales',
-          q2b: 'Exploro nuevas ideas y posibilidades',
-          q3: 'Al tomar decisiones importantes...',
-          q3a: 'Priorizo el análisis lógico y criterios objetivos',
-          q3b: 'Considero importantes los valores y emociones personales',
-          q4: 'En la vida diaria...',
-          q4a: 'Hago planes y procedo de manera sistemática',
-          q4b: 'Me adapto flexiblemente a la situación',
-          q5: 'Cuando estoy estresado...',
-          q5a: 'Paso tiempo con otras personas para aliviarlo',
-          q5b: 'Tengo tiempo a solas para recargarme',
-          q6: 'Al comenzar un nuevo proyecto...',
-          q6a: 'Consulto métodos probados existentes',
-          q6b: 'Intento métodos innovadores y originales',
-          q7: 'En situaciones de conflicto...',
-          q7a: 'Juzgo basándome en hechos objetivos y principios',
-          q7b: 'Trato de entender las emociones y situación de la otra persona',
-          q8: 'Al planear un viaje...',
-          q8a: 'Preparo un itinerario detallado y reservas con anticipación',
-          q8b: 'Disfruto de manera espontánea y libre',
-          q9: 'En reuniones o discusiones grupales...',
-          q9a: 'Participo activamente y expreso mis opiniones',
-          q9b: 'Escucho las opiniones de otros y pienso cuidadosamente',
-          q10: 'Al aprender nuevas tecnologías o herramientas...',
-          q10a: 'Sigo paso a paso y aprendo gradualmente',
-          q10b: 'Aprendo experimentando y cometiendo errores',
-          q11: 'Cuando un amigo comparte sus preocupaciones...',
-          q11a: 'Trato de ofrecer soluciones lógicas',
-          q11b: 'Empatizo y ofrezco apoyo emocional',
-          q12: 'Al planificar el fin de semana...',
-          q12a: 'Hago planes con anticipación y los ejecuto',
-          q12b: 'Hago lo que me apetece en el momento',
-          q13: 'Al adaptarme a un nuevo entorno...',
-          q13a: 'Me adapto rápidamente y me relaciono con nuevas personas',
-          q13b: 'Observo lentamente y me adapto gradualmente',
-          q14: 'Al basarme en experiencias pasadas...',
-          q14a: 'Prefiero métodos probados',
-          q14b: 'Pruebo nuevos enfoques',
-          q15: 'Cuando me siento emocionalmente agitado...',
-          q15a: 'Analizo la situación lógicamente',
-          q15b: 'Acepto y expreso mis emociones',
-          q16: 'Al manejar tareas o proyectos...',
-          q16a: 'Hago planes y procedo en orden',
-          q16b: 'Ajusto las prioridades de manera flexible',
-          q17: 'En reuniones sociales...',
-          q17a: 'Participo activamente en conversaciones grupales',
-          q17b: 'Prefiero conversaciones uno a uno',
-          q18: 'Al procesar información...',
-          q18a: 'Me enfoco en detalles específicos y concretos',
-          q18b: 'Veo el panorama general y las conexiones',
-          q19: 'Al tomar decisiones importantes...',
-          q19a: 'Analizo pros y contras objetivamente',
-          q19b: 'Considero cómo afectará a las personas involucradas',
-          q20: 'En mi rutina diaria...',
-          q20a: 'Prefiero tener un horario estructurado',
-          q20b: 'Me gusta mantener flexibilidad en mi agenda',
-          q21: 'En situaciones nuevas...',
-          q21a: 'Me adapto rápidamente y tomo la iniciativa',
-          q21b: 'Observo primero y luego participo gradualmente',
-          q22: 'Al recibir información...',
-          q22a: 'Prefiero información concreta y clara',
-          q22b: 'Prefiero información abstracta y con posibilidades',
-          q23: 'Al resolver conflictos...',
-          q23a: 'Aplico criterios justos y lógicos',
-          q23b: 'Busco soluciones flexibles considerando la situación y las personas',
-          q24: 'Al establecer metas a largo plazo...',
-          q24a: 'Hago planes concretos y cronogramas',
-          q24b: 'Permito ajustar las metas de manera flexible'
-        },
-        navigation: {
-          previous: 'Atrás',
-          next: 'Siguiente',
-          seeResult: 'Ver resultado',
-          selectAnswer: 'Por favor selecciona una respuesta'
-        }
-      },
-      loveStyle: {
-        title: 'Test de Estilo de Amor',
-        description: 'Descubre tu estilo de amor con 5 lenguajes del amor'
-      },
-      kpopStar: {
-        title: '¿Qué celebridad K-POP se parece a ti?',
-        description: 'Descubre qué estrella K-POP se parece a ti con 10 preguntas'
-      },
-      question: 'Pregunta',
-      of: 'de',
-      next: 'Siguiente',
-      previous: 'Anterior',
-      submit: 'Enviar',
-      viewResult: 'Ver Resultado',
-      errorLoading: 'Error al cargar los tests',
-      result: {
-        title: 'Resultado del Test',
-        yourType: 'Tu tipo es',
-        description: 'Descripción del resultado',
-        shareText: '¡Soy tipo {result}! ¿Y tú?'
       }
     },
 
-    // 프로필
+    // 프로필 관련
     profile: {
       myProfile: 'Mi Perfil',
       koreanLanguage: 'Idioma Coreano',
@@ -3603,6 +3819,47 @@ export const translations = {
           ]
         }
       }
+    },
+
+    // 테스트 탭
+    tests: {
+      title: 'Test Psicológico',
+      subtitle: '¡Qué bueno verte hoy también!',
+      description: '',
+      categories: {
+        all: 'Todo',
+        fortune: 'Fortuna/Constelación',
+        psychology: 'Psicología/Personalidad',
+        meme: 'Meme/Humor',
+        culture: 'Cultura/Estilo de Vida'
+      },
+      noPosts: 'Aún no hay pruebas',
+      beFirst: '¡Crea la primera prueba psicológica!',
+      participants: 'Participantes',
+      questions: 'Preguntas',
+      minutes: 'minutos',
+      startTest: 'Comenzar Prueba',
+      category: 'Categoría',
+      selectCategory: 'Seleccionar categoría',
+      loading: 'Cargando...',
+      error: 'Error al cargar las pruebas',
+      retry: 'Reintentar'
+    },
+
+    // 스토리 탭
+    stories: {
+      title: 'Historias',
+      description: 'Comparte tu vida diaria y comunícate',
+      uploadStory: 'Subir Historia',
+      noStories: 'Aún no hay historias',
+      uploadFirstStory: '¡Sube tu primera historia y\ncomparte tu vida diaria con otros!',
+      newStory: 'Nueva Historia',
+      photoUpload: 'Subir Foto',
+      storyContent: 'Contenido de la Historia',
+      storyPlaceholder: 'Comparte la historia de hoy...',
+      createStory: 'Crear Historia',
+      upload: 'Subir',
+      uploading: 'Subiendo...'
     }
   }
 }

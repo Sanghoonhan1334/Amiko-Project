@@ -15,6 +15,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+// 🚀 최적화: React Query hook 추가
+import { useEventPoints } from '@/hooks/useEventPoints'
 
 interface AttendanceRecord {
   date: string
@@ -34,111 +36,36 @@ export default function EventTab() {
   const [clickedDay, setClickedDay] = useState<number | null>(null)
   const [userType, setUserType] = useState<'local' | 'korean'>('local') // 기본값: 현지인
   
-  // 포인트 데이터 상태
-  const [pointsData, setPointsData] = useState({
+  // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
+  const { 
+    data: eventData, 
+    isLoading: loading, 
+    error: queryError,
+    refetch 
+  } = useEventPoints()
+  
+  // React Query에서 가져온 데이터 분리
+  const pointsData = eventData?.pointsData || {
     total: 0,
     available: 0,
     community: 0,
     videoCall: 0
-  })
-  const [rankingData, setRankingData] = useState({
+  }
+  
+  const rankingData = eventData?.rankingData || {
     ranking: [],
     userRank: null,
     totalUsers: 0
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  }
+  
+  const error = queryError?.message || null
 
-  // 포인트 데이터 가져오기
+  // 🚀 최적화: 복잡한 API 호출 로직 제거 (React Query에서 처리)
+  
+  // 포인트 데이터가 변경될 때 totalPoints 업데이트
   useEffect(() => {
-    const fetchPointsData = async () => {
-      if (!user?.id) {
-        // 로그인하지 않은 사용자에게는 기본값 표시
-        setPointsData({
-          total: 0,
-          available: 0,
-          community: 0,
-          videoCall: 0
-        })
-        setRankingData({
-          ranking: [],
-          userRank: null,
-          totalUsers: 0
-        })
-        setLoading(false)
-        return
-      }
-
-      try {
-        setLoading(true)
-        setError(null)
-
-        // 포인트 및 랭킹 데이터 병렬 호출
-        const [pointsResponse, rankingResponse] = await Promise.all([
-          fetch(`/api/points?userId=${user.id}`),
-          fetch(`/api/points/ranking?userId=${user.id}&limit=10`)
-        ])
-        
-        if (!pointsResponse.ok || !rankingResponse.ok) {
-          // API 에러 시 기본값 사용
-          console.warn('[EventTab] 포인트/랭킹 API 호출 실패, 기본값 사용')
-          setPointsData({
-            total: 0,
-            available: 0,
-            community: 0,
-            videoCall: 0
-          })
-          setRankingData({
-            ranking: [],
-            userRank: null,
-            totalUsers: 0
-          })
-          return
-        }
-
-        const [pointsResult, rankingResult] = await Promise.all([
-          pointsResponse.json(),
-          rankingResponse.json()
-        ])
-
-        // 포인트 데이터 설정
-        const userPoints = pointsResult.userPoints
-        setPointsData({
-          total: userPoints?.total_points || 0,
-          available: userPoints?.available_points || 0,
-          community: 0, // 히스토리에서 계산
-          videoCall: 0  // 히스토리에서 계산
-        })
-
-        // 랭킹 데이터 설정
-        setRankingData({
-          ranking: rankingResult.ranking || [],
-          userRank: rankingResult.userRank,
-          totalUsers: rankingResult.totalUsers || 0
-        })
-
-      } catch (error) {
-        console.error('[EventTab] 포인트 데이터 로드 실패:', error)
-        
-        // 네트워크 에러나 기타 에러 시 기본값 설정
-        setPointsData({
-          total: 0,
-          available: 0,
-          community: 0,
-          videoCall: 0
-        })
-        setRankingData({
-          ranking: [],
-          userRank: null,
-          totalUsers: 0
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPointsData()
-  }, [user?.id])
+    setTotalPoints(pointsData.total)
+  }, [pointsData.total])
 
   // 언어에 따른 요일 배열
   const daysOfWeek = language === 'es' 
@@ -184,30 +111,14 @@ export default function EventTab() {
 
   useEffect(() => {
     loadAttendanceData()
-    loadPointsData()
+    // 🚀 최적화: loadPointsData 제거됨 (React Query로 대체)
     // 사용자가 로그인된 경우에만 쿠폰 지급 확인
     if (user?.id) {
       checkFirstTimeUser()
     }
   }, [user?.id])
 
-  // 포인트 데이터 로드 (새로운 규칙)
-  const loadPointsData = () => {
-    // 커뮤니티 활동 포인트 (하루 최대 +20점)
-    const communityPoints = 15 // 예시: 질문 1개(5) + 답변 1개(5) + 스토리 1개(5)
-
-    // 영상채팅 포인트 (1회 완료 시 +40점)
-    const videoCallPoints = 40 // 영상채팅 완료 시
-
-    const total = communityPoints + videoCallPoints
-
-    setPointsData({
-      community: communityPoints,
-      videoCall: videoCallPoints,
-      total: total,
-      available: total
-    })
-  }
+  // 🚀 최적화: 포인트 데이터 로드 함수 제거 (React Query에서 처리)
 
   // 최초 가입자 확인 및 쿠폰 지급 (로그인된 사용자만)
   const checkFirstTimeUser = () => {
@@ -230,6 +141,7 @@ export default function EventTab() {
       localStorage.setItem('totalPoints', newPoints.toString())
     }
   }
+
 
   const loadAttendanceData = () => {
     // localStorage에서 실제 출석체크 기록 불러오기
@@ -402,17 +314,17 @@ export default function EventTab() {
 
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-0 md:px-8 py-0 sm:py-2 md:py-6 -mt-8">
+    <div className="space-y-6 max-w-6xl mx-auto px-0 md:px-8 py-0 sm:py-2 md:py-6 -mt-8" data-tutorial="event-section">
       {/* 특별 이벤트 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.title')}</h2>
+        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100">{t('eventTab.attendanceCheck.specialEvents.title')}</h2>
       </div>
 
         {/* 데스크톱: 카드 스타일 */}
-        <div className="hidden md:grid grid-cols-2 gap-4 sm:gap-6">
+        <div className="hidden md:grid grid-cols-2 gap-4 sm:gap-6" data-tutorial="event-participation">
           {/* 현지인용 특별 이벤트 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-700 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-xl">
             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                 <img 
@@ -422,20 +334,20 @@ export default function EventTab() {
                 />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
-                <p className="text-xs sm:text-sm text-blue-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-blue-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
+                <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
               </div>
             </div>
             
             <div className="space-y-2 sm:space-y-3">
-              <div className="p-3 sm:p-4 bg-white rounded-lg border border-gray-200">
+              <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">1</span>
                   </div>
-                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
+                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
                 </div>
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.flightTicket')}</div>
                   <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.guideService')}</div>
                   <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.accommodation')}</div>
@@ -443,48 +355,54 @@ export default function EventTab() {
               </div>
             </div>
             
-            <div className="mt-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
-              <p className="text-sm text-gray-700 font-medium">
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg">
+              <p className="text-sm text-gray-700 dark:text-gray-200 font-medium">
                 🏆 {t('eventTab.attendanceCheck.specialEvents.localEvent.period')}
               </p>
             </div>
           </div>
 
           {/* 한국인용 특별 이벤트 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-700 dark:to-gray-700 border border-green-200 dark:border-gray-600 rounded-xl">
             <div className="mb-3 sm:mb-4">
-              <h3 className="text-lg sm:text-xl font-bold text-green-800 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
-              <p className="text-xs sm:text-sm text-green-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
+              <h3 className="text-lg sm:text-xl font-bold text-green-800 dark:text-gray-200 mb-2">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
+              <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
             </div>
             
             <div className="space-y-2 sm:space-y-3">
-              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">DELE</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
-                  <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
+                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">FLEX</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-800">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
-                  <div className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
+                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                 </div>
               </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg">
+              <p className="text-sm text-gray-700 dark:text-gray-200 font-medium">
+                🏆 {t('eventTab.attendanceCheck.specialEvents.koreanEvent.period')}
+              </p>
             </div>
           </div>
         </div>
 
         {/* 모바일: 카드 스타일 */}
-        <div className="block md:hidden space-y-4 px-1">
+        <div className="block md:hidden space-y-4 px-1" data-tutorial="event-participation">
           {/* 현지인용 특별 이벤트 카드 */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-2 shadow-sm">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-700 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-xl p-2 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                 <img 
@@ -494,59 +412,65 @@ export default function EventTab() {
                 />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-blue-800">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
-                <p className="text-xs text-blue-600">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
+                <h3 className="text-sm font-bold text-blue-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
+                <p className="text-xs text-blue-600 dark:text-blue-400">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg border border-gray-200 p-2 mb-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-2 mb-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">1</span>
                 </div>
-                <div className="font-semibold text-gray-800 text-xs">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
+                <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
               </div>
-              <div className="space-y-1 text-xs text-gray-600">
+              <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
                 <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.flightTicket')}</div>
                 <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.guideService')}</div>
                 <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.accommodation')}</div>
               </div>
             </div>
             
-            <div className="bg-gray-100 border border-gray-200 rounded-lg p-2">
-              <p className="text-xs text-gray-700 font-medium">
+            <div className="bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg p-2">
+              <p className="text-xs text-gray-700 dark:text-gray-200 font-medium">
                 🏆 {t('eventTab.attendanceCheck.specialEvents.localEvent.period')}
               </p>
             </div>
           </div>
           
           {/* 한국인용 특별 이벤트 카드 */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-700 dark:to-gray-700 border border-green-200 dark:border-gray-600 rounded-xl p-2 shadow-sm">
             <div className="mb-2">
-              <h3 className="text-sm font-bold text-green-800 mb-1">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
-              <p className="text-xs text-green-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
+              <h3 className="text-sm font-bold text-green-800 dark:text-gray-200 mb-1">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.title')}</h3>
+              <p className="text-xs text-green-600 dark:text-green-400">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.description')}</p>
             </div>
             
             <div className="space-y-2">
-              <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">DELE</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-800 text-xs">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
-                  <div className="text-xs text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
+                  <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.dele')}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">FLEX</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-800 text-xs">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
-                  <div className="text-xs text-gray-600">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
+                  <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.flex')}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.koreanEvent.examFeeSupport')}</div>
                 </div>
               </div>
+            </div>
+            
+            <div className="mt-3 p-2 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg">
+              <p className="text-xs text-gray-700 dark:text-gray-200 font-medium">
+                🏆 {t('eventTab.attendanceCheck.specialEvents.koreanEvent.period')}
+              </p>
             </div>
           </div>
         </div>
@@ -557,20 +481,20 @@ export default function EventTab() {
       {/* 포인트 랭킹 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4">
         <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
-        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">{t('eventTab.pointRanking.title')}</h2>
+        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100">{t('eventTab.pointRanking.title')}</h2>
       </div>
 
         {/* 랭킹 내용 */}
         {loading ? (
-          <div className="text-center py-8 md:bg-white md:border md:border-gray-200 md:rounded-lg md:shadow-sm">
+          <div className="text-center py-8 md:bg-white dark:md:bg-gray-800 md:border md:border-gray-200 dark:md:border-gray-600 md:rounded-lg md:shadow-sm">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-gray-600">{t('eventTab.pointRanking.loading')}</p>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">{t('eventTab.pointRanking.loading')}</p>
           </div>
         ) : (
           <div className="space-y-4">
             {/* 내 랭킹 */}
             {rankingData.userRank && (
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl shadow-sm">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-xl shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
@@ -579,17 +503,17 @@ export default function EventTab() {
                       </span>
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-800">{t('eventTab.pointRanking.myRank')}</h4>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-bold text-gray-800 dark:text-gray-200">{t('eventTab.pointRanking.myRank')}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         {t('eventTab.pointRanking.totalPoints')} {rankingData.userRank.total_points}{t('eventTab.points')}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {rankingData.userRank.position}{t('eventTab.pointRanking.rank')}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       {t('eventTab.pointRanking.outOf')} {rankingData.totalUsers}{t('eventTab.pointRanking.users')}
                     </div>
                   </div>
@@ -599,11 +523,11 @@ export default function EventTab() {
 
             {/* 상위 랭킹 */}
             {rankingData.ranking.length > 0 ? (
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
-                <h4 className="font-semibold text-gray-800 mb-3">🏆 {t('eventTab.pointRanking.topRanking')}</h4>
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm p-4" data-tutorial="leaderboard">
+                <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">🏆 {t('eventTab.pointRanking.topRanking')}</h4>
                 <div className="space-y-2">
                   {rankingData.ranking.slice(0, 5).map((user: any, index: number) => (
-                    <div key={user.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={user.userId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
                           index === 0 ? 'bg-yellow-500' : 
@@ -613,10 +537,10 @@ export default function EventTab() {
                           {index + 1}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-800">
+                          <div className="font-medium text-gray-800 dark:text-gray-200">
                             {user.userName}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {user.totalPoints}{t('eventTab.points')}
                           </div>
                         </div>
@@ -631,7 +555,7 @@ export default function EventTab() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm">
                 <Trophy className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>{t('eventTab.pointRanking.noData')}</p>
                 <p className="text-sm">{t('eventTab.pointRanking.startActivity')}</p>
@@ -646,121 +570,105 @@ export default function EventTab() {
       {/* 포인트 시스템 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4">
         <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">{t('eventTab.pointSystem.title')}</h2>
+        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100">{t('eventTab.pointSystem.title')}</h2>
       </div>
           
           {/* 포인트 획득 방법 */}
-          <div className="p-2 sm:p-4 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl shadow-sm">
+          <div className="p-2 sm:p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-700 dark:to-gray-700 border border-green-200 dark:border-gray-600 rounded-xl shadow-sm" data-tutorial="point-system">
             <div className="flex items-center gap-2 mb-3 px-2 sm:px-0">
               <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-lg">🎯</span>
               </div>
               <div>
-                <h3 className="text-sm font-bold text-green-800">{t('eventTab.pointSystem.earningMethods.title')}</h3>
-                <p className="text-xs text-green-600">{t('eventTab.pointSystem.earningMethods.subtitle')}</p>
+                <h3 className="text-sm font-bold text-green-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.title')}</h3>
+                <p className="text-xs text-green-600 dark:text-green-400">{t('eventTab.pointSystem.earningMethods.subtitle')}</p>
               </div>
             </div>
             
             {/* 데스크톱: 카드 그리드 */}
             <div className="hidden md:grid grid-cols-2 gap-4">
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">💬</span>
-                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.questionWriting.title')}</span>
-                  <Badge className="bg-blue-100 text-blue-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.questionWriting.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.questionWriting.description')}</p>
-                <div className="mt-2 text-xs text-blue-600 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('eventTab.pointSystem.earningMethods.questionWriting.description')}</p>
+                <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
               </div>
               
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">✍️</span>
-                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.answerWriting.title')}</span>
-                  <Badge className="bg-green-100 text-green-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.answerWriting.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.answerWriting.description')}</p>
-                <div className="mt-2 text-xs text-green-600 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('eventTab.pointSystem.earningMethods.answerWriting.description')}</p>
+                <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
               </div>
               
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">📸</span>
-                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.storyUpload.title')}</span>
-                  <Badge className="bg-purple-100 text-purple-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.storyUpload.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.storyUpload.description')}</p>
-                <div className="mt-2 text-xs text-purple-600 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('eventTab.pointSystem.earningMethods.storyUpload.description')}</p>
+                <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
               </div>
               
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">💎</span>
-                  <span className="font-semibold text-gray-800">{t('eventTab.pointSystem.earningMethods.receiveLikes.title')}</span>
-                  <Badge className="bg-pink-100 text-pink-800">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.receiveLikes.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-sm text-gray-600">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
-                <div className="mt-2 text-xs text-pink-600 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
+                <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>
               </div>
             </div>
 
             {/* 모바일: 카드 스타일 */}
             <div className="block md:hidden space-y-2 px-1">
-              <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">💬</span>
-                    <span className="font-semibold text-gray-800 text-sm">{t('eventTab.pointSystem.earningMethods.questionWriting.title')}</span>
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-800 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{t('eventTab.pointSystem.earningMethods.questionWriting.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.questionWriting.description')}</p>
-                <div className="text-xs text-blue-600 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('eventTab.pointSystem.earningMethods.questionWriting.description')}</p>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.questionWriting.limit')}</div>
               </div>
               
-              <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">✍️</span>
-                    <span className="font-semibold text-gray-800 text-sm">{t('eventTab.pointSystem.earningMethods.answerWriting.title')}</span>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{t('eventTab.pointSystem.earningMethods.answerWriting.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.answerWriting.description')}</p>
-                <div className="text-xs text-green-600 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('eventTab.pointSystem.earningMethods.answerWriting.description')}</p>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.answerWriting.limit')}</div>
               </div>
               
-              <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">📸</span>
-                    <span className="font-semibold text-gray-800 text-sm">{t('eventTab.pointSystem.earningMethods.storyUpload.title')}</span>
-                  </div>
-                  <Badge className="bg-purple-100 text-purple-800 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{t('eventTab.pointSystem.earningMethods.storyUpload.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.storyUpload.description')}</p>
-                <div className="text-xs text-purple-600 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('eventTab.pointSystem.earningMethods.storyUpload.description')}</p>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.storyUpload.limit')}</div>
               </div>
               
-              <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">💎</span>
-                    <span className="font-semibold text-gray-800 text-sm">{t('eventTab.pointSystem.earningMethods.receiveLikes.title')}</span>
-                  </div>
-                  <Badge className="bg-pink-100 text-pink-800 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{t('eventTab.pointSystem.earningMethods.receiveLikes.title')}</span>
+                  <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.pointSystem.earningMethods.points')}</Badge>
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
-                <div className="text-xs text-pink-600 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('eventTab.pointSystem.earningMethods.receiveLikes.description')}</p>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('eventTab.pointSystem.earningMethods.receiveLikes.limit')}</div>
               </div>
             </div>
             
-            <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg mx-2 sm:mx-0">
+            <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg mx-2 sm:mx-0">
               <div className="flex items-center gap-2">
                 <span className="text-base">⚠️</span>
-                <span className='font-medium text-yellow-800 text-sm'>{t('eventTab.pointSystem.earningMethods.warning.title')}</span>
+                <span className='font-medium text-yellow-800 dark:text-yellow-300 text-sm'>{t('eventTab.pointSystem.earningMethods.warning.title')}</span>
               </div>
-              <p className='text-xs text-yellow-700 mt-1'>
+              <p className='text-xs text-yellow-700 dark:text-yellow-300 mt-1'>
                 {t('eventTab.pointSystem.earningMethods.warning.message')}
               </p>
             </div>
@@ -770,50 +678,44 @@ export default function EventTab() {
           <div className="border-t-2 border-gray-300 my-8"></div>
           
           {/* 포인트 사용처 */}
-          <div className="p-2 sm:p-4 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl shadow-sm">
+          <div className="p-2 sm:p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-700 dark:to-gray-700 border border-purple-200 dark:border-gray-600 rounded-xl shadow-sm" data-tutorial="point-rewards">
             <div className="flex items-center gap-2 mb-3 px-2 sm:px-0">
               <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-lg">🏆</span>
               </div>
               <div>
-                <h3 className="text-sm font-bold text-purple-800">{t('eventTab.pointSystem.usage.title')}</h3>
-                <p className="text-xs text-purple-600">{t('eventTab.pointSystem.usage.subtitle')}</p>
+                <h3 className="text-sm font-bold text-purple-800 dark:text-gray-200">{t('eventTab.pointSystem.usage.title')}</h3>
+                <p className="text-xs text-purple-600 dark:text-purple-400">{t('eventTab.pointSystem.usage.subtitle')}</p>
               </div>
             </div>
             
             {/* 데스크톱: 카드 스타일 */}
             <div className="hidden md:block space-y-4">
               {/* 현재 사용처 - 비행기 티켓 */}
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg">✈️</span>
-                  </div>
                   <div>
-                    <h4 className="font-bold text-gray-800">{t('eventTab.pointSystem.usage.current.title')}</h4>
-                    <p className="text-sm text-gray-600">{t('eventTab.pointSystem.usage.current.description')}</p>
+                    <h4 className="font-bold text-gray-800 dark:text-gray-200">{t('eventTab.pointSystem.usage.current.title')}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('eventTab.pointSystem.usage.current.description')}</p>
                   </div>
                 </div>
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm text-blue-800 font-medium">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+                  <p className="text-sm text-gray-800 dark:text-gray-300 font-medium">
                     🎯 {t('eventTab.pointSystem.usage.current.detail')}
                   </p>
                 </div>
               </div>
               
               {/* 향후 사용처 - 포인트 상점 */}
-              <div className="p-4 bg-white rounded-lg border border-gray-200 opacity-75">
+              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 opacity-75">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg">🛍️</span>
-                  </div>
                   <div>
-                    <h4 className="font-bold text-gray-600">{t('eventTab.pointSystem.usage.upcoming.title')}</h4>
-                    <p className="text-sm text-gray-500">{t('eventTab.pointSystem.usage.upcoming.description')}</p>
+                    <h4 className="font-bold text-gray-600 dark:text-gray-400">{t('eventTab.pointSystem.usage.upcoming.title')}</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">{t('eventTab.pointSystem.usage.upcoming.description')}</p>
                   </div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-sm text-gray-600">
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     🚧 {t('eventTab.pointSystem.usage.upcoming.detail')}
                   </p>
                 </div>
@@ -822,25 +724,23 @@ export default function EventTab() {
 
             {/* 모바일: 카드 스타일 */}
             <div className="block md:hidden space-y-2 px-1">
-              <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">✈️</span>
-                  <span className="font-semibold text-gray-800 text-sm">{t('eventTab.pointSystem.usage.current.title')}</span>
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                <div className="mb-1">
+                  <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{t('eventTab.pointSystem.usage.current.title')}</span>
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{t('eventTab.pointSystem.usage.current.description')}</p>
-                <div className="bg-blue-50 p-1 rounded-lg">
-                  <div className="text-xs text-blue-600 font-medium">🎯 {t('eventTab.pointSystem.usage.current.detail')}</div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('eventTab.pointSystem.usage.current.description')}</p>
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-1 rounded-lg">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">🎯 {t('eventTab.pointSystem.usage.current.detail')}</div>
                 </div>
               </div>
               
-              <div className="p-2 bg-white rounded-lg border border-gray-200 shadow-sm opacity-75">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">🛍️</span>
-                  <span className="font-semibold text-gray-600 text-sm">{t('eventTab.pointSystem.usage.upcoming.title')}</span>
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm opacity-75">
+                <div className="mb-1">
+                  <span className="font-semibold text-gray-600 dark:text-gray-400 text-sm">{t('eventTab.pointSystem.usage.upcoming.title')}</span>
                 </div>
-                <p className="text-xs text-gray-500 mb-1">{t('eventTab.pointSystem.usage.upcoming.description')}</p>
-                <div className="bg-gray-50 p-1 rounded-lg">
-                  <div className="text-xs text-gray-600">🚧 {t('eventTab.pointSystem.usage.upcoming.detail')}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">{t('eventTab.pointSystem.usage.upcoming.description')}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-1 rounded-lg">
+                  <div className="text-xs text-gray-600 dark:text-gray-400">🚧 {t('eventTab.pointSystem.usage.upcoming.detail')}</div>
                 </div>
               </div>
             </div>

@@ -127,23 +127,23 @@ export default function GalleryPostsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       
       {/* 모바일 전용 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 md:hidden">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 md:hidden">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white shadow-sm hover:shadow-md px-3 py-2 text-sm font-medium min-w-[60px]"
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-3 py-2 text-sm font-medium min-w-[60px]"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">이전</span>
             </Button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-800">{gallery.name_ko}</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">{gallery.name_ko}</h1>
           </div>
           
           {/* 모바일 글쓰기 버튼 */}

@@ -70,21 +70,21 @@ export default function GalleryNavigation({
 
   if (loading) {
     return (
-      <Card className="p-4 mb-6">
+      <Card className="p-4 mb-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-          <span className="ml-2 text-gray-600">갤러리 로딩 중...</span>
+          <span className="ml-2 text-gray-600 dark:text-gray-300">갤러리 로딩 중...</span>
         </div>
       </Card>
     )
   }
 
   return (
-    <Card className="p-4 mb-6">
+    <Card className="p-4 mb-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <div className="space-y-4">
         {/* 헤더 */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
             {currentGallery ? '다른 갤러리 보기' : '갤러리 선택'}
           </h3>
           
@@ -108,7 +108,7 @@ export default function GalleryNavigation({
 
         {/* 현재 갤러리 표시 */}
         {currentGallery && (
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/40 rounded-lg border border-blue-200 dark:border-blue-600">
             <div className="flex items-center space-x-3">
               <div 
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
@@ -117,8 +117,8 @@ export default function GalleryNavigation({
                 {currentGallery.icon}
               </div>
               <div>
-                <p className="font-medium text-blue-800">{getGalleryName(currentGallery)}</p>
-                <p className="text-sm text-blue-600">
+                <p className="font-medium text-blue-800 dark:text-blue-300">{getGalleryName(currentGallery)}</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">
                   게시물 {currentGallery.post_count}개 • 댓글 {currentGallery.comment_count}개
                 </p>
               </div>
@@ -134,8 +134,8 @@ export default function GalleryNavigation({
               onClick={() => onGallerySelect(gallery)}
               className={`p-3 rounded-lg text-center transition-all duration-200 ${
                 currentGallery?.id === gallery.id
-                  ? 'bg-blue-100 border-2 border-blue-300'
-                  : 'bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
+                  ? 'bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-500'
+                  : 'bg-gray-50 dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-200 dark:border-gray-500 hover:border-gray-300 dark:hover:border-gray-400'
               }`}
             >
               <div 
@@ -145,12 +145,12 @@ export default function GalleryNavigation({
                 {gallery.icon}
               </div>
               <p className={`text-xs font-medium ${
-                currentGallery?.id === gallery.id ? 'text-blue-800' : 'text-gray-700'
+                currentGallery?.id === gallery.id ? 'text-blue-800 dark:text-blue-300' : 'text-gray-700 dark:text-white'
               }`}>
                 {getGalleryName(gallery)}
               </p>
               <p className={`text-xs mt-1 ${
-                currentGallery?.id === gallery.id ? 'text-blue-600' : 'text-gray-500'
+                currentGallery?.id === gallery.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-white'
               }`}>
                 {gallery.post_count}개
               </p>
@@ -172,9 +172,9 @@ export default function GalleryNavigation({
         )}
 
         {/* 빠른 액세스 */}
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-gray-700 mr-2">빠른 액세스:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-white mr-2">빠른 액세스:</span>
             
             <Button
               onClick={() => onGallerySelect(activeGalleries.find(g => g.slug === 'beauty')!)}

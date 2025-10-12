@@ -28,6 +28,8 @@ import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
 import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+// 🚀 최적화: React Query hooks 추가
+import { useUserProfile, useUpdateProfile } from '@/hooks/useUserProfile'
 
 // 목업 데이터 - 현지인 사용자 프로필
 const mockLatinUserProfile: LatinUserProfile = {
@@ -172,49 +174,41 @@ export default function MyTab() {
   const { user, token, refreshSession } = useAuth()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
-  const [profile, setProfile] = useState<any>(null)
   const [notificationSettings, setNotificationSettings] = useState(mockNotificationSettings)
-  const [loading, setLoading] = useState(true)
   const [profileImages, setProfileImages] = useState<File[]>([])
   const [mainProfileImage, setMainProfileImage] = useState<string | null>(null)
   
-  // 인증 상태 확인
-  const [authStatus, setAuthStatus] = useState({
+  // 🚀 최적화: React Query로 데이터 관리 (중복 API 호출 방지)
+  const { 
+    data: userData, 
+    isLoading: loading, 
+    error,
+    refetch 
+  } = useUserProfile()
+  
+  const updateProfileMutation = useUpdateProfile()
+  
+  // React Query에서 가져온 데이터 분리
+  const profile = userData?.profile?.user || userData?.profile?.profile ? {
+    ...userData.profile.user,
+    ...userData.profile.profile,
+    points: userData.profile.points?.total_points || 0,
+    daily_points: userData.profile.points?.daily_points || 0
+  } : null
+  
+  const authStatus = userData?.authStatus ? {
+    emailVerified: userData.authStatus.emailVerified || false,
+    smsVerified: userData.authStatus.smsVerified || false,
+    loading: false
+  } : {
     emailVerified: false,
     smsVerified: false,
     loading: true
-  })
-  
-  // 운영자 상태 확인 (false: 로딩 중/일반 사용자, true: 운영자)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [adminCheckComplete, setAdminCheckComplete] = useState(false)
-  
-  // 운영자 상태 확인 함수
-  const checkAdminStatus = async () => {
-    if (!user?.id && !user?.email) return
-    
-    try {
-      const params = new URLSearchParams()
-      if (user?.id) params.append('userId', user.id)
-      if (user?.email) params.append('email', user.email)
-      
-      const response = await fetch(`/api/admin/check?${params.toString()}`)
-      
-      if (response.ok) {
-        const data = await response.json()
-        setIsAdmin(data.isAdmin || false)
-        console.log('MyTab: 운영자 상태 확인됨:', data.isAdmin)
-      } else {
-        console.log('MyTab: 운영자 상태 확인 실패:', response.status)
-        setIsAdmin(false)
-      }
-    } catch (error) {
-      console.error('MyTab: 운영자 상태 확인 실패:', error)
-      setIsAdmin(false)
-    } finally {
-      setAdminCheckComplete(true)
-    }
   }
+  
+  const isAdmin = userData?.adminStatus?.isAdmin || false
+  
+  // 🚀 최적화: 운영자 상태 확인 함수 제거 (React Query에서 처리)
   
   // 현재 메인 프로필 이미지를 가져오는 함수 (서버 데이터 우선)
   const getCurrentMainImage = () => {
@@ -247,202 +241,24 @@ export default function MyTab() {
     return null
   }
   
-  // 실제 사용자 데이터 로드 함수
-  const loadUserProfile = async (showLoading = true) => {
-      if (!user?.id || !token) {
-        console.log('사용자 ID 또는 토큰이 없어서 프로필 로드 건너뜀')
-        if (showLoading) setLoading(false)
-        return
-      }
-
-      // 운영자 체크 먼저 수행
-      console.log('현재 isAdmin 상태:', isAdmin)
-      if (isAdmin) {
-        console.log('운영자 확인됨, 프로필 로드 건너뛰기')
-        if (showLoading) setLoading(false)
-        return
-      }
-
-      try {
-        if (showLoading) setLoading(true)
-        console.log('프로필 로드 시작:', { userId: user.id, token: !!token })
-        
-        const response = await fetch(`/api/profile?userId=${user.id}`, {
-          headers: {
-            'Authorization': `Bearer ${encodeURIComponent(token)}`,
-            'Content-Type': 'application/json'
-          }
-        })
-        
-        console.log('프로필 로드 응답:', { 
-          status: response.status, 
-          statusText: response.statusText,
-          ok: response.ok 
-        })
-
-        const result = await response.json()
-        console.log('프로필 로드 데이터:', result)
-
-        if (response.ok) {
-          const newProfile = {
-            ...result.user,
-            ...result.profile,
-            points: result.points?.total_points || 0,
-            daily_points: result.points?.daily_points || 0
-          }
-          console.log('설정할 프로필 데이터:', newProfile)
-          console.log('프로필 이미지 데이터 확인:', {
-            profile_images: newProfile.profile_images,
-            profile_images_length: newProfile.profile_images?.length,
-            profile_images_first: newProfile.profile_images?.[0]?.substring(0, 50) + '...',
-            profile_image: newProfile.profile_image,
-            main_profile_image: newProfile.main_profile_image
-          })
-          setProfile(newProfile)
-          
-          // 프로필 이미지 설정 (서버 데이터로 복원)
-          if (newProfile.profile_images && newProfile.profile_images.length > 0) {
-            setMainProfileImage(newProfile.main_profile_image || newProfile.profile_images[0])
-            console.log('[PROFILE] 프로필 이미지 설정됨:', newProfile.main_profile_image || newProfile.profile_images[0])
-          } else if (newProfile.profile_image) {
-            setMainProfileImage(newProfile.profile_image)
-            console.log('[PROFILE] 단일 프로필 이미지 설정됨:', newProfile.profile_image)
-          } else {
-            // 서버에 이미지가 없을 때는 기존 상태 유지
-            console.log('[PROFILE] 서버에 프로필 이미지 없음, 기존 상태 유지')
-          }
-          
-          // 헤더 포인트 업데이트 이벤트 발생
-          window.dispatchEvent(new CustomEvent('pointsUpdated'))
-        } else {
-          console.error('프로필 로드 실패:', result.error)
-          console.error('응답 상태:', response.status)
-          console.error('사용자 ID:', user?.id)
-          
-          // 인증이 필요한 경우
-          if (result.needsVerification) {
-            console.log('프로필이 없습니다. 기본 프로필을 생성합니다.')
-            
-            // 기본 프로필 생성 시도
-            try {
-              const initResponse = await fetch('/api/profile/init', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${encodeURIComponent(token)}`
-                }
-              })
-              
-              if (initResponse.ok) {
-                console.log('기본 프로필이 생성되었습니다.')
-                // 프로필 다시 로드
-                const profileResponse = await fetch(`/api/profile?userId=${user.id}`, {
-                  headers: {
-                    'Authorization': `Bearer ${encodeURIComponent(token)}`,
-                    'Content-Type': 'application/json'
-                  }
-                })
-                const profileResult = await profileResponse.json()
-                
-                if (profileResponse.ok) {
-                  const newProfile = {
-                    ...profileResult.user,
-                    ...profileResult.profile,
-                    points: profileResult.points?.total_points || 0,
-                    daily_points: profileResult.points?.daily_points || 0
-                  }
-                  setProfile(newProfile)
-                  
-                  // 프로필 이미지 설정 (서버 데이터로 복원)
-                  if (newProfile.profile_images && newProfile.profile_images.length > 0) {
-                    setMainProfileImage(newProfile.main_profile_image || newProfile.profile_images[0])
-                    console.log('[PROFILE] 초기화 시 프로필 이미지 설정됨:', newProfile.main_profile_image || newProfile.profile_images[0])
-                  } else if (newProfile.profile_image) {
-                    setMainProfileImage(newProfile.profile_image)
-                    console.log('[PROFILE] 초기화 시 단일 프로필 이미지 설정됨:', newProfile.profile_image)
-                  } else {
-                    console.log('[PROFILE] 초기화 시 서버에 프로필 이미지 없음, 기존 상태 유지')
-                  }
-                }
-              } else {
-                console.log('프로필 생성 실패.')
-                if (!isAdmin) {
-                  router.push('/verification')
-                } else {
-                  console.log('운영자 계정: isAdmin 상태로 대시보드 표시')
-                  // isAdmin이 true면 자동으로 AnalyticsDashboard 렌더링됨
-                }
-              }
-            } catch (error) {
-              console.error('프로필 초기화 오류:', error)
-              if (!isAdmin) {
-                router.push('/verification')
-              } else {
-                console.log('운영자 계정: 오류 발생 시에도 isAdmin 상태로 대시보드 표시')
-                // isAdmin이 true면 자동으로 AnalyticsDashboard 렌더링됨
-              }
-            }
-            return
-          }
-        }
-      } catch (error) {
-        console.error('프로필 로드 오류:', error)
-      } finally {
-        if (showLoading) setLoading(false)
-      }
-  }
-
-  // 운영자 상태 확인 (한 번만 실행)
+  // 실제 사용자 데이터 로드 함수 (최적화됨)
+  // 🚀 최적화: 복잡한 loadUserProfile 함수 제거 (React Query에서 처리)
+  
+  // 프로필 이미지 설정을 위한 useEffect
   useEffect(() => {
-    if (user?.id && !adminCheckComplete) {
-      checkAdminStatus()
-    }
-  }, [user?.id]) // adminCheckComplete 제거로 무한 루프 방지
-
-  // 실제 사용자 데이터 로드 (운영자 체크 완료 후)
-  useEffect(() => {
-    // 운영자 상태 확인이 완료된 후에만 실행
-    if (user?.id && adminCheckComplete) {
-      if (isAdmin) {
-        // 운영자인 경우 바로 대시보드 표시
-        console.log('운영자 확인됨, 대시보드 표시')
-        setLoading(false)
-      } else {
-        // 일반 사용자인 경우 프로필 로드
-        loadUserProfile()
+    if (profile) {
+      // 프로필 이미지 설정 (서버 데이터로 복원)
+      if (profile.profile_images && profile.profile_images.length > 0) {
+        setMainProfileImage(profile.main_profile_image || profile.profile_images[0])
+      } else if (profile.profile_image) {
+        setMainProfileImage(profile.profile_image)
       }
+      
+      // 헤더 포인트 업데이트 이벤트 발생
+      window.dispatchEvent(new CustomEvent('pointsUpdated'))
     }
-  }, [user?.id, adminCheckComplete, isAdmin])
+  }, [profile])
 
-  // 인증 상태 확인
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      if (!user?.id) {
-        setAuthStatus({ emailVerified: false, smsVerified: false, loading: false })
-        return
-      }
-
-      try {
-        const response = await fetch(`/api/auth/status?userId=${user.id}`)
-        const result = await response.json()
-
-        if (response.ok) {
-          setAuthStatus({
-            emailVerified: result.emailVerified || false,
-            smsVerified: result.smsVerified || false,
-            loading: false
-          })
-        } else {
-          setAuthStatus({ emailVerified: false, smsVerified: false, loading: false })
-        }
-      } catch (error) {
-        console.error('인증 상태 확인 오류:', error)
-        setAuthStatus({ emailVerified: false, smsVerified: false, loading: false })
-      }
-    }
-
-    checkAuthStatus()
-  }, [user?.id])
   
   // 관심사 번역 함수
   
@@ -542,7 +358,10 @@ export default function MyTab() {
   }
 
   // 프로필 편집 처리
+  // 🚀 최적화: React Query를 사용한 프로필 저장
   const handleSaveProfile = async () => {
+    if (!profile) return
+    
     try {
       // 닉네임 검증
       if (profile.nickname) {
@@ -755,7 +574,7 @@ export default function MyTab() {
       <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <p className="text-gray-600 mb-4 font-['Inter']">{t('myTab.profileLoadFailed')}</p>
+            <p className="text-gray-600 dark:text-gray-300 mb-4 font-['Inter']">{t('myTab.profileLoadFailed')}</p>
             <Button onClick={() => window.location.reload()}>
               {t('buttons.retry')}
             </Button>
@@ -772,7 +591,7 @@ export default function MyTab() {
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">인증 상태 확인 중...</p>
+            <p className="text-gray-600 dark:text-gray-300">인증 상태 확인 중...</p>
           </div>
         </div>
       ) : !authStatus.smsVerified && !profile ? (
@@ -782,7 +601,7 @@ export default function MyTab() {
               <Settings className="w-10 h-10 text-orange-600" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">인증 후 이용가능합니다</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">인증 후 이용가능합니다</h2>
           
           
           <div className="mt-8 space-y-3">
@@ -801,13 +620,13 @@ export default function MyTab() {
       ) : (
         <>
           {/* 내 프로필 - 맨 위로 이동 */}
-          <div className="bg-gradient-to-br from-brand-50 to-mint-50 border-2 border-brand-200/50 rounded-xl p-3 sm:p-6 pt-2 sm:pt-6">
+          <div className="bg-gradient-to-br from-brand-50 to-mint-50 dark:from-gray-800 dark:to-gray-800 border-2 border-brand-200/50 dark:border-gray-600 rounded-xl p-3 sm:p-6 pt-2 sm:pt-6">
         <div className="space-y-4 sm:space-y-6">
           {/* 프로필 사진 관리 - 맨 위로 이동 */}
           <div className="flex flex-col items-center gap-4">
             {/* 대표 프로필 사진 */}
             <div className="relative">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-brand-100 to-mint-100 rounded-full flex items-center justify-center text-4xl sm:text-6xl shadow-lg border-4 border-white overflow-hidden">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-brand-100 to-mint-100 dark:from-gray-700 dark:to-gray-700 rounded-full flex items-center justify-center text-4xl sm:text-6xl shadow-lg border-4 border-white dark:border-gray-600 overflow-hidden">
                 {(() => {
                   const currentImage = getCurrentMainImage()
                   console.log('이미지 표시 로직 확인:', {
@@ -837,7 +656,7 @@ export default function MyTab() {
                     return (
                       <div className="flex flex-col items-center justify-center text-center p-4">
                         <div className="text-2xl mb-2">📷</div>
-                        <div className="text-sm text-gray-600 font-medium leading-tight">
+                        <div className="text-sm text-gray-600 dark:text-gray-300 font-medium leading-tight">
                           {t('myTab.addProfilePhoto')}
                         </div>
                       </div>
@@ -870,7 +689,7 @@ export default function MyTab() {
             {/* 프로필 사진 목록 (편집 모드일 때만) */}
             {isEditing && profileImages.length > 0 && (
               <div className="w-full max-w-xs">
-                <p className="text-xs text-gray-600 mb-2 text-center font-['Inter']">{t('myTab.uploadedPhotos')}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 text-center font-['Inter']">{t('myTab.uploadedPhotos')}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {profileImages.map((file, index) => (
                     <div key={index} className="relative">
@@ -916,7 +735,7 @@ export default function MyTab() {
             )}
 
             <div className="text-center">
-              <p className="text-xs text-gray-500 font-['Inter']">{t('profile.joinDate')}: {profile?.joinDate || user?.created_at ? new Date(user.created_at).toLocaleDateString('ko-KR') : 'N/A'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-['Inter']">{t('profile.joinDate')}: {profile?.joinDate || user?.created_at ? new Date(user.created_at).toLocaleDateString('ko-KR') : 'N/A'}</p>
               {isEditing && (
                 <p className="text-xs text-blue-500 mt-1 font-['Inter']">{t('myTab.photoSelectionTip')}</p>
               )}
@@ -926,12 +745,12 @@ export default function MyTab() {
           {/* 프로필 정보 */}
           <div className="space-y-3 sm:space-y-4 md:space-y-6 px-2 min-w-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 font-['Inter']">{t('profile.myProfile')}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 font-['Inter']">{t('profile.myProfile')}</h2>
               <div className="flex flex-wrap gap-2">
                 {/* 사용자 타입 표시 */}
                 <Badge
                   variant="outline"
-                  className="text-xs border-blue-300 text-blue-600"
+                  className="text-xs border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400"
                 >
                   {profile.is_korean ? `🇰🇷 ${t('myTab.korean')}` : `🌎 ${t('myTab.local')}`}
                 </Badge>
@@ -942,7 +761,7 @@ export default function MyTab() {
                   value={profile.user_type || 'student'} 
                   onValueChange={(value) => setProfile({ ...profile, user_type: value })}
                 >
-                  <SelectTrigger className="w-32 border-purple-300 text-purple-600">
+                  <SelectTrigger className="w-32 border-purple-300 dark:border-gray-600 text-purple-600 dark:text-gray-200">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -953,7 +772,7 @@ export default function MyTab() {
               ) : (
                 <Badge
                   variant="outline"
-                  className="text-xs border-purple-300 text-purple-600"
+                  className="text-xs border-purple-300 dark:border-gray-600 text-purple-600 dark:text-gray-200"
                 >
                   {profile.user_type === 'professional' ? `💼 ${t('myTab.professional')}` : `🎓 ${t('myTab.student')}`}
                 </Badge>
@@ -1025,7 +844,7 @@ export default function MyTab() {
             {/* 기본 정보 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block font-['Inter']">{t('profile.name')}</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block font-['Inter']">{t('profile.name')}</label>
                 {isEditing ? (
                   <Input
                     value={profile?.full_name || profile?.name || user?.user_metadata?.full_name || user?.email || ''}
@@ -1033,13 +852,13 @@ export default function MyTab() {
                     className="border-brand-200 focus:border-brand-500"
                   />
                 ) : (
-                  <p className="text-gray-800 font-medium">{profile?.full_name || profile?.name || user?.user_metadata?.full_name || user?.email || t('myTab.noName')}</p>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">{profile?.full_name || profile?.name || user?.user_metadata?.full_name || user?.email || t('myTab.noName')}</p>
                 )}
               </div>
               
               {/* 스페인어 이름 필드 */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block font-['Inter']">{t('profile.spanishName')}</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block font-['Inter']">{t('profile.spanishName')}</label>
                 {isEditing ? (
                   <Input
                     value={profile.spanish_name || ''}
@@ -1048,15 +867,15 @@ export default function MyTab() {
                     placeholder={t('profile.spanishNamePlaceholder')}
                   />
                 ) : (
-                  <p className="text-gray-800 font-medium">{profile.spanish_name || t('profile.noSpanishName')}</p>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.spanish_name || t('profile.noSpanishName')}</p>
                 )}
               </div>
 
               {/* 닉네임 필드 */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 block font-['Inter']">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block font-['Inter']">
                   닉네임 (알파벳, 숫자, 특수문자)
-                  <span className="text-xs text-gray-500 ml-2">커뮤니티 활동 시 표시됩니다</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">커뮤니티 활동 시 표시됩니다</span>
                 </label>
                 {isEditing ? (
                   <div className="space-y-1">
@@ -1087,7 +906,7 @@ export default function MyTab() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-gray-800 font-medium">{profile.nickname || '닉네임 미설정'}</p>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.nickname || '닉네임 미설정'}</p>
                 )}
               </div>
               
@@ -1095,7 +914,7 @@ export default function MyTab() {
               {profile.user_type === 'student' && (
                 <>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 block">{t('profile.university')}</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('profile.university')}</label>
                     {isEditing ? (
                       <Input
                         value={profile.university || ''}
@@ -1104,12 +923,12 @@ export default function MyTab() {
                         placeholder={t('myTab.universityPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.university || t('myTab.noUniversity')}</p>
+                      <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.university || t('myTab.noUniversity')}</p>
                     )}
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 block">{t('profile.major')}</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('profile.major')}</label>
                     {isEditing ? (
                       <Input
                         value={profile.major || ''}
@@ -1118,7 +937,7 @@ export default function MyTab() {
                         placeholder={t('myTab.majorPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.major || t('myTab.noMajor')}</p>
+                      <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.major || t('myTab.noMajor')}</p>
                     )}
                   </div>
                 </>
@@ -1128,7 +947,7 @@ export default function MyTab() {
               {profile.user_type === 'professional' && (
                 <>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 block">{t('myTab.occupation')}</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('myTab.occupation')}</label>
                     {isEditing ? (
                       <Input
                         value={profile.occupation || ''}
@@ -1137,12 +956,12 @@ export default function MyTab() {
                         placeholder={t('myTab.occupationPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.occupation || t('myTab.noOccupation')}</p>
+                      <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.occupation || t('myTab.noOccupation')}</p>
                     )}
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 block">{t('myTab.company')}</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('myTab.company')}</label>
                     {isEditing ? (
                       <Input
                         value={profile.company || ''}
@@ -1151,7 +970,7 @@ export default function MyTab() {
                         placeholder={t('myTab.companyPlaceholder')}
                       />
                     ) : (
-                      <p className="text-gray-800 font-medium">{profile.company || t('myTab.noCompany')}</p>
+                      <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.company || t('myTab.noCompany')}</p>
                     )}
                   </div>
                 </>
@@ -1160,7 +979,7 @@ export default function MyTab() {
               {/* 학생인 경우에만 학년 표시 */}
               {profile.user_type === 'student' && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 block">{t('profile.year')}</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('profile.year')}</label>
                   {isEditing ? (
                     <Select value={profile.grade || ''} onValueChange={(value) => setProfile({ ...profile, grade: value })}>
                       <SelectTrigger className="border-brand-200 focus:border-brand-500">
@@ -1175,7 +994,7 @@ export default function MyTab() {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <p className="text-gray-800 font-medium">{profile.grade || t('myTab.noGrade')}</p>
+                    <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.grade || t('myTab.noGrade')}</p>
                   )}
                 </div>
               )}
@@ -1183,7 +1002,7 @@ export default function MyTab() {
               {/* 직장인인 경우 경력 표시 */}
               {profile.user_type === 'professional' && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 block">{t('myTab.experience')}</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('myTab.experience')}</label>
                   {isEditing ? (
                     <Input
                       value={profile.work_experience || ''}
@@ -1192,7 +1011,7 @@ export default function MyTab() {
                       placeholder={t('myTab.experiencePlaceholder')}
                     />
                   ) : (
-                    <p className="text-gray-800 font-medium">{profile.work_experience || t('myTab.noExperience')}</p>
+                    <p className="text-gray-800 dark:text-gray-200 font-medium">{profile.work_experience || t('myTab.noExperience')}</p>
                   )}
                 </div>
               )}
@@ -1200,7 +1019,7 @@ export default function MyTab() {
 
             {/* 소개 */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 block">{t('profile.selfIntroduction')}</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('profile.selfIntroduction')}</label>
               {isEditing ? (
                 <Textarea
                   value={profile.one_line_intro || profile.introduction || ''}
@@ -1210,14 +1029,14 @@ export default function MyTab() {
                   placeholder={t('myTab.introductionPlaceholder')}
                 />
               ) : (
-                <p className="text-gray-700 leading-relaxed">{profile.one_line_intro || profile.introduction || t('myTab.noIntroduction')}</p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{profile.one_line_intro || profile.introduction || t('myTab.noIntroduction')}</p>
               )}
             </div>
 
 
             {/* 관심사 */}
             <div className="space-y-3">
-                              <label className="text-sm font-medium text-gray-700 block">{t('profile.interests')}</label>
+                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block">{t('profile.interests')}</label>
               {isEditing ? (
                 <div className="flex flex-wrap gap-2">
                   {['한국어', '한국문화', '요리', '여행', '음악', '영화', '패션', '스포츠'].map((interest) => (
@@ -1251,7 +1070,7 @@ export default function MyTab() {
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-gray-500 text-sm">{t('myTab.noInterests')}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">{t('myTab.noInterests')}</span>
                   )}
                 </div>
               )}
@@ -1268,27 +1087,27 @@ export default function MyTab() {
       {!profile?.isKorean && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {/* 쿠폰 리스트 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-r from-brand-50 to-brand-100 border-2 border-brand-200/50 rounded-xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-brand-50 to-brand-100 dark:from-gray-800 dark:to-gray-800 border-2 border-brand-200/50 dark:border-gray-600 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-brand-100 rounded-xl flex items-center justify-center">
-                <Gift className="w-4 h-4 text-brand-600" />
+              <div className="w-8 h-8 bg-brand-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+                <Gift className="w-4 h-4 text-brand-600 dark:text-gray-300" />
               </div>
-              <h3 className="font-semibold text-gray-800">{t('profile.myCoupons')}</h3>
+              <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('profile.myCoupons')}</h3>
             </div>
             
             <div className="space-y-3">
               {(profile?.coupons || []).map((coupon: any) => (
-                <div key={coupon.id} className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-brand-200">
+                <div key={coupon.id} className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-brand-200 dark:border-gray-600">
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${coupon.isUsed ? 'bg-gray-300' : 'bg-brand-500'}`} />
                     <div>
-                      <div className="font-medium text-gray-800">{translateCouponType(coupon.type)}</div>
-                      <div className="text-sm text-gray-600">{coupon.quantity}장 • {coupon.price}</div>
+                      <div className="font-medium text-gray-800 dark:text-gray-200">{translateCouponType(coupon.type)}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">{coupon.quantity}장 • {coupon.price}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-gray-500">{t('profile.expirationDate')}</div>
-                    <div className="text-sm font-medium text-gray-700">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{t('profile.expirationDate')}</div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {coupon.expiresAt ? coupon.expiresAt : t('profile.noExpiration')}
                     </div>
                   </div>
@@ -1298,25 +1117,25 @@ export default function MyTab() {
           </div>
 
           {/* 구매내역 리스트 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-mint-100 border-2 border-mint-200/50 rounded-xl">
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-mint-50 to-mint-100 dark:from-gray-800 dark:to-gray-800 border-2 border-mint-200/50 dark:border-gray-600 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-mint-100 rounded-xl flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-mint-600" />
+              <div className="w-8 h-8 bg-mint-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-mint-600 dark:text-gray-300" />
               </div>
-              <h3 className="font-semibold text-gray-800">{t('profile.purchaseHistory')}</h3>
+              <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('profile.purchaseHistory')}</h3>
             </div>
             
             <div className="space-y-3">
               {(profile?.purchaseHistory || []).map((purchase: any) => (
-                <div key={purchase.id} className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-mint-200">
+                <div key={purchase.id} className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-mint-200 dark:border-gray-600">
                   <div>
-                    <div className="font-medium text-gray-800">
+                    <div className="font-medium text-gray-800 dark:text-gray-200">
                       {purchase.item === '15분 상담 쿠폰 2장' ? t('myTab.consultation15min2') : purchase.item}
                     </div>
-                    <div className="text-sm text-gray-600">{purchase.date}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">{purchase.date}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium text-gray-800">${purchase.amount}</div>
+                    <div className="font-medium text-gray-800 dark:text-gray-200">${purchase.amount}</div>
                     <Badge className={`mt-1 ${
                       purchase.status === 'completed' ? 'bg-green-100 text-green-700' : 
                       purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
@@ -1338,21 +1157,21 @@ export default function MyTab() {
       <StorySettings />
 
       {/* 알림 설정 */}
-      <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200/50 rounded-xl">
+      <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-800 border-2 border-purple-200/50 dark:border-gray-600 rounded-xl">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
-            <Settings className="w-4 h-4 text-purple-600" />
+          <div className="w-8 h-8 bg-purple-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+            <Settings className="w-4 h-4 text-purple-600 dark:text-gray-300" />
           </div>
-          <h3 className="font-semibold text-gray-800">{t('myTab.notificationSettings')}</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{t('myTab.notificationSettings')}</h3>
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-white/80 rounded-xl border border-purple-200">
+          <div className="flex items-center justify-between p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-purple-600" />
               <div>
-                <div className="font-medium text-gray-800">{t('myTab.webPushNotification')}</div>
-                <div className="text-sm text-gray-600">{t('myTab.webPushDescription')}</div>
+                <div className="font-medium text-gray-800 dark:text-gray-200">{t('myTab.webPushNotification')}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">{t('myTab.webPushDescription')}</div>
               </div>
             </div>
             <Switch
@@ -1361,12 +1180,12 @@ export default function MyTab() {
             />
           </div>
           
-          <div className="flex items-center justify-between p-4 bg-white/80 rounded-xl border border-purple-200">
+          <div className="flex items-center justify-between p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-purple-600" />
               <div>
-                <div className="font-medium text-gray-800">{t('myTab.emailNotification')}</div>
-                <div className="text-sm text-gray-600">{t('myTab.emailDescription')}</div>
+                <div className="font-medium text-gray-800 dark:text-gray-200">{t('myTab.emailNotification')}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">{t('myTab.emailDescription')}</div>
               </div>
             </div>
             <Switch
@@ -1375,12 +1194,12 @@ export default function MyTab() {
             />
           </div>
           
-          <div className="flex items-center justify-between p-4 bg-white/80 rounded-xl border border-purple-200">
+          <div className="flex items-center justify-between p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
             <div className="flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-purple-600" />
               <div>
-                <div className="font-medium text-gray-800">{t('myTab.marketingNotification')}</div>
-                <div className="text-sm text-gray-600">{t('myTab.marketingDescription')}</div>
+                <div className="font-medium text-gray-800 dark:text-gray-200">{t('myTab.marketingNotification')}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">{t('myTab.marketingDescription')}</div>
               </div>
             </div>
             <Switch

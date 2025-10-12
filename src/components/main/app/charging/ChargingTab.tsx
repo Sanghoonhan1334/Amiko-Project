@@ -221,22 +221,22 @@ export default function ChargingTab() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
-              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.vip.title')}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('storeTab.vip.title')}</h3>
             </div>
-            <p className="text-sm text-gray-600">{t('storeTab.vip.subtitle')}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('storeTab.vip.subtitle')}</p>
             
             <div className="space-y-4">
               {/* 구독 옵션들 */}
               <div className="grid grid-cols-2 gap-2">
                 {/* 월간 구독 */}
-                <div className="text-center p-1 border-2 border-gray-300 bg-white rounded-lg">
+                <div className="text-center p-1 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg">
                   <div className="p-1">
                     <div className="flex items-center justify-center gap-1 mb-1">
-                      <Clock className="w-3 h-3 text-gray-500" />
-                      <span className="text-xs font-medium">{t('storeTab.vip.monthly')}</span>
+                      <Clock className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{t('storeTab.vip.monthly')}</span>
                     </div>
-                    <div className="text-base font-bold text-gray-800 mb-1">$10</div>
-                    <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.monthly')}</div>
+                    <div className="text-base font-bold text-gray-800 dark:text-gray-100 mb-1">$10</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('storeTab.vip.monthly')}</div>
                     <Button size="sm" className="w-full text-xs h-8 bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       {t('storeTab.vip.subscribe')}
                     </Button>
@@ -244,37 +244,37 @@ export default function ChargingTab() {
                 </div>
 
                 {/* 연간 구독 */}
-                <div className="text-center p-1 border-2 border-gray-300 bg-white rounded-lg">
+                <div className="text-center p-1 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg">
                   <div className="p-1">
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Crown className="w-3 h-3 text-purple-500" />
-                      <span className="text-xs font-medium">{t('storeTab.vip.yearly')}</span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-200">{t('storeTab.vip.yearly')}</span>
                     </div>
-                    <div className="text-base font-bold text-purple-600 mb-1">$80</div>
-                    <div className="text-xs text-gray-600 mb-1">{t('storeTab.vip.yearly')}</div>
+                    <div className="text-base font-bold text-purple-600 dark:text-purple-400 mb-1">$80</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('storeTab.vip.yearly')}</div>
                     <Button size="sm" className="w-full text-xs h-8 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       {t('storeTab.vip.subscribe')}
                     </Button>
-                    <div className="text-xs text-green-600 mt-1">{t('storeTab.vip.save')} $3.3</div>
+                    <div className="text-xs text-green-600 dark:text-green-400 mt-1">{t('storeTab.vip.save')} $3.3</div>
                   </div>
                 </div>
               </div>
 
               {/* VIP 기능 상세정보 - 아래로 이동 */}
-              <div className="text-center p-2 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg">
+              <div className="text-center p-2 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-700 dark:to-gray-700 border-2 border-purple-300 dark:border-gray-600 rounded-lg">
                 <div className="p-2">
                   <div className="flex items-center justify-center gap-1 mb-2">
                     <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
-                    <span className='text-sm font-bold text-purple-700'>{t('storeTab.vip.features.title')}</span>
+                    <span className='text-sm font-bold text-purple-700 dark:text-purple-400'>{t('storeTab.vip.features.title')}</span>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-sm font-bold text-gray-800">
+                    <div className="text-sm font-bold text-gray-800 dark:text-gray-100">
                       • {t('storeTab.vip.features.beautyFilter')}
                     </div>
-                    <div className="text-sm font-bold text-gray-800">
+                    <div className="text-sm font-bold text-gray-800 dark:text-gray-100">
                       • {t('storeTab.vip.features.aiTranslation')}
                     </div>
-                    <div className="text-sm font-bold text-gray-800">
+                    <div className="text-sm font-bold text-gray-800 dark:text-gray-100">
                       • {t('storeTab.vip.features.gameFunction')}
                     </div>
                   </div>
@@ -289,28 +289,28 @@ export default function ChargingTab() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.charging.title')}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('storeTab.charging.title')}</h3>
             </div>
-            <p className="text-sm text-gray-600">{t('storeTab.charging.subtitle')}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('storeTab.charging.subtitle')}</p>
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {couponPackages.map((pkg) => (
                 <div 
                   key={pkg.id}
-                  className="bg-white rounded-lg p-2 text-center cursor-pointer transition-all hover:shadow-md border-2 border-gray-300"
+                  className="bg-white dark:bg-gray-800 rounded-lg p-2 text-center cursor-pointer transition-all hover:shadow-md border-2 border-gray-300 dark:border-gray-600"
                   onClick={() => handleCouponPurchase(pkg)}
                 >
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <Video className="w-3 h-3 text-blue-500" />
                   </div>
-                  <h3 className="font-semibold text-xs">{pkg.count}{t('storeTab.charging.units')}</h3>
-                  <div className="text-sm font-bold text-blue-600 mb-1">
+                  <h3 className="font-semibold text-xs text-gray-800 dark:text-gray-200">{pkg.count}{t('storeTab.charging.units')}</h3>
+                  <div className="text-sm font-bold text-blue-600 dark:text-blue-400 mb-1">
                     ${pkg.price}
                   </div>
-                  <div className="text-xs text-gray-500 mb-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-300 mb-1">
                     {t('storeTab.charging.perUnit')} ${pkg.perUnit}
                   </div>
-                  <div className="text-xs text-gray-600 mb-2">
+                  <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
                     {pkg.minutes}{t('storeTab.charging.minutes')}
                   </div>
                   <Button 
@@ -328,10 +328,10 @@ export default function ChargingTab() {
             </div>
             
             {/* 무료 AKO 안내 문구 */}
-            <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-gray-800 border-2 border-blue-300 dark:border-gray-600 rounded-lg">
               <div className="flex items-start gap-3">
                 <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
+                <div className="text-sm text-blue-800 dark:text-gray-200">
                   <p className="font-medium mb-1">💡 {t('storeTab.charging.freeAkoTitle')}</p>
                   <p dangerouslySetInnerHTML={{ __html: t('storeTab.charging.freeAkoDescription') }}></p>
                 </div>
@@ -352,9 +352,9 @@ export default function ChargingTab() {
             
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-              <h3 className="text-lg font-semibold text-gray-800">{t('storeTab.pointStore.title')}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('storeTab.pointStore.title')}</h3>
             </div>
-            <p className="text-sm text-gray-600">{t('storeTab.pointStore.subtitle')}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('storeTab.pointStore.subtitle')}</p>
             
             <div className="grid grid-cols-2 gap-3">
               {storeItems.map((item) => (
@@ -363,18 +363,18 @@ export default function ChargingTab() {
                   className={`text-center cursor-pointer transition-all ${
                     item.available 
                       ? 'hover:opacity-80' 
-                      : 'opacity-50 cursor-not-allowed'
+                      : 'opacity-75 cursor-not-allowed'
                   }`}
                   onClick={() => item.available && handleStoreItemPurchase(item)}
                 >
                   <div className="text-2xl mb-1">{item.icon}</div>
-                  <h3 className="font-semibold text-sm mb-1">{item.name}</h3>
-                  <p className="text-xs text-gray-600 mb-1 leading-tight">{item.description}</p>
-                  <div className="text-sm font-bold text-green-600 mb-2">
+                  <h3 className="font-semibold text-sm mb-1 text-gray-800 dark:text-gray-200">{item.name}</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-300 mb-1 leading-tight">{item.description}</p>
+                  <div className="text-sm font-bold text-green-600 dark:text-green-400 mb-2">
                     {item.price} {t('storeTab.pointStore.points')}
                   </div>
                   {!item.available && (
-                    <div className="text-xs text-gray-500 mb-1">
+                    <div className="text-xs text-gray-500 dark:text-gray-300 mb-1">
                       {t('storeTab.pointStore.comingSoon')}
                     </div>
                   )}
@@ -398,7 +398,7 @@ export default function ChargingTab() {
         </Swiper>
 
         {/* 좌우 화살표 네비게이션 버튼 */}
-        <button className={`swiper-button-prev-custom sticky -left-2 -translate-y-1/2 z-10 w-10 h-10 bg-white border-2 border-gray-300 hover:bg-gray-50 shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
+        <button className={`swiper-button-prev-custom sticky -left-2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
           currentSlide === 0 ? 'top-[calc(33.333%+100px)]' : 
           currentSlide === 1 ? 'top-[calc(33.333%+100px)]' : 
           currentSlide === 2 ? 'top-[calc(33.333%+100px)]' :
@@ -408,7 +408,7 @@ export default function ChargingTab() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <button className={`swiper-button-next-custom sticky -right-2 -translate-y-1/2 z-10 w-10 h-10 bg-white border-2 border-gray-300 hover:bg-gray-50 shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
+        <button className={`swiper-button-next-custom sticky -right-2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-lg rounded-full flex items-center justify-center transition-all duration-200 ${
           currentSlide === 0 ? 'top-[calc(33.333%+100px)]' : 
           currentSlide === 1 ? 'top-[calc(33.333%+100px)]' : 
           currentSlide === 2 ? 'top-[calc(33.333%+100px)]' :
@@ -450,6 +450,9 @@ export default function ChargingTab() {
           margin: 0 4px;
           cursor: pointer;
           transition: all 0.3s;
+        }
+        .dark .swiper-pagination-bullet-custom {
+          background: #6b7280;
         }
         .swiper-pagination-bullet-active-custom {
           background: #3b82f6;

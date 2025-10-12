@@ -245,9 +245,9 @@ export default function NotificationBell() {
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100"
+        className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
         {unreadCount > 0 && (
           <Badge 
             variant="destructive" 
@@ -260,17 +260,17 @@ export default function NotificationBell() {
 
       {/* 알림 드롭다운 */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
           {/* 헤더 */}
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('myTab.notifications')}</h3>
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">{t('myTab.notifications')}</h3>
             <div className="flex items-center gap-1 sm:gap-2">
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1"
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-2 py-1"
                 >
 {t('myTab.markAllAsRead')}
                 </Button>
@@ -279,7 +279,7 @@ export default function NotificationBell() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(false)}
-                className="p-1 sm:p-2"
+                className="p-1 sm:p-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -289,19 +289,19 @@ export default function NotificationBell() {
           {/* 알림 목록 */}
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="p-3 sm:p-4 text-center text-gray-500 text-sm">
+              <div className="p-3 sm:p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
 {t('myTab.loadingNotifications')}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-3 sm:p-4 text-center text-gray-500 text-sm">
+              <div className="p-3 sm:p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
 {t('myTab.noNewNotifications')}
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 sm:p-4 border-b border-gray-50 hover:bg-gray-50 ${
-                    !notification.is_read ? 'bg-blue-50' : ''
+                  className={`p-3 sm:p-4 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                    !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}
                 >
                   <div className="flex items-start gap-2 sm:gap-3">
@@ -314,14 +314,14 @@ export default function NotificationBell() {
                           {notification.title}
                         </h4>
                         {!notification.is_read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 mb-2">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                         {notification.message}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {formatTime(notification.created_at)}
                         </span>
                         <div className="flex items-center gap-1">
@@ -330,7 +330,7 @@ export default function NotificationBell() {
                               variant="ghost"
                               size="sm"
                               onClick={() => markAsRead(notification.id)}
-                              className="p-1 h-6 w-6"
+                              className="p-1 h-6 w-6 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
                             >
                               <Check className="w-3 h-3" />
                             </Button>
@@ -339,7 +339,7 @@ export default function NotificationBell() {
                             variant="ghost"
                             size="sm"
                             onClick={() => deleteNotification(notification.id)}
-                            className="p-1 h-6 w-6 text-gray-400 hover:text-red-500"
+                            className="p-1 h-6 w-6 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400"
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>

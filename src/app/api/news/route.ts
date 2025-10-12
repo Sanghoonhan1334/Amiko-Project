@@ -21,26 +21,10 @@ export async function GET(request: NextRequest) {
     const limitNum = limit ? parseInt(limit) : 10
     const offset = (pageNum - 1) * limitNum
 
-    // 전체 개수 조회
-    let countQuery = supabaseServer
-      .from('korean_news')
-      .select('*', { count: 'exact', head: true })
-
-    if (category && category !== 'all') {
-      countQuery = countQuery.eq('category', category)
-    }
-
-    const { count, error: countError } = await countQuery
-
-    if (countError) {
-      console.error('[NEWS_GET] 개수 조회 오류:', countError)
-      return NextResponse.json({ success: true, newsItems: [], total: 0 })
-    }
-
-    // 데이터 조회
+    // 데이터 조회와 카운트를 한 번에 처리 (성능 최적화)
     let query = supabaseServer
       .from('korean_news')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limitNum - 1)
 
@@ -49,7 +33,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('category', category)
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
 
     if (error) {
       console.error('[NEWS_GET] 뉴스 조회 오류:', error)

@@ -361,24 +361,24 @@ export default function QAPage() {
   }, [loadQuestions])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
       {/* 페이지별 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
             >
               <ArrowLeft className="w-4 h-4" />
               {t('buttons.back')}
             </Button>
-            <h1 className="text-xl font-bold text-white">Q&A</h1>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Q&A</h1>
           </div>
           
           <Button
@@ -396,31 +396,31 @@ export default function QAPage() {
         {/* 페이지 제목 */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1">
-            <h1 className="text-2xl font-bold text-gray-800">Q&A</h1>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Q&A</h1>
             
             {/* 이전 버튼 - 제목 오른쪽으로 이동 */}
             <Button 
               onClick={() => router.push('/main?tab=community')}
               variant="outline"
               size="sm"
-              className="border-2 border-gray-400 hover:border-gray-500 text-gray-700 hover:text-gray-900 bg-white shadow-sm hover:shadow-md px-2 py-1 flex items-center gap-1 text-xs"
+              className="border-2 border-gray-400 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-2 py-1 flex items-center gap-1 text-xs"
             >
               <ArrowLeft className="w-3 h-3" />
               {t('buttons.back')}
             </Button>
           </div>
-          <p className="text-sm text-gray-600">{t('community.qaDescription')}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('community.qaDescription')}</p>
         </div>
 
         {/* 상단 컨트롤 */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="relative flex-1">
-            <MessageSquare className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 flex-shrink-0" />
+            <MessageSquare className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
             <Input
               placeholder={t('community.qaSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="!pl-16 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 border border-gray-400 text-sm h-8"
+              className="!pl-16 w-full bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 dark:placeholder:text-gray-400 border border-gray-400 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm h-8"
             />
           </div>
           
@@ -494,7 +494,7 @@ export default function QAPage() {
                 <div key={question.id}>
                   {/* 데스크톱: 카드 스타일 */}
                   <Card 
-                    className="hidden md:block p-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-200 shadow-md hover:bg-purple-50/30 cursor-pointer !opacity-100 !transform-none"
+                    className="hidden md:block p-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-md hover:bg-purple-50/30 dark:hover:bg-gray-600 cursor-pointer !opacity-100 !transform-none"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
@@ -521,10 +521,10 @@ export default function QAPage() {
                       {/* 질문 내용 */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-semibold text-gray-800 truncate">{question.title}</h3>
+                          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{question.title}</h3>
                           {/* 채택된 답변이 있으면 표시 */}
                           {question.accepted_answer_id && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 flex-shrink-0">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 flex-shrink-0">
                               ✅ 해결됨
                             </span>
                           )}
@@ -532,7 +532,7 @@ export default function QAPage() {
                         
                         {/* 질문 내용과 이미지는 상세보기에서만 표시 */}
                         
-                        <div className="flex items-center justify-between text-xs text-gray-800">
+                        <div className="flex items-center justify-between text-xs text-gray-800 dark:text-gray-200">
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1">
                               <User className="w-3 h-3" />
@@ -558,7 +558,7 @@ export default function QAPage() {
 
                   {/* 모바일: 간단한 스타일 */}
                   <Card 
-                    className="md:hidden p-2 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border border-gray-200 shadow-md"
+                    className="md:hidden p-2 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-md"
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
@@ -567,15 +567,15 @@ export default function QAPage() {
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 flex-1">{question.title}</h3>
+                        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 flex-1">{question.title}</h3>
                         {/* 채택된 답변이 있으면 표시 */}
                         {question.accepted_answer_id && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 flex-shrink-0">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 flex-shrink-0">
                             ✅
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between text-xs text-gray-800">
+                      <div className="flex items-center justify-between text-xs text-gray-800 dark:text-gray-200">
                         <span>{question.author?.full_name || '익명'}</span>
                         <div className="flex items-center gap-2">
                           <span>{question.comment_count || 0} {t('community.qaAnswers')}</span>
@@ -593,29 +593,29 @@ export default function QAPage() {
 
       {/* 질문 작성 모달 */}
       <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
-        <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
-          <DialogHeader className="pb-4 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold text-gray-900">{t('community.newQuestion')}</DialogTitle>
+        <DialogContent className="max-w-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('community.newQuestion')}</DialogTitle>
             <DialogDescription className="sr-only">새로운 질문을 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-800 mb-2 block">{t('community.questionTitle')}</label>
+              <label className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 block">{t('community.questionTitle')}</label>
               <Input
                 placeholder={t('community.questionTitlePlaceholder')}
                 value={questionForm.title}
                 onChange={(e) => setQuestionForm({ ...questionForm, title: e.target.value })}
-                className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium text-gray-800 mb-2 block">{t('community.category')}</label>
+              <label className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 block">{t('community.category')}</label>
               <select
                 value={questionForm.category}
                 onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
-                className="w-full p-3 border-2 border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white"
+                className="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="free">{t('community.categoryFree')}</option>
                 <option value="kpop">{t('community.categoryKpop')}</option>
@@ -628,7 +628,7 @@ export default function QAPage() {
             
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-800">{t('community.content')}</label>
+                <label className="text-sm font-medium text-gray-800 dark:text-gray-200">{t('community.content')}</label>
                 <div className="flex gap-2">
                   <input
                     type="file"
@@ -647,7 +647,7 @@ export default function QAPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => document.getElementById('questionImageUpload')?.click()}
-                    className="text-xs"
+                    className="text-xs border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     📷 {t('community.insertImage')}
                   </Button>
@@ -658,20 +658,20 @@ export default function QAPage() {
                 value={questionForm.content}
                 onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
                 rows={6}
-                className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
               
               {/* 업로드된 이미지 미리보기 */}
               {questionUploadedImages.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-sm text-gray-800 mb-2">업로드된 이미지:</p>
+                  <p className="text-sm text-gray-800 dark:text-gray-200 mb-2">업로드된 이미지:</p>
                   <div className="flex flex-wrap gap-2">
                     {questionUploadedImages.map((image, index) => (
                       <div key={index} className="relative">
                         <img 
                           src={image.url} 
                           alt={image.name}
-                          className="w-20 h-20 object-cover rounded border"
+                          className="w-20 h-20 object-cover rounded border border-gray-300 dark:border-gray-600"
                         />
                         <button
                           type="button"
@@ -690,10 +690,14 @@ export default function QAPage() {
             </div>
             
             <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setShowQuestionModal(false)}>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowQuestionModal(false)}
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
                 {t('buttons.cancel')}
               </Button>
-              <Button onClick={handleSubmitQuestion} className="bg-purple-500 hover:bg-purple-600">
+              <Button onClick={handleSubmitQuestion} className="bg-purple-500 hover:bg-purple-600 text-white">
                 {t('community.createQuestion')}
               </Button>
             </div>
