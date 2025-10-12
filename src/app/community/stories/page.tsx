@@ -358,7 +358,7 @@ export default function StoriesPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => router.push('/main')}
+                onClick={() => router.push('/main?tab=community')}
                 className="flex items-center gap-2 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border-2 border-gray-400 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md px-3 py-2"
               >
                 <ArrowLeft className="w-4 h-4" />
