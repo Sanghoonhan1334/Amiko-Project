@@ -29,7 +29,12 @@ import {
   ChevronRight,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
-  ArrowLeft
+  ArrowLeft,
+  BookOpen,
+  TrendingUp,
+  Brain,
+  Newspaper,
+  Activity
 } from 'lucide-react'
 import CommunityMain from './CommunityMain'
 import NewsDetail from './NewsDetail'
@@ -2157,76 +2162,161 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    {/* 최근 스토리, 인기 게시글, 인기 심리테스트, 인기 한국 뉴스, 최근 활동 */}
                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                      {/* 최근 스토리 */}
-                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                         {t('home.community.recentStories')}
-                       </h3>
-                       <div className="space-y-2">
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '한국에서의 첫 여행...' : 'Mi primer viaje a Corea...'}
+                     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-5 shadow-lg border border-blue-200 dark:border-blue-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                       <div className="flex items-center gap-3 mb-4">
+                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                           <BookOpen className="w-5 h-5 text-white" />
                          </div>
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '한국어 배우기 팁' : 'Consejos para aprender coreano'}
+                         <h3 className="font-bold text-blue-900 dark:text-blue-100 text-sm">
+                           {t('home.community.recentStories')}
+                         </h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">
+                             {language === 'ko' ? '한국에서의 첫 여행...' : 'Mi primer viaje a Corea...'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-300">
+                             <Eye className="w-3 h-3" />
+                             <span>1.2k</span>
+                           </div>
+                         </div>
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">
+                             {language === 'ko' ? '한국어 배우기 팁' : 'Consejos para aprender coreano'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-300">
+                             <ThumbsUp className="w-3 h-3" />
+                             <span>856</span>
+                           </div>
                          </div>
                        </div>
                      </div>
 
                      {/* 인기 게시글 */}
-                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                         {t('home.community.popularPosts')}
-                       </h3>
-                       <div className="space-y-2">
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '한국 드라마 추천' : 'Recomendaciones de dramas'}
+                     <div className="bg-gradient-to-br from-red-50 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 rounded-xl p-5 shadow-lg border border-red-200 dark:border-red-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                       <div className="flex items-center gap-3 mb-4">
+                         <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                           <TrendingUp className="w-5 h-5 text-white" />
                          </div>
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '한국 음식 레시피' : 'Recetas de comida coreana'}
+                         <h3 className="font-bold text-red-900 dark:text-red-100 text-sm">
+                           {t('home.community.popularPosts')}
+                         </h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-red-900 dark:text-red-100 mb-1">
+                             {language === 'ko' ? '한국 드라마 추천' : 'Recomendaciones de dramas'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-300">
+                             <Star className="w-3 h-3" />
+                             <span>2.1k</span>
+                           </div>
+                         </div>
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-red-900 dark:text-red-100 mb-1">
+                             {language === 'ko' ? '한국 음식 레시피' : 'Recetas de comida coreana'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-300">
+                             <MessageSquare className="w-3 h-3" />
+                             <span>1.5k</span>
+                           </div>
                          </div>
                        </div>
                      </div>
 
                      {/* 인기 심리테스트 */}
-                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                         {t('home.community.popularTests')}
-                       </h3>
-                       <div className="space-y-2">
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '내가 가장 잘 맞는...' : 'Mi K-POP favorito...'}
+                     <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-xl p-5 shadow-lg border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                       <div className="flex items-center gap-3 mb-4">
+                         <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                           <Brain className="w-5 h-5 text-white" />
                          </div>
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '한국어 실력 테스트' : 'Test de nivel de coreano'}
+                         <h3 className="font-bold text-purple-900 dark:text-purple-100 text-sm">
+                           {t('home.community.popularTests')}
+                         </h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-purple-900 dark:text-purple-100 mb-1">
+                             {language === 'ko' ? '내가 가장 잘 맞는...' : 'Mi K-POP favorito...'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-purple-600 dark:text-purple-300">
+                             <Target className="w-3 h-3" />
+                             <span>3.4k</span>
+                           </div>
+                         </div>
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-purple-900 dark:text-purple-100 mb-1">
+                             {language === 'ko' ? '한국어 실력 테스트' : 'Test de nivel de coreano'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-purple-600 dark:text-purple-300">
+                             <Sparkles className="w-3 h-3" />
+                             <span>2.8k</span>
+                           </div>
                          </div>
                        </div>
                      </div>
 
                      {/* 인기 한국 뉴스 */}
-                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                         {t('home.community.popularNews')}
-                       </h3>
-                       <div className="space-y-2">
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '한국의 새로운 K-컬처...' : 'Nueva política K-cultura...'}
+                     <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-5 shadow-lg border border-green-200 dark:border-green-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                       <div className="flex items-center gap-3 mb-4">
+                         <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                           <Newspaper className="w-5 h-5 text-white" />
                          </div>
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '한국 전통 음식 인기...' : 'Popularidad de comida...'}
+                         <h3 className="font-bold text-green-900 dark:text-green-100 text-sm">
+                           {t('home.community.popularNews')}
+                         </h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-green-900 dark:text-green-100 mb-1">
+                             {language === 'ko' ? '한국의 새로운 K-컬처...' : 'Nueva política K-cultura...'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-300">
+                             <Clock className="w-3 h-3" />
+                             <span>2h ago</span>
+                           </div>
+                         </div>
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-green-900 dark:text-green-100 mb-1">
+                             {language === 'ko' ? '한국 전통 음식 인기...' : 'Popularidad de comida...'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-300">
+                             <Eye className="w-3 h-3" />
+                             <span>1.9k</span>
+                           </div>
                          </div>
                        </div>
                      </div>
 
                      {/* 최근 활동 */}
-                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                         {t('home.community.recentActivities')}
-                       </h3>
-                       <div className="space-y-2">
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '새 게시글 작성됨' : 'Nueva publicación creada'}
+                     <div className="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 rounded-xl p-5 shadow-lg border border-orange-200 dark:border-orange-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                       <div className="flex items-center gap-3 mb-4">
+                         <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                           <Activity className="w-5 h-5 text-white" />
                          </div>
-                         <div className="text-xs text-gray-600 dark:text-gray-400">
-                           {language === 'ko' ? '심리테스트 완료' : 'Test psicológico completado'}
+                         <h3 className="font-bold text-orange-900 dark:text-orange-100 text-sm">
+                           {t('home.community.recentActivities')}
+                         </h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-orange-900 dark:text-orange-100 mb-1">
+                             {language === 'ko' ? '새 게시글 작성됨' : 'Nueva publicación creada'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-300">
+                             <User className="w-3 h-3" />
+                             <span>5분 전</span>
+                           </div>
+                         </div>
+                         <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200">
+                           <div className="text-xs font-medium text-orange-900 dark:text-orange-100 mb-1">
+                             {language === 'ko' ? '심리테스트 완료' : 'Test psicológico completado'}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-300">
+                             <Star className="w-3 h-3" />
+                             <span>12분 전</span>
+                           </div>
                          </div>
                        </div>
                      </div>
