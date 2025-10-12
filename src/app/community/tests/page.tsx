@@ -15,7 +15,6 @@ import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
-import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Skeleton } from '@/components/ui/skeleton'
 
 // 퀴즈 관련 인터페이스
@@ -376,9 +375,27 @@ export default function TestsPage() {
         {/* 테스트 목록 - 모바일 컴팩트 */}
         <div className="px-1">
           {quizzesLoading ? (
-            <div className="text-center py-6">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-500 mx-auto mb-2"></div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">{t('tests.loading')}</p>
+            <div className="grid gap-2 grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <Card key={i} className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                  <div className="p-3 space-y-3">
+                    {/* 테스트 이미지 스켈레톤 */}
+                    <Skeleton className="h-16 w-full rounded-lg" />
+                    
+                    {/* 제목 스켈레톤 */}
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                    
+                    {/* 하단 정보 스켈레톤 */}
+                    <div className="flex justify-between items-center pt-2">
+                      <Skeleton className="h-3 w-8" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : quizzes.length === 0 ? (
             <Card className="p-4 text-center bg-white dark:bg-gray-700">
@@ -601,40 +618,6 @@ export default function TestsPage() {
       {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
       {/* <BottomTabNavigation /> */}
       
-      {/* 로딩 스켈레톤 */}
-      {quizzesLoading && (
-        <div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 mx-4 shadow-2xl border border-gray-200 dark:border-gray-700 max-w-md w-full">
-            <div className="space-y-6">
-              {/* 헤더 스켈레톤 */}
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-8 w-20" />
-              </div>
-              
-              {/* 카테고리 선택 스켈레톤 */}
-              <div className="flex justify-center">
-                <Skeleton className="h-8 w-24" />
-              </div>
-              
-              {/* 테스트 카드 그리드 스켈레톤 */}
-              <div className="grid grid-cols-2 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                    <div className="flex justify-between items-center">
-                      <Skeleton className="h-3 w-8" />
-                      <Skeleton className="h-3 w-12" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
