@@ -37,6 +37,7 @@ export default function CommunityTutorial({ isVisible, onClose }: CommunityTutor
   }, [isVisible])
 
   const tutorialSteps = useMemo(() => {
+    // 현재 모든 화면 크기에서 동일한 모바일 버전 아이콘들을 사용하므로 모바일 셀렉터만 사용
     const steps = [
       {
         selector: '[data-tutorial="community-section"]',
@@ -44,37 +45,27 @@ export default function CommunityTutorial({ isVisible, onClose }: CommunityTutor
         description: t('tutorial.community.welcomeDescription')
       },
       {
-        selector: isMobile 
-          ? '[data-tutorial="topic-board-mobile"]' 
-          : '[data-tutorial="topic-board-desktop"]',
+        selector: '[data-tutorial="topic-board-mobile"]',
         title: t('tutorial.community.topicBoard'),
         description: t('tutorial.community.topicBoardDescription')
       },
       {
-        selector: isMobile 
-          ? '[data-tutorial="k-magazine-mobile"]' 
-          : '[data-tutorial="k-magazine-desktop"]',
+        selector: '[data-tutorial="k-magazine-mobile"]',
         title: t('tutorial.community.kMagazine'),
         description: t('tutorial.community.kMagazineDescription')
       },
       {
-        selector: isMobile 
-          ? '[data-tutorial="qa-mobile"]' 
-          : '[data-tutorial="qa-desktop"]',
+        selector: '[data-tutorial="qa-mobile"]',
         title: t('tutorial.community.qa'),
         description: t('tutorial.community.qaDescription')
       },
       {
-        selector: isMobile 
-          ? '[data-tutorial="psychology-test-mobile"]' 
-          : '[data-tutorial="psychology-test-desktop"]',
+        selector: '[data-tutorial="psychology-test-mobile"]',
         title: t('tutorial.community.psychologyTest'),
         description: t('tutorial.community.psychologyTestDescription')
       },
       {
-        selector: isMobile 
-          ? '[data-tutorial="story-mobile"]' 
-          : '[data-tutorial="story-desktop"]',
+        selector: '[data-tutorial="story-mobile"]',
         title: t('tutorial.community.story'),
         description: t('tutorial.community.storyDescription')
       }

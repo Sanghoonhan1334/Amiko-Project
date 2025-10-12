@@ -38,7 +38,6 @@ import { useAuth } from '@/context/AuthContext'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
-import CommunityTutorial from '@/components/common/CommunityTutorial'
 
 // 퀴즈 관련 인터페이스 및 설정
 interface Quiz {
@@ -144,20 +143,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
 
-  // 튜토리얼 자동 시작 (첫 방문자만)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && user) {
-      // 로컬스토리지에서 튜토리얼 완료 여부 확인
-      const tutorialCompleted = localStorage.getItem('community-tutorial-completed')
-      
-      if (!tutorialCompleted) {
-        const timer = setTimeout(() => {
-          setShowTutorial(true)
-        }, 2000)
-        return () => clearTimeout(timer)
-      }
-    }
-  }, [user])
 
   // 뒤로가기 함수
   const handleBack = () => {
@@ -558,7 +543,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const [showCommentModal, setShowCommentModal] = useState(false)
   const [selectedStoryForComment, setSelectedStoryForComment] = useState<any>(null)
   const [commentText, setCommentText] = useState('')
-  const [showTutorial, setShowTutorial] = useState(false)
   
   // 뉴스 작성 모달 상태
   const [showNewsWriteModal, setShowNewsWriteModal] = useState(false)
@@ -2096,7 +2080,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </div>
         
                  {/* 5개 아이콘 - 모든 화면에서 한 줄 배치 */}
-                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0" data-tutorial="community-section">
+                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0">
                    {/* 주제별 게시판 */}
                    <button
                      onClick={() => handleNavigation('/community/freeboard')}
@@ -2104,7 +2088,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
-                     data-tutorial="topic-board-mobile"
                    >
                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
                       <img src="/topic-board.png" alt="주제별 게시판" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
@@ -2119,7 +2102,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
-                     data-tutorial="k-magazine-mobile"
                    >
                      <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
                        <img src="/k-magazine.png" alt="K-매거진" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
@@ -2134,7 +2116,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
-                     data-tutorial="qa-mobile"
                    >
                      <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
                        <img src="/qa.png" alt="Q&A" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
@@ -2149,7 +2130,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
-                     data-tutorial="psychology-test-mobile"
                    >
                      <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
                        <img src="/psychology-test.png" alt="심리테스트" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
@@ -2164,7 +2144,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
-                     data-tutorial="story-mobile"
                    >
                      <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
                        <img src="/story.png" alt="스토리" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
@@ -4078,11 +4057,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </DialogContent>
       </Dialog>
 
-      {/* 커뮤니티 튜토리얼 */}
-      <CommunityTutorial
-        isVisible={showTutorial}
-        onClose={() => setShowTutorial(false)}
-      />
       {/* 네비게이션 로딩 스켈레톤 */}
       {isNavigating && (
         <div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
