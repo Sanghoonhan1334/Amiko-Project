@@ -31,12 +31,15 @@ export default function LoadingOverlay({
       const elapsed = showStartTime ? Date.now() - showStartTime : minDisplayTime
       const remainingTime = Math.max(0, minDisplayTime - elapsed)
       
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setShouldShow(false)
         setShowStartTime(null)
       }, remainingTime)
+      
+      return () => clearTimeout(timer)
     }
-  }, [isVisible, shouldShow, showStartTime, minDisplayTime])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, minDisplayTime])
 
   if (!shouldShow) return null
 
