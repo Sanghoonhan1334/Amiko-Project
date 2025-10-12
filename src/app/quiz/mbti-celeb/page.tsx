@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, Users, Heart, Star } from 'lucide-react'
+import { ArrowLeft, Users, Heart, Star, X, ChevronUp } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { toast } from 'sonner'
@@ -263,6 +263,7 @@ export default function MBTICelebTestPage() {
 
 // 결과 컴포넌트
 function TestResultComponent({ result, language, onRestart }: { result: TestResult, language: string, onRestart: () => void }) {
+  const [selectedCeleb, setSelectedCeleb] = useState<any>(null)
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       <Header />
@@ -271,9 +272,6 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
         <div className="max-w-4xl mx-auto px-2">
           {/* 결과 헤더 */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-3">
-              <Users className="w-8 h-8 text-white" />
-            </div>
             <h1 className="text-xl font-bold text-gray-800 mb-2">
               {language === 'ko' ? `당신의 유형은 ${result.mbti}입니다!` : `¡Tu tipo es ${result.mbti}!`}
             </h1>
@@ -290,10 +288,10 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
             </h2>
             <div className="grid md:grid-cols-2 gap-3">
               {result.myType.male && (
-                <CelebCard celeb={result.myType.male} language={language} />
+                <CelebCard celeb={result.myType.male} language={language} onClick={() => setSelectedCeleb(result.myType.male)} />
               )}
               {result.myType.female && (
-                <CelebCard celeb={result.myType.female} language={language} />
+                <CelebCard celeb={result.myType.female} language={language} onClick={() => setSelectedCeleb(result.myType.female)} />
               )}
             </div>
           </div>
@@ -312,10 +310,10 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
               )}
               <div className="grid md:grid-cols-2 gap-3">
                 {result.bestMatch.male && (
-                  <CelebCard celeb={result.bestMatch.male} language={language} />
+                  <CelebCard celeb={result.bestMatch.male} language={language} onClick={() => setSelectedCeleb(result.bestMatch.male)} />
                 )}
                 {result.bestMatch.female && (
-                  <CelebCard celeb={result.bestMatch.female} language={language} />
+                  <CelebCard celeb={result.bestMatch.female} language={language} onClick={() => setSelectedCeleb(result.bestMatch.female)} />
                 )}
               </div>
             </div>
@@ -339,25 +337,71 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
           </div>
         </div>
       </div>
+
+      {/* 연예인 이미지 확대 모달 */}
+      {selectedCeleb && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+            <button
+              onClick={() => setSelectedCeleb(null)}
+              className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="text-center">
+              <div className="w-48 h-48 mx-auto mb-4 rounded-full overflow-hidden bg-gray-100">
+                {selectedCeleb.image_url ? (
+                  <img 
+                    src={selectedCeleb.image_url} 
+                    alt={selectedCeleb.stage_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Users className="w-16 h-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {selectedCeleb.stage_name}
+                {selectedCeleb.group_name && (
+                  <span className="text-gray-500 ml-2">({selectedCeleb.group_name})</span>
+                )}
+              </h3>
+              
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
+                  {selectedCeleb.mbti_code}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {selectedCeleb.gender === 'male' ? (language === 'ko' ? '남성' : 'Hombre') : (language === 'ko' ? '여성' : 'Mujer')}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 // 셀럽 카드 컴포넌트
-function CelebCard({ celeb, language }: { celeb: any, language: string }) {
+function CelebCard({ celeb, language, onClick }: { celeb: any, language: string, onClick?: () => void }) {
   return (
-    <Card className="p-3 bg-white shadow-md hover:shadow-lg transition-shadow">
+    <Card className="p-3 bg-white shadow-md hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
       <div className="flex items-center gap-3">
         {/* 프로필 이미지 */}
-        <div className="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
+        <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
           {celeb.image_url ? (
             <img 
               src={celeb.image_url} 
               alt={celeb.stage_name}
-              className="w-full h-full rounded-full object-cover"
+              className="w-full h-full rounded-full object-cover hover:scale-105 transition-transform"
             />
           ) : (
-            <Users className="w-6 h-6 text-gray-500" />
+            <Users className="w-12 h-12 text-gray-500" />
           )}
         </div>
         

@@ -13,7 +13,8 @@ import {
   Heart,
   Music,
   Camera,
-  Trophy
+  Trophy,
+  X
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -124,6 +125,7 @@ export default function QuizResultPage() {
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedCelebrity, setSelectedCelebrity] = useState<Celebrity | null>(null)
 
   const quizId = params.id as string
   const mbtiType = searchParams.get('mbti')
@@ -308,15 +310,16 @@ export default function QuizResultPage() {
                 {result.celebrities.map((celebrity) => (
                   <div
                     key={celebrity.id}
-                    className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200"
+                    className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200 cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => setSelectedCelebrity(celebrity)}
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-yellow-400 to-orange-400">
+                      <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-yellow-400 to-orange-400">
                         {celebrity.image_url ? (
                           <img 
                             src={celebrity.image_url} 
                             alt={celebrity.stage_name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover hover:scale-105 transition-transform"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement
                               target.style.display = 'none'
@@ -324,7 +327,7 @@ export default function QuizResultPage() {
                             }}
                           />
                         ) : null}
-                        <Music className="w-6 h-6 text-white" style={{ display: celebrity.image_url ? 'none' : 'block' }} />
+                        <Music className="w-12 h-12 text-white" style={{ display: celebrity.image_url ? 'none' : 'block' }} />
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-800">{celebrity.stage_name}</h3>
@@ -387,6 +390,54 @@ export default function QuizResultPage() {
           </Button>
         </div>
       </div>
+
+      {/* 연예인 이미지 확대 모달 */}
+      {selectedCelebrity && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+            <button
+              onClick={() => setSelectedCelebrity(null)}
+              className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="text-center">
+              <div className="w-48 h-48 mx-auto mb-4 rounded-full overflow-hidden bg-gray-100">
+                {selectedCelebrity.image_url ? (
+                  <img 
+                    src={selectedCelebrity.image_url} 
+                    alt={selectedCelebrity.stage_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Music className="w-16 h-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {selectedCelebrity.stage_name}
+                {selectedCelebrity.group_name && (
+                  <span className="text-gray-500 ml-2">({selectedCelebrity.group_name})</span>
+                )}
+              </h3>
+              
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Badge variant="secondary" className="text-sm">
+                  {selectedCelebrity.mbti_code}
+                </Badge>
+                {selectedCelebrity.is_verified && (
+                  <Badge variant="outline" className="text-sm text-green-600 border-green-600">
+                    검증됨
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

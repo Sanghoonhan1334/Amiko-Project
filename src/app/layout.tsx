@@ -4,6 +4,7 @@ import Script from 'next/script'
 import './globals.css'
 import HeaderWrapper from '@/components/layout/HeaderWrapper'
 import Footer from '@/components/layout/Footer'
+import ScrollToTop from '@/components/common/ScrollToTop'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { UserProvider } from '@/context/UserContext'
@@ -59,6 +60,7 @@ export default function RootLayout({
                   <HeaderWrapper />
                   <main>{children}</main>
                   <Footer />
+                  <ScrollToTop />
                 </UserProvider>
               </LanguageProvider>
             </AuthProvider>
