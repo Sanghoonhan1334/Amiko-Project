@@ -2088,7 +2088,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                       <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                         <img src="/topic-board.png" alt="주제별 게시판" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
                       </div>
-                      <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '9px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.freeBoard').replace(' ', '\n')}</h3>
+                      <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.freeBoard').replace(' ', '\n')}</h3>
                      </button>
 
                      <button
@@ -2099,7 +2099,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                          <img src="/k-magazine.png" alt="K-매거진" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '9px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.koreanNews')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.koreanNews')}</h3>
                      </button>
                    </div>
                    
@@ -2113,7 +2113,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                          <img src="/qa.png" alt="Q&A" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '9px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.qa')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.qa')}</h3>
                      </button>
                      
                      <button
@@ -2124,7 +2124,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                          <img src="/psychology-test.png" alt="심리테스트" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '9px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('tests.title').replace(' ', '\n')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('tests.title').replace(' ', '\n')}</h3>
                      </button>
                    </div>
 
@@ -2138,7 +2138,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
                          <img src="/story.png" alt="스토리" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '9px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('communityTab.story')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('communityTab.story')}</h3>
                      </button>
                    </div>
 
