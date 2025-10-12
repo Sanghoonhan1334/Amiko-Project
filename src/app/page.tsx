@@ -357,22 +357,7 @@ export default function HomePage() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
                   >
-                    <div className="w-8 h-8 flex items-center justify-center">
-                      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="url(#instagram-gradient)"/>
-                        <path d="m16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" fill="white"/>
-                        <path d="m17.5 6.5-.5-.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                        <defs>
-                          <linearGradient id="instagram-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#f09433"/>
-                            <stop offset="25%" stopColor="#e6683c"/>
-                            <stop offset="50%" stopColor="#dc2743"/>
-                            <stop offset="75%" stopColor="#cc2366"/>
-                            <stop offset="100%" stopColor="#bc1888"/>
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    </div>
+                    <img src="/instagram.jpeg" alt="Instagram" className="w-8 h-8 object-contain" />
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">Instagram</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
