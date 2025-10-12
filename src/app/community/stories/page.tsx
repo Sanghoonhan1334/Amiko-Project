@@ -654,9 +654,9 @@ export default function StoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 모바일 플로팅 버튼 */}
+      {/* 모바일 플로팅 버튼 - 주제별 게시판과 같은 위치 */}
       {isMobile && (
-        <div className="fixed bottom-24 right-4 z-50">
+        <div className="fixed bottom-20 right-4 z-50">
           <div className="flex items-center">
             {/* 스토리작성 텍스트 - 원에서 확장되는 효과 */}
             <div className={`transition-all duration-300 ease-in-out ${
@@ -677,7 +677,7 @@ export default function StoriesPage() {
               </button>
             </div>
             
-            {/* 메인 버튼 */}
+            {/* 메인 버튼 - 다크모드 토글과 같은 크기 */}
             <Button
               onClick={() => {
                 if (isFabExpanded) {
@@ -688,7 +688,7 @@ export default function StoriesPage() {
                   setIsFabExpanded(true)
                 }
               }}
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center border-2 border-white hover:scale-110 active:scale-95"
+              className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 active:scale-95"
             >
               {isFabExpanded ? (
                 <X className="w-5 h-5 drop-shadow-sm font-bold" strokeWidth={3} />
