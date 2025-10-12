@@ -148,6 +148,9 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
   
+  // 뷰 상태 (먼저 선언해야 useEffect에서 사용 가능)
+  const [currentView, setCurrentView] = useState('home') // 'home', 'news', 'qa', 'tests'
+  
   // 실제 데이터 상태
   const [recentStories, setRecentStories] = useState<any[]>([])
   const [popularPosts, setPopularPosts] = useState<any[]>([])
@@ -360,7 +363,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState('story')
-  const [currentView, setCurrentView] = useState('home') // 'home', 'news', 'qa', 'tests'
   // 내부 커뮤니티 탭 URL 파라미터 (cTab) 사용
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
