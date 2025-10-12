@@ -81,11 +81,44 @@ module.exports = {
       },
       animation: {
         'shimmer': 'shimmer 2s infinite',
+        'slide-in-left': 'slideInLeft 0.8s ease-out',
+        'slide-in-right': 'slideInRight 0.8s ease-out',
+        'fade-in-up': 'fadeInUp 0.6s ease-out',
       },
       keyframes: {
         shimmer: {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
+        },
+        slideInLeft: {
+          '0%': { 
+            transform: 'translateX(-100%)',
+            opacity: '0'
+          },
+          '100%': { 
+            transform: 'translateX(0)',
+            opacity: '1'
+          },
+        },
+        slideInRight: {
+          '0%': { 
+            transform: 'translateX(100%)',
+            opacity: '0'
+          },
+          '100%': { 
+            transform: 'translateX(0)',
+            opacity: '1'
+          },
+        },
+        fadeInUp: {
+          '0%': { 
+            transform: 'translateY(30px)',
+            opacity: '0'
+          },
+          '100%': { 
+            transform: 'translateY(0)',
+            opacity: '1'
+          },
         },
       },
     },

@@ -2073,19 +2073,19 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       {/* 커뮤니티 홈 메뉴 - 제목과 5개 아이콘 */}
       {currentView === 'home' && (
             <div className="w-full">
-              {/* 제목 섹션 */}
-              <div className="text-center mb-4">
-                <div className="flex justify-center mb-3">
-                  <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-          </div>
-          </div>
+               {/* 제목 섹션 */}
+               <div className="text-center mb-4 animate-fade-in-up opacity-0" style={{ animationDelay: '0s', animationFillMode: 'forwards' }}>
+                 <div className="flex justify-center mb-3">
+                   <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
+                     <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                   </div>
+                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 font-['Inter']">{t('mainPage.title')}</h2>
                 <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
         </div>
         
                  {/* 5개 아이콘 - 모든 화면에서 한 줄 배치 */}
-                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0">
+                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0 animate-fade-in-up opacity-0" style={{ animationDelay: '0.05s', animationFillMode: 'forwards' }}>
                    {/* 주제별 게시판 */}
                    <button
                      onClick={() => handleNavigation('/community/freeboard')}
@@ -2162,7 +2162,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    {/* 최근 스토리, 인기 게시글, 인기 심리테스트, 인기 한국 뉴스, 최근 활동 */}
                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                      {/* 최근 스토리 */}
-                     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-5 shadow-lg border border-blue-200 dark:border-blue-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-5 shadow-lg border border-blue-200 dark:border-blue-700 hover:shadow-xl transition-all duration-300 cursor-pointer group animate-slide-in-left opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
                        <div className="flex items-center gap-3 mb-4">
                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                            <BookOpen className="w-5 h-5 text-white" />
@@ -2194,7 +2194,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      </div>
 
                      {/* 인기 게시글 */}
-                     <div className="bg-gradient-to-br from-red-50 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 rounded-xl p-5 shadow-lg border border-red-200 dark:border-red-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                     <div className="bg-gradient-to-br from-red-50 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 rounded-xl p-5 shadow-lg border border-red-200 dark:border-red-700 hover:shadow-xl transition-all duration-300 cursor-pointer group animate-slide-in-right opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
                        <div className="flex items-center gap-3 mb-4">
                          <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                            <TrendingUp className="w-5 h-5 text-white" />
@@ -2226,7 +2226,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      </div>
 
                      {/* 인기 심리테스트 */}
-                     <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-xl p-5 shadow-lg border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                     <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-xl p-5 shadow-lg border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-all duration-300 cursor-pointer group animate-slide-in-left opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
                        <div className="flex items-center gap-3 mb-4">
                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                            <Brain className="w-5 h-5 text-white" />
@@ -2258,7 +2258,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      </div>
 
                      {/* 인기 한국 뉴스 */}
-                     <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-5 shadow-lg border border-green-200 dark:border-green-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                     <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-5 shadow-lg border border-green-200 dark:border-green-700 hover:shadow-xl transition-all duration-300 cursor-pointer group animate-slide-in-right opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
                        <div className="flex items-center gap-3 mb-4">
                          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                            <Newspaper className="w-5 h-5 text-white" />
@@ -2290,7 +2290,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                      </div>
 
                      {/* 최근 활동 */}
-                     <div className="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 rounded-xl p-5 shadow-lg border border-orange-200 dark:border-orange-700 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                     <div className="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 rounded-xl p-5 shadow-lg border border-orange-200 dark:border-orange-700 hover:shadow-xl transition-all duration-300 cursor-pointer group animate-slide-in-left opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
                        <div className="flex items-center gap-3 mb-4">
                          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                            <Activity className="w-5 h-5 text-white" />
