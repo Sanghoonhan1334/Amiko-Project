@@ -2580,6 +2580,7 @@ export const translations = {
 
     // 커뮤니티 섹션
     community: {
+      story: 'Historia',
       qa: 'P&R',
       freeBoard: 'Tablero por Temas',
       koreanNews: 'K-Magazine',
