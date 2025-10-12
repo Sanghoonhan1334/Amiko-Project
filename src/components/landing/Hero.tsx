@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Sparkles, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 
@@ -122,12 +122,7 @@ export default function Hero() {
               <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
                 {/* 왼쪽: 텍스트 */}
                 <div className="text-left max-w-lg">
-                  <div className="inline-flex items-center gap-2 bg-blue-100/50 dark:bg-blue-900/30 backdrop-blur-sm rounded-full px-3 py-1.5 mb-3 border border-blue-200/30 dark:border-blue-700/30">
-                    <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                    <span className="text-blue-700 dark:text-blue-300 font-medium text-xs">{t('heroSlides.slide2.badge')}</span>
-                  </div>
-                  
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight font-['Inter']">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight font-['Inter']">
                     {t('heroSlides.slide2.title')}
                   </h1>
                   
