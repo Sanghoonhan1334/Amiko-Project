@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useLanguage } from '@/context/LanguageContext'
+import { InterestBadges } from './TranslatedInterests'
 import { 
   User, 
   Mail, 
@@ -50,6 +52,7 @@ interface UserProfileModalProps {
 }
 
 export default function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalProps) {
+  const { t } = useLanguage()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -293,16 +296,10 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               <Card className="p-4">
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Heart className="w-4 h-4" />
-                  관심 분야
+                  {t('profile.interests')}
                 </h3>
                 
-                <div className="flex flex-wrap gap-2">
-                  {profile.interests.map((interest, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {interest}
-                    </Badge>
-                  ))}
-                </div>
+                <InterestBadges interests={profile.interests} />
               </Card>
             )}
 

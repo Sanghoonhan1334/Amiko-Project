@@ -279,11 +279,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('[PROFILE] 사용자 ID:', userId)
-    
     // 임시 ID인 경우 처리 (개발 환경)
     if (userId.startsWith('user_') || userId.startsWith('temp_')) {
-      console.log('[PROFILE] 임시 사용자 ID 감지, 기본 프로필 반환')
       return NextResponse.json({
         user: {
           id: userId,
@@ -334,14 +331,9 @@ export async function GET(request: NextRequest) {
       .eq('id', userId)
       .single()
 
-    console.log('[PROFILE] 사용자 조회 결과:', { user, userError })
-
     if (userError) {
-      console.error('[PROFILE] 사용자 조회 실패:', userError)
-      
       // 사용자가 없으면 auth.users에서 확인
       const { data: authUser, error: authError } = await supabaseServer.auth.admin.getUserById(userId)
-      console.log('[PROFILE] Auth 사용자 확인:', { authUser, authError })
       
       if (authUser && !authError) {
         // auth.users에는 있지만 public.users에는 없는 경우
@@ -372,43 +364,28 @@ export async function GET(request: NextRequest) {
       last_reset_date: new Date().toISOString().split('T')[0]
     }
 
-    // 관련 테이블들 조회
-    let userPreferences = null
-    let studentInfo = null
-    let generalInfo = null
-    
-    try {
-      const { data: preferencesData } = await supabaseServer
+    // 관련 테이블들 병렬 조회 (성능 최적화)
+    const [preferencesResult, studentResult, generalResult] = await Promise.allSettled([
+      supabaseServer
         .from('user_preferences' as any)
         .select('*')
         .eq('user_id', userId)
-        .single()
-      userPreferences = preferencesData
-    } catch (error) {
-      console.log('[PROFILE] user_preferences 조회 실패:', error)
-    }
-    
-    try {
-      const { data: studentData } = await supabaseServer
+        .single(),
+      supabaseServer
         .from('user_student_info' as any)
         .select('*')
         .eq('user_id', userId)
-        .single()
-      studentInfo = studentData
-    } catch (error) {
-      console.log('[PROFILE] user_student_info 조회 실패:', error)
-    }
-    
-    try {
-      const { data: generalData } = await supabaseServer
+        .single(),
+      supabaseServer
         .from('user_general_info' as any)
         .select('*')
         .eq('user_id', userId)
         .single()
-      generalInfo = generalData
-    } catch (error) {
-      console.log('[PROFILE] user_general_info 조회 실패:', error)
-    }
+    ])
+    
+    const userPreferences = preferencesResult.status === 'fulfilled' ? preferencesResult.value.data : null
+    const studentInfo = studentResult.status === 'fulfilled' ? studentResult.value.data : null
+    const generalInfo = generalResult.status === 'fulfilled' ? generalResult.value.data : null
 
     // 사용자 타입 결정
     const userType = (userPreferences as any)?.user_type || 'student'

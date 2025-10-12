@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import VideoCallTutorial from '@/components/common/VideoCallTutorial'
+import TranslatedInterests from '@/components/common/TranslatedInterests'
 
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
@@ -106,56 +107,96 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
     setChannelName('')
   }
 
+  // 파트너의 언어 수준 표시 함수
+  const getLanguageDisplay = (partner: any) => {
+    if (partner.country === '대한민국') {
+      // 한국인은 스페인어 수준 표시
+      const level = partner.language.replace('스페인어 ', '')
+      let levelKey = 'beginner'
+      if (level === '중급') levelKey = 'intermediate'
+      else if (level === '고급') levelKey = 'advanced'
+      return `${t('videoCall.spanishLevel')} ${t(`videoCall.${levelKey}`)}`
+    } else {
+      // 외국인은 한국어 수준 표시
+      const level = partner.language.replace('한국어 ', '')
+      let levelKey = 'beginner'
+      if (level === '중급') levelKey = 'intermediate'
+      else if (level === '고급') levelKey = 'advanced'
+      return `${t('videoCall.koreanLevel')} ${t(`videoCall.${levelKey}`)}`
+    }
+  }
+
+  // 관심사 번역 함수 - 동적 번역 지원
+  const translateInterests = (interests: string[]) => {
+    return interests.map(interest => {
+      try {
+        // 1. videoCall.interests.{interest} 형태로 번역 시도
+        const translated = t(`videoCall.interests.${interest}`)
+        
+        // 2. 번역이 키와 다르면 번역된 값 반환
+        if (translated !== `videoCall.interests.${interest}`) {
+          return translated
+        }
+        
+        // 3. 번역 키가 없으면 원본 반환
+        return interest
+      } catch {
+        // 4. 번역 실패 시 원본 반환
+        return interest
+      }
+    })
+  }
+
 
   // 목업 파트너 데이터
   const allPartners: any[] = [
     {
       id: '1',
       name: '김민수',
-      language: '한국어 (모국어)',
+      language: '스페인어 중급',
       country: '대한민국',
       status: 'online',
-      interests: ['영화', '음악', '여행', '요리'],
+        interests: ['영화', '음악', '여행', '요리', '댄스'],
       bio: '안녕하세요! 한국어를 가르치고 싶은 김민수입니다. 다양한 문화에 관심이 많아요!',
       avatar: '/celebs/jin.webp'
     },
     {
       id: '2',
       name: '이지은',
-      language: '한국어 (모국어)',
+      language: '스페인어 초급',
       country: '대한민국',
       status: 'online',
-      interests: ['K-POP', '드라마', '패션', '맛집'],
+        interests: ['K-POP', '드라마', '패션', '맛집', '애니메이션'],
       bio: 'K-POP과 한국 드라마를 좋아하는 이지은이에요. 함께 한국 문화를 나눠요!',
       avatar: '/celebs/rm.jpg'
     },
     {
       id: '3',
       name: '박준호',
-      language: '한국어 (모국어)',
+      language: '스페인어 고급',
       country: '대한민국',
       status: 'offline',
-      interests: ['스포츠', '게임', '기술', '독서'],
+        interests: ['스포츠', '게임', '기술', '독서', '사진'],
       bio: '스포츠와 게임을 좋아하는 박준호입니다. 활발한 대화를 좋아해요!',
       avatar: '/celebs/suga.jpg'
     },
     {
       id: '4',
       name: 'Carlos Rodriguez',
-      language: '스페인어 (모국어)',
+      language: '한국어 중급',
       country: '멕시코',
       status: 'online',
-      interests: ['한국어', 'K-POP', '요리', '여행'],
+      interests: ['한국어', 'K-POP', '요리', '여행', '커피'],
       bio: '한국어를 배우고 있는 카를로스입니다. 한국 문화에 매료되었어요!',
       avatar: null
     },
     {
       id: '5',
       name: 'Ana Martinez',
-      language: '스페인어 (모국어)',
+      language: '한국어 초급',
       country: '스페인',
       status: 'online',
-      interests: ['한국 드라마', 'K-POP', '패션', '언어교환'],
+      interests: ['한국 드라마', 'K-POP', '패션', '언어교환', '뷰티'],
       bio: '한국 드라마를 사랑하는 아나입니다. 언어교환을 통해 소통하고 싶어요!',
       avatar: null
     }
@@ -307,10 +348,15 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                       </div>
                       <div>
                         <h4 className="font-bold text-gray-800 dark:text-gray-200 text-lg">{partner.name}</h4>
-                        <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">{partner.language}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          관심사: {partner.interests.join(', ')}
-                        </p>
+                        <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">{getLanguageDisplay(partner)}</p>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <TranslatedInterests 
+                            interests={partner.interests} 
+                            maxDisplay={5}
+                            showCount={false}
+                            className="text-xs"
+                          />
+                        </div>
                         <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic">
                           "{partner.bio}"
                         </p>
@@ -349,7 +395,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                   </div>
 
                   {/* 모바일 레이아웃 */}
-                  <div className="md:hidden p-3">
+                  <div className="md:hidden p-2">
                     {/* 상단: 아바타와 기본 정보 */}
                     <div className="flex items-center gap-3 mb-3">
                       <div className="relative">
@@ -367,7 +413,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-gray-800 dark:text-gray-200 text-base truncate">{partner.name}</h4>
-                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">{partner.language}</p>
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">{getLanguageDisplay(partner)}</p>
                       </div>
                       <div className="text-right">
                         <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -375,17 +421,21 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {partner.status === 'online' ? '온라인' : '오프라인'}
+                          {partner.status === 'online' ? t('videoCall.online') : t('videoCall.offline')}
                         </div>
                       </div>
                     </div>
 
                     {/* 중간: 관심사와 자기소개 */}
                     <div className="mb-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        관심사: <span className="text-gray-700 dark:text-gray-300">{partner.interests.slice(0, 2).join(', ')}</span>
-                        {partner.interests.length > 2 && <span className="text-gray-400 dark:text-gray-500"> 외 {partner.interests.length - 2}개</span>}
-                      </p>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <TranslatedInterests 
+                          interests={partner.interests} 
+                          maxDisplay={2}
+                          showCount={true}
+                          className="text-xs"
+                        />
+                      </div>
                       <p className="text-xs text-gray-600 dark:text-gray-300 italic line-clamp-2">
                         "{partner.bio}"
                       </p>
@@ -407,7 +457,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         }}
                         className="flex-1 border-purple-200 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900 text-xs py-2"
                       >
-                        정보보기
+                        {t('videoCall.viewInfo')}
                       </Button>
                       <Button 
                         variant={partner.status === 'online' ? 'default' : 'outline'}
@@ -420,7 +470,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         }`}
                         data-tutorial="start-conversation-mobile"
                       >
-                        {partner.status === 'online' ? '대화시작' : '오프라인'}
+                        {partner.status === 'online' ? t('videoCall.startChat') : t('videoCall.offline')}
                       </Button>
                     </div>
                   </div>
@@ -516,7 +566,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900">{selectedPartner.name}</h3>
-                  <p className="text-lg text-purple-600 font-medium">{selectedPartner.language}</p>
+                  <p className="text-lg text-purple-600 font-medium">{getLanguageDisplay(selectedPartner)}</p>
                   <p className="text-sm text-gray-500">{selectedPartner.country} • {selectedPartner.age}세 • {selectedPartner.occupation}</p>
                 </div>
               </div>
@@ -545,7 +595,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">언어</label>
-                    <p className="text-gray-900">{selectedPartner.language}</p>
+                    <p className="text-gray-900">{getLanguageDisplay(selectedPartner)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">레벨</label>

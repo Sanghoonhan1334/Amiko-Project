@@ -289,32 +289,32 @@ export default function StorySettings() {
                   
                   if (response.ok) {
                     const data = await response.json()
-                    alert(`${data.deletedCount}개의 만료된 스토리가 삭제되었습니다.`)
+                    alert(t('communityTab.cleanupSuccess').replace('{count}', data.deletedCount))
                     // 🚀 최적화: 만료된 스토리만 로컬에서 제거 (전체 재로드 방지)
                     setStories(prev => prev.filter(story => !story.isExpired))
                   } else {
-                    alert('만료된 스토리 정리에 실패했습니다.')
+                    alert(t('communityTab.cleanupFailed'))
                   }
                 } catch (error) {
                   console.error('스토리 정리 중 오류:', error)
-                  alert('스토리 정리 중 오류가 발생했습니다.')
+                  alert(t('communityTab.cleanupError'))
                 }
               }}
             >
-              만료된 스토리 정리
+              {t('communityTab.cleanExpiredStories')}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="text-gray-500 dark:text-gray-300">스토리를 불러오는 중...</div>
+              <div className="text-gray-500 dark:text-gray-300">{t('communityTab.loadingStories')}</div>
             </div>
           ) : stories.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-300">
               <div className="text-lg mb-2">📸</div>
-              <div className="text-sm dark:text-gray-200">아직 업로드한 스토리가 없습니다.</div>
-              <div className="text-xs mt-1 dark:text-gray-300">첫 번째 스토리를 업로드해보세요!</div>
+              <div className="text-sm dark:text-gray-200">{t('communityTab.noUploadedStories')}</div>
+              <div className="text-xs mt-1 dark:text-gray-300">{t('communityTab.uploadFirstStoryPrompt')}</div>
             </div>
           ) : (
             <div className="space-y-4">

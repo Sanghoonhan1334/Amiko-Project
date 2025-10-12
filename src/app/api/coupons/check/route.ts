@@ -50,9 +50,17 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      console.log('[COUPONS_CHECK] 사용자 인증 실패:', authError)
+      console.log('[COUPONS_CHECK] 사용자 인증 실패')
+      console.log('[COUPONS_CHECK] 오류 상세:', authError)
+      console.log('[COUPONS_CHECK] 오류 메시지:', authError?.message)
+      console.log('[COUPONS_CHECK] 오류 코드:', authError?.status)
+      console.log('[COUPONS_CHECK] 사용자 데이터:', user ? 'exists' : 'null')
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
+        { 
+          error: '인증이 필요합니다.', 
+          details: authError?.message || 'User not found',
+          hint: '토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.'
+        },
         { status: 401 }
       );
     }

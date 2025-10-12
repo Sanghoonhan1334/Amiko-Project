@@ -482,7 +482,7 @@ export default function VerificationPage() {
                     ))}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    선택된 관심사: {formData.interests.length}/5
+                    {t('verification.selectedInterests', { count: formData.interests.length })}
                   </p>
                 </div>
 
