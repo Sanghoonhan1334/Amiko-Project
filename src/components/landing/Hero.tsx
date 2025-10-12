@@ -261,7 +261,7 @@ export default function Hero() {
             </p>
             <button 
               onClick={() => router.push('/main')}
-              className="bg-white dark:bg-gray-800 text-blue-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-4 text-lg md:text-xl font-bold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 min-w-[180px] inline-flex items-center justify-center whitespace-nowrap border-2 border-white/20 dark:border-gray-600"
+              className="bg-white dark:bg-gray-800 text-blue-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-1 md:py-4 text-lg md:text-xl font-bold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 min-w-[180px] inline-flex items-center justify-center whitespace-nowrap border-2 border-white/20 dark:border-gray-600"
             >
               {t('heroSlides.slide3.bottomSection.startButton')}
             </button>
