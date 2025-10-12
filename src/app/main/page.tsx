@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Video } from 'lucide-react'
 // 🚀 최적화: React Query hook 추가
 import { useMainPageData } from '@/hooks/useMainPageData'
+import LoadingOverlay from '@/components/common/LoadingOverlay'
 
 // 지연 로딩 컴포넌트들
 const MeetTab = dynamic(() => import('@/components/main/app/meet/MeetTab'), {
@@ -433,6 +434,12 @@ function AppPageContent() {
       
       {/* 하단 탭 네비게이션 */}
       <BottomTabNavigation />
+      
+      {/* 데이터 로딩 오버레이 */}
+      <LoadingOverlay 
+        isVisible={pointsLoading} 
+        message={pointsLoading ? t('common.loadingData') : ''}
+      />
     </div>
   )
 }
@@ -441,7 +448,14 @@ export default function AppPage() {
   const { t } = useLanguage()
   
   return (
-    <Suspense fallback={<div className="min-h-screen body-gradient pt-40 flex items-center justify-center">{t('buttons.loading')}</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen body-gradient pt-40 flex items-center justify-center">
+        <LoadingOverlay 
+          isVisible={true} 
+          message={t('common.loadingPage')}
+        />
+      </div>
+    }>
       <AppPageContent />
     </Suspense>
   )

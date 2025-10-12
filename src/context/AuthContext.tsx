@@ -109,7 +109,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // 백그라운드에서 Supabase 세션 확인 및 갱신
               setTimeout(async () => {
                 try {
-                  const { data: { session } } = await supabase.auth.getSession()
+                  const { data: { session }, error } = await supabase.auth.getSession()
+                  
+                  if (error) {
+                    // Refresh token 에러는 조용히 처리
+                    if (error.message?.includes('Refresh Token')) {
+                      console.log('[AUTH] Refresh token 만료됨, 로컬 세션 유지')
+                    } else {
+                      console.log('[AUTH] Supabase 세션 확인 실패:', error.message)
+                    }
+                    return
+                  }
+                  
                   if (session) {
                     console.log('[AUTH] Supabase 세션 확인됨, 상태 동기화')
                     setSession(session)
@@ -126,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     console.log('[AUTH] Supabase 세션 없음, 로컬 세션 유지')
                   }
                 } catch (error) {
-                  console.log('[AUTH] Supabase 세션 확인 실패, 로컬 세션 유지')
+                  console.log('[AUTH] Supabase 세션 확인 중 예외, 로컬 세션 유지')
                 }
               }, 1000)
               
@@ -182,6 +193,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 중요한 이벤트만 로그
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           console.log('[AUTH] 인증 상태 변경:', event)
+        }
+        
+        // Refresh token 에러로 인한 SIGNED_OUT은 무시하고 로컬 세션 유지
+        if (event === 'SIGNED_OUT' && !session) {
+          const savedSession = localStorage.getItem('amiko_session')
+          if (savedSession) {
+            try {
+              const sessionData = JSON.parse(savedSession)
+              const now = Math.floor(Date.now() / 1000)
+              
+              // 로컬 세션이 아직 유효하면 유지
+              if (sessionData.expires_at > now) {
+                console.log('[AUTH] Refresh token 만료로 인한 SIGNED_OUT, 로컬 세션 유지')
+                setLoading(false)
+                return
+              }
+            } catch (error) {
+              // 파싱 에러는 무시하고 정상 처리
+            }
+          }
         }
         
         if (session) {

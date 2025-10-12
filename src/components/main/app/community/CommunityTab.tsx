@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -121,6 +123,26 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
   const router = useRouter()
+  const [isNavigating, setIsNavigating] = useState(false)
+  
+  // 네비게이션 핸들러 - 로딩 상태와 함께
+  const handleNavigation = useCallback(async (path: string) => {
+    if (isNavigating) return // 중복 클릭 방지
+    
+    setIsNavigating(true)
+    try {
+      // 심리테스트 페이지는 더 긴 로딩 시간 필요
+      const loadingTime = path.includes('/community/tests') ? 800 : 500
+      
+      router.push(path)
+      
+      // 로딩 상태 유지 시간 조정
+      setTimeout(() => setIsNavigating(false), loadingTime)
+    } catch (error) {
+      console.error('네비게이션 오류:', error)
+      setIsNavigating(false)
+    }
+  }, [router, isNavigating])
   
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
@@ -2081,23 +2103,29 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    {/* 모바일: 첫 번째 줄 2개 아이콘 */}
                    <div className="flex md:hidden justify-center overflow-visible px-4 gap-6 -mb-1">
                      <button
-                       onClick={() => router.push('/community/freeboard')}
-                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       onClick={() => handleNavigation('/community/freeboard')}
+                       disabled={isNavigating}
+                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                       }`}
                        data-tutorial="topic-board-mobile"
                      >
                       <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                        <img src="/topic-board.png" alt="주제별 게시판" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
+                        <img src="/topic-board.png" alt="주제별 게시판" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
                       </div>
                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.freeBoard').replace(' ', '\n')}</h3>
                      </button>
 
                      <button
-                       onClick={() => router.push('/community/news')}
-                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       onClick={() => handleNavigation('/community/news')}
+                       disabled={isNavigating}
+                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                       }`}
                        data-tutorial="k-magazine-mobile"
                      >
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/k-magazine.png" alt="K-매거진" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
+                         <img src="/k-magazine.png" alt="K-매거진" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
                        </div>
                        <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.koreanNews')}</h3>
                      </button>
@@ -2106,23 +2134,29 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    {/* 모바일: 두 번째 줄 2개 아이콘 */}
                    <div className="flex md:hidden justify-center overflow-visible px-4 gap-6 -mt-1 -mb-1">
                      <button
-                       onClick={() => router.push('/community/qa')}
-                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       onClick={() => handleNavigation('/community/qa')}
+                       disabled={isNavigating}
+                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                       }`}
                        data-tutorial="qa-mobile"
                      >
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/qa.png" alt="Q&A" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
+                         <img src="/qa.png" alt="Q&A" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
                        </div>
                        <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.qa')}</h3>
                      </button>
                      
                      <button
-                       onClick={() => router.push('/community/tests')}
-                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       onClick={() => handleNavigation('/community/tests')}
+                       disabled={isNavigating}
+                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                       }`}
                        data-tutorial="psychology-test-mobile"
                      >
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/psychology-test.png" alt="심리테스트" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
+                         <img src="/psychology-test.png" alt="심리테스트" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
                        </div>
                        <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('tests.title').replace(' ', '\n')}</h3>
                      </button>
@@ -2131,12 +2165,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    {/* 모바일: 세 번째 줄 1개 아이콘 */}
                    <div className="flex md:hidden justify-center overflow-visible px-4 -mt-1">
                      <button
-                       onClick={() => router.push('/community/stories')}
-                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       onClick={() => handleNavigation('/community/stories')}
+                       disabled={isNavigating}
+                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                       }`}
                        data-tutorial="story-mobile"
                      >
                        <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/story.png" alt="스토리" className="w-10 h-10 object-contain" loading="lazy" decoding="async" />
+                         <img src="/story.png" alt="스토리" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
                        </div>
                        <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('communityTab.story')}</h3>
                      </button>
@@ -4029,6 +4066,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       <CommunityTutorial
         isVisible={showTutorial}
         onClose={() => setShowTutorial(false)}
+      />
+      {/* 로딩 오버레이 */}
+      <LoadingOverlay 
+        isVisible={isNavigating} 
+        message={isNavigating ? t('common.loadingPage') : ''}
       />
     </div>
   )

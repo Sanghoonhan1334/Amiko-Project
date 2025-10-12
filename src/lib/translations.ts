@@ -10,6 +10,15 @@ export const translations = {
     selectLanguage: '언어 선택',
     language: 'ko',
     
+    // 공통
+    common: {
+      loading: '로딩중...',
+      pleaseWait: '잠시만 기다려주세요',
+      loadingPage: '페이지를 불러오는 중',
+      loadingData: '데이터를 불러오는 중',
+      loadingContent: '콘텐츠를 불러오는 중'
+    },
+
     // 공통 버튼
     buttons: {
       upload: '업로드',
@@ -1995,6 +2004,15 @@ export const translations = {
     selectLanguage: 'Seleccionar idioma',
     language: 'es',
     
+    // 공통
+    common: {
+      loading: 'Cargando...',
+      pleaseWait: 'Por favor espere',
+      loadingPage: 'Cargando página',
+      loadingData: 'Cargando datos',
+      loadingContent: 'Cargando contenido'
+    },
+
     // 공통 버튼
     buttons: {
       upload: 'Subir',

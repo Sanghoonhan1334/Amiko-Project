@@ -15,6 +15,7 @@ import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
+import LoadingOverlay from '@/components/common/LoadingOverlay'
 
 // 퀴즈 관련 인터페이스
 interface Quiz {
@@ -285,6 +286,26 @@ export default function TestsPage() {
     fetchQuizzes()
   }, [selectedCategory])
 
+  // 🚀 최적화: 심리테스트 페이지 이미지 프리로딩
+  useEffect(() => {
+    // BTS 이미지 프리로딩
+    const preloadImage = new Image()
+    preloadImage.src = '/celebs/bts.webp'
+    
+    // 다른 셀럽 이미지들도 프리로딩
+    const celebImages = [
+      '/celebs/bts.jpg',
+      '/celebs/jennie.png',
+      '/celebs/jimin.png',
+      '/celebs/jungkook.png'
+    ]
+    
+    celebImages.forEach(src => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [])
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* 기존 Header 컴포넌트 사용 */}
@@ -391,6 +412,8 @@ export default function TestsPage() {
                             src="/celebs/bts.webp" 
                             alt="BTS" 
                             className="w-full h-full object-cover"
+                            loading="eager"
+                            decoding="async"
                           />
                         ) : (
                           <div className="text-xl">{config.icon}</div>
@@ -576,6 +599,12 @@ export default function TestsPage() {
       
       {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
       {/* <BottomTabNavigation /> */}
+      
+      {/* 로딩 오버레이 */}
+      <LoadingOverlay 
+        isVisible={quizzesLoading} 
+        message={quizzesLoading ? t('common.loadingContent') : ''}
+      />
     </div>
   )
 }
