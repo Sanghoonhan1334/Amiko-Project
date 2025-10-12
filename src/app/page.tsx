@@ -10,11 +10,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   MessageSquare, 
   Handshake,
@@ -27,6 +22,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import InquiryModal from '@/components/common/InquiryModal'
+import PartnershipModal from '@/components/common/PartnershipModal'
 
 const Hero = dynamic(() => import('@/components/landing/Hero'), {
   ssr: false,
@@ -84,23 +80,6 @@ export default function HomePage() {
 
   // 제휴 모달 상태
   const [isPartnershipModalOpen, setIsPartnershipModalOpen] = useState(false)
-  const [partnershipFormData, setPartnershipFormData] = useState({
-    companyName: '',
-    representativeName: '',
-    position: '',
-    email: '',
-    phone: '',
-    businessField: '',
-    companySize: '',
-    partnershipType: '',
-    budget: '',
-    expectedEffect: '',
-    message: '',
-    attachments: null as File | null
-  })
-  const [isPartnershipSubmitting, setIsPartnershipSubmitting] = useState(false)
-  const [partnershipSubmitStatus, setPartnershipSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [partnershipErrorMessage, setPartnershipErrorMessage] = useState('')
 
   useEffect(() => {
     setIsClient(true)
@@ -108,60 +87,6 @@ export default function HomePage() {
 
 
 
-  // 제휴 폼 핸들러
-  const handlePartnershipSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsPartnershipSubmitting(true)
-    setPartnershipSubmitStatus('idle')
-    setPartnershipErrorMessage('')
-
-    try {
-      const formDataToSend = new FormData()
-      Object.entries(partnershipFormData).forEach(([key, value]) => {
-        if (key === 'attachments' && value) {
-          formDataToSend.append('attachments', value)
-        } else if (key !== 'attachments') {
-          formDataToSend.append(key, value as string)
-        }
-      })
-
-      const response = await fetch('/api/partnership', {
-        method: 'POST',
-        body: formDataToSend
-      })
-
-      if (response.ok) {
-        setPartnershipSubmitStatus('success')
-        setPartnershipFormData({
-          companyName: '',
-          representativeName: '',
-          position: '',
-          email: '',
-          phone: '',
-          businessField: '',
-          companySize: '',
-          partnershipType: '',
-          budget: '',
-          expectedEffect: '',
-          message: '',
-          attachments: null
-        })
-        setTimeout(() => {
-          setIsPartnershipModalOpen(false)
-          setPartnershipSubmitStatus('idle')
-        }, 2000)
-      } else {
-        const errorData = await response.json()
-        setPartnershipSubmitStatus('error')
-        setPartnershipErrorMessage(errorData.message || '제휴 제안 제출에 실패했습니다.')
-      }
-    } catch (error) {
-      setPartnershipSubmitStatus('error')
-      setPartnershipErrorMessage('네트워크 오류가 발생했습니다.')
-    } finally {
-      setIsPartnershipSubmitting(false)
-    }
-  }
 
   if (!isClient) {
     return (
@@ -399,93 +324,10 @@ export default function HomePage() {
       />
 
       {/* 제휴 모달 */}
-      <Dialog open={isPartnershipModalOpen} onOpenChange={setIsPartnershipModalOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Handshake className="w-5 h-5 text-purple-600" />
-              제휴 제안하기
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handlePartnershipSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">회사명</label>
-                <Input
-                  value={partnershipFormData.companyName}
-                  onChange={(e) => setPartnershipFormData(prev => ({ ...prev, companyName: e.target.value }))}
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">대표자명</label>
-                <Input
-                  value={partnershipFormData.representativeName}
-                  onChange={(e) => setPartnershipFormData(prev => ({ ...prev, representativeName: e.target.value }))}
-                  required
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">직책</label>
-                <Input
-                  value={partnershipFormData.position}
-                  onChange={(e) => setPartnershipFormData(prev => ({ ...prev, position: e.target.value }))}
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">연락처</label>
-                <Input
-                  value={partnershipFormData.phone}
-                  onChange={(e) => setPartnershipFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">이메일</label>
-              <Input
-                type="email"
-                value={partnershipFormData.email}
-                onChange={(e) => setPartnershipFormData(prev => ({ ...prev, email: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">제안 내용</label>
-              <Textarea
-                value={partnershipFormData.message}
-                onChange={(e) => setPartnershipFormData(prev => ({ ...prev, message: e.target.value }))}
-                placeholder="제휴 제안 내용을 입력하세요"
-                rows={4}
-                required
-              />
-            </div>
-            {partnershipSubmitStatus === 'error' && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{partnershipErrorMessage}</AlertDescription>
-              </Alert>
-            )}
-            {partnershipSubmitStatus === 'success' && (
-              <Alert className="border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">제휴 제안이 성공적으로 제출되었습니다!</AlertDescription>
-              </Alert>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsPartnershipModalOpen(false)}>
-                취소
-              </Button>
-              <Button type="submit" disabled={isPartnershipSubmitting}>
-                {isPartnershipSubmitting ? '제출 중...' : '제출하기'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <PartnershipModal 
+        isOpen={isPartnershipModalOpen} 
+        onClose={() => setIsPartnershipModalOpen(false)} 
+      />
 
       {/* 맨 위로 이동 버튼 - 제거됨 */}
       {/* <ScrollToTopButton /> */}
