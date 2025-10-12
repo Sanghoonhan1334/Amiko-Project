@@ -17,9 +17,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   MessageSquare, 
-  Send, 
-  CheckCircle, 
-  AlertCircle, 
   Handshake,
   Building2,
   Users,
@@ -29,6 +26,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
+import InquiryModal from '@/components/common/InquiryModal'
 
 const Hero = dynamic(() => import('@/components/landing/Hero'), {
   ssr: false,
@@ -83,15 +81,6 @@ export default function HomePage() {
   
   // 문의 모달 상태
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false)
-  const [inquiryFormData, setInquiryFormData] = useState({
-    type: '',
-    subject: '',
-    content: '',
-    priority: 'medium'
-  })
-  const [isInquirySubmitting, setIsInquirySubmitting] = useState(false)
-  const [inquirySubmitStatus, setInquirySubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [inquiryErrorMessage, setInquiryErrorMessage] = useState('')
 
   // 제휴 모달 상태
   const [isPartnershipModalOpen, setIsPartnershipModalOpen] = useState(false)
@@ -118,52 +107,6 @@ export default function HomePage() {
   }, [])
 
 
-  // 문의 폼 핸들러
-  const handleInquirySubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsInquirySubmitting(true)
-    setInquirySubmitStatus('idle')
-    setInquiryErrorMessage('')
-
-    try {
-      const storedUser = localStorage.getItem('amiko_user')
-      if (!storedUser) {
-        throw new Error('로그인이 필요합니다.')
-      }
-
-      const user = JSON.parse(storedUser)
-      const response = await fetch('/api/inquiries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          type: inquiryFormData.type,
-          subject: inquiryFormData.subject,
-          content: inquiryFormData.content,
-          priority: inquiryFormData.priority,
-          language: 'ko'
-        })
-      })
-
-      if (response.ok) {
-        setInquirySubmitStatus('success')
-        setInquiryFormData({ type: '', subject: '', content: '', priority: 'medium' })
-        setTimeout(() => {
-          setIsInquiryModalOpen(false)
-          setInquirySubmitStatus('idle')
-        }, 2000)
-      } else {
-        const errorData = await response.json()
-        setInquirySubmitStatus('error')
-        setInquiryErrorMessage(errorData.message || '문의 제출에 실패했습니다.')
-      }
-    } catch (error) {
-      setInquirySubmitStatus('error')
-      setInquiryErrorMessage(error instanceof Error ? error.message : '네트워크 오류가 발생했습니다.')
-    } finally {
-      setIsInquirySubmitting(false)
-    }
-  }
 
   // 제휴 폼 핸들러
   const handlePartnershipSubmit = async (e: React.FormEvent) => {
@@ -450,76 +393,10 @@ export default function HomePage() {
       </div>
 
       {/* 문의 모달 */}
-      <Dialog open={isInquiryModalOpen} onOpenChange={setIsInquiryModalOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-green-600" />
-              문의하기
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleInquirySubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">문의 유형</label>
-              <Select 
-                value={inquiryFormData.type} 
-                onValueChange={(value) => setInquiryFormData(prev => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="문의 유형 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bug">버그 리포트</SelectItem>
-                  <SelectItem value="feature">기능 제안</SelectItem>
-                  <SelectItem value="general">일반 문의</SelectItem>
-                  <SelectItem value="payment">결제 문의</SelectItem>
-                  <SelectItem value="account">계정 문의</SelectItem>
-                  <SelectItem value="other">기타</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">제목</label>
-              <Input
-                value={inquiryFormData.subject}
-                onChange={(e) => setInquiryFormData(prev => ({ ...prev, subject: e.target.value }))}
-                placeholder="문의 제목을 입력하세요"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">내용</label>
-              <Textarea
-                value={inquiryFormData.content}
-                onChange={(e) => setInquiryFormData(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="문의 내용을 입력하세요"
-                rows={4}
-                required
-              />
-            </div>
-            {inquirySubmitStatus === 'error' && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{inquiryErrorMessage}</AlertDescription>
-              </Alert>
-            )}
-            {inquirySubmitStatus === 'success' && (
-              <Alert className="border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">문의가 성공적으로 제출되었습니다!</AlertDescription>
-              </Alert>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsInquiryModalOpen(false)}>
-                취소
-              </Button>
-              <Button type="submit" disabled={isInquirySubmitting}>
-                {isInquirySubmitting ? '제출 중...' : '제출하기'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <InquiryModal 
+        isOpen={isInquiryModalOpen} 
+        onClose={() => setIsInquiryModalOpen(false)} 
+      />
 
       {/* 제휴 모달 */}
       <Dialog open={isPartnershipModalOpen} onOpenChange={setIsPartnershipModalOpen}>
