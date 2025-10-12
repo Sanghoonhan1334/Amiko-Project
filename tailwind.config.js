@@ -79,6 +79,15 @@ module.exports = {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Baloo 2', 'cursive'],
       },
+      animation: {
+        'shimmer': 'shimmer 2s infinite',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
     },
   },
   plugins: [

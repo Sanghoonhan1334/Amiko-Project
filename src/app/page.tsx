@@ -28,15 +28,52 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const Hero = dynamic(() => import('@/components/landing/Hero'), {
   ssr: false,
-  loading: () => <div className="min-h-screen body-gradient flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto"></div>
-      <p className="mt-4 text-gray-600">로딩 중...</p>
+  loading: () => (
+    <div className="min-h-screen body-gradient">
+      {/* 헤더 스켈레톤 */}
+      <div className="h-16 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      
+      {/* 메인 콘텐츠 스켈레톤 */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center space-y-8">
+          {/* 제목 스켈레톤 */}
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-3/4 mx-auto" />
+            <Skeleton className="h-8 w-1/2 mx-auto" />
+          </div>
+          
+          {/* 설명 스켈레톤 */}
+          <div className="space-y-3 max-w-2xl mx-auto">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6 mx-auto" />
+            <Skeleton className="h-4 w-4/6 mx-auto" />
+          </div>
+          
+          {/* 버튼 스켈레톤 */}
+          <div className="flex justify-center space-x-4">
+            <Skeleton className="h-12 w-32" />
+            <Skeleton className="h-12 w-32" />
+          </div>
+        </div>
+        
+        {/* 하단 카드들 스켈레톤 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
+              <Skeleton className="h-8 w-3/4 mb-4" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-5/6 mb-2" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-  </div>
+  )
 })
 
 export default function HomePage() {
