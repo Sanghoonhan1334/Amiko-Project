@@ -16,6 +16,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // 퀴즈 관련 인터페이스
 interface Quiz {
@@ -600,11 +601,40 @@ export default function TestsPage() {
       {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
       {/* <BottomTabNavigation /> */}
       
-      {/* 로딩 오버레이 */}
-      <LoadingOverlay 
-        isVisible={quizzesLoading} 
-        message={quizzesLoading ? t('common.loadingContent') : ''}
-      />
+      {/* 로딩 스켈레톤 */}
+      {quizzesLoading && (
+        <div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 mx-4 shadow-2xl border border-gray-200 dark:border-gray-700 max-w-md w-full">
+            <div className="space-y-6">
+              {/* 헤더 스켈레톤 */}
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+              
+              {/* 카테고리 선택 스켈레톤 */}
+              <div className="flex justify-center">
+                <Skeleton className="h-8 w-24" />
+              </div>
+              
+              {/* 테스트 카드 그리드 스켈레톤 */}
+              <div className="grid grid-cols-2 gap-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
+                    <Skeleton className="h-16 w-full rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-8" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

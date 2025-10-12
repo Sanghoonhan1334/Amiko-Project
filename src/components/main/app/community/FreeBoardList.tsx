@@ -27,6 +27,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Post {
   id: string
@@ -657,11 +658,24 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
             {/* 게시글 목록 */}
             {loading ? (
-              <div className="p-8 text-center">
-                <div className="inline-flex items-center gap-2 text-blue-600">
-                  <span className="animate-spin">📝</span>
-                  <span>{language === 'ko' ? '게시글을 불러오는 중...' : 'Loading posts...'}</span>
-                </div>
+              <div className="p-4 space-y-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-start space-x-3">
+                      <Skeleton className="w-10 h-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-3 w-2/3" />
+                        <div className="flex items-center space-x-4 pt-2">
+                          <Skeleton className="h-3 w-12" />
+                          <Skeleton className="h-3 w-12" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="space-y-3">
@@ -900,11 +914,24 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         {/* 게시글 목록 */}
         <div className="bg-white dark:bg-gray-800">
           {loading ? (
-            <div className="p-8 text-center">
-              <div className="inline-flex items-center gap-2 text-blue-600">
-                <span className="animate-spin">📝</span>
-                <span>{language === 'ko' ? '게시글을 불러오는 중...' : 'Loading posts...'}</span>
-              </div>
+            <div className="p-4 space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-start space-x-3">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-2/3" />
+                      <div className="flex items-center space-x-4 pt-2">
+                        <Skeleton className="h-3 w-12" />
+                        <Skeleton className="h-3 w-12" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : sortedPosts.length === 0 ? (
             <div className="text-center py-12">

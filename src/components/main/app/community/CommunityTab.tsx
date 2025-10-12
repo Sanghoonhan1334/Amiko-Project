@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -125,23 +126,19 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const router = useRouter()
   const [isNavigating, setIsNavigating] = useState(false)
   
-  // 네비게이션 핸들러 - 로딩 상태와 함께
+  // 네비게이션 핸들러 - 즉시 스켈레톤 표시
   const handleNavigation = useCallback(async (path: string) => {
     if (isNavigating) return // 중복 클릭 방지
     
+    // 즉시 로딩 상태 표시
     setIsNavigating(true)
-    try {
-      // 심리테스트 페이지는 더 긴 로딩 시간 필요
-      const loadingTime = path.includes('/community/tests') ? 800 : 500
-      
+    
+    // 다음 틱에서 네비게이션 실행 (UI 업데이트 후)
+    setTimeout(() => {
       router.push(path)
-      
-      // 로딩 상태 유지 시간 조정
-      setTimeout(() => setIsNavigating(false), loadingTime)
-    } catch (error) {
-      console.error('네비게이션 오류:', error)
-      setIsNavigating(false)
-    }
+    }, 0)
+    
+    // 로딩 상태는 페이지 전환 후 자동으로 해제됨
   }, [router, isNavigating])
   
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
@@ -4067,11 +4064,39 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         isVisible={showTutorial}
         onClose={() => setShowTutorial(false)}
       />
-      {/* 로딩 오버레이 */}
-      <LoadingOverlay 
-        isVisible={isNavigating} 
-        message={isNavigating ? t('common.loadingPage') : ''}
-      />
+      {/* 네비게이션 로딩 스켈레톤 */}
+      {isNavigating && (
+        <div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 mx-4 shadow-2xl border border-gray-200 dark:border-gray-700 max-w-md w-full">
+            <div className="space-y-6">
+              {/* 헤더 스켈레톤 */}
+              <div className="flex items-center space-x-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-6 w-32" />
+              </div>
+              
+              {/* 콘텐츠 스켈레톤 */}
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+              </div>
+              
+              {/* 카드 그리드 스켈레톤 */}
+              <div className="grid grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-24 rounded-lg" />
+                ))}
+              </div>
+              
+              {/* 하단 텍스트 */}
+              <div className="text-center">
+                <Skeleton className="h-4 w-24 mx-auto" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
