@@ -147,6 +147,149 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
+  
+  // 실제 데이터 상태
+  const [recentStories, setRecentStories] = useState<any[]>([])
+  const [popularPosts, setPopularPosts] = useState<any[]>([])
+  const [popularTests, setPopularTests] = useState<any[]>([])
+  const [popularNews, setPopularNews] = useState<any[]>([])
+  const [recentActivities, setRecentActivities] = useState<any[]>([])
+  const [dataLoading, setDataLoading] = useState(false)
+
+  // 실제 데이터 로딩 함수들
+  const loadRecentStories = async () => {
+    try {
+      const response = await fetch('/api/stories?isPublic=true&limit=3')
+      const data = await response.json()
+      setRecentStories(data.stories || [])
+    } catch (error) {
+      console.error('스토리 로딩 실패:', error)
+      setRecentStories([])
+    }
+  }
+
+  const loadPopularPosts = async () => {
+    try {
+      const response = await fetch('/api/posts/popular?filter=hot&limit=3')
+      const data = await response.json()
+      setPopularPosts(data.posts || [])
+    } catch (error) {
+      console.error('인기 게시글 로딩 실패:', error)
+      setPopularPosts([])
+    }
+  }
+
+  const loadPopularTests = async () => {
+    try {
+      const response = await fetch('/api/quizzes?limit=3')
+      const data = await response.json()
+      setPopularTests(data.data || [])
+    } catch (error) {
+      console.error('인기 테스트 로딩 실패:', error)
+      setPopularTests([])
+    }
+  }
+
+  const loadPopularNews = async () => {
+    try {
+      const response = await fetch('/api/news?limit=3')
+      const data = await response.json()
+      setPopularNews(data.newsItems || [])
+    } catch (error) {
+      console.error('인기 뉴스 로딩 실패:', error)
+      setPopularNews([])
+    }
+  }
+
+  const loadRecentActivities = async () => {
+    try {
+      // 최근 활동은 여러 소스에서 가져와서 합치기
+      const [storiesRes, postsRes] = await Promise.all([
+        fetch('/api/stories?isPublic=true&limit=2'),
+        fetch('/api/posts/popular?filter=hot&limit=2')
+      ])
+      
+      const storiesData = await storiesRes.json()
+      const postsData = await postsRes.json()
+      
+      const activities = [
+        ...(storiesData.stories || []).map((story: any) => ({
+          type: 'story',
+          title: language === 'ko' ? '새 스토리 작성됨' : 'Nueva historia creada',
+          content: story.text_content || story.text,
+          time: story.created_at,
+          user: story.user_name
+        })),
+        ...(postsData.posts || []).map((post: any) => ({
+          type: 'post',
+          title: language === 'ko' ? '새 게시글 작성됨' : 'Nueva publicación creada',
+          content: post.title,
+          time: post.created_at,
+          user: post.user?.full_name || post.user?.nickname
+        }))
+      ]
+      
+      setRecentActivities(activities.slice(0, 4))
+    } catch (error) {
+      console.error('최근 활동 로딩 실패:', error)
+      setRecentActivities([])
+    }
+  }
+
+  // 모든 데이터 로딩
+  const loadAllData = async () => {
+    setDataLoading(true)
+    try {
+      await Promise.all([
+        loadRecentStories(),
+        loadPopularPosts(),
+        loadPopularTests(),
+        loadPopularNews(),
+        loadRecentActivities()
+      ])
+    } catch (error) {
+      console.error('데이터 로딩 실패:', error)
+    } finally {
+      setDataLoading(false)
+    }
+  }
+
+  // 컴포넌트 마운트 시 데이터 로딩
+  useEffect(() => {
+    if (currentView === 'home') {
+      loadAllData()
+    }
+  }, [currentView, language])
+
+  // 유틸리티 함수들
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}k`
+    }
+    return num.toString()
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    
+    if (diffInMinutes < 60) {
+      return language === 'ko' ? `${diffInMinutes}분 전` : `hace ${diffInMinutes} min`
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60)
+      return language === 'ko' ? `${hours}시간 전` : `hace ${hours}h`
+    } else {
+      const days = Math.floor(diffInMinutes / 1440)
+      return language === 'ko' ? `${days}일 전` : `hace ${days}d`
+    }
+  }
+
+  const truncateText = (text: string, maxLength: number = 50) => {
+    if (!text) return ''
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength) + '...'
+  }
 
 
   // 뒤로가기 함수
@@ -2173,24 +2316,30 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                            </h3>
                          </div>
                          <div className="space-y-3">
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '한국에서의 첫 여행...' : 'Mi primer viaje a Corea...'}
+                           {dataLoading ? (
+                             <>
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                             </>
+                           ) : recentStories.length > 0 ? (
+                             recentStories.slice(0, 2).map((story, index) => (
+                               <div key={story.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                   {truncateText(story.text_content || story.text)}
+                                 </div>
+                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                   <User className="w-3 h-3" />
+                                   <span>{story.user_name || '익명'}</span>
+                                   <span>•</span>
+                                   <span>{formatTimeAgo(story.created_at)}</span>
+                                 </div>
+                               </div>
+                             ))
+                           ) : (
+                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
+                               {language === 'ko' ? '최근 스토리가 없습니다' : 'No hay historias recientes'}
                              </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <Eye className="w-3 h-3" />
-                               <span>1.2k</span>
-                             </div>
-                           </div>
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '한국어 배우기 팁' : 'Consejos para aprender coreano'}
-                             </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <ThumbsUp className="w-3 h-3" />
-                               <span>856</span>
-                             </div>
-                           </div>
+                           )}
                          </div>
                        </CardContent>
                      </Card>
@@ -2207,24 +2356,31 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                            </h3>
                          </div>
                          <div className="space-y-3">
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '한국 드라마 추천' : 'Recomendaciones de dramas'}
+                           {dataLoading ? (
+                             <>
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                             </>
+                           ) : popularPosts.length > 0 ? (
+                             popularPosts.slice(0, 2).map((post, index) => (
+                               <div key={post.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                   {truncateText(post.title)}
+                                 </div>
+                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                   <ThumbsUp className="w-3 h-3" />
+                                   <span>{formatNumber(post.like_count || 0)}</span>
+                                   <span>•</span>
+                                   <MessageSquare className="w-3 h-3" />
+                                   <span>{formatNumber(post.comment_count || 0)}</span>
+                                 </div>
+                               </div>
+                             ))
+                           ) : (
+                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
+                               {language === 'ko' ? '인기 게시글이 없습니다' : 'No hay posts populares'}
                              </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <Star className="w-3 h-3" />
-                               <span>2.1k</span>
-                             </div>
-                           </div>
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '한국 음식 레시피' : 'Recetas de comida coreana'}
-                             </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <MessageSquare className="w-3 h-3" />
-                               <span>1.5k</span>
-                             </div>
-                           </div>
+                           )}
                          </div>
                        </CardContent>
                      </Card>
@@ -2241,24 +2397,30 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                            </h3>
                          </div>
                          <div className="space-y-3">
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '내가 가장 잘 맞는...' : 'Mi K-POP favorito...'}
+                           {dataLoading ? (
+                             <>
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                             </>
+                           ) : popularTests.length > 0 ? (
+                             popularTests.slice(0, 2).map((test, index) => (
+                               <div key={test.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                   {truncateText(test.title)}
+                                 </div>
+                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                   <Brain className="w-3 h-3" />
+                                   <span>{test.category || 'test'}</span>
+                                   <span>•</span>
+                                   <span>{formatTimeAgo(test.created_at)}</span>
+                                 </div>
+                               </div>
+                             ))
+                           ) : (
+                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
+                               {language === 'ko' ? '인기 테스트가 없습니다' : 'No hay tests populares'}
                              </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <Target className="w-3 h-3" />
-                               <span>3.4k</span>
-                             </div>
-                           </div>
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '한국어 실력 테스트' : 'Test de nivel de coreano'}
-                             </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <Sparkles className="w-3 h-3" />
-                               <span>2.8k</span>
-                             </div>
-                           </div>
+                           )}
                          </div>
                        </CardContent>
                      </Card>
@@ -2275,24 +2437,30 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                            </h3>
                          </div>
                          <div className="space-y-3">
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '한국의 새로운 K-컬처...' : 'Nueva política K-cultura...'}
+                           {dataLoading ? (
+                             <>
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                             </>
+                           ) : popularNews.length > 0 ? (
+                             popularNews.slice(0, 2).map((news, index) => (
+                               <div key={news.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                   {truncateText(language === 'ko' ? news.title : news.title_es || news.title)}
+                                 </div>
+                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                   <Eye className="w-3 h-3" />
+                                   <span>{formatNumber(news.view_count || 0)}</span>
+                                   <span>•</span>
+                                   <span>{formatTimeAgo(news.created_at)}</span>
+                                 </div>
+                               </div>
+                             ))
+                           ) : (
+                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
+                               {language === 'ko' ? '인기 뉴스가 없습니다' : 'No hay noticias populares'}
                              </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <Clock className="w-3 h-3" />
-                               <span>2h ago</span>
-                             </div>
-                           </div>
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '한국 전통 음식 인기...' : 'Popularidad de comida...'}
-                             </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <Eye className="w-3 h-3" />
-                               <span>1.9k</span>
-                             </div>
-                           </div>
+                           )}
                          </div>
                        </CardContent>
                      </Card>
@@ -2309,24 +2477,30 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                            </h3>
                          </div>
                          <div className="space-y-3">
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '새 게시글 작성됨' : 'Nueva publicación creada'}
+                           {dataLoading ? (
+                             <>
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                               <Skeleton className="h-12 w-full rounded-lg" />
+                             </>
+                           ) : recentActivities.length > 0 ? (
+                             recentActivities.slice(0, 2).map((activity, index) => (
+                               <div key={index} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                   {truncateText(activity.content)}
+                                 </div>
+                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                   <User className="w-3 h-3" />
+                                   <span>{activity.user || '익명'}</span>
+                                   <span>•</span>
+                                   <span>{formatTimeAgo(activity.time)}</span>
+                                 </div>
+                               </div>
+                             ))
+                           ) : (
+                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
+                               {language === 'ko' ? '최근 활동이 없습니다' : 'No hay actividades recientes'}
                              </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <User className="w-3 h-3" />
-                               <span>5분 전</span>
-                             </div>
-                           </div>
-                           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                             <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                               {language === 'ko' ? '심리테스트 완료' : 'Test psicológico completado'}
-                             </div>
-                             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                               <Star className="w-3 h-3" />
-                               <span>12분 전</span>
-                             </div>
-                           </div>
+                           )}
                          </div>
                        </CardContent>
                      </Card>
