@@ -241,32 +241,35 @@ export default function HomeTab() {
         {currentEvents.length > 0 ? (
           <Card className="relative overflow-hidden">
             <CardContent className="p-0">
-              <div className="relative h-32">
-                {currentEvents.map((event, index) => (
-                  <div
-                    key={event.id}
-                    className={`absolute inset-0 transition-all duration-500 ${
-                      index === currentEventIndex ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4">
-                      <div className="flex-1">
-                        <h3 className="text-white font-bold text-lg mb-1">{event.title}</h3>
-                        <p className="text-white/90 text-sm mb-2">{event.description}</p>
-                        <div className="flex items-center gap-4">
-                          <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                            <Users className="w-3 h-3 mr-1" />
-                            {formatNumber(event.participants)}명 참여
-                          </Badge>
-                          <span className="text-white/80 text-xs">{event.date}</span>
+              <div className="relative h-32 overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-700 ease-in-out"
+                  style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
+                >
+                  {currentEvents.map((event, index) => (
+                    <div
+                      key={event.id}
+                      className="w-full flex-shrink-0"
+                    >
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4">
+                        <div className="flex-1">
+                          <h3 className="text-white font-bold text-lg mb-1">{event.title}</h3>
+                          <p className="text-white/90 text-sm mb-2">{event.description}</p>
+                          <div className="flex items-center gap-4">
+                            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                              <Users className="w-3 h-3 mr-1" />
+                              {formatNumber(event.participants)}명 참여
+                            </Badge>
+                            <span className="text-white/80 text-xs">{event.date}</span>
+                          </div>
+                        </div>
+                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                          <Calendar className="w-8 h-8 text-white" />
                         </div>
                       </div>
-                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                        <Calendar className="w-8 h-8 text-white" />
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
               
               {/* 이벤트 인디케이터 */}
