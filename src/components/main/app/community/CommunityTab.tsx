@@ -2076,69 +2076,69 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
         </div>
         
-                 {/* 5개 아이콘 - 모바일: 3개 위 2개 아래, 데스크톱: 한 줄 */}
+                 {/* 5개 아이콘 - 모바일: 2+2+1 세 줄, 데스크톱: 한 줄 */}
                  <div className="w-full flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 overflow-visible mb-0" data-tutorial="community-section">
-                   {/* 모바일: 위쪽 3개 아이콘 */}
-                   <div className="flex md:hidden justify-start overflow-visible px-4" style={{ marginLeft: language === 'es' ? '-8px' : '8px', paddingRight: language === 'es' ? '40px' : '0px' }}>
+                   {/* 모바일: 첫 번째 줄 2개 아이콘 */}
+                   <div className="flex md:hidden justify-center overflow-visible px-4 gap-6">
                      <button
                        onClick={() => router.push('/community/freeboard')}
-                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                       style={{ marginRight: language === 'es' ? '4px' : '14px', marginLeft: language === 'es' ? '-4px' : '0px' }}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                        data-tutorial="topic-board-mobile"
                      >
-                      <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                        <img src="/topic-board.png" alt="주제별 게시판" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
+                      <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                        <img src="/topic-board.png" alt="주제별 게시판" className="w-12 h-12 object-contain" loading="lazy" decoding="async" />
                       </div>
-                      <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.freeBoard')}</h3>
+                      <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '11px' }}>{t('community.freeBoard')}</h3>
                      </button>
 
                      <button
                        onClick={() => router.push('/community/news')}
-                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                       style={{ marginRight: language === 'es' ? '24px' : '16px' }}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                        data-tutorial="k-magazine-mobile"
                      >
-                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/k-magazine.png" alt="K-매거진" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
+                       <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/k-magazine.png" alt="K-매거진" className="w-12 h-12 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.koreanNews')}</h3>
-                     </button>
-
-                     <button
-                       onClick={() => router.push('/community/qa')}
-                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                       style={{ marginRight: '32px' }}
-                       data-tutorial="qa-mobile"
-                     >
-                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/qa.png" alt="Q&A" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
-                       </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('community.qa')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '11px' }}>{t('community.koreanNews')}</h3>
                      </button>
                    </div>
                    
-                   {/* 모바일: 아래쪽 2개 아이콘 */}
-                   <div className="flex md:hidden justify-start overflow-visible px-4" style={{ gap: '16px', paddingRight: '32px', paddingLeft: language === 'es' ? '16px' : '24px' }}>
+                   {/* 모바일: 두 번째 줄 2개 아이콘 */}
+                   <div className="flex md:hidden justify-center overflow-visible px-4 gap-6">
                      <button
-                       onClick={() => router.push('/community/tests')}
-                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
-                       data-tutorial="psychology-test-mobile"
+                       onClick={() => router.push('/community/qa')}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="qa-mobile"
                      >
-                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/psychology-test.png" alt="심리테스트" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
+                       <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/qa.png" alt="Q&A" className="w-12 h-12 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('tests.title')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '11px' }}>{t('community.qa')}</h3>
                      </button>
                      
                      <button
+                       onClick={() => router.push('/community/tests')}
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       data-tutorial="psychology-test-mobile"
+                     >
+                       <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/psychology-test.png" alt="심리테스트" className="w-12 h-12 object-contain" loading="lazy" decoding="async" />
+                       </div>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '11px' }}>{t('tests.title')}</h3>
+                     </button>
+                   </div>
+
+                   {/* 모바일: 세 번째 줄 1개 아이콘 */}
+                   <div className="flex md:hidden justify-center overflow-visible px-4">
+                     <button
                        onClick={() => router.push('/community/stories')}
-                       className="flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
+                       className="flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible"
                        data-tutorial="story-mobile"
                      >
-                       <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/story.png" alt="스토리" className="w-8 h-8 object-contain" loading="lazy" decoding="async" />
+                       <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
+                         <img src="/story.png" alt="스토리" className="w-12 h-12 object-contain" loading="lazy" decoding="async" />
                        </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px' }}>{t('communityTab.story')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '11px' }}>{t('communityTab.story')}</h3>
                      </button>
                    </div>
 
