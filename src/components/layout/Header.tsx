@@ -589,7 +589,7 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-4 sm:-top-6 md:-top-8 lg:-top-10 z-0 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-0 z-0 flex flex-col items-center">
               {/* 로고 */}
               <div className="relative logo-container">
                 {/* 라이트 모드 로고 */}
@@ -912,75 +912,7 @@ export default function Header() {
             
             {/* 메인 메뉴 */}
             <div className="space-y-1">
-              {/* 랜딩페이지 및 문의페이지 네비게이션 메뉴 */}
-              {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
-                <div className="space-y-1 mb-4">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setActiveNavItem('/')
-                      router.push('/')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
-                      activeNavItem === '/' 
-                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
-                    }`}
-                  >
-                    <span className="text-sm sm:text-base">🏠</span>
-                    {t('header.home')}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setActiveNavItem('/about')
-                      router.push('/about')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
-                      activeNavItem === '/about' 
-                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
-                    }`}
-                  >
-                    <span className="text-sm sm:text-base">🏢</span>
-                    {t('header.about')}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setActiveNavItem('/inquiry')
-                      router.push('/inquiry')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg w-full text-left transition-all duration-300 touch-target ${
-                      activeNavItem === '/inquiry' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">💬</span>
-                    {t('header.inquiry')}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setActiveNavItem('/partnership')
-                      router.push('/partnership')
-                      toggleMobileMenu()
-                    }}
-                    className={`flex items-center gap-3 p-2.5 rounded-lg w-full text-left transition-all duration-300 ${
-                      activeNavItem === '/partnership' 
-                        ? 'bg-purple-50 text-purple-600' 
-                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="text-base">🤝</span>
-                    {t('header.partnership')}
-                  </button>
-                </div>
-              )}
+              {/* 랜딩페이지 및 문의페이지 네비게이션 메뉴 - 제거됨 */}
               
               {/* 랜딩페이지 및 문의페이지에서는 시작하기 버튼 표시 */}
               
@@ -989,74 +921,7 @@ export default function Header() {
             {/* 구분선 */}
             <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
             
-            {/* 푸터 내용 - 모바일에서만 표시 */}
-            <div className="space-y-1">
-              {/* SNS 링크 */}
-              <div className="p-2.5">
-                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 mb-2">{t('footer.officialSns')}</div>
-                <div className="flex gap-2">
-                  <a 
-                    href="https://www.tiktok.com/@amiko_latin" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg shadow-sm dark:shadow-gray-600/20 flex items-center justify-center hover:shadow-md dark:hover:shadow-gray-600/30 hover:scale-105 transition-all duration-300"
-                  >
-                    <img src="/tiktok.png" alt="TikTok" className="w-6 h-6 object-contain" />
-                  </a>
-                  <a 
-                    href="https://www.instagram.com/amiko_latin/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg shadow-sm dark:shadow-gray-600/20 flex items-center justify-center hover:shadow-md dark:hover:shadow-gray-600/30 hover:scale-105 transition-all duration-300"
-                  >
-                    <img src="/instagram.jpeg" alt="Instagram" className="w-6 h-6 object-contain" />
-                  </a>
-                  <a 
-                    href="https://www.youtube.com/@AMIKO_Officialstudio" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white dark:bg-gray-700 rounded-lg shadow-sm dark:shadow-gray-600/20 flex items-center justify-center hover:shadow-md dark:hover:shadow-gray-600/30 hover:scale-105 transition-all duration-300"
-                  >
-                    <img src="/youtube.png" alt="YouTube" className="w-6 h-6 object-contain" />
-                  </a>
-                </div>
-              </div>
-              
-              {/* 고객지원 */}
-              <div className="p-2.5">
-                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 mb-2">{t('footer.support')}</div>
-                <div className="space-y-1">
-                  <Link href="/help" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
-                    {t('footer.help')}
-                  </Link>
-                  <Link href="/faq" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
-                    {t('footer.faq')}
-                  </Link>
-                  <Link href="/contact" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
-                    {t('footer.contact')}
-                  </Link>
-                  <Link href="/feedback" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
-                    {t('footer.feedback')}
-                  </Link>
-                </div>
-              </div>
-              
-              {/* 약관 및 정책 */}
-              <div className="p-2.5">
-                <div className="space-y-1">
-                  <Link href="/privacy" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
-                    {t('footer.privacy')}
-                  </Link>
-                  <Link href="/terms" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
-                    {t('footer.terms')}
-                  </Link>
-                  <Link href="/cookies" className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300">
-                    {t('footer.cookies')}
-                  </Link>
-                </div>
-              </div>
-              
-            </div>
+            {/* 푸터 내용 - 모바일에서만 표시 - SNS, 고객지원, 개인정보처리방침은 랜딩페이지 아코디언으로 이동됨 */}
             
             {/* 구분선 */}
             <div className="border-t border-gray-200 my-3" />

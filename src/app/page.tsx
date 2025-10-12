@@ -16,7 +16,10 @@ import {
   Building2,
   Users,
   DollarSign,
-  HelpCircle
+  HelpCircle,
+  Share2,
+  Headphones,
+  Shield
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
@@ -310,6 +313,190 @@ export default function HomePage() {
                     <li>{t('heroSlides.slide3.infoSection.help.communityStep2')}</li>
                     <li>{t('heroSlides.slide3.infoSection.help.communityStep3')}</li>
                   </ul>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* SNS 섹션 */}
+          <AccordionItem value="sns" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
+                  <Share2 className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+                </div>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {language === 'ko' ? 'AMIKO 공식 SNS' : 'SNS Oficial de AMIKO'}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-6">
+              <div className="space-y-4">
+                <p className="text-gray-600 dark:text-gray-300">
+                  {language === 'ko' 
+                    ? 'AMIKO의 최신 소식과 이벤트를 SNS에서 확인하세요!' 
+                    : '¡Mantente al día con las últimas noticias y eventos de AMIKO en nuestras redes sociales!'
+                  }
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <a 
+                    href="https://www.tiktok.com/@amiko_latin" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
+                  >
+                    <img src="/tiktok.png" alt="TikTok" className="w-8 h-8 object-contain" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">TikTok</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
+                    </div>
+                  </a>
+                  <a 
+                    href="https://www.youtube.com/@amiko_latin" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
+                  >
+                    <img src="/youtube.png" alt="YouTube" className="w-8 h-8 object-contain" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">YouTube</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* 고객지원 섹션 */}
+          <AccordionItem value="support" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
+                  <Headphones className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+                </div>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {language === 'ko' ? '고객지원' : 'Soporte al Cliente'}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-6">
+              <div className="space-y-4">
+                <p className="text-gray-600 dark:text-gray-300">
+                  {language === 'ko' 
+                    ? '도움이 필요하신가요? 언제든지 연락주세요!' 
+                    : '¿Necesitas ayuda? ¡Contáctanos en cualquier momento!'
+                  }
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                  <a 
+                    href="/help" 
+                    className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-300"
+                  >
+                    <HelpCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div>
+                      <h3 className="font-semibold text-blue-800 dark:text-blue-300">
+                        {language === 'ko' ? '도움말' : 'Ayuda'}
+                      </h3>
+                      <p className="text-sm text-blue-700 dark:text-blue-400">
+                        {language === 'ko' ? '사용 방법을 자세히 알아보세요' : 'Aprende cómo usar la plataforma'}
+                      </p>
+                    </div>
+                  </a>
+                  <a 
+                    href="/faq" 
+                    className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors duration-300"
+                  >
+                    <HelpCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <div>
+                      <h3 className="font-semibold text-green-800 dark:text-green-300">FAQ</h3>
+                      <p className="text-sm text-green-700 dark:text-green-400">
+                        {language === 'ko' ? '자주 묻는 질문과 답변' : 'Preguntas frecuentes y respuestas'}
+                      </p>
+                    </div>
+                  </a>
+                  <a 
+                    href="/contact" 
+                    className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors duration-300"
+                  >
+                    <MessageSquare className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <div>
+                      <h3 className="font-semibold text-purple-800 dark:text-purple-300">
+                        {language === 'ko' ? '문의하기' : 'Contacto'}
+                      </h3>
+                      <p className="text-sm text-purple-700 dark:text-purple-400">
+                        {language === 'ko' ? '직접 문의사항을 보내주세요' : 'Envía tus consultas directamente'}
+                      </p>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* 개인정보처리방침 섹션 */}
+          <AccordionItem value="privacy" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <AccordionTrigger className="px-6 hover:no-underline transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 transition-transform duration-300 group-data-[state=open]:rotate-180">
+                  <Shield className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+                </div>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {language === 'ko' ? '개인정보처리방침' : 'Política de Privacidad'}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-6 pb-6">
+              <div className="space-y-4">
+                <p className="text-gray-600 dark:text-gray-300">
+                  {language === 'ko' 
+                    ? 'AMIKO는 사용자의 개인정보 보호를 최우선으로 합니다.' 
+                    : 'AMIKO prioriza la protección de la información personal de los usuarios.'
+                  }
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                  <a 
+                    href="/privacy" 
+                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300"
+                  >
+                    <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <div>
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200">
+                        {language === 'ko' ? '개인정보처리방침' : 'Política de Privacidad'}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {language === 'ko' ? '개인정보 수집 및 이용에 대한 정책' : 'Política sobre recopilación y uso de información personal'}
+                      </p>
+                    </div>
+                  </a>
+                  <a 
+                    href="/terms" 
+                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300"
+                  >
+                    <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <div>
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200">
+                        {language === 'ko' ? '이용약관' : 'Términos de Uso'}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {language === 'ko' ? '서비스 이용에 대한 약관' : 'Términos para el uso del servicio'}
+                      </p>
+                    </div>
+                  </a>
+                  <a 
+                    href="/cookies" 
+                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300"
+                  >
+                    <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <div>
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200">
+                        {language === 'ko' ? '쿠키 정책' : 'Política de Cookies'}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {language === 'ko' ? '쿠키 사용에 대한 정책' : 'Política sobre el uso de cookies'}
+                      </p>
+                    </div>
+                  </a>
                 </div>
               </div>
             </AccordionContent>

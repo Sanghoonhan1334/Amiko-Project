@@ -64,6 +64,34 @@ export const translations = {
         event: '이벤트',
         me: '마이'
       },
+      // 홈 탭 섹션
+      sections: {
+        currentEvents: '현재 진행 이벤트',
+        videoChatOnline: '화상채팅 온라인',
+        hotPosts: '지금 핫한 글',
+        popularTests: '인기 심리테스트',
+        onlineUsers: '명 온라인'
+      },
+      // 커뮤니티 탭 섹션
+      community: {
+        recentStories: '최근 스토리',
+        popularPosts: '인기 게시글',
+        popularTests: '인기 심리테스트',
+        popularNews: '인기 한국 뉴스',
+        recentActivities: '최근 활동',
+        seeMore: '더 보기',
+        participants: '명 참여',
+        comments: '댓글',
+        likes: '좋아요',
+        views: '조회',
+        hoursAgo: '시간 전',
+        daysAgo: '일 전',
+        minutesAgo: '분 전',
+        readTime: '분 읽기',
+        by: '작성자',
+        online: '온라인',
+        noEvents: '진행 중인 이벤트가 없습니다'
+      },
       // 대시보드 콘텐츠
       dashboard: {
         popularPosts: '인기 게시글',
@@ -2057,6 +2085,34 @@ export const translations = {
         chargingStation: 'Estación de Carga',
         event: 'Eventos',
         me: 'Mi'
+      },
+      // 홈 탭 섹션
+      sections: {
+        currentEvents: 'Eventos Actuales',
+        videoChatOnline: 'Videollamada En Línea',
+        hotPosts: 'Posts Populares',
+        popularTests: 'Tests Populares',
+        onlineUsers: ' en línea'
+      },
+      // 커뮤니티 탭 섹션
+      community: {
+        recentStories: 'Historias Recientes',
+        popularPosts: 'Posts Populares',
+        popularTests: 'Tests Populares',
+        popularNews: 'Noticias Populares de Corea',
+        recentActivities: 'Actividad Reciente',
+        seeMore: 'Ver Más',
+        participants: ' participantes',
+        comments: 'comentarios',
+        likes: 'me gusta',
+        views: 'vistas',
+        hoursAgo: 'hace horas',
+        daysAgo: 'hace días',
+        minutesAgo: 'hace minutos',
+        readTime: 'min de lectura',
+        by: 'por',
+        online: 'en línea',
+        noEvents: 'No hay eventos en curso'
       },
       // 대시보드 콘텐츠
       dashboard: {

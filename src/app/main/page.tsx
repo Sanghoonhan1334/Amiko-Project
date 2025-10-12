@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 // 🚀 최적화: 컴포넌트 지연 로딩으로 초기 번들 크기 감소
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import HomeDashboard from '@/components/main/app/home/HomeDashboard'
+import HomeTab from '@/components/main/app/home/HomeTab'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { Video } from 'lucide-react'
@@ -26,13 +27,13 @@ const MeetTab = dynamic(() => import('@/components/main/app/meet/MeetTab'), {
     </div>
   )
 })
-const CommunityTab = dynamic(() => import('@/components/main/app/community/CommunityTab'), {
+const CommunityTab = dynamic(() => import('@/components/main/app/community/CommunityTabNew'), {
   loading: () => (
     <div className="space-y-4 p-4">
       <Skeleton className="h-8 w-1/4" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-24 rounded-lg" />
+      <div className="space-y-3">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton key={i} className="h-20 rounded-lg" />
         ))}
       </div>
     </div>
@@ -215,9 +216,7 @@ function AppPageContent() {
 
             {activeTab === 'home' && (
               <div className="block md:hidden pt-20">
-                <div className="px-1">
-                  <HomeDashboard />
-                </div>
+                <HomeTab />
               </div>
             )}
 
@@ -312,7 +311,7 @@ function AppPageContent() {
 
             {activeTab === 'community' && (
               <div className="block md:hidden pt-20">
-                <CommunityTab onViewChange={setCommunityView} />
+                <CommunityTab />
               </div>
             )}
 
