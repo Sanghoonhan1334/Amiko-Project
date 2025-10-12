@@ -364,7 +364,7 @@ export default function HomePage() {
                     </div>
                   </a>
                   <a 
-                    href="https://www.youtube.com/@amiko_latin" 
+                    href="https://www.youtube.com/@AMIKO_Officialstudio" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
@@ -372,7 +372,7 @@ export default function HomePage() {
                     <img src="/youtube.png" alt="YouTube" className="w-8 h-8 object-contain" />
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">YouTube</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">@AMIKO_Officialstudio</p>
                     </div>
                   </a>
                 </div>
