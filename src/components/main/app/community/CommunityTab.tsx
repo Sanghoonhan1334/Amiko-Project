@@ -2095,88 +2095,164 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
         </div>
         
-                 {/* 5개 아이콘 - 모바일: 2+2+1 세 줄, 데스크톱: 한 줄 */}
-                 <div className="w-full flex flex-col md:flex-row items-center justify-center gap-0 md:gap-6 overflow-visible mb-0" data-tutorial="community-section">
-                   {/* 모바일: 첫 번째 줄 2개 아이콘 */}
-                   <div className="flex md:hidden justify-center overflow-visible px-4 gap-6 -mb-1">
-                     <button
-                       onClick={() => handleNavigation('/community/freeboard')}
-                       disabled={isNavigating}
-                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                       }`}
-                       data-tutorial="topic-board-mobile"
-                     >
-                      <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                        <img src="/topic-board.png" alt="주제별 게시판" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
-                      </div>
-                      <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.freeBoard').replace(' ', '\n')}</h3>
-                     </button>
+                 {/* 5개 아이콘 - 모든 화면에서 한 줄 배치 */}
+                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0" data-tutorial="community-section">
+                   {/* 주제별 게시판 */}
+                   <button
+                     onClick={() => handleNavigation('/community/freeboard')}
+                     disabled={isNavigating}
+                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                     }`}
+                     data-tutorial="topic-board-mobile"
+                   >
+                    <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                      <img src="/topic-board.png" alt="주제별 게시판" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                    </div>
+                    <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.freeBoard')}</h3>
+                   </button>
 
-                     <button
-                       onClick={() => handleNavigation('/community/news')}
-                       disabled={isNavigating}
-                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                       }`}
-                       data-tutorial="k-magazine-mobile"
-                     >
-                       <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/k-magazine.png" alt="K-매거진" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
-                       </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.koreanNews')}</h3>
-                     </button>
-                   </div>
+                   {/* K-매거진 */}
+                   <button
+                     onClick={() => handleNavigation('/community/news')}
+                     disabled={isNavigating}
+                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                     }`}
+                     data-tutorial="k-magazine-mobile"
+                   >
+                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                       <img src="/k-magazine.png" alt="K-매거진" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                     </div>
+                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.koreanNews')}</h3>
+                   </button>
                    
-                   {/* 모바일: 두 번째 줄 2개 아이콘 */}
-                   <div className="flex md:hidden justify-center overflow-visible px-4 gap-6 -mt-1 -mb-1">
-                     <button
-                       onClick={() => handleNavigation('/community/qa')}
-                       disabled={isNavigating}
-                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                       }`}
-                       data-tutorial="qa-mobile"
-                     >
-                       <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/qa.png" alt="Q&A" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
-                       </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('community.qa')}</h3>
-                     </button>
-                     
-                     <button
-                       onClick={() => handleNavigation('/community/tests')}
-                       disabled={isNavigating}
-                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                       }`}
-                       data-tutorial="psychology-test-mobile"
-                     >
-                       <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/psychology-test.png" alt="심리테스트" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
-                       </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('tests.title').replace(' ', '\n')}</h3>
-                     </button>
-                   </div>
+                   {/* Q&A */}
+                   <button
+                     onClick={() => handleNavigation('/community/qa')}
+                     disabled={isNavigating}
+                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                     }`}
+                     data-tutorial="qa-mobile"
+                   >
+                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                       <img src="/qa.png" alt="Q&A" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                     </div>
+                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.qa')}</h3>
+                   </button>
+                   
+                   {/* 심리테스트 */}
+                   <button
+                     onClick={() => handleNavigation('/community/tests')}
+                     disabled={isNavigating}
+                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                     }`}
+                     data-tutorial="psychology-test-mobile"
+                   >
+                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                       <img src="/psychology-test.png" alt="심리테스트" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                     </div>
+                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('tests.title')}</h3>
+                   </button>
 
-                   {/* 모바일: 세 번째 줄 1개 아이콘 */}
-                   <div className="flex md:hidden justify-center overflow-visible px-4 -mt-1">
-                     <button
-                       onClick={() => handleNavigation('/community/stories')}
-                       disabled={isNavigating}
-                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                         isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                       }`}
-                       data-tutorial="story-mobile"
-                     >
-                       <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden">
-                         <img src="/story.png" alt="스토리" className="w-10 h-10 object-contain" loading="eager" decoding="async" />
-                       </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight whitespace-pre-line" style={{ fontSize: '11px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.2' }}>{t('communityTab.story')}</h3>
-                     </button>
-                   </div>
+                   {/* 스토리 */}
+                   <button
+                     onClick={() => handleNavigation('/community/stories')}
+                     disabled={isNavigating}
+                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
+                     }`}
+                     data-tutorial="story-mobile"
+                   >
+                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                       <img src="/story.png" alt="스토리" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                     </div>
+                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.story')}</h3>
+                   </button>
+                 </div>
 
-                   {/* 데스크톱: 한 줄로 5개 아이콘 */}
+                 {/* 새로운 섹션들 - 아이콘 아래 */}
+                 <div className="w-full space-y-4 mt-6">
+                   {/* 최근 스토리, 인기 게시글, 인기 심리테스트, 인기 한국 뉴스, 최근 활동 */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                     {/* 최근 스토리 */}
+                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                         {t('home.community.recentStories')}
+                       </h3>
+                       <div className="space-y-2">
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '한국에서의 첫 여행...' : 'Mi primer viaje a Corea...'}
+                         </div>
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '한국어 배우기 팁' : 'Consejos para aprender coreano'}
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* 인기 게시글 */}
+                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                         {t('home.community.popularPosts')}
+                       </h3>
+                       <div className="space-y-2">
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '한국 드라마 추천' : 'Recomendaciones de dramas'}
+                         </div>
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '한국 음식 레시피' : 'Recetas de comida coreana'}
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* 인기 심리테스트 */}
+                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                         {t('home.community.popularTests')}
+                       </h3>
+                       <div className="space-y-2">
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '내가 가장 잘 맞는...' : 'Mi K-POP favorito...'}
+                         </div>
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '한국어 실력 테스트' : 'Test de nivel de coreano'}
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* 인기 한국 뉴스 */}
+                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                         {t('home.community.popularNews')}
+                       </h3>
+                       <div className="space-y-2">
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '한국의 새로운 K-컬처...' : 'Nueva política K-cultura...'}
+                         </div>
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '한국 전통 음식 인기...' : 'Popularidad de comida...'}
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* 최근 활동 */}
+                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                         {t('home.community.recentActivities')}
+                       </h3>
+                       <div className="space-y-2">
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '새 게시글 작성됨' : 'Nueva publicación creada'}
+                         </div>
+                         <div className="text-xs text-gray-600 dark:text-gray-400">
+                           {language === 'ko' ? '심리테스트 완료' : 'Test psicológico completado'}
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
                    <div className="hidden md:flex items-center justify-center gap-8">
                      <button
                        onClick={() => router.push('/community/freeboard')}

@@ -27,13 +27,13 @@ const MeetTab = dynamic(() => import('@/components/main/app/meet/MeetTab'), {
     </div>
   )
 })
-const CommunityTab = dynamic(() => import('@/components/main/app/community/CommunityTabNew'), {
+const CommunityTab = dynamic(() => import('@/components/main/app/community/CommunityTab'), {
   loading: () => (
     <div className="space-y-4 p-4">
       <Skeleton className="h-8 w-1/4" />
-      <div className="space-y-3">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="h-20 rounded-lg" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-24 rounded-lg" />
         ))}
       </div>
     </div>
@@ -311,7 +311,7 @@ function AppPageContent() {
 
             {activeTab === 'community' && (
               <div className="block md:hidden pt-20">
-                <CommunityTab />
+                <CommunityTab onViewChange={setCommunityView} />
               </div>
             )}
 
