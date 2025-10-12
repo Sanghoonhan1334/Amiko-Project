@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseClient } from '@/lib/supabaseServer'
 
 // MBTI + 셀럽 매칭 테스트 API
 
@@ -17,59 +17,18 @@ export async function POST(request: NextRequest) {
     // MBTI 계산 로직
     const mbti = calculateMBTI(answers)
     
-    // 임시 하드코딩된 데이터 반환 (데이터베이스 연결 확인용)
-    console.log('임시 하드코딩된 데이터 반환 중...')
+    // 실제 데이터베이스에서 셀럽 매칭 정보 가져오기
+    console.log('데이터베이스에서 셀럽 매칭 정보 조회 중...')
+    const celebMatches = await getCelebMatches(mbti)
     
     const result = {
-      myType: {
-        male: {
-          stage_name: 'RM',
-          group_name: 'BTS',
-          mbti_code: mbti,
-          gender: 'male',
-          image_url: null,
-          source_note: '임시 데이터'
-        },
-        female: {
-          stage_name: 'Lisa',
-          group_name: 'BLACKPINK',
-          mbti_code: mbti,
-          gender: 'female',
-          image_url: null,
-          source_note: '임시 데이터'
-        }
-      },
-      bestMatch: {
-        male: {
-          stage_name: 'V',
-          group_name: 'BTS',
-          mbti_code: 'ENFP',
-          gender: 'male',
-          image_url: null,
-          source_note: '임시 데이터'
-        },
-        female: {
-          stage_name: 'Jennie',
-          group_name: 'BLACKPINK',
-          mbti_code: 'ENFP',
-          gender: 'female',
-          image_url: null,
-          source_note: '임시 데이터'
-        }
-      },
-      bestMatchMbti: 'ENFP',
-      compatibility: {
-        note_ko: '깊은 공감형과 아이디어형의 보완',
-        note_es: 'Empatía profunda + ideas creativas'
-      }
+      ...celebMatches,
+      mbti
     }
     
     return NextResponse.json({
       success: true,
-      data: {
-        mbti,
-        ...result
-      }
+      data: result
     })
 
   } catch (error) {
@@ -136,6 +95,13 @@ function calculateMBTI(answers: number[]): string {
 async function getCelebMatches(mbti: string) {
   try {
     console.log('셀럽 매칭 시작, MBTI:', mbti)
+    
+    if (!supabaseClient) {
+      console.log('Supabase 클라이언트 없음')
+      throw new Error('데이터베이스 연결이 설정되지 않았습니다.')
+    }
+    
+    const supabase = supabaseClient
     
     // 1. 내 MBTI와 같은 셀럽들 (남/여 각 1명)
     console.log('내 타입 셀럽 조회 중...')
