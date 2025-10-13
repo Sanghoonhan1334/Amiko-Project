@@ -79,106 +79,143 @@ export default function HomeTab() {
     }
   }, [currentEvents.length])
 
+  // 실제 데이터 로딩 함수들
+  const loadCurrentEvents = async () => {
+    try {
+      // 이벤트 API가 없으므로 임시로 뉴스에서 이벤트성 콘텐츠 가져오기
+      const response = await fetch('/api/news?limit=3')
+      const data = await response.json()
+      
+      const events = (data.newsItems || []).map((news: any, index: number) => ({
+        id: `event-${news.id}`,
+        title: language === 'ko' ? news.title : news.title_es || news.title,
+        description: language === 'ko' ? news.content?.substring(0, 50) + '...' : news.content_es?.substring(0, 50) + '...',
+        image: news.thumbnail || '/event-title.png',
+        date: news.date || news.created_at?.split('T')[0],
+        participants: Math.floor(Math.random() * 200) + 50 // 임시 참여자 수
+      }))
+      
+      setCurrentEvents(events)
+    } catch (error) {
+      console.error('이벤트 로딩 실패:', error)
+      setCurrentEvents([])
+    }
+  }
+
+  const loadHotPosts = async () => {
+    try {
+      const response = await fetch('/api/posts/popular?filter=hot&limit=3')
+      const data = await response.json()
+      
+      const posts = (data.posts || []).map((post: any) => ({
+        id: post.id,
+        title: post.title,
+        content: post.content?.substring(0, 100) + '...',
+        author: post.user?.full_name || post.user?.nickname || '익명',
+        likes: post.like_count || 0,
+        comments: post.comment_count || 0,
+        views: post.view_count || 0,
+        createdAt: formatTimeAgo(post.created_at)
+      }))
+      
+      setHotPosts(posts)
+    } catch (error) {
+      console.error('핫 포스트 로딩 실패:', error)
+      setHotPosts([])
+    }
+  }
+
+  const loadPopularTests = async () => {
+    try {
+      const response = await fetch('/api/quizzes?limit=4')
+      const data = await response.json()
+      
+      const tests = (data.data || []).map((quiz: any) => ({
+        id: quiz.id,
+        title: quiz.title,
+        description: quiz.description || '심리테스트',
+        participants: Math.floor(Math.random() * 1000) + 100, // 임시 참여자 수
+        image: quiz.thumbnail_url || '/celebs/bts.webp',
+        category: quiz.category || 'test'
+      }))
+      
+      setPopularTests(tests)
+    } catch (error) {
+      console.error('인기 테스트 로딩 실패:', error)
+      setPopularTests([])
+    }
+  }
+
+  const loadOnlineUsers = async () => {
+    try {
+      // 온라인 사용자 API가 없으므로 임시 데이터
+      // 실제로는 사용자 상태 API가 필요함
+      const mockUsers = [
+        {
+          id: '1',
+          name: '김민수',
+          profileImage: '/celebs/jimin.png',
+          isOnline: true
+        },
+        {
+          id: '2',
+          name: '이지은',
+          profileImage: '/celebs/iu.png',
+          isOnline: true
+        },
+        {
+          id: '3',
+          name: '박서준',
+          profileImage: '/celebs/jungkook.png',
+          isOnline: true
+        }
+      ]
+      
+      setOnlineUsers(mockUsers)
+    } catch (error) {
+      console.error('온라인 사용자 로딩 실패:', error)
+      setOnlineUsers([])
+    }
+  }
+
+  // 유틸리티 함수
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    
+    if (diffInMinutes < 60) {
+      return language === 'ko' ? `${diffInMinutes}분 전` : `hace ${diffInMinutes} min`
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60)
+      return language === 'ko' ? `${hours}시간 전` : `hace ${hours}h`
+    } else {
+      const days = Math.floor(diffInMinutes / 1440)
+      return language === 'ko' ? `${days}일 전` : `hace ${days}d`
+    }
+  }
+
+  // 모든 데이터 로딩
+  const loadAllData = async () => {
+    setLoading(true)
+    try {
+      await Promise.all([
+        loadCurrentEvents(),
+        loadHotPosts(),
+        loadPopularTests(),
+        loadOnlineUsers()
+      ])
+    } catch (error) {
+      console.error('데이터 로딩 실패:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // 데이터 로딩
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      try {
-        // 실제 API 호출로 대체 예정
-        // 현재는 더미 데이터
-        setTimeout(() => {
-          setCurrentEvents([
-            {
-              id: '1',
-              title: '한국 문화 체험 이벤트',
-              description: '전통 한복 체험과 한국 음식 시식',
-              image: '/event-title.png',
-              date: '2024-01-15',
-              participants: 150
-            },
-            {
-              id: '2',
-              title: 'K-POP 댄스 챌린지',
-              description: '인기 K-POP 곡으로 댄스 배우기',
-              image: '/event-title.png',
-              date: '2024-01-20',
-              participants: 89
-            }
-          ])
-          
-          setHotPosts([
-            {
-              id: '1',
-              title: '한국 여행 가이드 추천해주세요!',
-              content: '첫 한국 여행인데 꼭 가봐야 할 곳들이 있나요?',
-              author: 'Maria_Seoul',
-              likes: 45,
-              comments: 23,
-              views: 234,
-              createdAt: '2시간 전'
-            },
-            {
-              id: '2',
-              title: '한국 드라마 추천 좀 해주세요',
-              content: '로맨스 장르 좋아하는데 어떤 드라마가 인기인가요?',
-              author: 'Carlos_Kpop',
-              likes: 32,
-              comments: 18,
-              views: 189,
-              createdAt: '4시간 전'
-            }
-          ])
-          
-          setPopularTests([
-            {
-              id: '1',
-              title: '내가 가장 잘 맞는 K-POP 아이돌은?',
-              description: '성격으로 알아보는 나의 아이돌',
-              participants: 1250,
-              image: '/celebs/bts.webp',
-              category: 'meme'
-            },
-            {
-              id: '2',
-              title: '한국어 실력 테스트',
-              description: '나의 한국어 수준은?',
-              participants: 890,
-              image: '/celebs/jennie.png',
-              category: 'culture'
-            }
-          ])
-          
-          setOnlineUsers([
-            {
-              id: '1',
-              name: '김민수',
-              profileImage: '/celebs/jimin.png',
-              isOnline: true
-            },
-            {
-              id: '2',
-              name: '이지은',
-              profileImage: '/celebs/iu.png',
-              isOnline: true
-            },
-            {
-              id: '3',
-              name: '박서준',
-              profileImage: '/celebs/jungkook.png',
-              isOnline: true
-            }
-          ])
-          
-          setLoading(false)
-        }, 1000)
-      } catch (error) {
-        console.error('데이터 로딩 오류:', error)
-        setLoading(false)
-      }
-    }
-    
-    loadData()
-  }, [])
+    loadAllData()
+  }, [language])
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
@@ -365,38 +402,49 @@ export default function HomeTab() {
         </div>
         
         <div className="space-y-3">
-          {hotPosts.map((post) => (
-            <Card key={post.id} className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
-                  {post.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
-                  {post.content}
-                </p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center gap-3">
+          {hotPosts.length > 0 ? (
+            hotPosts.map((post) => (
+              <Card key={post.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+                    {post.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                    {post.content}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Heart className="w-3 h-3" />
+                        {post.likes}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="w-3 h-3" />
+                        {post.comments}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {formatNumber(post.views)}
+                      </span>
+                    </div>
                     <span className="flex items-center gap-1">
-                      <Heart className="w-3 h-3" />
-                      {post.likes}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="w-3 h-3" />
-                      {post.comments}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      {formatNumber(post.views)}
+                      <Clock className="w-3 h-3" />
+                      {post.createdAt}
                     </span>
                   </div>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {post.createdAt}
-                  </span>
-                </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">
+                  {language === 'ko' ? '핫한 게시글이 없습니다' : 'No hay posts populares'}
+                </p>
               </CardContent>
             </Card>
-          ))}
+          )}
         </div>
       </div>
 
@@ -418,33 +466,44 @@ export default function HomeTab() {
           </Button>
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
-          {popularTests.map((test) => (
-            <Card key={test.id} className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg mb-3 flex items-center justify-center">
-                  <img
-                    src={test.image}
-                    alt={test.title}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2">
-                  {test.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 line-clamp-2">
-                  {test.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="text-xs">
-                    {formatNumber(test.participants)}명
-                  </Badge>
-                  <span className="text-xs text-gray-500">{test.category}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {popularTests.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {popularTests.map((test) => (
+              <Card key={test.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-3">
+                  <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg mb-3 flex items-center justify-center">
+                    <img
+                      src={test.image}
+                      alt={test.title}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2">
+                    {test.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 line-clamp-2">
+                    {test.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-xs">
+                      {formatNumber(test.participants)}명
+                    </Badge>
+                    <span className="text-xs text-gray-500">{test.category}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Brain className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">
+                {language === 'ko' ? '인기 테스트가 없습니다' : 'No hay tests populares'}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
