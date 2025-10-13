@@ -46,7 +46,7 @@ export default function MBTICelebTestPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<TestResult | null>(null)
   
-  // MBTI 테스트 질문 데이터 (24개 질문)
+  // MBTI 테스트 질문 데이터 (12개 질문 - 각 차원당 3개씩 선별)
   const questions = [
     { id: 1, question: t('tests.mbti.questions.q1'), options: [t('tests.mbti.questions.q1a'), t('tests.mbti.questions.q1b')], dimension: "EI" },
     { id: 2, question: t('tests.mbti.questions.q2'), options: [t('tests.mbti.questions.q2a'), t('tests.mbti.questions.q2b')], dimension: "SN" },
@@ -59,19 +59,7 @@ export default function MBTICelebTestPage() {
     { id: 9, question: t('tests.mbti.questions.q9'), options: [t('tests.mbti.questions.q9a'), t('tests.mbti.questions.q9b')], dimension: "EI" },
     { id: 10, question: t('tests.mbti.questions.q10'), options: [t('tests.mbti.questions.q10a'), t('tests.mbti.questions.q10b')], dimension: "SN" },
     { id: 11, question: t('tests.mbti.questions.q11'), options: [t('tests.mbti.questions.q11a'), t('tests.mbti.questions.q11b')], dimension: "TF" },
-    { id: 12, question: t('tests.mbti.questions.q12'), options: [t('tests.mbti.questions.q12a'), t('tests.mbti.questions.q12b')], dimension: "JP" },
-    { id: 13, question: t('tests.mbti.questions.q13'), options: [t('tests.mbti.questions.q13a'), t('tests.mbti.questions.q13b')], dimension: "EI" },
-    { id: 14, question: t('tests.mbti.questions.q14'), options: [t('tests.mbti.questions.q14a'), t('tests.mbti.questions.q14b')], dimension: "SN" },
-    { id: 15, question: t('tests.mbti.questions.q15'), options: [t('tests.mbti.questions.q15a'), t('tests.mbti.questions.q15b')], dimension: "TF" },
-    { id: 16, question: t('tests.mbti.questions.q16'), options: [t('tests.mbti.questions.q16a'), t('tests.mbti.questions.q16b')], dimension: "JP" },
-    { id: 17, question: t('tests.mbti.questions.q17'), options: [t('tests.mbti.questions.q17a'), t('tests.mbti.questions.q17b')], dimension: "EI" },
-    { id: 18, question: t('tests.mbti.questions.q18'), options: [t('tests.mbti.questions.q18a'), t('tests.mbti.questions.q18b')], dimension: "SN" },
-    { id: 19, question: t('tests.mbti.questions.q19'), options: [t('tests.mbti.questions.q19a'), t('tests.mbti.questions.q19b')], dimension: "TF" },
-    { id: 20, question: t('tests.mbti.questions.q20'), options: [t('tests.mbti.questions.q20a'), t('tests.mbti.questions.q20b')], dimension: "JP" },
-    { id: 21, question: t('tests.mbti.questions.q21'), options: [t('tests.mbti.questions.q21a'), t('tests.mbti.questions.q21b')], dimension: "EI" },
-    { id: 22, question: t('tests.mbti.questions.q22'), options: [t('tests.mbti.questions.q22a'), t('tests.mbti.questions.q22b')], dimension: "SN" },
-    { id: 23, question: t('tests.mbti.questions.q23'), options: [t('tests.mbti.questions.q23a'), t('tests.mbti.questions.q23b')], dimension: "TF" },
-    { id: 24, question: t('tests.mbti.questions.q24'), options: [t('tests.mbti.questions.q24a'), t('tests.mbti.questions.q24b')], dimension: "JP" }
+    { id: 12, question: t('tests.mbti.questions.q12'), options: [t('tests.mbti.questions.q12a'), t('tests.mbti.questions.q12b')], dimension: "JP" }
   ]
 
   const handleAnswerSelect = (answerIndex: number) => {

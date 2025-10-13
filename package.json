@@ -12,6 +12,11 @@
     "test:reminder": "curl -X GET http://localhost:3000/api/cron/test-reminder"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
+    "@capacitor/status-bar": "^7.0.3",
     "@paypal/react-paypal-js": "^8.9.1",
     "@prisma/client": "^6.14.0",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -46,6 +51,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.540.0",
     "next": "15.5.0",
+    "next-pwa": "^5.6.0",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.6",
     "prisma": "^6.14.0",

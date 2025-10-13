@@ -2,6 +2,13 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
 
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: false, // PWA 항상 활성화
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 환경변수 검증 (빌드 시 실행)
@@ -111,4 +118,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = withPWA(withBundleAnalyzer(nextConfig));

@@ -34,6 +34,13 @@ const pretendard = {
 export const metadata: Metadata = {
   title: 'Amiko - 한국 문화 교류 플랫폼',
   description: '한국 문화를 배우고 소통하는 플랫폼',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover', // Safe Area 적용
+  },
 }
 
 export default function RootLayout({

@@ -1323,10 +1323,27 @@ export const translations = {
       retakeTest: '다시 하기',
       shareResult: '결과 공유',
       myResults: '내 결과',
+      loveStyle: {
+        title: '나의 연애 스타일 테스트',
+        description: '12가지 질문으로 알아보는 당신의 연애 스타일',
+        questionCount: '총 12개 질문',
+        analyzing: '결과를 분석하고 있어요...',
+        restart: '다시 하기',
+        goBack: '테스트 목록으로',
+        resultTitle: '나의 연애 스타일',
+        characteristics: '특징',
+        compatibility: '궁합',
+        stats: {
+          affection: '애정표현',
+          independence: '독립성',
+          communication: '소통방식',
+          romance: '로맨틱함'
+        }
+      },
       mbti: {
         title: 'MBTI × 셀럽 매칭 테스트',
         description: '나와 같은 MBTI 유형의 셀럽과 궁합이 좋은 유형을 찾아보세요!',
-        questionCount: '총 24개 질문',
+        questionCount: '총 12개 질문',
         questions: {
           q1: '새로운 사람들과 만나는 파티에서 나는...',
           q1a: '많은 사람들과 대화하며 에너지를 얻는다',
@@ -3436,10 +3453,27 @@ export const translations = {
       retakeTest: 'Hacer de nuevo',
       shareResult: 'Compartir resultado',
       myResults: 'Mis resultados',
+      loveStyle: {
+        title: 'Test de Estilo de Amor',
+        description: 'Descubre tu estilo de amor con 12 preguntas',
+        questionCount: 'Total 12 preguntas',
+        analyzing: 'Analizando resultados...',
+        restart: 'Repetir',
+        goBack: 'Lista de Tests',
+        resultTitle: 'Mi Estilo de Amor',
+        characteristics: 'Características',
+        compatibility: 'Compatibilidad',
+        stats: {
+          affection: 'Afecto',
+          independence: 'Independencia',
+          communication: 'Comunicación',
+          romance: 'Romanticismo'
+        }
+      },
       mbti: {
         title: 'Test MBTI × Celebridades',
         description: '¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!',
-        questionCount: 'Total 24 preguntas',
+        questionCount: 'Total 12 preguntas',
         questions: {
           q1: 'En una fiesta con gente nueva...',
           q1a: 'Converso con muchas personas y obtengo energía',

@@ -3,6 +3,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Safe Area Insets for mobile apps */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+}
+
+html {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
+}
+
+body {
+  min-height: 100vh;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -2219,7 +2219,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       {currentView === 'home' && (
             <div className="w-full">
                {/* 제목 섹션 */}
-               <div className="text-center mb-4 animate-slide-in-left opacity-0" style={{ animationDelay: '0s', animationFillMode: 'forwards' }}>
+               <div className="text-center mb-4">
                  <div className="flex justify-center mb-3">
                    <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
@@ -2230,7 +2230,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </div>
         
                  {/* 5개 아이콘 - 모든 화면에서 한 줄 배치 */}
-                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0 animate-slide-in-right opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0">
                    {/* 주제별 게시판 */}
                    <button
                      onClick={() => handleNavigation('/community/freeboard')}
@@ -2303,7 +2303,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                  </div>
 
                  {/* 새로운 섹션들 - 아이콘 아래 */}
-                 <div className="w-full space-y-4 mt-6 animate-slide-in-left opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
+                 <div className="w-full space-y-4 mt-6">
                    {/* 최근 스토리, 인기 게시글, 인기 심리테스트, 인기 한국 뉴스, 최근 활동 */}
                    <div className="grid grid-cols-1 gap-4">
                      {/* 최근 스토리 */}
@@ -2405,19 +2405,40 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                <Skeleton className="h-12 w-full rounded-lg" />
                              </>
                            ) : popularTests.length > 0 ? (
-                             popularTests.slice(0, 2).map((test, index) => (
-                               <div key={test.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                   {truncateText(test.title)}
+                             <div className="space-y-3">
+                               {/* 연애 스타일 테스트 추가 */}
+                               <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-lg p-3 border border-pink-200 dark:border-pink-700">
+                                 <div className="flex items-center gap-2 mb-2">
+                                   <span className="text-pink-500">💕</span>
+                                   <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                                     {language === 'ko' ? '나의 연애 스타일 테스트' : 'Test de Estilo de Amor'}
+                                   </span>
                                  </div>
-                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                   <Brain className="w-3 h-3" />
-                                   <span>{test.category || 'test'}</span>
-                                   <span>•</span>
-                                   <span>{formatTimeAgo(test.created_at)}</span>
-                                 </div>
+                                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                   {language === 'ko' ? '12가지 질문으로 알아보는 연애 스타일' : 'Descubre tu estilo de amor con 12 preguntas'}
+                                 </p>
+                                 <button
+                                   onClick={() => handleNavigation('/quiz/love-style')}
+                                   className="text-xs bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-full transition-colors"
+                                 >
+                                   {language === 'ko' ? '테스트 시작' : 'Comenzar Test'}
+                                 </button>
                                </div>
-                             ))
+                               {/* 기존 테스트들 */}
+                               {popularTests.slice(0, 1).map((test, index) => (
+                                 <div key={test.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                                   <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                     {test.title}
+                                   </div>
+                                   <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                     <Brain className="w-3 h-3" />
+                                     <span>{test.category || 'test'}</span>
+                                     <span>•</span>
+                                     <span>{test.created_at}</span>
+                                   </div>
+                                 </div>
+                               ))}
+                             </div>
                            ) : (
                              <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
                                {language === 'ko' ? '인기 테스트가 없습니다' : 'No hay tests populares'}
