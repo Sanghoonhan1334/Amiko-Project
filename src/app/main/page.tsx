@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 // 🚀 최적화: 컴포넌트 지연 로딩으로 초기 번들 크기 감소
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
-import HomeDashboard from '@/components/main/app/home/HomeDashboard'
 import HomeTab from '@/components/main/app/home/HomeTab'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -205,17 +204,7 @@ function AppPageContent() {
           {/* 콘텐츠 */}
           <div className="space-y-2 sm:space-y-8">
             {activeTab === 'home' && (
-              <div className="hidden md:block pt-20 sm:pt-36">
-                <div className="w-full">
-                  <div className="card dark:bg-gray-800 dark:border-gray-700 p-8 pt-12 -mt-12 sm:mt-0">
-                    <HomeDashboard />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'home' && (
-              <div className="block md:hidden pt-20">
+              <div className="pt-20">
                 <HomeTab />
               </div>
             )}

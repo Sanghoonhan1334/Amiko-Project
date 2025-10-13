@@ -82,20 +82,27 @@ export default function HomeTab() {
   // 실제 데이터 로딩 함수들
   const loadCurrentEvents = async () => {
     try {
-      // 이벤트 API가 없으므로 임시로 뉴스에서 이벤트성 콘텐츠 가져오기
-      const response = await fetch('/api/news?limit=3')
-      const data = await response.json()
+      // 임시 하드코딩된 이벤트 데이터
+      const mockEvents = [
+        {
+          id: 'event-1',
+          title: language === 'ko' ? '한국 드라마 시청 이벤트' : 'Korean Drama Watching Event',
+          description: language === 'ko' ? '인기 한국 드라마를 함께 시청하고 토론해보세요!' : 'Watch and discuss popular Korean dramas together!',
+          image: '/event-title.png',
+          date: '2025-01-20',
+          participants: 156
+        },
+        {
+          id: 'event-2',
+          title: language === 'ko' ? '한국어 학습 챌린지' : 'Korean Language Learning Challenge',
+          description: language === 'ko' ? '매일 한국어를 배우고 실력을 향상시켜보세요!' : 'Learn Korean every day and improve your skills!',
+          image: '/event-title.png',
+          date: '2025-01-25',
+          participants: 89
+        }
+      ]
       
-      const events = (data.newsItems || []).map((news: any, index: number) => ({
-        id: `event-${news.id}`,
-        title: language === 'ko' ? news.title : news.title_es || news.title,
-        description: language === 'ko' ? news.content?.substring(0, 50) + '...' : news.content_es?.substring(0, 50) + '...',
-        image: news.thumbnail || '/event-title.png',
-        date: news.date || news.created_at?.split('T')[0],
-        participants: Math.floor(Math.random() * 200) + 50 // 임시 참여자 수
-      }))
-      
-      setCurrentEvents(events)
+      setCurrentEvents(mockEvents)
     } catch (error) {
       console.error('이벤트 로딩 실패:', error)
       setCurrentEvents([])
@@ -104,21 +111,41 @@ export default function HomeTab() {
 
   const loadHotPosts = async () => {
     try {
-      const response = await fetch('/api/posts/popular?filter=hot&limit=3')
-      const data = await response.json()
+      // 임시 하드코딩된 핫 포스트 데이터
+      const mockPosts = [
+        {
+          id: 'post-1',
+          title: language === 'ko' ? '한국 드라마 추천해주세요!' : 'Please recommend Korean dramas!',
+          content: language === 'ko' ? '최근에 한국 드라마에 빠져서 더 많은 작품을 보고 싶어요...' : 'I recently got into Korean dramas and want to watch more...',
+          author: '김민수',
+          likes: 24,
+          comments: 15,
+          views: 156,
+          createdAt: language === 'ko' ? '2시간 전' : '2h ago'
+        },
+        {
+          id: 'post-2',
+          title: language === 'ko' ? '한국어 공부 방법 공유' : 'Sharing Korean study methods',
+          content: language === 'ko' ? '효과적인 한국어 학습 방법을 공유하고 싶어요...' : 'I want to share effective Korean learning methods...',
+          author: '박지영',
+          likes: 32,
+          comments: 18,
+          views: 89,
+          createdAt: language === 'ko' ? '4시간 전' : '4h ago'
+        },
+        {
+          id: 'post-3',
+          title: language === 'ko' ? '한국 음식 레시피 모음' : 'Collection of Korean food recipes',
+          content: language === 'ko' ? '집에서 만들 수 있는 간단한 한국 음식 레시피를 모았어요...' : 'I collected simple Korean food recipes you can make at home...',
+          author: '이서현',
+          likes: 28,
+          comments: 12,
+          views: 67,
+          createdAt: language === 'ko' ? '6시간 전' : '6h ago'
+        }
+      ]
       
-      const posts = (data.posts || []).map((post: any) => ({
-        id: post.id,
-        title: post.title,
-        content: post.content?.substring(0, 100) + '...',
-        author: post.user?.full_name || post.user?.nickname || '익명',
-        likes: post.like_count || 0,
-        comments: post.comment_count || 0,
-        views: post.view_count || 0,
-        createdAt: formatTimeAgo(post.created_at)
-      }))
-      
-      setHotPosts(posts)
+      setHotPosts(mockPosts)
     } catch (error) {
       console.error('핫 포스트 로딩 실패:', error)
       setHotPosts([])
@@ -127,19 +154,35 @@ export default function HomeTab() {
 
   const loadPopularTests = async () => {
     try {
-      const response = await fetch('/api/quizzes?limit=4')
-      const data = await response.json()
+      // 임시 하드코딩된 심리테스트 데이터
+      const mockTests = [
+        {
+          id: 'test-1',
+          title: language === 'ko' ? '내가 가장 좋아할 한국 드라마는?' : 'What Korean drama would I like most?',
+          description: language === 'ko' ? '20가지 질문으로 알아보는 나의 MBTI와 같은 K-POP 스타' : 'Find out your MBTI and matching K-POP star with 20 questions',
+          participants: 799,
+          image: '/celebs/bts.webp',
+          category: 'personality'
+        },
+        {
+          id: 'test-2',
+          title: language === 'ko' ? '한국어 레벨 테스트' : 'Korean Language Level Test',
+          description: language === 'ko' ? '나의 한국어 실력은 어느 정도일까요?' : 'What is my Korean language level?',
+          participants: 456,
+          image: '/celebs/iu.png',
+          category: 'language'
+        },
+        {
+          id: 'test-3',
+          title: language === 'ko' ? '문화 적응도 테스트' : 'Cultural Adaptation Test',
+          description: language === 'ko' ? '한국 문화에 얼마나 잘 적응할 수 있을까요?' : 'How well can you adapt to Korean culture?',
+          participants: 234,
+          image: '/celebs/jimin.png',
+          category: 'culture'
+        }
+      ]
       
-      const tests = (data.data || []).map((quiz: any) => ({
-        id: quiz.id,
-        title: quiz.title,
-        description: quiz.description || '심리테스트',
-        participants: Math.floor(Math.random() * 1000) + 100, // 임시 참여자 수
-        image: quiz.thumbnail_url || '/celebs/bts.webp',
-        category: quiz.category || 'test'
-      }))
-      
-      setPopularTests(tests)
+      setPopularTests(mockTests)
     } catch (error) {
       console.error('인기 테스트 로딩 실패:', error)
       setPopularTests([])
@@ -265,7 +308,9 @@ export default function HomeTab() {
   }
 
   return (
-    <div className="space-y-6 p-4">
+    <>
+      {/* 모바일 버전 - 기존 그대로 */}
+      <div className="md:hidden space-y-6 p-4">
       {/* 현재 진행 이벤트 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -506,5 +551,287 @@ export default function HomeTab() {
         )}
       </div>
     </div>
+
+        {/* 데스크톱 버전 - 적당한 크기로 조정 */}
+        <div className="hidden md:block max-w-6xl mx-auto p-6 pt-20 pb-4">
+          <div className="grid grid-cols-12 gap-6">
+            {/* 왼쪽 컬럼 (8/12) */}
+            <div className="col-span-8 space-y-4">
+            {/* 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {t('home.sections.currentEvents')}
+                </h2>
+              </div>
+              
+              <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="relative h-56 overflow-hidden">
+                    {currentEvents.length > 0 ? (
+                      <div 
+                        className="flex transition-transform duration-1000 ease-in-out"
+                        style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
+                      >
+                        {currentEvents.map((event, index) => (
+                          <div
+                            key={event.id}
+                            className="w-full flex-shrink-0"
+                          >
+                            <div className="h-full bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 flex items-center justify-between p-6 relative overflow-hidden">
+                              {/* 배경 장식 */}
+                              <div className="absolute inset-0 bg-black/10"></div>
+                              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+                              
+                              <div className="flex-1 relative z-10">
+                                <h3 className="text-white font-bold text-lg mb-3 leading-tight">{event.title}</h3>
+                                <p className="text-white/90 text-sm mb-4 max-w-2xl leading-relaxed">{event.description}</p>
+                                <div className="flex items-center gap-3">
+                                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-3 py-1 text-sm">
+                                    <Users className="w-4 h-4 mr-1" />
+                                    {formatNumber(event.participants)}명 참여
+                                  </Badge>
+                                  <span className="text-white/80 text-sm bg-white/10 px-3 py-1 rounded-full">{event.date}</span>
+                                </div>
+                              </div>
+                              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                                <Calendar className="w-6 h-6 text-white" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="h-full bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <Calendar className="w-16 h-16 mx-auto mb-4 opacity-80" />
+                          <p className="text-lg font-medium">
+                            {language === 'ko' ? '진행 중인 이벤트가 없습니다' : 'No ongoing events'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* 이벤트 인디케이터 */}
+                    {currentEvents.length > 1 && (
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                        {currentEvents.map((_, index) => (
+                          <button
+                            key={index}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              index === currentEventIndex ? 'bg-white shadow-md' : 'bg-white/50 hover:bg-white/70'
+                            }`}
+                            onClick={() => setCurrentEventIndex(index)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    <TrendingUp className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.hotPosts')}
+                  </h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={() => router.push('/main?tab=community')}
+                >
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
+              </div>
+              
+              {hotPosts.length > 0 ? (
+                <div className="space-y-4">
+                  {hotPosts.map((post, index) => (
+                    <Card key={post.id} className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-red-500 hover:border-l-red-600">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                            <span className="text-red-600 dark:text-red-400 font-bold text-sm">🔥</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                              {post.title}
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                              {post.content}
+                            </p>
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-4">
+                                <span className="flex items-center gap-1 text-red-500 font-medium">
+                                  <Heart className="w-3 h-3" />
+                                  {post.likes}
+                                </span>
+                                <span className="flex items-center gap-1 text-blue-500 font-medium">
+                                  <MessageSquare className="w-3 h-3" />
+                                  {post.comments}
+                                </span>
+                                <span className="flex items-center gap-1 text-gray-500 font-medium">
+                                  <Eye className="w-3 h-3" />
+                                  {formatNumber(post.views)}
+                                </span>
+                              </div>
+                              <span className="flex items-center gap-1 text-gray-400">
+                                <Clock className="w-3 h-3" />
+                                {post.createdAt}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="shadow-2xl">
+                  <CardContent className="p-12 text-center">
+                    <TrendingUp className="w-24 h-24 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-xl">
+                      {language === 'ko' ? '핫한 게시글이 없습니다' : 'No hay posts populares'}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+            {/* 오른쪽 컬럼 (4/12) */}
+            <div className="col-span-4 space-y-4">
+            {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {t('home.sections.videoChatOnline')}
+                </h2>
+              </div>
+              
+              <Card className="shadow-2xl">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {onlineUsers.map((user) => (
+                      <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
+                        <div className="relative">
+                          <img
+                            src={user.profileImage}
+                            alt={user.name}
+                            className="w-12 h-12 rounded-full object-cover shadow-md border-2 border-white dark:border-gray-800 group-hover:scale-105 transition-transform"
+                          />
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 shadow-md">
+                            <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                            {user.name}
+                          </h3>
+                          <p className="text-sm text-green-600 dark:text-green-400 font-medium">온라인</p>
+                        </div>
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      className="w-full h-10 border-green-200 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
+                      onClick={() => router.push('/main?tab=meet')}
+                    >
+                      <Users className="w-4 h-4 mr-2 text-green-600" />
+                      <span className="text-green-600 font-medium text-sm">{t('home.community.seeMore')}</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 인기 심리테스트 - 데스크톱 전용 사이드바 */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {t('home.sections.popularTests')}
+                </h2>
+              </div>
+              
+              {popularTests.length > 0 ? (
+                <div className="space-y-3">
+                  {popularTests.map((test) => (
+                    <Card key={test.id} className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-purple-500 hover:border-l-purple-600">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="aspect-square w-16 bg-gradient-to-br from-purple-100 via-pink-100 to-indigo-100 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center relative overflow-hidden flex-shrink-0">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-400/20 dark:to-pink-400/20"></div>
+                            <img
+                              src={test.image}
+                              alt={test.title}
+                              className="w-10 h-10 rounded-full object-cover shadow-lg relative z-10"
+                            />
+                            <div className="absolute top-1 right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center">
+                              <span className="text-xs font-bold">🧠</span>
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                              {test.title}
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 line-clamp-2">
+                              {test.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <Badge variant="secondary" className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                                <Users className="w-3 h-3 mr-1" />
+                                {formatNumber(test.participants)}명
+                              </Badge>
+                              <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">{test.category}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    onClick={() => router.push('/community/tests')}
+                  >
+                    <Brain className="w-5 h-5 mr-2" />
+                    {language === 'ko' ? '더 보기' : 'Ver Más'}
+                  </Button>
+                </div>
+              ) : (
+                <Card className="shadow-2xl">
+                  <CardContent className="p-8 text-center">
+                    <Brain className="w-20 h-20 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg">
+                      {language === 'ko' ? '인기 테스트가 없습니다' : 'No hay tests populares'}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }

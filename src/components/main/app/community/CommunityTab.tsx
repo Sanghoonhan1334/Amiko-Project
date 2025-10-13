@@ -2305,7 +2305,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                  {/* 새로운 섹션들 - 아이콘 아래 */}
                  <div className="w-full space-y-4 mt-6 animate-slide-in-left opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
                    {/* 최근 스토리, 인기 게시글, 인기 심리테스트, 인기 한국 뉴스, 최근 활동 */}
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                   <div className="grid grid-cols-1 gap-4">
                      {/* 최근 스토리 */}
                      <Card className="cursor-pointer hover:shadow-md transition-shadow">
                        <CardContent className="p-4">
