@@ -331,9 +331,10 @@ export default function HomeTab() {
                   {currentEvents.map((event, index) => (
                     <div
                       key={event.id}
-                      className="w-full flex-shrink-0"
+                      className="w-full flex-shrink-0 cursor-pointer"
+                      onClick={() => router.push('/main?tab=event')}
                     >
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4 hover:shadow-lg transition-shadow">
                         <div className="flex-1">
                           <h3 className="text-white font-bold text-lg mb-1">{event.title}</h3>
                           <p className="text-white/90 text-sm mb-2">{event.description}</p>
@@ -579,9 +580,10 @@ export default function HomeTab() {
                         {currentEvents.map((event, index) => (
                           <div
                             key={event.id}
-                            className="w-full flex-shrink-0"
+                            className="w-full flex-shrink-0 cursor-pointer"
+                            onClick={() => router.push('/main?tab=event')}
                           >
-                            <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-between p-6 relative overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-between p-6 relative overflow-hidden hover:shadow-xl transition-all duration-300">
                               {/* 배경 장식 */}
                               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
                               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>

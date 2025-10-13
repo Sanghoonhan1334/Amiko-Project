@@ -36,6 +36,7 @@ export default function EventTab() {
   const [clickedDay, setClickedDay] = useState<number | null>(null)
   const [userType, setUserType] = useState<'local' | 'korean'>('local') // 기본값: 현지인
   
+  
   // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
   const { 
     data: eventData, 
