@@ -589,25 +589,25 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-0 z-0 flex flex-col items-center">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-6 z-0 flex flex-col items-center">
               {/* 로고 */}
               <div className="relative logo-container">
                 {/* 라이트 모드 로고 */}
                 <img 
                   src="/amiko-logo.png" 
                   alt="Amiko" 
-                  className="h-20 sm:h-24 md:h-32 lg:h-36 xl:h-40 w-auto object-contain transition-all duration-300 dark:hidden"
+                  className="h-28 sm:h-32 md:h-36 lg:h-40 xl:h-44 w-auto object-contain transition-all duration-300 dark:hidden"
                   style={{ 
-                    maxHeight: '120px'
+                    maxHeight: '160px'
                   }}
                 />
                 {/* 다크 모드 로고 - amiko-logo.png 사용 */}
                 <img 
                   src="/amiko-logo.png?v=3" 
                   alt="Amiko" 
-                  className="h-20 sm:h-24 md:h-32 lg:h-36 xl:h-40 w-auto object-contain transition-all duration-300 hidden dark:block"
+                  className="h-28 sm:h-32 md:h-36 lg:h-40 xl:h-44 w-auto object-contain transition-all duration-300 hidden dark:block"
                   style={{ 
-                    maxHeight: '120px',
+                    maxHeight: '160px',
                     filter: 'brightness(0) invert(1)',
                     WebkitFilter: 'brightness(0) invert(1)'
                   }}

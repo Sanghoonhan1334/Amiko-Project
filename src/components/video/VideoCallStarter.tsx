@@ -22,7 +22,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import VideoCallTutorial from '@/components/common/VideoCallTutorial'
 import TranslatedInterests from '@/components/common/TranslatedInterests'
 
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
@@ -46,7 +45,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [selectedPartner, setSelectedPartner] = useState<any>(null)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
-  const [showTutorial, setShowTutorial] = useState(false)
   
   // 헤더와 동일한 인증 상태 확인
   useEffect(() => {
@@ -75,20 +73,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
     checkAuthStatus()
   }, [user?.id])
 
-  // 튜토리얼 자동 시작 (첫 방문자만)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && verificationStatus === 'verified') {
-      // 로컬스토리지에서 튜토리얼 완료 여부 확인
-      const tutorialCompleted = localStorage.getItem('video-call-tutorial-completed')
-      
-      if (!tutorialCompleted) {
-        const timer = setTimeout(() => {
-          setShowTutorial(true)
-        }, 2000)
-        return () => clearTimeout(timer)
-      }
-    }
-  }, [verificationStatus])
 
 
   const handleStartCall = () => {
@@ -686,11 +670,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         </DialogContent>
       </Dialog>
 
-      {/* 튜토리얼 */}
-      <VideoCallTutorial
-        isVisible={showTutorial}
-        onClose={() => setShowTutorial(false)}
-      />
     </>
   )
 }

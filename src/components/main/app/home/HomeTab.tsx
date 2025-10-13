@@ -86,11 +86,11 @@ export default function HomeTab() {
       const mockEvents = [
         {
           id: 'event-1',
-          title: language === 'ko' ? '한국 드라마 시청 이벤트' : 'Korean Drama Watching Event',
-          description: language === 'ko' ? '인기 한국 드라마를 함께 시청하고 토론해보세요!' : 'Watch and discuss popular Korean dramas together!',
+          title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Korean Flight Ticket Lottery Event',
+          description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : 'Participate in community and win Korean flight tickets!',
           image: '/event-title.png',
-          date: '2025-01-20',
-          participants: 156
+          date: '2025-02-15',
+          participants: 324
         },
         {
           id: 'event-2',
@@ -568,8 +568,8 @@ export default function HomeTab() {
                 </h2>
               </div>
               
-              <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden">
-                <CardContent className="p-0">
+              <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none">
+                <CardContent className="p-0 bg-transparent">
                   <div className="relative h-56 overflow-hidden">
                     {currentEvents.length > 0 ? (
                       <div 
@@ -581,9 +581,8 @@ export default function HomeTab() {
                             key={event.id}
                             className="w-full flex-shrink-0"
                           >
-                            <div className="h-full bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 flex items-center justify-between p-6 relative overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-between p-6 relative overflow-hidden">
                               {/* 배경 장식 */}
-                              <div className="absolute inset-0 bg-black/10"></div>
                               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
                               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
                               
@@ -591,11 +590,11 @@ export default function HomeTab() {
                                 <h3 className="text-white font-bold text-lg mb-3 leading-tight">{event.title}</h3>
                                 <p className="text-white/90 text-sm mb-4 max-w-2xl leading-relaxed">{event.description}</p>
                                 <div className="flex items-center gap-3">
-                                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-3 py-1 text-sm">
-                                    <Users className="w-4 h-4 mr-1" />
+                                  <span className="text-white text-sm px-3 py-1 flex items-center gap-1">
+                                    <Users className="w-4 h-4" />
                                     {formatNumber(event.participants)}명 참여
-                                  </Badge>
-                                  <span className="text-white/80 text-sm bg-white/10 px-3 py-1 rounded-full">{event.date}</span>
+                                  </span>
+                                  <span className="text-white/80 text-sm bg-transparent px-3 py-1 rounded-full">{event.date}</span>
                                 </div>
                               </div>
                               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
@@ -606,7 +605,7 @@ export default function HomeTab() {
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 flex items-center justify-center">
+                      <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-center">
                         <div className="text-center text-white">
                           <Calendar className="w-16 h-16 mx-auto mb-4 opacity-80" />
                           <p className="text-lg font-medium">
