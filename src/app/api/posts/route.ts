@@ -21,6 +21,11 @@ export async function GET(request: NextRequest) {
 
     console.log('[POSTS_GET] 게시물 목록 조회:', { page, limit, sortBy, searchQuery, gallerySlug })
 
+    // 3일 전 날짜 계산 (최근 3일 이내 글만 표시)
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+    const threeDaysAgoISO = threeDaysAgo.toISOString()
+
     // 기본 쿼리 구성 (자유게시판 갤러리)
     let query = supabaseServer
       .from('gallery_posts')
@@ -41,6 +46,7 @@ export async function GET(request: NextRequest) {
         user_id
       `)
       .eq('is_deleted', false)
+      .gte('created_at', threeDaysAgoISO)
 
     // 갤러리 필터링 처리
     if (gallerySlug) {

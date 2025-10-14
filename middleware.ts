@@ -23,12 +23,12 @@ const publicPaths = [
   '/_next',
   '/favicon.ico',
   '/sw.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/main'
 ]
 
 // 보호된 경로 (인증 필요)
 const protectedPaths = [
-  '/main',
   '/profile',
   '/bookings',
   '/payments',
@@ -76,9 +76,12 @@ export async function middleware(request: NextRequest) {
   const { data: { session }, error } = await supabase.auth.getSession()
 
   // 공개 경로 체크
-  const isPublicPath = publicPaths.some(path => 
-    pathname === path || pathname.startsWith(path + '/')
-  )
+  const isPublicPath = publicPaths.some(path => {
+    // 정확한 경로 매칭 또는 하위 경로 매칭
+    if (pathname === path) return true
+    if (path === '/main' && pathname.startsWith('/main')) return true
+    return pathname.startsWith(path + '/')
+  })
 
   // 보호된 경로 체크
   const isProtectedPath = protectedPaths.some(path => 
@@ -95,8 +98,18 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(path)
   )
 
+  // 디버그 로그
+  console.log('[MIDDLEWARE]', {
+    pathname,
+    hasSession: !!session,
+    isPublicPath,
+    isProtectedPath,
+    isProtectedApiPath
+  })
+
   // 공개 경로는 인증 상태와 관계없이 통과
   if (isPublicPath) {
+    console.log('[MIDDLEWARE] 공개 경로 통과:', pathname)
     return response
   }
 

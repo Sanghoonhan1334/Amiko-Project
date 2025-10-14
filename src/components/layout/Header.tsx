@@ -824,7 +824,7 @@ export default function Header() {
               {/* 모바일 시작하기 버튼 - 랜딩페이지에서만 표시 */}
               {isLandingPage && (
                 <Button
-                  onClick={() => router.push(user ? '/main' : '/sign-in')}
+                  onClick={() => router.push('/main')}
                   className="md:hidden px-2 py-0 text-[8px] bg-gray-800 hover:bg-gray-700 text-white rounded transition-all duration-300 flex items-center gap-0.5"
                 >
                   {t('buttons.start')}
@@ -881,44 +881,148 @@ export default function Header() {
         <div className={`absolute left-0 top-14 sm:top-16 md:top-20 w-52 sm:w-56 md:w-64 max-h-80 sm:max-h-96 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 dark:border-gray-700/50 rounded-r-2xl transition-all duration-300 transform ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
-          <div className="pt-4 sm:pt-6 px-3 sm:px-4 pb-3 sm:pb-4 space-y-1 sm:space-y-2 max-h-80 sm:max-h-96 overflow-y-auto scroll-smooth-touch">
-            {/* 인증 메뉴 - 맨 위로 이동 */}
-            <div className="space-y-1 mb-4">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => {
-                      handleLogout()
-                      toggleMobileMenu()
-                    }}
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-300 w-full text-left"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    로그아웃
-                  </button>
-                </>
-              ) : (
-                <Link 
-                  href="/sign-in"
-                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all duration-300"
-                  onClick={toggleMobileMenu}
-                >
-                  <span className="text-base">🔐</span>
-{t('buttons.login')}
-                </Link>
-              )}
+          <div className="pt-4 sm:pt-6 px-3 sm:px-4 pb-3 sm:pb-4 space-y-1 sm:space-y-2 max-h-80 sm:max-h-96 overflow-y-auto scroll-smooth-touch scrollbar-hide">
+            {/* 메인 메뉴 */}
+            <div className="space-y-1">
+              {/* 홈으로 */}
+              <Link 
+                href="/"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+                onClick={toggleMobileMenu}
+              >
+                <span className="text-base">🏠</span>
+                <span className="text-sm font-medium">{language === 'ko' ? '홈으로' : 'Inicio'}</span>
+              </Link>
+
+              {/* 도움말 / FAQ */}
+              <Link 
+                href="/faq"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+                onClick={toggleMobileMenu}
+              >
+                <span className="text-base">❓</span>
+                <span className="text-sm font-medium">{language === 'ko' ? 'FAQ / 도움말' : 'FAQ / Ayuda'}</span>
+              </Link>
+
+              {/* 문의하기 */}
+              <Link 
+                href="/inquiry"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+                onClick={toggleMobileMenu}
+              >
+                <span className="text-base">📧</span>
+                <span className="text-sm font-medium">{language === 'ko' ? '문의하기' : 'Contacto'}</span>
+              </Link>
+
+              {/* 제휴문의 */}
+              <Link 
+                href="/partnership"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+                onClick={toggleMobileMenu}
+              >
+                <span className="text-base">🤝</span>
+                <span className="text-sm font-medium">{language === 'ko' ? '제휴문의' : 'Colaboración'}</span>
+              </Link>
             </div>
             
             {/* 구분선 */}
             <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
-            
-            {/* 메인 메뉴 */}
+
+            {/* SNS 링크 */}
             <div className="space-y-1">
-              {/* 랜딩페이지 및 문의페이지 네비게이션 메뉴 - 제거됨 */}
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2.5 mb-2">
+                {language === 'ko' ? 'SNS' : 'Redes Sociales'}
+              </div>
               
-              {/* 랜딩페이지 및 문의페이지에서는 시작하기 버튼 표시 */}
-              
+              <a 
+                href="https://www.tiktok.com/@amiko_latin"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+              >
+                <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain" />
+                <span className="text-sm font-medium">TikTok</span>
+              </a>
+
+              <a 
+                href="https://www.instagram.com/amiko_latin"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+              >
+                <img src="/instagram.jpeg" alt="Instagram" className="w-5 h-5 object-contain rounded" />
+                <span className="text-sm font-medium">Instagram</span>
+              </a>
+
+              <a 
+                href="https://www.youtube.com/@AMIKO_Officialstudio"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+              >
+                <img src="/youtube.png" alt="YouTube" className="w-5 h-5 object-contain" />
+                <span className="text-sm font-medium">YouTube</span>
+              </a>
             </div>
+
+            {/* 구분선 */}
+            <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
+
+            {/* 앱 정보 */}
+            <div className="space-y-1">
+              <Link 
+                href="/privacy"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+                onClick={toggleMobileMenu}
+              >
+                <span className="text-base">🔒</span>
+                <span className="text-sm font-medium">{language === 'ko' ? '개인정보처리방침' : 'Privacidad'}</span>
+              </Link>
+
+              <Link 
+                href="/terms"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+                onClick={toggleMobileMenu}
+              >
+                <span className="text-base">📋</span>
+                <span className="text-sm font-medium">{language === 'ko' ? '이용약관' : 'Términos'}</span>
+              </Link>
+
+              {/* 앱 버전 */}
+              <div className="flex items-center gap-3 p-2.5 text-gray-500 dark:text-gray-400">
+                <span className="text-base">ℹ️</span>
+                <span className="text-xs">v1.0.0</span>
+              </div>
+            </div>
+
+            {/* 로그인/로그아웃 - 맨 아래 */}
+            {user ? (
+              <>
+                <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
+                <button
+                  onClick={() => {
+                    handleLogout()
+                    toggleMobileMenu()
+                  }}
+                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-300 w-full text-left"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="text-sm font-medium">{language === 'ko' ? '로그아웃' : 'Cerrar Sesión'}</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
+                <Link 
+                  href="/sign-in"
+                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-all duration-300"
+                  onClick={toggleMobileMenu}
+                >
+                  <span className="text-base">🔐</span>
+                  <span className="text-sm font-medium">{t('buttons.login')}</span>
+                </Link>
+              </>
+            )}
             
             {/* 구분선 */}
             <div className="border-t border-gray-200 dark:border-gray-700 my-3" />

@@ -321,9 +321,9 @@ export default function HomeTab() {
         </div>
         
         {currentEvents.length > 0 ? (
-          <Card className="relative overflow-hidden">
+          <Card className="relative overflow-hidden rounded-lg">
             <CardContent className="p-0">
-              <div className="relative h-32 overflow-hidden">
+              <div className="relative h-32 overflow-hidden rounded-lg">
                 <div 
                   className="flex transition-transform duration-700 ease-in-out"
                   style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
@@ -334,7 +334,7 @@ export default function HomeTab() {
                       className="w-full flex-shrink-0 cursor-pointer"
                       onClick={() => router.push('/main?tab=event')}
                     >
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4 hover:shadow-lg transition-shadow">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4 hover:shadow-lg transition-shadow rounded-lg">
                         <div className="flex-1">
                           <h3 className="text-white font-bold text-lg mb-1">{event.title}</h3>
                           <p className="text-white/90 text-sm mb-2">{event.description}</p>
@@ -450,7 +450,11 @@ export default function HomeTab() {
         <div className="space-y-3">
           {hotPosts.length > 0 ? (
             hotPosts.map((post) => (
-              <Card key={post.id} className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card 
+                key={post.id} 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => router.push('/community/freeboard')}
+              >
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
                     {post.title}
@@ -515,7 +519,11 @@ export default function HomeTab() {
         {popularTests.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {popularTests.map((test) => (
-              <Card key={test.id} className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card 
+                key={test.id} 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => router.push('/community/tests')}
+              >
                 <CardContent className="p-3">
                   <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg mb-3 flex items-center justify-center">
                     <img
@@ -569,9 +577,9 @@ export default function HomeTab() {
                 </h2>
               </div>
               
-              <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none">
+              <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none rounded-lg">
                 <CardContent className="p-0 bg-transparent">
-                  <div className="relative h-56 overflow-hidden">
+                  <div className="relative h-56 overflow-hidden rounded-lg">
                     {currentEvents.length > 0 ? (
                       <div 
                         className="flex transition-transform duration-1000 ease-in-out"
@@ -583,7 +591,7 @@ export default function HomeTab() {
                             className="w-full flex-shrink-0 cursor-pointer"
                             onClick={() => router.push('/main?tab=event')}
                           >
-                            <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-between p-6 relative overflow-hidden hover:shadow-xl transition-all duration-300">
+                            <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-between p-6 relative overflow-hidden hover:shadow-xl transition-all duration-300 rounded-lg">
                               {/* 배경 장식 */}
                               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
                               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
@@ -661,7 +669,11 @@ export default function HomeTab() {
               {hotPosts.length > 0 ? (
                 <div className="space-y-4">
                   {hotPosts.map((post, index) => (
-                    <Card key={post.id} className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-red-500 hover:border-l-red-600">
+                    <Card 
+                      key={post.id} 
+                      className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-red-500 hover:border-l-red-600"
+                      onClick={() => router.push('/community/freeboard')}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3 mb-3">
                           <div className="flex-shrink-0 w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
@@ -777,7 +789,11 @@ export default function HomeTab() {
               {popularTests.length > 0 ? (
                 <div className="space-y-3">
                   {popularTests.map((test) => (
-                    <Card key={test.id} className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-purple-500 hover:border-l-purple-600">
+                    <Card 
+                      key={test.id} 
+                      className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-purple-500 hover:border-l-purple-600"
+                      onClick={() => router.push('/community/tests')}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div className="aspect-square w-16 bg-gradient-to-br from-purple-100 via-pink-100 to-indigo-100 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center relative overflow-hidden flex-shrink-0">

@@ -1580,29 +1580,33 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         console.log('스토리 업로드 성공:', result)
         toast.success('스토리가 업로드되었습니다!')
         
-        // 스토리 목록 새로고침
-        await loadStories()
-        
-        // 상태 초기화
+        // 상태 초기화 먼저
         setShowStoryUploadModal(false)
         setStoryText('')
         clearImage()
+        setIsUploading(false)
+        
+        // 스토리 목록 새로고침 (비동기, 에러가 나도 무시)
+        loadStories().catch(err => {
+          console.error('스토리 목록 새로고침 실패:', err)
+        })
       } else {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
         console.error('스토리 업로드 실패:', { status: response.status, error: errorData })
         
         // 인증 오류인 경우 에러 메시지만 표시
         if (response.status === 401) {
           toast.error('로그인이 필요합니다. 페이지를 새로고침해주세요.')
+          setIsUploading(false)
           return
         }
         
         toast.error(`스토리 업로드 실패: ${errorData.error || '알 수 없는 오류'}`)
+        setIsUploading(false)
       }
     } catch (error) {
       console.error('스토리 업로드 에러:', error)
       toast.error('스토리 업로드 중 오류가 발생했습니다.')
-    } finally {
       setIsUploading(false)
     }
   }
@@ -2230,7 +2234,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </div>
         
                  {/* 5개 아이콘 - 모든 화면에서 한 줄 배치 */}
-                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto px-2 mb-0">
+                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto scrollbar-hide px-2 mb-0">
                    {/* 주제별 게시판 */}
                    <button
                      onClick={() => handleNavigation('/community/freeboard')}
@@ -2404,41 +2408,25 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                <Skeleton className="h-12 w-full rounded-lg" />
                                <Skeleton className="h-12 w-full rounded-lg" />
                              </>
-                           ) : popularTests.length > 0 ? (
-                             <div className="space-y-3">
-                               {/* 연애 스타일 테스트 추가 */}
-                               <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-lg p-3 border border-pink-200 dark:border-pink-700">
-                                 <div className="flex items-center gap-2 mb-2">
-                                   <span className="text-pink-500">💕</span>
-                                   <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                                     {language === 'ko' ? '나의 연애 스타일 테스트' : 'Test de Estilo de Amor'}
-                                   </span>
-                                 </div>
-                                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                   {language === 'ko' ? '12가지 질문으로 알아보는 연애 스타일' : 'Descubre tu estilo de amor con 12 preguntas'}
-                                 </p>
-                                 <button
-                                   onClick={() => handleNavigation('/quiz/love-style')}
-                                   className="text-xs bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-full transition-colors"
-                                 >
-                                   {language === 'ko' ? '테스트 시작' : 'Comenzar Test'}
-                                 </button>
-                               </div>
-                               {/* 기존 테스트들 */}
-                               {popularTests.slice(0, 1).map((test, index) => (
-                                 <div key={test.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                                   <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                     {test.title}
-                                   </div>
-                                   <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                     <Brain className="w-3 h-3" />
-                                     <span>{test.category || 'test'}</span>
-                                     <span>•</span>
-                                     <span>{test.created_at}</span>
-                                   </div>
-                                 </div>
-                               ))}
-                             </div>
+                          ) : popularTests.length > 0 ? (
+                            <div className="space-y-3">
+                              {/* K-POP 스타 MBTI 매칭 테스트만 표시 */}
+                              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer" onClick={() => handleNavigation('/community/tests')}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-purple-500">🎭</span>
+                                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                                    {language === 'ko' ? 'K-POP 스타 MBTI 매칭 테스트' : 'Test de Coincidencia MBTI K-POP'}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                  {language === 'ko' ? '12개 질문으로 나와 닮은 K-POP 스타 찾기' : 'Encuentra tu estrella K-POP similar con 12 preguntas'}
+                                </p>
+                                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                  <Brain className="w-3 h-3" />
+                                  <span>personality</span>
+                                </div>
+                              </div>
+                            </div>
                            ) : (
                              <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
                                {language === 'ko' ? '인기 테스트가 없습니다' : 'No hay tests populares'}
@@ -2465,20 +2453,24 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                <Skeleton className="h-12 w-full rounded-lg" />
                                <Skeleton className="h-12 w-full rounded-lg" />
                              </>
-                           ) : popularNews.length > 0 ? (
-                             popularNews.slice(0, 2).map((news, index) => (
-                               <div key={news.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                   {truncateText(language === 'ko' ? news.title : news.title_es || news.title)}
-                                 </div>
-                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                   <Eye className="w-3 h-3" />
-                                   <span>{formatNumber(news.view_count || 0)}</span>
-                                   <span>•</span>
-                                   <span>{formatTimeAgo(news.created_at)}</span>
-                                 </div>
-                               </div>
-                             ))
+                          ) : popularNews.length > 0 ? (
+                            popularNews.slice(0, 2).map((news, index) => (
+                              <div 
+                                key={news.id} 
+                                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                                onClick={() => handleNavigation('/community/news')}
+                              >
+                                <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                  {truncateText(language === 'ko' ? news.title : news.title_es || news.title)}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                  <Eye className="w-3 h-3" />
+                                  <span>{formatNumber(news.view_count || 0)}</span>
+                                  <span>•</span>
+                                  <span>{formatTimeAgo(news.created_at)}</span>
+                                </div>
+                              </div>
+                            ))
                            ) : (
                              <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
                                {language === 'ko' ? '인기 뉴스가 없습니다' : 'No hay noticias populares'}
