@@ -249,15 +249,12 @@ export async function GET(request: NextRequest) {
     console.error('[COUPONS_CHECK] 오류 메시지:', error instanceof Error ? error.message : String(error));
     console.error('[COUPONS_CHECK] 오류 스택:', error instanceof Error ? error.stack : 'No stack trace');
     
-    // 더 자세한 에러 정보를 클라이언트에 전달
-    return NextResponse.json(
-      { 
-        error: '서버 오류가 발생했습니다.', 
-        details: error instanceof Error ? error.message : String(error),
-        type: typeof error,
-        stack: error instanceof Error ? error.stack : undefined
-      },
-      { status: 500 }
-    );
+    // 에러 발생 시에도 기본값 반환 (500 대신 200)
+    return NextResponse.json({
+      hasAvailableCoupon: false,
+      lastClaimDate: null,
+      canClaimToday: false,
+      message: '쿠폰 정보를 불러올 수 없습니다.'
+    });
   }
 }

@@ -11,7 +11,7 @@ export default function MeetTab() {
 
   return (
     <div className="w-full">
-      <VerificationGuard requiredLevel="sms">
+      <VerificationGuard requiredLevel="email">
         <VideoCallStarter onStartCall={handleStartCall} />
       </VerificationGuard>
     </div>

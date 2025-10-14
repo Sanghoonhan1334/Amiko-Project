@@ -23,10 +23,35 @@ export async function GET(
       )
     }
 
-    // 사용자 기본 정보 가져오기
+    // 사용자 기본 정보 가져오기 (모든 프로필 정보가 users 테이블에 통합됨)
     const { data: user, error: userError } = await supabaseServer
       .from('users')
-      .select('*')
+      .select(`
+        id,
+        email,
+        full_name,
+        nickname,
+        korean_name,
+        spanish_name,
+        profile_image,
+        bio,
+        introduction,
+        location,
+        is_korean,
+        user_type,
+        university,
+        major,
+        grade,
+        occupation,
+        company,
+        career,
+        interests,
+        korean_level,
+        english_level,
+        spanish_level,
+        created_at,
+        join_date
+      `)
       .eq('id', userId)
       .single()
 
@@ -38,50 +63,33 @@ export async function GET(
       )
     }
 
-    // 사용자 선호도 정보 가져오기
-    const { data: preferences, error: preferencesError } = await supabaseServer
-      .from('user_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    // 사용자 학생 정보 가져오기
-    const { data: studentInfo, error: studentError } = await supabaseServer
-      .from('user_student_info')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    // 사용자 일반 정보 가져오기
-    const { data: generalInfo, error: generalError } = await supabaseServer
-      .from('user_general_info')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    // 프로필 데이터 조합
+    // 프로필 데이터 (users 테이블에서 직접 가져옴)
     const profile = {
-      id: (user as any).id,
-      full_name: (user as any).full_name,
-      email: (user as any).email,
-      profile_image: (user as any).profile_image,
-      bio: (user as any).bio,
-      location: (user as any).location,
-      is_korean: (user as any).is_korean,
-      user_type: (preferences as any)?.user_type || 'student',
-      university: (studentInfo as any)?.university,
-      major: (studentInfo as any)?.major,
-      grade: (studentInfo as any)?.grade,
-      occupation: (generalInfo as any)?.occupation,
-      company: (generalInfo as any)?.company,
-      work_experience: (generalInfo as any)?.work_experience,
-      interests: (preferences as any)?.interests || [],
+      id: user.id,
+      full_name: user.full_name || user.nickname || user.korean_name || user.spanish_name || '사용자',
+      nickname: user.nickname,
+      korean_name: user.korean_name,
+      spanish_name: user.spanish_name,
+      email: user.email,
+      profile_image: user.profile_image,
+      bio: user.introduction || user.bio,
+      location: user.location,
+      is_korean: user.is_korean,
+      user_type: user.user_type || 'student',
+      university: user.university,
+      major: user.major,
+      grade: user.grade,
+      occupation: user.occupation,
+      company: user.company,
+      work_experience: user.career,
+      interests: user.interests || [],
       language_levels: {
-        korean: (preferences as any)?.korean_level,
-        english: (preferences as any)?.english_level,
-        spanish: (preferences as any)?.spanish_level,
+        korean: user.korean_level,
+        english: user.english_level,
+        spanish: user.spanish_level,
       },
-      created_at: (user as any).created_at,
+      created_at: user.created_at,
+      join_date: user.join_date,
     }
 
     return NextResponse.json({ profile })

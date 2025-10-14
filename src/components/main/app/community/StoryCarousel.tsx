@@ -1185,7 +1185,15 @@ export default function StoryCarousel() {
                                 <div className="w-5 h-5 bg-brand-100 rounded-full flex items-center justify-center">
                                   <User className="w-3 h-3 text-brand-600" />
                                 </div>
-                                <span className="text-xs font-medium text-gray-800">{story.userName}</span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleViewProfile(story.userId)
+                                  }}
+                                  className="text-xs font-medium text-gray-800 hover:text-blue-600 hover:underline transition-colors"
+                                >
+                                  {story.userName}
+                                </button>
                               </div>
                               
                               <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words leading-relaxed" style={{
@@ -1402,9 +1410,15 @@ export default function StoryCarousel() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-gray-800">
+                  <button
+                    onClick={() => {
+                      handleViewProfile(selectedStory.userId)
+                      setShowStoryModal(false)
+                    }}
+                    className="text-lg font-semibold text-gray-800 hover:text-blue-600 hover:underline transition-colors"
+                  >
                     {selectedStory.userName || '익명'}
-                  </p>
+                  </button>
                   <p className="text-sm text-gray-500">
                     {selectedStory.createdAt.toLocaleDateString('ko-KR')}
                   </p>

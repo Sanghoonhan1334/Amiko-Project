@@ -333,32 +333,12 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     
     const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
     setIsAdmin(isAdminUser)
-    
-    console.log('운영자 권한 확인:', {
-      userId: user.id,
-      email: user.email,
-      isAdmin: isAdminUser
-    })
   }
-  
-  // 언어 설정 디버깅
-  console.log('현재 언어 설정:', language)
-  console.log('스토리 번역:', t('communityTab.story'))
 
   // 운영진 상태 확인
   useEffect(() => {
     checkAdminStatus()
   }, [user])
-
-  // 임시 디버깅: 운영진 상태 출력
-  console.log('CommunityTab 현재 운영진 상태:', isAdmin)
-  
-  // 사용자 상태 디버깅
-  console.log('사용자 상태:', { 
-    user: !!user, 
-    userId: user?.id, 
-    token: !!token 
-  })
   const searchParams = useSearchParams()
   
   // 탭 상태 관리
@@ -1020,7 +1000,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }
       
       const baseUrl = window.location.origin
-      console.log('스토리 API 호출:', `${baseUrl}/api/stories?isPublic=true&limit=20`)
       
       const response = await fetch(`${baseUrl}/api/stories?isPublic=true&limit=20`, {
         method: 'GET',
@@ -1029,12 +1008,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       })
       
       clearTimeout(timeoutId)
-      
-      console.log('스토리 API 응답:', { 
-        status: response.status, 
-        statusText: response.statusText,
-        ok: response.ok 
-      })
       
       if (!response.ok) {
         // 404나 다른 에러의 경우 빈 배열로 처리
@@ -1063,10 +1036,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }
       
       const data = await response.json()
-      console.log('스토리 조회 응답:', { 
-        data,
-        storiesCount: data.stories?.length || 0
-      })
       
       // 스토리 데이터 변환 (API 응답을 컴포넌트에서 사용하는 형태로 변환)
       const convertedStories = (data.stories || []).map((story: any) => ({
@@ -1079,7 +1048,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }))
       
       setStories(convertedStories)
-      console.log('스토리 목록 설정 완료:', convertedStories.length, '개')
     } catch (err) {
       clearTimeout(timeoutId) // 타임아웃 정리
       
@@ -1106,7 +1074,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         loadStoriesAbortControllerRef.current = null
       }
       setStoriesLoading(false)
-      console.log('스토리 로딩 상태를 false로 설정')
     }
   }
 
@@ -1274,17 +1241,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     return matchesCategory && matchesSearch
   })
 
-  console.log('질문 목록 상태:', { 
-    totalQuestions: questions.length, 
-    filteredQuestions: filteredQuestions.length, 
-    activeCategory, 
-    searchTerm 
-  })
-  
-  console.log('스토리 목록 상태:', { 
-    totalStories: stories.length, 
-    stories: stories.map(s => ({ id: s.id, text: s.text?.substring(0, 20) + '...', user: s.user?.full_name }))
-  })
+  // 디버그 로그 제거 (성능 최적화)
 
   // 질문 작성 처리
   const handleSubmitQuestion = async () => {

@@ -5,10 +5,8 @@ import { supabaseServer } from '@/lib/supabaseServer'
 export async function GET(request: NextRequest) {
   try {
     if (!supabaseServer) {
-      return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
-        { status: 500 }
-      )
+      console.log('[POPULAR_POSTS] Supabase 미연결, 빈 배열 반환')
+      return NextResponse.json({ posts: [] })
     }
 
     const { searchParams } = new URL(request.url)
@@ -84,10 +82,8 @@ export async function GET(request: NextRequest) {
 
     if (postsError) {
       console.error('[POPULAR_POSTS] 게시물 조회 오류:', postsError)
-      return NextResponse.json(
-        { error: '게시물을 조회하는데 실패했습니다.' },
-        { status: 500 }
-      )
+      // 에러가 있어도 빈 배열 반환
+      return NextResponse.json({ posts: [], userVotes: {}, total: 0 })
     }
 
     // 사용자 투표 정보 조회 (인증된 경우)
@@ -128,9 +124,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('[POPULAR_POSTS] 인기글 조회 오류:', error)
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 500 }
-    )
+    // 에러 발생 시에도 빈 배열 반환 (500 대신 200)
+    return NextResponse.json({ posts: [], userVotes: {}, total: 0 })
   }
 }
