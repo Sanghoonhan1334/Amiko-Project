@@ -524,103 +524,98 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
       {/* 프로필 상세보기 다이얼로그 */}
       <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
-        <DialogContent className="max-w-2xl bg-gradient-to-br from-white to-purple-50 border border-purple-200">
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-white to-purple-50 border border-purple-200 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full ${
+            <DialogTitle className="text-lg md:text-2xl font-bold text-gray-800 flex items-center gap-2 md:gap-3">
+              <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full ${
                 selectedPartner?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
               }`} />
-              {selectedPartner?.name} 프로필
+              {selectedPartner?.name} {t('profile.title')}
             </DialogTitle>
           </DialogHeader>
           
           {selectedPartner && (
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-6">
               {/* 프로필 사진 및 기본 정보 */}
-              <div className="flex items-center gap-6 mb-6">
+              <div className="flex items-center gap-3 md:gap-6 mb-3 md:mb-6">
                 <div className="relative">
-                  <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
-                    <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium text-xl">
+                  <Avatar className="w-12 h-12 md:w-20 md:h-20 border-2 md:border-4 border-white shadow-lg">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium text-sm md:text-xl">
                       {selectedPartner.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-3 border-white ${
+                  <div className={`absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-3 h-3 md:w-6 md:h-6 rounded-full border-2 md:border-3 border-white ${
                     selectedPartner.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
                   }`} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedPartner.name}</h3>
-                  <p className="text-lg text-purple-600 font-medium">{getLanguageDisplay(selectedPartner)}</p>
-                  <p className="text-sm text-gray-500">{selectedPartner.country} • {selectedPartner.age}세 • {selectedPartner.occupation}</p>
+                  <h3 className="text-lg md:text-2xl font-bold text-gray-900">{selectedPartner.name}</h3>
+                  <p className="text-sm md:text-lg text-purple-600 font-medium">{getLanguageDisplay(selectedPartner)}</p>
+                  <p className="text-xs md:text-sm text-gray-500">{selectedPartner.country} • {selectedPartner.age}{t('profile.ageUnit')} • {selectedPartner.occupation}</p>
                 </div>
               </div>
 
               {/* 기본 정보 */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">이름</label>
-                    <p className="text-gray-900 font-medium">{selectedPartner.name}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">국가</label>
-                    <p className="text-gray-900">{selectedPartner.country}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">나이</label>
-                    <p className="text-gray-900">{selectedPartner.age}세</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">직업</label>
-                    <p className="text-gray-900">{selectedPartner.occupation}</p>
+              <div className="space-y-2 md:space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.name')}</span>
+                  <span className="text-xs md:text-base text-gray-900 font-medium">{selectedPartner.name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.country')}</span>
+                  <span className="text-xs md:text-base text-gray-900">{selectedPartner.country}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.age')}</span>
+                  <span className="text-xs md:text-base text-gray-900">{selectedPartner.age}{t('profile.ageUnit')}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.occupation')}</span>
+                  <span className="text-xs md:text-base text-gray-900">{selectedPartner.occupation}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.language')}</span>
+                  <span className="text-xs md:text-base text-gray-900">{getLanguageDisplay(selectedPartner)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.level')}</span>
+                  <span className={`px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
+                    selectedPartner.level === '초급' ? 'bg-green-100 text-green-800' :
+                    selectedPartner.level === '중급' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {selectedPartner.level}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.rating')}</span>
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <span className="text-yellow-500 text-xs md:text-base">★</span>
+                    <span className="text-xs md:text-base text-gray-900 font-medium">{selectedPartner.rating}</span>
                   </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">언어</label>
-                    <p className="text-gray-900">{getLanguageDisplay(selectedPartner)}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">레벨</label>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedPartner.level === '초급' ? 'bg-green-100 text-green-800' :
-                      selectedPartner.level === '중급' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedPartner.level}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">평점</label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-yellow-500">★</span>
-                      <span className="text-gray-900 font-medium">{selectedPartner.rating}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">가입일</label>
-                    <p className="text-gray-900">{selectedPartner.joinDate}</p>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs md:text-base font-semibold text-gray-700">{t('profile.joinDate')}</span>
+                  <span className="text-xs md:text-base text-gray-900">{selectedPartner.joinDate}</span>
                 </div>
               </div>
 
               {/* 한줄소개 */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">한줄소개</label>
-                <div className="bg-white p-4 rounded-lg border border-purple-100">
-                  <p className="text-gray-800 italic">"{selectedPartner.bio}"</p>
+                <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">{t('profile.bio')}</label>
+                <div className="bg-white p-3 md:p-4 rounded-lg border border-purple-100">
+                  <p className="text-sm md:text-base text-gray-800 italic">"{selectedPartner.bio}"</p>
                 </div>
               </div>
 
               {/* 관심사 */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">관심사</label>
-                <div className="flex flex-wrap gap-2">
+                <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">{t('profile.interests')}</label>
+                <div className="flex flex-wrap gap-1 md:gap-2">
                   {selectedPartner.interests.map((interest: string, index: number) => (
                     <span 
                       key={index}
-                      className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
+                      className="px-2 md:px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs md:text-sm font-medium"
                     >
                       {interest}
                     </span>
@@ -630,38 +625,40 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
               {/* 통계 */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">채팅 통계</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-lg border border-purple-100 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{selectedPartner.totalCalls}</div>
-                    <div className="text-sm text-gray-600">총 채팅 횟수</div>
+                <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2 md:mb-3">{t('profile.chatStats')}</label>
+                <div className="grid grid-cols-2 gap-2 md:gap-4">
+                  <div className="bg-white p-3 md:p-4 rounded-lg border border-purple-100 text-center">
+                    <div className="text-lg md:text-2xl font-bold text-purple-600">{selectedPartner.totalCalls}</div>
+                    <div className="text-xs md:text-sm text-gray-600">{t('profile.totalChats')}</div>
                   </div>
-                  <div className="bg-white p-4 rounded-lg border border-purple-100 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{selectedPartner.rating}</div>
-                    <div className="text-sm text-gray-600">평균 평점</div>
+                  <div className="bg-white p-3 md:p-4 rounded-lg border border-purple-100 text-center">
+                    <div className="text-lg md:text-2xl font-bold text-purple-600">{selectedPartner.rating}</div>
+                    <div className="text-xs md:text-sm text-gray-600">{t('profile.averageRating')}</div>
                   </div>
                 </div>
               </div>
 
               {/* 액션 버튼 */}
-              <div className="flex gap-3 justify-end pt-4 border-t">
+              <div className="flex gap-2 md:gap-3 justify-end pt-3 md:pt-4 border-t">
                 <Button 
                   variant="outline" 
+                  size="sm"
                   onClick={() => setShowProfileDialog(false)}
-                  className="border-2 border-gray-300 hover:border-gray-400"
+                  className="border-2 border-gray-300 hover:border-gray-400 text-xs md:text-sm"
                 >
-                  닫기
+                  {t('buttons.close')}
                 </Button>
                 {selectedPartner.status === 'online' && (
                   <Button 
+                    size="sm"
                     onClick={() => {
                       setShowProfileDialog(false)
                       setShowStartDialog(true)
                     }}
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6"
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-4 md:px-6 text-xs md:text-sm"
                   >
-                    <Phone className="w-4 h-4 mr-2" />
-                    대화 시작
+                    <Phone className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    {t('profile.startChat')}
                   </Button>
                 )}
               </div>

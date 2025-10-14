@@ -23,7 +23,27 @@ async function handleProfileUpdate(request: NextRequest) {
     console.log('[PROFILE] 요청 데이터:', body)
     console.log('[PROFILE] 요청 데이터 타입:', typeof body)
     console.log('[PROFILE] 요청 데이터 키들:', Object.keys(body))
-    const { full_name, spanish_name, nickname, phone, one_line_intro, language, profile_image, profile_images, main_profile_image, user_type, university, major, grade, occupation, company, work_experience } = body
+    const { 
+      full_name, 
+      korean_name,
+      spanish_name, 
+      nickname, 
+      phone, 
+      one_line_intro, 
+      language, 
+      profile_image, 
+      profile_images, 
+      main_profile_image, 
+      user_type, 
+      university, 
+      major, 
+      grade, 
+      occupation, 
+      company, 
+      career,
+      introduction,
+      interests
+    } = body
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
@@ -92,11 +112,22 @@ async function handleProfileUpdate(request: NextRequest) {
     // 사용자 기본 정보 업데이트
     const updateData: any = {
       full_name,
+      korean_name,
       spanish_name,
       nickname,
       phone,
       one_line_intro,
+      introduction,
       language,
+      user_type,
+      university,
+      major,
+      grade,
+      occupation,
+      company,
+      career,
+      interests,
+      join_date: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString()
     }
 
@@ -169,54 +200,7 @@ async function handleProfileUpdate(request: NextRequest) {
       console.log('[PROFILE] 사용자 업데이트 성공:', updatedUser)
     }
 
-    // 사용자 타입 업데이트
-    if (user_type) {
-      try {
-        await supabaseServer
-          .from('user_preferences' as any)
-          .upsert({
-            user_id: userId,
-            user_type: user_type,
-            updated_at: new Date().toISOString()
-          } as any)
-      } catch (error) {
-        console.error('[PROFILE] 사용자 타입 업데이트 실패:', error)
-      }
-    }
-
-    // 학생 정보 업데이트
-    if (user_type === 'student' && (university || major || grade)) {
-      try {
-        await supabaseServer
-          .from('user_student_info' as any)
-          .upsert({
-            user_id: userId,
-            university: university || null,
-            major: major || null,
-            grade: grade || null,
-            updated_at: new Date().toISOString()
-          } as any)
-      } catch (error) {
-        console.error('[PROFILE] 학생 정보 업데이트 실패:', error)
-      }
-    }
-
-    // 직장인 정보 업데이트
-    if (user_type === 'professional' && (occupation || company || work_experience)) {
-      try {
-        await supabaseServer
-          .from('user_general_info' as any)
-          .upsert({
-            user_id: userId,
-            occupation: occupation || null,
-            company: company || null,
-            work_experience: work_experience || null,
-            updated_at: new Date().toISOString()
-          } as any)
-      } catch (error) {
-        console.error('[PROFILE] 직장인 정보 업데이트 실패:', error)
-      }
-    }
+    // 모든 정보가 users 테이블에 통합되어 있으므로 별도 업데이트 불필요
 
     // 업데이트된 사용자 정보를 다시 조회하여 최신 데이터 반환
     const { data: finalUser, error: finalError } = await supabaseServer
@@ -270,11 +254,30 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    let userId = searchParams.get('userId')
+
+    // userId가 쿼리 파라미터에 없으면 Authorization 헤더에서 추출
+    if (!userId) {
+      const authHeader = request.headers.get('Authorization')
+      if (authHeader) {
+        const token = authHeader.replace('Bearer ', '')
+        const decodedToken = decodeURIComponent(token)
+        
+        try {
+          const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(decodedToken)
+          if (authUser && !authError) {
+            userId = authUser.id
+            console.log('[PROFILE GET] Authorization 헤더에서 userId 추출:', userId)
+          }
+        } catch (error) {
+          console.error('[PROFILE GET] 토큰 검증 실패:', error)
+        }
+      }
+    }
 
     if (!userId) {
       return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
+        { error: '사용자 ID가 필요합니다. 로그인을 다시 해주세요.' },
         { status: 400 }
       )
     }
@@ -286,17 +289,29 @@ export async function GET(request: NextRequest) {
           id: userId,
           email: 'temp@example.com',
           full_name: '임시 사용자',
+          korean_name: null,
+          spanish_name: null,
+          nickname: null,
           phone: null,
           one_line_intro: null,
+          introduction: null,
           language: 'ko',
           avatar_url: null,
           profile_image: null,
           profile_images: null,
           main_profile_image: null,
+          user_type: 'student',
+          university: null,
+          major: null,
+          grade: null,
+          occupation: null,
+          company: null,
+          career: null,
+          interests: null,
+          join_date: new Date().toISOString().split('T')[0],
           is_admin: false,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          user_type: 'student'
+          updated_at: new Date().toISOString()
         },
         profile: {
           user_id: userId,
@@ -364,68 +379,59 @@ export async function GET(request: NextRequest) {
       last_reset_date: new Date().toISOString().split('T')[0]
     }
 
-    // 관련 테이블들 병렬 조회 (성능 최적화)
-    const [preferencesResult, studentResult, generalResult] = await Promise.allSettled([
-      supabaseServer
-        .from('user_preferences' as any)
-        .select('*')
-        .eq('user_id', userId)
-        .single(),
-      supabaseServer
-        .from('user_student_info' as any)
-        .select('*')
-        .eq('user_id', userId)
-        .single(),
-      supabaseServer
-        .from('user_general_info' as any)
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-    ])
-    
-    const userPreferences = preferencesResult.status === 'fulfilled' ? preferencesResult.value.data : null
-    const studentInfo = studentResult.status === 'fulfilled' ? studentResult.value.data : null
-    const generalInfo = generalResult.status === 'fulfilled' ? generalResult.value.data : null
-
-    // 사용자 타입 결정
-    const userType = (userPreferences as any)?.user_type || 'student'
+    // 모든 정보가 users 테이블에 통합되어 있으므로 별도 조회 불필요
+    const userType = (user as any)?.user_type || 'student'
     
     return NextResponse.json({
       user: {
         id: (user as any).id,
         email: (user as any).email,
         full_name: (user as any).full_name,
-        nickname: (user as any).nickname,
+        korean_name: (user as any).korean_name,
         spanish_name: (user as any).spanish_name,
+        nickname: (user as any).nickname,
         phone: (user as any).phone,
         one_line_intro: (user as any).one_line_intro,
+        introduction: (user as any).introduction,
         language: (user as any).language,
         avatar_url: (user as any).avatar_url,
         profile_image: (user as any).profile_image,
         profile_images: (user as any).profile_images,
         main_profile_image: (user as any).main_profile_image,
+        user_type: (user as any).user_type || userType,
+        university: (user as any).university,
+        major: (user as any).major,
+        grade: (user as any).grade,
+        occupation: (user as any).occupation,
+        company: (user as any).company,
+        career: (user as any).career,
+        interests: (user as any).interests,
+        join_date: (user as any).join_date,
         is_admin: (user as any).is_admin,
         created_at: (user as any).created_at,
-        updated_at: (user as any).updated_at,
-        user_type: userType
+        updated_at: (user as any).updated_at
       },
       profile: {
         user_id: userId,
         display_name: (user as any).full_name,
+        korean_name: (user as any).korean_name,
         nickname: (user as any).nickname,
         spanish_name: (user as any).spanish_name,
         bio: (user as any).one_line_intro,
+        introduction: (user as any).introduction,
         avatar_url: (user as any).avatar_url,
         country: 'KR',
         native_language: (user as any).language,
         is_korean: (user as any).language === 'ko',
-        user_type: userType,
-        university: (studentInfo as any)?.university || null,
-        major: (studentInfo as any)?.major || null,
-        grade: (studentInfo as any)?.grade || null,
-        occupation: (generalInfo as any)?.occupation || null,
-        company: (generalInfo as any)?.company || null,
-        work_experience: (generalInfo as any)?.work_experience || null,
+        user_type: (user as any).user_type || userType,
+        university: (user as any).university,
+        major: (user as any).major,
+        grade: (user as any).grade,
+        occupation: (user as any).occupation,
+        company: (user as any).company,
+        career: (user as any).career,
+        interests: (user as any).interests,
+        join_date: (user as any).join_date,
         kakao_linked_at: null,
         wa_verified_at: null,
         sms_verified_at: null,

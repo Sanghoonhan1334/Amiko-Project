@@ -148,39 +148,39 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
         )}
 
         {profile && !loading && (
-          <div className="space-y-6">
+          <div className="space-y-3 md:space-y-6">
             {/* 프로필 헤더 */}
             <div className="text-center">
-              <Avatar className="w-24 h-24 mx-auto mb-4">
+              <Avatar className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-3 md:mb-4">
                 <AvatarImage src={profile.profile_image} alt={profile.full_name} />
-                <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
+                <AvatarFallback className="text-lg md:text-2xl bg-blue-100 text-blue-600">
                   {getInitials(profile.full_name)}
                 </AvatarFallback>
               </Avatar>
               
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-2">
                 {profile.full_name}
               </h2>
               
-              <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mb-4">
+              <div className="flex items-center justify-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
                 <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-3 h-3 md:w-4 md:h-4" />
                   {formatDate(profile.created_at)} 가입
                 </div>
                 {profile.location && (
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="w-3 h-3 md:w-4 md:h-4" />
                     {profile.location}
                   </div>
                 )}
               </div>
 
               {/* 사용자 타입 배지 */}
-              <div className="flex justify-center gap-2 mb-4">
-                <Badge variant={profile.is_korean ? "default" : "secondary"}>
+              <div className="flex justify-center gap-1 md:gap-2 mb-3 md:mb-4">
+                <Badge variant={profile.is_korean ? "default" : "secondary"} className="text-xs">
                   {profile.is_korean ? "🇰🇷 한국인" : "🌍 외국인"}
                 </Badge>
-                <Badge variant="outline">
+                <Badge variant="outline" className="text-xs">
                   {profile.user_type === 'student' ? "🎓 학생" : "💼 직장인"}
                 </Badge>
               </div>
@@ -188,48 +188,48 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
             {/* 자기소개 */}
             {profile.bio && (
-              <Card className="p-4">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <User className="w-4 h-4" />
+              <Card className="p-3 md:p-4">
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm md:text-base">
+                  <User className="w-3 h-3 md:w-4 md:h-4" />
                   자기소개
                 </h3>
-                <p className="text-gray-700">{profile.bio}</p>
+                <p className="text-gray-700 text-sm md:text-base">{profile.bio}</p>
               </Card>
             )}
 
             {/* 학업/직업 정보 */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Card className="p-3 md:p-4">
+              <h3 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
                 {profile.user_type === 'student' ? (
                   <>
-                    <GraduationCap className="w-4 h-4" />
+                    <GraduationCap className="w-3 h-3 md:w-4 md:h-4" />
                     학업 정보
                   </>
                 ) : (
                   <>
-                    <Briefcase className="w-4 h-4" />
+                    <Briefcase className="w-3 h-3 md:w-4 md:h-4" />
                     직업 정보
                   </>
                 )}
               </h3>
               
-              <div className="space-y-2">
+              <div className="space-y-1 md:space-y-2">
                 {profile.user_type === 'student' ? (
                   <>
                     {profile.university && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm">
                         <span className="text-gray-600">대학교:</span>
                         <span className="font-medium">{profile.university}</span>
                       </div>
                     )}
                     {profile.major && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm">
                         <span className="text-gray-600">전공:</span>
                         <span className="font-medium">{profile.major}</span>
                       </div>
                     )}
                     {profile.grade && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm">
                         <span className="text-gray-600">학년:</span>
                         <span className="font-medium">{profile.grade}</span>
                       </div>
@@ -238,19 +238,19 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 ) : (
                   <>
                     {profile.occupation && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm">
                         <span className="text-gray-600">직업:</span>
                         <span className="font-medium">{profile.occupation}</span>
                       </div>
                     )}
                     {profile.company && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm">
                         <span className="text-gray-600">회사:</span>
                         <span className="font-medium">{profile.company}</span>
                       </div>
                     )}
                     {profile.work_experience && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm">
                         <span className="text-gray-600">경력:</span>
                         <span className="font-medium">{profile.work_experience}</span>
                       </div>
@@ -262,29 +262,29 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
             {/* 언어 수준 */}
             {profile.language_levels && (
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
+              <Card className="p-3 md:p-4">
+                <h3 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                  <MessageSquare className="w-3 h-3 md:w-4 md:h-4" />
                   언어 수준
                 </h3>
                 
-                <div className="space-y-2">
+                <div className="space-y-1 md:space-y-2">
                   {profile.language_levels.korean && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm">
                       <span className="text-gray-600">한국어:</span>
-                      <Badge variant="outline">{profile.language_levels.korean}</Badge>
+                      <Badge variant="outline" className="text-xs">{profile.language_levels.korean}</Badge>
                     </div>
                   )}
                   {profile.language_levels.english && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm">
                       <span className="text-gray-600">영어:</span>
-                      <Badge variant="outline">{profile.language_levels.english}</Badge>
+                      <Badge variant="outline" className="text-xs">{profile.language_levels.english}</Badge>
                     </div>
                   )}
                   {profile.language_levels.spanish && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm">
                       <span className="text-gray-600">스페인어:</span>
-                      <Badge variant="outline">{profile.language_levels.spanish}</Badge>
+                      <Badge variant="outline" className="text-xs">{profile.language_levels.spanish}</Badge>
                     </div>
                   )}
                 </div>
@@ -293,26 +293,15 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
             {/* 관심 분야 */}
             {profile.interests && profile.interests.length > 0 && (
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
+              <Card className="p-3 md:p-4">
+                <h3 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                  <Heart className="w-3 h-3 md:w-4 md:h-4" />
                   {t('profile.interests')}
                 </h3>
                 
                 <InterestBadges interests={profile.interests} />
               </Card>
             )}
-
-            {/* 연락처 정보 (비공개) */}
-            <Card className="p-4 bg-gray-50">
-              <h3 className="font-semibold mb-2 flex items-center gap-2 text-gray-600">
-                <Mail className="w-4 h-4" />
-                연락처 정보
-              </h3>
-              <p className="text-sm text-gray-500">
-                연락처 정보는 개인정보 보호를 위해 비공개됩니다.
-              </p>
-            </Card>
           </div>
         )}
       </DialogContent>

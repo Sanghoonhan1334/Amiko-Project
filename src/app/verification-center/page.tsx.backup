@@ -394,15 +394,15 @@ export default function VerificationCenterPage() {
                   </div>
                 )}
 
-                {/* 한국인이 아닌 경우 이름 필드 표시 (필수) */}
+                {/* 한국인이 아닌 경우 스페인어 이름 필드 표시 (필수) */}
                 {!isKorean && (
                   <div>
-                    <Label htmlFor="spanish_name">Nombre *</Label>
+                    <Label htmlFor="spanish_name">스페인어 이름 *</Label>
                     <Input
                       id="spanish_name"
                       value={formData.spanish_name}
                       onChange={(e) => handleInputChange('spanish_name', e.target.value)}
-                      placeholder="Ingrese su nombre"
+                      placeholder="스페인어 이름을 입력해주세요"
                     />
                   </div>
                 )}
@@ -424,31 +424,109 @@ export default function VerificationCenterPage() {
                 )}
 
                 <div>
-                  <Label htmlFor="nickname">{isKorean ? '닉네임' : 'Apodo'} *</Label>
+                  <Label htmlFor="nickname">닉네임 *</Label>
                   <Input
                     id="nickname"
                     value={formData.nickname}
                     onChange={(e) => handleInputChange('nickname', e.target.value)}
-                    placeholder={isKorean ? '커뮤니티에서 사용할 닉네임을 입력해주세요' : 'Ingrese un apodo para usar en la comunidad'}
+                    placeholder="커뮤니티에서 사용할 닉네임을 입력해주세요"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    {isKorean ? '커뮤니티 게시글, 댓글 등에서 사용됩니다' : 'Se utiliza en publicaciones y comentarios de la comunidad'}
+                    커뮤니티 게시글, 댓글 등에서 사용됩니다
                   </p>
                 </div>
 
                 <div>
-                  <Label htmlFor="user_type">{isKorean ? '구분' : 'Tipo de usuario'} *</Label>
+                  <Label htmlFor="user_type">구분 *</Label>
                   <Select value={formData.user_type} onValueChange={(value) => handleInputChange('user_type', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder={isKorean ? '선택해주세요' : 'Seleccione el tipo'} />
+                      <SelectValue placeholder="선택해주세요" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">{isKorean ? '대학생' : 'Estudiante'}</SelectItem>
-                      <SelectItem value="general">{isKorean ? '일반인' : 'Profesional'}</SelectItem>
+                      <SelectItem value="student">대학생</SelectItem>
+                      <SelectItem value="general">일반인</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
+                {formData.user_type === 'student' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="university">대학교 *</Label>
+                      <Input
+                        id="university"
+                        value={formData.university}
+                        onChange={(e) => handleInputChange('university', e.target.value)}
+                        placeholder="대학교명을 입력해주세요"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="major">전공 *</Label>
+                      <Input
+                        id="major"
+                        value={formData.major}
+                        onChange={(e) => handleInputChange('major', e.target.value)}
+                        placeholder="전공을 입력해주세요"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="grade">학년 *</Label>
+                      <Select value={formData.grade} onValueChange={(value) => handleInputChange('grade', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="학년을 선택해주세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1학년">1학년</SelectItem>
+                          <SelectItem value="2학년">2학년</SelectItem>
+                          <SelectItem value="3학년">3학년</SelectItem>
+                          <SelectItem value="4학년">4학년</SelectItem>
+                          <SelectItem value="대학원">대학원</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {formData.user_type === 'general' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="occupation">직업 *</Label>
+                      <Input
+                        id="occupation"
+                        value={formData.occupation}
+                        onChange={(e) => handleInputChange('occupation', e.target.value)}
+                        placeholder="직업을 입력해주세요"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="company">소속 *</Label>
+                      <Input
+                        id="company"
+                        value={formData.company}
+                        onChange={(e) => handleInputChange('company', e.target.value)}
+                        placeholder="회사명 또는 소속을 입력해주세요"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <Label htmlFor="one_line_intro">한 줄 소개 *</Label>
+                  <Input
+                    id="one_line_intro"
+                    value={formData.one_line_intro}
+                    onChange={(e) => handleInputChange('one_line_intro', e.target.value)}
+                    placeholder={isKorean ? "간단한 자기소개를 스페인어로 입력해주세요" : "간단한 자기소개를 입력해주세요"}
+                  />
+                  {isKorean && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      현지인들과의 원활한 소통을 위해 스페인어로 작성해주세요
+                    </p>
+                  )}
+                </div>
               </div>
             ) : (
               // 2단계: 비공개 정보 및 관심사
@@ -606,22 +684,6 @@ export default function VerificationCenterPage() {
                   </div>
                 </div>
 
-                {/* 한 줄 소개 */}
-                <div>
-                  <Label htmlFor="one_line_intro">한 줄 소개 *</Label>
-                  <Input
-                    id="one_line_intro"
-                    value={formData.one_line_intro}
-                    onChange={(e) => handleInputChange('one_line_intro', e.target.value)}
-                    placeholder={isKorean ? "간단한 자기소개를 입력해주세요 (가능하다면 스페인어로)" : "간단한 자기소개를 입력해주세요"}
-                  />
-                  {isKorean && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      현지인들과의 소통을 위해 스페인어로 작성하시는 것을 권장합니다
-                    </p>
-                  )}
-                </div>
-
                 {/* 자기소개 */}
                 <div>
                   <Label htmlFor="introduction">자기소개</Label>
@@ -634,7 +696,7 @@ export default function VerificationCenterPage() {
                   />
                 </div>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 
@@ -652,7 +714,7 @@ export default function VerificationCenterPage() {
           {step === 2 ? (
             <Button 
               onClick={handleSubmit}
-              disabled={loading || !formData.one_line_intro}
+              disabled={loading}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg"
             >
               {loading ? (

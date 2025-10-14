@@ -194,20 +194,20 @@ export default function StorySettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 전역 스토리 설정 */}
       <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
-            <Settings className="w-5 h-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100 text-sm">
+            <Settings className="w-4 h-4" />
             {t('storySettings.globalSettings.title')}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 pt-0">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.globalSettings.autoPublic.label')}</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.autoPublic.description')}</p>
+              <Label className="text-gray-800 dark:text-gray-200 text-xs">{t('storySettings.globalSettings.autoPublic.label')}</Label>
+              <p className="text-xs text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.autoPublic.description')}</p>
             </div>
             <Switch
               checked={globalStorySettings.autoPublic}
@@ -217,8 +217,8 @@ export default function StorySettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.globalSettings.showInProfile.label')}</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.showInProfile.description')}</p>
+              <Label className="text-gray-800 dark:text-gray-200 text-xs">{t('storySettings.globalSettings.showInProfile.label')}</Label>
+              <p className="text-xs text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.showInProfile.description')}</p>
             </div>
             <Switch
               checked={globalStorySettings.showInProfile}
@@ -230,17 +230,17 @@ export default function StorySettings() {
 
       {/* 아카이브 설정 */}
       <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
-            <Calendar className="w-5 h-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100 text-sm">
+            <Calendar className="w-4 h-4" />
             {t('storySettings.archiveSettings.title')}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 pt-0">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.archiveSettings.autoArchive.label')}</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-300">{t('storySettings.archiveSettings.autoArchive.description')}</p>
+              <Label className="text-gray-800 dark:text-gray-200 text-xs">{t('storySettings.archiveSettings.autoArchive.label')}</Label>
+              <p className="text-xs text-gray-500 dark:text-gray-300">{t('storySettings.archiveSettings.autoArchive.description')}</p>
             </div>
             <Switch
               checked={archiveSettings.autoArchive}
@@ -249,7 +249,7 @@ export default function StorySettings() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-800 dark:text-gray-200">{t('storySettings.archiveSettings.archiveTiming.label')}</Label>
+            <Label className="text-gray-800 dark:text-gray-200 text-xs">{t('storySettings.archiveSettings.archiveTiming.label')}</Label>
             <Select
               value={archiveSettings.archiveAfter.toString()}
               onValueChange={(value) => setArchiveSettings(prev => ({ ...prev, archiveAfter: parseInt(value) }))}
@@ -270,9 +270,9 @@ export default function StorySettings() {
 
       {/* 개별 스토리 설정 */}
       <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-gray-800 dark:text-gray-100">{t('storySettings.individualSettings.title')}</CardTitle>
+            <CardTitle className="text-gray-800 dark:text-gray-100 text-sm">{t('storySettings.individualSettings.title')}</CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -305,7 +305,7 @@ export default function StorySettings() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-gray-500 dark:text-gray-300">{t('communityTab.loadingStories')}</div>
@@ -317,20 +317,20 @@ export default function StorySettings() {
               <div className="text-xs mt-1 dark:text-gray-300">{t('communityTab.uploadFirstStoryPrompt')}</div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {stories.map((story) => {
                 const now = new Date()
                 const isExpired = story.expiresAt < now
                 const timeLeft = Math.max(0, Math.floor((story.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)))
                 
                 return (
-                <div key={story.id} className={`flex items-center justify-between p-4 border rounded-lg ${isExpired ? 'bg-gray-50 dark:bg-gray-700 opacity-60' : 'bg-white dark:bg-gray-800'} border-gray-200 dark:border-gray-600`}>
+                <div key={story.id} className={`flex items-center justify-between p-3 border rounded-lg ${isExpired ? 'bg-gray-50 dark:bg-gray-700 opacity-60' : 'bg-white dark:bg-gray-800'} border-gray-200 dark:border-gray-600`}>
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <img
                         src={story.imageUrl}
                         alt={t('storySettings.individualSettings.storyImage')}
-                        className="w-12 h-12 rounded-lg object-cover"
+                        className="w-10 h-10 rounded-lg object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.src = `https://picsum.photos/48/48?random=${story.id}`
@@ -343,7 +343,7 @@ export default function StorySettings() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-sm text-gray-800 dark:text-gray-200">{story.text ? story.text.substring(0, 50) + '...' : '내용 없음'}</p>
+                      <p className="font-medium text-xs text-gray-800 dark:text-gray-200">{story.text ? story.text.substring(0, 50) + '...' : '내용 없음'}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {story.createdAt ? `${story.createdAt.toLocaleDateString()} ${story.createdAt.toLocaleTimeString()}` : '날짜 정보 없음'}
                       </p>
@@ -355,21 +355,21 @@ export default function StorySettings() {
                     </div>
                   </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs px-2 py-1"
                     onClick={() => toggleStoryVisibility(story.id)}
                   >
                     {story.isPublic ? (
                       <>
-                        <Eye className="w-4 h-4 mr-1" />
+                        <Eye className="w-3 h-3 mr-1" />
                         {t('storySettings.individualSettings.public')}
                       </>
                     ) : (
                       <>
-                        <EyeOff className="w-4 h-4 mr-1" />
+                        <EyeOff className="w-3 h-3 mr-1" />
                         {t('storySettings.individualSettings.private')}
                       </>
                     )}
@@ -378,10 +378,10 @@ export default function StorySettings() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs px-2 py-1"
                     onClick={() => deleteStory(story.id)}
                   >
-                    <Trash2 className="w-4 h-4 mr-1" />
+                    <Trash2 className="w-3 h-3 mr-1" />
                     {t('storySettings.individualSettings.delete')}
                   </Button>
                 </div>
