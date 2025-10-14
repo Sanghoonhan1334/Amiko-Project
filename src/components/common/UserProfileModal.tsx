@@ -270,9 +270,78 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
         </DialogHeader>
 
         {loading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-2 text-gray-600">프로필을 불러오는 중...</span>
+          <div className="space-y-3 md:space-y-6">
+            {/* 프로필 헤더 스켈레톤 */}
+            <div className="text-center">
+              <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-3 md:mb-4 bg-gray-200 rounded-full animate-pulse"></div>
+              
+              <div className="h-6 md:h-8 bg-gray-200 rounded-lg w-32 mx-auto mb-2 animate-pulse"></div>
+              
+              {/* 닉네임 스켈레톤 */}
+              <div className="h-4 md:h-5 bg-gray-200 rounded w-20 mx-auto mb-2 animate-pulse"></div>
+              
+              {/* 한국이름/스페인어 이름 스켈레톤 */}
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+              </div>
+              
+              {/* 가입일/위치 스켈레톤 */}
+              <div className="flex items-center justify-center gap-3 md:gap-4 mb-3 md:mb-4">
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+              </div>
+
+              {/* 배지 스켈레톤 */}
+              <div className="flex justify-center gap-1 md:gap-2 mb-3 md:mb-4">
+                <div className="h-5 md:h-6 bg-gray-200 rounded-full w-16 animate-pulse"></div>
+                <div className="h-5 md:h-6 bg-gray-200 rounded-full w-16 animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* 자기소개 스켈레톤 */}
+            <div className="p-3 md:p-4 bg-gray-50 rounded-lg border">
+              <div className="h-4 md:h-5 bg-gray-200 rounded w-16 mb-2 animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* 학업/직업 정보 스켈레톤 */}
+            <div className="p-3 md:p-4 bg-gray-50 rounded-lg border">
+              <div className="h-4 md:h-5 bg-gray-200 rounded w-20 mb-2 md:mb-3 animate-pulse"></div>
+              
+              <div className="space-y-1 md:space-y-2">
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-4/5 animate-pulse"></div>
+                <div className="h-3 md:h-4 bg-gray-200 rounded w-3/5 animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* 언어 수준 스켈레톤 */}
+            <div className="p-3 md:p-4 bg-gray-50 rounded-lg border">
+              <div className="h-4 md:h-5 bg-gray-200 rounded w-20 mb-2 md:mb-3 animate-pulse"></div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+                <div className="h-8 md:h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                <div className="h-8 md:h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                <div className="h-8 md:h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* 관심사 스켈레톤 */}
+            <div className="p-3 md:p-4 bg-gray-50 rounded-lg border">
+              <div className="h-4 md:h-5 bg-gray-200 rounded w-16 mb-2 md:mb-3 animate-pulse"></div>
+              
+              <div className="flex flex-wrap gap-1 md:gap-2">
+                <div className="h-6 md:h-7 bg-gray-200 rounded-full w-16 animate-pulse"></div>
+                <div className="h-6 md:h-7 bg-gray-200 rounded-full w-12 animate-pulse"></div>
+                <div className="h-6 md:h-7 bg-gray-200 rounded-full w-14 animate-pulse"></div>
+                <div className="h-6 md:h-7 bg-gray-200 rounded-full w-10 animate-pulse"></div>
+                <div className="h-6 md:h-7 bg-gray-200 rounded-full w-18 animate-pulse"></div>
+              </div>
+            </div>
           </div>
         )}
 
