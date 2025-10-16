@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
-import { sendVerificationEmail, getEmailServiceStatus } from '@/lib/emailService'
+import { sendVerificationEmail, getEmailServiceStatus } from '@/lib/email-service'
 import { sendVerificationSMS, sendVerificationWhatsApp, getSMSServiceStatus, getRecommendedSMSService } from '@/lib/smsService'
 
 // 전화번호 정규화 함수 (라틴아메리카 국가 코드 지원)

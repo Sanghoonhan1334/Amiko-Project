@@ -487,3 +487,26 @@ class EmailService {
 }
 
 export const emailService = new EmailService();
+
+// 인증 이메일 발송 함수
+export async function sendVerificationEmail(email: string, code: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
+  try {
+    const result = await emailService.sendEmail({
+      to: email,
+      template: 'verification',
+      data: { code, language }
+    });
+    return result.success;
+  } catch (error) {
+    console.error('인증 이메일 발송 실패:', error);
+    return false;
+  }
+}
+
+// 이메일 서비스 상태 확인 함수
+export function getEmailServiceStatus(): { available: boolean; service: string; error?: string } {
+  if (!resend) {
+    return { available: false, service: 'resend', error: '이메일 서비스가 설정되지 않았습니다.' };
+  }
+  return { available: true, service: 'resend' };
+}
