@@ -37,9 +37,12 @@ import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
 import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import ChargingTab from '../charging/ChargingTab'
+import PointsCard from './PointsCard'
+import ChargingHeader from './ChargingHeader'
 
 export default function MyTab() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const { user, token } = useAuth()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
@@ -63,7 +66,15 @@ export default function MyTab() {
     profile_images: [] as string[]
   })
   const [newInterest, setNewInterest] = useState('')
+  const [showInterestSelector, setShowInterestSelector] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  
+  // 인증센터에서 가져온 관심사 목록
+  const availableInterests = [
+    '한국어', '한국문화', '음식', '여행', '영화', '음악', '스포츠', 
+    '패션', '게임', '기술', '경제', '언어교환', 'K-POP', '드라마', 
+    '맛집', '독서', '댄스', '미술', '자연', '반려동물', '커피', '뷰티'
+  ]
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [authStatus, setAuthStatus] = useState({ loading: true, smsVerified: false })
@@ -144,16 +155,6 @@ export default function MyTab() {
     }
   }
 
-  // 관심사 추가
-  const handleAddInterest = () => {
-    if (newInterest.trim() && !editForm.interests.includes(newInterest.trim())) {
-      setEditForm(prev => ({
-        ...prev,
-        interests: [...prev.interests, newInterest.trim()]
-      }))
-      setNewInterest('')
-    }
-  }
 
   // 관심사 제거
   const handleRemoveInterest = (interestToRemove: string) => {
@@ -163,52 +164,172 @@ export default function MyTab() {
     }))
   }
 
-  // 프로필 데이터 로드
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) {
-        setLoading(false)
-        return
-      }
+  // 관심사 선택 함수
+  const handleInterestSelect = (interest: string) => {
+    if (editForm.interests.includes(interest)) {
+      // 이미 선택된 관심사면 제거
+      setEditForm(prev => ({
+        ...prev,
+        interests: prev.interests.filter(i => i !== interest)
+      }))
+    } else if (editForm.interests.length < 5) {
+      // 최대 5개까지만 선택 가능
+      setEditForm(prev => ({
+        ...prev,
+        interests: [...prev.interests, interest]
+      }))
+    }
+  }
 
-      try {
-        setLoading(true)
-        
-        // API 호출 시도 (실패해도 빈 프로필 사용)
-        if (token) {
-          try {
-            const response = await fetch('/api/profile', {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            })
+  // 닉네임 검증
+  const validateNickname = (nickname: string) => {
+    const nicknameRegex = /^[a-zA-Z0-9_!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]*$/
+    return nicknameRegex.test(nickname)
+  }
 
-            if (response.ok) {
-              const data = await response.json()
-              setProfile(data.user || data.profile)
-              initializeEditForm(data.user || data.profile)
-              setLoading(false)
-              return
-            }
-          } catch (error) {
-            console.log('API 호출 실패, 빈 프로필 사용')
-          }
+  // 프로필 이미지 업로드 핸들러
+  const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // 파일 타입 검증
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드 가능합니다.')
+          return
         }
         
-        // API 실패 시 빈 프로필 설정
-        setProfile(null)
-        initializeEditForm(null)
-      } catch (error) {
-        console.error('프로필 로드 중 오류:', error)
-        // 오류 시 빈 프로필 설정
-        setProfile(null)
-        initializeEditForm(null)
-      } finally {
-        setLoading(false)
+    // 파일 크기 검증 (5MB 제한)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('파일 크기는 5MB를 초과할 수 없습니다.')
+          return
+        }
+        
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/profile/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('프로필 이미지 업로드 성공:', result)
+        
+        // 프로필 다시 로드하여 업데이트된 이미지 반영
+        await loadProfile()
+        
+        alert('프로필 이미지가 성공적으로 업데이트되었습니다!')
+      } else {
+        const error = await response.json()
+        console.error('프로필 이미지 업로드 실패:', error)
+        alert(`업로드 실패: ${error.error || '알 수 없는 오류'}`)
       }
+    } catch (error) {
+      console.error('프로필 이미지 업로드 오류:', error)
+      alert('업로드 중 오류가 발생했습니다.')
+    }
+  }
+
+  // 프로필 이미지 삭제 핸들러
+  const handleDeleteProfileImage = async () => {
+    try {
+      const response = await fetch('/api/profile/delete-image', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        console.log('프로필 이미지 삭제 성공');
+        await loadProfile(); // 프로필 다시 로드하여 업데이트된 상태 반영
+        alert('프로필 사진이 삭제되었습니다.');
+      } else {
+        const error = await response.json();
+        console.error('프로필 이미지 삭제 실패:', error);
+        alert(`삭제 실패: ${error.error || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('프로필 이미지 삭제 오류:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 인덱스별 프로필 이미지 삭제 핸들러
+  const handleDeleteProfileImageByIndex = async (index: number) => {
+    try {
+      const response = await fetch('/api/profile/delete-image-by-index', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ index })
+      });
+
+      if (response.ok) {
+        console.log(`프로필 이미지 ${index + 1} 삭제 성공`);
+        await loadProfile(); // 프로필 다시 로드하여 업데이트된 상태 반영
+        alert(`프로필 사진 ${index + 1}이 삭제되었습니다.`);
+    } else {
+        const error = await response.json();
+        console.error('프로필 이미지 삭제 실패:', error);
+        alert(`삭제 실패: ${error.error || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('프로필 이미지 삭제 오류:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 프로필 데이터 로드 함수
+  const loadProfile = async () => {
+    if (!user) {
+      setLoading(false)
+      return
     }
 
+    try {
+      setLoading(true)
+      
+      // API 호출 시도 (실패해도 빈 프로필 사용)
+      if (token) {
+        try {
+          const response = await fetch('/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            setProfile(data.user || data.profile)
+            initializeEditForm(data.user || data.profile)
+            setLoading(false)
+            return
+          }
+        } catch (error) {
+          console.log('API 호출 실패, 빈 프로필 사용')
+        }
+      }
+      
+      // API 실패 시 빈 프로필 설정
+      setProfile(null)
+      initializeEditForm(null)
+    } catch (error) {
+      console.error('프로필 로드 중 오류:', error)
+      // 오류 시 빈 프로필 설정
+      setProfile(null)
+      initializeEditForm(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 프로필 데이터 로드
+  useEffect(() => {
     loadProfile()
   }, [user, token])
 
@@ -220,9 +341,9 @@ export default function MyTab() {
         status: 'none',
         message: '로그인이 필요합니다'
       })
-      return
-    }
-
+          return
+        }
+        
     try {
       const response = await fetch(`/api/verification?userId=${user.id}`, {
         headers: {
@@ -356,7 +477,7 @@ export default function MyTab() {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">{t('myTab.loading')}</p>
-        </div>
+      </div>
       </div>
     )
   }
@@ -372,46 +493,46 @@ export default function MyTab() {
               <User className="w-16 h-16 mx-auto mb-4" />
               <h2 className="text-lg font-semibold mb-2">프로필을 설정해주세요</h2>
               <p className="text-sm">편집 버튼을 눌러 프로필을 완성해보세요</p>
-            </div>
           </div>
+        </div>
 
           {/* 편집 버튼 (모바일) */}
           <div className="px-4 py-2 bg-white md:hidden">
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-semibold text-gray-800">내 프로필</h1>
+              <h1 className="text-lg font-semibold text-gray-800">{t('profile.myProfile')}</h1>
               <button
                 onClick={() => setIsEditing(true)}
                 className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-sm text-white"
               >
                 <Edit3 className="w-4 h-4" />
               </button>
-            </div>
-          </div>
+      </div>
+        </div>
 
           {/* 기본 정보 섹션 (편집 모드) */}
           <div className="px-4 py-4 bg-gray-50">
             <div className="flex items-center gap-2 mb-3">
               <User className="w-4 h-4 text-blue-500" />
-              <h2 className="font-semibold text-gray-800">기본 정보</h2>
-            </div>
-            <p className="text-gray-600 text-sm">프로필을 설정해주세요</p>
+              <h2 className="font-semibold text-gray-800">{t('profile.academicCareerInfo')}</h2>
           </div>
+            <p className="text-gray-600 text-sm">프로필을 설정해주세요</p>
         </div>
-      </div>
+            </div>
+          </div>
     )
   }
 
   // 틴더 스타일 메인 레이아웃
-  return (
+                    return (
     <div className="min-h-screen bg-white">
       {/* 틴더 스타일 풀스크린 컨테이너 */}
       <div className="w-full">
         
-        {/* 프로필 헤더 섹션 - 인스타 스토리 스타일 */}
-        <div className="relative">
-          {/* 프로필 사진 스와이프 영역 */}
+        {/* 프로필 헤더 섹션 - 1:1 비율 정사각형 */}
+        <div className="relative flex justify-center">
+          {/* 프로필 사진 스와이프 영역 - 최대 400px, 1:1 비율 */}
           <div 
-            className="relative h-80 bg-gray-100 overflow-hidden cursor-grab active:cursor-grabbing select-none"
+            className="relative w-full max-w-sm aspect-square bg-gray-100 overflow-hidden cursor-grab active:cursor-grabbing select-none"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
@@ -427,119 +548,161 @@ export default function MyTab() {
                 WebkitUserSelect: 'none'
               }}
             >
-              {profile?.profile_images?.length > 0 ? (
-                profile.profile_images.map((imageSrc: string, index: number) => (
-                  <div key={index} className="w-full h-full flex-shrink-0 relative">
-                    <img
-                      src={imageSrc}
-                      alt={`프로필 ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                      onDragStart={(e) => e.preventDefault()}
-                    />
-                    {/* 사진 인디케이터 */}
-                    <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
-                      {index + 1}/{profile.profile_images.length}
-                    </div>
+              {/* 모든 프로필 사진들을 하나의 배열로 합치기 */}
+                {(() => {
+                const allImages = []
+                if (profile?.avatar_url) {
+                  allImages.push({ src: profile.avatar_url, type: 'avatar', index: 0 })
+                }
+                if (profile?.profile_images?.length > 0) {
+                  profile.profile_images.forEach((src, index) => {
+                    allImages.push({ src, type: 'profile_image', index })
+                  })
+                }
+                return allImages
+              })().map((imageData, globalIndex) => (
+                <div key={`${imageData.type}-${imageData.index}`} className="w-full h-full flex-shrink-0 relative group">
+                  <img
+                    src={imageData.src}
+                    alt={`프로필 ${globalIndex + 1}`}
+                        className="w-full h-full object-cover"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+                  {/* 사진 인디케이터 */}
+                  <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
+                    {globalIndex + 1}/{(() => {
+                      const allImages = []
+                      if (profile?.avatar_url) allImages.push(profile.avatar_url)
+                      if (profile?.profile_images?.length > 0) allImages.push(...profile.profile_images)
+                      return allImages.length
+                })()}
+              </div>
+                  {/* 데스크톱용 호버 버튼들 - 모바일에서는 숨김 */}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center hidden md:flex">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                      {/* 사진 변경 버튼 (첫 번째 사진에만) */}
+                      {globalIndex === 0 && (
+                        <label className="bg-white bg-opacity-90 rounded-full p-2 cursor-pointer hover:bg-opacity-100 transition-all">
+                          <Camera className="w-5 h-5 text-gray-700" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                            onChange={handleProfileImageUpload}
+                    className="hidden"
+                  />
+                  </label>
+                      )}
+                      {/* 사진 삭제 버튼 */}
+                      <button
+                        onClick={() => {
+                          if (confirm(`프로필 사진 ${globalIndex + 1}을 삭제하시겠습니까?`)) {
+                            if (imageData.type === 'avatar') {
+                              handleDeleteProfileImage()
+                            } else {
+                              handleDeleteProfileImageByIndex(imageData.index)
+                            }
+                          }
+                        }}
+                        className="bg-red-500 bg-opacity-90 rounded-full p-2 cursor-pointer hover:bg-opacity-100 transition-all"
+                        title={`프로필 사진 ${globalIndex + 1} 삭제`}
+                      >
+                        <X className="w-5 h-5 text-white" />
+                      </button>
+                      </div>
                   </div>
-                ))
-              ) : (
+                  
+                  {/* 모바일용 항상 보이는 작은 버튼들 */}
+                  <div className="absolute top-2 left-2 flex gap-1 md:hidden">
+                    {/* 사진 변경 버튼 (첫 번째 사진에만) */}
+                    {globalIndex === 0 && (
+                      <label className="bg-black bg-opacity-50 rounded-full p-1.5 cursor-pointer touch-manipulation">
+                        <Camera className="w-3 h-3 text-white" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfileImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                    {/* 사진 삭제 버튼 */}
+                      <button
+                      onClick={() => {
+                        if (confirm(`프로필 사진 ${globalIndex + 1}을 삭제하시겠습니까?`)) {
+                          if (imageData.type === 'avatar') {
+                            handleDeleteProfileImage()
+                          } else {
+                            handleDeleteProfileImageByIndex(imageData.index)
+                          }
+                        }
+                      }}
+                      className="bg-red-500 bg-opacity-80 rounded-full p-1.5 cursor-pointer touch-manipulation"
+                      title={`프로필 사진 ${globalIndex + 1} 삭제`}
+                    >
+                      <X className="w-3 h-3 text-white" />
+                      </button>
+                        </div>
+                    </div>
+                  ))}
+              
+              {/* 프로필 사진이 없는 경우 */}
+              {(() => {
+                const hasImages = profile?.avatar_url || (profile?.profile_images?.length > 0)
+                return !hasImages ? (
                 <div className="w-full h-full flex-shrink-0 relative bg-gray-200 flex items-center justify-center">
-                  <div className="text-center text-gray-500">
+                  <label className="text-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">
                     <Camera className="w-16 h-16 mx-auto mb-2" />
                     <p className="text-sm">프로필 사진을 추가해주세요</p>
-                  </div>
+                    <p className="text-xs mt-1 text-gray-400">클릭하여 업로드</p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfileImageUpload}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
-              )}
-            </div>
+                ) : null
+              })()}
+              </div>
 
             {/* 하단 인디케이터 점들 */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-              {profile?.profile_images?.length > 0 ? (
-                profile.profile_images.map((_, index) => (
+              {(() => {
+                const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
+                return totalImages > 1 ? Array.from({ length: totalImages }, (_, index) => (
                   <div
                     key={index}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
                       index === currentImageIndex ? 'bg-white' : 'bg-white/50'
                     }`}
                   />
-                ))
-              ) : null}
+                )) : null
+              })()}
             </div>
 
-            {/* 카메라 버튼 */}
-            <button className="absolute bottom-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
-              <Camera className="w-6 h-6 text-gray-600" />
-            </button>
-            
             {/* 스와이프 힌트 (프로필 사진이 여러 장 있을 때만 표시) */}
-            {profile?.profile_images?.length > 1 && currentImageIndex === 0 && (
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-xs animate-pulse">
-                ← 스와이프해서 더 보기 →
-              </div>
-            )}
+            {(() => {
+              const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
+              return totalImages > 1 && currentImageIndex === 0 ? (
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-xs animate-pulse">
+                  ← 스와이프해서 더 보기 →
+                </div>
+              ) : null
+            })()}
           </div>
 
-          {/* 프로필 정보 오버레이 */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-            <div className="flex items-end justify-between">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-white">
-                  {profile?.full_name || profile?.name || '프로필을 설정해주세요'}
-                </h1>
-                <p className="text-white/90 text-sm">
-                  {profile?.user_type === 'student' || profile?.userType === 'student'
-                    ? `${profile?.university || ''} ${profile?.major || ''} ${profile?.grade || ''}`.trim() || '학생'
-                    : profile?.occupation || '직장인'
-                  }
-                </p>
-                <p className="text-white/80 text-xs mt-1">
-                  가입일: {profile?.join_date || profile?.joinDate || new Date().toISOString().split('T')[0]}
-                </p>
-              </div>
-              
-              {/* 인증 상태 및 인증센터 버튼 */}
-              <div className="flex flex-col items-end gap-2">
-                {/* 인증 상태 표시 */}
-                <div className="flex items-center gap-1">
-                  {verificationStatus.isVerified ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 text-green-400" />
-                      <span className="text-green-400 text-xs">인증완료</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="w-4 h-4 text-yellow-400" />
-                      <span className="text-yellow-400 text-xs">인증필요</span>
-                    </>
-                  )}
-                </div>
-                
-                {/* 인증센터 버튼 */}
-                <Button
-                  onClick={() => router.push('/verification-center')}
-                  size="sm"
-                  className={`text-xs px-3 py-1 h-7 ${
-                    verificationStatus.isVerified 
-                      ? 'bg-green-600 hover:bg-green-700' 
-                      : 'bg-yellow-600 hover:bg-yellow-700'
-                  }`}
-                >
-                  <Shield className="w-3 h-3 mr-1" />
-                  {verificationStatus.isVerified ? '인증센터' : '인증하기'}
-                </Button>
-              </div>
-            </div>
-          </div>
+          {/* 프로필 정보 오버레이 제거 - 깔끔한 사진만 표시 */}
         </div>
 
         {/* 편집 버튼 (모바일) */}
         <div className="px-4 py-2 bg-white md:hidden">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-gray-800">내 프로필</h1>
+            <h1 className="text-lg font-semibold text-gray-800">{t('profile.myProfile')}</h1>
             <div className="flex items-center gap-2">
               {isEditing ? (
-                <>
+                  <>
                   <button
                     onClick={() => setIsEditing(false)}
                     className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center shadow-sm border border-gray-200"
@@ -547,7 +710,7 @@ export default function MyTab() {
                     <X className="w-4 h-4 text-gray-600" />
                   </button>
                   <button
-                    onClick={handleSaveProfile}
+                      onClick={handleSaveProfile}
                     disabled={isSaving}
                     className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-sm text-white"
                   >
@@ -557,25 +720,70 @@ export default function MyTab() {
                       <Save className="w-4 h-4" />
                     )}
                   </button>
-                </>
-              ) : (
+                  </>
+                ) : (
                 <button
-                  onClick={() => setIsEditing(true)}
+                    onClick={() => setIsEditing(true)}
                   className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center shadow-sm border border-gray-200"
-                >
+                  >
                   <Edit3 className="w-4 h-4 text-gray-600" />
                 </button>
-              )}
+                )}
             </div>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* 관심사 섹션 */}
         <div className="px-4 py-4 bg-gray-50">
-          <div className="flex items-center gap-2 mb-3">
-            <Heart className="w-4 h-4 text-pink-500" />
-            <h2 className="font-semibold text-gray-800">관심사</h2>
-          </div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Heart className="w-4 h-4 text-pink-500" />
+              <h2 className="font-semibold text-gray-800">{t('profile.interests')}</h2>
+            </div>
+            
+            {/* 프로필 편집 버튼 (인증 완료시만) - 데스크톱에서만 표시 */}
+            {verificationStatus.isVerified && (
+              <div className="hidden md:flex items-center gap-2">
+                {isEditing ? (
+                  <>
+                    {/* 취소 버튼 */}
+                    <Button 
+                      onClick={() => setIsEditing(false)}
+                      size="sm" 
+                      variant="outline"
+                      className="text-xs px-3 py-1 h-7 bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      취소
+                    </Button>
+                    {/* 저장 버튼 */}
+                    <Button 
+                      onClick={handleSaveProfile}
+                      disabled={isSaving}
+                      size="sm" 
+                      className="text-xs px-3 py-1 h-7 bg-gray-600 hover:bg-gray-700 text-white"
+                    >
+                      {isSaving ? (
+                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                      ) : (
+                        <Save className="w-3 h-3 mr-1" />
+                      )}
+                      저장
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => setIsEditing(true)}
+                    size="sm"
+                    className="text-xs px-3 py-1 h-7 bg-gray-600 hover:bg-gray-700 text-white"
+                  >
+                    <Edit3 className="w-3 h-3 mr-1" />
+                    {t('profile.editProfile')}
+                  </Button>
+                )}
+              </div>
+            )}
+            </div>
 
           {isEditing ? (
             <div className="space-y-3">
@@ -584,9 +792,118 @@ export default function MyTab() {
                 {editForm.interests.map((interest: string, index: number) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm border border-gray-200 flex items-center gap-1"
+                    className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm border border-gray-200 flex items-center gap-1 max-w-full truncate"
                   >
-                    {interest}
+                    {(() => {
+                      // 임시 하드코딩 번역 (디버깅용)
+                      const hardcodedTranslations: Record<string, Record<string, string>> = {
+                        ko: {
+                          'profile.interests.여행': '여행',
+                          'profile.interests.한국문화': '한국문화',
+                          'profile.interests.음악': '음악',
+                          'profile.interests.영화': '영화',
+                          'profile.interests.스포츠': '스포츠',
+                          'profile.interests.패션': '패션',
+                          'profile.interests.게임': '게임',
+                          'profile.interests.기술': '기술',
+                          'profile.interests.경제': '경제',
+                          'profile.interests.언어교환': '언어교환',
+                          'profile.interests.K-POP': 'K-POP',
+                          'profile.interests.드라마': '드라마',
+                          'profile.interests.맛집': '맛집',
+                          'profile.interests.독서': '독서',
+                          'profile.interests.댄스': '댄스',
+                          'profile.interests.미술': '미술',
+                          'profile.interests.자연': '자연',
+                          'profile.interests.반려동물': '반려동물',
+                          'profile.interests.커피': '커피',
+                          'profile.interests.뷰티': '뷰티',
+                          'profile.interests.음식': '음식',
+                          'profile.interests.한국어': '한국어',
+                          '여행': '여행',
+                          '한국문화': '한국문화',
+                          '음악': '음악',
+                          '영화': '영화',
+                          '스포츠': '스포츠',
+                          '패션': '패션',
+                          '게임': '게임',
+                          '기술': '기술',
+                          '경제': '경제',
+                          '언어교환': '언어교환',
+                          'K-POP': 'K-POP',
+                          '드라마': '드라마',
+                          '맛집': '맛집',
+                          '독서': '독서',
+                          '댄스': '댄스',
+                          '미술': '미술',
+                          '자연': '자연',
+                          '반려동물': '반려동물',
+                          '커피': '커피',
+                          '뷰티': '뷰티',
+                          '음식': '음식',
+                          '한국어': '한국어'
+                        },
+                        es: {
+                          'profile.interests.여행': 'Viajes',
+                          'profile.interests.한국문화': 'Cultura Coreana',
+                          'profile.interests.음악': 'Música',
+                          'profile.interests.영화': 'Películas',
+                          'profile.interests.스포츠': 'Deportes',
+                          'profile.interests.패션': 'Moda',
+                          'profile.interests.게임': 'Juegos',
+                          'profile.interests.기술': 'Tecnología',
+                          'profile.interests.경제': 'Economía',
+                          'profile.interests.언어교환': 'Intercambio de Idiomas',
+                          'profile.interests.K-POP': 'K-POP',
+                          'profile.interests.드라마': 'Dramas',
+                          'profile.interests.맛집': 'Restaurantes',
+                          'profile.interests.독서': 'Lectura',
+                          'profile.interests.댄스': 'Baile',
+                          'profile.interests.미술': 'Arte',
+                          'profile.interests.자연': 'Naturaleza',
+                          'profile.interests.반려동물': 'Mascotas',
+                          'profile.interests.커피': 'Café',
+                          'profile.interests.뷰티': 'Belleza',
+                          'profile.interests.음식': 'Comida',
+                          'profile.interests.한국어': 'Coreano',
+                          '여행': 'Viajes',
+                          '한국문화': 'Cultura Coreana',
+                          '음악': 'Música',
+                          '영화': 'Películas',
+                          '스포츠': 'Deportes',
+                          '패션': 'Moda',
+                          '게임': 'Juegos',
+                          '기술': 'Tecnología',
+                          '경제': 'Economía',
+                          '언어교환': 'Intercambio de Idiomas',
+                          'K-POP': 'K-POP',
+                          '드라마': 'Dramas',
+                          '맛집': 'Restaurantes',
+                          '독서': 'Lectura',
+                          '댄스': 'Baile',
+                          '미술': 'Arte',
+                          '자연': 'Naturaleza',
+                          '반려동물': 'Mascotas',
+                          '커피': 'Café',
+                          '뷰티': 'Belleza',
+                          '음식': 'Comida',
+                          '한국어': 'Coreano'
+                        }
+                      }
+                      
+                      const currentLang = language || 'ko'
+                      const hardcoded = hardcodedTranslations[currentLang]?.[interest]
+                      if (hardcoded) {
+                        return hardcoded
+                      }
+                      
+                      // interest가 이미 번역 키 형태인 경우 처리
+                      if (interest.startsWith('profile.interests.')) {
+                        const cleanInterest = interest.replace('profile.interests.', '')
+                        return t(`profile.interests.${cleanInterest}`) || cleanInterest
+                      }
+                      return t(`profile.interests.${interest}`) || t(`profile.${interest}`) || interest
+                    })()}
                     <button
                       onClick={() => handleRemoveInterest(interest)}
                       className="text-red-500 hover:text-red-700"
@@ -597,84 +914,286 @@ export default function MyTab() {
                 ))}
               </div>
 
-              {/* 새 관심사 추가 */}
-              <div className="flex gap-2">
-                <Input
-                  value={newInterest}
-                  onChange={(e) => setNewInterest(e.target.value)}
-                  placeholder="관심사를 입력하세요"
-                  className="text-sm"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddInterest()}
-                />
-                <Button
-                  onClick={handleAddInterest}
-                  size="sm"
-                  className="px-3"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
+              {/* 관심사 선택 */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">
+                    {language === 'ko' ? `관심사 선택 (${editForm.interests.length}/5)` : `Seleccionar intereses (${editForm.interests.length}/5)`}
+                  </span>
+                  <Button
+                    onClick={() => setShowInterestSelector(!showInterestSelector)}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    {showInterestSelector 
+                      ? (language === 'ko' ? '숨기기' : 'Ocultar')
+                      : (language === 'ko' ? '관심사 선택' : 'Seleccionar')
+                    }
+                  </Button>
+                </div>
+
+                {/* 관심사 선택 그리드 */}
+                {showInterestSelector && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                    {availableInterests.map(interest => (
+                      <Button
+                        key={interest}
+                        variant={editForm.interests.includes(interest) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleInterestSelect(interest)}
+                        disabled={!editForm.interests.includes(interest) && editForm.interests.length >= 5}
+                        className={`text-xs transition-all duration-200 ${
+                          editForm.interests.includes(interest)
+                            ? 'bg-blue-200 text-blue-800 border-blue-300 shadow-sm'
+                            : 'hover:bg-blue-50 hover:border-blue-300 hover:shadow-sm'
+                        }`}
+                      >
+                        {(() => {
+                          // 하드코딩된 번역 적용
+                          const hardcodedTranslations: Record<string, Record<string, string>> = {
+                            ko: {
+                              '한국어': '한국어',
+                              '한국문화': '한국문화',
+                              '음식': '음식',
+                              '여행': '여행',
+                              '영화': '영화',
+                              '음악': '음악',
+                              '스포츠': '스포츠',
+                              '패션': '패션',
+                              '게임': '게임',
+                              '기술': '기술',
+                              '경제': '경제',
+                              '언어교환': '언어교환',
+                              'K-POP': 'K-POP',
+                              '드라마': '드라마',
+                              '맛집': '맛집',
+                              '독서': '독서',
+                              '댄스': '댄스',
+                              '미술': '미술',
+                              '자연': '자연',
+                              '반려동물': '반려동물',
+                              '커피': '커피',
+                              '뷰티': '뷰티'
+                            },
+                            es: {
+                              '한국어': 'Coreano',
+                              '한국문화': 'Cultura Coreana',
+                              '음식': 'Comida',
+                              '여행': 'Viajes',
+                              '영화': 'Películas',
+                              '음악': 'Música',
+                              '스포츠': 'Deportes',
+                              '패션': 'Moda',
+                              '게임': 'Juegos',
+                              '기술': 'Tecnología',
+                              '경제': 'Economía',
+                              '언어교환': 'Intercambio de Idiomas',
+                              'K-POP': 'K-POP',
+                              '드라마': 'Dramas',
+                              '맛집': 'Restaurantes',
+                              '독서': 'Lectura',
+                              '댄스': 'Baile',
+                              '미술': 'Arte',
+                              '자연': 'Naturaleza',
+                              '반려동물': 'Mascotas',
+                              '커피': 'Café',
+                              '뷰티': 'Belleza'
+                            }
+                          }
+                          
+                          const currentLang = language || 'ko'
+                          return hardcodedTranslations[currentLang]?.[interest] || interest
+                        })()}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+                </div>
           ) : (
             <div className="flex flex-wrap gap-2">
               {profile?.interests?.length > 0 ? (
-                profile.interests.map((interest: string, index: number) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm border border-gray-200"
-                  >
-                    {interest}
-                  </span>
-                ))
+                profile.interests.map((interest: string, index: number) => {
+                  console.log('Interest:', interest, 'Translation:', t(`profile.interests.${interest}`))
+                  return (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm border border-gray-200 max-w-full truncate"
+                    >
+                      {(() => {
+                        // 임시 하드코딩 번역 (디버깅용)
+                        const hardcodedTranslations: Record<string, Record<string, string>> = {
+                          ko: {
+                            'profile.interests.여행': '여행',
+                            'profile.interests.한국문화': '한국문화',
+                            'profile.interests.음악': '음악',
+                            'profile.interests.영화': '영화',
+                            'profile.interests.스포츠': '스포츠',
+                            'profile.interests.패션': '패션',
+                            'profile.interests.게임': '게임',
+                            'profile.interests.기술': '기술',
+                            'profile.interests.경제': '경제',
+                            'profile.interests.언어교환': '언어교환',
+                            'profile.interests.K-POP': 'K-POP',
+                            'profile.interests.드라마': '드라마',
+                            'profile.interests.맛집': '맛집',
+                            'profile.interests.독서': '독서',
+                            'profile.interests.댄스': '댄스',
+                            'profile.interests.미술': '미술',
+                            'profile.interests.자연': '자연',
+                            'profile.interests.반려동물': '반려동물',
+                            'profile.interests.커피': '커피',
+                            'profile.interests.뷰티': '뷰티',
+                            'profile.interests.음식': '음식',
+                            'profile.interests.한국어': '한국어',
+                            '여행': '여행',
+                            '한국문화': '한국문화',
+                            '음악': '음악',
+                            '영화': '영화',
+                            '스포츠': '스포츠',
+                            '패션': '패션',
+                            '게임': '게임',
+                            '기술': '기술',
+                            '경제': '경제',
+                            '언어교환': '언어교환',
+                            'K-POP': 'K-POP',
+                            '드라마': '드라마',
+                            '맛집': '맛집',
+                            '독서': '독서',
+                            '댄스': '댄스',
+                            '미술': '미술',
+                            '자연': '자연',
+                            '반려동물': '반려동물',
+                            '커피': '커피',
+                            '뷰티': '뷰티',
+                            '음식': '음식',
+                            '한국어': '한국어'
+                          },
+                          es: {
+                            'profile.interests.여행': 'Viajes',
+                            'profile.interests.한국문화': 'Cultura Coreana',
+                            'profile.interests.음악': 'Música',
+                            'profile.interests.영화': 'Películas',
+                            'profile.interests.스포츠': 'Deportes',
+                            'profile.interests.패션': 'Moda',
+                            'profile.interests.게임': 'Juegos',
+                            'profile.interests.기술': 'Tecnología',
+                            'profile.interests.경제': 'Economía',
+                            'profile.interests.언어교환': 'Intercambio de Idiomas',
+                            'profile.interests.K-POP': 'K-POP',
+                            'profile.interests.드라마': 'Dramas',
+                            'profile.interests.맛집': 'Restaurantes',
+                            'profile.interests.독서': 'Lectura',
+                            'profile.interests.댄스': 'Baile',
+                            'profile.interests.미술': 'Arte',
+                            'profile.interests.자연': 'Naturaleza',
+                            'profile.interests.반려동물': 'Mascotas',
+                            'profile.interests.커피': 'Café',
+                            'profile.interests.뷰티': 'Belleza',
+                            'profile.interests.음식': 'Comida',
+                            'profile.interests.한국어': 'Coreano',
+                            '여행': 'Viajes',
+                            '한국문화': 'Cultura Coreana',
+                            '음악': 'Música',
+                            '영화': 'Películas',
+                            '스포츠': 'Deportes',
+                            '패션': 'Moda',
+                            '게임': 'Juegos',
+                            '기술': 'Tecnología',
+                            '경제': 'Economía',
+                            '언어교환': 'Intercambio de Idiomas',
+                            'K-POP': 'K-POP',
+                            '드라마': 'Dramas',
+                            '맛집': 'Restaurantes',
+                            '독서': 'Lectura',
+                            '댄스': 'Baile',
+                            '미술': 'Arte',
+                            '자연': 'Naturaleza',
+                            '반려동물': 'Mascotas',
+                            '커피': 'Café',
+                            '뷰티': 'Belleza',
+                            '음식': 'Comida',
+                            '한국어': 'Coreano'
+                          }
+                        }
+                        
+                        const currentLang = language || 'ko'
+                        const hardcoded = hardcodedTranslations[currentLang]?.[interest]
+                        if (hardcoded) {
+                          console.log('Hardcoded translation found:', interest, '->', hardcoded)
+                          return hardcoded
+                        }
+                        
+                        // interest가 이미 번역 키 형태인 경우 처리
+                        if (interest.startsWith('profile.interests.')) {
+                          const cleanInterest = interest.replace('profile.interests.', '')
+                          const translated = t(`profile.interests.${cleanInterest}`)
+                          console.log('Clean interest:', cleanInterest, 'Translation:', translated)
+                          return translated || cleanInterest
+                        }
+                        
+                        const translated = t(`profile.interests.${interest}`) || t(`profile.${interest}`) || interest
+                        console.log('Regular interest:', interest, 'Translation:', translated)
+                        return translated
+                      })()}
+                    </span>
+                  )
+                })
               ) : (
                 <span className="px-3 py-1 bg-white text-gray-500 rounded-full text-sm border border-gray-200">
-                  관심사 없음
+                  {t('profile.noInterestsSet')}
                 </span>
               )}
-            </div>
-          )}
+              </div>
+            )}
         </div>
         
         {/* 기본 정보 섹션 */}
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center gap-2 mb-3">
             <User className="w-4 h-4 text-blue-500" />
-            <h2 className="font-semibold text-gray-800">기본 정보</h2>
+            <h2 className="font-semibold text-gray-800">{t('profile.academicCareerInfo')}</h2>
           </div>
 
-          {isEditing ? (
+                {isEditing ? (
             <div className="space-y-4">
               {/* 기본 정보 입력 필드들 */}
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">한국이름</label>
+                  <label className="text-gray-600 text-sm block mb-1">{t('profile.koreanName')}</label>
                   <Input
                     value={editForm.korean_name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, korean_name: e.target.value }))}
-                    placeholder="한국이름을 입력하세요"
+                    placeholder={t('profile.koreanName') + '을 입력하세요'}
                     className="text-sm"
                   />
-                </div>
-                
+              </div>
+              
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">닉네임</label>
+                  <label className="text-gray-600 text-sm block mb-1">{t('profile.nickname')}</label>
                   <Input
                     value={editForm.nickname}
                     onChange={(e) => setEditForm(prev => ({ ...prev, nickname: e.target.value }))}
-                    placeholder="닉네임을 입력하세요"
-                    className="text-sm"
+                    placeholder={t('profile.nickname') + '을 입력하세요'}
+                    className={`text-sm ${editForm.nickname && !validateNickname(editForm.nickname) ? 'border-red-500' : ''}`}
                   />
-                </div>
-                
+                  {editForm.nickname && !validateNickname(editForm.nickname) && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {language === 'ko' ? '알파벳, 숫자, 특수문자만 사용 가능합니다' : 'Solo se permiten letras, números y caracteres especiales'}
+                    </p>
+                )}
+              </div>
+
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">스페인어 이름</label>
-                  <Input
+                  <label className="text-gray-600 text-sm block mb-1">{t('profile.spanishName')}</label>
+                    <Input
                     value={editForm.spanish_name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, spanish_name: e.target.value }))}
-                    placeholder="스페인어 이름을 입력하세요"
+                    placeholder={t('profile.spanishName') + '을 입력하세요'}
                     className="text-sm"
                   />
-                </div>
+                  </div>
                 
                 <div>
                   <label className="text-gray-600 text-sm block mb-1">사용자 타입</label>
@@ -687,11 +1206,11 @@ export default function MyTab() {
                       <SelectItem value="worker">직장인</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                
+              </div>
+              
                 {/* 사용자 타입에 따른 입력 필드 */}
                 {editForm.user_type === 'student' ? (
-                  <>
+                <>
                     <div>
                       <label className="text-gray-600 text-sm block mb-1">대학교</label>
                       <Input
@@ -700,8 +1219,8 @@ export default function MyTab() {
                         placeholder="대학교를 입력하세요"
                         className="text-sm"
                       />
-                    </div>
-                    
+                  </div>
+                  
                     <div>
                       <label className="text-gray-600 text-sm block mb-1">전공</label>
                       <Input
@@ -710,7 +1229,7 @@ export default function MyTab() {
                         placeholder="전공을 입력하세요"
                         className="text-sm"
                       />
-                    </div>
+                  </div>
                     
                     <div>
                       <label className="text-gray-600 text-sm block mb-1">학년</label>
@@ -725,43 +1244,43 @@ export default function MyTab() {
                 ) : (
                   <>
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">직업</label>
+                      <label className="text-gray-600 text-sm block mb-1">{t('profile.occupation')}</label>
                       <Input
                         value={editForm.occupation}
                         onChange={(e) => setEditForm(prev => ({ ...prev, occupation: e.target.value }))}
-                        placeholder="직업을 입력하세요"
+                        placeholder={t('profile.occupation') + '을 입력하세요'}
                         className="text-sm"
                       />
-                    </div>
-                    
+                  </div>
+                  
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">회사</label>
+                      <label className="text-gray-600 text-sm block mb-1">{t('profile.company')}</label>
                       <Input
                         value={editForm.company}
                         onChange={(e) => setEditForm(prev => ({ ...prev, company: e.target.value }))}
-                        placeholder="회사를 입력하세요"
+                        placeholder={t('profile.company') + '을 입력하세요'}
                         className="text-sm"
                       />
-                    </div>
+                  </div>
                     
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">경력</label>
-                      <Input
+                      <label className="text-gray-600 text-sm block mb-1">{t('profile.experience')}</label>
+                    <Input
                         value={editForm.career}
                         onChange={(e) => setEditForm(prev => ({ ...prev, career: e.target.value }))}
-                        placeholder="경력을 입력하세요"
+                        placeholder={t('profile.experience') + '을 입력하세요'}
                         className="text-sm"
                       />
-                    </div>
+                </div>
                   </>
                 )}
                 
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">자기소개</label>
-                  <Textarea
+                  <label className="text-gray-600 text-sm block mb-1">{t('profile.selfIntroduction')}</label>
+                <Textarea
                     value={editForm.introduction}
                     onChange={(e) => setEditForm(prev => ({ ...prev, introduction: e.target.value }))}
-                    placeholder="자기소개를 입력하세요"
+                    placeholder={t('profile.selfIntroduction') + '를 입력하세요'}
                     className="text-sm min-h-[80px]"
                   />
                 </div>
@@ -771,33 +1290,33 @@ export default function MyTab() {
             <div className="space-y-3">
               {/* 한국이름 */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">한국이름</span>
-                <span className="text-gray-800 text-sm font-medium">
-                  {profile?.korean_name || '한국이름 없음'}
+                <span className='text-gray-600 text-sm'>{t('profile.koreanName')}</span>
+                <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                  {profile?.korean_name || t('profile.koreanName') + ' 없음'}
                 </span>
-              </div>
+            </div>
 
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
 
               {/* 닉네임 */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">닉네임 (알파벳, 숫자, 특수문자)</span>
-                <span className="text-gray-800 text-sm font-medium">
-                  {profile?.nickname || '닉네임 미설정'}
+                <span className='text-gray-600 text-sm'>{t('profile.nickname')}</span>
+                <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                  {profile?.nickname || t('profile.nickname') + ' 미설정'}
                 </span>
-              </div>
+                </div>
 
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
 
               {/* 스페인어 이름 */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">스페인어 이름</span>
-                <span className="text-gray-800 text-sm font-medium">
-                  {profile?.spanish_name || '스페인어 이름 없음'}
+                <span className='text-gray-600 text-sm'>{t('profile.spanishName')}</span>
+                <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                  {profile?.spanish_name || t('profile.spanishName') + ' 없음'}
                 </span>
-              </div>
+          </div>
 
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
@@ -811,7 +1330,7 @@ export default function MyTab() {
                     <span className="text-gray-800 text-sm font-medium">
                       {profile?.university || '대학교 없음'}
                     </span>
-                  </div>
+      </div>
 
                   {/* 구분선 */}
                   <div className="border-t border-gray-200"></div>
@@ -831,37 +1350,37 @@ export default function MyTab() {
                     <span className="text-gray-800 text-sm font-medium">
                       {profile?.grade || '학년 없음'}
                     </span>
-                  </div>
+              </div>
                 </>
               ) : (
                 <>
                   {/* 직업 정보 (직장인인 경우) */}
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-sm">직업</span>
-                    <span className="text-gray-800 text-sm font-medium">
-                      {profile?.occupation || '직업 없음'}
+                    <span className='text-gray-600 text-sm'>{t('profile.occupation')}</span>
+                    <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                      {profile?.occupation || t('profile.occupation') + ' 없음'}
                     </span>
-                  </div>
+            </div>
+            
+                  {/* 구분선 */}
+                  <div className="border-t border-gray-200"></div>
+
+                  <div className="flex items-center justify-between">
+                    <span className='text-gray-600 text-sm'>{t('profile.company')}</span>
+                    <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                      {profile?.company || t('profile.company') + ' 없음'}
+                    </span>
+          </div>
 
                   {/* 구분선 */}
                   <div className="border-t border-gray-200"></div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-sm">회사</span>
-                    <span className="text-gray-800 text-sm font-medium">
-                      {profile?.company || '회사 없음'}
+                    <span className='text-gray-600 text-sm'>{t('profile.experience')}</span>
+                    <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                      {profile?.career || t('profile.noExperience')}
                     </span>
-                  </div>
-
-                  {/* 구분선 */}
-                  <div className="border-t border-gray-200"></div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-sm">경력</span>
-                    <span className="text-gray-800 text-sm font-medium">
-                      {profile?.career || '경력 없음'}
-                    </span>
-                  </div>
+              </div>
                 </>
               )}
 
@@ -870,75 +1389,90 @@ export default function MyTab() {
 
               {/* 자기소개 */}
               <div className="flex items-start justify-between">
-                <span className="text-gray-600 text-sm">자기소개</span>
+                <span className='text-gray-600 text-sm'>{t('profile.selfIntroduction')}</span>
                 <span className="text-gray-800 text-sm font-medium text-right max-w-[60%]">
-                  {profile?.introduction || '자기소개 없음'}
+                  {profile?.introduction || t('profile.noSelfIntroduction')}
                 </span>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
+      )}
+                  </div>
 
         {/* 스토리 설정 섹션 */}
         <div className="px-4 py-4 bg-white">
-          <div className="flex items-center gap-2 mb-3">
-            <Settings className="w-4 h-4 text-orange-500" />
-            <h2 className="font-semibold text-gray-800">{t('storySettings.globalSettings.title')}</h2>
-          </div>
-          <StorySettings />
-        </div>
+      <StorySettings />
+            </div>
         
         {/* 알림 설정 섹션 */}
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center gap-2 mb-3">
             <Bell className="w-4 h-4 text-blue-500" />
             <h2 className="font-semibold text-gray-800">{t('myTab.notificationSettings')}</h2>
-          </div>
-
+        </div>
+        
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-purple-600" />
-                <div>
+              <div>
                   <div className="font-medium text-gray-800 dark:text-gray-200 text-xs">{t('myTab.webPushNotification')}</div>
                   <div className="text-xs text-gray-600 dark:text-gray-300">{t('myTab.webPushDescription')}</div>
-                </div>
               </div>
-              <Switch
-                checked={notificationSettings.webPush}
-                onCheckedChange={(checked) => handleNotificationChange('webPush', checked)}
-              />
             </div>
-
+            <Switch
+              checked={notificationSettings.webPush}
+              onCheckedChange={(checked) => handleNotificationChange('webPush', checked)}
+            />
+          </div>
+          
             <div className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-purple-600" />
-                <div>
+              <div>
                   <div className="font-medium text-gray-800 dark:text-gray-200 text-xs">{t('myTab.emailNotification')}</div>
                   <div className="text-xs text-gray-600 dark:text-gray-300">{t('myTab.emailDescription')}</div>
-                </div>
               </div>
-              <Switch
-                checked={notificationSettings.email}
-                onCheckedChange={(checked) => handleNotificationChange('email', checked)}
-              />
             </div>
-
+            <Switch
+              checked={notificationSettings.email}
+              onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+            />
+          </div>
+          
             <div className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-purple-600" />
-                <div>
+              <div>
                   <div className="font-medium text-gray-800 dark:text-gray-200 text-xs">{t('myTab.marketingNotification')}</div>
                   <div className="text-xs text-gray-600 dark:text-gray-300">{t('myTab.marketingDescription')}</div>
-                </div>
               </div>
-              <Switch
-                checked={notificationSettings.marketing}
-                onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
-              />
             </div>
+            <Switch
+              checked={notificationSettings.marketing}
+              onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
+            />
           </div>
         </div>
+      </div>
+
+          {/* 충전소 섹션 구분선 */}
+          <div className="mx-4 my-6">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
+                <img src="/charging-title.png" alt="충전소" className="w-5 h-5" />
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('storeTab.title')}</span>
+              </div>
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+            </div>
+          </div>
+
+          {/* 충전소 섹션 */}
+          <div className="px-4 py-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border-t border-blue-200 dark:border-blue-800">
+            <ChargingHeader />
+            <PointsCard />
+            <ChargingTab />
+          </div>
 
         {/* 관리자 전용 대시보드 */}
         {isAdmin && (

@@ -24,6 +24,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null)
   
+  // 사용자 프로필 언어 가져오기
+  const fetchUserLanguage = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/profile?userId=${userId}`)
+      const result = await response.json()
+      
+      if (response.ok && result.user?.language) {
+        console.log('[AUTH] 사용자 프로필 언어:', result.user.language)
+        // LanguageContext의 setUserLanguage 함수 호출 (동적 import)
+        if (typeof window !== 'undefined') {
+          import('./LanguageContext').then(({ useLanguage }) => {
+            // 이 방법은 컴포넌트 외부에서는 사용할 수 없으므로
+            // localStorage를 통해 언어 설정을 전달
+            localStorage.setItem('amiko-user-language', result.user.language)
+          })
+        }
+      }
+    } catch (error) {
+      console.error('[AUTH] 사용자 언어 가져오기 실패:', error)
+    }
+  }
+
   // 클라이언트에서만 Supabase 클라이언트 생성
   useEffect(() => {
     // 클라이언트 사이드에서만 실행
@@ -162,6 +184,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('[AUTH] Supabase 세션으로 인증 상태 설정')
           setSession(session)
           setUser(session.user)
+          
+          // 사용자 프로필 언어 가져오기
+          await fetchUserLanguage(session.user.id)
           
           // 로컬 스토리지에 저장 (더 긴 만료시간으로)
           const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60) // 30일 추가

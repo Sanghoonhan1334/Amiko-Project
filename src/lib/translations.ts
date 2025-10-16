@@ -9,6 +9,55 @@ export const translations = {
     changeToKorean: '한국어로 변경',
     selectLanguage: '언어 선택',
     language: 'ko',
+
+    // 라운지 미니
+    loungeMini: {
+      weekendEvent: '주말 특별 이벤트',
+      title: 'ZEP 라운지',
+      subtitle: '운영자가 직접 참여하는 특별한 시간을 경험해보세요',
+      saturdayEvent: '토요일 이벤트',
+      time: '20:00',
+      kst: 'KST',
+      operationTime: '운영 시간',
+      participants: '30',
+      maxParticipants: '최대 참여자',
+      firstComeFirstServed: '선착순',
+      timeByCountry: '국가별 시간',
+      countries: {
+        korea: '한국',
+        peru: '페루',
+        mexico: '멕시코',
+        colombia: '콜롬비아',
+        argentina: '아르헨티나',
+        chile: '칠레',
+        ecuador: '에콰도르',
+        bolivia: '볼리비아',
+        uruguay: '우루과이',
+        paraguay: '파라과이'
+      },
+      timeFormat: {
+        korea: '한국 시간',
+        peru: '페루 시간',
+        mexico: '멕시코 시간',
+        colombia: '콜롬비아 시간',
+        argentina: '아르헨티나 시간',
+        chile: '칠레 시간',
+        ecuador: '에콰도르 시간',
+        bolivia: '볼리비아 시간',
+        uruguay: '우루과이 시간',
+        paraguay: '파라과이 시간'
+      },
+      specialTime: '특별 시간',
+      gettingToKnow: '서로 알아가는 시간',
+      description: '자유로운 대화와 한국 문화 체험을 통해 새로운 친구를 만들어보세요',
+      features: {
+        freeTalk: '자유로운 대화',
+        culturalExchange: '문화 교류',
+        makeFriends: '친구 만들기'
+      },
+      button: '라운지 가기',
+      message: '매주 토요일 저녁, 여러분을 기다리고 있어요!'
+    },
     
     // 공통
     common: {
@@ -254,7 +303,6 @@ export const translations = {
       
       // 이메일/SMS 인증
       emailVerification: '이메일 인증',
-      smsVerification: '전화번호 인증',
       verificationCode: '인증코드',
       verificationCodePlaceholder: '6자리 인증코드를 입력하세요',
       sendVerificationCode: '인증코드 발송',
@@ -263,6 +311,51 @@ export const translations = {
       codeExpired: '인증코드가 만료되었습니다',
       invalidCode: '잘못된 인증코드입니다',
       verificationSuccess: '인증이 완료되었습니다',
+      
+      // 이메일 인증 상세 텍스트
+      emailSendDescription: '로 인증코드를 발송해주세요',
+      emailSentDescription: '로 인증코드를 발송했습니다',
+      emailCodeDescription: '이메일로 받은 6자리 코드를 입력해주세요',
+      codeComplete: '인증코드 입력 완료',
+      codeInputPrompt: '코드를 입력하세요',
+      sending: '발송 중...',
+      didntReceiveCode: '인증코드를 받지 못하셨나요?',
+      emailGuideTitle: '이메일 확인 안내',
+      emailGuideSpam: '스팸 폴더도 확인해보세요',
+      emailGuideResend: '이메일이 도착하지 않으면 재발송 버튼을 눌러주세요',
+      emailGuideServices: 'Gmail, Outlook 등 모든 이메일 서비스에서 확인 가능합니다',
+      
+      // 전화번호 인증
+      phoneVerification: '전화번호 인증',
+      phoneVerificationNeeded: '게시판 참여을 위해 전화번호 인증이 필요합니다',
+      selectVerificationMethod: '인증 방법을 선택하세요',
+      verificationForSafety: '서로를 지켜주기 위해 전화번호 인증이 필요합니다',
+      whatsappVerification: 'WhatsApp으로 인증',
+      whatsappVerificationDesc: 'WhatsApp 메시지로 인증번호 받기',
+      smsVerification: 'SMS로 인증',
+      smsVerificationDesc: '문자 메시지로 인증번호 받기',
+      whatsappAuth: 'WhatsApp 인증',
+      smsAuth: 'SMS 인증',
+      whatsappPhoneDesc: 'WhatsApp으로 인증번호를 받을 전화번호를 입력하세요',
+      smsPhoneDesc: 'SMS로 인증번호를 받을 전화번호를 입력하세요',
+      phoneNumber: '전화번호',
+      phoneNumberPlaceholder: '예: +82 10-1234-5678',
+      phoneNumberHelp: '국가번호를 포함한 전체 전화번호를 입력하세요',
+      sendingCode: '발송 중...',
+      enterVerificationCode: '인증번호 입력',
+      codeSentTo: '로 발송된 인증번호를 입력하세요',
+      verificationCodePlaceholder: '6자리 인증번호',
+      timeLeft: '남은 시간',
+      verify: '인증하기',
+      verificationComplete: '인증 완료!',
+      verificationCompleteDesc: '전화번호 인증이 완료되었습니다. 이제 게시판에 참여할 수 있습니다.',
+      backToMain: '메인으로 돌아가기',
+      loginRequired: '로그인이 필요합니다',
+      loginRequiredDesc: '전화번호 인증을 위해 먼저 로그인해주세요.',
+      loginButton: '로그인하기',
+      adminCheckStatus: '운영자 상태 확인 중...',
+      redirectingToMain: '메인 페이지로 이동 중...',
+      loading: '로딩 중...',
       
       // 지문 인증
       biometricLogin: '지문으로 빠른 로그인',
@@ -347,9 +440,9 @@ export const translations = {
           subtitle: '아래 섹션을 클릭하여 자세한 정보를 확인하세요',
           about: {
             title: '소개',
-            description: 'AMIKO는 한국과 라틴아메리카를 연결하는 플랫폼입니다',
-            bridgeDescription: 'AMerica와 KOrea를 잇는 다리',
-            connectDescription: '더 가깝게, 더 쉽게 연결합니다'
+            description: 'AMI(America) KO(Korea)를 잇다.',
+            bridgeDescription: 'AMerica와 KOrea를 I 이어주는 다리',
+            connectDescription: 'A mí(나에게) Korea를 더 가깝게'
           },
           contact: {
             title: '문의',
@@ -455,6 +548,7 @@ export const translations = {
       community: '커뮤니티',
       communityDescription: '',
       me: '내 프로필',
+      myPage: '마이페이지',
       meDescription: '내 활동 내역과 포인트를 확인하세요'
     },
 
@@ -487,39 +581,6 @@ export const translations = {
       beginner: '초급',
       intermediate: '중급',
       advanced: '고급',
-      interests: {
-        // 한국어 관심사들
-        '영화': '영화',
-        '음악': '음악', 
-        '여행': '여행',
-        '요리': '요리',
-        'K-POP': 'K-POP',
-        '드라마': '드라마',
-        '패션': '패션',
-        '맛집': '맛집',
-        '스포츠': '스포츠',
-        '게임': '게임',
-        '기술': '기술',
-        '독서': '독서',
-        '한국어': '한국어',
-        '언어교환': '언어교환',
-        '한국 드라마': '한국 드라마',
-        '애니메이션': '애니메이션',
-        '사진': '사진',
-        '운동': '운동',
-        '댄스': '댄스',
-        '미술': '미술',
-        '자연': '자연',
-        '반려동물': '반려동물',
-        '커피': '커피',
-        '술': '술',
-        '쇼핑': '쇼핑',
-        '뷰티': '뷰티',
-        '건강': '건강',
-        '명상': '명상',
-        '요가': '요가',
-        '피트니스': '피트니스'
-      },
       noPartnersTitle: '파트너가 없습니다',
       noPartnersDescription: '현재 등록된 파트너가 없습니다. 곧 새로운 파트너들이 추가될 예정입니다.'
     },
@@ -729,6 +790,7 @@ export const translations = {
       titlePlaceholder: '제목을 입력하세요',
       postType: '게시글 유형',
       normalPost: '일반 게시글',
+      category: '카테고리',
       surveyTips: '설문조사 작성 팁',
       surveyTip1: '명확한 질문을 작성하세요',
       surveyTip2: '선택지를 다양하게 제공하세요',
@@ -920,10 +982,11 @@ export const translations = {
       greeting: '안녕하세요.',
       thankYou: 'Amiko를 찾아주셔서 감사합니다.',
       teamIntroduction: 'Amiko의 CTO 한상훈(Samuel), CMO 박겸(Pablo)입니다.',
-      latinAmericaExperience: '저희는 여러 남미 국가에서 살며 그들의 문화와 사람들을 진심으로 사랑하게 되었습니다.',
-      koreanInterest: '최근 한국의 다양한 매체를 통해 남미의 아름다움이 소개되면서, 많은 한국인들이 점차 지구 반대편의 매력적인 대륙에 대해 알아가고 있습니다.',
+      latinAmericaExperience: '저희는 남미 여러 나라에서 생활하며 그 문화와 사람들을 진심으로 사랑하게 되었습니다.',
+      koreanInterest: '최근에는 한국에서도 다양한 미디어를 통해 남미의 아름다움이 소개되면서, 많은 한국인들이 지구 반대편에 있는 매력적인 남미 대륙을 조금씩 알아가고 있습니다.',
+      culturalExchange: '이 경험을 통해 저희는 한국과 남미가 더 가깝게 연결될 수 있는 문화 교류와 커뮤니티의 필요성을 절실히 느꼈습니다.',
       bridgePromise: '그래서 다짐했습니다. 한국과 남미를 이어주는 다리를 만들자.',
-      platformDescription: 'Amiko는 화상 채팅과 커뮤니티 서비스를 기반으로, 철저히 검증된 멤버십을 통해 신뢰할 수 있는 플랫폼을 제공합니다.',
+      platformDescription: 'Amiko는 화상 통화와 커뮤니티 서비스를 기반으로, 철저히 검증된 멤버십을 통해 신뢰할 수 있는 플랫폼을 제공합니다.',
       communityVision: '단순한 소통을 넘어 한국의 트렌드, 패션, K-POP, 라이프스타일까지 공유할 수 있는 커뮤니티로 발전해 나가겠습니다.',
       finalMessage: 'Amiko를 통해 서로에게 가까이 다가가보세요.'
     },
@@ -1499,6 +1562,55 @@ export const translations = {
       uploading: '업로드 중...'
     },
 
+    // 시간대 설정
+    timezone: {
+      changeMainTime: '대표시간 바꾸기'
+    },
+
+    // 프로필 모달
+    profileModal: {
+      title: '사용자 프로필',
+      selfIntroduction: '자기소개',
+      academicInfo: '학업 정보',
+      university: '대학교',
+      major: '전공',
+      year: '학년',
+      languageLevel: '언어 수준',
+      korean: '한국어',
+      english: '영어',
+      spanish: '스페인어',
+      advanced: '고급',
+      intermediate: '중급',
+      beginner: '초급'
+    },
+
+    // 회원가입
+    signUp: {
+      nicknameLabel: '닉네임 (알파벳, 숫자, 특수문자)',
+      nicknamePlaceholder: '예: john123! 또는 user_2024'
+    },
+
+    // 전화번호 인증
+    phoneVerification: {
+      title: '전화번호 인증',
+      proceedWith: '로 인증을 진행합니다',
+      koreanUser: '한국 사용자',
+      overseasUser: '해외 사용자',
+      selectMethod: '- 인증 방식을 선택해주세요',
+      codeInput: '인증코드 입력',
+      selectMethodTitle: '인증 방식 선택',
+      overseasDescription: 'WhatsApp 또는 SMS 중 선택하세요',
+      codePlaceholder: '6자리 인증코드 입력',
+      enterCode: '코드를 입력하세요',
+      didntReceive: '인증코드를 받지 못하셨나요?',
+      changeMethod: '다른 인증 방식 선택',
+      guide: '인증 안내',
+      kakaoGuide: '• 카카오톡/토스 인증은 앱에서 간편하게 진행됩니다',
+      whatsappGuide: '• WhatsApp 인증은 메시지로 6자리 코드를 받습니다',
+      smsGuide: '• SMS 인증은 문자 메시지로 6자리 코드를 받습니다',
+      completeGuide: '• 인증 완료 후 회원가입이 완료됩니다'
+    },
+
     // 프로필 관련
     profile: {
       title: '프로필',
@@ -1508,6 +1620,59 @@ export const translations = {
       age: '나이',
       ageUnit: '세',
       occupation: '직업',
+      editProfile: '프로필 편집',
+      backToProfile: '뒤로가기',
+      loadingProfile: '프로필을 불러오는 중...',
+      userNotFound: '사용자를 찾을 수 없습니다',
+      profileNotFound: '요청하신 사용자의 프로필을 찾을 수 없습니다.',
+      goBack: '돌아가기',
+      admin: '관리자',
+      joinDate: '가입일',
+      academicCareerInfo: '학업/직업 정보',
+      university: '대학교',
+      major: '전공',
+      grade: '학년',
+      company: '회사',
+      noInterestsSet: '설정된 관심사가 없습니다.',
+      interests: {
+        '여행': '여행',
+        '한국문화': '한국문화',
+        '영화': '영화',
+        '음악': '음악',
+        '요리': '요리',
+        'K-POP': 'K-POP',
+        '드라마': '드라마',
+        '패션': '패션',
+        '맛집': '맛집',
+        '스포츠': '스포츠',
+        '게임': '게임',
+        '기술': '기술',
+        '독서': '독서',
+        '한국어': '한국어',
+        '언어교환': '언어교환',
+        '한국 드라마': '한국 드라마',
+        '애니메이션': '애니메이션',
+        '사진': '사진',
+        '운동': '운동',
+        '댄스': '댄스',
+        '미술': '미술',
+        '자연': '자연',
+        '반려동물': '반려동물',
+        '커피': '커피',
+        '뷰티': '뷰티'
+      },
+      // 프로필 페이지 상세
+      koreanName: '한국이름',
+      nickname: '닉네임',
+      spanishName: '스페인어 이름',
+      experience: '경력',
+      selfIntroduction: '자기소개',
+      noExperience: '경력 없음',
+      noSelfIntroduction: '자기소개 없음',
+      nicknameFormat: '',
+      student: '학생',
+      worker: '직장인',
+      graduate: '졸업생',
       language: '언어',
       level: '레벨',
       rating: '평점',
@@ -1679,6 +1844,8 @@ export const translations = {
       title: '충전소',
       subtitle: 'AKO • VIP • 포인트',
       akoExplanation: '1 AKO = 1 화상채팅 (20분)',
+      loginRequired: '로그인이 필요합니다',
+      pointHistory: '포인트 히스토리',
       charging: {
         title: 'AKO 충전',
         subtitle: 'AKO를 충전하여 AI 화상 채팅을 즐기세요',
@@ -1730,11 +1897,16 @@ export const translations = {
         totalPoints: '누적 포인트',
         totalPointsDesc: '랭킹/이벤트용'
       },
-      pointCard: {
-        title: 'AKO • VIP • 포인트',
-        availableAKO: '사용 가능한 AKO',
-        currentPoints: '현재 포인트'
-      },
+        pointCard: {
+          title: 'AKO • VIP • 포인트',
+          availableAKO: '사용 가능한 AKO',
+          currentPoints: '현재 포인트',
+          vipStatus: 'VIP 상태',
+          vipInactive: '비활성화',
+          vipExpired: '만료됨',
+          vipDaysLeft: '일 남음',
+          vipOneDayLeft: '1일 남음'
+        },
       items: {
         chatExtension: {
           name: '채팅 연장',
@@ -2071,6 +2243,55 @@ export const translations = {
     changeToSpanish: 'Cambiar a Español',
     changeToKorean: '한국어로 변경',
     selectLanguage: 'Seleccionar idioma',
+
+    // 라운지 미니
+    loungeMini: {
+      weekendEvent: 'Evento especial de fin de semana',
+      title: 'Sala ZEP',
+      subtitle: 'Experimenta tiempo especial con la participación directa del operador',
+      saturdayEvent: 'Evento de sábado',
+      time: '20:00',
+      kst: 'KST',
+      operationTime: 'Hora de operación',
+      participants: '30',
+      maxParticipants: 'Máx. participantes',
+      firstComeFirstServed: 'Primero en llegar',
+      timeByCountry: 'Hora por país',
+      countries: {
+        korea: 'Corea',
+        peru: 'Perú',
+        mexico: 'México',
+        colombia: 'Colombia',
+        argentina: 'Argentina',
+        chile: 'Chile',
+        ecuador: 'Ecuador',
+        bolivia: 'Bolivia',
+        uruguay: 'Uruguay',
+        paraguay: 'Paraguay'
+      },
+      timeFormat: {
+        korea: 'Hora de Corea',
+        peru: 'Hora de Perú',
+        mexico: 'Hora de México',
+        colombia: 'Hora de Colombia',
+        argentina: 'Hora de Argentina',
+        chile: 'Hora de Chile',
+        ecuador: 'Hora de Ecuador',
+        bolivia: 'Hora de Bolivia',
+        uruguay: 'Hora de Uruguay',
+        paraguay: 'Hora de Paraguay'
+      },
+      specialTime: 'Tiempo especial',
+      gettingToKnow: 'Tiempo para conocerse',
+      description: 'Haz nuevos amigos a través de conversaciones libres y experiencias culturales coreanas',
+      features: {
+        freeTalk: 'Conversación libre',
+        culturalExchange: 'Intercambio cultural',
+        makeFriends: 'Hacer amigos'
+      },
+      button: 'Ir a la sala',
+      message: '¡Te esperamos todos los sábados por la noche!'
+    },
     language: 'es',
     
     // 공통
@@ -2317,7 +2538,6 @@ export const translations = {
       
       // 이메일/SMS 인증
       emailVerification: 'Verificación por correo electrónico',
-      smsVerification: 'Verificación por teléfono',
       verificationCode: 'Código de verificación',
       verificationCodePlaceholder: 'Ingresa el código de verificación de 6 dígitos',
       sendVerificationCode: 'Enviar código de verificación',
@@ -2326,6 +2546,51 @@ export const translations = {
       codeExpired: 'El código de verificación ha expirado',
       invalidCode: 'Código de verificación inválido',
       verificationSuccess: 'Verificación completada',
+      
+      // 이메일 인증 상세 텍스트
+      emailSendDescription: ' para enviar el código de verificación',
+      emailSentDescription: ' se ha enviado el código de verificación',
+      emailCodeDescription: 'Ingresa el código de 6 dígitos recibido por correo electrónico',
+      codeComplete: 'Código de verificación ingresado',
+      codeInputPrompt: 'Ingresa el código',
+      sending: 'Enviando...',
+      didntReceiveCode: '¿No recibiste el código de verificación?',
+      emailGuideTitle: 'Guía de Verificación por Correo Electrónico',
+      emailGuideSpam: 'Revisa también tu carpeta de spam',
+      emailGuideResend: 'Si no recibes el correo, presiona el botón de reenvío',
+      emailGuideServices: 'Disponible en Gmail, Outlook y todos los servicios de correo electrónico',
+      
+      // 전화번호 인증
+      phoneVerification: 'Verificación de teléfono',
+      phoneVerificationNeeded: 'Se requiere verificación de teléfono para participar en el foro',
+      selectVerificationMethod: 'Selecciona un método de verificación',
+      verificationForSafety: 'Se requiere verificación de teléfono para protegernos mutuamente',
+      whatsappVerification: 'Verificar con WhatsApp',
+      whatsappVerificationDesc: 'Recibir código de verificación por WhatsApp',
+      smsVerification: 'Verificar con SMS',
+      smsVerificationDesc: 'Recibir código de verificación por mensaje de texto',
+      whatsappAuth: 'Verificación WhatsApp',
+      smsAuth: 'Verificación SMS',
+      whatsappPhoneDesc: 'Ingresa el número de teléfono donde recibirás el código de verificación por WhatsApp',
+      smsPhoneDesc: 'Ingresa el número de teléfono donde recibirás el código de verificación por SMS',
+      phoneNumber: 'Número de teléfono',
+      phoneNumberPlaceholder: 'Ej: +52 55-1234-5678',
+      phoneNumberHelp: 'Ingresa el número completo incluyendo el código de país',
+      sendingCode: 'Enviando...',
+      enterVerificationCode: 'Ingresa código de verificación',
+      codeSentTo: 'Ingresa el código de verificación enviado a',
+      verificationCodePlaceholder: 'Código de 6 dígitos',
+      timeLeft: 'Tiempo restante',
+      verify: 'Verificar',
+      verificationComplete: '¡Verificación completada!',
+      verificationCompleteDesc: 'La verificación de teléfono se ha completado. Ahora puedes participar en el foro.',
+      backToMain: 'Volver al inicio',
+      loginRequired: 'Se requiere inicio de sesión',
+      loginRequiredDesc: 'Por favor inicia sesión primero para la verificación de teléfono.',
+      loginButton: 'Iniciar sesión',
+      adminCheckStatus: 'Verificando estado del administrador...',
+      redirectingToMain: 'Redirigiendo al inicio...',
+      loading: 'Cargando...',
       
       // 지문 인증
       biometricLogin: 'Inicio de sesión rápido con huella dactilar',
@@ -2410,9 +2675,9 @@ export const translations = {
           subtitle: 'Haz clic en las secciones a continuación para obtener información detallada',
           about: {
             title: 'Acerca de',
-            description: 'AMIKO es una plataforma que conecta Corea y América Latina',
-            bridgeDescription: 'Un puente que conecta AMérica y KOrea',
-            connectDescription: 'Conecta más cerca y más fácil'
+            description: 'AMI(America) KO(Korea) para conectar.',
+            bridgeDescription: 'Un puente que conecta AMérica y KOrea a través de I',
+            connectDescription: 'A mí(para mí) Korea más cerca'
           },
           contact: {
             title: 'Contacto',
@@ -2519,6 +2784,7 @@ export const translations = {
       community: 'Comunidad',
       communityDescription: '',
       me: 'Mi Perfil',
+      myPage: 'Mi Página',
       meDescription: 'Revisa tu historial de actividad y puntos'
     },
 
@@ -2551,39 +2817,6 @@ export const translations = {
       beginner: 'Principiante',
       intermediate: 'Intermedio',
       advanced: 'Avanzado',
-      interests: {
-        // 스페인어 관심사들
-        '영화': 'Películas',
-        '음악': 'Música',
-        '여행': 'Viajes',
-        '요리': 'Cocina',
-        'K-POP': 'K-POP',
-        '드라마': 'Dramas',
-        '패션': 'Moda',
-        '맛집': 'Restaurantes',
-        '스포츠': 'Deportes',
-        '게임': 'Juegos',
-        '기술': 'Tecnología',
-        '독서': 'Lectura',
-        '한국어': 'Coreano',
-        '언어교환': 'Intercambio de Idiomas',
-        '한국 드라마': 'Dramas Coreanos',
-        '애니메이션': 'Animación',
-        '사진': 'Fotografía',
-        '운동': 'Ejercicio',
-        '댄스': 'Baile',
-        '미술': 'Arte',
-        '자연': 'Naturaleza',
-        '반려동물': 'Mascotas',
-        '커피': 'Café',
-        '술': 'Bebidas',
-        '쇼핑': 'Compras',
-        '뷰티': 'Belleza',
-        '건강': 'Salud',
-        '명상': 'Meditación',
-        '요가': 'Yoga',
-        '피트니스': 'Fitness'
-      },
       noPartnersTitle: 'No hay compañeros',
       noPartnersDescription: 'Actualmente no hay compañeros registrados. Pronto se agregarán nuevos compañeros.'
     },
@@ -2594,7 +2827,7 @@ export const translations = {
       uploadStory: 'Subir Historia',
       noStories: 'No hay historias',
       uploadFirstStory: '¡Sube tu primera historia!',
-      cleanExpiredStories: 'Limpiar Historias Expiradas',
+      cleanExpiredStories: 'Limpiar Expiradas',
       noUploadedStories: 'Aún no has subido ninguna historia.',
       uploadFirstStoryPrompt: '¡Sube tu primera historia!',
       loadingStories: 'Cargando historias...',
@@ -2793,6 +3026,7 @@ export const translations = {
       titlePlaceholder: 'Ingresa el título',
       postType: 'Tipo de Publicación',
       normalPost: 'Publicación Normal',
+      category: 'Categoría',
       surveyTips: 'Consejos para Encuestas',
       surveyTip1: 'Escribe preguntas claras',
       surveyTip2: 'Proporciona opciones diversas',
@@ -2983,10 +3217,11 @@ export const translations = {
       closerDescription: 'A mí(para mí) Korea más cerca',
       greeting: '¡Hola!',
       thankYou: 'Gracias por visitar Amiko.',
-      teamIntroduction: 'Somos Han Sang-hoon (Samuel), CTO de Amiko,\ny Park Gyeom (Pablo), CMO de Amiko.',
+      teamIntroduction: 'Somos Han Sang-hoon (Samuel), CTO de Amiko, y Park Gyeom (Pablo), CMO de Amiko.',
       latinAmericaExperience: 'Hemos vivido en varios países de América del Sur y hemos llegado a amar sinceramente sus culturas y personas.',
-      koreanInterest: 'Recientemente, a medida que la belleza de América del Sur se ha introducido a través de varios medios coreanos, muchos coreanos están aprendiendo gradualmente sobre este atractivo continente al otro lado del mundo.',
-      bridgePromise: 'Así que nos comprometimos. Construyamos un puente que conecte Corea del Sur y América del Sur.',
+      koreanInterest: 'Recientemente, a través de diversos medios en Corea, se ha presentado la belleza de América del Sur, y muchos coreanos están conociendo gradualmente el atractivo continente de América del Sur que está al otro lado del mundo.',
+      culturalExchange: 'A través de esta experiencia, hemos sentido profundamente la necesidad de intercambio cultural y comunidad que pueda conectar más de cerca Corea y América del Sur.',
+      bridgePromise: 'Así que nos comprometimos. Hagamos un puente que conecte Corea y América del Sur.',
       platformDescription: 'Amiko proporciona una plataforma confiable basada en videollamadas y servicios comunitarios, a través de membresías completamente verificadas.',
       communityVision: 'Evolucionaremos hacia una comunidad donde podamos compartir no solo comunicación simple, sino también tendencias coreanas, moda, K-POP e incluso estilo de vida.',
       finalMessage: 'Acérquense unos a otros a través de Amiko.'
@@ -3613,6 +3848,59 @@ export const translations = {
       age: 'Edad',
       ageUnit: 'años',
       occupation: 'Ocupación',
+      editProfile: 'Editar Perfil',
+      backToProfile: 'Atrás',
+      loadingProfile: 'Cargando perfil...',
+      userNotFound: 'Usuario no encontrado',
+      profileNotFound: 'No se pudo encontrar el perfil del usuario solicitado.',
+      goBack: 'Volver',
+      admin: 'Administrador',
+      joinDate: 'Fecha de registro',
+      academicCareerInfo: 'Información académica/laboral',
+      university: 'Universidad',
+      major: 'Carrera',
+      grade: 'Año',
+      company: 'Empresa',
+      noInterestsSet: 'No hay intereses configurados.',
+      interests: {
+        '여행': 'Viajes',
+        '한국문화': 'Cultura Coreana',
+        '영화': 'Películas',
+        '음악': 'Música',
+        '요리': 'Cocina',
+        'K-POP': 'K-POP',
+        '드라마': 'Dramas',
+        '패션': 'Moda',
+        '맛집': 'Restaurantes',
+        '스포츠': 'Deportes',
+        '게임': 'Juegos',
+        '기술': 'Tecnología',
+        '독서': 'Lectura',
+        '한국어': 'Coreano',
+        '언어교환': 'Intercambio de Idiomas',
+        '한국 드라마': 'Dramas Coreanos',
+        '애니메이션': 'Animación',
+        '사진': 'Fotografía',
+        '운동': 'Ejercicio',
+        '댄스': 'Baile',
+        '미술': 'Arte',
+        '자연': 'Naturaleza',
+        '반려동물': 'Mascotas',
+        '커피': 'Café',
+        '뷰티': 'Belleza'
+      },
+      // 프로필 페이지 상세
+      koreanName: 'Nombre Coreano',
+      nickname: 'Apodo',
+      spanishName: 'Nombre en Español',
+      experience: 'Experiencia',
+      selfIntroduction: 'Autopresentación',
+      noExperience: 'Sin experiencia',
+      noSelfIntroduction: 'Sin autopresentación',
+      nicknameFormat: '',
+      student: 'Estudiante',
+      worker: 'Trabajador',
+      graduate: 'Graduado',
       language: 'Idioma',
       level: 'Nivel',
       rating: 'Calificación',
@@ -3785,6 +4073,8 @@ export const translations = {
       title: 'Estación de Carga',
       subtitle: 'AKO • VIP • Puntos',
       akoExplanation: '1 AKO = 1 videollamada (20 minutos)',
+      loginRequired: 'Se requiere inicio de sesión',
+      pointHistory: 'Historial de Puntos',
       charging: {
         title: 'Carga AKO',
         subtitle: 'Carga AKO para disfrutar de videollamadas con IA',
@@ -3836,11 +4126,16 @@ export const translations = {
         totalPoints: 'Puntos acumulados',
         totalPointsDesc: 'Para ranking/eventos'
       },
-      pointCard: {
-        title: 'AKO • VIP • Puntos',
-        availableAKO: 'AKO Disponible',
-        currentPoints: 'Puntos Actuales'
-      },
+        pointCard: {
+          title: 'AKO • VIP • Puntos',
+          availableAKO: 'AKO Disponible',
+          currentPoints: 'Puntos Actuales',
+          vipStatus: 'Estado VIP',
+          vipInactive: 'Inactivo',
+          vipExpired: 'Expirado',
+          vipDaysLeft: 'días restantes',
+          vipOneDayLeft: '1 día restante'
+        },
       items: {
         chatExtension: {
           name: 'Extensión de chat',
@@ -4116,6 +4411,55 @@ export const translations = {
       createStory: 'Crear Historia',
       upload: 'Subir',
       uploading: 'Subiendo...'
+    },
+
+    // 시간대 설정
+    timezone: {
+      changeMainTime: 'Cambiar hora principal'
+    },
+
+    // 프로필 모달
+    profileModal: {
+      title: 'Perfil de Usuario',
+      selfIntroduction: 'Autopresentación',
+      academicInfo: 'Información Académica',
+      university: 'Universidad',
+      major: 'Carrera',
+      year: 'Año',
+      languageLevel: 'Nivel de Idioma',
+      korean: 'Coreano',
+      english: 'Inglés',
+      spanish: 'Español',
+      advanced: 'Avanzado',
+      intermediate: 'Intermedio',
+      beginner: 'Principiante'
+    },
+
+    // 회원가입
+    signUp: {
+      nicknameLabel: 'Apodo (alfabeto, números, caracteres especiales)',
+      nicknamePlaceholder: 'Ej: john123! o user_2024'
+    },
+
+    // 전화번호 인증
+    phoneVerification: {
+      title: 'Verificación de Teléfono',
+      proceedWith: ' para proceder con la verificación',
+      koreanUser: 'Usuario Coreano',
+      overseasUser: 'Usuario Extranjero',
+      selectMethod: '- Por favor selecciona un método de verificación',
+      codeInput: 'Ingresar Código de Verificación',
+      selectMethodTitle: 'Seleccionar Método de Verificación',
+      overseasDescription: 'Selecciona entre WhatsApp o SMS',
+      codePlaceholder: 'Ingresa el código de 6 dígitos',
+      enterCode: 'Ingresa el código',
+      didntReceive: '¿No recibiste el código de verificación?',
+      changeMethod: 'Seleccionar otro método de verificación',
+      guide: 'Guía de Verificación',
+      kakaoGuide: '• La verificación por KakaoTalk/Toss se realiza fácilmente en la app',
+      whatsappGuide: '• La verificación por WhatsApp recibe un código de 6 dígitos por mensaje',
+      smsGuide: '• La verificación por SMS recibe un código de 6 dígitos por mensaje de texto',
+      completeGuide: '• El registro se completa después de la verificación'
     }
   }
 }

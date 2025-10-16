@@ -68,16 +68,92 @@ export default function HomeTab() {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
   const [loading, setLoading] = useState(true)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
+  const [isAutoSliding, setIsAutoSliding] = useState(true)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStartX, setDragStartX] = useState(0)
+  const [dragStartY, setDragStartY] = useState(0)
 
   // 이벤트 자동 슬라이드
   useEffect(() => {
-    if (currentEvents.length > 1) {
+    if (currentEvents.length > 1 && isAutoSliding) {
       const interval = setInterval(() => {
         setCurrentEventIndex((prev) => (prev + 1) % currentEvents.length)
       }, 5000)
       return () => clearInterval(interval)
     }
-  }, [currentEvents.length])
+  }, [currentEvents.length, isAutoSliding])
+
+  // 마우스 드래그 핸들러
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStartX(e.clientX)
+    setDragStartY(e.clientY)
+    setIsAutoSliding(false)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    e.preventDefault()
+  }
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    
+    const deltaX = e.clientX - dragStartX
+    const deltaY = Math.abs(e.clientY - dragStartY)
+    
+    // 수직 드래그가 수평 드래그보다 크면 무시 (페이지 스크롤 방지)
+    if (deltaY > Math.abs(deltaX)) {
+      setIsDragging(false)
+      setTimeout(() => setIsAutoSliding(true), 3000)
+      return
+    }
+    
+    if (Math.abs(deltaX) > 50) { // 최소 드래그 거리
+      if (deltaX > 0) {
+        // 오른쪽으로 드래그 - 이전 이벤트
+        setCurrentEventIndex((prev) => (prev - 1 + currentEvents.length) % currentEvents.length)
+      } else {
+        // 왼쪽으로 드래그 - 다음 이벤트
+        setCurrentEventIndex((prev) => (prev + 1) % currentEvents.length)
+      }
+    }
+    
+    setIsDragging(false)
+    setTimeout(() => setIsAutoSliding(true), 3000)
+  }
+
+  // 터치 스와이프 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    setDragStartX(touch.clientX)
+    setDragStartY(touch.clientY)
+    setIsAutoSliding(false)
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touch = e.changedTouches[0]
+    const deltaX = touch.clientX - dragStartX
+    const deltaY = Math.abs(touch.clientY - dragStartY)
+    
+    // 수직 스와이프가 수평 스와이프보다 크면 무시
+    if (deltaY > Math.abs(deltaX)) {
+      setTimeout(() => setIsAutoSliding(true), 3000)
+      return
+    }
+    
+    if (Math.abs(deltaX) > 50) { // 최소 스와이프 거리
+      if (deltaX > 0) {
+        // 오른쪽으로 스와이프 - 이전 이벤트
+        setCurrentEventIndex((prev) => (prev - 1 + currentEvents.length) % currentEvents.length)
+      } else {
+        // 왼쪽으로 스와이프 - 다음 이벤트
+        setCurrentEventIndex((prev) => (prev + 1) % currentEvents.length)
+      }
+    }
+    
+    setTimeout(() => setIsAutoSliding(true), 3000)
+  }
 
   // 실제 데이터 로딩 함수들
   const loadCurrentEvents = async () => {
@@ -86,16 +162,16 @@ export default function HomeTab() {
       const mockEvents = [
         {
           id: 'event-1',
-          title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Korean Flight Ticket Lottery Event',
-          description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : 'Participate in community and win Korean flight tickets!',
+          title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Evento de Sorteo de Boletos de Avión a Corea',
+          description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : '¡Participa en la comunidad y gana boletos de avión a Corea!',
           image: '/event-title.png',
           date: '2025-02-15',
           participants: 324
         },
         {
           id: 'event-2',
-          title: language === 'ko' ? '한국어 학습 챌린지' : 'Korean Language Learning Challenge',
-          description: language === 'ko' ? '매일 한국어를 배우고 실력을 향상시켜보세요!' : 'Learn Korean every day and improve your skills!',
+          title: language === 'ko' ? '한국어 학습 챌린지' : 'Desafío de Aprendizaje de Coreano',
+          description: language === 'ko' ? '매일 한국어를 배우고 실력을 향상시켜보세요!' : '¡Aprende coreano todos los días y mejora tus habilidades!',
           image: '/event-title.png',
           date: '2025-01-25',
           participants: 89
@@ -115,33 +191,33 @@ export default function HomeTab() {
       const mockPosts = [
         {
           id: 'post-1',
-          title: language === 'ko' ? '한국 드라마 추천해주세요!' : 'Please recommend Korean dramas!',
-          content: language === 'ko' ? '최근에 한국 드라마에 빠져서 더 많은 작품을 보고 싶어요...' : 'I recently got into Korean dramas and want to watch more...',
+          title: language === 'ko' ? '한국 드라마 추천해주세요!' : '¡Recomiéndame dramas coreanos!',
+          content: language === 'ko' ? '최근에 한국 드라마에 빠져서 더 많은 작품을 보고 싶어요...' : 'Recientemente me enganché con los dramas coreanos y quiero ver más...',
           author: '김민수',
           likes: 24,
           comments: 15,
           views: 156,
-          createdAt: language === 'ko' ? '2시간 전' : '2h ago'
+          createdAt: language === 'ko' ? '2시간 전' : 'hace 2h'
         },
         {
           id: 'post-2',
-          title: language === 'ko' ? '한국어 공부 방법 공유' : 'Sharing Korean study methods',
-          content: language === 'ko' ? '효과적인 한국어 학습 방법을 공유하고 싶어요...' : 'I want to share effective Korean learning methods...',
+          title: language === 'ko' ? '한국어 공부 방법 공유' : 'Compartir métodos de estudio de coreano',
+          content: language === 'ko' ? '효과적인 한국어 학습 방법을 공유하고 싶어요...' : 'Quiero compartir métodos efectivos para aprender coreano...',
           author: '박지영',
           likes: 32,
           comments: 18,
           views: 89,
-          createdAt: language === 'ko' ? '4시간 전' : '4h ago'
+          createdAt: language === 'ko' ? '4시간 전' : 'hace 4h'
         },
         {
           id: 'post-3',
-          title: language === 'ko' ? '한국 음식 레시피 모음' : 'Collection of Korean food recipes',
-          content: language === 'ko' ? '집에서 만들 수 있는 간단한 한국 음식 레시피를 모았어요...' : 'I collected simple Korean food recipes you can make at home...',
+          title: language === 'ko' ? '한국 음식 레시피 모음' : 'Colección de recetas de comida coreana',
+          content: language === 'ko' ? '집에서 만들 수 있는 간단한 한국 음식 레시피를 모았어요...' : 'Recopilé recetas simples de comida coreana que puedes hacer en casa...',
           author: '이서현',
           likes: 28,
           comments: 12,
           views: 67,
-          createdAt: language === 'ko' ? '6시간 전' : '6h ago'
+          createdAt: language === 'ko' ? '6시간 전' : 'hace 6h'
         }
       ]
       
@@ -158,24 +234,24 @@ export default function HomeTab() {
       const mockTests = [
         {
           id: 'test-1',
-          title: language === 'ko' ? '내가 가장 좋아할 한국 드라마는?' : 'What Korean drama would I like most?',
-          description: language === 'ko' ? '20가지 질문으로 알아보는 나의 MBTI와 같은 K-POP 스타' : 'Find out your MBTI and matching K-POP star with 20 questions',
+          title: language === 'ko' ? '내가 가장 좋아할 한국 드라마는?' : '¿Qué drama coreano me gustaría más?',
+          description: language === 'ko' ? '20가지 질문으로 알아보는 나의 MBTI와 같은 K-POP 스타' : 'Descubre tu MBTI y estrella de K-POP compatible con 20 preguntas',
           participants: 799,
           image: '/celebs/bts.webp',
           category: 'personality'
         },
         {
           id: 'test-2',
-          title: language === 'ko' ? '한국어 레벨 테스트' : 'Korean Language Level Test',
-          description: language === 'ko' ? '나의 한국어 실력은 어느 정도일까요?' : 'What is my Korean language level?',
+          title: language === 'ko' ? '한국어 레벨 테스트' : 'Prueba de Nivel de Coreano',
+          description: language === 'ko' ? '나의 한국어 실력은 어느 정도일까요?' : '¿Cuál es mi nivel de coreano?',
           participants: 456,
           image: '/celebs/iu.png',
           category: 'language'
         },
         {
           id: 'test-3',
-          title: language === 'ko' ? '문화 적응도 테스트' : 'Cultural Adaptation Test',
-          description: language === 'ko' ? '한국 문화에 얼마나 잘 적응할 수 있을까요?' : 'How well can you adapt to Korean culture?',
+          title: language === 'ko' ? '문화 적응도 테스트' : 'Prueba de Adaptación Cultural',
+          description: language === 'ko' ? '한국 문화에 얼마나 잘 적응할 수 있을까요?' : '¿Qué tan bien puedes adaptarte a la cultura coreana?',
           participants: 234,
           image: '/celebs/jimin.png',
           category: 'culture'
@@ -260,6 +336,7 @@ export default function HomeTab() {
     loadAllData()
   }, [language])
 
+
   const formatNumber = (num: number) => {
     if (num >= 1000) {
       return `${(num / 1000).toFixed(1)}k`
@@ -323,7 +400,16 @@ export default function HomeTab() {
         {currentEvents.length > 0 ? (
           <Card className="relative overflow-hidden rounded-lg">
             <CardContent className="p-0">
-              <div className="relative h-32 overflow-hidden rounded-lg">
+              <div 
+                id="event-container"
+                className="relative h-32 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={() => setIsDragging(false)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
                 <div 
                   className="flex transition-transform duration-700 ease-in-out"
                   style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
@@ -369,6 +455,7 @@ export default function HomeTab() {
                   ))}
                 </div>
               )}
+              
             </CardContent>
           </Card>
         ) : (
@@ -579,7 +666,16 @@ export default function HomeTab() {
               
               <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none rounded-lg">
                 <CardContent className="p-0 bg-transparent">
-                  <div className="relative h-56 overflow-hidden rounded-lg">
+                  <div 
+                    id="event-container-desktop"
+                    className="relative h-56 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={() => setIsDragging(false)}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                  >
                     {currentEvents.length > 0 ? (
                       <div 
                         className="flex transition-transform duration-1000 ease-in-out"
@@ -639,6 +735,7 @@ export default function HomeTab() {
                         ))}
                       </div>
                     )}
+                    
                   </div>
                 </CardContent>
               </Card>

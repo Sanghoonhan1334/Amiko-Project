@@ -60,17 +60,45 @@ export default function Hero() {
         {/* 모바일 레이아웃 */}
         <div className="block md:hidden text-center px-4 relative z-50">
             {/* 상단 텍스트 */}
-            <p className="text-gray-600 dark:text-white text-lg font-medium mb-2 leading-relaxed relative z-50">
+            <p 
+              className="text-gray-600 dark:text-white text-lg font-medium mb-2 leading-relaxed relative z-50"
+              style={{
+                fontSize: '18px',
+                fontWeight: '500',
+                color: '#6b7280',
+                lineHeight: '1.6',
+                marginBottom: '8px',
+                fontFamily: 'Pretendard, system-ui, -apple-system, sans-serif'
+              }}
+            >
               {t('heroSlides.slide1.subtitle')}
             </p>
             
             {/* 메인 제목 */}
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 leading-tight font-['Inter'] relative z-50">
+            <h1 
+              className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 leading-tight font-['Inter'] relative z-50"
+              style={{
+                fontSize: '36px',
+                fontWeight: '700',
+                color: '#111827',
+                lineHeight: '1.2',
+                marginBottom: '16px',
+                fontFamily: 'Pretendard, system-ui, -apple-system, sans-serif'
+              }}
+            >
               {t('heroSlides.slide1.title')}
             </h1>
             
             {/* 하단 설명 */}
-            <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed mb-8 relative z-50">
+            <p 
+              className="text-gray-700 dark:text-gray-300 text-base leading-relaxed mb-8 relative z-50"
+              style={{
+                fontSize: '16px',
+                color: '#374151',
+                lineHeight: '1.6',
+                marginBottom: '32px'
+              }}
+            >
               {t('heroSlides.slide1.description')}
             </p>
             
@@ -88,17 +116,43 @@ export default function Hero() {
         {/* 데스크톱 레이아웃 */}
         <div className="hidden md:block text-center pt-4 md:pt-6 lg:pt-8 px-4 sm:px-6 lg:px-8 relative z-50">
                 {/* 상단 텍스트 */}
-                <p className="text-gray-600 dark:text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium mb-1 leading-relaxed bg-transparent relative z-50">
+                <p 
+                  className="text-gray-600 dark:text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium mb-1 leading-relaxed bg-transparent relative z-50"
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: '500',
+                    color: '#6b7280',
+                    lineHeight: '1.6',
+                    marginBottom: '4px'
+                  }}
+                >
                   {t('heroSlides.slide1.subtitle')}
                 </p>
                 
                 {/* 메인 제목 */}
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight font-['Inter'] relative z-50">
+                <h1 
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight font-['Inter'] relative z-50"
+                  style={{
+                    fontSize: '80px',
+                    fontWeight: '700',
+                    color: '#111827',
+                    lineHeight: '1.1',
+                    marginBottom: '8px'
+                  }}
+                >
                   {t('heroSlides.slide1.title')}
                 </h1>
                 
                 {/* 하단 설명 */}
-                <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed mb-0 relative z-50">
+                <p 
+                  className="text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed mb-0 relative z-50"
+                  style={{
+                    fontSize: '20px',
+                    color: '#374151',
+                    lineHeight: '1.6',
+                    marginBottom: '0px'
+                  }}
+                >
                   {t('heroSlides.slide1.description')}
                 </p>
                 
@@ -122,11 +176,28 @@ export default function Hero() {
               <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
                 {/* 왼쪽: 텍스트 */}
                 <div className="text-left max-w-lg">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight font-['Inter']">
+                  <h1 
+                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight font-['Inter']"
+                    style={{
+                      fontSize: '32px',
+                      fontWeight: '700',
+                      color: '#111827',
+                      lineHeight: '1.2',
+                      marginBottom: '24px'
+                    }}
+                  >
                     {t('heroSlides.slide2.title')}
                   </h1>
                   
-                  <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base md:text-lg leading-relaxed mb-0">
+                  <p 
+                    className="text-gray-600 dark:text-gray-400 text-sm sm:text-base md:text-lg leading-relaxed mb-0"
+                    style={{
+                      fontSize: '16px',
+                      color: '#6b7280',
+                      lineHeight: '1.6',
+                      marginBottom: '0px'
+                    }}
+                  >
                     {t('heroSlides.slide2.description').split('\n').map((line, index) => (
                       <span key={index}>
                         {line}
@@ -161,13 +232,37 @@ export default function Hero() {
               <div className="space-y-2 sm:space-y-3 pt-0 md:pt-0">
                 {/* 제목 섹션 */}
                 <div className="text-left ml-4 sm:ml-6 md:ml-12 lg:ml-16">
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 dark:text-gray-100 mb-2 sm:mb-3">
+                  <h2 
+                    className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 dark:text-gray-100 mb-2 sm:mb-3"
+                    style={{
+                      fontSize: '20px',
+                      fontWeight: '400',
+                      color: '#111827',
+                      marginBottom: '12px'
+                    }}
+                  >
                     {t('heroSlides.slide3.subtitle')}
                   </h2>
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 font-['Inter']">
+                  <h1 
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 font-['Inter']"
+                    style={{
+                      fontSize: '40px',
+                      fontWeight: '700',
+                      color: '#111827',
+                      lineHeight: '1.2',
+                      marginBottom: '12px'
+                    }}
+                  >
                     {t('heroSlides.slide3.title')}
                   </h1>
-                  <div className="space-y-1 text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed">
+                  <div 
+                    className="space-y-1 text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed"
+                    style={{
+                      fontSize: '16px',
+                      color: '#374151',
+                      lineHeight: '1.6'
+                    }}
+                  >
                     <p>{t('heroSlides.slide3.description')}</p>
                   </div>
                 </div>
@@ -256,7 +351,7 @@ export default function Hero() {
             </p>
             <button 
               onClick={() => router.push('/main')}
-              className="bg-white dark:bg-gray-800 text-blue-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-0 md:py-4 text-lg md:text-xl font-bold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 min-w-[180px] inline-flex items-center justify-center whitespace-nowrap border-2 border-white/20 dark:border-gray-600"
+              className="bg-white dark:bg-gray-800 text-blue-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-0 md:py-4 text-xl md:text-2xl font-bold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 min-w-[180px] inline-flex items-center justify-center whitespace-nowrap border-2 border-white/20 dark:border-gray-600"
             >
               {t('heroSlides.slide3.bottomSection.startButton')}
             </button>

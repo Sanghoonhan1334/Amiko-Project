@@ -395,10 +395,42 @@ export default function NewsPage() {
   // 댓글 관련 함수들
   const fetchComments = async (newsId: string) => {
     try {
+      console.log('뉴스 댓글 로드 시도:', newsId)
+      
       const response = await fetch(`/api/news/${newsId}/comments`)
+      console.log('뉴스 댓글 로드 응답:', response.status)
+      
       if (response.ok) {
         const data = await response.json()
-        setComments(data.comments || [])
+        console.log('뉴스 댓글 로드 성공:', data.comments?.length || 0, '개')
+        
+        // 댓글을 계층 구조로 재구성
+        const allComments = data.comments || []
+        const commentMap = new Map()
+        const rootComments: any[] = []
+        
+        // 1단계: 모든 댓글을 Map에 저장
+        allComments.forEach((comment: any) => {
+          commentMap.set(comment.id, { ...comment, replies: [] })
+        })
+        
+        // 2단계: 부모-자식 관계 설정
+        allComments.forEach((comment: any) => {
+          const commentWithReplies = commentMap.get(comment.id)
+          if (comment.parent_id) {
+            const parent = commentMap.get(comment.parent_id)
+            if (parent) {
+              parent.replies.push(commentWithReplies)
+            }
+          } else {
+            rootComments.push(commentWithReplies)
+          }
+        })
+        
+        setComments(rootComments)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('뉴스 댓글 로드 실패:', errorData)
       }
     } catch (error) {
       console.error('댓글 로드 오류:', error)
@@ -406,9 +438,11 @@ export default function NewsPage() {
   }
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim() || !selectedNews?.id || !user || !token) return
+    if (!newComment.trim() || !selectedNews?.id) return
 
     try {
+      console.log('뉴스 댓글 작성 시도:', { content: newComment.trim(), newsId: selectedNews.id })
+      
       const response = await fetch(`/api/news/${selectedNews.id}/comments`, {
         method: 'POST',
         headers: {
@@ -420,12 +454,21 @@ export default function NewsPage() {
         })
       })
 
+      console.log('뉴스 댓글 작성 응답:', response.status)
+
       if (response.ok) {
+        const data = await response.json()
+        console.log('뉴스 댓글 작성 성공:', data)
+        
         setNewComment('')
         toast.success('댓글이 작성되었습니다!')
-        fetchComments(selectedNews.id)
+        
+        // 댓글 목록 새로고침
+        await fetchComments(selectedNews.id)
       } else {
-        toast.error('댓글 작성에 실패했습니다.')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('뉴스 댓글 작성 실패:', errorData)
+        toast.error(errorData.error || '댓글 작성에 실패했습니다.')
       }
     } catch (error) {
       console.error('댓글 작성 오류:', error)
@@ -434,9 +477,11 @@ export default function NewsPage() {
   }
 
   const handleSubmitReply = async (parentId: string) => {
-    if (!replyContent.trim() || !selectedNews?.id || !user || !token) return
+    if (!replyContent.trim() || !selectedNews?.id) return
 
     try {
+      console.log('뉴스 대댓글 작성 시도:', { parentId, content: replyContent.trim(), newsId: selectedNews.id })
+      
       const response = await fetch(`/api/news/${selectedNews.id}/comments`, {
         method: 'POST',
         headers: {
@@ -449,13 +494,22 @@ export default function NewsPage() {
         })
       })
 
+      console.log('뉴스 대댓글 작성 응답:', response.status)
+
       if (response.ok) {
+        const data = await response.json()
+        console.log('뉴스 대댓글 작성 성공:', data)
+        
         setReplyContent('')
         setReplyingTo(null)
         toast.success('답글이 작성되었습니다!')
-        fetchComments(selectedNews.id)
+        
+        // 댓글 목록 새로고침
+        await fetchComments(selectedNews.id)
       } else {
-        toast.error('답글 작성에 실패했습니다.')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('뉴스 대댓글 작성 실패:', errorData)
+        toast.error(errorData.error || '답글 작성에 실패했습니다.')
       }
     } catch (error) {
       console.error('답글 작성 오류:', error)
@@ -464,9 +518,11 @@ export default function NewsPage() {
   }
 
   const handleEditComment = async (commentId: string) => {
-    if (!editContent.trim() || !selectedNews?.id || !user || !token) return
+    if (!editContent.trim() || !selectedNews?.id) return
 
     try {
+      console.log('뉴스 댓글 수정 시도:', { commentId, content: editContent.trim(), newsId: selectedNews.id })
+      
       const response = await fetch(`/api/news/${selectedNews.id}/comments/${commentId}`, {
         method: 'PUT',
         headers: {
@@ -478,13 +534,22 @@ export default function NewsPage() {
         })
       })
 
+      console.log('뉴스 댓글 수정 응답:', response.status)
+
       if (response.ok) {
+        const data = await response.json()
+        console.log('뉴스 댓글 수정 성공:', data)
+        
         setEditContent('')
         setEditingComment(null)
         toast.success('댓글이 수정되었습니다!')
-        fetchComments(selectedNews.id)
+        
+        // 댓글 목록 새로고침
+        await fetchComments(selectedNews.id)
       } else {
-        toast.error('댓글 수정에 실패했습니다.')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('뉴스 댓글 수정 실패:', errorData)
+        toast.error(errorData.error || '댓글 수정에 실패했습니다.')
       }
     } catch (error) {
       console.error('댓글 수정 오류:', error)
@@ -494,9 +559,11 @@ export default function NewsPage() {
 
   const handleDeleteComment = async (commentId: string) => {
     if (!confirm('댓글을 삭제하시겠습니까?')) return
-    if (!selectedNews?.id || !user || !token) return
+    if (!selectedNews?.id) return
 
     try {
+      console.log('뉴스 댓글 삭제 시도:', { commentId, newsId: selectedNews.id })
+      
       const response = await fetch(`/api/news/${selectedNews.id}/comments/${commentId}`, {
         method: 'DELETE',
         headers: {
@@ -504,11 +571,20 @@ export default function NewsPage() {
         }
       })
 
+      console.log('뉴스 댓글 삭제 응답:', response.status)
+
       if (response.ok) {
+        const data = await response.json()
+        console.log('뉴스 댓글 삭제 성공:', data)
+        
         toast.success('댓글이 삭제되었습니다!')
-        fetchComments(selectedNews.id)
+        
+        // 댓글 목록 새로고침
+        await fetchComments(selectedNews.id)
       } else {
-        toast.error('댓글 삭제에 실패했습니다.')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('뉴스 댓글 삭제 실패:', errorData)
+        toast.error(errorData.error || '댓글 삭제에 실패했습니다.')
       }
     } catch (error) {
       console.error('댓글 삭제 오류:', error)
@@ -561,23 +637,72 @@ export default function NewsPage() {
   }
 
   const handleCommentVote = async (commentId: string, type: 'like' | 'dislike') => {
-    if (!selectedNews?.id || !user || !token) return
+    if (!selectedNews?.id) return
 
     try {
+      console.log('뉴스 댓글 투표 시도:', { commentId, type, newsId: selectedNews.id })
+      
       const response = await fetch(`/api/news/${selectedNews.id}/comments/${commentId}/vote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ type })
+        body: JSON.stringify({ vote_type: type })
       })
 
+      console.log('뉴스 댓글 투표 응답:', response.status)
+
       if (response.ok) {
-        fetchComments(selectedNews.id)
+        const data = await response.json()
+        console.log('뉴스 댓글 투표 성공:', data)
+        
+        // 즉시 UI 업데이트 (댓글과 대댓글 모두 처리)
+        setComments(prevComments => 
+          prevComments.map(comment => {
+            // 메인 댓글 확인
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                like_count: data.like_count || comment.like_count || comment.likes || 0,
+                dislike_count: data.dislike_count || comment.dislike_count || comment.dislikes || 0,
+                likes: data.like_count || comment.likes || 0,
+                dislikes: data.dislike_count || comment.dislikes || 0
+              }
+            }
+            
+            // 대댓글 확인
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: comment.replies.map(reply => {
+                  if (reply.id === commentId) {
+                    return {
+                      ...reply,
+                      like_count: data.like_count || reply.like_count || reply.likes || 0,
+                      dislike_count: data.dislike_count || reply.dislike_count || reply.dislikes || 0,
+                      likes: data.like_count || reply.likes || 0,
+                      dislikes: data.dislike_count || reply.dislikes || 0
+                    }
+                  }
+                  return reply
+                })
+              }
+            }
+            
+            return comment
+          })
+        )
+        
+        toast.success(type === 'like' ? '좋아요를 눌렀습니다!' : '싫어요를 눌렀습니다!')
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('뉴스 댓글 투표 실패:', errorData)
+        toast.error('투표에 실패했습니다.')
       }
     } catch (error) {
       console.error('댓글 투표 오류:', error)
+      toast.error('투표 중 오류가 발생했습니다.')
     }
   }
 
@@ -793,7 +918,7 @@ export default function NewsPage() {
         <Header />
         
         {/* 페이지별 헤더 */}
-        <div className="bg-white border-b border-gray-200 px-4 py-4 pt-16 md:pt-64">
+        <div className="bg-white border-b border-gray-200 px-4 py-4 pt-16 sm:pt-24 md:pt-36">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -814,7 +939,7 @@ export default function NewsPage() {
         <div className="max-w-6xl mx-auto px-2 pt-4 pb-8">
           <Card className="p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
             <div className="mb-4">
-              <h1 className="text-sm font-bold text-gray-800 mb-3">{selectedNews.title}</h1>
+              <h1 className="text-sm md:text-2xl lg:text-3xl font-bold text-gray-800 mb-3">{selectedNews.title}</h1>
               <div className="flex items-center justify-between text-[10px] text-gray-500 mb-3">
                 <div className="flex items-center gap-4">
                   <span>{selectedNews.author}</span>
@@ -834,7 +959,7 @@ export default function NewsPage() {
             </div>
             
             <div className="prose max-w-none">
-              <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">
+              <p className="text-xs md:text-base lg:text-lg text-gray-700 leading-relaxed whitespace-pre-line">
                 {selectedNews.content}
               </p>
             </div>
@@ -973,7 +1098,7 @@ export default function NewsPage() {
                         className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
                       >
                         <ThumbsUp className="w-3 h-3 mr-0.5 md:mr-1" />
-                        {comment.likes}
+                        {comment.like_count || comment.likes || 0}
                       </Button>
                       <Button
                         variant="ghost"
@@ -982,7 +1107,7 @@ export default function NewsPage() {
                         className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
                       >
                         <ThumbsDown className="w-3 h-3 mr-0.5 md:mr-1" />
-                        {comment.dislikes}
+                        {comment.dislike_count || comment.dislikes || 0}
                       </Button>
                       <Button
                         variant="ghost"
@@ -1058,7 +1183,7 @@ export default function NewsPage() {
                                 className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-gray-600"
                               >
                                 <ThumbsUp className="w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1" />
-                                {reply.likes}
+                                {reply.like_count || reply.likes || 0}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -1067,7 +1192,7 @@ export default function NewsPage() {
                                 className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-gray-600"
                               >
                                 <ThumbsDown className="w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1" />
-                                {reply.dislikes}
+                                {reply.dislike_count || reply.dislikes || 0}
                               </Button>
                             </div>
                           </div>

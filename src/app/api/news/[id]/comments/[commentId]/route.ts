@@ -57,8 +57,8 @@ export async function DELETE(
 
     // 댓글 작성자 확인
     const { data: comment, error: commentError } = await supabaseServer
-      .from('news_comments')
-      .select('user_id')
+      .from('comments')
+      .select('author_id')
       .eq('id', commentId)
       .single()
 
@@ -69,7 +69,7 @@ export async function DELETE(
 
     // 작성자 또는 관리자만 삭제 가능
     const isAdmin = ['admin@amiko.com', 'editor@amiko.com', 'manager@amiko.com'].includes(authUser.email)
-    if (comment.user_id !== authUser.id && !isAdmin) {
+    if (comment.author_id !== authUser.id && !isAdmin) {
       return NextResponse.json({ error: '댓글을 삭제할 권한이 없습니다.' }, { status: 403 })
     }
 
@@ -172,8 +172,8 @@ export async function PUT(
 
     // 댓글 작성자 확인
     const { data: comment, error: commentError } = await supabaseServer
-      .from('news_comments')
-      .select('user_id')
+      .from('comments')
+      .select('author_id')
       .eq('id', commentId)
       .single()
 
@@ -183,7 +183,7 @@ export async function PUT(
     }
 
     // 작성자만 수정 가능
-    if (comment.user_id !== authUser.id) {
+    if (comment.author_id !== authUser.id) {
       return NextResponse.json({ error: '댓글을 수정할 권한이 없습니다.' }, { status: 403 })
     }
 
@@ -195,7 +195,7 @@ export async function PUT(
         updated_at: new Date().toISOString()
       })
       .eq('id', commentId)
-      .select('id, user_id, content, like_count, dislike_count, created_at, updated_at, parent_id')
+      .select('id, author_id, content, like_count, dislike_count, created_at, updated_at, parent_id')
       .single()
 
     if (updateError) {
@@ -207,7 +207,7 @@ export async function PUT(
     const { data: user } = await supabaseServer
       .from('users')
       .select('id, full_name, avatar_url, profile_image')
-      .eq('id', updatedComment.user_id)
+      .eq('id', updatedComment.author_id)
       .single()
 
     // 댓글 데이터 변환
@@ -220,7 +220,7 @@ export async function PUT(
       updated_at: updatedComment.updated_at,
       parent_comment_id: updatedComment.parent_id,
       author: {
-        id: user?.id || updatedComment.user_id,
+        id: user?.id || updatedComment.author_id,
         full_name: user?.full_name || '알 수 없음',
         profile_image: user?.profile_image || user?.avatar_url || null
       }

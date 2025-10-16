@@ -6,6 +6,7 @@ import { Calendar, Clock, Users, ArrowRight, Sparkles, Heart, Star } from 'lucid
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { format } from 'date-fns'
+import UserTimeDisplay from '@/components/common/UserTimeDisplay'
 import { ko } from 'date-fns/locale'
 
 export default function LoungeMini() {
@@ -160,26 +161,8 @@ export default function LoungeMini() {
                 </div>
               </div>
               
-              {/* 국가별 시간대 추가 */}
-              <div className="mt-6 pt-6 border-t border-sky-200/30">
-                <div className="text-center text-sm text-gray-600 space-y-2">
-                  <div className="font-medium text-gray-700 mb-2">{t('loungeMini.timeByCountry')}</div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-lg">🇰🇷</span>
-                      <span>{t('loungeMini.timeFormat.korea')}</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-lg">🇵🇪</span>
-                      <span>{t('loungeMini.timeFormat.peru')}</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-lg">🇲🇽</span>
-                      <span>{t('loungeMini.timeFormat.mexico')}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* 사용자별 맞춤 시간대 표시 */}
+              <UserTimeDisplay />
             </div>
 
             {/* 이번 주 특별 이벤트 */}

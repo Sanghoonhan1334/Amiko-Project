@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useLanguage } from '@/context/LanguageContext'
 import { InterestBadges } from './TranslatedInterests'
+import { toast } from 'sonner'
 import { 
   User, 
   Mail, 
@@ -18,7 +19,9 @@ import {
   Heart,
   MessageSquare,
   Star,
-  X
+  X,
+  Languages,
+  Loader2
 } from 'lucide-react'
 
 interface UserProfile {
@@ -56,10 +59,22 @@ interface UserProfileModalProps {
 }
 
 export default function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // 번역 상태
+  const [translating, setTranslating] = useState(false)
+  const [translatedFields, setTranslatedFields] = useState<{
+    bio?: string
+    university?: string
+    major?: string
+    occupation?: string
+    company?: string
+    work_experience?: string
+  }>({})
+  const [showTranslation, setShowTranslation] = useState(false)
 
   // 목업 프로필 데이터
   const mockProfiles: Record<string, UserProfile> = {
@@ -242,8 +257,103 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
     if (!isOpen) {
       setProfile(null)
       setError(null)
+      setTranslatedFields({})
+      setShowTranslation(false)
     }
   }, [isOpen])
+
+  // 번역 함수
+  const translateProfile = async () => {
+    if (!profile) return
+
+    setTranslating(true)
+    try {
+      // 현재 언어가 한국어면 스페인어로, 스페인어면 한국어로 번역
+      const targetLanguage = language === 'ko' ? 'es' : 'ko'
+      
+      const fieldsToTranslate: Array<keyof typeof translatedFields> = []
+      const textsToTranslate: string[] = []
+
+      // 번역할 필드들 수집
+      if (profile.bio) {
+        fieldsToTranslate.push('bio')
+        textsToTranslate.push(profile.bio)
+      }
+      if (profile.university) {
+        fieldsToTranslate.push('university')
+        textsToTranslate.push(profile.university)
+      }
+      if (profile.major) {
+        fieldsToTranslate.push('major')
+        textsToTranslate.push(profile.major)
+      }
+      if (profile.occupation) {
+        fieldsToTranslate.push('occupation')
+        textsToTranslate.push(profile.occupation)
+      }
+      if (profile.company) {
+        fieldsToTranslate.push('company')
+        textsToTranslate.push(profile.company)
+      }
+      if (profile.work_experience) {
+        fieldsToTranslate.push('work_experience')
+        textsToTranslate.push(profile.work_experience)
+      }
+
+      // 모든 필드를 개별적으로 번역
+      const translationPromises = textsToTranslate.map(async (text) => {
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text,
+            targetLanguage
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error('번역 요청 실패')
+        }
+
+        const data = await response.json()
+        return data.translatedText
+      })
+
+      const translatedTexts = await Promise.all(translationPromises)
+
+      // 번역 결과를 상태에 저장
+      const newTranslatedFields: typeof translatedFields = {}
+      fieldsToTranslate.forEach((field, index) => {
+        newTranslatedFields[field] = translatedTexts[index]
+      })
+
+      setTranslatedFields(newTranslatedFields)
+      setShowTranslation(true)
+      toast.success(language === 'ko' ? '번역이 완료되었습니다!' : '¡Traducción completada!')
+
+    } catch (error) {
+      console.error('번역 오류:', error)
+      toast.error(language === 'ko' ? '번역에 실패했습니다.' : 'Error al traducir.')
+    } finally {
+      setTranslating(false)
+    }
+  }
+
+  // 번역 토글
+  const toggleTranslation = () => {
+    if (showTranslation) {
+      // 원문 보기
+      setShowTranslation(false)
+    } else if (Object.keys(translatedFields).length > 0) {
+      // 이미 번역된 내용이 있으면 그냥 보여주기
+      setShowTranslation(true)
+    } else {
+      // 번역된 내용이 없으면 새로 번역
+      translateProfile()
+    }
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -262,15 +372,65 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
       .slice(0, 2)
   }
 
+  // 필드 값 가져오기 (번역 여부에 따라)
+  const getFieldValue = (field: keyof typeof translatedFields, originalValue?: string) => {
+    if (!originalValue) return ''
+    return showTranslation && translatedFields[field] ? translatedFields[field] : originalValue
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">사용자 프로필</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={onClose} className="user-profile-modal" style={{ zIndex: 99999 }}>
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl z-[99999]" 
+        style={{ 
+          backgroundColor: 'white !important',
+          background: 'white !important',
+          zIndex: '99999 !important',
+          position: 'relative !important'
+        }}
+      >
+        <DialogHeader className="bg-white" style={{ 
+          backgroundColor: 'white !important',
+          background: 'white !important'
+        }}>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold text-gray-900" style={{ 
+              color: 'rgb(17 24 39) !important'
+            }}>사용자 프로필</DialogTitle>
+            
+            {/* 번역 버튼 */}
+            {profile && !loading && (
+              <Button
+                onClick={toggleTranslation}
+                disabled={translating}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {translating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {language === 'ko' ? '번역 중...' : 'Traduciendo...'}
+                  </>
+                ) : (
+                  <>
+                    <Languages className="w-4 h-4" />
+                    {showTranslation 
+                      ? (language === 'ko' ? '원문 보기' : 'Ver original')
+                      : (language === 'ko' ? '번역하기' : 'Traducir')
+                    }
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         {loading && (
-          <div className="space-y-3 md:space-y-6">
+          <div className="space-y-3 md:space-y-6 bg-white" style={{ 
+            backgroundColor: 'white !important',
+            background: 'white !important'
+          }}>
             {/* 프로필 헤더 스켈레톤 */}
             <div className="text-center">
               <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-3 md:mb-4 bg-gray-200 rounded-full animate-pulse"></div>
@@ -360,7 +520,10 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
         )}
 
         {profile && !loading && (
-          <div className="space-y-3 md:space-y-6">
+          <div className="space-y-3 md:space-y-6 bg-white" style={{ 
+            backgroundColor: 'white !important',
+            background: 'white !important'
+          }}>
             {/* 프로필 헤더 */}
             <div className="text-center">
               <Avatar className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-3 md:mb-4">
@@ -370,13 +533,17 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 </AvatarFallback>
               </Avatar>
               
-              <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-1">
+              <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-1" style={{ 
+                color: 'rgb(17 24 39) !important'
+              }}>
                 {profile.full_name}
               </h2>
               
               {/* 닉네임 표시 */}
               {profile.nickname && (
-                <p className="text-sm md:text-base text-gray-600 mb-2">
+                <p className="text-sm md:text-base text-gray-600 mb-2" style={{ 
+                  color: 'rgb(75 85 99) !important'
+                }}>
                   @{profile.nickname}
                 </p>
               )}
@@ -415,14 +582,14 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               </div>
             </div>
 
-            {/* 자기소개 */}
+              {/* 자기소개 */}
             {profile.bio && (
               <Card className="p-3 md:p-4">
                 <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm md:text-base">
                   <User className="w-3 h-3 md:w-4 md:h-4" />
-                  자기소개
+                  {t('profileModal.selfIntroduction')}
                 </h3>
-                <p className="text-gray-700 text-sm md:text-base">{profile.bio}</p>
+                <p className="text-gray-700 text-sm md:text-base">{getFieldValue('bio', profile.bio)}</p>
               </Card>
             )}
 
@@ -432,7 +599,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 {profile.user_type === 'student' ? (
                   <>
                     <GraduationCap className="w-3 h-3 md:w-4 md:h-4" />
-                    학업 정보
+                    {t('profileModal.academicInfo')}
                   </>
                 ) : (
                   <>
@@ -447,19 +614,19 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                   <>
                     {profile.university && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">대학교:</span>
-                        <span className="font-medium">{profile.university}</span>
+                        <span className="text-gray-600">{t('profileModal.university')}:</span>
+                        <span className="font-medium">{getFieldValue('university', profile.university)}</span>
                       </div>
                     )}
                     {profile.major && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">전공:</span>
-                        <span className="font-medium">{profile.major}</span>
+                        <span className="text-gray-600">{t('profileModal.major')}:</span>
+                        <span className="font-medium">{getFieldValue('major', profile.major)}</span>
                       </div>
                     )}
                     {profile.grade && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">학년:</span>
+                        <span className="text-gray-600">{t('profileModal.year')}:</span>
                         <span className="font-medium">{profile.grade}</span>
                       </div>
                     )}
@@ -469,19 +636,19 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                     {profile.occupation && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">직업:</span>
-                        <span className="font-medium">{profile.occupation}</span>
+                        <span className="font-medium">{getFieldValue('occupation', profile.occupation)}</span>
                       </div>
                     )}
                     {profile.company && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">회사:</span>
-                        <span className="font-medium">{profile.company}</span>
+                        <span className="font-medium">{getFieldValue('company', profile.company)}</span>
                       </div>
                     )}
                     {profile.work_experience && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">경력:</span>
-                        <span className="font-medium">{profile.work_experience}</span>
+                        <span className="font-medium">{getFieldValue('work_experience', profile.work_experience)}</span>
                       </div>
                     )}
                   </>
@@ -494,25 +661,25 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               <Card className="p-3 md:p-4">
                 <h3 className="font-semibold mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
                   <MessageSquare className="w-3 h-3 md:w-4 md:h-4" />
-                  언어 수준
+                  {t('profileModal.languageLevel')}
                 </h3>
                 
                 <div className="space-y-1 md:space-y-2">
                   {profile.language_levels.korean && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">한국어:</span>
+                      <span className="text-gray-600">{t('profileModal.korean')}:</span>
                       <Badge variant="outline" className="text-xs">{profile.language_levels.korean}</Badge>
                     </div>
                   )}
                   {profile.language_levels.english && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">영어:</span>
+                      <span className="text-gray-600">{t('profileModal.english')}:</span>
                       <Badge variant="outline" className="text-xs">{profile.language_levels.english}</Badge>
                     </div>
                   )}
                   {profile.language_levels.spanish && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">스페인어:</span>
+                      <span className="text-gray-600">{t('profileModal.spanish')}:</span>
                       <Badge variant="outline" className="text-xs">{profile.language_levels.spanish}</Badge>
                     </div>
                   )}

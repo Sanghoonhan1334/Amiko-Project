@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClientComponentClient } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { 
   MessageSquare, 
@@ -42,6 +42,7 @@ interface Post {
   comments_count: number
   is_pinned?: boolean
   is_hot?: boolean
+  is_notice?: boolean
 }
 
 interface Category {
@@ -78,11 +79,22 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [postTitle, setPostTitle] = useState('')
   const [postContent, setPostContent] = useState('')
   const [postCategory, setPostCategory] = useState('')
+  
+  // 공지사항 관련 상태
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
+  const [announcementTitle, setAnnouncementTitle] = useState('')
+  const [announcementContent, setAnnouncementContent] = useState('')
+  const [announcementLoading, setAnnouncementLoading] = useState(false)
+  const [announcementImages, setAnnouncementImages] = useState<string[]>([])
+  const [uploadingAnnouncementImages, setUploadingAnnouncementImages] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [isSubmittingPost, setIsSubmittingPost] = useState(false)
+  
+  // 운영자 권한 체크
+  const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
 
   const categories: Category[] = [
     { id: 'free', name: '자유게시판', icon: '' },
@@ -123,6 +135,162 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     }
     setShowPostModal(true)
     setIsFabExpanded(false)
+  }
+
+  // 공지사항 모달 열기
+  const handleOpenAnnouncementModal = () => {
+    if (!user) {
+      router.push('/sign-in')
+      return
+    }
+    setShowAnnouncementModal(true)
+    setIsFabExpanded(false)
+  }
+
+  // 공지사항 작성 함수
+  const handleAnnouncementSubmit = async () => {
+    if (!user || !isAdmin) return
+    
+    if (!announcementTitle.trim() || !announcementContent.trim()) {
+      toast.error('제목과 내용을 모두 입력해주세요.')
+      return
+    }
+
+    setAnnouncementLoading(true)
+    
+    try {
+      console.log('공지사항 작성 시작:', {
+        title: announcementTitle,
+        contentLength: announcementContent.length,
+        imagesCount: announcementImages.length,
+        userEmail: user?.email
+      })
+
+      const requestData = {
+        title: announcementTitle,
+        content: announcementContent,
+        category: '공지사항',
+        is_notice: true,
+        is_pinned: true,
+        images: announcementImages
+        // gallery_id 제거 - API에서 기본값 처리
+      }
+
+      console.log('요청 데이터:', requestData)
+
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      console.log('응답 상태:', response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('API 에러 응답:', errorData)
+        throw new Error(errorData.error || '공지사항 작성에 실패했습니다.')
+      }
+
+      const result = await response.json()
+      console.log('공지사항 작성 성공:', result)
+
+      // 성공 시 상태 초기화 및 모달 닫기
+      setAnnouncementTitle('')
+      setAnnouncementContent('')
+      setAnnouncementImages([])
+      setShowAnnouncementModal(false)
+      
+      // 게시글 목록 새로고침
+      loadPosts()
+      
+      toast.success('공지사항이 작성되었습니다.')
+    } catch (error) {
+      console.error('공지사항 작성 실패:', error)
+      toast.error(error instanceof Error ? error.message : '공지사항 작성에 실패했습니다.')
+    } finally {
+      setAnnouncementLoading(false)
+    }
+  }
+
+  // 공지사항 이미지 업로드 핸들러
+  const handleAnnouncementImageUpload = async (file: File): Promise<string> => {
+    try {
+      // 먼저 AuthContext에서 사용자 정보 확인
+      if (!user) {
+        throw new Error('로그인이 필요합니다.')
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'announcements')
+
+      // Supabase 클라이언트 생성
+      const supabase = createClientComponentClient()
+      
+      // 세션에서 토큰 가져오기
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('세션 에러:', sessionError)
+        throw new Error('세션을 가져올 수 없습니다.')
+      }
+      
+      if (!session?.access_token) {
+        console.error('토큰이 없습니다. 세션:', session)
+        throw new Error('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
+      }
+      
+      const token = session.access_token
+      console.log('토큰 가져오기 성공:', token.slice(0, 20) + '...')
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('이미지 업로드 API 에러:', errorData)
+        throw new Error(errorData.error || '이미지 업로드에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      console.log('이미지 업로드 성공:', data.url)
+      return data.url
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error)
+      throw error
+    }
+  }
+
+  // 공지사항 이미지 파일 선택 핸들러
+  const handleAnnouncementImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingAnnouncementImages(true)
+    
+    try {
+      const uploadPromises = Array.from(files).map(file => handleAnnouncementImageUpload(file))
+      const uploadedUrls = await Promise.all(uploadPromises)
+      
+      setAnnouncementImages(prev => [...prev, ...uploadedUrls])
+    } catch (error) {
+      toast.error('이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploadingAnnouncementImages(false)
+    }
+  }
+
+  // 공지사항 이미지 삭제 핸들러
+  const handleAnnouncementImageRemove = (index: number) => {
+    setAnnouncementImages(prev => prev.filter((_, i) => i !== index))
   }
 
   // 검색 핸들러
@@ -445,13 +613,14 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           content: post.content,
           category_id: post.category_id || 'general',
           category_name: post.category || '자유게시판',
-          author_name: post.author?.full_name || '익명',
+          author_name: post.author?.full_name || (post.is_notice ? '운영자' : '익명'),
           created_at: post.created_at,
           views: post.view_count || 0,
           likes: post.like_count || 0,
           comments_count: post.comment_count || 0,
           is_pinned: post.is_pinned || false,
-          is_hot: post.is_hot || false
+          is_hot: post.is_hot || false,
+          is_notice: post.is_notice || false // is_notice 필드 추가
         }))
 
         console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
@@ -586,7 +755,17 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 </Select>
               </div>
               
-              {/* 오른쪽 끝에 글쓰기 버튼 */}
+              {/* 공지사항 버튼 (운영자만) */}
+              {isAdmin && (
+                <Button
+                  onClick={handleOpenAnnouncementModal}
+                  className="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-white px-4 py-2 text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 mr-2 min-w-fit"
+                >
+                  📢 공지사항
+                </Button>
+              )}
+              
+              {/* 글쓰기 버튼 */}
               <Button
                 onClick={handleOpenPostModal}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-300"
@@ -702,29 +881,29 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     <table className="w-full">
                       <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">게시판</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">제목</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">게시판</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">제목</th>
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">글쓴이</th>
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">작성일</th>
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">조회</th>
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">추천</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      <tbody className="bg-yellow-50 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {sortedPosts.map((post, index) => (
-                          <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => {
+                          <tr key={post.id} className="bg-yellow-50 hover:bg-yellow-100 dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer" onClick={() => {
                             if (onPostSelect) {
                               onPostSelect(post)
                             } else {
                               router.push(`/community/post/${post.id}`)
                             }
                           }}>
-                            <td className="px-4 py-3 text-sm">
+                            <td className="px-4 py-3 text-sm text-left">
                               <Badge variant="secondary" className="text-xs font-bold">
                                 {post.category || post.category_name}
                               </Badge>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-left">
                               <div className="flex items-center gap-2">
                                 {post.is_pinned && <Star className="w-4 h-4 text-yellow-500" />}
                                 {post.is_hot && <TrendingUp className="w-4 h-4 text-red-500" />}
@@ -734,10 +913,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{post.author_name}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{formatDate(post.created_at)}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{formatNumber(post.views)}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{formatNumber(post.likes)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{post.author_name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{formatDate(post.created_at)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{formatNumber(post.views)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{formatNumber(post.likes)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1020,16 +1199,27 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         {/* 플로팅 글쓰기 버튼 */}
         <div className="fixed bottom-20 right-4 z-50 md:hidden">
           <div className="flex items-center justify-end">
-            {/* 글쓰기 텍스트 - 원에서 확장되는 효과 */}
+            {/* 확장된 버튼들 */}
             <div className={`transition-all duration-300 ease-in-out ${
               isFabExpanded ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-4 scale-95'
             }`}>
-            <button
-              onClick={handleOpenPostModal}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-xs font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
-            >
-              {t('community.writePost')}
-            </button>
+              {/* 공지사항 버튼 (운영자만) */}
+              {isAdmin && (
+                <button
+                  onClick={handleOpenAnnouncementModal}
+                  className="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-white px-4 py-2 rounded-full text-sm font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
+                >
+                  📢 공지사항
+                </button>
+              )}
+              
+              {/* 글쓰기 버튼 */}
+              <button
+                onClick={handleOpenPostModal}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-xs font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                {t('community.writePost')}
+              </button>
             </div>
             
             {/* 메인 버튼 */}
@@ -1077,18 +1267,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t('community.category')}
                 </label>
-                <Select value={postCategory} onValueChange={setPostCategory}>
-                  <SelectTrigger className="w-full h-10 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-                    <SelectValue placeholder="게시판을 선택해주세요" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
-                    {categories.filter(cat => cat.id !== 'all').map((category) => (
-                      <SelectItem key={category.id} value={category.id} className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <span>{category.name}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select 
+                  value={postCategory} 
+                  onChange={(e) => setPostCategory(e.target.value)}
+                  className="w-full h-10 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3"
+                >
+                  <option value="">게시판을 선택해주세요</option>
+                  {categories.filter(cat => cat.id !== 'all').map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* 제목 입력 */}
@@ -1213,6 +1403,138 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         confirmText={t('community.goToAuthCenter')}
         cancelText={t('buttons.cancel')}
       />
+
+      {/* 공지사항 작성 모달 */}
+      {showAnnouncementModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-700">
+            {/* 모달 헤더 */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-red-50 dark:from-gray-700 dark:to-gray-600">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">📢 공지사항 작성</h2>
+              <button
+                onClick={() => {
+                  setShowAnnouncementModal(false)
+                  setAnnouncementTitle('')
+                  setAnnouncementContent('')
+                  setAnnouncementImages([])
+                }}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-all duration-200"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* 모달 내용 */}
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* 제목 입력 */}
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                  제목 *
+                </label>
+                <input
+                  type="text"
+                  value={announcementTitle}
+                  onChange={(e) => setAnnouncementTitle(e.target.value)}
+                  placeholder="공지사항 제목을 입력하세요"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 shadow-sm hover:shadow-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  maxLength={100}
+                />
+              </div>
+
+              {/* 내용 입력 */}
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                  내용 *
+                </label>
+                <textarea
+                  value={announcementContent}
+                  onChange={(e) => setAnnouncementContent(e.target.value)}
+                  placeholder="공지사항 내용을 입력하세요"
+                  rows={8}
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  maxLength={5000}
+                />
+                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+                  {announcementContent.length}/5000
+                </div>
+              </div>
+
+              {/* 이미지 업로드 */}
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                  이미지 첨부 (선택사항)
+                </label>
+                
+                {/* 이미지 업로드 버튼 */}
+                <div className="mb-4">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleAnnouncementImageSelect}
+                    className="hidden"
+                    id="announcement-image-upload"
+                  />
+                  <label
+                    htmlFor="announcement-image-upload"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+                  >
+                    📷 이미지 선택
+                  </label>
+                  {uploadingAnnouncementImages && (
+                    <span className="ml-2 text-sm text-gray-500">업로드 중...</span>
+                  )}
+                </div>
+
+                {/* 업로드된 이미지 미리보기 */}
+                {announcementImages.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                    {announcementImages.map((imageUrl, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={imageUrl}
+                          alt={`공지사항 이미지 ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAnnouncementImageRemove(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 모달 하단 버튼 */}
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+              <button
+                onClick={() => {
+                  setShowAnnouncementModal(false)
+                  setAnnouncementTitle('')
+                  setAnnouncementContent('')
+                  setAnnouncementImages([])
+                }}
+                disabled={announcementLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAnnouncementSubmit}
+                disabled={announcementLoading || !announcementTitle.trim() || !announcementContent.trim()}
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {announcementLoading ? '작성 중...' : '📢 공지사항 작성'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

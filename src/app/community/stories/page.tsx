@@ -8,7 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, Heart, MessageSquare, Plus, User, Clock, Image as ImageIcon, Camera, Loader2, X } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Heart, MessageSquare, Plus, User, Clock, Image as ImageIcon, Camera, Loader2, X, Calendar, GraduationCap, Briefcase } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -19,8 +21,12 @@ interface Story {
   image_url: string
   text: string
   created_at: string
-  likes: number
+  likes?: number
+  like_count?: number
+  comment_count?: number
   comments?: any[]
+  user_name?: string
+  user_profile_image?: string
   user?: {
     full_name: string
     profile_image_url?: string
@@ -30,7 +36,8 @@ interface Story {
 export default function StoriesPage() {
   const router = useRouter()
   const { t } = useLanguage()
-  const { user } = useAuth()
+  const { user, token, session } = useAuth()
+  const { language } = useLanguage()
   const [stories, setStories] = useState<Story[]>([])
   const [storiesLoading, setStoriesLoading] = useState(true)
   const [showHeartAnimation, setShowHeartAnimation] = useState<string | null>(null)
@@ -39,8 +46,18 @@ export default function StoriesPage() {
   const [showCommentModal, setShowCommentModal] = useState(false)
   const [showStoryViewer, setShowStoryViewer] = useState(false)
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [profileUser, setProfileUser] = useState<any>(null)
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
+  
+  // 댓글 관련 상태
+  const [commentText, setCommentText] = useState('')
+  const [storyComments, setStoryComments] = useState<Record<string, any[]>>({})
+  const [isCommenting, setIsCommenting] = useState(false)
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
+  const [replyToComment, setReplyToComment] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState('')
 
   // 스토리 업로드 모달 관련 상태
   const [showStoryUploadModal, setShowStoryUploadModal] = useState(false)
@@ -71,19 +88,55 @@ export default function StoriesPage() {
 
   // 스토리 로드 함수
   const loadStories = async () => {
+    console.log('=== loadStories 함수 호출 ===')
+    console.log('현재 token:', token)
+    console.log('현재 session:', session)
+    console.log('현재 session?.access_token:', session?.access_token)
+    
     try {
       setStoriesLoading(true)
-      const response = await fetch('/api/stories')
+      const headers: HeadersInit = {}
+      if (token || session?.access_token) {
+        headers['Authorization'] = `Bearer ${token || session?.access_token}`
+        console.log('=== 토큰 확인 ===')
+        console.log('token:', token)
+        console.log('session?.access_token:', session?.access_token)
+        console.log('사용할 토큰:', token || session?.access_token)
+        console.log('Authorization 헤더 추가됨')
+      } else {
+        console.log('=== 토큰 없음 ===')
+        console.log('토큰이 없어서 Authorization 헤더를 추가하지 않음')
+      }
+      
+      console.log('API 요청 시작:', '/api/stories')
+      const response = await fetch('/api/stories', { headers })
       if (response.ok) {
         const data = await response.json()
-        const convertedStories = data.stories.map((story: any) => ({
-          ...story,
-          user: {
-            full_name: story.user_name || '익명',
-            profile_image_url: story.user_profile_image
+        const convertedStories = data.stories.map((story: any) => {
+          console.log('=== 스토리 변환 디버깅 ===')
+          console.log('원본 스토리:', story)
+          console.log('story.user_name:', story.user_name)
+          console.log('story.user_profile_image:', story.user_profile_image)
+          
+          const converted = {
+            ...story,
+            user: {
+              full_name: story.user_name || '익명',
+              profile_image_url: story.user_profile_image
+            }
           }
-        }))
+          
+          console.log('변환된 스토리:', converted)
+          return converted
+        })
         setStories(convertedStories)
+        
+        // 사용자의 좋아요 상태 복원
+        if (data.userLikedStories && Array.isArray(data.userLikedStories)) {
+          console.log('=== 좋아요 상태 복원 ===')
+          console.log('서버에서 받은 좋아요 상태:', data.userLikedStories)
+          setLikedStories(new Set(data.userLikedStories))
+        }
       }
     } catch (error) {
       console.error('스토리 로드 오류:', error)
@@ -93,24 +146,46 @@ export default function StoriesPage() {
   }
 
   useEffect(() => {
-    loadStories()
-  }, [])
+    // 토큰이나 세션이 준비되면 스토리 로드
+    if (token || session?.access_token) {
+      console.log('=== 인증 준비됨, 스토리 로드 시작 ===')
+      loadStories()
+    } else {
+      console.log('=== 인증 대기 중 ===')
+    }
+  }, [token, session])
 
   // 시간 포맷 함수
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string, isShort = false) => {
     const date = new Date(dateString)
     const now = new Date()
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
     
-    if (diffInMinutes < 1) return '방금 전'
-    if (diffInMinutes < 60) return `${diffInMinutes}분 전`
+    if (diffInMinutes < 1) {
+      if (language === 'es') return isShort ? 'ahora' : 'hace un momento'
+      return isShort ? '방금' : '방금 전'
+    }
+    
+    if (diffInMinutes < 60) {
+      if (language === 'es') return isShort ? `${diffInMinutes}m` : `hace ${diffInMinutes} min`
+      return isShort ? `${diffInMinutes}m` : `${diffInMinutes}분 전`
+    }
     
     const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours < 24) return `${diffInHours}시간 전`
+    if (diffInHours < 24) {
+      if (language === 'es') return isShort ? `${diffInHours}h` : `hace ${diffInHours}h`
+      return isShort ? `${diffInHours}h` : `${diffInHours}시간 전`
+    }
     
     const diffInDays = Math.floor(diffInHours / 24)
-    if (diffInDays < 7) return `${diffInDays}일 전`
+    if (diffInDays < 7) {
+      if (language === 'es') return isShort ? `${diffInDays}d` : `hace ${diffInDays} días`
+      return isShort ? `${diffInDays}d` : `${diffInDays}일 전`
+    }
     
+    if (language === 'es') {
+      return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+    }
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
   }
 
@@ -123,6 +198,31 @@ export default function StoriesPage() {
   // 스토리 뷰어 닫기
   const closeStoryViewer = () => {
     setShowStoryViewer(false)
+    setShowProfileModal(false)
+    setProfileUser(null)
+  }
+
+  // 프로필 모달 열기
+  const openProfileModal = async (userId: string) => {
+    try {
+      const headers: HeadersInit = {}
+      if (token || session?.access_token) {
+        headers['Authorization'] = `Bearer ${token || session?.access_token}`
+      }
+
+      const response = await fetch(`/api/profile?userId=${userId}`, { headers })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setProfileUser(data.user)
+        setShowProfileModal(true)
+      } else {
+        toast.error('프로필을 불러올 수 없습니다.')
+      }
+    } catch (error) {
+      console.error('프로필 로드 오류:', error)
+      toast.error('프로필을 불러올 수 없습니다.')
+    }
   }
 
   // 다음 스토리로 이동
@@ -166,55 +266,324 @@ export default function StoriesPage() {
     }
   }
 
-  // 스토리 좋아요 토글
+  // 마우스 클릭 핸들러 (좌우 클릭에 따른 네비게이션)
+  const handleClick = (e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const centerX = rect.width / 2
+    
+    // 좌측 클릭: 이전 스토리, 우측 클릭: 다음 스토리
+    if (clickX < centerX) {
+      goToPrevStory()
+    } else {
+      goToNextStory()
+    }
+  }
+
+  // 키보드 이벤트 핸들러
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeStoryViewer()
+    } else if (e.key === 'ArrowLeft') {
+      goToPrevStory() // 왼쪽 화살표: 이전 스토리
+    } else if (e.key === 'ArrowRight') {
+      goToNextStory() // 오른쪽 화살표: 다음 스토리
+    }
+  }
+
+  // 스토리 좋아요 토글 (Optimistic UI)
   const toggleStoryLike = async (storyId: string) => {
     if (!user) {
       toast.error('로그인이 필요합니다.')
       return
     }
 
+    // Optimistic UI: 즉시 UI 업데이트
+    const wasLiked = likedStories.has(storyId)
+    
+    // 즉시 좋아요 상태 변경
+    setLikedStories(prev => {
+      const newSet = new Set(prev)
+      if (wasLiked) {
+        newSet.delete(storyId)
+        console.log('좋아요 취소:', storyId)
+      } else {
+        newSet.add(storyId)
+        setShowHeartAnimation(storyId)
+        setTimeout(() => setShowHeartAnimation(null), 1000)
+        console.log('좋아요 추가:', storyId)
+      }
+      console.log('업데이트된 좋아요 목록:', Array.from(newSet))
+      return newSet
+    })
+    
+    // 즉시 좋아요 수 변경
+    setStories(prev => {
+      const updated = prev.map(story => {
+        if (story.id === storyId) {
+          const newLikes = Math.max(0, (story.like_count || 0) + (wasLiked ? -1 : 1))
+          console.log(`스토리 ${storyId} 좋아요 수: ${story.like_count || 0} → ${newLikes}`)
+          return { ...story, like_count: newLikes }
+        }
+        return story
+      })
+      return updated
+    })
+
+    // 서버 요청 (백그라운드)
     try {
       const response = await fetch(`/api/stories/${storyId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('amiko_token')}`
+          'Authorization': `Bearer ${token || session?.access_token}`
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        const serverIsLiked = result.liked
+        
+        // 서버 응답과 다르면 롤백
+        if (serverIsLiked !== !wasLiked) {
+          setLikedStories(prev => {
+            const newSet = new Set(prev)
+            if (wasLiked) {
+              newSet.add(storyId)
+            } else {
+              newSet.delete(storyId)
+            }
+            return newSet
+          })
+          
+          setStories(prev => prev.map(story => 
+            story.id === storyId 
+              ? { ...story, like_count: Math.max(0, (story.like_count || 0) + (wasLiked ? 1 : -1)) }
+              : story
+          ))
+        }
+      }
+    } catch (error) {
+      console.error('좋아요 토글 오류:', error)
+      // 에러 시 롤백
+      setLikedStories(prev => {
+        const newSet = new Set(prev)
+        if (wasLiked) {
+          newSet.add(storyId)
+        } else {
+          newSet.delete(storyId)
+        }
+        return newSet
+      })
+      
+      setStories(prev => prev.map(story => 
+        story.id === storyId 
+          ? { ...story, like_count: Math.max(0, (story.like_count || 0) + (wasLiked ? 1 : -1)) }
+          : story
+      ))
+    }
+  }
+
+  // 댓글 모달 열기
+  const openCommentModal = async (story: Story) => {
+    setSelectedStory(story)
+    setShowCommentModal(true)
+    setCommentText('')
+    
+    // 댓글 로드
+    await loadStoryComments(story.id)
+  }
+
+  // 댓글 모달 닫기
+  const handleCloseCommentModal = () => {
+    setShowCommentModal(false)
+    setSelectedStory(null)
+    setCommentText('')
+    setReplyToComment(null)
+    setReplyText('')
+  }
+
+  // 스토리 댓글 로드
+  const loadStoryComments = async (storyId: string) => {
+    setIsLoadingComments(true)
+    try {
+      const response = await fetch(`/api/stories/${storyId}/comments`)
+      if (response.ok) {
+        const data = await response.json()
+        setStoryComments(prev => ({
+          ...prev,
+          [storyId]: data.comments || []
+        }))
+      }
+    } catch (error) {
+      console.error('댓글 로드 실패:', error)
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }
+
+  // 댓글 작성
+  const handleSubmitComment = async () => {
+    if (!selectedStory || !commentText.trim() || !user || !token) {
+      return
+    }
+
+    setIsCommenting(true)
+    try {
+      const response = await fetch(`/api/stories/${selectedStory.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || session?.access_token}`
+        },
+        body: JSON.stringify({
+          content: commentText.trim()
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || '댓글 작성에 실패했습니다.')
+      }
+
+      const result = await response.json()
+
+      // 댓글 목록에 추가
+      setStoryComments(prev => ({
+        ...prev,
+        [selectedStory.id]: [
+          ...(prev[selectedStory.id] || []),
+          result.comment
+        ]
+      }))
+
+      // 댓글 수 증가
+      setStories(prev => prev.map(story => 
+        story.id === selectedStory.id 
+          ? { 
+              ...story, 
+              comments: [...(story.comments || []), result.comment],
+              comment_count: (story.comment_count || 0) + 1
+            }
+          : story
+      ))
+
+      setCommentText('')
+      
+    } catch (error) {
+      console.error('댓글 작성 실패:', error)
+      toast.error('댓글 작성에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsCommenting(false)
+    }
+  }
+
+  // 댓글 좋아요 토글
+  const toggleCommentLike = async (commentId: string) => {
+    if (!user || !token) {
+      toast.error('로그인이 필요합니다.')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/stories/comments/${commentId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || session?.access_token}`
         }
       })
 
       if (response.ok) {
         const result = await response.json()
         const isLiked = result.liked
-        
-        setLikedStories(prev => {
-          const newSet = new Set(prev)
-          if (isLiked) {
-            newSet.add(storyId)
-            setShowHeartAnimation(storyId)
-            setTimeout(() => setShowHeartAnimation(null), 1000)
-          } else {
-            newSet.delete(storyId)
-          }
-          return newSet
-        })
-        
-        // 서버에서 최신 좋아요 수를 받아서 업데이트
-        // 임시로 프론트엔드에서만 업데이트 (DB 컬럼 추가 후 서버 응답 사용)
-        setStories(prev => prev.map(story => 
-          story.id === storyId 
-            ? { ...story, likes: story.likes + (isLiked ? 1 : -1) }
-            : story
-        ))
+
+        // 댓글 상태 업데이트
+        if (selectedStory) {
+          setStoryComments(prev => ({
+            ...prev,
+            [selectedStory.id]: prev[selectedStory.id]?.map(comment => 
+              comment.id === commentId 
+                ? { 
+                    ...comment, 
+                    is_liked: isLiked,
+                    likes_count: comment.likes_count + (isLiked ? 1 : -1)
+                  }
+                : comment
+            ) || []
+          }))
+        }
       }
     } catch (error) {
-      console.error('좋아요 토글 오류:', error)
+      console.error('댓글 좋아요 토글 오류:', error)
+      toast.error('좋아요 처리에 실패했습니다.')
     }
   }
 
-  // 댓글 모달 열기
-  const openCommentModal = (story: Story) => {
-    setSelectedStory(story)
-    setShowCommentModal(true)
+  // 답글 작성 시작
+  const startReply = (commentId: string, authorName: string) => {
+    setReplyToComment(commentId)
+    setReplyText(`@${authorName} `)
+  }
+
+  // 답글 작성 취소
+  const cancelReply = () => {
+    setReplyToComment(null)
+    setReplyText('')
+  }
+
+  // 답글 제출
+  const handleSubmitReply = async () => {
+    if (!selectedStory || !replyText.trim() || !user || !token || !replyToComment) {
+      return
+    }
+
+    setIsCommenting(true)
+    try {
+      const response = await fetch(`/api/stories/${selectedStory.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || session?.access_token}`
+        },
+        body: JSON.stringify({
+          content: replyText.trim(),
+          parent_comment_id: replyToComment
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || '답글 작성에 실패했습니다.')
+      }
+
+      const result = await response.json()
+
+      // 댓글 목록에 추가
+      setStoryComments(prev => ({
+        ...prev,
+        [selectedStory.id]: [
+          ...(prev[selectedStory.id] || []),
+          result.comment
+        ]
+      }))
+
+      // 댓글 수 증가
+      setStories(prev => prev.map(story => 
+        story.id === selectedStory.id 
+          ? { ...story, comments: [...(story.comments || []), result.comment] }
+          : story
+      ))
+
+      setReplyText('')
+      setReplyToComment(null)
+      
+    } catch (error) {
+      console.error('답글 작성 실패:', error)
+      toast.error('답글 작성에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsCommenting(false)
+    }
   }
 
   // 파일 선택 처리
@@ -285,7 +654,6 @@ export default function StoriesPage() {
         reader.readAsDataURL(selectedFile)
       })
       
-      const token = localStorage.getItem('amiko_token')
       if (!token) {
         throw new Error('인증 토큰이 없습니다.')
       }
@@ -300,7 +668,7 @@ export default function StoriesPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token || session?.access_token}`
         },
         body: JSON.stringify({
           imageUrl: base64Image,
@@ -393,7 +761,7 @@ export default function StoriesPage() {
       {/* 스토리 컨텐츠 */}
       <div className="max-w-6xl mx-auto px-2 py-4 md:pt-12">
         {storiesLoading ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+          <div className="grid grid-cols-2 min-[426px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6 gap-2">
             {[...Array(16)].map((_, index) => (
               <div key={index} className="relative overflow-hidden rounded-xl bg-gray-200 animate-pulse" style={{ aspectRatio: '9/16' }}>
                 <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-gray-300 to-transparent">
@@ -415,19 +783,28 @@ export default function StoriesPage() {
             ))}
           </div>
         ) : stories.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+          <div className="grid grid-cols-2 min-[426px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6 gap-2">
             {stories.map((story, index) => (
               <div 
                 key={story.id} 
                 className="relative overflow-hidden rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer" 
-                style={{ aspectRatio: '9/16' }}
+                style={{ aspectRatio: '9/16', minHeight: '200px' }}
                 onClick={() => openStoryViewer(index)}
               >
                   {story.image_url ? (
                     <img 
                       src={story.image_url} 
                       alt="스토리 이미지" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 select-none"
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
+                      style={{ 
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none',
+                        pointerEvents: 'none'
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center">
@@ -447,69 +824,97 @@ export default function StoriesPage() {
                     </div>
                   )}
                   
-                  {/* 상단 그라데이션 오버레이 */}
-                  <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-black/30 to-transparent">
-                    {/* 프로필 정보 */}
-                    <div className="absolute top-1 left-1 flex items-center gap-0.5">
-                      <div className="w-3 h-3 rounded-full overflow-hidden bg-white p-0.5">
-                        <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                          {story.user?.profile_image_url ? (
-                            <img 
-                              src={story.user.profile_image_url} 
-                              alt="프로필" 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-white font-bold text-[8px]">
-                              {story.user?.full_name?.charAt(0) || 'U'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="bg-black/20 backdrop-blur-sm rounded px-1 py-0.5">
-                        <p className="text-white font-semibold text-[8px]">
-                          {story.user?.full_name || '익명'}
-                        </p>
+                  {/* 프로필 정보 - 이미지 위에 직접 오버레이 */}
+                  <div className="absolute top-2 left-2 flex items-center gap-1 z-10 story-card-top" style={{ 
+                    background: 'none !important', 
+                    backgroundColor: 'transparent !important',
+                    backgroundImage: 'none !important'
+                  }}>
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-white p-0.5">
+                      <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        {story.user_profile_image ? (
+                          <img 
+                            src={story.user_profile_image} 
+                            alt="프로필" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-white font-bold text-[10px] drop-shadow-sm">
+                            {story.user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        )}
                       </div>
                     </div>
+                    <p className="text-white font-semibold text-[11px] drop-shadow-lg">
+                      {story.user?.full_name || '익명'}
+                    </p>
                   </div>
                   
-                  {/* 하단 그라데이션 오버레이 */}
-                  <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/50 to-transparent">
-                    {/* 스토리 텍스트 */}
-                    {story.text && (
-                      <div className="absolute bottom-6 left-1 right-1">
-                        <p className="text-white text-[8px] leading-tight font-medium drop-shadow-lg line-clamp-2">
-                          {story.text}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {/* 하단 액션 버튼들 - 인스타그램 스타일 */}
-                    <div className="absolute bottom-0.5 left-1 right-1 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-white">
-                        <button 
-                          className="flex items-center gap-0.5 hover:scale-110 transition-transform"
-                          onClick={() => toggleStoryLike(story.id)}
-                        >
-                          <Heart className="w-2.5 h-2.5" />
-                          <span className="text-[8px]">{story.likes}</span>
-                        </button>
-                        <button 
-                          className="flex items-center gap-0.5 hover:scale-110 transition-transform"
-                          onClick={() => openCommentModal(story)}
-                        >
-                          <MessageSquare className="w-2.5 h-2.5" />
-                          <span className="text-[8px]">{story.comments?.length || 0}</span>
-                        </button>
-                      </div>
-                      
-                      {/* 시간 정보 */}
-                      <span className="text-white/90 text-[7px] flex items-center gap-0.5">
-                        <Clock className="w-1.5 h-1.5" />
-                        {formatTime(story.created_at)}
-                      </span>
+                  {/* 스토리 텍스트 - 이미지 위에 직접 오버레이 */}
+                  {story.text && (
+                    <div className="absolute bottom-10 left-2 right-2 z-10 story-card-middle" style={{ 
+                      background: 'none !important', 
+                      backgroundColor: 'transparent !important',
+                      backgroundImage: 'none !important'
+                    }}>
+                      <p className="text-white text-[12px] leading-tight font-medium drop-shadow-lg line-clamp-2">
+                        {story.text}
+                      </p>
                     </div>
+                  )}
+                  
+                  {/* 하단 액션 버튼들 - 이미지 위에 직접 오버레이 */}
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between z-20 story-card-bottom" style={{ 
+                    background: 'none !important', 
+                    backgroundColor: 'transparent !important',
+                    backgroundImage: 'none !important',
+                    backgroundAttachment: 'initial !important',
+                    backgroundClip: 'initial !important',
+                    backgroundOrigin: 'initial !important',
+                    backgroundPosition: 'initial !important',
+                    backgroundRepeat: 'initial !important',
+                    backgroundSize: 'initial !important'
+                  }}>
+                    <div className="flex items-center gap-2 text-white" style={{ background: 'none !important', backgroundColor: 'transparent !important' }}>
+                      <button 
+                        className="flex items-center gap-1 hover:scale-110 transition-transform"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleStoryLike(story.id)
+                        }}
+                        style={{ background: 'none !important', backgroundColor: 'transparent !important' }}
+                      >
+                        <Heart 
+                          className={`w-5 h-5 drop-shadow-lg ${likedStories.has(story.id) ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                          style={{ 
+                            color: likedStories.has(story.id) ? 'rgb(239 68 68) !important' : 'white !important'
+                          }}
+                        />
+                        <span className="text-[11px] drop-shadow-lg font-medium">{story.like_count || 0}</span>
+                      </button>
+                      <button 
+                        className="flex items-center gap-1 hover:scale-110 transition-transform"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openCommentModal(story)
+                        }}
+                        style={{ background: 'none !important', backgroundColor: 'transparent !important' }}
+                      >
+                        <MessageSquare className="w-5 h-5 drop-shadow-lg" />
+                        <span className="text-[11px] drop-shadow-lg font-medium">{story.comment_count || 0}</span>
+                      </button>
+                    </div>
+                    
+                    {/* 시간 정보 */}
+                    <span 
+                      className="text-white/90 text-[8px] min-[365px]:text-[10px] flex items-center gap-1 drop-shadow-lg font-medium" 
+                      style={{ background: 'none !important', backgroundColor: 'transparent !important' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Clock className="w-2.5 h-2.5 min-[365px]:w-3 min-[365px]:h-3" />
+                      <span className="block sm:hidden">{formatTime(story.created_at, true)}</span>
+                      <span className="hidden sm:block">{formatTime(story.created_at, false)}</span>
+                    </span>
                   </div>
               </div>
             ))}
@@ -527,21 +932,41 @@ export default function StoriesPage() {
 
       {/* 스토리 업로드 모달 */}
       <Dialog open={showStoryUploadModal} onOpenChange={(open) => {
-        setShowStoryUploadModal(open)
+        // 사용자가 명시적으로 닫기 버튼을 눌렀을 때만 닫기
         if (!open) {
+          setShowStoryUploadModal(false)
           clearImage()
           setStoryText('')
         }
       }}>
-        <DialogContent className="max-w-md w-full mx-4 bg-white border-2 border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-4 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('stories.newStory')}</DialogTitle>
+        <DialogContent 
+          className="max-w-md w-full mx-4 bg-white border-2 border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto z-[99999]" 
+          style={{ 
+            backgroundColor: 'white !important',
+            background: 'white !important',
+            zIndex: '99999 !important'
+          }}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="pb-4 border-b border-gray-200 bg-white" style={{ 
+            backgroundColor: 'white !important',
+            background: 'white !important'
+          }}>
+            <DialogTitle className="text-xl font-semibold text-gray-900" style={{ 
+              color: 'rgb(17 24 39) !important'
+            }}>{t('stories.newStory')}</DialogTitle>
             <DialogDescription className="sr-only">새로운 스토리를 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4 bg-white" style={{ 
+            backgroundColor: 'white !important',
+            background: 'white !important'
+          }}>
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+              <Label className="text-sm font-medium text-gray-700 mb-2 block" style={{ 
+                color: 'rgb(55 65 81) !important'
+              }}>
                 {t('stories.photoUpload')}
               </Label>
               
@@ -578,6 +1003,7 @@ export default function StoriesPage() {
                   <label
                     htmlFor="imageUploadGallery"
                     className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-colors text-center touch-manipulation"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex flex-col items-center gap-2">
                       <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
@@ -602,6 +1028,7 @@ export default function StoriesPage() {
                   <label
                     htmlFor="imageUploadCamera"
                     className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-colors text-center touch-manipulation"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex flex-col items-center gap-2">
                       <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
@@ -615,7 +1042,9 @@ export default function StoriesPage() {
             </div>
             
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+              <Label className="text-sm font-medium text-gray-700 mb-2 block" style={{ 
+                color: 'rgb(55 65 81) !important'
+              }}>
                 {t('stories.storyContent')}
               </Label>
               <Textarea
@@ -624,6 +1053,8 @@ export default function StoriesPage() {
                 rows={4}
                 value={storyText}
                 onChange={(e) => setStoryText(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
               />
             </div>
             
@@ -701,90 +1132,331 @@ export default function StoriesPage() {
       )}
 
       {/* 전체 화면 스토리 뷰어 */}
-      {showStoryViewer && stories[currentStoryIndex] && (
+      {showStoryViewer && (
         <div 
-          className="fixed inset-0 z-50 bg-black"
+          className="fixed inset-0 z-[9999] bg-black cursor-pointer"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          style={{ 
+            backgroundColor: 'black !important',
+            background: 'black !important'
+          }}
         >
-          {/* 닫기 버튼 */}
+          
+          {/* 닫기 버튼 - 다크모드에서도 강제 표시 */}
           <button
             onClick={closeStoryViewer}
-            className="absolute top-4 right-4 z-50 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            className="absolute top-4 right-4 z-[10004] w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors story-viewer-close"
+            style={{ 
+              backgroundColor: 'rgba(0, 0, 0, 0.5) !important',
+              background: 'rgba(0, 0, 0, 0.5) !important',
+              color: 'white !important',
+              display: 'flex !important',
+              visibility: 'visible !important',
+              alignItems: 'center !important',
+              justifyContent: 'center !important',
+              width: '2.5rem !important',
+              height: '2.5rem !important',
+              position: 'absolute !important',
+              top: '1rem !important',
+              right: '1rem !important'
+            }}
           >
-            <X className="w-6 h-6" />
+            <div style={{ 
+              display: 'flex !important',
+              alignItems: 'center !important',
+              justifyContent: 'center !important',
+              width: '100% !important',
+              height: '100% !important',
+              position: 'relative !important'
+            }}>
+              <X 
+                className="w-5 h-5" 
+                style={{ 
+                  color: 'white !important',
+                  display: 'block !important',
+                  visibility: 'visible !important',
+                  margin: '0 !important',
+                  padding: '0 !important',
+                  position: 'absolute !important',
+                  top: '50% !important',
+                  left: '50% !important',
+                  transform: 'translate(-50%, -50%) !important',
+                  width: '1.25rem !important',
+                  height: '1.25rem !important'
+                }} 
+              />
+            </div>
           </button>
 
-          {/* 진행 바 */}
-          <div className="absolute top-0 left-0 right-0 z-40 px-4 pt-2">
-            <div className="flex gap-1">
+          {/* 진행 바 - 다크모드에서도 보이도록 강제 스타일 적용 */}
+          <div className="absolute top-0 left-0 right-0 z-[10005] px-4 pt-2 story-viewer-progress" style={{ 
+            background: 'none !important', 
+            backgroundColor: 'transparent !important',
+            display: 'block !important',
+            visibility: 'visible !important',
+            position: 'absolute !important',
+            top: '0 !important',
+            left: '0 !important',
+            right: '0 !important',
+            zIndex: '10005 !important'
+          }}>
+            <div className="flex gap-1" style={{ 
+              display: 'flex !important',
+              visibility: 'visible !important'
+            }}>
               {stories.map((_, index) => (
                 <div
                   key={index}
                   className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
+                  style={{ 
+                    background: 'rgba(255, 255, 255, 0.3) !important',
+                    backgroundColor: 'rgba(255, 255, 255, 0.3) !important',
+                    display: 'block !important',
+                    visibility: 'visible !important',
+                    height: '2px !important',
+                    borderRadius: '9999px !important',
+                    overflow: 'hidden !important'
+                  }}
                 >
                   {index === currentStoryIndex && (
-                    <div className="h-full bg-white rounded-full w-full"></div>
+                    <div 
+                      className="h-full bg-white rounded-full w-full progress-active"
+                      style={{ 
+                        background: 'white !important',
+                        backgroundColor: 'white !important',
+                        display: 'block !important',
+                        visibility: 'visible !important',
+                        height: '100% !important',
+                        width: '100% !important'
+                      }}
+                    ></div>
                   )}
                   {index < currentStoryIndex && (
-                    <div className="h-full bg-white rounded-full w-full"></div>
+                    <div 
+                      className="h-full bg-white rounded-full w-full progress-completed"
+                      style={{ 
+                        background: 'white !important',
+                        backgroundColor: 'white !important',
+                        display: 'block !important',
+                        visibility: 'visible !important',
+                        height: '100% !important',
+                        width: '100% !important'
+                      }}
+                    ></div>
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* 사용자 정보 */}
-          <div className="absolute top-6 left-4 right-16 z-40 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-              {stories[currentStoryIndex].user?.profile_image_url ? (
-                <img 
-                  src={stories[currentStoryIndex].user.profile_image_url} 
-                  alt="프로필" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User className="w-4 h-4 text-white" />
-              )}
-            </div>
-            <span className="text-white font-semibold text-sm drop-shadow-lg">
-              {stories[currentStoryIndex].user?.full_name || '익명'}
-            </span>
-            <span className="text-white/80 text-xs drop-shadow-lg">
-              {formatTime(stories[currentStoryIndex].created_at)}
-            </span>
-          </div>
+          {/* 사용자 정보 - 다크모드에서도 보이도록 강제 스타일 적용 */}
+          {stories[currentStoryIndex] && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                const userId = stories[currentStoryIndex].user_id
+                if (userId) {
+                  openProfileModal(userId)
+                }
+              }}
+              className="absolute top-6 left-4 right-16 z-[10006] flex items-center gap-2 story-viewer-user-info hover:bg-white/10 rounded-lg px-2 py-1 transition-colors cursor-pointer" 
+              style={{ 
+                background: 'none !important', 
+                backgroundColor: 'transparent !important',
+                display: 'flex !important',
+                visibility: 'visible !important',
+                position: 'absolute !important',
+                top: '24px !important',
+                left: '16px !important',
+                right: '64px !important',
+                zIndex: '10006 !important',
+                alignItems: 'center !important',
+                gap: '8px !important',
+                border: 'none !important',
+                cursor: 'pointer !important'
+              }}
+            >
+              <div 
+                className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center user-avatar"
+                style={{ 
+                  background: 'linear-gradient(to bottom right, #60a5fa, #a855f7) !important',
+                  backgroundColor: 'transparent !important',
+                  display: 'flex !important',
+                  visibility: 'visible !important',
+                  width: '32px !important',
+                  height: '32px !important',
+                  borderRadius: '50% !important',
+                  overflow: 'hidden !important'
+                }}
+              >
+                {stories[currentStoryIndex].user_profile_image ? (
+                  <img 
+                    src={stories[currentStoryIndex].user_profile_image} 
+                    alt="프로필" 
+                    className="w-full h-full object-cover"
+                    style={{ 
+                      width: '100% !important',
+                      height: '100% !important',
+                      objectFit: 'cover !important',
+                      display: 'block !important',
+                      visibility: 'visible !important'
+                    }}
+                  />
+                ) : (
+                  <span className="text-white font-bold text-[12px] drop-shadow-sm">
+                    {stories[currentStoryIndex].user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                )}
+              </div>
+              <span 
+                className="text-white font-semibold text-sm drop-shadow-lg"
+                style={{ 
+                  color: 'white !important',
+                  textShadow: '0 1px 3px rgba(0, 0, 0, 0.5) !important',
+                  display: 'inline !important',
+                  visibility: 'visible !important',
+                  fontSize: '14px !important',
+                  fontWeight: '600 !important'
+                }}
+              >
+                {stories[currentStoryIndex].user?.full_name || '익명'}
+              </span>
+              <span 
+                className="text-white/80 text-xs drop-shadow-lg"
+                style={{ 
+                  color: 'rgba(255, 255, 255, 0.8) !important',
+                  textShadow: '0 1px 3px rgba(0, 0, 0, 0.5) !important',
+                  display: 'inline !important',
+                  visibility: 'visible !important',
+                  fontSize: '12px !important'
+                }}
+              >
+                {formatTime(stories[currentStoryIndex].created_at)}
+              </span>
+            </button>
+          )}
 
           {/* 스토리 이미지 */}
-          <div className="w-full h-full flex items-center justify-center">
-            <img
-              src={stories[currentStoryIndex].image_url}
-              alt="스토리"
-              className="max-w-full max-h-full object-contain"
-            />
+          <div className="w-full h-full flex items-center justify-center relative z-[10001]">
+            
+            {stories[currentStoryIndex]?.image_url ? (
+              <div className="w-full h-full flex items-center justify-center relative z-[10002]">
+                <img
+                  src={stories[currentStoryIndex].image_url}
+                  alt="스토리"
+                  className="max-w-full max-h-full object-contain shadow-lg relative z-[10003] select-none pointer-events-none"
+                  draggable={false}
+                  onDragStart={(e) => e.preventDefault()}
+                  onDrag={(e) => e.preventDefault()}
+                  onDragEnd={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
+                  style={{ 
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    WebkitUserDrag: 'none' as any,
+                    KhtmlUserSelect: 'none',
+                    pointerEvents: 'none'
+                  }}
+                  onError={(e) => {
+                    console.error('❌ 스토리 이미지 로드 실패:', stories[currentStoryIndex]?.image_url)
+                    e.currentTarget.style.display = 'none'
+                  }}
+                  onLoad={() => {
+                    console.log('✅ 스토리 이미지 로드 성공:', stories[currentStoryIndex]?.image_url)
+                  }}
+                />
+              </div>
+            ) : stories[currentStoryIndex] ? (
+              <div className="text-black text-center bg-red-500 p-4 rounded">
+                <p className="text-lg mb-2">⚠️ 이미지 URL이 없습니다</p>
+                <p className="text-sm text-black/80">URL: {stories[currentStoryIndex]?.image_url || '없음'}</p>
+                <p className="text-xs text-black/60 mt-2">스토리 인덱스: {currentStoryIndex}</p>
+              </div>
+            ) : (
+              <div className="text-black text-center bg-yellow-500 p-4 rounded">
+                <p className="text-lg mb-2">⚠️ 스토리 데이터가 없습니다</p>
+                <p className="text-sm text-black/80">인덱스: {currentStoryIndex}</p>
+                <p className="text-xs text-black/60 mt-2">배열 길이: {stories.length}</p>
+              </div>
+            )}
           </div>
 
           {/* 스토리 텍스트 */}
-          <div className="absolute bottom-20 left-0 right-0 z-40 px-4">
-            <p className="text-white text-center drop-shadow-lg text-lg">
+          <div className="absolute bottom-24 left-0 right-0 z-40 px-4" style={{ 
+            position: 'absolute !important',
+            bottom: '6rem !important',
+            left: '0 !important',
+            right: '0 !important',
+            zIndex: '10009 !important',
+            padding: '0 1rem !important'
+          }}>
+            <p className="text-white text-center drop-shadow-lg text-lg" style={{ 
+              color: 'white !important',
+              textAlign: 'center !important',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.5) !important',
+              fontSize: '1.125rem !important',
+              display: 'block !important',
+              visibility: 'visible !important'
+            }}>
               {stories[currentStoryIndex].text}
             </p>
           </div>
 
           {/* 좋아요/댓글 버튼 */}
-          <div className="absolute bottom-6 left-0 right-0 z-40 px-4 flex items-center justify-center gap-6">
+          <div className="absolute bottom-6 left-0 right-0 z-[10010] px-4 flex items-center justify-center gap-8 story-viewer-actions" style={{ 
+            display: 'flex !important',
+            visibility: 'visible !important',
+            position: 'absolute !important',
+            bottom: '2rem !important',
+            left: '50% !important',
+            transform: 'translateX(-50%) !important',
+            zIndex: '10010 !important',
+            padding: '0 !important',
+            alignItems: 'center !important',
+            justifyContent: 'center !important',
+            gap: '2rem !important',
+            width: 'auto !important'
+          }}>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 toggleStoryLike(stories[currentStoryIndex].id)
               }}
               className="flex items-center gap-2 text-white hover:scale-110 transition-transform"
+              style={{ 
+                display: 'flex !important',
+                visibility: 'visible !important',
+                color: 'white !important',
+                alignItems: 'center !important',
+                gap: '0.5rem !important'
+              }}
             >
               <Heart
-                className={`w-6 h-6 ${likedStories.has(stories[currentStoryIndex].id) ? 'fill-red-500 text-red-500' : ''}`}
+                className={`w-6 h-6 drop-shadow-lg ${likedStories.has(stories[currentStoryIndex].id) ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                style={{ 
+                  width: '1.5rem !important',
+                  height: '1.5rem !important',
+                  color: likedStories.has(stories[currentStoryIndex].id) ? 'rgb(239 68 68) !important' : 'white !important',
+                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)) !important',
+                  display: 'block !important',
+                  visibility: 'visible !important'
+                }}
               />
-              <span className="text-sm font-semibold drop-shadow-lg">
-                {stories[currentStoryIndex].likes || 0}
+              <span className="text-sm font-semibold drop-shadow-lg" style={{ 
+                fontSize: '0.875rem !important',
+                fontWeight: '600 !important',
+                color: 'white !important',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.5) !important',
+                display: 'inline !important',
+                visibility: 'visible !important'
+              }}>
+                {stories[currentStoryIndex].like_count || 0}
               </span>
             </button>
 
@@ -794,10 +1466,34 @@ export default function StoriesPage() {
                 openCommentModal(stories[currentStoryIndex])
               }}
               className="flex items-center gap-2 text-white hover:scale-110 transition-transform"
+              style={{ 
+                display: 'flex !important',
+                visibility: 'visible !important',
+                color: 'white !important',
+                alignItems: 'center !important',
+                gap: '0.5rem !important'
+              }}
             >
-              <MessageSquare className="w-6 h-6" />
-              <span className="text-sm font-semibold drop-shadow-lg">
-                {stories[currentStoryIndex].comments?.length || 0}
+              <MessageSquare 
+                className="w-6 h-6 drop-shadow-lg text-white" 
+                style={{ 
+                  width: '1.5rem !important',
+                  height: '1.5rem !important',
+                  color: 'white !important',
+                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)) !important',
+                  display: 'block !important',
+                  visibility: 'visible !important'
+                }}
+              />
+              <span className="text-sm font-semibold drop-shadow-lg" style={{ 
+                fontSize: '0.875rem !important',
+                fontWeight: '600 !important',
+                color: 'white !important',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.5) !important',
+                display: 'inline !important',
+                visibility: 'visible !important'
+              }}>
+                {stories[currentStoryIndex].comment_count || 0}
               </span>
             </button>
           </div>
@@ -833,6 +1529,391 @@ export default function StoriesPage() {
               ›
             </button>
           )}
+        </div>
+      )}
+
+      {/* Instagram 스타일 댓글 모달 */}
+      {showCommentModal && selectedStory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999] p-4" style={{ 
+          zIndex: '99999 !important',
+          position: 'fixed !important',
+          top: '0 !important',
+          left: '0 !important',
+          right: '0 !important',
+          bottom: '0 !important'
+        }}>
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col overflow-hidden" style={{ 
+            zIndex: '100000 !important',
+            position: 'relative !important'
+          }}>
+            {/* Instagram 스타일 헤더 */}
+            <div className="flex items-center justify-between p-4 border-b bg-white">
+              <button
+                onClick={handleCloseCommentModal}
+                className="text-gray-500 hover:text-gray-700 p-1"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <h3 className="text-lg font-semibold">댓글</h3>
+              <div className="w-6 h-6"></div> {/* 공간 맞추기 */}
+            </div>
+
+            {/* 댓글 목록 - Instagram 스타일 */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {isLoadingComments ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                  <span className="ml-2 text-gray-500">댓글을 불러오는 중...</span>
+                </div>
+              ) : storyComments[selectedStory.id]?.length > 0 ? (
+                storyComments[selectedStory.id].map((comment) => (
+                  <div key={comment.id} className="flex gap-3">
+                    <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden">
+                      {comment.author?.profile_image ? (
+                        <img
+                          src={comment.author.profile_image}
+                          alt={comment.author.full_name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-gray-600">
+                          {comment.author?.full_name?.[0] || '?'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">
+                            {comment.author?.full_name || '익명'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-800 leading-relaxed break-words">
+                          {comment.content}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 ml-3">
+                        <span className="text-xs text-gray-500">
+                          {new Date(comment.created_at).toLocaleDateString('ko-KR')}
+                        </span>
+                        <button 
+                          onClick={() => toggleCommentLike(comment.id)}
+                          className={`text-xs hover:text-gray-700 flex items-center gap-1 ${
+                            comment.is_liked ? 'text-red-500' : 'text-gray-500'
+                          }`}
+                        >
+                          <Heart className={`w-3 h-3 ${comment.is_liked ? 'fill-current' : ''}`} />
+                          {comment.likes_count > 0 && comment.likes_count}
+                        </button>
+                        <button 
+                          onClick={() => startReply(comment.id, comment.author.full_name)}
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          답글
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <MessageSquare className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 font-medium">아직 댓글이 없습니다</p>
+                  <p className="text-gray-400 text-sm mt-1">첫 댓글을 작성해보세요!</p>
+                </div>
+              )}
+            </div>
+
+            {/* 답글 작성 중 표시 */}
+            {replyToComment && (
+              <div className="p-4 border-t bg-blue-50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-blue-600 font-medium">답글 작성 중</span>
+                  <button
+                    onClick={cancelReply}
+                    className="text-blue-500 hover:text-blue-700 text-sm"
+                  >
+                    취소
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    {user?.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt="내 프로필"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs font-medium text-gray-600">
+                        {user?.user_metadata?.full_name?.[0] || '?'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="답글 달기..."
+                      className="w-full px-3 py-2 border border-blue-200 rounded-full focus:outline-none focus:border-blue-400 text-sm bg-white"
+                      maxLength={500}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          handleSubmitReply()
+                        }
+                      }}
+                    />
+                    {replyText.length > 0 && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <button
+                          onClick={handleSubmitReply}
+                          disabled={!replyText.trim() || isCommenting}
+                          className="text-blue-500 font-semibold text-sm hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isCommenting ? '게시 중...' : '게시'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 댓글 작성 - Instagram 스타일 */}
+            <div className="p-4 border-t bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="내 프로필"
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-medium text-gray-600">
+                      {user?.user_metadata?.full_name?.[0] || '?'}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder={replyToComment ? "답글을 취소하려면 '취소' 버튼을 누르세요" : "댓글 달기..."}
+                    disabled={!!replyToComment}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-gray-400 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    maxLength={500}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey && !replyToComment) {
+                        e.preventDefault()
+                        handleSubmitComment()
+                      }
+                    }}
+                  />
+                  {commentText.length > 0 && !replyToComment && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <button
+                        onClick={handleSubmitComment}
+                        disabled={!commentText.trim() || isCommenting}
+                        className="text-blue-500 font-semibold text-sm hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isCommenting ? '게시 중...' : '게시'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {(commentText.length > 400 || replyText.length > 400) && (
+                <div className="text-xs text-gray-400 mt-2 text-right">
+                  {replyToComment ? replyText.length : commentText.length}/500
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 프로필 모달 */}
+      {showProfileModal && profileUser && (
+        <div className="fixed inset-0 z-[10010] flex items-center justify-center bg-black/80">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+            {/* 모달 헤더 */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {t('profile.title')}
+              </h2>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* 프로필 내용 */}
+            <div className="p-6">
+              {/* 프로필 이미지와 기본 정보 */}
+              <div className="flex items-center gap-4 mb-6">
+                <Avatar className="w-16 h-16">
+                  <AvatarImage 
+                    src={profileUser.main_profile_image || profileUser.profile_image || profileUser.avatar_url} 
+                    alt={profileUser.full_name} 
+                  />
+                  <AvatarFallback className="text-xl">
+                    {profileUser.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {profileUser.full_name}
+                  </h3>
+                  {profileUser.korean_name && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {profileUser.korean_name}
+                    </p>
+                  )}
+                  {profileUser.spanish_name && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {profileUser.spanish_name}
+                    </p>
+                  )}
+                  {profileUser.nickname && (
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      @{profileUser.nickname}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* 한 줄 소개 */}
+              {profileUser.one_line_intro && (
+                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                  {profileUser.one_line_intro}
+                </p>
+              )}
+
+              {/* 기본 정보 */}
+              <div className="space-y-3 mb-6">
+                {profileUser.user_type && (
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {profileUser.user_type === 'student' ? t('profile.student') : 
+                       profileUser.user_type === 'worker' ? t('profile.worker') : 
+                       profileUser.user_type === 'graduate' ? t('profile.graduate') : profileUser.user_type}
+                    </span>
+                  </div>
+                )}
+                
+                {profileUser.join_date && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {t('profile.joinDate')}: {new Date(profileUser.join_date).toLocaleDateString('ko-KR')}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* 학업/직업 정보 */}
+              {(profileUser.university || profileUser.major || profileUser.occupation || profileUser.company) && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                    {t('profile.academicCareerInfo')}
+                  </h4>
+                  <div className="space-y-2">
+                    {profileUser.university && (
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {t('profile.university')}: {profileUser.university}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {profileUser.major && (
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {t('profile.major')}: {profileUser.major}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {profileUser.occupation && (
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {t('profile.occupation')}: {profileUser.occupation}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {profileUser.company && (
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {t('profile.company')}: {profileUser.company}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 관심사 */}
+              {profileUser.interests && profileUser.interests.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                    {t('profile.interests')}
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {profileUser.interests.map((interest: string, index: number) => (
+                      <Badge key={index} variant="outline">
+                        {interest}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 자기소개 */}
+              {profileUser.introduction && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                    {t('profile.introduction')}
+                  </h4>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm">
+                    {profileUser.introduction}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 스토리 뷰어가 열리지 않는 경우 디버깅 */}
+      {showStoryViewer && !stories[currentStoryIndex] && (
+        <div className="fixed inset-0 z-50 bg-red-500 flex items-center justify-center">
+          <div className="text-white text-center">
+            <h2 className="text-2xl mb-4">⚠️ 스토리 뷰어 오류</h2>
+            <p className="mb-2">showStoryViewer: {String(showStoryViewer)}</p>
+            <p className="mb-2">currentStoryIndex: {currentStoryIndex}</p>
+            <p className="mb-2">stories.length: {stories.length}</p>
+            <p className="mb-2">stories[currentStoryIndex]: {String(stories[currentStoryIndex])}</p>
+            <button 
+              onClick={() => setShowStoryViewer(false)}
+              className="bg-white text-red-500 px-4 py-2 rounded mt-4"
+            >
+              닫기
+            </button>
+          </div>
         </div>
       )}
 

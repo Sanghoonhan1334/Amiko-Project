@@ -524,14 +524,16 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       </Dialog>
 
       {/* 프로필 상세보기 - UserProfileModal 사용 */}
-      <UserProfileModal
-        userId={selectedUserId}
-        isOpen={showProfileDialog}
-        onClose={() => {
-          setShowProfileDialog(false)
-          setSelectedUserId(null)
-        }}
-      />
+      <div style={{ zIndex: 99999 }}>
+        <UserProfileModal
+          userId={selectedUserId}
+          isOpen={showProfileDialog}
+          onClose={() => {
+            setShowProfileDialog(false)
+            setSelectedUserId(null)
+          }}
+        />
+      </div>
 
     </>
   )

@@ -24,6 +24,7 @@ export default function VerificationCenterPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminCheckComplete, setAdminCheckComplete] = useState(false)
   const [isKorean, setIsKorean] = useState(true) // 기본값: 한국인
+  const [previousPage, setPreviousPage] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
     // 기본 정보
@@ -59,6 +60,17 @@ export default function VerificationCenterPage() {
     english_level: 'none',
     spanish_level: 'beginner' // 스페인어 학습자들을 위해 초급으로 기본 설정
   })
+
+  // 이전 페이지 저장
+  useEffect(() => {
+    const referrer = document.referrer
+    if (referrer && referrer !== window.location.href) {
+      const url = new URL(referrer)
+      const pathname = url.pathname + url.search
+      setPreviousPage(pathname)
+      console.log('[VERIFICATION_CENTER] 이전 페이지 저장:', pathname)
+    }
+  }, [])
 
   // 운영자 체크 및 사용자 타입 확인 로직
   useEffect(() => {
@@ -165,9 +177,17 @@ export default function VerificationCenterPage() {
     if (step > 1) {
       setStep(step - 1)
     } else {
-      router.push('/main')
+      // 이전 페이지로 돌아가기 (홈이 아닌)
+      if (previousPage) {
+        console.log('[VERIFICATION_CENTER] 이전 페이지로 이동:', previousPage)
+        router.push(previousPage)
+      } else {
+        // 이전 페이지 정보가 없으면 메인 페이지로 이동
+        console.log('[VERIFICATION_CENTER] 이전 페이지 정보 없음, 메인 페이지로 이동')
+        router.push('/main?tab=me')
+      }
     }
-  }, [step, router])
+  }, [step, router, previousPage])
 
   const nextStep = useCallback(() => {
     if (step < 2) {
@@ -643,8 +663,12 @@ export default function VerificationCenterPage() {
           <Button 
             variant="outline" 
             onClick={goBack}
-            disabled={loading}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300 font-medium"
+            disabled={loading || step === 1}
+            className={`flex-1 font-medium ${
+              step === 1 
+                ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'
+            }`}
           >
             ← 이전
           </Button>

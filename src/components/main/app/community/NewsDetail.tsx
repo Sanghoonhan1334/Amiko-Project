@@ -142,15 +142,15 @@ export default function NewsDetail({
       {/* 뉴스 상세 내용 */}
       <Card className="overflow-hidden">
         {/* 썸네일 이미지 */}
-        <div className="aspect-video w-full max-w-2xl mx-auto bg-gray-200">
+        <div className="w-full bg-gray-200">
           {news.thumbnail ? (
             <img 
               src={news.thumbnail} 
               alt={news.title}
-              className="w-full h-full object-cover"
+              className="w-full h-auto max-h-96 object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+            <div className="aspect-video w-full max-w-2xl mx-auto flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
               <div className="text-center">
                 <div className="text-6xl mb-4">📰</div>
                 <span className="text-blue-600 text-xl font-medium">뉴스</span>
@@ -237,7 +237,7 @@ export default function NewsDetail({
 
           {/* 본문 내용 */}
           <div className="prose max-w-none mb-8">
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-base sm:text-lg">
               {(() => {
                 const content = showSpanish && news.content_es ? news.content_es : news.content
                 // [이미지: 숫자] 패턴을 제거

@@ -128,24 +128,24 @@ export default function GalleryList({ onGallerySelect, onPopularPosts }: Gallery
               <div className="p-6">
                 {/* 갤러리 아이콘과 색상 */}
                 <div 
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4 mx-auto group-hover:scale-110 transition-transform duration-200"
+                  className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-2xl flex items-center justify-center text-3xl md:text-4xl lg:text-5xl mb-4 mx-auto group-hover:scale-110 transition-transform duration-200"
                   style={{ backgroundColor: gallery.color + '20' }}
                 >
                   {gallery.icon || '📁'}
                 </div>
 
                 {/* 갤러리 이름 */}
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 text-center">
+                <h3 className="text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2 text-center">
                   {getGalleryName(gallery)}
                 </h3>
 
                 {/* 갤러리 설명 */}
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center line-clamp-2">
+                <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 mb-4 text-center line-clamp-2">
                   {getGalleryDescription(gallery)}
                 </p>
 
                 {/* 통계 정보 */}
-                <div className="flex justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex justify-center space-x-4 text-xs md:text-sm lg:text-base text-gray-500 dark:text-gray-400">
                   <div className="flex items-center">
                     <span className="mr-1">📝</span>
                     <span>{gallery.post_count}</span>

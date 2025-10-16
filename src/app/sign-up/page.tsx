@@ -565,14 +565,14 @@ export default function SignUpPage() {
 
             <div className="space-y-2">
           <Label htmlFor="nickname" className="text-sm font-medium text-slate-700 dark:text-gray-300">
-            닉네임 (알파벳, 숫자, 특수문자)
+            {t('signUp.nicknameLabel')}
           </Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="nickname"
                   type="text"
-                  placeholder="예: john123! 또는 user_2024"
+                  placeholder={t('signUp.nicknamePlaceholder')}
                   value={formData.nickname}
                   onChange={(e) => handleInputChange('nickname', e.target.value)}
                   className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"

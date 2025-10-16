@@ -4,6 +4,7 @@
     <option name="MigrateToGradleLocalJavaHome">
       <set>
         <option value="$PROJECT_DIR$/../../../사업 관련 파일/Amiko-Project-main/android" />
+        <option value="$PROJECT_DIR$" />
       </set>
     </option>
   </component>

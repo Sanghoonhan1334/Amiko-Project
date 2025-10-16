@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
               full_name: name,
               nickname: nickname.toLowerCase(), // 소문자로 저장
               phone: phone,
-              language: country === 'KR' ? 'ko' : 'en',
+              language: country === 'KR' ? 'ko' : 'es', // 한국이 아니면 스페인어로 설정
               email_verified: false, // 이메일 인증은 별도로 진행
               phone_verified: false, // 전화번호 인증은 별도로 진행
               created_at: new Date().toISOString()

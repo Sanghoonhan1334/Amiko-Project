@@ -583,6 +583,26 @@ export default function Header() {
                         </div>
                       </div>
                     </div>
+                    
+                    {/* 대표시간 바꾸기 버튼 */}
+                    <div className="mt-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setShowTimeDetails(false)
+                          // 프로필 설정 페이지로 이동
+                          window.location.href = '/profile/settings'
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg transition-colors duration-200"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        <span className="text-sm font-medium">
+                          {t('timezone.changeMainTime')}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -684,23 +704,6 @@ export default function Header() {
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.videoCall')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Charging 버튼 클릭됨')
-                        handleMainNavClick('charging')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
-                        activeMainTab === 'charging' 
-                          ? 'text-purple-500' 
-                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
-                      }`}
-                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
-                    >
-                      <span className="hidden lg:inline">{t('headerNav.chargingStation')}</span>
-                      <span className="lg:hidden">{t('headerNav.chargingStationShort')}</span>
                     </button>
                     <button 
                       onClick={(e) => {

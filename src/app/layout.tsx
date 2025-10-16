@@ -52,6 +52,22 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <head>
         <style dangerouslySetInnerHTML={{ __html: pretendard.style }} />
+        {/* 폰트 preload로 초기 렌더링 최적화 */}
+        <link 
+          rel="preload" 
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" 
+          as="style"
+        />
+        <link 
+          rel="preload" 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" 
+          as="style"
+        />
+        <link 
+          rel="preload" 
+          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" 
+          as="style"
+        />
       </head>
       <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`} suppressHydrationWarning>
         <QueryProvider>

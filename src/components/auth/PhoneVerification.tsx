@@ -181,14 +181,14 @@ export default function PhoneVerification({
             <Phone className="w-12 h-12 text-white" />
           </div>
         </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-1">전화번호 인증</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-1">{t('phoneVerification.title')}</h3>
         <p className="text-gray-600">
-          <strong className="text-blue-600">{phoneNumber}</strong>로 인증을 진행합니다
+          <strong className="text-blue-600">{phoneNumber}</strong>{t('phoneVerification.proceedWith')}
         </p>
         <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-blue-50 rounded-full">
           <div className={`w-2 h-2 rounded-full ${isKorean ? 'bg-yellow-400' : 'bg-green-400'}`}></div>
           <span className="text-xs font-medium text-blue-700">
-            {isKorean ? '한국 사용자' : '해외 사용자'} - 인증 방식을 선택해주세요
+            {isKorean ? t('phoneVerification.koreanUser') : t('phoneVerification.overseasUser')}{t('phoneVerification.selectMethod')}
           </span>
         </div>
       </div>
@@ -196,13 +196,13 @@ export default function PhoneVerification({
       <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
         <CardHeader className="text-center pb-3">
           <CardTitle className="text-lg font-bold text-gray-800">
-            {codeSent ? '인증코드 입력' : '인증 방식 선택'}
+            {codeSent ? t('phoneVerification.codeInput') : t('phoneVerification.selectMethodTitle')}
           </CardTitle>
           {!codeSent && (
             <CardDescription className="text-gray-600 text-sm">
               {isKorean 
-                ? '카카오톡, 토스, 또는 SMS 중 선택하세요' 
-                : 'WhatsApp 또는 SMS 중 선택하세요'
+                ? t('phoneVerification.koreanDescription')
+                : t('phoneVerification.overseasDescription')
               }
             </CardDescription>
           )}
@@ -256,12 +256,12 @@ export default function PhoneVerification({
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  발송 중...
+                  {t('phoneVerification.sending')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4" />
-                  인증코드 보내기
+                  {t('phoneVerification.sendCode')}
                 </div>
               )}
             </Button>
@@ -271,18 +271,18 @@ export default function PhoneVerification({
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center justify-center gap-2 text-blue-700 font-medium text-sm">
                   <CheckCircle className="w-4 h-4" />
-                  {authMethods.find(m => m.id === selectedMethod)?.name}으로 인증코드를 발송했습니다
+                  {authMethods.find(m => m.id === selectedMethod)?.name}{t('phoneVerification.codeSent')}
                 </div>
               </div>
               
               <div>
                 <Label htmlFor="verification-code" className="text-sm font-semibold text-gray-700">
-                  인증코드
+                  {t('phoneVerification.verificationCode')}
                 </Label>
                 <Input
                   id="verification-code"
                   type="text"
-                  placeholder="6자리 인증코드 입력"
+                  placeholder={t('phoneVerification.codePlaceholder')}
                   maxLength={6}
                   value={verificationCode}
                   onChange={(e) => {
@@ -300,7 +300,7 @@ export default function PhoneVerification({
                   <div className="mt-1 text-center">
                     <span className="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
                       <CheckCircle className="w-3 h-3" />
-                      인증코드 입력 완료
+                      {t('phoneVerification.codeComplete')}
                     </span>
                   </div>
                 )}
@@ -315,7 +315,7 @@ export default function PhoneVerification({
                 }`}>
                   <Clock className="w-4 h-4" />
                   <span>
-                    {timeLeft > 0 ? `남은 시간: ${formatTime(timeLeft)}` : '인증코드가 만료되었습니다'}
+                    {timeLeft > 0 ? `${t('phoneVerification.timeLeft')} ${formatTime(timeLeft)}` : t('phoneVerification.codeExpired')}
                   </span>
                 </div>
               </div>
@@ -330,7 +330,7 @@ export default function PhoneVerification({
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    코드를 입력하세요
+                    {t('phoneVerification.enterCode')}
                   </div>
                 </Button>
               ) : (
@@ -344,12 +344,12 @@ export default function PhoneVerification({
                   {isLoading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      인증 중...
+                      {t('phoneVerification.verifying')}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
-                      인증하기
+                      {t('phoneVerification.verify')}
                     </div>
                   )}
                 </Button>
@@ -358,7 +358,7 @@ export default function PhoneVerification({
               {/* 재발송 버튼 */}
               <div className="text-center border-t pt-3">
                 <p className="text-xs text-gray-600 mb-2">
-                  인증코드를 받지 못하셨나요?
+                  {t('phoneVerification.didntReceive')}
                 </p>
                 <Button 
                   variant="outline" 
@@ -367,7 +367,7 @@ export default function PhoneVerification({
                   className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 text-sm py-2"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
-                  인증코드 다시 발송
+                  {t('phoneVerification.resendCode')}
                 </Button>
               </div>
               
@@ -382,7 +382,7 @@ export default function PhoneVerification({
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  다른 인증 방식 선택
+                  {t('phoneVerification.changeMethod')}
                 </Button>
               </div>
             </div>
@@ -395,19 +395,19 @@ export default function PhoneVerification({
         <div className="flex items-start gap-3">
           <Phone className="w-5 h-5 text-blue-600 mt-0.5" />
           <div>
-            <h4 className="font-medium text-blue-800">인증 안내</h4>
+            <h4 className="font-medium text-blue-800">{t('phoneVerification.guide')}</h4>
             <p className="text-sm text-blue-700">
               {isKorean ? (
                 <>
-                  • 카카오톡/토스 인증은 앱에서 간편하게 진행됩니다<br/>
-                  • SMS 인증은 문자 메시지로 6자리 코드를 받습니다<br/>
-                  • 인증 완료 후 회원가입이 완료됩니다
+                  {t('phoneVerification.kakaoGuide')}<br/>
+                  {t('phoneVerification.smsGuide')}<br/>
+                  {t('phoneVerification.completeGuide')}
                 </>
               ) : (
                 <>
-                  • WhatsApp 인증은 메시지로 6자리 코드를 받습니다<br/>
-                  • SMS 인증은 문자 메시지로 6자리 코드를 받습니다<br/>
-                  • 인증 완료 후 회원가입이 완료됩니다
+                  {t('phoneVerification.whatsappGuide')}<br/>
+                  {t('phoneVerification.smsGuide')}<br/>
+                  {t('phoneVerification.completeGuide')}
                 </>
               )}
             </p>

@@ -357,7 +357,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                   onClick={handleSubmitComment}
                   disabled={submitting || !commentContent.trim()}
                   size="sm"
-                  className="bg-blue-500 hover:bg-blue-600"
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
                 >
                   {submitting ? '작성 중...' : '댓글 작성'}
                 </Button>

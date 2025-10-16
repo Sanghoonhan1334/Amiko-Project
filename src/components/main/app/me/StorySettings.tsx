@@ -271,12 +271,12 @@ export default function StorySettings() {
       {/* 개별 스토리 설정 */}
       <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className="text-gray-800 dark:text-gray-100 text-sm">{t('storySettings.individualSettings.title')}</CardTitle>
             <Button
               variant="outline"
               size="sm"
-              className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs sm:text-sm whitespace-nowrap"
               onClick={async () => {
                 try {
                   const response = await fetch('/api/stories/cleanup', {
@@ -355,11 +355,11 @@ export default function StorySettings() {
                     </div>
                   </div>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs px-2 py-1"
+                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs px-2 py-1 w-full sm:w-auto"
                     onClick={() => toggleStoryVisibility(story.id)}
                   >
                     {story.isPublic ? (
@@ -378,7 +378,7 @@ export default function StorySettings() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs px-2 py-1"
+                    className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs px-2 py-1 w-full sm:w-auto"
                     onClick={() => deleteStory(story.id)}
                   >
                     <Trash2 className="w-3 h-3 mr-1" />

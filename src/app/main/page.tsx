@@ -51,17 +51,6 @@ const MyTab = dynamic(() => import('@/components/main/app/me/MyTab'), {
     </div>
   )
 })
-const ChargingTab = dynamic(() => import('@/components/main/app/charging/ChargingTab'), {
-  loading: () => (
-    <div className="space-y-4 p-4">
-      <Skeleton className="h-12 w-1/3" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Skeleton className="h-40 rounded-lg" />
-        <Skeleton className="h-40 rounded-lg" />
-      </div>
-    </div>
-  )
-})
 const EventTab = dynamic(() => import('@/components/main/app/event/EventTab'), {
   loading: () => (
     <div className="space-y-4 p-4">
@@ -149,7 +138,7 @@ function AppPageContent() {
     
     let targetTab = 'home' // 기본값을 home으로 변경
     
-    if (tabParam && ['home', 'meet', 'community', 'me', 'charging', 'event'].includes(tabParam)) {
+        if (tabParam && ['home', 'meet', 'community', 'me', 'event'].includes(tabParam)) {
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
@@ -320,111 +309,6 @@ function AppPageContent() {
                   {/* 일반 사용자만 헤더 섹션 표시 - 제거됨 */}
                   {/* 운영자는 대시보드만 표시 (헤더 없음) */}
                   <MyTab />
-                </div>
-              </div>
-            )}
-
-
-            {activeTab === 'charging' && (
-              <div className="space-y-6 pt-10 sm:pt-36">
-                {/* 웹: 섹션 카드로 감싸기 */}
-                <div className="hidden md:block">
-                  <div className="card dark:bg-gray-800 dark:border-gray-700 p-8 -mt-12 sm:mt-0">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
-                        <img 
-                          src="/charging-title.png" 
-                          alt="충전소" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('storeTab.title')}</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('storeTab.subtitle')}</p>
-                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
-                      </div>
-                    </div>
-                    
-                    {/* 포인트 카드 */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                        <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>{t('storeTab.pointCard.title')}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="text-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-blue-200 dark:border-blue-600">
-                          {pointsLoading ? (
-                            <div className="text-xl font-bold text-blue-600 dark:text-blue-400 animate-pulse">...</div>
-                          ) : (
-                            <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{availableAKO}</div>
-                          )}
-                          <div className='text-sm text-gray-600 dark:text-gray-300 mt-1'>{t('storeTab.pointCard.availableAKO')}</div>
-                        </div>
-                        <div className="text-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-purple-200 dark:border-purple-600">
-                          {pointsLoading ? (
-                            <div className="text-xl font-bold text-purple-600 dark:text-purple-400 animate-pulse">...</div>
-                          ) : (
-                            <div className="text-xl font-bold text-purple-600 dark:text-purple-400">{currentPoints}</div>
-                          )}
-                          <div className='text-sm text-gray-600 dark:text-gray-300 mt-1'>{t('storeTab.pointCard.currentPoints')}</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <ChargingTab />
-                  </div>
-                </div>
-                
-                {/* 모바일: 섹션 카드 없이 */}
-                <div className="block md:hidden pt-20">
-                  <div className="px-2 sm:px-4 py-2 sm:py-8 pt-8 -mt-16 sm:mt-0">
-                    {/* 헤더 섹션 */}
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
-                        <img 
-                          src="/charging-title.png" 
-                          alt="충전소" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('storeTab.title')}</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('storeTab.subtitle')}</p>
-                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-1">{t('mainPage.akoExplanation')}</p>
-                      </div>
-                    </div>
-                    
-                    {/* 포인트 카드 */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                        <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>{t('storeTab.pointCard.title')}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="text-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-blue-200 dark:border-blue-600">
-                          {pointsLoading ? (
-                            <div className="text-xl font-bold text-blue-600 dark:text-blue-400 animate-pulse">...</div>
-                          ) : (
-                            <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{availableAKO}</div>
-                          )}
-                          <div className='text-sm text-gray-600 dark:text-gray-300 mt-1'>{t('storeTab.pointCard.availableAKO')}</div>
-                        </div>
-                        <div className="text-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-purple-200 dark:border-purple-600">
-                          {pointsLoading ? (
-                            <div className="text-xl font-bold text-purple-600 dark:text-purple-400 animate-pulse">...</div>
-                          ) : (
-                            <div className="text-xl font-bold text-purple-600 dark:text-purple-400">{currentPoints}</div>
-                          )}
-                          <div className='text-sm text-gray-600 dark:text-gray-300 mt-1'>{t('storeTab.pointCard.currentPoints')}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <ChargingTab />
                 </div>
               </div>
             )}

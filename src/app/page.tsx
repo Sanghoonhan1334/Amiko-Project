@@ -158,13 +158,73 @@ export default function HomePage() {
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <img src="/2.png" alt="Bridge" className="w-24 h-24 mx-auto mb-2" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {t('heroSlides.slide3.infoSection.about.bridgeDescription')}
+                      {language === 'es' ? (
+                        <>
+                          Un puente que conecta <span className="text-red-500">AM</span>érica y <span className="text-blue-500">KO</span>rea a través de I
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-red-500">AM</span>erica와 <span className="text-blue-500">KO</span>rea를 I 이어주는 다리
+                        </>
+                      )}
                     </p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <img src="/3.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
                     <img src="/amiko-logo-dark.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.connectDescription')}</p>
+                  </div>
+                </div>
+                
+                {/* 소개글 */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                      {t('about.greeting')}
+                    </h2>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-bold">
+                      {t('about.thankYou')}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-bold">
+                      {t('about.teamIntroduction')}
+                    </p>
+                    
+                    <br />
+                    
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {t('about.latinAmericaExperience')}
+                    </p>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {t('about.koreanInterest')}
+                    </p>
+                    
+                    <br />
+                    
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {t('about.culturalExchange')}
+                    </p>
+                    
+                    <br />
+                    
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {t('about.bridgePromise')}
+                    </p>
+                    
+                    <br />
+                    
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {t('about.platformDescription')}
+                    </p>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {t('about.communityVision')}
+                    </p>
+                    
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white mt-6">
+                      {t('about.finalMessage')}
+                    </p>
                   </div>
                 </div>
               </div>

@@ -80,6 +80,7 @@ export default function FreeBoard() {
   const [showWriteDialog, setShowWriteDialog] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false)
   
   // 필터 및 검색
   const [currentCategory, setCurrentCategory] = useState('all')
@@ -101,6 +102,23 @@ export default function FreeBoard() {
   const [writeIsSurvey, setWriteIsSurvey] = useState(false)
   const [writeSurveyOptions, setWriteSurveyOptions] = useState(['', ''])
   const [writeLoading, setWriteLoading] = useState(false)
+  
+  // 공지사항 작성 상태
+  const [announcementTitle, setAnnouncementTitle] = useState('')
+  const [announcementContent, setAnnouncementContent] = useState('')
+  const [announcementLoading, setAnnouncementLoading] = useState(false)
+  const [announcementImages, setAnnouncementImages] = useState<string[]>([])
+  const [uploadingAnnouncementImages, setUploadingAnnouncementImages] = useState(false)
+  
+  // 운영자 권한 체크 (특정 운영자 아이디만 허용)
+  const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
+  
+  // 디버깅용 로그
+  console.log('현재 사용자 정보:', {
+    email: user?.email,
+    isAdmin: isAdmin,
+    user: user
+  })
   
   // 이미지 업로드
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
@@ -229,6 +247,23 @@ export default function FreeBoard() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
+  // 게시글 목록 정렬 (공지글을 맨 위에 고정)
+  const sortPosts = (posts: Post[]) => {
+    return posts.sort((a, b) => {
+      // 공지글은 항상 맨 위에
+      if (a.is_notice && !b.is_notice) return -1
+      if (!a.is_notice && b.is_notice) return 1
+      
+      // 공지글끼리는 생성일 기준 내림차순
+      if (a.is_notice && b.is_notice) {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
+      
+      // 일반 게시글끼리는 생성일 기준 내림차순
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }
+
   // 게시글 목록 조회
   const fetchPosts = async () => {
     try {
@@ -276,7 +311,10 @@ export default function FreeBoard() {
       const data: PostListResponse = await response.json()
       console.log('게시글 목록 응답:', data)
       console.log('첫 번째 게시글의 작성자 정보:', data.posts[0]?.author)
-      setPosts(data.posts)
+      
+      // 공지글을 맨 위에 고정하여 정렬
+      const sortedPosts = sortPosts(data.posts)
+      setPosts(sortedPosts)
       
       // 페이지네이션 정보 업데이트
       setPagination({
@@ -316,14 +354,10 @@ export default function FreeBoard() {
       return
     }
 
-    // 공지사항 작성 권한 체크 (임시로 이메일로 확인)
-    if (writeIsNotice) {
-      const userEmail = user.email || ''
-      const isAdmin = userEmail.includes('admin') || userEmail.includes('@amiko.com')
-      if (!isAdmin) {
-        setError('공지사항은 운영자만 작성할 수 있습니다.')
-        return
-      }
+    // 공지사항 작성 권한 체크
+    if (writeIsNotice && !isAdmin) {
+      setError('공지사항은 운영자만 작성할 수 있습니다.')
+      return
     }
 
     // 설문조사 선택지 검증
@@ -603,6 +637,133 @@ export default function FreeBoard() {
     setEditingPost(null)
   }
 
+  // 공지사항 작성 핸들러
+  const handleAnnouncementSubmit = async () => {
+    if (!user || !isAdmin) return
+    
+    if (!announcementTitle.trim() || !announcementContent.trim()) {
+      alert('제목과 내용을 모두 입력해주세요.')
+      return
+    }
+
+    setAnnouncementLoading(true)
+    
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: announcementTitle,
+          content: announcementContent,
+          category: '공지사항',
+          is_notice: true,
+          is_pinned: true,
+          images: announcementImages
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('공지사항 작성에 실패했습니다.')
+      }
+
+      // 성공 시 상태 초기화 및 모달 닫기
+      setAnnouncementTitle('')
+      setAnnouncementContent('')
+      setAnnouncementImages([])
+      setShowAnnouncementDialog(false)
+      
+      // 게시글 목록 새로고침
+      fetchPosts()
+      
+      // 공지사항 알림 전송
+      await sendAnnouncementNotification(announcementTitle, announcementContent)
+      
+      alert('공지사항이 작성되었습니다.')
+    } catch (error) {
+      console.error('공지사항 작성 실패:', error)
+      alert('공지사항 작성에 실패했습니다.')
+    } finally {
+      setAnnouncementLoading(false)
+    }
+  }
+
+  // 공지사항 이미지 업로드 핸들러
+  const handleAnnouncementImageUpload = async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error('이미지 업로드에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      return data.imageUrl
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error)
+      throw error
+    }
+  }
+
+  // 공지사항 이미지 파일 선택 핸들러
+  const handleAnnouncementImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingAnnouncementImages(true)
+    
+    try {
+      const uploadPromises = Array.from(files).map(file => handleAnnouncementImageUpload(file))
+      const uploadedUrls = await Promise.all(uploadPromises)
+      
+      setAnnouncementImages(prev => [...prev, ...uploadedUrls])
+    } catch (error) {
+      alert('이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploadingAnnouncementImages(false)
+    }
+  }
+
+  // 공지사항 이미지 삭제 핸들러
+  const handleAnnouncementImageRemove = (index: number) => {
+    setAnnouncementImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // 공지사항 알림 전송 함수
+  const sendAnnouncementNotification = async (title: string, content: string) => {
+    try {
+      const response = await fetch('/api/notifications/announcement', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: `📢 새로운 공지사항: ${title}`,
+          content: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
+          type: 'announcement',
+          url: '/community/freeboard'
+        })
+      })
+
+      if (!response.ok) {
+        console.warn('공지사항 알림 전송에 실패했습니다.')
+      } else {
+        console.log('공지사항 알림이 전송되었습니다.')
+      }
+    } catch (error) {
+      console.error('공지사항 알림 전송 실패:', error)
+    }
+  }
+
   // 초기 로드 및 의존성 변경 시 재조회
   useEffect(() => {
     console.log('FreeBoard 마운트됨, 사용자 상태:', { user: !!user })
@@ -695,6 +856,15 @@ export default function FreeBoard() {
         )}
       </div>
 
+      {/* 디버깅용 운영자 상태 표시 */}
+      {user && (
+        <div className="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm">
+          <strong>디버깅 정보:</strong> 
+          사용자: {user.email} | 
+          운영자 여부: {isAdmin ? '✅ 운영자' : '❌ 일반 사용자'}
+        </div>
+      )}
+
       {/* 필터 및 정렬 */}
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
@@ -729,6 +899,34 @@ export default function FreeBoard() {
             </SelectContent>
           </Select>
           
+          {/* 운영자만 보이는 공지사항 버튼 */}
+          {isAdmin && (
+            <Dialog open={showAnnouncementDialog} onOpenChange={setShowAnnouncementDialog}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold border-2 border-orange-600 shadow-lg"
+                  onClick={() => {
+                    if (!user) {
+                      window.location.href = '/sign-in'
+                      return
+                    }
+                    setShowAnnouncementDialog(true)
+                  }}
+                >
+                  <Pin className="w-4 h-4 mr-2" />
+                  📢 공지사항
+                </Button>
+              </DialogTrigger>
+            </Dialog>
+          )}
+          
+          {/* 운영자가 아닌 경우 표시 (디버깅용) */}
+          {!isAdmin && user && (
+            <div className="text-xs text-gray-500 px-2">
+              (운영자가 아님)
+            </div>
+          )}
+          
           <Dialog open={showWriteDialog} onOpenChange={setShowWriteDialog}>
             <DialogTrigger asChild>
               <Button 
@@ -749,7 +947,8 @@ export default function FreeBoard() {
               className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl mx-4"
               style={{ 
                 backgroundColor: 'white',
-                opacity: 1
+                opacity: 1,
+                zIndex: 1000
               }}
             >
               <DialogHeader>
@@ -759,6 +958,22 @@ export default function FreeBoard() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
+                {/* 카테고리 선택 */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">{t('freeboard.category')}</label>
+                  <select 
+                    value={writeCategory} 
+                    onChange={(e) => setWriteCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="자유게시판">자유게시판</option>
+                    <option value="질문과답변">질문과답변</option>
+                    <option value="정보공유">정보공유</option>
+                    <option value="후기">후기</option>
+                    <option value="모임">모임</option>
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-2">{t('communityTab.title')}</label>
                   <Input
@@ -803,8 +1018,8 @@ export default function FreeBoard() {
                         />
 {t('freeboard.survey')}
                       </label>
-                      {(user?.email?.includes('admin') || user?.email?.includes('@amiko.com')) && (
-                        <label className="flex items-center">
+                      {isAdmin && (
+                        <label className="flex items-center bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800">
                           <input
                             type="radio"
                             name="postType"
@@ -817,7 +1032,7 @@ export default function FreeBoard() {
                             }}
                             className="mr-2"
                           />
-{t('freeboard.notice')}
+                          <span className="text-red-700 dark:text-red-300 font-medium">📌 {t('freeboard.notice')}</span>
                         </label>
                       )}
                     </div>
@@ -893,10 +1108,18 @@ export default function FreeBoard() {
                   )}
                   
                   {writeIsNotice && (
-                    <div className="bg-yellow-50 p-3 rounded-lg">
-                      <p className="text-sm text-yellow-800">
-                        ⚠️ 공지사항은 중요한 안내사항에만 사용해주세요
-                      </p>
+                    <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-2">
+                        <span className="text-red-600 dark:text-red-400 text-lg">📌</span>
+                        <div>
+                          <p className="text-sm font-medium text-red-800 dark:text-red-300">
+                            운영자 전용 공지사항
+                          </p>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                            중요한 안내사항에만 사용해주세요. 모든 사용자에게 맨 위에 고정 표시됩니다.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1069,14 +1292,18 @@ export default function FreeBoard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {posts.map((post, index) => (
+                    {/* 공지사항 먼저 표시 */}
+                    {posts.filter(post => post.is_notice).map((post, index) => (
                       <tr
                         key={post.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-500 cursor-pointer"
+                        className="hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer bg-orange-50 dark:bg-orange-900/10 border-l-4 border-orange-500"
                         onClick={() => handlePostClick(post)}
                       >
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                          {posts.length - index}
+                          <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400 font-semibold">
+                            <Pin className="w-3 h-3" />
+                            공지
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           <div className="flex items-center gap-1">
@@ -1091,6 +1318,62 @@ export default function FreeBoard() {
                               <span className="text-sm">📷</span>
                             )}
                             <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {post.title}
+                            </span>
+                            {post.comment_count > 0 && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                [{post.comment_count}]
+                              </span>
+                            )}
+                            <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
+                              <Pin className="w-3 h-3 mr-1" />
+                              공지
+                            </Badge>
+                            {post.is_pinned && (
+                              <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
+                                개념글
+                              </Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                          {post.author?.full_name || '익명'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                          {formatDate(post.created_at)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                          {post.view_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="flex items-center gap-1">
+                            <span className="text-green-600 dark:text-green-400">{post.like_count}</span>
+                            <span className="text-gray-400 dark:text-gray-500">-</span>
+                            <span className="text-red-600 dark:text-red-400">{post.dislike_count}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    
+                    {/* 일반 게시글 표시 */}
+                    {posts.filter(post => !post.is_notice).map((post, index) => (
+                      <tr
+                        key={post.id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-500 cursor-pointer"
+                        onClick={() => handlePostClick(post)}
+                      >
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                          {posts.filter(p => !p.is_notice).length - index}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                          <div className="flex items-center gap-1">
+                            {getPostIcon(post)}
+                            {post.category?.name || '자유게시판'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 font-medium">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate max-w-xs">
                               {post.title}
                             </span>
                             {post.comment_count > 0 && (
@@ -1198,6 +1481,124 @@ export default function FreeBoard() {
         }}
         onSave={handlePostUpdated}
       />
+
+      {/* 공지사항 작성 다이얼로그 */}
+      <Dialog open={showAnnouncementDialog} onOpenChange={setShowAnnouncementDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl mx-4">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-900">공지사항 작성</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              운영자만 작성할 수 있는 공지사항입니다. 작성된 공지사항은 게시글 목록 상단에 고정 표시됩니다.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* 제목 입력 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                제목 *
+              </label>
+              <Input
+                value={announcementTitle}
+                onChange={(e) => setAnnouncementTitle(e.target.value)}
+                placeholder="공지사항 제목을 입력하세요"
+                className="w-full"
+                maxLength={100}
+              />
+            </div>
+
+            {/* 내용 입력 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                내용 *
+              </label>
+              <Textarea
+                value={announcementContent}
+                onChange={(e) => setAnnouncementContent(e.target.value)}
+                placeholder="공지사항 내용을 입력하세요"
+                className="w-full min-h-[300px] resize-none"
+                maxLength={5000}
+              />
+              <div className="text-right text-sm text-gray-500 mt-1">
+                {announcementContent.length}/5000
+              </div>
+            </div>
+
+            {/* 이미지 업로드 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                이미지 첨부 (선택사항)
+              </label>
+              
+              {/* 이미지 업로드 버튼 */}
+              <div className="mb-4">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleAnnouncementImageSelect}
+                  className="hidden"
+                  id="announcement-image-upload"
+                />
+                <label
+                  htmlFor="announcement-image-upload"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+                >
+                  📷 이미지 선택
+                </label>
+                {uploadingAnnouncementImages && (
+                  <span className="ml-2 text-sm text-gray-500">업로드 중...</span>
+                )}
+              </div>
+
+              {/* 업로드된 이미지 미리보기 */}
+              {announcementImages.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  {announcementImages.map((imageUrl, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={imageUrl}
+                        alt={`공지사항 이미지 ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAnnouncementImageRemove(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 버튼 */}
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAnnouncementDialog(false)
+                  setAnnouncementTitle('')
+                  setAnnouncementContent('')
+                  setAnnouncementImages([])
+                }}
+                disabled={announcementLoading}
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleAnnouncementSubmit}
+                disabled={announcementLoading || !announcementTitle.trim() || !announcementContent.trim()}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {announcementLoading ? '작성 중...' : '공지사항 작성'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

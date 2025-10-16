@@ -35,12 +35,6 @@ export default function BottomTabNavigation() {
 
   const tabs = [
     {
-      id: 'home',
-      label: t('home.navigation.home'),
-      icon: Home,
-      path: '/main?tab=home'
-    },
-    {
       id: 'community',
       label: t('headerNav.community'),
       icon: MessageSquare,
@@ -53,10 +47,10 @@ export default function BottomTabNavigation() {
       path: '/main?tab=meet'
     },
     {
-      id: 'charging',
-      label: t('headerNav.chargingStationShort'),
-      icon: Zap,
-      path: '/main?tab=charging'
+      id: 'home',
+      label: t('home.navigation.home'),
+      icon: Home,
+      path: '/main?tab=home'
     },
     {
       id: 'event',
@@ -66,7 +60,7 @@ export default function BottomTabNavigation() {
     },
     {
       id: 'me',
-      label: t('main.me'),
+      label: t('main.myPage'),
       icon: User,
       path: '/main?tab=me'
     }

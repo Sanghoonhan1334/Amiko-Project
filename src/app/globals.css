@@ -3,6 +3,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 폰트 로딩 최적화 */
+@font-face {
+  font-family: 'Pretendard';
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+}
+
+/* 초기 렌더링 최적화 */
+* {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Safe Area Insets for mobile apps */
 :root {
   --sat: env(safe-area-inset-top);
@@ -647,4 +663,396 @@ body {
   width: 0 !important;
   height: 0 !important;
   background: transparent !important;
+}
+
+/* 스토리 카드 하단 요소 배경 강제 제거 */
+.story-card-bottom,
+.story-card-bottom * {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-clip: initial !important;
+  background-origin: initial !important;
+  background-position: initial !important;
+  background-repeat: initial !important;
+  background-size: initial !important;
+}
+
+/* 다크모드에서도 스토리 카드 하단 요소 배경 제거 */
+.dark .story-card-bottom,
+.dark .story-card-bottom * {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-clip: initial !important;
+  background-origin: initial !important;
+  background-position: initial !important;
+  background-repeat: initial !important;
+  background-size: initial !important;
+}
+
+/* 스토리 카드 상단 요소 배경 강제 제거 */
+.story-card-top,
+.story-card-top * {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-clip: initial !important;
+  background-origin: initial !important;
+  background-position: initial !important;
+  background-repeat: initial !important;
+  background-size: initial !important;
+}
+
+/* 스토리 카드 중간 요소 배경 강제 제거 */
+.story-card-middle,
+.story-card-middle * {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-clip: initial !important;
+  background-origin: initial !important;
+  background-position: initial !important;
+  background-repeat: initial !important;
+  background-size: initial !important;
+}
+
+/* 다크모드에서도 스토리 카드 상단/중간 요소 배경 제거 */
+.dark .story-card-top,
+.dark .story-card-top *,
+.dark .story-card-middle,
+.dark .story-card-middle * {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-clip: initial !important;
+  background-origin: initial !important;
+  background-position: initial !important;
+  background-repeat: initial !important;
+  background-size: initial !important;
+}
+
+/* 스토리 카드 하단 버튼 가시성 보장 */
+.story-card-bottom {
+  position: absolute !important;
+  bottom: 0.5rem !important;
+  left: 0.5rem !important;
+  right: 0.5rem !important;
+  z-index: 30 !important;
+  pointer-events: auto !important;
+}
+
+/* 스토리 카드 하단 버튼이 항상 보이도록 최소 높이 보장 */
+.story-card-bottom button {
+  min-height: 2rem !important;
+  min-width: 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 스토리 뷰어 하트/댓글 버튼 강제 표시 */
+.story-viewer-actions {
+  display: flex !important;
+  visibility: visible !important;
+  position: absolute !important;
+  bottom: 2rem !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 10010 !important;
+  color: white !important;
+  width: auto !important;
+  padding: 0 !important;
+  gap: 2rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 스토리 뷰어 하트 아이콘 강제 표시 */
+.story-viewer-actions .lucide-heart,
+.story-viewer-actions .lucide-message-square {
+  display: block !important;
+  visibility: visible !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  color: white !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)) !important;
+}
+
+/* 다크모드에서도 스토리 뷰어 버튼 강제 표시 */
+.dark .story-viewer-actions {
+  display: flex !important;
+  visibility: visible !important;
+  color: white !important;
+  position: absolute !important;
+  bottom: 2rem !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 10010 !important;
+  width: auto !important;
+  gap: 2rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 댓글 모달 최상위 z-index 강제 설정 */
+.fixed.inset-0 {
+  z-index: 99999 !important;
+}
+
+/* 댓글 모달이 스토리 뷰어보다 위에 오도록 */
+.comment-modal-overlay {
+  z-index: 99999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* 스토리 뷰어 닫기 버튼 정렬 강제 설정 */
+.story-viewer-close {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  position: absolute !important;
+  top: 1rem !important;
+  right: 1rem !important;
+  z-index: 10004 !important;
+}
+
+.story-viewer-close > div {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+}
+
+.story-viewer-close svg {
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  display: block !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* 스토리 이미지 드래그 방지 */
+img[alt="스토리 이미지"],
+img[alt="스토리"] {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-select: none !important;
+  pointer-events: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* 스토리 작성 모달 밝게 강제 설정 */
+[data-radix-dialog-content] {
+  background-color: white !important;
+  background: white !important;
+}
+
+/* 스토리 작성 모달 내부 모든 요소 밝게 */
+[data-radix-dialog-content] * {
+  color: rgb(55 65 81) !important;
+}
+
+[data-radix-dialog-content] h2,
+[data-radix-dialog-content] .text-xl {
+  color: rgb(17 24 39) !important;
+}
+
+/* 다크모드에서도 모달은 밝게 유지 */
+.dark [data-radix-dialog-content] {
+  background-color: white !important;
+  background: white !important;
+}
+
+.dark [data-radix-dialog-content] * {
+  color: rgb(55 65 81) !important;
+}
+
+.dark [data-radix-dialog-content] h2,
+.dark [data-radix-dialog-content] .text-xl {
+  color: rgb(17 24 39) !important;
+}
+
+/* 사용자 프로필 모달 특별 처리 */
+[data-radix-dialog-content] h2,
+[data-radix-dialog-content] .text-lg,
+[data-radix-dialog-content] .text-2xl {
+  color: rgb(17 24 39) !important;
+}
+
+[data-radix-dialog-content] p,
+[data-radix-dialog-content] span,
+[data-radix-dialog-content] div {
+  color: rgb(55 65 81) !important;
+}
+
+/* 다크모드에서도 사용자 프로필 모달 밝게 */
+.dark [data-radix-dialog-content] h2,
+.dark [data-radix-dialog-content] .text-lg,
+.dark [data-radix-dialog-content] .text-2xl {
+  color: rgb(17 24 39) !important;
+}
+
+.dark [data-radix-dialog-content] p,
+.dark [data-radix-dialog-content] span,
+.dark [data-radix-dialog-content] div {
+  color: rgb(55 65 81) !important;
+}
+
+/* 사용자 프로필 모달 z-index 최우선 */
+[data-radix-dialog-overlay] {
+  z-index: 99998 !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 99999 !important;
+}
+
+/* 사용자 프로필 모달이 모든 요소 위에 표시되도록 */
+.user-profile-modal,
+.user-profile-modal * {
+  z-index: 99999 !important;
+}
+
+/* 모든 다이얼로그 오버레이보다 높은 우선순위 */
+.user-profile-modal [data-radix-dialog-overlay] {
+  z-index: 99998 !important;
+}
+
+.user-profile-modal [data-radix-dialog-content] {
+  z-index: 99999 !important;
+}
+
+/* 사용자 프로필 모달 강제 최상위 */
+.user-profile-modal {
+  position: relative !important;
+  z-index: 99999 !important;
+}
+
+.user-profile-modal > * {
+  position: relative !important;
+  z-index: 99999 !important;
+}
+
+/* 모든 Radix Dialog 요소에 대한 강제 z-index */
+.user-profile-modal [data-radix-dialog-overlay],
+.user-profile-modal [data-radix-dialog-content],
+.user-profile-modal [data-radix-dialog-title],
+.user-profile-modal [data-radix-dialog-description] {
+  z-index: 99999 !important;
+  position: relative !important;
+}
+
+/* 사용자 프로필 모달이 다른 모든 모달보다 위에 표시되도록 */
+.user-profile-modal {
+  z-index: 99999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* 스토리 업로드 모달 z-index 강제 설정 */
+[data-radix-dialog-content] {
+  z-index: 99999 !important;
+}
+
+[data-radix-dialog-overlay] {
+  z-index: 99998 !important;
+}
+
+/* 스토리 업로드 모달이 모든 요소 위에 표시되도록 */
+.story-upload-modal,
+.story-upload-modal * {
+  z-index: 99999 !important;
+}
+
+/* 스토리 뷰어 다크모드 강제 표시 */
+.dark .story-viewer-progress,
+.dark .story-viewer-progress * {
+  background: rgba(255, 255, 255, 0.3) !important;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark .story-viewer-progress .progress-active,
+.dark .story-viewer-progress .progress-completed {
+  background: white !important;
+  background-color: white !important;
+}
+
+.dark .story-viewer-user-info,
+.dark .story-viewer-user-info * {
+  color: white !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .story-viewer-user-info .user-avatar {
+  background: linear-gradient(to bottom right, #60a5fa, #a855f7) !important;
+  background-color: transparent !important;
+}
+
+/* 스토리 뷰어 모든 요소 강제 표시 - 최고 우선순위 */
+.fixed.inset-0.z-\[9999\] .story-viewer-progress,
+.fixed.inset-0.z-\[9999\] .story-viewer-progress *,
+.fixed.inset-0.z-\[9999\] .story-viewer-user-info,
+.fixed.inset-0.z-\[9999\] .story-viewer-user-info *,
+.fixed.inset-0.z-\[9999\] .story-viewer-close,
+.fixed.inset-0.z-\[9999\] .story-viewer-close * {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.fixed.inset-0.z-\[9999\] .story-viewer-progress .flex {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+.fixed.inset-0.z-\[9999\] .story-viewer-user-info {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+/* 다크모드에서도 스토리 뷰어 모든 요소 강제 표시 */
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-progress,
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-progress *,
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-user-info,
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-user-info *,
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-close,
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-close * {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-progress .flex {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+.dark .fixed.inset-0.z-\[9999\] .story-viewer-user-info {
+  display: flex !important;
+  visibility: visible !important;
 }

@@ -153,10 +153,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // 실제 데이터 상태
   const [recentStories, setRecentStories] = useState<any[]>([])
-  const [popularPosts, setPopularPosts] = useState<any[]>([])
-  const [popularTests, setPopularTests] = useState<any[]>([])
-  const [popularNews, setPopularNews] = useState<any[]>([])
-  const [recentActivities, setRecentActivities] = useState<any[]>([])
   const [dataLoading, setDataLoading] = useState(false)
 
   // 실제 데이터 로딩 함수들
@@ -171,84 +167,13 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     }
   }
 
-  const loadPopularPosts = async () => {
-    try {
-      const response = await fetch('/api/posts/popular?filter=hot&limit=3')
-      const data = await response.json()
-      setPopularPosts(data.posts || [])
-    } catch (error) {
-      console.error('인기 게시글 로딩 실패:', error)
-      setPopularPosts([])
-    }
-  }
-
-  const loadPopularTests = async () => {
-    try {
-      const response = await fetch('/api/quizzes?limit=3')
-      const data = await response.json()
-      setPopularTests(data.data || [])
-    } catch (error) {
-      console.error('인기 테스트 로딩 실패:', error)
-      setPopularTests([])
-    }
-  }
-
-  const loadPopularNews = async () => {
-    try {
-      const response = await fetch('/api/news?limit=3')
-      const data = await response.json()
-      setPopularNews(data.newsItems || [])
-    } catch (error) {
-      console.error('인기 뉴스 로딩 실패:', error)
-      setPopularNews([])
-    }
-  }
-
-  const loadRecentActivities = async () => {
-    try {
-      // 최근 활동은 여러 소스에서 가져와서 합치기
-      const [storiesRes, postsRes] = await Promise.all([
-        fetch('/api/stories?isPublic=true&limit=2'),
-        fetch('/api/posts/popular?filter=hot&limit=2')
-      ])
-      
-      const storiesData = await storiesRes.json()
-      const postsData = await postsRes.json()
-      
-      const activities = [
-        ...(storiesData.stories || []).map((story: any) => ({
-          type: 'story',
-          title: language === 'ko' ? '새 스토리 작성됨' : 'Nueva historia creada',
-          content: story.text_content || story.text,
-          time: story.created_at,
-          user: story.user_name
-        })),
-        ...(postsData.posts || []).map((post: any) => ({
-          type: 'post',
-          title: language === 'ko' ? '새 게시글 작성됨' : 'Nueva publicación creada',
-          content: post.title,
-          time: post.created_at,
-          user: post.user?.full_name || post.user?.nickname
-        }))
-      ]
-      
-      setRecentActivities(activities.slice(0, 4))
-    } catch (error) {
-      console.error('최근 활동 로딩 실패:', error)
-      setRecentActivities([])
-    }
-  }
 
   // 모든 데이터 로딩
   const loadAllData = async () => {
     setDataLoading(true)
     try {
       await Promise.all([
-        loadRecentStories(),
-        loadPopularPosts(),
-        loadPopularTests(),
-        loadPopularNews(),
-        loadRecentActivities()
+        loadRecentStories()
       ])
     } catch (error) {
       console.error('데이터 로딩 실패:', error)
@@ -2190,294 +2115,82 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
         </div>
         
-                 {/* 5개 아이콘 - 모든 화면에서 한 줄 배치 */}
-                 <div className="w-full flex flex-row items-center justify-center gap-2 md:gap-4 overflow-x-auto scrollbar-hide px-2 mb-0">
+                 {/* 5개 아이콘 - 2-2-1 배치 */}
+                 <div className="w-full grid grid-cols-2 gap-1 md:gap-3 px-2 mb-0 max-w-md mx-auto">
                    {/* 주제별 게시판 */}
                    <button
                      onClick={() => handleNavigation('/community/freeboard')}
                      disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
                    >
-                    <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                      <img src="/topic-board.png" alt="주제별 게시판" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                    <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 md:mb-2 overflow-hidden">
+                      <img src="/topic-board.png" alt="주제별 게시판" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
                     </div>
-                    <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.freeBoard')}</h3>
+                    <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.freeBoard')}</h3>
                    </button>
 
                    {/* K-매거진 */}
                    <button
                      onClick={() => handleNavigation('/community/news')}
                      disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
                    >
-                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                       <img src="/k-magazine.png" alt="K-매거진" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                     <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                       <img src="/k-magazine.png" alt="K-매거진" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
                      </div>
-                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.koreanNews')}</h3>
+                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.koreanNews')}</h3>
                    </button>
                    
                    {/* Q&A */}
                    <button
                      onClick={() => handleNavigation('/community/qa')}
                      disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
                    >
-                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                       <img src="/qa.png" alt="Q&A" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                     <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                       <img src="/qa.png" alt="Q&A" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
                      </div>
-                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.qa')}</h3>
+                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.qa')}</h3>
                    </button>
                    
                    {/* 심리테스트 */}
                    <button
                      onClick={() => handleNavigation('/community/tests')}
                      disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
                    >
-                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                       <img src="/psychology-test.png" alt="심리테스트" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                     <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                       <img src="/psychology-test.png" alt="심리테스트" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
                      </div>
-                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('tests.title')}</h3>
+                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('tests.title')}</h3>
                    </button>
 
-                   {/* 스토리 */}
+                   {/* 스토리 - 세 번째 줄 중앙 정렬 */}
+                   <div className="col-span-2 flex justify-center">
                    <button
                      onClick={() => handleNavigation('/community/stories')}
                      disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
+                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
                        isNavigating ? 'opacity-70 cursor-not-allowed' : ''
                      }`}
                    >
-                     <div className="w-12 h-12 md:w-14 md:h-14 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                       <img src="/story.png" alt="스토리" className="w-8 h-8 md:w-10 md:h-10 object-contain" loading="eager" decoding="async" />
+                       <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
+                         <img src="/story.png" alt="스토리" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
                      </div>
-                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight" style={{ fontSize: '10px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1.1' }}>{t('community.story')}</h3>
+                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.story')}</h3>
                    </button>
                  </div>
-
-                 {/* 새로운 섹션들 - 아이콘 아래 */}
-                 <div className="w-full space-y-4 mt-6">
-                   {/* 최근 스토리, 인기 게시글, 인기 심리테스트, 인기 한국 뉴스, 최근 활동 */}
-                   <div className="grid grid-cols-1 gap-4">
-                     {/* 최근 스토리 */}
-                     <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                       <CardContent className="p-4">
-                         <div className="flex items-center gap-3 mb-4">
-                           <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                             <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                            </div>
-                           <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                             {t('home.community.recentStories')}
-                           </h3>
-                         </div>
-                         <div className="space-y-3">
-                           {dataLoading ? (
-                             <>
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                             </>
-                           ) : recentStories.length > 0 ? (
-                             recentStories.slice(0, 2).map((story, index) => (
-                               <div key={story.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                   {truncateText(story.text_content || story.text)}
-                                 </div>
-                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                   <User className="w-3 h-3" />
-                                   <span>{story.user_name || '익명'}</span>
-                                   <span>•</span>
-                                   <span>{formatTimeAgo(story.created_at)}</span>
-                                 </div>
-                               </div>
-                             ))
-                           ) : (
-                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
-                               {language === 'ko' ? '최근 스토리가 없습니다' : 'No hay historias recientes'}
-                             </div>
-                           )}
-                         </div>
-                       </CardContent>
-                     </Card>
 
-                     {/* 인기 게시글 */}
-                     <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                       <CardContent className="p-4">
-                         <div className="flex items-center gap-3 mb-4">
-                           <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-                             <TrendingUp className="w-5 h-5 text-red-600 dark:text-red-400" />
-                           </div>
-                           <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                             {t('home.community.popularPosts')}
-                           </h3>
-                         </div>
-                         <div className="space-y-3">
-                           {dataLoading ? (
-                             <>
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                             </>
-                           ) : popularPosts.length > 0 ? (
-                             popularPosts.slice(0, 2).map((post, index) => (
-                               <div key={post.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                   {truncateText(post.title)}
-                                 </div>
-                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                   <ThumbsUp className="w-3 h-3" />
-                                   <span>{formatNumber(post.like_count || 0)}</span>
-                                   <span>•</span>
-                                   <MessageSquare className="w-3 h-3" />
-                                   <span>{formatNumber(post.comment_count || 0)}</span>
-                                 </div>
-                               </div>
-                             ))
-                           ) : (
-                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
-                               {language === 'ko' ? '인기 게시글이 없습니다' : 'No hay posts populares'}
-                             </div>
-                           )}
-                         </div>
-                       </CardContent>
-                     </Card>
 
-                     {/* 인기 심리테스트 */}
-                     <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                       <CardContent className="p-4">
-                         <div className="flex items-center gap-3 mb-4">
-                           <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                             <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                           </div>
-                           <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                             {t('home.community.popularTests')}
-                           </h3>
-                         </div>
-                         <div className="space-y-3">
-                           {dataLoading ? (
-                             <>
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                             </>
-                          ) : popularTests.length > 0 ? (
-                            <div className="space-y-3">
-                              {/* K-POP 스타 MBTI 매칭 테스트만 표시 */}
-                              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer" onClick={() => handleNavigation('/community/tests')}>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="text-purple-500">🎭</span>
-                                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                                    {language === 'ko' ? 'K-POP 스타 MBTI 매칭 테스트' : 'Test de Coincidencia MBTI K-POP'}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                  {language === 'ko' ? '12개 질문으로 나와 닮은 K-POP 스타 찾기' : 'Encuentra tu estrella K-POP similar con 12 preguntas'}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                  <Brain className="w-3 h-3" />
-                                  <span>personality</span>
-                                </div>
-                              </div>
-                            </div>
-                           ) : (
-                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
-                               {language === 'ko' ? '인기 테스트가 없습니다' : 'No hay tests populares'}
-                             </div>
-                           )}
-                         </div>
-                       </CardContent>
-                     </Card>
-
-                     {/* 인기 한국 뉴스 */}
-                     <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                       <CardContent className="p-4">
-                         <div className="flex items-center gap-3 mb-4">
-                           <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                             <Newspaper className="w-5 h-5 text-green-600 dark:text-green-400" />
-                           </div>
-                           <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                             {t('home.community.popularNews')}
-                           </h3>
-                         </div>
-                         <div className="space-y-3">
-                           {dataLoading ? (
-                             <>
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                             </>
-                          ) : popularNews.length > 0 ? (
-                            popularNews.slice(0, 2).map((news, index) => (
-                              <div 
-                                key={news.id} 
-                                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                                onClick={() => handleNavigation('/community/news')}
-                              >
-                                <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                  {truncateText(language === 'ko' ? news.title : news.title_es || news.title)}
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                  <Eye className="w-3 h-3" />
-                                  <span>{formatNumber(news.view_count || 0)}</span>
-                                  <span>•</span>
-                                  <span>{formatTimeAgo(news.created_at)}</span>
-                                </div>
-                              </div>
-                            ))
-                           ) : (
-                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
-                               {language === 'ko' ? '인기 뉴스가 없습니다' : 'No hay noticias populares'}
-                             </div>
-                           )}
-                         </div>
-                       </CardContent>
-                     </Card>
-
-                     {/* 최근 활동 */}
-                     <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                       <CardContent className="p-4">
-                         <div className="flex items-center gap-3 mb-4">
-                           <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                             <Activity className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                           </div>
-                           <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                             {t('home.community.recentActivities')}
-                           </h3>
-                         </div>
-                         <div className="space-y-3">
-                           {dataLoading ? (
-                             <>
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                               <Skeleton className="h-12 w-full rounded-lg" />
-                             </>
-                           ) : recentActivities.length > 0 ? (
-                             recentActivities.slice(0, 2).map((activity, index) => (
-                               <div key={index} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                   {truncateText(activity.content)}
-                                 </div>
-                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                   <User className="w-3 h-3" />
-                                   <span>{activity.user || '익명'}</span>
-                                   <span>•</span>
-                                   <span>{formatTimeAgo(activity.time)}</span>
-                                 </div>
-                               </div>
-                             ))
-                           ) : (
-                             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
-                               {language === 'ko' ? '최근 활동이 없습니다' : 'No hay actividades recientes'}
-                             </div>
-                           )}
-                         </div>
-                       </CardContent>
-                     </Card>
-                   </div>
-                 </div>
             </div>
       )}
 
@@ -3579,19 +3292,18 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
               <Label className="text-sm font-medium text-gray-700">
                 {language === 'ko' ? '카테고리' : 'Category'}
               </Label>
-              <Select value={writeCategory} onValueChange={setWriteCategory}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="free">{language === 'ko' ? '자유게시판' : 'Free Board'}</SelectItem>
-                  <SelectItem value="kpop">{language === 'ko' ? 'K-POP' : 'K-POP Board'}</SelectItem>
-                  <SelectItem value="kdrama">{language === 'ko' ? 'K-Drama' : 'K-Drama Board'}</SelectItem>
-                  <SelectItem value="beauty">{language === 'ko' ? '뷰티' : 'Beauty'}</SelectItem>
-                  <SelectItem value="korean">{language === 'ko' ? '한국어' : 'Korean'}</SelectItem>
-                  <SelectItem value="spanish">{language === 'ko' ? '스페인어' : 'Spanish'}</SelectItem>
-                </SelectContent>
-              </Select>
+              <select 
+                value={writeCategory} 
+                onChange={(e) => setWriteCategory(e.target.value)}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="free">{language === 'ko' ? '자유게시판' : 'Free Board'}</option>
+                <option value="kpop">{language === 'ko' ? 'K-POP' : 'K-POP Board'}</option>
+                <option value="kdrama">{language === 'ko' ? 'K-Drama' : 'K-Drama Board'}</option>
+                <option value="beauty">{language === 'ko' ? '뷰티' : 'Beauty'}</option>
+                <option value="korean">{language === 'ko' ? '한국어' : 'Korean'}</option>
+                <option value="spanish">{language === 'ko' ? '스페인어' : 'Spanish'}</option>
+              </select>
             </div>
 
             {/* 제목 입력 */}

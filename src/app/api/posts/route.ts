@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
         comment_count,
         is_pinned,
         is_hot,
+        is_notice,
         created_at,
         updated_at,
         user_id
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
         title: post.title,
         content: post.content,
         category: post.category || '자유게시판', // 카테고리 필드 추가
-        is_notice: false,
+        is_notice: post.is_notice || false,
         is_survey: false,
         is_verified: false,
         is_pinned: post.is_pinned,
@@ -227,7 +228,7 @@ export async function POST(request: NextRequest) {
     // Content-Type에 따라 데이터 파싱 방식 결정
     const contentType = request.headers.get('content-type') || ''
     let body: any = {}
-    let gallery_id, title, content, images, category_name
+    let gallery_id, title, content, images, category_name, is_notice = false, is_pinned = false
 
     if (contentType.includes('multipart/form-data')) {
       // FormData 처리 (자유게시판)
@@ -328,13 +329,15 @@ export async function POST(request: NextRequest) {
         category_name
       }
     } else {
-      // JSON 처리 (기존 갤러리)
+      // JSON 처리 (기존 갤러리 및 공지사항)
       body = await request.json()
       gallery_id = body.gallery_id
       title = body.title
       content = body.content
       images = body.images
       category_name = body.category_name
+      is_notice = body.is_notice || false
+      is_pinned = body.is_pinned || false
       
       // gallery_id가 slug인 경우 실제 UUID로 변환
       if (gallery_id && typeof gallery_id === 'string' && !gallery_id.includes('-')) {
@@ -364,6 +367,29 @@ export async function POST(request: NextRequest) {
     
     console.log('[POST_CREATE] 기본 사용자 ID 사용:', defaultUserId)
 
+    // 기본 갤러리 ID 설정 (갤러리가 없을 경우 'free' 갤러리 사용)
+    if (!gallery_id) {
+      console.log('[POST_CREATE] 갤러리 ID가 없어서 free 갤러리 조회')
+      
+      // free 갤러리 조회
+      const { data: freeGallery, error: galleryError } = await supabaseServer
+        .from('galleries')
+        .select('id')
+        .eq('slug', 'free')
+        .single()
+      
+      if (galleryError || !freeGallery) {
+        console.error('[POST_CREATE] free 갤러리 조회 실패:', galleryError)
+        return NextResponse.json(
+          { error: '자유게시판 갤러리를 찾을 수 없습니다.' },
+          { status: 500 }
+        )
+      }
+      
+      gallery_id = freeGallery.id
+      console.log('[POST_CREATE] free 갤러리 ID 사용:', gallery_id)
+    }
+
     // 게시글 데이터 준비
     const postData: any = {
       gallery_id: gallery_id,
@@ -376,9 +402,14 @@ export async function POST(request: NextRequest) {
       like_count: 0,
       dislike_count: 0,
       comment_count: 0,
-      is_pinned: false,
+      is_pinned: is_pinned || false,
       is_hot: false,
       is_deleted: false
+    }
+
+    // 공지사항인 경우 is_notice 필드 추가
+    if (is_notice) {
+      postData.is_notice = true
     }
 
     console.log('[POST_CREATE] 게시글 데이터 준비 완료:', {

@@ -80,11 +80,11 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
         <p className="text-gray-600">
           {codeSent ? (
             <>
-              <strong>{email}</strong>로 인증코드를 발송했습니다
+              <strong>{email}</strong>{t('auth.emailSentDescription')}
             </>
           ) : (
             <>
-              <strong>{email}</strong>로 인증코드를 발송해주세요
+              <strong>{email}</strong>{t('auth.emailSendDescription')}
             </>
           )}
         </p>
@@ -94,7 +94,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
         <CardHeader>
           <CardTitle className="text-center">{t('auth.verificationCode')}</CardTitle>
           <CardDescription className="text-center">
-            이메일로 받은 6자리 코드를 입력해주세요
+            {t('auth.emailCodeDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -126,7 +126,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    인증코드 입력 완료
+                    {t('auth.codeComplete')}
                   </span>
                 </div>
               )}
@@ -143,7 +143,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
               }`}>
                 <Clock className="w-5 h-5" />
                 <span>
-                  {timeLeft > 0 ? `남은 시간: ${formatTime(timeLeft)}` : '인증코드가 만료되었습니다'}
+                  {timeLeft > 0 ? `${t('auth.timeLeft')} ${formatTime(timeLeft)}` : t('auth.codeExpired')}
                 </span>
               </div>
             </div>
@@ -161,12 +161,12 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  발송 중...
+                  {t('auth.sending')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Mail className="w-5 h-5" />
-                  코드 보내기
+                  {t('auth.sendVerificationCode')}
                 </div>
               )}
             </Button>
@@ -179,7 +179,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
             >
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                코드를 입력하세요
+                {t('auth.codeInputPrompt')}
               </div>
             </Button>
           ) : (
@@ -193,7 +193,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  인증 중...
+                  {t('auth.verifying')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
           {codeSent && (
             <div className="text-center border-t pt-4">
               <p className="text-sm text-gray-600 mb-3">
-                인증코드를 받지 못하셨나요?
+                {t('auth.didntReceiveCode')}
               </p>
               <Button 
                 variant="outline" 
@@ -231,11 +231,11 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
         <div className="flex items-start gap-3">
           <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
           <div>
-            <h4 className="font-medium text-blue-800">이메일 확인 안내</h4>
+            <h4 className="font-medium text-blue-800">{t('auth.emailGuideTitle')}</h4>
             <p className="text-sm text-blue-700">
-              • 스팸 폴더도 확인해보세요<br/>
-              • 이메일이 도착하지 않으면 재발송 버튼을 눌러주세요<br/>
-              • Gmail, Outlook 등 모든 이메일 서비스에서 확인 가능합니다
+              • {t('auth.emailGuideSpam')}<br/>
+              • {t('auth.emailGuideResend')}<br/>
+              • {t('auth.emailGuideServices')}
             </p>
           </div>
         </div>

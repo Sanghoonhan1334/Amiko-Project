@@ -62,7 +62,7 @@ export async function POST(
 
     // 기존 투표 확인
     const { data: existingVote, error: existingVoteError } = await supabaseServer
-      .from('reactions')
+      .from('comment_reactions')
       .select('reaction_type')
       .eq('comment_id', commentId)
       .eq('user_id', authUser.id)
@@ -90,6 +90,13 @@ export async function POST(
         } else {
           dislikeCountChange = -1
         }
+        
+        // 기존 투표 삭제
+        await supabaseServer
+          .from('comment_reactions')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', authUser.id)
       } else {
         // 다른 투표로 변경
         if (vote_type === 'like') {
@@ -99,6 +106,13 @@ export async function POST(
           likeCountChange = -1
           dislikeCountChange = 1
         }
+        
+        // 기존 투표 업데이트
+        await supabaseServer
+          .from('comment_reactions')
+          .update({ reaction_type: vote_type })
+          .eq('comment_id', commentId)
+          .eq('user_id', authUser.id)
       }
     } else {
       // 새로운 투표
@@ -107,23 +121,54 @@ export async function POST(
       } else {
         dislikeCountChange = 1
       }
+      
+      // 새 투표 생성
+      await supabaseServer
+        .from('comment_reactions')
+        .insert({
+          comment_id: commentId,
+          user_id: authUser.id,
+          reaction_type: vote_type
+        })
     }
 
-    // 트랜잭션으로 투표 처리
-    const { error: transactionError } = await supabaseServer.rpc('handle_comment_vote', {
-      p_comment_id: commentId,
-      p_user_id: authUser.id,
-      p_vote_type: newVoteType,
-      p_like_change: likeCountChange,
-      p_dislike_change: dislikeCountChange
-    })
+    // 댓글의 좋아요/싫어요 수 업데이트
+    if (likeCountChange !== 0 || dislikeCountChange !== 0) {
+      // 현재 카운트 조회
+      const { data: currentComment, error: fetchError } = await supabaseServer
+        .from('comments')
+        .select('like_count, dislike_count')
+        .eq('id', commentId)
+        .single()
 
-    if (transactionError) {
-      console.error('[NEWS_COMMENT_VOTE] 투표 처리 오류:', transactionError)
-      return NextResponse.json({
-        success: false,
-        error: '투표 처리 중 오류가 발생했습니다.'
-      }, { status: 500 })
+      if (fetchError) {
+        console.error('[NEWS_COMMENT_VOTE] 댓글 조회 오류:', fetchError)
+        return NextResponse.json({
+          success: false,
+          error: '댓글 정보를 조회할 수 없습니다.'
+        }, { status: 500 })
+      }
+
+      // 새로운 카운트 계산
+      const newLikeCount = Math.max(0, (currentComment.like_count || 0) + likeCountChange)
+      const newDislikeCount = Math.max(0, (currentComment.dislike_count || 0) + dislikeCountChange)
+
+      // 카운트 업데이트
+      const { error: updateError } = await supabaseServer
+        .from('comments')
+        .update({
+          like_count: newLikeCount,
+          dislike_count: newDislikeCount
+        })
+        .eq('id', commentId)
+
+      if (updateError) {
+        console.error('[NEWS_COMMENT_VOTE] 댓글 카운트 업데이트 오류:', updateError)
+        return NextResponse.json({
+          success: false,
+          error: '댓글 카운트 업데이트에 실패했습니다.'
+        }, { status: 500 })
+      }
     }
 
     // 업데이트된 카운트 조회

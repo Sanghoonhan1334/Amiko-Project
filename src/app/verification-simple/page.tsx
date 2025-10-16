@@ -66,7 +66,7 @@ function SimpleVerificationContent() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">운영자 상태 확인 중...</p>
+          <p className="text-slate-600">{t('auth.adminCheckStatus')}</p>
         </div>
       </div>
     )
@@ -78,7 +78,7 @@ function SimpleVerificationContent() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-green-600">메인 페이지로 이동 중...</p>
+          <p className="text-green-600">{t('auth.redirectingToMain')}</p>
         </div>
       </div>
     )
@@ -108,7 +108,7 @@ function SimpleVerificationContent() {
 
   const handlePhoneSubmit = async () => {
     if (!phoneNumber.trim()) {
-      setError('전화번호를 입력해주세요.')
+      setError(t('auth.phoneNumber') + '를 입력해주세요.')
       return
     }
 
@@ -134,11 +134,11 @@ function SimpleVerificationContent() {
         setStep('verify')
         setTimeLeft(300) // 5분 타이머 시작
       } else {
-        setError(result.error || '인증번호 발송에 실패했습니다.')
+        setError(result.error || t('auth.sendVerificationCode') + '에 실패했습니다.')
       }
     } catch (error) {
       console.error('인증번호 발송 오류:', error)
-      setError('인증번호 발송 중 오류가 발생했습니다.')
+      setError(t('auth.sendVerificationCode') + ' 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -146,7 +146,7 @@ function SimpleVerificationContent() {
 
   const handleVerificationSubmit = async () => {
     if (!verificationCode.trim()) {
-      setError('인증번호를 입력해주세요.')
+      setError(t('auth.verificationCode') + '를 입력해주세요.')
       return
     }
 
@@ -172,11 +172,11 @@ function SimpleVerificationContent() {
       if (response.ok) {
         setStep('complete')
       } else {
-        setError(result.error || '인증에 실패했습니다.')
+        setError(result.error || t('auth.verify') + '에 실패했습니다.')
       }
     } catch (error) {
       console.error('인증 오류:', error)
-      setError('인증 중 오류가 발생했습니다.')
+      setError(t('auth.verifying') + ' 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -197,9 +197,9 @@ function SimpleVerificationContent() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle>로그인이 필요합니다</CardTitle>
+            <CardTitle>{t('auth.loginRequired')}</CardTitle>
             <CardDescription>
-              전화번호 인증을 위해 먼저 로그인해주세요.
+              {t('auth.loginRequiredDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -207,7 +207,7 @@ function SimpleVerificationContent() {
               onClick={() => router.push('/sign-in')}
               className="w-full"
             >
-              로그인하기
+              {t('auth.loginButton')}
             </Button>
           </CardContent>
         </Card>
@@ -228,8 +228,8 @@ function SimpleVerificationContent() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">전화번호 인증</h1>
-            <p className="text-gray-600">게시판 참여을 위해 전화번호 인증이 필요합니다</p>
+            <h1 className="text-2xl font-bold text-gray-800">{t('auth.phoneVerification')}</h1>
+            <p className="text-gray-600">{t('auth.phoneVerificationNeeded')}</p>
           </div>
         </div>
 
@@ -237,9 +237,9 @@ function SimpleVerificationContent() {
         {step === 'method' && (
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>인증 방법을 선택하세요</CardTitle>
+              <CardTitle>{t('auth.selectVerificationMethod')}</CardTitle>
               <CardDescription>
-                서로를 지켜주기 위해 전화번호 인증이 필요합니다
+                {t('auth.verificationForSafety')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -254,8 +254,8 @@ function SimpleVerificationContent() {
                     <MessageSquare className="w-6 h-6" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-bold text-lg mb-1">WhatsApp으로 인증</div>
-                    <div className="text-sm opacity-90 font-medium leading-relaxed">WhatsApp 메시지로 인증번호 받기</div>
+                    <div className="font-bold text-lg mb-1">{t('auth.whatsappVerification')}</div>
+                    <div className="text-sm opacity-90 font-medium leading-relaxed">{t('auth.whatsappVerificationDesc')}</div>
                   </div>
                   <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
                     <ArrowRight className="w-4 h-4" />
@@ -274,8 +274,8 @@ function SimpleVerificationContent() {
                     <Smartphone className="w-6 h-6" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-bold text-lg mb-1">SMS로 인증</div>
-                    <div className="text-sm opacity-90 font-medium leading-relaxed">문자 메시지로 인증번호 받기</div>
+                    <div className="font-bold text-lg mb-1">{t('auth.smsVerification')}</div>
+                    <div className="text-sm opacity-90 font-medium leading-relaxed">{t('auth.smsVerificationDesc')}</div>
                   </div>
                   <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
                     <ArrowRight className="w-4 h-4" />
@@ -294,35 +294,35 @@ function SimpleVerificationContent() {
                 {method === 'whatsapp' ? (
                   <>
                     <MessageSquare className="w-5 h-5 text-green-600" />
-                    WhatsApp 인증
+                    {t('auth.whatsappAuth')}
                   </>
                 ) : (
                   <>
                     <Smartphone className="w-5 h-5 text-blue-600" />
-                    SMS 인증
+                    {t('auth.smsAuth')}
                   </>
                 )}
               </CardTitle>
               <CardDescription>
                 {method === 'whatsapp' 
-                  ? 'WhatsApp으로 인증번호를 받을 전화번호를 입력하세요'
-                  : 'SMS로 인증번호를 받을 전화번호를 입력하세요'
+                  ? t('auth.whatsappPhoneDesc')
+                  : t('auth.smsPhoneDesc')
                 }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">전화번호</Label>
+                <Label htmlFor="phone">{t('auth.phoneNumber')}</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="예: +82 10-1234-5678"
+                  placeholder={t('auth.phoneNumberPlaceholder')}
                   className="text-center text-lg"
                 />
                 <p className="text-xs text-gray-500 text-center">
-                  국가번호를 포함한 전체 전화번호를 입력하세요
+                  {t('auth.phoneNumberHelp')}
                 </p>
               </div>
 
@@ -338,7 +338,7 @@ function SimpleVerificationContent() {
                 disabled={loading || !phoneNumber.trim()}
                 className="w-full"
               >
-                {loading ? '발송 중...' : '인증번호 발송'}
+                {loading ? t('auth.sendingCode') : t('auth.sendVerificationCode')}
               </Button>
             </CardContent>
           </Card>
@@ -350,21 +350,21 @@ function SimpleVerificationContent() {
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                인증번호 입력
+                {t('auth.enterVerificationCode')}
               </CardTitle>
               <CardDescription>
-                {phoneNumber}로 발송된 인증번호를 입력하세요
+                {phoneNumber}{t('auth.codeSentTo')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="code">인증번호</Label>
+                <Label htmlFor="code">{t('auth.verificationCode')}</Label>
                 <Input
                   id="code"
                   type="text"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="6자리 인증번호"
+                  placeholder={t('auth.verificationCodePlaceholder')}
                   className="text-center text-2xl font-bold tracking-widest"
                   maxLength={6}
                 />
@@ -379,7 +379,7 @@ function SimpleVerificationContent() {
                     ⏰ {formatTime(timeLeft)}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {timeLeft === 0 ? '인증번호가 만료되었습니다' : '남은 시간'}
+                    {timeLeft === 0 ? t('auth.codeExpired') : t('auth.timeLeft')}
                   </p>
                 </div>
               </div>
@@ -397,7 +397,7 @@ function SimpleVerificationContent() {
                   disabled={loading || !verificationCode.trim() || timeLeft === 0}
                   className="w-full"
                 >
-                  {loading ? '인증 중...' : '인증하기'}
+                  {loading ? t('auth.verifying') : t('auth.verify')}
                 </Button>
                 
                 <Button 
@@ -406,7 +406,7 @@ function SimpleVerificationContent() {
                   variant="outline"
                   className="w-full"
                 >
-                  인증번호 다시 받기
+                  {t('auth.resendCode')}
                 </Button>
               </div>
             </CardContent>
@@ -420,9 +420,9 @@ function SimpleVerificationContent() {
               <div className="flex justify-center mb-4">
                 <CheckCircle className="w-16 h-16 text-green-500" />
               </div>
-              <CardTitle className="text-green-600">인증 완료!</CardTitle>
+              <CardTitle className="text-green-600">{t('auth.verificationComplete')}</CardTitle>
               <CardDescription>
-                전화번호 인증이 완료되었습니다. 이제 게시판에 참여할 수 있습니다.
+                {t('auth.verificationCompleteDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -430,7 +430,7 @@ function SimpleVerificationContent() {
                 onClick={() => router.push('/main')}
                 className="w-full"
               >
-                메인으로 돌아가기
+                {t('auth.backToMain')}
               </Button>
             </CardContent>
           </Card>

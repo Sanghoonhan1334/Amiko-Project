@@ -33,9 +33,10 @@ export default function QueryProvider({ children }: QueryProviderProps) {
     <QueryClientProvider client={queryClient}>
       {children}
       {/* 개발 환경에서만 DevTools 표시 */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* React Query DevTools 비활성화 */}
+      {/* {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} />
-      )}
+      )} */}
     </QueryClientProvider>
   )
 }

@@ -48,7 +48,7 @@ const getMockStories = (userName: string = '한상훈'): Story[] => []
 
 export default function StoryCarousel() {
   const { user } = useUser()
-  const { token, user: authUser } = useAuth()
+  const { token, user: authUser, session } = useAuth()
   const { t } = useLanguage()
   
   // 운영자 권한 확인
@@ -158,6 +158,7 @@ export default function StoryCarousel() {
   
   // 좋아요 상태 관리
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set())
+  const [isProcessingLike, setIsProcessingLike] = useState(false)
   
   // 스토리 모달 상태
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
@@ -167,6 +168,14 @@ export default function StoryCarousel() {
   const [showCommentModal, setShowCommentModal] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
   const [storyComments, setStoryComments] = useState<Record<string, Comment[]>>({})
+
+  // 댓글 모달이 열릴 때 댓글 로드
+  useEffect(() => {
+    if (showCommentModal) {
+      console.log('댓글 모달 열림, 댓글 로드 시작:', showCommentModal)
+      loadStoryComments(showCommentModal)
+    }
+  }, [showCommentModal, loadStoryComments])
   
   // 프로필 모달 상태
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -412,6 +421,9 @@ export default function StoryCarousel() {
       } else {
         setStories(convertedStories)
         setHasMore(data.pagination?.hasMore || false)
+        
+        // 스토리 로드 후 좋아요 상태 초기화
+        await loadUserLikes(convertedStories.map(s => s.id))
       }
     } catch (error) {
       console.error('초기 스토리 로드 실패:', error)
@@ -509,40 +521,182 @@ export default function StoryCarousel() {
   }, [handleScroll])
 
   // 좋아요 토글 처리
-  const handleLikeToggle = (storyId: string) => {
-    setLikedStories(prev => {
-      const newLiked = new Set(prev)
-      if (newLiked.has(storyId)) {
-        newLiked.delete(storyId)
+  const handleLikeToggle = async (storyId: string) => {
+    const isCurrentlyLiked = likedStories.has(storyId)
+    
+    // 중복 클릭 방지를 위한 상태 추가
+    if (isProcessingLike) return
+    
+    setIsProcessingLike(true)
+    
+    try {
+      console.log('스토리 좋아요 토글 시도:', { storyId, isCurrentlyLiked })
+      
+      // 낙관적 업데이트 (사용자 경험 개선)
+      setLikedStories(prev => {
+        const newLiked = new Set(prev)
+        if (isCurrentlyLiked) {
+          newLiked.delete(storyId)
+        } else {
+          newLiked.add(storyId)
+        }
+        return newLiked
+      })
+      
+      const response = await fetch(`/api/stories/${storyId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || session?.access_token}`
+        },
+        body: JSON.stringify({
+          action: isCurrentlyLiked ? 'unlike' : 'like'
+        })
+      })
+
+      console.log('스토리 좋아요 토글 응답:', response.status)
+
+      if (!response.ok) {
+        // API 실패 시 상태 롤백
+        setLikedStories(prev => {
+          const newLiked = new Set(prev)
+          if (isCurrentlyLiked) {
+            newLiked.add(storyId) // 원래 상태로 복원
+          } else {
+            newLiked.delete(storyId) // 원래 상태로 복원
+          }
+          return newLiked
+        })
+        
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('스토리 좋아요 토글 실패:', errorData)
+        alert(errorData.error || '좋아요 처리에 실패했습니다.')
       } else {
-        newLiked.add(storyId)
+        const data = await response.json()
+        console.log('스토리 좋아요 토글 성공:', data)
       }
-      return newLiked
-    })
+    } catch (error) {
+      // 네트워크 오류 시 상태 롤백
+      setLikedStories(prev => {
+        const newLiked = new Set(prev)
+        if (isCurrentlyLiked) {
+          newLiked.add(storyId) // 원래 상태로 복원
+        } else {
+          newLiked.delete(storyId) // 원래 상태로 복원
+        }
+        return newLiked
+      })
+      
+      console.error('스토리 좋아요 토글 오류:', error)
+      alert('좋아요 처리 중 오류가 발생했습니다.')
+    } finally {
+      setIsProcessingLike(false)
+    }
   }
 
   // 댓글 추가
-  const handleAddComment = (storyId: string) => {
+  const handleAddComment = async (storyId: string) => {
     if (!commentText.trim()) return
 
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      storyId,
-      author: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '익명',
-      authorId: user?.id,
-      content: commentText,
-      createdAt: new Date(),
-      likes: 0
+    try {
+      console.log('스토리 댓글 작성 시도:', { storyId, content: commentText.trim() })
+      
+      const response = await fetch(`/api/stories/${storyId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || session?.access_token}`
+        },
+        body: JSON.stringify({
+          content: commentText.trim()
+        })
+      })
+
+      console.log('스토리 댓글 작성 응답:', response.status)
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('스토리 댓글 작성 성공:', data)
+        
+        // 댓글 목록 새로고침
+        await loadStoryComments(storyId)
+        setCommentText('')
+        setShowCommentModal(null)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('스토리 댓글 작성 실패:', errorData)
+        alert(errorData.error || '댓글 작성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('스토리 댓글 작성 오류:', error)
+      alert('댓글 작성 중 오류가 발생했습니다.')
     }
-
-    setStoryComments(prev => ({
-      ...prev,
-      [storyId]: [...(prev[storyId] || []), newComment]
-    }))
-
-    setCommentText('')
-    setShowCommentModal(null)
   }
+
+  // 스토리 댓글 로딩
+  const loadStoryComments = useCallback(async (storyId: string) => {
+    try {
+      console.log('스토리 댓글 로드 시도:', storyId)
+      
+      const response = await fetch(`/api/stories/${storyId}/comments`)
+      console.log('스토리 댓글 로드 응답:', response.status)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('스토리 댓글 로드 성공:', data.comments?.length || 0, '개')
+        
+        // API 응답을 로컬 상태 형식으로 변환
+        const transformedComments = data.comments?.map((comment: any) => ({
+          id: comment.id,
+          storyId: storyId,
+          author: comment.author?.full_name || '익명',
+          authorId: comment.author?.id,
+          content: comment.content,
+          createdAt: new Date(comment.created_at),
+          likes: 0 // API에 좋아요 기능이 없으므로 0으로 설정
+        })) || []
+        
+        setStoryComments(prev => ({
+          ...prev,
+          [storyId]: transformedComments
+        }))
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('스토리 댓글 로드 실패:', errorData)
+      }
+    } catch (error) {
+      console.error('스토리 댓글 로드 오류:', error)
+    }
+  }, [])
+
+  // 사용자의 좋아요 상태 로드
+  const loadUserLikes = useCallback(async (storyIds: string[]) => {
+    if (!token || storyIds.length === 0) return
+    
+    try {
+      console.log('사용자 좋아요 상태 로드 시도:', storyIds)
+      
+      const response = await fetch(`/api/stories/likes?storyIds=${storyIds.join(',')}`, {
+        headers: {
+          'Authorization': `Bearer ${token || session?.access_token}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('사용자 좋아요 상태 로드 성공:', data.likedStories)
+        
+        // 좋아요 상태 설정
+        setLikedStories(new Set(data.likedStories || []))
+      } else {
+        console.log('사용자 좋아요 상태 로드 실패, 빈 상태로 초기화')
+        setLikedStories(new Set())
+      }
+    } catch (error) {
+      console.error('사용자 좋아요 상태 로드 오류:', error)
+      setLikedStories(new Set())
+    }
+  }, [token])
 
   // 댓글 좋아요
   const handleCommentLike = (storyId: string, commentId: string) => {
@@ -1037,7 +1191,10 @@ export default function StoryCarousel() {
                           </button>
                           
                           <button
-                            onClick={() => setShowCommentModal(stories[currentIndex].id)}
+                            onClick={() => {
+                              console.log('댓글 모달 열기 버튼 클릭:', stories[currentIndex].id)
+                              setShowCommentModal(stories[currentIndex].id)
+                            }}
                             className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
                           >
                             <MessageSquare className="w-5 h-5 text-blue-500" />
@@ -1168,6 +1325,7 @@ export default function StoryCarousel() {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
+                                        console.log('댓글 모달 열기 버튼 클릭:', story.id)
                                         setShowCommentModal(story.id)
                                       }}
                                       className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
@@ -1237,12 +1395,13 @@ export default function StoryCarousel() {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
+                                      console.log('댓글 모달 열기 버튼 클릭:', story.id)
                                       setShowCommentModal(story.id)
                                     }}
                                     className="flex items-center gap-1 text-xs text-gray-600 hover:text-blue-500 transition-colors"
                                   >
                                     <MessageSquare className="w-4 h-4" />
-                                    <span>{t('communityTab.comment')}</span>
+                                    <span>{t('communityTab.comment')} {story.comment_count || storyComments[story.id]?.length || 0}</span>
                                   </button>
                                 </VerificationGuard>
                               </div>

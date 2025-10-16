@@ -20,6 +20,7 @@ interface Post {
   comment_count: number
   is_pinned: boolean
   is_hot: boolean
+  is_notice: boolean
   created_at: string
   updated_at: string
   author: {
@@ -57,7 +58,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     const adminEmails = [
       'admin@amiko.com',
       'editor@amiko.com',
-      'manager@amiko.com'
+      'manager@amiko.com',
+      'info@helloamiko.com'
     ]
     
     // 운영자 ID 목록
@@ -251,7 +253,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   }
 
   const isAuthor = user && user.id === post.author?.id
-  const canManage = isAuthor || isAdmin // 작성자이거나 운영자
+  const canManage = post.is_notice ? isAdmin : (isAuthor || isAdmin) // 공지사항은 운영자만, 일반 게시글은 작성자이거나 운영자
   
   console.log('PostDetail 권한 확인:', {
     userId: user?.id,
@@ -292,7 +294,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               {/* 수정/삭제 버튼 */}
               {canManage && (
                 <div className="flex space-x-2">
-                  {isAuthor && (
+                  {(post.is_notice ? isAdmin : isAuthor) && (
                     <Button size="sm" variant="outline" onClick={() => {
                       console.log('수정 버튼 클릭됨, onEdit 함수:', onEdit)
                       if (onEdit) {
@@ -301,24 +303,26 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                         console.error('onEdit 함수가 정의되지 않음')
                       }
                     }}>
-                      수정
+                      {post.is_notice ? '📝 공지사항 수정' : '수정'}
                     </Button>
                   )}
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => {
-                      console.log('삭제 버튼 클릭됨, onDelete 함수:', onDelete)
-                      if (onDelete) {
-                        onDelete()
-                      } else {
-                        console.error('onDelete 함수가 정의되지 않음')
-                      }
-                    }}
-                    className={isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : ''}
-                  >
-                    {isAdmin && !isAuthor ? '🗑️ 운영자 삭제' : '삭제'}
-                  </Button>
+                  {(post.is_notice ? isAdmin : (isAuthor || isAdmin)) && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        console.log('삭제 버튼 클릭됨, onDelete 함수:', onDelete)
+                        if (onDelete) {
+                          onDelete()
+                        } else {
+                          console.error('onDelete 함수가 정의되지 않음')
+                        }
+                      }}
+                      className={post.is_notice ? 'text-red-600 border-red-600 hover:bg-red-50' : (isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : '')}
+                    >
+                      {post.is_notice ? '🗑️ 공지사항 삭제' : (isAdmin && !isAuthor ? '🗑️ 운영자 삭제' : '삭제')}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>

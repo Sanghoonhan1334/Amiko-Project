@@ -3,7 +3,7 @@ import { supabaseServer } from '@/lib/supabaseServer'
 import { sendVerificationEmail, getEmailServiceStatus } from '@/lib/emailService'
 import { sendVerificationSMS, sendVerificationWhatsApp, getSMSServiceStatus, getRecommendedSMSService } from '@/lib/smsService'
 
-// 전화번호 정규화 함수
+// 전화번호 정규화 함수 (라틴아메리카 국가 코드 지원)
 function normalizePhoneNumber(phone: string): string {
   // 공백과 특수문자 제거
   let cleaned = phone.replace(/[\s\-\(\)]/g, '')
@@ -16,10 +16,79 @@ function normalizePhoneNumber(phone: string): string {
     if (cleaned.startsWith('010') || cleaned.startsWith('011') || cleaned.startsWith('016') || cleaned.startsWith('017') || cleaned.startsWith('018') || cleaned.startsWith('019')) {
       cleaned = '+82' + cleaned.substring(1) // 0 제거하고 +82 추가
       console.log(`[NORMALIZE] 한국 번호 감지: ${cleaned}`)
+    } 
+    // 라틴아메리카 주요 국가들 처리
+    else if (cleaned.startsWith('52')) {
+      // 멕시코
+      cleaned = '+52' + cleaned.substring(2)
+      console.log(`[NORMALIZE] 멕시코 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('54')) {
+      // 아르헨티나
+      cleaned = '+54' + cleaned.substring(2)
+      console.log(`[NORMALIZE] 아르헨티나 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('55')) {
+      // 브라질
+      cleaned = '+55' + cleaned.substring(2)
+      console.log(`[NORMALIZE] 브라질 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('57')) {
+      // 콜롬비아
+      cleaned = '+57' + cleaned.substring(2)
+      console.log(`[NORMALIZE] 콜롬비아 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('51')) {
+      // 페루
+      cleaned = '+51' + cleaned.substring(2)
+      console.log(`[NORMALIZE] 페루 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('56')) {
+      // 칠레
+      cleaned = '+56' + cleaned.substring(2)
+      console.log(`[NORMALIZE] 칠레 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('58')) {
+      // 베네수엘라
+      cleaned = '+58' + cleaned.substring(2)
+      console.log(`[NORMALIZE] 베네수엘라 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('593')) {
+      // 에콰도르
+      cleaned = '+593' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 에콰도르 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('502')) {
+      // 과테말라
+      cleaned = '+502' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 과테말라 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('504')) {
+      // 온두라스
+      cleaned = '+504' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 온두라스 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('505')) {
+      // 니카라과
+      cleaned = '+505' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 니카라과 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('507')) {
+      // 파나마
+      cleaned = '+507' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 파나마 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('595')) {
+      // 파라과이
+      cleaned = '+595' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 파라과이 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('598')) {
+      // 우루과이
+      cleaned = '+598' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 우루과이 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('591')) {
+      // 볼리비아
+      cleaned = '+591' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 볼리비아 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('506')) {
+      // 코스타리카
+      cleaned = '+506' + cleaned.substring(3)
+      console.log(`[NORMALIZE] 코스타리카 번호 감지: ${cleaned}`)
+    } else if (cleaned.startsWith('1')) {
+      // 미국/캐나다 (+1)
+      cleaned = '+1' + cleaned.substring(1)
+      console.log(`[NORMALIZE] 미국/캐나다 번호 감지: ${cleaned}`)
     } else {
-      // 다른 국가는 +1 (미국)로 가정 (필요에 따라 확장)
-      cleaned = '+1' + cleaned
-      console.log(`[NORMALIZE] 기타 국가 번호: ${cleaned}`)
+      // 알 수 없는 국가는 원본 그대로 유지
+      console.log(`[NORMALIZE] 알 수 없는 국가 번호: ${cleaned}`)
     }
   }
   
@@ -85,6 +154,14 @@ export async function POST(request: NextRequest) {
       
       console.log(`[VERIFICATION_SEND] ${type.toUpperCase()} 인증코드 저장: ${phoneNum} = ${verificationCode}`)
       console.log(`[VERIFICATION_SEND] 만료시간: ${expiresAt.toLocaleString('ko-KR')}`)
+      
+      // Twilio 환경변수 확인
+      console.log(`[VERIFICATION_SEND] Twilio 환경변수 상태:`, {
+        TWILIO_ACCOUNT_SID: !!process.env.TWILIO_ACCOUNT_SID,
+        TWILIO_AUTH_TOKEN: !!process.env.TWILIO_AUTH_TOKEN,
+        TWILIO_PHONE_NUMBER: !!process.env.TWILIO_PHONE_NUMBER,
+        NODE_ENV: process.env.NODE_ENV
+      })
 
       // 실제 인증 방식별 발송
       let messageSent = false

@@ -234,9 +234,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 사용자 인증 상태 조회 (새로운 테이블 구조 사용)
+    // 사용자 인증 상태 조회 (users 테이블과 user_preferences 테이블 모두 확인)
     try {
-      // user_preferences 테이블에서 인증 정보 확인
+      // 1. users 테이블에서 기본 인증 정보 확인
+      const { data: userData, error: userError } = await supabaseServer
+        .from('users')
+        .select('id, full_name, phone, university, major, email_verified_at, created_at')
+        .eq('id', userId)
+        .single()
+
+      if (userError) {
+        console.error('[VERIFICATION] 사용자 정보 조회 실패:', userError)
+      }
+
+      // 2. user_preferences 테이블에서 추가 인증 정보 확인
       const { data: preferences, error: preferencesError } = await supabaseServer
         .from('user_preferences' as any)
         .select('*')
@@ -244,29 +255,50 @@ export async function GET(request: NextRequest) {
         .single()
 
       if (preferencesError && preferencesError.code !== 'PGRST116') {
-        console.error('[VERIFICATION] 인증 상태 조회 실패:', preferencesError)
-        return NextResponse.json(
-          { error: '인증 상태를 조회할 수 없습니다.' },
-          { status: 500 }
-        )
+        console.error('[VERIFICATION] user_preferences 조회 실패:', preferencesError)
       }
 
-      // 실제 인증 완료 여부 확인
-      const isVerified = preferences && (
+      // 3. 실제 인증 완료 여부 확인 (users 테이블 우선)
+      const hasBasicInfo = userData && (
+        userData.full_name ||
+        userData.phone ||
+        userData.university ||
+        userData.major
+      )
+
+      const hasPreferencesInfo = preferences && (
         (preferences as any).full_name ||
         (preferences as any).phone ||
         (preferences as any).university ||
         (preferences as any).major
       )
 
+      const isVerified = hasBasicInfo || hasPreferencesInfo
+
+      console.log('[VERIFICATION] 인증 상태 확인:', {
+        userId,
+        hasBasicInfo,
+        hasPreferencesInfo,
+        isVerified,
+        userData: userData ? {
+          full_name: userData.full_name,
+          phone: userData.phone,
+          university: userData.university,
+          major: userData.major
+        } : null
+      })
+
       const verification = isVerified ? {
         status: 'approved' as const,
         message: '인증이 완료되었습니다.',
-        submitted_at: (preferences as any).created_at,
+        submitted_at: userData?.created_at || (preferences as any)?.created_at,
+        user_data: userData,
         preferences: preferences
       } : {
         status: 'not_submitted' as const,
-        message: '인증 정보가 제출되지 않았습니다.'
+        message: '인증 정보가 제출되지 않았습니다.',
+        user_data: userData,
+        preferences: preferences
       }
 
       return NextResponse.json({ verification })

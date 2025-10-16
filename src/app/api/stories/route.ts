@@ -23,6 +23,28 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
+    // Authorization 헤더에서 현재 사용자 ID 가져오기
+    let currentUserId = null
+    const authHeader = request.headers.get('authorization')
+    console.log('[STORIES_API] Authorization 헤더 확인:', { 
+      hasHeader: !!authHeader, 
+      headerLength: authHeader?.length,
+      headerStart: authHeader?.substring(0, 20) + '...'
+    })
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.replace('Bearer ', '')
+        const { data: { user } } = await supabaseServer.auth.getUser(token)
+        currentUserId = user?.id
+        console.log('[STORIES_API] 현재 사용자 ID:', currentUserId)
+      } catch (error) {
+        console.log('[STORIES_API] 토큰 검증 실패:', error)
+      }
+    } else {
+      console.log('[STORIES_API] Authorization 헤더가 없거나 Bearer 형식이 아님')
+    }
+
     // 임시 사용자 ID인 경우 처리 (개발 환경)
     if (userId && (userId.startsWith('user_') || userId.startsWith('temp_'))) {
       console.log('[STORIES_API] 임시 사용자 ID 감지, 빈 스토리 목록 반환')
@@ -46,7 +68,9 @@ export async function GET(request: NextRequest) {
         is_expired,
         expires_at,
         created_at,
-        user_id
+        user_id,
+        like_count,
+        comment_count
       `, { count: 'exact' })
       .eq('is_expired', false)
       .gt('expires_at', new Date().toISOString()) // 만료되지 않은 스토리만 조회
@@ -73,10 +97,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
+
+    // 현재 사용자의 좋아요 상태 가져오기
+    let userLikedStories = new Set<string>()
+    if (currentUserId && stories && stories.length > 0) {
+      try {
+        const storyIds = stories.map(story => story.id)
+        const { data: likedStories, error: likesError } = await supabaseServer
+          .from('story_likes')
+          .select('story_id')
+          .eq('user_id', currentUserId)
+          .in('story_id', storyIds)
+
+        if (!likesError && likedStories) {
+          userLikedStories = new Set(likedStories.map(like => like.story_id))
+          console.log('[STORIES_API] 사용자 좋아요 상태:', Array.from(userLikedStories))
+        }
+      } catch (error) {
+        console.error('[STORIES_API] 좋아요 상태 조회 실패:', error)
+      }
+    }
+
     // 사용자 정보를 별도로 가져오기
     const storiesWithUsers = await Promise.all(
       (stories || []).map(async (story) => {
         try {
+          console.log(`[STORIES_LIST] 사용자 정보 조회 시작 (${story.user_id})`)
+          
           // 먼저 user_profiles 테이블에서 조회
           const { data: profileData, error: profileError } = await supabaseServer
             .from('user_profiles')
@@ -84,46 +131,64 @@ export async function GET(request: NextRequest) {
             .eq('user_id', story.user_id)
             .single()
 
-          if (!profileError && profileData?.display_name) {
+          console.log(`[STORIES_LIST] user_profiles 조회 결과:`, { profileData, profileError })
+
+          if (!profileError && profileData && profileData.display_name) {
+            console.log(`[STORIES_LIST] user_profiles에서 데이터 발견:`, profileData)
             return {
               ...story,
+              text: story.text_content,
+              likes: story.like_count || 0,
+              comment_count: story.comment_count || 0,
               user_name: profileData.display_name,
               user_email: null,
               user_profile_image: profileData.avatar_url
             }
           }
 
-          // user_profiles에 없으면 users 테이블에서 조회
+          // user_profiles에 없으면 users 테이블에서 조회 (RLS 우회)
+          console.log(`[STORIES_LIST] user_profiles에 데이터 없음, users 테이블 조회 시작`)
           const { data: userData, error: userError } = await supabaseServer
             .from('users')
-            .select('id, full_name, email, profile_image')
+            .select('id, full_name, email, avatar_url')
             .eq('id', story.user_id)
             .single()
+
+          console.log(`[STORIES_LIST] users 테이블 조회 결과:`, { userData, userError })
 
           if (userError) {
             console.error(`[STORIES_LIST] 사용자 정보 조회 실패 (${story.user_id}):`, userError)
             return {
               ...story,
+              text: story.text_content,
+              likes: 0,
+              comment_count: 0,
               user_name: '익명',
               user_email: null,
               user_profile_image: null
             }
           }
 
-          return {
+          const result = {
             ...story,
             text: story.text_content, // API 응답에 text 필드 추가
-            likes: 0, // 임시로 0으로 설정
+            likes: story.like_count || 0,
+            comment_count: story.comment_count || 0,
             user_name: userData?.full_name || userData?.email?.split('@')[0] || '익명',
             user_email: userData?.email || null,
-            user_profile_image: userData?.profile_image
+            user_profile_image: userData?.avatar_url || null // 실제 사용자 프로필 이미지 사용
           }
+          
+          console.log(`[STORIES_LIST] 최종 결과:`, result)
+          return result
         } catch (err) {
           console.error(`[STORIES_LIST] 사용자 정보 처리 실패 (${story.user_id}):`, err)
           return {
             ...story,
             text: story.text_content,
-            likes: 0, // 임시로 0으로 설정
+            likes: story.like_count || 0,
+            comments: [], // 댓글 배열 초기화
+            comment_count: story.comment_count || 0,
             user_name: '익명',
             user_email: null,
             user_profile_image: null
@@ -134,6 +199,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       stories: storiesWithUsers,
+      userLikedStories: Array.from(userLikedStories), // 사용자가 좋아요한 스토리 ID 목록
       pagination: {
         offset,
         limit,
