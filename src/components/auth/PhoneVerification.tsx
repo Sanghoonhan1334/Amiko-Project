@@ -221,11 +221,11 @@ export default function PhoneVerification({
                   <div className={`flex-shrink-0 p-1.5 rounded-lg backdrop-blur-sm ${method.id === 'kakao' ? 'bg-gray-600/30' : 'bg-white/20'}`}>
                     {method.icon}
                   </div>
-                  <div className="text-left flex-1">
+                  <div className="text-left flex-1 pr-16">
                     <div className={`font-bold text-base leading-tight ${method.id === 'kakao' ? '!text-black !font-black' : ''}`}>{method.name}</div>
                     <div className={`text-xs leading-tight mt-0.5 font-medium ${method.id === 'kakao' ? '!text-black !opacity-100' : 'opacity-90'}`}>{method.description}</div>
                   </div>
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 absolute right-4 top-1/2 transform -translate-y-1/2">
                     <svg className={`w-4 h-4 ${method.id === 'kakao' ? 'text-black opacity-80' : 'text-white opacity-70'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -233,13 +233,13 @@ export default function PhoneVerification({
                   
                   {/* 준비중인 서비스에 배지 표시 */}
                   {method.id === 'kakao' && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                      2월 이후 적용
+                    <div className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-10">
+                      {t('auth.kakaoComingSoon')}
                     </div>
                   )}
                   {method.id === 'whatsapp' && (
-                    <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                      준비중
+                    <div className="absolute top-1 right-1 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-10">
+                      {t('auth.comingSoon')}
                     </div>
                   )}
                 </Button>

@@ -374,6 +374,8 @@ export const translations = {
       verifyButton: '인증하기',
       kakaoAuthAlert: '카카오톡 인증은 2월 이후에 적용 예정입니다.\n현재는 SMS 인증을 이용해주세요.',
       whatsappAuthAlert: 'WhatsApp 인증은 준비 중입니다.\n현재는 SMS 인증을 이용해주세요.',
+      comingSoon: '준비중',
+      kakaoComingSoon: '2월 이후 적용',
       
       // 지문 인증
       biometricLogin: '지문으로 빠른 로그인',
@@ -2636,6 +2638,8 @@ export const translations = {
       verifyButton: 'Verificar',
       kakaoAuthAlert: 'La verificación por KakaoTalk se aplicará después de febrero.\nPor favor usa la verificación SMS por ahora.',
       whatsappAuthAlert: 'La verificación por WhatsApp está en preparación.\nPor favor usa la verificación SMS por ahora.',
+      comingSoon: 'Próximamente',
+      kakaoComingSoon: 'Disponible en Feb',
       
       // 지문 인증
       biometricLogin: 'Inicio de sesión rápido con huella dactilar',
