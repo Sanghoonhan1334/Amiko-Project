@@ -159,8 +159,9 @@ export async function POST(request: NextRequest) {
       console.log(`[VERIFICATION_SEND] Twilio 환경변수 상태:`, {
         TWILIO_ACCOUNT_SID: !!process.env.TWILIO_ACCOUNT_SID,
         TWILIO_AUTH_TOKEN: !!process.env.TWILIO_AUTH_TOKEN,
-        TWILIO_PHONE_NUMBER: !!process.env.TWILIO_PHONE_NUMBER,
-        NODE_ENV: process.env.NODE_ENV
+        TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || '설정되지 않음',
+        NODE_ENV: process.env.NODE_ENV,
+        VERCEL_URL: process.env.VERCEL_URL || '설정되지 않음'
       })
 
       // 실제 인증 방식별 발송

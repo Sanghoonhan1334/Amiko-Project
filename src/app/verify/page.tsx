@@ -215,7 +215,7 @@ function VerifyContent() {
 
   // 카카오 인증 (placeholder)
   const handleKakaoAuth = () => {
-    alert('카카오 인증 기능은 준비 중입니다!')
+    alert(t('auth.kakaoAuthNotReady'))
   }
 
   // 카운트다운 포맷팅

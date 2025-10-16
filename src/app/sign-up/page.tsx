@@ -271,7 +271,7 @@ export default function SignUpPage() {
     } catch (error) {
       console.error('이메일 인증 발송 실패:', error)
       const errorMessage = error instanceof Error ? error.message : '이메일 인증코드 발송에 실패했습니다.'
-      alert(`이메일 인증코드 발송에 실패했습니다.\n\n오류: ${errorMessage}\n\n잠시 후 다시 시도해주세요.`)
+      alert(`${t('auth.emailVerificationCodeSendFailed')}\n\n오류: ${errorMessage}\n\n잠시 후 다시 시도해주세요.`)
     } finally {
       setIsLoading(false)
     }
@@ -299,7 +299,7 @@ export default function SignUpPage() {
       setCurrentStep('sms')
     } catch (error) {
       console.error('이메일 인증 실패:', error)
-      alert('인증코드가 올바르지 않습니다.')
+      alert(t('auth.verificationCodeIncorrect'))
     } finally {
       setIsLoading(false)
     }
@@ -339,7 +339,7 @@ export default function SignUpPage() {
       return result
     } catch (error) {
       console.error(`❌ ${method} 인증 발송 실패:`, error)
-      alert(`${method} 인증코드 발송에 실패했습니다.`)
+      alert(t(`auth.${method}VerificationCodeSendFailed`))
       throw error
     } finally {
       setIsLoading(false)
@@ -367,7 +367,7 @@ export default function SignUpPage() {
       handleSignUp()
     } catch (error) {
       console.error('SMS 인증 실패:', error)
-      alert('인증코드가 올바르지 않습니다.')
+      alert(t('auth.verificationCodeIncorrect'))
     } finally {
       setIsLoading(false)
     }
@@ -414,7 +414,7 @@ export default function SignUpPage() {
       
       // 중복 이메일 에러 처리
       if (error instanceof Error && error.message.includes('이미 가입된 이메일')) {
-        alert('이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.')
+        alert(t('auth.emailAlreadyExists'))
         setCurrentStep('form') // 폼으로 돌아가기
         return
       }
@@ -449,7 +449,7 @@ export default function SignUpPage() {
       }
       
       if (emailResult.exists) {
-        alert('이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.')
+        alert(t('auth.emailAlreadyExists'))
         return
       }
 
@@ -467,7 +467,7 @@ export default function SignUpPage() {
       }
       
       if (phoneResult.exists) {
-        alert('이미 가입된 전화번호입니다. 다른 전화번호를 사용하거나 로그인해주세요.')
+        alert(t('auth.phoneAlreadyExists'))
         return
       }
       
@@ -485,7 +485,7 @@ export default function SignUpPage() {
       
     } catch (error) {
       console.error('중복 체크 오류:', error)
-      alert(error instanceof Error ? error.message : '확인 중 오류가 발생했습니다.')
+      alert(error instanceof Error ? error.message : t('auth.checkError'))
     } finally {
       setIsLoading(false)
     }
