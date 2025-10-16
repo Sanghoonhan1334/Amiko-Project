@@ -17,10 +17,12 @@ import {
   Check,
   AlertCircle
 } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedChannel, setSelectedChannel] = useState<string>('')
   const [target, setTarget] = useState('')
@@ -466,7 +468,7 @@ function VerifyContent() {
                 onClick={handleBack}
                 className="text-gray-600 hover:text-gray-800"
               >
-                뒤로가기
+{t('auth.back')}
               </Button>
             </div>
           )}

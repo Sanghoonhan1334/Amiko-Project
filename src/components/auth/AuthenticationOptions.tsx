@@ -76,7 +76,7 @@ export default function AuthenticationOptions({
               onClick={() => setShowEmailForm(false)}
               className="flex-1"
             >
-              뒤로가기
+{t('auth.back')}
             </Button>
             <Button type="submit" className="flex-1">
               인증코드 발송
@@ -118,7 +118,7 @@ export default function AuthenticationOptions({
               onClick={() => setShowSMSForm(false)}
               className="flex-1"
             >
-              뒤로가기
+{t('auth.back')}
             </Button>
             <Button type="submit" className="flex-1">
               인증코드 발송

@@ -505,7 +505,7 @@ export default function SignUpPage() {
                 className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-700"
               >
                 <ArrowLeft className="w-4 h-4" />
-                뒤로가기
+{t('auth.back')}
               </Button>
             </div>
             <EmailVerification
@@ -528,7 +528,7 @@ export default function SignUpPage() {
                 className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-700"
               >
                 <ArrowLeft className="w-4 h-4" />
-                뒤로가기
+{t('auth.back')}
               </Button>
             </div>
             <PhoneVerification
