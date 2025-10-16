@@ -232,6 +232,8 @@ export async function POST(request: NextRequest) {
       
       if (!messageSent) {
         console.error(`[${type.toUpperCase()}_VERIFICATION] 발송 실패`)
+        console.error(`[${type.toUpperCase()}_VERIFICATION] 전화번호: ${phoneNum}`)
+        console.error(`[${type.toUpperCase()}_VERIFICATION] 정규화된 전화번호: ${type === 'whatsapp' ? normalizePhoneNumber(phoneNum) : phoneNum}`)
         return NextResponse.json(
           { error: `${type === 'whatsapp' ? 'WhatsApp' : 'SMS'} 발송에 실패했습니다.` },
           { status: 500 }
@@ -416,6 +418,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('[VERIFICATION_SEND] 오류:', error)
+    console.error('[VERIFICATION_SEND] 에러 타입:', typeof error)
+    console.error('[VERIFICATION_SEND] 에러 메시지:', error instanceof Error ? error.message : 'Unknown error')
+    console.error('[VERIFICATION_SEND] 에러 스택:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
       { error: '인증코드 발송 중 오류가 발생했습니다.' },
       { status: 500 }
