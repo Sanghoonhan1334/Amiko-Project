@@ -290,6 +290,13 @@ export const translations = {
       passwordHasSpecial: '특수문자 포함',
       passwordNoRepeated: '연속된 문자 없음',
       passwordMismatch: '비밀번호가 일치하지 않습니다',
+      
+      // 닉네임 규칙
+      nicknameLength: '3-20자 사이',
+      nicknameCharacters: '알파벳, 숫자, 특수문자만 사용 가능',
+      nicknameAvailable: '사용 가능한 닉네임',
+      nicknameUnavailable: '이미 사용 중인 닉네임',
+      
       signUpSuccess: '회원가입이 완료되었습니다!',
       signUpFailed: '회원가입에 실패했습니다',
       signUpError: '회원가입 중 오류가 발생했습니다',
@@ -2525,6 +2532,13 @@ export const translations = {
       passwordHasSpecial: 'Incluir caracteres especiales',
       passwordNoRepeated: 'Sin caracteres repetidos',
       passwordMismatch: 'Las contraseñas no coinciden',
+      
+      // 닉네임 규칙
+      nicknameLength: 'Entre 3 y 20 caracteres',
+      nicknameCharacters: 'Solo se pueden usar letras, números y caracteres especiales',
+      nicknameAvailable: 'Apodo disponible',
+      nicknameUnavailable: 'Apodo ya en uso',
+      
       signUpSuccess: '¡Registro completado exitosamente!',
       signUpFailed: 'El registro falló',
       signUpError: 'Ocurrió un error durante el registro',

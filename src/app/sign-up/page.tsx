@@ -585,16 +585,16 @@ export default function SignUpPage() {
                 <div className="space-y-1">
                   <div className={`flex items-center gap-2 text-xs ${nicknameChecks.length ? 'text-green-600' : 'text-red-500'}`}>
                     <div className={`w-1.5 h-1.5 rounded-full ${nicknameChecks.length ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    3-20자 사이
+                    {t('auth.nicknameLength')}
                   </div>
                   <div className={`flex items-center gap-2 text-xs ${nicknameChecks.isAlphabetic ? 'text-green-600' : 'text-red-500'}`}>
                     <div className={`w-1.5 h-1.5 rounded-full ${nicknameChecks.isAlphabetic ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    알파벳, 숫자, 특수문자만 사용 가능
+                    {t('auth.nicknameCharacters')}
                   </div>
                   {nicknameChecks.length && nicknameChecks.isAlphabetic && (
                     <div className={`flex items-center gap-2 text-xs ${nicknameChecks.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
                       <div className={`w-1.5 h-1.5 rounded-full ${nicknameChecks.isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      {nicknameChecks.isAvailable ? '사용 가능한 닉네임' : '이미 사용 중인 닉네임'}
+                      {nicknameChecks.isAvailable ? t('auth.nicknameAvailable') : t('auth.nicknameUnavailable')}
                     </div>
                   )}
                 </div>
