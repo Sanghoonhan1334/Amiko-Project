@@ -70,9 +70,9 @@ export default function PhoneVerification({
         },
         {
           id: 'sms',
-          name: 'SMS 인증',
+          name: t('auth.smsAuth'),
           icon: <MessageIcon />,
-          description: '문자 메시지로 인증코드 발송',
+          description: t('auth.smsCodeSend'),
           color: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-white',
           isAvailable: true
         }
@@ -81,17 +81,17 @@ export default function PhoneVerification({
       return [
         {
           id: 'whatsapp',
-          name: 'WhatsApp 인증',
+          name: t('auth.whatsappAuth'),
           icon: <MessageSquare className="w-6 h-6" />,
-          description: 'WhatsApp으로 인증코드 발송',
+          description: t('auth.whatsappCodeSend'),
           color: 'bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-300 hover:to-gray-400 shadow-lg hover:shadow-lg transform hover:scale-100 transition-all duration-200 text-black font-black opacity-95',
           isAvailable: false
         },
         {
           id: 'sms',
-          name: 'SMS 인증',
+          name: t('auth.smsAuth'),
           icon: <MessageIcon />,
-          description: '문자 메시지로 인증코드 발송',
+          description: t('auth.smsCodeSend'),
           color: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-white',
           isAvailable: true
         }
@@ -112,13 +112,13 @@ export default function PhoneVerification({
   const handleMethodSelect = (methodId: string) => {
     // 카카오톡은 아직 사용 불가
     if (methodId === 'kakao') {
-      alert('카카오톡 인증은 2월 이후에 적용 예정입니다.\n현재는 SMS 인증을 이용해주세요.')
+      alert(t('auth.kakaoAuthAlert'))
       return
     }
     
     // WhatsApp은 아직 사용 불가
     if (methodId === 'whatsapp') {
-      alert('WhatsApp 인증은 준비 중입니다.\n현재는 SMS 인증을 이용해주세요.')
+      alert(t('auth.whatsappAuthAlert'))
       return
     }
     
@@ -349,7 +349,7 @@ export default function PhoneVerification({
                   ) : (
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
-                      {t('phoneVerification.verify')}
+                      {t('auth.verifyButton')}
                     </div>
                   )}
                 </Button>

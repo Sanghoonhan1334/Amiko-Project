@@ -364,6 +364,16 @@ export const translations = {
       redirectingToMain: '메인 페이지로 이동 중...',
       loading: '로딩 중...',
       back: '뒤로가기',
+      authMethodSelection: '인증 방법 선택',
+      emailCodeDescription: '이메일로 인증코드 발송',
+      smsCodeDescription: 'SMS로 인증코드 발송',
+      smsAuth: 'SMS 인증',
+      whatsappAuth: 'WhatsApp 인증',
+      smsCodeSend: '문자 메시지로 인증코드 발송',
+      whatsappCodeSend: 'WhatsApp으로 인증코드 발송',
+      verifyButton: '인증하기',
+      kakaoAuthAlert: '카카오톡 인증은 2월 이후에 적용 예정입니다.\n현재는 SMS 인증을 이용해주세요.',
+      whatsappAuthAlert: 'WhatsApp 인증은 준비 중입니다.\n현재는 SMS 인증을 이용해주세요.',
       
       // 지문 인증
       biometricLogin: '지문으로 빠른 로그인',
@@ -2616,6 +2626,16 @@ export const translations = {
       redirectingToMain: 'Redirigiendo al inicio...',
       loading: 'Cargando...',
       back: 'Atrás',
+      authMethodSelection: 'Seleccionar método de verificación',
+      emailCodeDescription: 'Enviar código de verificación por correo electrónico',
+      smsCodeDescription: 'Enviar código de verificación por SMS',
+      smsAuth: 'Verificación SMS',
+      whatsappAuth: 'Verificación WhatsApp',
+      smsCodeSend: 'Enviar código de verificación por mensaje de texto',
+      whatsappCodeSend: 'Enviar código de verificación por WhatsApp',
+      verifyButton: 'Verificar',
+      kakaoAuthAlert: 'La verificación por KakaoTalk se aplicará después de febrero.\nPor favor usa la verificación SMS por ahora.',
+      whatsappAuthAlert: 'La verificación por WhatsApp está en preparación.\nPor favor usa la verificación SMS por ahora.',
       
       // 지문 인증
       biometricLogin: 'Inicio de sesión rápido con huella dactilar',

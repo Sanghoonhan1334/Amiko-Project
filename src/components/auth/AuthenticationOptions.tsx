@@ -136,7 +136,7 @@ export default function AuthenticationOptions({
       
       {/* 인증 방법 선택 */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-center">인증 방법 선택</h3>
+        <h3 className="text-lg font-semibold text-center">{t('auth.authMethodSelection')}</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card 
@@ -146,7 +146,7 @@ export default function AuthenticationOptions({
             <CardContent className="p-6 text-center">
               <Mail className="w-12 h-12 mx-auto text-blue-600 mb-3" />
               <h4 className="font-semibold text-blue-800">{t('auth.emailVerification')}</h4>
-              <p className="text-sm text-gray-600">이메일로 인증코드 발송</p>
+              <p className="text-sm text-gray-600">{t('auth.emailCodeDescription')}</p>
             </CardContent>
           </Card>
           
@@ -157,7 +157,7 @@ export default function AuthenticationOptions({
             <CardContent className="p-6 text-center">
               <Phone className="w-12 h-12 mx-auto text-green-600 mb-3" />
               <h4 className="font-semibold text-green-800">{t('auth.smsVerification')}</h4>
-              <p className="text-sm text-gray-600">SMS로 인증코드 발송</p>
+              <p className="text-sm text-gray-600">{t('auth.smsCodeDescription')}</p>
             </CardContent>
           </Card>
         </div>
