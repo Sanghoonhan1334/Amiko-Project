@@ -127,9 +127,19 @@ function detectLanguageFromEmail(email: string): 'ko' | 'es' {
 
 // 이메일 인증코드 발송
 export async function POST(request: NextRequest) {
+  console.log('[VERIFICATION_SEND] 함수 시작')
   try {
+    console.log('[VERIFICATION_SEND] 요청 본문 파싱 시작')
     const body = await request.json()
+    console.log('[VERIFICATION_SEND] 요청 본문 파싱 완료:', body)
     const { email, phoneNumber, phone, type, countryCode = 'KR', code, userId, nationality } = body
+    console.log('[VERIFICATION_SEND] 요청 파라미터 추출 완료:', { type, phoneNumber, phone, nationality })
+
+    // 환경 변수 즉시 확인
+    console.log('[VERIFICATION_SEND] 환경 변수 확인:')
+    console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID ? '설정됨' : '설정되지 않음')
+    console.log('TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN ? '설정됨' : '설정되지 않음')
+    console.log('TWILIO_PHONE_NUMBER:', process.env.TWILIO_PHONE_NUMBER || '설정되지 않음')
 
     // 새로운 요청 형식 처리 (국적별 인증 방식)
     if (type === 'whatsapp' || type === 'sms' || type === 'kakao') {
