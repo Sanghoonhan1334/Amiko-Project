@@ -491,12 +491,38 @@ export const emailService = new EmailService();
 // 인증 이메일 발송 함수
 export async function sendVerificationEmail(email: string, code: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
   try {
-    const result = await emailService.sendEmail({
-      to: email,
-      template: 'verification',
-      data: { code, language }
+    // Resend가 초기화되지 않았으면 오류 반환
+    if (!resend) {
+      console.warn('[EMAIL SERVICE] Resend가 초기화되지 않았습니다. 이메일을 발송할 수 없습니다.');
+      return false;
+    }
+
+    const { data: result, error } = await resend.emails.send({
+      from: 'Amiko <noreply@helloamiko.com>',
+      to: [email],
+      subject: language === 'ko' ? 'Amiko 인증코드' : 'Código de verificación Amiko',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #28a745;">${language === 'ko' ? '🎉 인증코드가 발송되었습니다!' : '🎉 ¡Código de verificación enviado!'}</h2>
+          <p>${language === 'ko' ? '안녕하세요! 아래 인증코드를 입력해주세요.' : '¡Hola! Por favor ingresa el siguiente código de verificación.'}</p>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <h1 style="color: #007bff; font-size: 32px; letter-spacing: 4px; margin: 0;">${code}</h1>
+          </div>
+          
+          <p>${language === 'ko' ? '이 코드는 10분 후 만료됩니다.' : 'Este código expirará en 10 minutos.'}</p>
+          <p>${language === 'ko' ? '감사합니다!' : '¡Gracias!'}</p>
+        </div>
+      `
     });
-    return result.success;
+
+    if (error) {
+      console.error('❌ 이메일 발송 실패:', error);
+      return false;
+    }
+
+    console.log('✅ 인증 이메일 발송 성공:', result?.id);
+    return true;
   } catch (error) {
     console.error('인증 이메일 발송 실패:', error);
     return false;
