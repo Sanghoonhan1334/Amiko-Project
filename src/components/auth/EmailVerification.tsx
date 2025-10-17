@@ -20,7 +20,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
   const { t } = useLanguage()
   const [verificationCode, setVerificationCode] = useState('')
   const [timeLeft, setTimeLeft] = useState(300) // 5분
-  const [canResend, setCanResend] = useState(true) // 항상 재발송 가능
+  const [canResend, setCanResend] = useState(false) // 타이머 끝나면 재발송 가능
   const [codeSent, setCodeSent] = useState(false) // 코드 발송 여부
   const [isWaitingForCode, setIsWaitingForCode] = useState(false) // 코드 입력 대기 상태
 
@@ -37,9 +37,11 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
     if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
       return () => clearTimeout(timer)
+    } else if (timeLeft === 0 && codeSent) {
+      // 타이머가 끝나면 재발송 가능
+      setCanResend(true)
     }
-    // 타이머가 끝나도 canResend는 항상 true로 유지
-  }, [timeLeft])
+  }, [timeLeft, codeSent])
 
   const handleSendCode = async () => {
     try {
@@ -63,6 +65,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
     setTimeLeft(300) // 5분으로 리셋
     setVerificationCode('')
     setIsWaitingForCode(true) // 재발송 시 다시 대기 상태로
+    setCanResend(false) // 재발송 버튼 비활성화
     onResend()
   }
 
@@ -215,11 +218,13 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
               <Button 
                 variant="outline" 
                 onClick={handleResend}
-                disabled={isLoading}
-                className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
+                disabled={isLoading || !canResend}
+                className={`border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 ${
+                  !canResend ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
-                {t('auth.resendCode')}
+                {canResend ? t('auth.resendCode') : `${t('auth.resendCode')} (${formatTime(timeLeft)})`}
               </Button>
             </div>
           )}
