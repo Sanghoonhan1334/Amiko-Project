@@ -9,14 +9,14 @@ import { Phone, MessageSquare, Smartphone, Clock, RefreshCw, CheckCircle } from 
 
 // 카카오톡, 토스, SMS 아이콘 컴포넌트
 const KakaoIcon = () => (
-  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.52 1.44 4.8 3.72 6.24L4.8 20.4c-.12.24.12.48.36.36L8.4 18.24c.48.12 1.08.24 1.68.24.24 0 .48 0 .72-.12C11.52 18.84 11.76 18.96 12 18.96s.48-.12.72-.12c.24.12.48.12.72.12.6 0 1.2-.12 1.68-.24l3.24 2.52c.24.12.48-.12.36-.36L18.28 17.04C20.56 15.6 22 13.32 22 10.8 22 6.48 17.52 3 12 3z"/>
   </svg>
 )
 
 
 const MessageIcon = () => (
-  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
   </svg>
 )
@@ -82,7 +82,7 @@ export default function PhoneVerification({
         {
           id: 'whatsapp',
           name: t('auth.whatsappAuth'),
-          icon: <MessageSquare className="w-6 h-6" />,
+          icon: <MessageSquare className="w-5 h-5" />,
           description: t('auth.whatsappCodeSend'),
           color: 'bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-300 hover:to-gray-400 shadow-lg hover:shadow-lg transform hover:scale-100 transition-all duration-200 text-black font-black opacity-95',
           isAvailable: false
@@ -210,19 +210,21 @@ export default function PhoneVerification({
         <CardContent className="space-y-3">
           {!codeSent ? (
             // 인증 방식 선택
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 gap-3">
               {authMethods.map((method) => (
                 <Button
                   key={method.id}
                   onClick={() => handleMethodSelect(method.id)}
                   disabled={!method.isAvailable || isLoading}
-                  className={`w-full ${method.color} ${method.id === 'kakao' ? 'text-black font-black' : 'text-white font-semibold'} py-4 px-4 h-auto flex items-center justify-start gap-3 min-h-[70px] rounded-xl border-0 relative`}
+                  className={`${method.color} ${method.id === 'kakao' ? 'text-black font-black' : 'text-white font-semibold'} py-3 px-4 h-auto flex items-center justify-start gap-3 min-h-[60px] rounded-xl border-0 relative`}
                 >
-                  <div className={`flex-shrink-0 p-1.5 rounded-lg backdrop-blur-sm ${method.id === 'kakao' ? 'bg-gray-600/30' : 'bg-white/20'}`}>
-                    {method.icon}
+                  <div className={`flex-shrink-0 p-1 rounded-lg backdrop-blur-sm ${method.id === 'kakao' ? 'bg-gray-600/30' : 'bg-white/20'}`}>
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      {method.icon}
+                    </div>
                   </div>
-                  <div className="text-left flex-1 pr-16">
-                    <div className={`font-bold text-base leading-tight ${method.id === 'kakao' ? '!text-black !font-black' : ''}`}>{method.name}</div>
+                  <div className="text-left flex-1 pr-12">
+                    <div className={`font-bold text-sm leading-tight ${method.id === 'kakao' ? '!text-black !font-black' : ''}`}>{method.name}</div>
                     <div className={`text-xs leading-tight mt-0.5 font-medium ${method.id === 'kakao' ? '!text-black !opacity-100' : 'opacity-90'}`}>{method.description}</div>
                   </div>
                   <div className="flex-shrink-0 absolute right-4 top-1/2 transform -translate-y-1/2">

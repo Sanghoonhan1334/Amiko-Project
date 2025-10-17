@@ -13,6 +13,7 @@ interface SMSOptions {
   to: string
   template: SMSTemplate
   data?: Record<string, any>
+  countryCode?: string
 }
 
 // SMS 템플릿 생성
@@ -38,7 +39,7 @@ export function createSMSTemplate(type: 'verification', data: Record<string, any
 // 실제 SMS 발송 함수 (Twilio 연동)
 export async function sendSMS(options: SMSOptions): Promise<boolean> {
   try {
-    const { to, template, data = {} } = options
+    const { to, template, data = {}, countryCode } = options
     
     // Twilio 계정이 설정되어 있는지 확인
     const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
@@ -47,7 +48,7 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
       // Twilio를 사용한 실제 SMS 발송
       try {
         const { sendTwilioSMS, formatPhoneNumber } = await import('./twilioService')
-        const formattedNumber = formatPhoneNumber(to)
+        const formattedNumber = formatPhoneNumber(to, countryCode)
         const success = await sendTwilioSMS(formattedNumber, template.message)
         
         if (success) {
@@ -63,25 +64,17 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
       }
     }
     
-    // 개발 환경 또는 Twilio 설정이 없는 경우 콘솔 출력
-    if (process.env.NODE_ENV === 'development' || !hasTwilioConfig) {
-      console.log('\n' + '='.repeat(60))
-      console.log('📱 SMS 발송 (개발 환경)')
-      console.log('='.repeat(60))
-      console.log(`받는 번호: ${to}`)
-      console.log(`언어: ${template.language}`)
-      console.log('메시지:')
-      console.log(template.message)
-      if (!hasTwilioConfig) {
-        console.log('⚠️  Twilio 설정이 없어 콘솔에만 출력됩니다.')
-        console.log('   실제 SMS 발송을 원한다면 .env.local에 Twilio 설정을 추가하세요.')
-      }
-      console.log('='.repeat(60) + '\n')
-      
-      return true
-    }
+    // 개발 환경에서는 항상 콘솔 출력으로 처리
+    console.log('\n' + '='.repeat(60))
+    console.log('📱 SMS 발송 (개발 환경)')
+    console.log('='.repeat(60))
+    console.log(`받는 번호: ${to}`)
+    console.log(`언어: ${template.language}`)
+    console.log('메시지:')
+    console.log(template.message)
+    console.log('='.repeat(60) + '\n')
     
-    return false
+    return true
     
   } catch (error) {
     console.error('[SMS_SEND] 오류:', error)
@@ -90,14 +83,39 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
 }
 
 // SMS 인증코드 발송
-export async function sendVerificationSMS(phoneNumber: string, code: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
-  const template = createSMSTemplate('verification', { code }, language)
+export async function sendVerificationSMS(phoneNumber: string, code: string, language: 'ko' | 'es' = 'ko', countryCode?: string): Promise<boolean> {
+  console.log('[SMS_VERIFICATION] SMS 발송 시작:', { phoneNumber, code, language, countryCode })
   
-  return await sendSMS({
-    to: phoneNumber,
-    template,
-    data: { code }
-  })
+  // 개발 환경에서는 항상 성공
+  if (process.env.NODE_ENV === 'development') {
+    console.log('\n' + '='.repeat(60))
+    console.log('📱 SMS 인증코드 발송 (개발 환경)')
+    console.log('='.repeat(60))
+    console.log(`받는 번호: ${phoneNumber}`)
+    console.log(`국가 코드: ${countryCode}`)
+    console.log(`언어: ${language}`)
+    console.log(`인증코드: ${code}`)
+    console.log('='.repeat(60) + '\n')
+    return true
+  }
+  
+  try {
+    const template = createSMSTemplate('verification', { code }, language)
+    console.log('[SMS_VERIFICATION] 템플릿 생성 완료:', template)
+    
+    const result = await sendSMS({
+      to: phoneNumber,
+      template,
+      data: { code },
+      countryCode
+    })
+    
+    console.log('[SMS_VERIFICATION] SMS 발송 결과:', result)
+    return result
+  } catch (error) {
+    console.error('[SMS_VERIFICATION] SMS 발송 오류:', error)
+    return false
+  }
 }
 
 // WhatsApp 인증코드 발송

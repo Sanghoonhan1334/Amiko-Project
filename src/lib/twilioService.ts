@@ -27,9 +27,10 @@ function getTwilioClient(): Twilio {
 // SMS 발송
 export async function sendTwilioSMS(to: string, message: string): Promise<boolean> {
   try {
-    // 개발 환경에서 테스트용 더미 번호는 콘솔에만 출력
-    if (process.env.NODE_ENV === 'development' && to.includes('12345678')) {
-      console.log(`[TWILIO_SMS] 개발환경 - 테스트용 더미 번호: ${to}`)
+    // 개발 환경에서는 항상 콘솔에만 출력
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TWILIO_SMS] 개발환경 - SMS 발송 시뮬레이션`)
+      console.log(`[TWILIO_SMS] 수신번호: ${to}`)
       console.log(`[TWILIO_SMS] 메시지: ${message}`)
       console.log(`[TWILIO_SMS] 실제 발송하지 않음`)
       return true
@@ -140,10 +141,24 @@ export async function verifyTwilioAccount(): Promise<{
   }
 }
 
-// 전화번호 형식 검증 및 변환
-export function formatPhoneNumber(phoneNumber: string): string {
+// 전화번호 형식 검증 및 변환 (국가 코드 포함)
+export function formatPhoneNumber(phoneNumber: string, countryCode?: string): string {
   // 숫자만 추출
   const digits = phoneNumber.replace(/\D/g, '')
+  
+  // 이미 +로 시작하는 경우
+  if (phoneNumber.startsWith('+')) {
+    return phoneNumber
+  }
+  
+  // 국가 코드가 제공된 경우 해당 국가 코드 사용
+  if (countryCode) {
+    const { countries } = require('@/constants/countries')
+    const country = countries.find((c: any) => c.code === countryCode)
+    if (country && country.phoneCode) {
+      return `${country.phoneCode}${digits}`
+    }
+  }
   
   // 한국 번호 처리 (+82)
   if (digits.startsWith('82')) {
@@ -152,6 +167,26 @@ export function formatPhoneNumber(phoneNumber: string): string {
     return `+82${digits.substring(1)}`
   } else if (digits.startsWith('0')) {
     return `+82${digits.substring(1)}`
+  }
+  
+  // 멕시코 번호 처리 (+52)
+  if (digits.startsWith('52')) {
+    return `+${digits}`
+  } else if (digits.length === 10 && !digits.startsWith('1') && !digits.startsWith('98')) {
+    // 10자리 번호이고 1이나 98로 시작하지 않으면 멕시코로 가정
+    return `+52${digits}`
+  }
+  
+  // 이란 번호 처리 (+98) - 명시적으로 처리
+  if (digits.startsWith('98')) {
+    return `+${digits}`
+  }
+  
+  // 미국/캐나다 번호 처리 (+1)
+  if (digits.startsWith('1') && digits.length === 11) {
+    return `+${digits}`
+  } else if (digits.length === 10) {
+    return `+1${digits}`
   }
   
   // 다른 국가 번호 처리

@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/emailService'
+import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[VERIFICATION] 이메일 인증 요청 시작')
+    console.log('[VERIFICATION] 인증 요청 시작')
     
     const body = await request.json()
-    const { email, type, nationality } = body
+    const { email, phoneNumber, type, nationality } = body
     
-    console.log('[VERIFICATION] 요청 데이터:', { email, type, nationality })
+    console.log('[VERIFICATION] 요청 데이터:', { email, phoneNumber, type, nationality })
     
     // 유효성 검사
-    if (!email || !type) {
+    if ((!email && !phoneNumber) || !type) {
       return NextResponse.json(
-        { success: false, error: '이메일과 인증 타입이 필요합니다.' },
+        { success: false, error: '이메일 또는 전화번호와 인증 타입이 필요합니다.' },
         { status: 400 }
       )
     }
@@ -24,17 +25,85 @@ export async function POST(request: NextRequest) {
     
     console.log('[VERIFICATION] 인증코드 생성:', verificationCode)
     
-    // 임시로 메모리 저장소 사용 (데이터베이스 테이블 생성 전까지)
-    const { storeVerificationCode } = await import('./check/route')
-    storeVerificationCode(email, verificationCode)
+    const supabase = createClient()
     
-    console.log('[VERIFICATION] 인증코드 메모리 저장 완료:', { email, code: verificationCode })
+    // 기존 미인증 코드들 비활성화
+    const deactivateQuery = supabase
+      .from('verification_codes')
+      .update({ verified: true }) // 이미 사용된 것으로 처리
+      .eq('type', type)
+      .eq('verified', false)
+
+    if (email) {
+      deactivateQuery.eq('email', email)
+    }
+    if (phoneNumber) {
+      deactivateQuery.eq('phone_number', phoneNumber)
+    }
+
+    const { error: deactivateError } = await deactivateQuery
+
+    if (deactivateError) {
+      console.error('기존 인증코드 비활성화 실패:', deactivateError)
+    }
+
+    // 새 인증코드 저장 (10분간 유효)
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    const { error: insertError } = await supabase
+      .from('verification_codes')
+      .insert([{
+        email: email || null,
+        phone_number: phoneNumber || null,
+        code: verificationCode,
+        type: type,
+        verified: false,
+        expires_at: expiresAt,
+        ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
+        user_agent: request.headers.get('user-agent') || 'Unknown'
+      }])
+
+    if (insertError) {
+      console.error('인증코드 저장 실패:', insertError)
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: '인증코드 저장에 실패했습니다.',
+          details: insertError.message,
+          code: insertError.code,
+          hint: insertError.hint
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log('[VERIFICATION] 인증코드 데이터베이스 저장 완료:', { email, phoneNumber, code: verificationCode })
     
-    // 이메일 발송
-    const emailSent = await sendVerificationEmail(email, verificationCode)
+    // 인증 방식에 따른 발송
+    let sendResult = false
+    let sendMethod = ''
     
-    if (emailSent) {
-      console.log('[VERIFICATION] 이메일 발송 성공')
+    if (type === 'email' && email) {
+      sendResult = await sendVerificationEmail(email, verificationCode)
+      sendMethod = '이메일'
+    } else if (type === 'sms' && phoneNumber) {
+      // 언어 설정 (국가 코드 기반)
+      const language = nationality === 'KR' ? 'ko' : 'es'
+      sendResult = await sendVerificationSMS(phoneNumber, verificationCode, language, nationality)
+      sendMethod = 'SMS'
+    } else if (type === 'whatsapp' && phoneNumber) {
+      // 언어 설정 (국가 코드 기반)
+      const language = nationality === 'KR' ? 'ko' : 'es'
+      sendResult = await sendVerificationWhatsApp(phoneNumber, verificationCode, language)
+      sendMethod = 'WhatsApp'
+    } else {
+      return NextResponse.json(
+        { success: false, error: '지원되지 않는 인증 방식입니다.' },
+        { status: 400 }
+      )
+    }
+    
+    if (sendResult) {
+      console.log(`[VERIFICATION] ${sendMethod} 발송 성공`)
       
       // 개발 환경에서만 디버그 정보 포함
       const response: any = {
@@ -48,15 +117,17 @@ export async function POST(request: NextRequest) {
         response.debug = {
           verificationCode: verificationCode,
           email: email,
-          type: type
+          phoneNumber: phoneNumber,
+          type: type,
+          nationality: nationality
         }
       }
       
       return NextResponse.json(response)
     } else {
-      console.error('[VERIFICATION] 이메일 발송 실패')
+      console.error(`[VERIFICATION] ${sendMethod} 발송 실패`)
       return NextResponse.json(
-        { success: false, error: '이메일 발송에 실패했습니다.' },
+        { success: false, error: `${sendMethod} 발송에 실패했습니다.` },
         { status: 500 }
       )
     }
