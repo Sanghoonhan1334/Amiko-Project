@@ -66,7 +66,7 @@ class EmailService {
 
     try {
       const { data: result, error } = await resend.emails.send({
-        from: 'Oz Coding School <noreply@ozcodingschool.com>',
+        from: 'Amiko <noreply@holak-test.com>',
         to: [to],
         subject: '✅ 결제 완료 - 상담 예약이 확정되었습니다',
         html: `
@@ -122,7 +122,7 @@ class EmailService {
 
     try {
       const { data: result, error } = await resend.emails.send({
-        from: 'Oz Coding School <noreply@ozcodingschool.com>',
+        from: 'Amiko <noreply@holak-test.com>',
         to: [to],
         subject: '❌ 결제 취소 - 상담 예약이 취소되었습니다',
         html: `
@@ -177,7 +177,7 @@ class EmailService {
 
     try {
       const { data: result, error } = await resend.emails.send({
-        from: 'Oz Coding School <noreply@ozcodingschool.com>',
+        from: 'Amiko <noreply@holak-test.com>',
         to: [to],
         subject: '🎉 새로운 상담 예약이 있습니다',
         html: `
@@ -231,7 +231,7 @@ class EmailService {
 
     try {
       const { data: result, error } = await resend.emails.send({
-        from: 'Oz Coding School <noreply@ozcodingschool.com>',
+        from: 'Amiko <noreply@holak-test.com>',
         to: [to],
         subject: '⏰ 상담 리마인더 - 내일 상담 예정입니다',
         html: `
@@ -293,7 +293,7 @@ class EmailService {
 
     try {
       const { data: result, error } = await resend.emails.send({
-        from: 'Oz Coding School <noreply@ozcodingschool.com>',
+        from: 'Amiko <noreply@holak-test.com>',
         to: [to],
         subject: '⏰ 상담 리마인더 - 내일 상담 예정입니다',
         html: `
@@ -365,7 +365,7 @@ class EmailService {
       const priorityColor = priorityColors[data.priority as keyof typeof priorityColors] || '#3b82f6';
 
       const { data: result, error } = await resend.emails.send({
-        from: 'Oz Coding School <noreply@ozcodingschool.com>',
+        from: 'Amiko <noreply@holak-test.com>',
         to: [to],
         subject: `🔔 [${data.priority.toUpperCase()}] ${data.title}`,
         html: `
