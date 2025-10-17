@@ -48,6 +48,18 @@ export async function POST(request: NextRequest) {
 
     const { data: verificationData, error: verificationError } = await query.single()
 
+    console.log('[VERIFICATION_CHECK] 데이터베이스 조회 결과:', { 
+      data: verificationData, 
+      error: verificationError,
+      queryConditions: {
+        type,
+        code,
+        phoneNumber: normalizedPhoneNumber,
+        email,
+        expiresAt: new Date().toISOString()
+      }
+    })
+
     if (verificationError || !verificationData) {
       console.log('[VERIFICATION_CHECK] 데이터베이스에서 인증코드 없음:', verificationError)
       return NextResponse.json(
