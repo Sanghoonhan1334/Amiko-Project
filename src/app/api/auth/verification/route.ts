@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
-import { sendVerificationEmail, getEmailServiceStatus } from '@/lib/email-service'
-import { sendVerificationSMS, sendVerificationWhatsApp, getSMSServiceStatus, getRecommendedSMSService } from '@/lib/smsService'
+
+// 디버깅: 각 모듈을 개별적으로 import 테스트
+console.log('[VERIFICATION_IMPORT] NextRequest, NextResponse import 성공')
+
+try {
+  const { supabaseServer } = await import('@/lib/supabaseServer')
+  console.log('[VERIFICATION_IMPORT] supabaseServer import 성공')
+} catch (error) {
+  console.error('[VERIFICATION_IMPORT] supabaseServer import 실패:', error)
+}
+
+try {
+  const { sendVerificationEmail, getEmailServiceStatus } = await import('@/lib/email-service')
+  console.log('[VERIFICATION_IMPORT] email-service import 성공')
+} catch (error) {
+  console.error('[VERIFICATION_IMPORT] email-service import 실패:', error)
+}
+
+try {
+  const { sendVerificationSMS, sendVerificationWhatsApp, getSMSServiceStatus, getRecommendedSMSService } = await import('@/lib/smsService')
+  console.log('[VERIFICATION_IMPORT] smsService import 성공')
+} catch (error) {
+  console.error('[VERIFICATION_IMPORT] smsService import 실패:', error)
+}
 
 // 전화번호 정규화 함수 (라틴아메리카 국가 코드 지원)
 function normalizePhoneNumber(phone: string): string {
