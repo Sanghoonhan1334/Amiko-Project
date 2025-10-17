@@ -65,8 +65,14 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
     
     return true
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('[TWILIO_SMS] 발송 실패:', error)
+    console.error('[TWILIO_SMS] TwilioError 상세:', {
+      status: error?.status,
+      code: error?.code,
+      moreInfo: error?.moreInfo,
+      message: error?.message
+    })
     console.error('[TWILIO_SMS] 에러 상세:', {
       message: error instanceof Error ? error.message : '알 수 없는 오류',
       stack: error instanceof Error ? error.stack : undefined
