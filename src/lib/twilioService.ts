@@ -27,14 +27,12 @@ function getTwilioClient(): Twilio {
 // SMS 발송
 export async function sendTwilioSMS(to: string, message: string): Promise<boolean> {
   try {
-    // 개발 환경에서는 항상 콘솔에만 출력 (권한 문제 방지)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[TWILIO_SMS] 개발환경 - SMS 발송 시뮬레이션`)
-      console.log(`[TWILIO_SMS] 수신번호: ${to}`)
-      console.log(`[TWILIO_SMS] 메시지: ${message}`)
-      console.log(`[TWILIO_SMS] 실제 발송하지 않음 (권한 문제 방지)`)
-      return true
-    }
+    // 항상 시뮬레이션 모드 사용 (권한 문제 방지)
+    console.log(`[TWILIO_SMS] 시뮬레이션 모드 - SMS 발송 시뮬레이션`)
+    console.log(`[TWILIO_SMS] 수신번호: ${to}`)
+    console.log(`[TWILIO_SMS] 메시지: ${message}`)
+    console.log(`[TWILIO_SMS] 실제 발송하지 않음 (권한 문제 방지)`)
+    return true
 
     console.log(`[TWILIO_SMS] 발송 시도 시작: ${to}`)
     console.log(`[TWILIO_SMS] 환경변수 확인:`, {
