@@ -35,8 +35,6 @@ const nextConfig = {
   // 🚀 최적화: 컴파일러 최적화 강화
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
-    // 불필요한 주석 제거
-    removeComments: process.env.NODE_ENV === 'production',
   },
   // React Strict Mode 설정
   reactStrictMode: true,

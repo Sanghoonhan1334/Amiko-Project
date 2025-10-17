@@ -172,9 +172,6 @@ export function formatPhoneNumber(phoneNumber: string, countryCode?: string): st
   // 멕시코 번호 처리 (+52)
   if (digits.startsWith('52')) {
     return `+${digits}`
-  } else if (digits.length === 10 && !digits.startsWith('1') && !digits.startsWith('98')) {
-    // 10자리 번호이고 1이나 98로 시작하지 않으면 멕시코로 가정
-    return `+52${digits}`
   }
   
   // 이란 번호 처리 (+98) - 명시적으로 처리
