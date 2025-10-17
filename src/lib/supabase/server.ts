@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 // 서버 사이드용 Supabase 클라이언트 생성
 export function createClient() {
@@ -18,5 +18,5 @@ export function createClient() {
     } as any
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey)
+  return createSupabaseClient(supabaseUrl, supabaseAnonKey)
 }
