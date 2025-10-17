@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { emailService } from './email-service';
+import { sendVerificationEmail } from './emailService'
 
 export interface AdminNotificationData {
   [key: string]: unknown;

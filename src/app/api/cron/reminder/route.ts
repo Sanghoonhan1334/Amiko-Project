@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from '@supabase/supabase-js';
-import { emailService } from '@/lib/email-service';
+import { sendVerificationEmail } from '@/lib/emailService'
 
 export async function GET() {
   try {

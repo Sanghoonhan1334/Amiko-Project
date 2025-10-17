@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { emailService } from '@/lib/email-service'
+import { sendVerificationEmail } from '@/lib/emailService'
 
 // 상담 시작 1시간 전 알림 이메일 발송
 export async function POST() {

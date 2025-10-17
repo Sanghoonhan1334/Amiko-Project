@@ -347,7 +347,7 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
     
     // 이메일 발송 (하이웍스 계정과 동일한 발송자 주소 사용)
     const info = await transporter.sendMail({
-      from: smtpUser, // 하이웍스 계정과 동일한 주소 사용
+      from: 'Amiko <info@helloamiko.com>',
       to: to,
       subject: subject,
       html: html,

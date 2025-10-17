@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { emailService } from '@/lib/email-service'
+import { sendVerificationEmail } from '@/lib/emailService'
 
 // CORS 프리: 내부 API이므로 CORS 설정 불필요
 
