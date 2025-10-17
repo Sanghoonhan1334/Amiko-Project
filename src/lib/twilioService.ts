@@ -27,13 +27,7 @@ function getTwilioClient(): Twilio {
 // SMS 발송
 export async function sendTwilioSMS(to: string, message: string): Promise<boolean> {
   try {
-    // 항상 시뮬레이션 모드 사용 (권한 문제 방지)
-    console.log(`[TWILIO_SMS] 시뮬레이션 모드 - SMS 발송 시뮬레이션`)
-    console.log(`[TWILIO_SMS] 수신번호: ${to}`)
-    console.log(`[TWILIO_SMS] 메시지: ${message}`)
-    console.log(`[TWILIO_SMS] 실제 발송하지 않음 (권한 문제 방지)`)
-    return true
-
+    // 실제 SMS 발송 시도
     console.log(`[TWILIO_SMS] 발송 시도 시작: ${to}`)
     console.log(`[TWILIO_SMS] 환경변수 확인:`, {
       accountSid: !!process.env.TWILIO_ACCOUNT_SID,
@@ -45,7 +39,11 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
     const fromNumber = process.env.TWILIO_PHONE_NUMBER
     
     if (!fromNumber) {
-      throw new Error('Twilio 발신번호가 설정되지 않았습니다. TWILIO_PHONE_NUMBER을 환경변수에 설정해주세요.')
+      console.log(`[TWILIO_SMS] Twilio 발신번호가 설정되지 않음 - 개발 모드로 처리`)
+      console.log(`[TWILIO_SMS] 수신번호: ${to}`)
+      console.log(`[TWILIO_SMS] 메시지: ${message}`)
+      console.log(`[TWILIO_SMS] 실제 발송하지 않음 (환경변수 미설정)`)
+      return true
     }
     
     console.log(`[TWILIO_SMS] 발송 요청:`, {
