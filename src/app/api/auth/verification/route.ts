@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/emailService'
 import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 import { createClient } from '@/lib/supabase/server'
+import { formatPhoneNumber } from '@/lib/twilioService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,14 @@ export async function POST(request: NextRequest) {
     const { email, phoneNumber, type, nationality } = body
     
     console.log('[VERIFICATION] 요청 데이터:', { email, phoneNumber, type, nationality })
-    
+
+    // 전화번호 정규화 (저장과 검증에서 동일한 형식 사용)
+    let normalizedPhoneNumber = phoneNumber
+    if (phoneNumber && nationality) {
+      normalizedPhoneNumber = formatPhoneNumber(phoneNumber, nationality)
+      console.log('[VERIFICATION] 전화번호 정규화:', { original: phoneNumber, normalized: normalizedPhoneNumber })
+    }
+
     // 유효성 검사
     if ((!email && !phoneNumber) || !type) {
       return NextResponse.json(
@@ -37,8 +45,8 @@ export async function POST(request: NextRequest) {
     if (email) {
       deactivateQuery.eq('email', email)
     }
-    if (phoneNumber) {
-      deactivateQuery.eq('phone_number', phoneNumber)
+    if (normalizedPhoneNumber) {
+      deactivateQuery.eq('phone_number', normalizedPhoneNumber)
     }
 
     const { error: deactivateError } = await deactivateQuery
@@ -53,7 +61,7 @@ export async function POST(request: NextRequest) {
       .from('verification_codes')
       .insert([{
         email: email || null,
-        phone_number: phoneNumber || null,
+        phone_number: normalizedPhoneNumber || null,
         code: verificationCode,
         type: type,
         verified: false,
@@ -76,7 +84,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[VERIFICATION] 인증코드 데이터베이스 저장 완료:', { email, phoneNumber, code: verificationCode })
+    console.log('[VERIFICATION] 인증코드 데이터베이스 저장 완료:', { email, phoneNumber: normalizedPhoneNumber, code: verificationCode })
     
     // 인증 방식에 따른 발송
     let sendResult = false
