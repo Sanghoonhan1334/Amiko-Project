@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/emailService'
+import { storeVerificationCode } from './check/route'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,6 +23,9 @@ export async function POST(request: NextRequest) {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
     
     console.log('[VERIFICATION] 인증코드 생성:', verificationCode)
+    
+    // 인증코드 저장 (5분간 유효)
+    storeVerificationCode(email, verificationCode)
     
     // 이메일 발송
     const emailSent = await sendVerificationEmail(email, verificationCode)
