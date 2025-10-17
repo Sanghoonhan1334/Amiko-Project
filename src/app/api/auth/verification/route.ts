@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/emailService'
 import { storeVerificationCode } from './check/route'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,8 +25,40 @@ export async function POST(request: NextRequest) {
     
     console.log('[VERIFICATION] 인증코드 생성:', verificationCode)
     
-    // 인증코드 저장 (5분간 유효)
-    storeVerificationCode(email, verificationCode)
+    const supabase = createClient()
+    
+    // 기존 미인증 코드들 비활성화
+    const { error: deactivateError } = await supabase
+      .from('verification_codes')
+      .update({ verified: true }) // 이미 사용된 것으로 처리
+      .eq('email', email)
+      .eq('type', type || 'email')
+      .eq('verified', false)
+
+    if (deactivateError) {
+      console.error('기존 인증코드 비활성화 실패:', deactivateError)
+    }
+
+    // 새 인증코드 저장 (10분간 유효)
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    const { error: insertError } = await supabase
+      .from('verification_codes')
+      .insert([{
+        email: email,
+        phone_number: null,
+        code: verificationCode,
+        type: type || 'email',
+        verified: false,
+        expires_at: expiresAt,
+        ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
+        user_agent: request.headers.get('user-agent') || 'Unknown'
+      }])
+
+    if (insertError) {
+      console.error('인증코드 저장 실패:', insertError)
+      // 데이터베이스 저장 실패 시 메모리 저장소로 폴백
+      storeVerificationCode(email, verificationCode)
+    }
     
     // 이메일 발송
     const emailSent = await sendVerificationEmail(email, verificationCode)
@@ -65,4 +98,9 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+// PUT 메서드도 지원 (기존 코드와의 호환성을 위해)
+export async function PUT(request: NextRequest) {
+  return POST(request)
 }
