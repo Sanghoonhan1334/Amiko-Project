@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { formatPhoneNumber } from '@/lib/twilioService'
 
 export async function POST(request: NextRequest) {
   try {
     console.log('[VERIFICATION_CHECK] 인증코드 검증 시작')
     
     const body = await request.json()
-    const { email, phoneNumber, code, type } = body
+    const { email, phoneNumber, code, type, nationality } = body
     
-    console.log('[VERIFICATION_CHECK] 요청 데이터:', { email, phoneNumber, code, type })
+    console.log('[VERIFICATION_CHECK] 요청 데이터:', { email, phoneNumber, code, type, nationality })
+    
+    // 전화번호 정규화 (저장할 때와 동일한 형식으로)
+    let normalizedPhoneNumber = phoneNumber
+    if (phoneNumber && nationality) {
+      normalizedPhoneNumber = formatPhoneNumber(phoneNumber, nationality)
+      console.log('[VERIFICATION_CHECK] 전화번호 정규화:', { original: phoneNumber, normalized: normalizedPhoneNumber })
+    }
     
     // 유효성 검사
     if ((!email && !phoneNumber) || !code) {
@@ -34,8 +42,8 @@ export async function POST(request: NextRequest) {
     if (email) {
       query = query.eq('email', email)
     }
-    if (phoneNumber) {
-      query = query.eq('phone_number', phoneNumber)
+    if (normalizedPhoneNumber) {
+      query = query.eq('phone_number', normalizedPhoneNumber)
     }
 
     const { data: verificationData, error: verificationError } = await query.single()
