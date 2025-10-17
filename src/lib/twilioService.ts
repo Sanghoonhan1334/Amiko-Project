@@ -170,6 +170,11 @@ export function formatPhoneNumber(phoneNumber: string, countryCode?: string): st
     return `+${digits}`
   }
   
+  // 페루 번호 처리 (+51)
+  if (digits.startsWith('51')) {
+    return `+${digits}`
+  }
+  
   // 이란 번호 처리 (+98) - 명시적으로 처리
   if (digits.startsWith('98')) {
     return `+${digits}`
