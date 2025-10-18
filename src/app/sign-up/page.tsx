@@ -45,6 +45,7 @@ export default function SignUpPage() {
   const [authData, setAuthData] = useState({
     email: '',
     phoneNumber: '',
+    nationality: '',
     verificationCode: '',
     isEmailVerified: false,
     isSMSVerified: false,
@@ -356,7 +357,7 @@ export default function SignUpPage() {
           phoneNumber: authData.phoneNumber, 
           code, 
           type: 'sms',
-          nationality: authData.nationality || formData.country || 'KR'
+          nationality: authData.nationality || 'KR'
         })
       })
 
@@ -490,6 +491,7 @@ export default function SignUpPage() {
         ...prev,
         email: formData.email,
         phoneNumber: formData.phone,
+        nationality: formData.country,
         name: formData.name,
         nickname: formData.nickname,
         country: formData.country
