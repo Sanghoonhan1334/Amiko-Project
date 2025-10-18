@@ -86,10 +86,12 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
 export async function sendVerificationSMS(phoneNumber: string, code: string, language: 'ko' | 'es' = 'ko', countryCode?: string): Promise<boolean> {
   console.log('[SMS_VERIFICATION] SMS 발송 시작:', { phoneNumber, code, language, countryCode })
   
-  // 개발 환경에서는 항상 성공
-  if (process.env.NODE_ENV === 'development') {
+  // 개발 환경에서도 실제 SMS 발송 시도 (Twilio 설정이 있으면)
+  const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER
+  
+  if (process.env.NODE_ENV === 'development' && !hasTwilioConfig) {
     console.log('\n' + '='.repeat(60))
-    console.log('📱 SMS 인증코드 발송 (개발 환경)')
+    console.log('📱 SMS 인증코드 발송 (개발 환경 - Twilio 미설정)')
     console.log('='.repeat(60))
     console.log(`받는 번호: ${phoneNumber}`)
     console.log(`국가 코드: ${countryCode}`)
