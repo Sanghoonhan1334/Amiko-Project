@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       query = query.eq('email', email)
     }
     if (phoneE164) {
-      query = query.eq('phone_e164', phoneE164)
+      query = query.eq('phone_number', phoneE164)
     }
     
     const { data: verificationData, error: queryError } = await query
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       // 최근 5개 코드 로깅 (디버깅용)
       const { data: recentCodes } = await supabase
         .from('verification_codes')
-        .select('id, code, type, email, phone_number, phone_e164, status, created_at, expires_at')
+        .select('id, code, type, email, phone_number, verified, created_at, expires_at')
         .order('created_at', { ascending: false })
         .limit(5)
       
@@ -119,8 +119,8 @@ export async function POST(request: NextRequest) {
         id: c.id,
         code: c.code?.substring(0, 2) + '****',
         type: c.type,
-        status: c.status,
-        target: c.email || c.phone_e164 || c.phone_number,
+        verified: c.verified,
+        target: c.email || c.phone_number,
         created: c.created_at,
         expired: new Date(c.expires_at) < new Date()
       })))
@@ -139,8 +139,8 @@ export async function POST(request: NextRequest) {
       dbCodeLength: verificationRecord.code?.length,
       createdAt: verificationRecord.created_at,
       expiresAt: verificationRecord.expires_at,
-      status: verificationRecord.status,
-      phoneE164: verificationRecord.phone_e164
+      verified: verificationRecord.verified,
+      phoneNumber: verificationRecord.phone_number
     })
     
     // 만료 확인
@@ -161,17 +161,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    // 상태 확인
-    if (verificationRecord.status !== 'active') {
-      console.error('[VERIFICATION_CHECK] ❌ 상태 이상:', {
-        status: verificationRecord.status,
-        expected: 'active'
+    // 이미 인증된 코드인지 확인
+    if (verificationRecord.verified) {
+      console.error('[VERIFICATION_CHECK] ❌ 이미 인증된 코드:', {
+        verified: verificationRecord.verified
       })
       
       return NextResponse.json({
         success: false,
         reason: 'REPLACED_OR_USED',
-        detail: '이미 사용되었거나 교체된 인증코드입니다.'
+        detail: '이미 사용된 인증코드입니다.'
       }, { status: 400 })
     }
     
@@ -195,12 +194,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    // 인증 성공: 상태를 'used'로 변경
+    // 인증 성공: verified를 true로 변경
     const { error: updateError } = await supabase
       .from('verification_codes')
       .update({ 
-        status: 'used',
         verified: true,
+        verified_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
       .eq('id', verificationRecord.id)
@@ -246,18 +245,18 @@ export async function POST(request: NextRequest) {
       const supabase = createClient()
       const { data: recentCodes } = await supabase
         .from('verification_codes')
-        .select('id, code, type, email, phone_number, phone_e164, status, created_at, expires_at')
+        .select('id, code, type, email, phone_number, verified, created_at, expires_at')
         .order('created_at', { ascending: false })
         .limit(3)
       
       console.error('[VERIFICATION_CHECK] 최근 DB 코드들:', recentCodes?.map(c => ({
         id: c.id,
-        status: c.status,
+        verified: c.verified,
         created_at: c.created_at,
         expires_at: c.expires_at,
         hasCode: !!c.code,
         type: c.type,
-        target: c.email || c.phone_e164 || c.phone_number
+        target: c.email || c.phone_number
       })))
     } catch (dbError) {
       console.error('[VERIFICATION_CHECK] DB 조회 실패:', dbError)
