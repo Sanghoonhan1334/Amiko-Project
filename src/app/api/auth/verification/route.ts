@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       code: verificationCode,
       type: type,
       verified: false,
-      expires_at: expiresAt.toISOString(),
+      expires_at: expiresAt,
       ip_address: request.headers.get('x-forwarded-for') || '127.0.0.1',
       user_agent: request.headers.get('user-agent') || 'Unknown'
     }
