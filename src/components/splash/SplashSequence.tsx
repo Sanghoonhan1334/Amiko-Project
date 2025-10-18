@@ -40,18 +40,23 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
   // 애니메이션 variants 정의
   const logoVariants = {
     initial: { 
-      opacity: 1, 
-      scale: 1.0, 
-      y: 0,
-      filter: 'drop-shadow(0 0 10px rgba(232,74,95,0.3))'
+      opacity: 0, 
+      scale: 0.8, 
+      y: 20,
+      filter: 'drop-shadow(0 0 0px rgba(232,74,95,0))'
     },
     animate: { 
       opacity: 1, 
       scale: 1.0, 
       y: 0,
-      filter: 'drop-shadow(0 0 10px rgba(232,74,95,0.3))'
+      filter: 'drop-shadow(0 0 15px rgba(232,74,95,0.4))'
     },
-    exit: { opacity: 0 }
+    exit: { 
+      opacity: 0, 
+      scale: 1.1,
+      y: -10,
+      filter: 'drop-shadow(0 0 0px rgba(232,74,95,0))'
+    }
   }
 
   const containerVariants = {
@@ -73,9 +78,9 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
         animate="animate"
         exit="exit"
         transition={{ 
-          delay: 0.2, 
-          duration: 0.6, 
-          ease: 'easeOut' 
+          delay: 0.1, 
+          duration: 0.8, 
+          ease: [0.25, 0.46, 0.45, 0.94] // 부드러운 cubic-bezier
         }}
         className="flex items-center justify-center"
       >
