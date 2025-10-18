@@ -92,7 +92,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
       className="fixed inset-0 bg-white flex items-center justify-center z-50"
     >
       {/* 로고와 텍스트 표시 */}
-      <div className="flex flex-col items-center justify-center space-y-6">
+      <div className="flex flex-col items-center justify-center space-y-6 -space-y-6">
         {/* 로고 */}
         <motion.div
           variants={logoVariants}
