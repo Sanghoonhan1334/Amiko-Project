@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatPhoneNumber } from '@/lib/twilioService'
-import crypto from 'crypto'
 
 // Edge 런타임 문제 방지
 export const runtime = 'nodejs'
+
+// crypto는 dynamic import로 사용
+let crypto: typeof import('crypto') | null = null
+async function getCrypto() {
+  if (!crypto) {
+    crypto = await import('crypto')
+  }
+  return crypto
+}
 
 // 유니코드 숫자만 추출 (앞자리 0 유지)
 function normalizeDigits(code: string): string {
@@ -29,7 +37,7 @@ function toE164(phoneNumber: string, countryCode?: string): string {
 }
 
 // 안전한 문자열 비교 (timing attack 방지)
-function safeCompare(a: string, b: string): boolean {
+async function safeCompare(a: string, b: string): Promise<boolean> {
   if (!a || !b) return false
   
   // 길이가 다르면 false (throw 하지 않음)
@@ -39,12 +47,14 @@ function safeCompare(a: string, b: string): boolean {
   }
   
   try {
+    const cryptoModule = await getCrypto()
     const bufA = Buffer.from(a)
     const bufB = Buffer.from(b)
-    return crypto.timingSafeEqual(bufA, bufB)
+    return cryptoModule.timingSafeEqual(bufA, bufB)
   } catch (err) {
     console.error('[SAFE_COMPARE] 비교 실패:', err)
-    return false
+    // Fallback: 단순 문자열 비교
+    return a === b
   }
 }
 
@@ -185,7 +195,7 @@ export async function POST(request: NextRequest) {
     
     // 코드 비교 (normalizeDigits로 정규화 후 비교)
     const dbCode = normalizeDigits(verificationData.code || '')
-    const isMatch = safeCompare(dbCode, normalizedInputCode)
+    const isMatch = await safeCompare(dbCode, normalizedInputCode)
     
     console.log('[VERIFICATION_CHECK] 코드 비교 결과:', {
       dbCode,
