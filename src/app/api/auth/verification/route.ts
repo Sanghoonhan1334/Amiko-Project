@@ -90,17 +90,6 @@ export async function POST(request: NextRequest) {
     const expiryMinutes = isTestMode ? 0.1 : 10 // 테스트 시 6초, 일반 시 10분
     const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
     
-    // 전화번호 정규화
-    let normalizedPhoneNumber = phoneNumber
-    if (phoneNumber && nationality) {
-      normalizedPhoneNumber = toE164(phoneNumber, nationality)
-      console.log('[VERIFICATION] 전화번호 정규화 (toE164):', { 
-        original: phoneNumber, 
-        normalized: normalizedPhoneNumber, 
-        nationality: nationality || 'auto-detect'
-      })
-    }
-    
     // 기존 코드 비활성화 (REPLACED_OR_USED 시나리오를 위해)
     try {
       console.log('[VERIFICATION] 기존 미인증 코드 처리 시작')
