@@ -490,6 +490,17 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 }
 
+// 이메일 인증 발송
+export async function sendVerificationEmail(email: string, code: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
+  const template = createEmailTemplate('verification', { code }, language)
+  
+  return await sendEmail({
+    to: email,
+    template,
+    data: { code }
+  })
+}
+
 // 비밀번호 재설정 이메일 발송
 export async function sendPasswordResetEmail(email: string, resetLink: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
   const template = createEmailTemplate('passwordReset', { resetLink }, language)

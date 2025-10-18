@@ -91,7 +91,9 @@ export async function POST(request: NextRequest) {
     let sendMethod = ''
     
     if (type === 'email' && email) {
-      sendResult = await sendVerificationEmail(email, verificationCode)
+      // 언어 설정 (국가 코드 기반)
+      const language = nationality === 'KR' ? 'ko' : 'es'
+      sendResult = await sendVerificationEmail(email, verificationCode, language)
       sendMethod = '이메일'
     } else if (type === 'sms' && phoneNumber) {
       // 언어 설정 (국가 코드 기반)

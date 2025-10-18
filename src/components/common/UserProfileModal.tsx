@@ -278,6 +278,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
       if (profile.bio) {
         fieldsToTranslate.push('bio')
         textsToTranslate.push(profile.bio)
+        console.log('번역 대상 bio:', profile.bio)
       }
       if (profile.university) {
         fieldsToTranslate.push('university')
@@ -327,6 +328,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
       const newTranslatedFields: typeof translatedFields = {}
       fieldsToTranslate.forEach((field, index) => {
         newTranslatedFields[field] = translatedTexts[index]
+        console.log(`번역 결과 ${field}:`, translatedTexts[index])
       })
 
       setTranslatedFields(newTranslatedFields)
@@ -396,7 +398,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-semibold text-gray-900" style={{ 
               color: 'rgb(17 24 39) !important'
-            }}>사용자 프로필</DialogTitle>
+            }}>{t('userProfile.title')}</DialogTitle>
             
             {/* 번역 버튼 */}
             {profile && !loading && (
@@ -561,7 +563,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               <div className="flex items-center justify-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3 md:w-4 md:h-4" />
-                  {formatDate(profile.join_date || profile.created_at)} 가입
+                  {formatDate(profile.join_date || profile.created_at)} {t('userProfile.joinedOn')}
                 </div>
                 {profile.location && (
                   <div className="flex items-center gap-1">

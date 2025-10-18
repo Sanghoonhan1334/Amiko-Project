@@ -3,8 +3,11 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   try {
     const { text, targetLanguage } = await request.json()
+    
+    console.log('번역 요청 데이터:', { text, targetLanguage })
 
     if (!text) {
+      console.log('오류: 번역할 텍스트가 없음')
       return NextResponse.json(
         { error: '번역할 텍스트가 필요합니다.' },
         { status: 400 }
@@ -27,6 +30,7 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Referer': 'http://localhost:3000' // 리퍼러 추가
       },
       body: JSON.stringify({
         q: text,
@@ -37,9 +41,18 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      console.error('Google Translate API 오류:', errorData)
+      console.error('Google Translate API 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        requestData: { text, targetLanguage }
+      })
       return NextResponse.json(
-        { error: '번역 요청에 실패했습니다.' },
+        { 
+          error: '번역 요청에 실패했습니다.',
+          details: errorData,
+          status: response.status
+        },
         { status: response.status }
       )
     }

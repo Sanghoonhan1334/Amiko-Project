@@ -465,7 +465,7 @@ export default function MyTab() {
   }
 
   // 관리자 여부 확인 (더 포괄적인 체크)
-  const isAdmin = user?.email === 'admin@amiko.com' || user?.user_metadata?.role === 'admin'
+  const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com' || user?.user_metadata?.role === 'admin'
 
   if (loading) {
     return <ProfileSkeleton />
@@ -482,16 +482,6 @@ export default function MyTab() {
     )
   }
 
-  // 운영자는 대시보드만 표시
-  if (isAdmin) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="w-full">
-          <AnalyticsDashboard />
-        </div>
-      </div>
-    )
-  }
 
   // 프로필이 없을 때의 상태
   if (!profile) {
@@ -530,6 +520,17 @@ export default function MyTab() {
         </div>
             </div>
           </div>
+    )
+  }
+
+  // 운영자는 대시보드만 표시 (일반 프로필 렌더링 전에 체크)
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="w-full">
+          <AnalyticsDashboard />
+        </div>
+      </div>
     )
   }
 

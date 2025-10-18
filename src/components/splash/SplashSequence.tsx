@@ -15,14 +15,14 @@ const copy = {
     slogan1: '검증된 한국인과 함께,',
     slogan2: '문화를 나누는 진짜 커뮤니티',
     cultureLine: '함께, 문화를 나누다.',
-    bridgeText: '한국과 중남미를 잇는 다리',
+    bridgeText: '"한국과 중남미를 잇는 다리"',
   },
   es: {
     keywords: ['Corea', 'y Latinoamérica', 'conectadas'],
     slogan1: 'Comparte con coreanos verificados,',
     slogan2: 'una comunidad real de K-Culture',
     cultureLine: 'Compartiendo cultura.',
-    bridgeText: 'Un puente que conecta Corea y Latinoamérica',
+    bridgeText: '"Un puente que conecta Corea y Latinoamérica"',
   },
 }
 
@@ -44,20 +44,17 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
     initial: { 
       opacity: 0, 
       scale: 0.8, 
-      y: 20,
-      filter: 'drop-shadow(0 0 0px rgba(232,74,95,0))'
+      y: 20
     },
     animate: { 
       opacity: 1, 
       scale: 1.0, 
-      y: 0,
-      filter: 'drop-shadow(0 0 15px rgba(232,74,95,0.4))'
+      y: 0
     },
     exit: { 
       opacity: 0, 
       scale: 1.1,
-      y: -10,
-      filter: 'drop-shadow(0 0 0px rgba(232,74,95,0))'
+      y: -10
     }
   }
 
@@ -92,7 +89,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
       className="fixed inset-0 bg-white flex items-center justify-center z-50"
     >
       {/* 로고와 텍스트 표시 */}
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center -mt-64">
         {/* 로고 */}
         <motion.div
           variants={logoVariants}
@@ -109,9 +106,9 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           <Image
             src="/amiko-logo.png"
             alt="Amiko Logo"
-            width={300}
-            height={300}
-            className="w-30 h-30 md:w-40 md:h-40 lg:w-[300px] lg:h-[300px]"
+            width={500}
+            height={500}
+            className="w-48 h-48 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
           />
         </motion.div>
 
@@ -128,7 +125,14 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           }}
           className="text-center -mt-20"
         >
-          <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-700 tracking-wide">
+          <h1 
+            className="text-base md:text-lg lg:text-xl font-bold text-gray-700 tracking-wide"
+            style={{ 
+              fontStyle: 'italic !important',
+              transform: 'skewX(-10deg)',
+              fontFamily: 'Nanum Gothic, sans-serif'
+            }}
+          >
             {t.bridgeText}
           </h1>
         </motion.div>

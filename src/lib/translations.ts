@@ -266,6 +266,13 @@ export const translations = {
         hasSpecial: '특수문자 포함',
         noRepeated: '연속된 문자 없음'
       },
+
+      // 사용자 프로필
+      userProfile: {
+        title: '사용자 프로필',
+        joinedOn: '가입',
+        location: '위치'
+      },
       signUp: '회원가입',
       signIn: '로그인',
       signInDescription: '계정에 로그인하여 Amiko의 모든 기능을 이용하세요',
@@ -2611,6 +2618,13 @@ export const translations = {
         hasNumber: 'Incluir número',
         hasSpecial: 'Incluir carácter especial',
         noRepeated: 'Sin caracteres repetidos'
+      },
+
+      // 사용자 프로필
+      userProfile: {
+        title: 'Perfil de Usuario',
+        joinedOn: 'Se unió',
+        location: 'Ubicación'
       },
       signUp: 'Registrarse',
       signIn: 'Iniciar sesión',
