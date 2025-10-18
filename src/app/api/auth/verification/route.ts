@@ -85,7 +85,10 @@ export async function POST(request: NextRequest) {
     const supabase = createClient()
     
     // 간단한 Insert 방식 (문제 해결을 위해)
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    // 테스트용: 짧은 만료 시간 옵션 (EXPIRED 시나리오 테스트)
+    const isTestMode = process.env.NODE_ENV === 'development' && requestBody?.testExpired
+    const expiryMinutes = isTestMode ? 0.1 : 10 // 테스트 시 6초, 일반 시 10분
+    const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
     
     // 전화번호 정규화
     let normalizedPhoneNumber = phoneNumber
@@ -98,7 +101,7 @@ export async function POST(request: NextRequest) {
       })
     }
     
-    // 기존 코드 비활성화 (선택사항)
+    // 기존 코드 비활성화 (REPLACED_OR_USED 시나리오를 위해)
     try {
       console.log('[VERIFICATION] 기존 미인증 코드 처리 시작')
       
@@ -106,6 +109,7 @@ export async function POST(request: NextRequest) {
         .from('verification_codes')
         .update({ 
           verified: true,
+          status: 'replaced', // 상태를 replaced로 변경
           updated_at: new Date().toISOString()
         })
         .eq('type', type)

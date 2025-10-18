@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
     
     const supabase = createClient()
     
-    // DB 조회: phone_e164 기준으로 최신 active 코드 찾기
+    // DB 조회: 최신 미인증 코드 찾기 (status 필드가 있으면 사용, 없으면 verified=false 사용)
     let query = supabase
       .from('verification_codes')
       .select('*')
       .eq('type', type)
-      .eq('status', 'active')
+      .eq('verified', false) // 기본적으로 미인증 코드만
       .order('created_at', { ascending: false })
       .limit(1)
     
