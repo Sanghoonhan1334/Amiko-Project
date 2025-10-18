@@ -82,12 +82,13 @@ export async function POST(request: NextRequest) {
     
     // 전화번호 정규화 (발송/검증 통일된 함수 사용)
     let normalizedPhoneNumber = phoneNumber
-    if (phoneNumber && nationality) {
+    if (phoneNumber) {
+      // nationality가 없어도 전화번호 정규화 시도
       normalizedPhoneNumber = toE164(phoneNumber, nationality)
       console.log('[VERIFICATION_CHECK] 전화번호 정규화 (toE164):', { 
         original: phoneNumber, 
         normalized: normalizedPhoneNumber, 
-        nationality 
+        nationality: nationality || 'auto-detect'
       })
     }
     

@@ -356,7 +356,7 @@ export default function SignUpPage() {
           phoneNumber: authData.phoneNumber, 
           code, 
           type: 'sms',
-          nationality: authData.nationality
+          nationality: authData.nationality || formData.country || 'KR'
         })
       })
 
