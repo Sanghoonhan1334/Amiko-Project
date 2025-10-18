@@ -3427,7 +3427,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 뉴스 작성 모달 */}
       <Dialog open={showNewsWriteModal} onOpenChange={setShowNewsWriteModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-xl z-[99999]">
           <DialogHeader className="pb-4 border-b border-gray-200">
             <DialogTitle className="text-xl font-semibold text-gray-900">뉴스 작성</DialogTitle>
             <DialogDescription className="sr-only">새로운 뉴스를 작성하는 모달입니다.</DialogDescription>

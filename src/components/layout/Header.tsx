@@ -828,7 +828,7 @@ export default function Header() {
               {isLandingPage && (
                 <Button
                   onClick={() => router.push('/main')}
-                  className="md:hidden px-2 py-0 text-[8px] bg-gray-800 hover:bg-gray-700 text-white rounded transition-all duration-300 flex items-center gap-0.5"
+                  className="md:hidden px-2 py-0 text-xs bg-gray-800 hover:bg-gray-700 text-white rounded transition-all duration-300 flex items-center gap-0.5"
                 >
                   {t('buttons.start')}
                 </Button>
@@ -857,7 +857,7 @@ export default function Header() {
                     e.preventDefault()
                     router.push('/main')
                   }}
-                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white dark:text-gray-100 px-3 sm:px-4 py-1 sm:py-1.5 text-sm rounded-lg shadow-lg hover:shadow-xl whitespace-nowrap"
+                  className="hidden md:block font-semibold transition-all duration-300 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white dark:text-gray-100 px-3 sm:px-4 py-1 sm:py-1.5 text-base rounded-lg shadow-lg hover:shadow-xl whitespace-nowrap"
                 >
                   {t('header.startButton')}
                 </button>

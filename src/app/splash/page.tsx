@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import SplashSequence from '@/components/splash/SplashSequence'
+import { Capacitor } from '@capacitor/core'
 
 export default function SplashPage() {
   const router = useRouter()
@@ -20,8 +21,30 @@ export default function SplashPage() {
       return
     }
 
-    // 스플래시 애니메이션 시작 (매번 실행)
-    setShowSplash(true)
+    // 앱인지 웹인지 확인
+    const isApp = Capacitor.isNativePlatform()
+    
+    if (isApp) {
+      // 앱: 백그라운드에서 돌아온 경우인지 확인
+      const lastActiveTime = localStorage.getItem('lastActiveTime')
+      const now = Date.now()
+      const timeSinceLastActive = lastActiveTime ? now - parseInt(lastActiveTime) : Infinity
+      
+      // 30초 이상 비활성 상태였다면 앱 재시작으로 간주
+      if (timeSinceLastActive > 30000) {
+        setShowSplash(true)
+      } else {
+        // 백그라운드에서 돌아온 경우 즉시 이동
+        router.push('/')
+        return
+      }
+      
+      // 현재 시간 저장
+      localStorage.setItem('lastActiveTime', now.toString())
+    } else {
+      // 웹: 매번 스플래시 애니메이션 시작
+      setShowSplash(true)
+    }
   }, [router])
 
   const handleSplashComplete = () => {
