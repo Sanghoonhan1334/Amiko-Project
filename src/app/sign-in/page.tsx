@@ -221,7 +221,7 @@ export default function SignInPage() {
           <div className="space-y-3 text-center">
             <div className="flex items-center justify-center gap-6 text-sm">
               <a href="/forgot-password" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium transition-colors">
-                {t('auth.forgotPassword')}
+                {t('auth.forgotPassword.title')}
               </a>
               <span className="text-slate-400 dark:text-gray-500">•</span>
               <a href="/help" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium transition-colors">
