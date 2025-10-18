@@ -108,14 +108,14 @@ export default function ForgotPasswordPage() {
                   {t('auth.forgotPassword.emailAddress')}
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="example@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                    className="pl-16 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                     required
                   />
                 </div>
