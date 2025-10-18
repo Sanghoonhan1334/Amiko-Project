@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import SplashSequence from '@/components/splash/SplashSequence'
 // import ScrollToTopButton from '@/components/common/ScrollToTopButton'
 import {
   Accordion,
@@ -75,6 +76,7 @@ const Hero = dynamic(() => import('@/components/landing/Hero'), {
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false)
+  const [showSplash, setShowSplash] = useState(true)
   const { t, language } = useLanguage()
   const router = useRouter()
   
@@ -86,7 +88,18 @@ export default function HomePage() {
 
   useEffect(() => {
     setIsClient(true)
+    
+    // 스플래시 화면 표시 후 메인 콘텐츠로 전환
+    const timer = setTimeout(() => {
+      setShowSplash(false)
+    }, 2000) // 2초 후 스플래시 종료
+
+    return () => clearTimeout(timer)
   }, [])
+
+  const handleSplashComplete = () => {
+    setShowSplash(false)
+  }
 
 
 
@@ -100,6 +113,11 @@ export default function HomePage() {
         </div>
       </div>
     )
+  }
+
+  // 스플래시 화면 표시
+  if (showSplash) {
+    return <SplashSequence onComplete={handleSplashComplete} />
   }
 
   return (

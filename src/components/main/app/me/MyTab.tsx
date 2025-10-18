@@ -464,8 +464,8 @@ export default function MyTab() {
     setIsDragging(false)
   }
 
-  // 관리자 여부 확인
-  const isAdmin = user?.email === 'admin@amiko.com'
+  // 관리자 여부 확인 (더 포괄적인 체크)
+  const isAdmin = user?.email === 'admin@amiko.com' || user?.user_metadata?.role === 'admin'
 
   if (loading) {
     return <ProfileSkeleton />
@@ -478,6 +478,17 @@ export default function MyTab() {
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">{t('myTab.loading')}</p>
       </div>
+      </div>
+    )
+  }
+
+  // 운영자는 대시보드만 표시
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="w-full">
+          <AnalyticsDashboard />
+        </div>
       </div>
     )
   }
@@ -1474,12 +1485,6 @@ export default function MyTab() {
             <ChargingTab />
           </div>
 
-        {/* 관리자 전용 대시보드 */}
-        {isAdmin && (
-          <div className="px-4 py-4 bg-white">
-            <AnalyticsDashboard />
-          </div>
-        )}
 
         {/* 하단 여백 */}
         <div className="h-20"></div>
