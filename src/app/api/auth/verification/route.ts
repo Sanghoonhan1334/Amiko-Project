@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         deactivateQuery = deactivateQuery.eq('email', email)
       }
       if (normalizedPhoneNumber) {
-        deactivateQuery = deactivateQuery.eq('phone_number', normalizedPhoneNumber)
+        deactivateQuery = deactivateQuery.eq('phone_e164', normalizedPhoneNumber)
       }
 
       const { error: deactivateError, count } = await deactivateQuery
@@ -127,9 +127,11 @@ export async function POST(request: NextRequest) {
     const insertData = {
       email: email || null,
       phone_number: normalizedPhoneNumber || null,
+      phone_e164: normalizedPhoneNumber || null,
       code: verificationCode,
       type: type,
       verified: false,
+      status: 'active',
       expires_at: expiresAt,
       ip_address: request.headers.get('x-forwarded-for') || '127.0.0.1',
       user_agent: request.headers.get('user-agent') || 'Unknown'
