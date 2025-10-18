@@ -247,6 +247,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     // 운영자 이메일 목록 (실제 운영자 이메일로 변경 필요)
     const adminEmails = [
       'admin@amiko.com',
+      'sanghoonhan1334@naver.com', // 추가된 운영자 이메일
       'editor@amiko.com',
       'manager@amiko.com'
     ]
@@ -256,8 +257,20 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
     ]
     
+    // 이메일 또는 ID로 운영자 확인
     const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
-    setIsAdmin(isAdminUser)
+    
+    // 추가로 user_metadata의 role도 확인
+    const isAdminByRole = user?.user_metadata?.role === 'admin'
+    
+    setIsAdmin(isAdminUser || isAdminByRole)
+    
+    console.log('운영자 상태 확인:', {
+      email: user.email,
+      id: user.id,
+      role: user?.user_metadata?.role,
+      isAdmin: isAdminUser || isAdminByRole
+    })
   }
 
   // 운영진 상태 확인
