@@ -1,77 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { formatPhoneNumber } from '@/lib/twilioService'
+import { toE164, normalizeDigits, safeCompare } from '@/lib/phoneUtils'
 
 // Edge 런타임 문제 방지
 export const runtime = 'nodejs'
 
-// crypto는 dynamic import로 사용
-let crypto: typeof import('crypto') | null = null
-async function getCrypto() {
-  if (!crypto) {
-    crypto = await import('crypto')
-  }
-  return crypto
-}
-
-// 유니코드 숫자만 추출 (앞자리 0 유지)
-function normalizeDigits(code: string): string {
-  if (!code) return ''
-  // 모든 유니코드 숫자를 ASCII 숫자로 변환
-  return code.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (c) => 
-    String.fromCharCode(c.charCodeAt(0) - (c.charCodeAt(0) >= 0x06F0 ? 0x06F0 : 0x0660) + 48)
-  ).replace(/\D/g, '')
-}
-
-// E.164 형식으로 전화번호 정규화 (발송/검증 통일)
-function toE164(phoneNumber: string, countryCode?: string): string {
-  if (!phoneNumber) return ''
-  
-  // 이미 E.164 형식이면 그대로 반환
-  if (phoneNumber.startsWith('+')) {
-    return phoneNumber
-  }
-  
-  // formatPhoneNumber 사용
-  return formatPhoneNumber(phoneNumber, countryCode)
-}
-
-// 안전한 문자열 비교 (timing attack 방지)
-async function safeCompare(a: string, b: string): Promise<boolean> {
-  if (!a || !b) return false
-  
-  // 길이가 다르면 false (throw 하지 않음)
-  if (a.length !== b.length) {
-    console.log('[SAFE_COMPARE] 길이 불일치:', { aLen: a.length, bLen: b.length })
-    return false
-  }
-  
-  try {
-    const cryptoModule = await getCrypto()
-    const bufA = Buffer.from(a)
-    const bufB = Buffer.from(b)
-    return cryptoModule.timingSafeEqual(bufA, bufB)
-  } catch (err) {
-    console.error('[SAFE_COMPARE] 비교 실패:', err)
-    // Fallback: 단순 문자열 비교
-    return a === b
-  }
-}
-
 export async function POST(request: NextRequest) {
   let requestBody: any = null
+  let normalizedTo: string = ''
+  let inputCode: string = ''
   
   try {
     console.log('[VERIFICATION_CHECK] ========================================')
     console.log('[VERIFICATION_CHECK] 인증코드 검증 시작')
     console.log('[VERIFICATION_CHECK] 환경:', process.env.NODE_ENV)
+    console.log('[VERIFICATION_CHECK] 런타임:', 'nodejs')
     
     requestBody = await request.json()
     const { email, phoneNumber, code, type, nationality } = requestBody
     
+    // 입력값 저장 (로깅용)
+    normalizedTo = email || phoneNumber || 'unknown'
+    inputCode = code || ''
+    
     console.log('[VERIFICATION_CHECK] 요청 데이터:', { email, phoneNumber, code, type, nationality })
     
-    // 입력 코드 정규화 (유니코드 숫자 처리)
+    // 입력 코드 정규화 (유니코드 숫자 처리, 길이 6 확인)
     const normalizedInputCode = normalizeDigits(code)
     console.log('[VERIFICATION_CHECK] 코드 정규화:', { 
       original: code, 
@@ -80,160 +34,182 @@ export async function POST(request: NextRequest) {
       type: typeof normalizedInputCode
     })
     
-    // 전화번호 정규화 (발송/검증 통일된 함수 사용)
-    let normalizedPhoneNumber = phoneNumber
+    // 길이 6 확인
+    if (normalizedInputCode.length !== 6) {
+      console.error('[VERIFICATION_CHECK] ❌ 코드 길이 이상:', { 
+        expected: 6, 
+        actual: normalizedInputCode.length,
+        code: normalizedInputCode
+      })
+      return NextResponse.json({
+        success: false,
+        reason: 'INVALID_CODE',
+        detail: '인증코드는 6자리 숫자여야 합니다.'
+      }, { status: 400 })
+    }
+    
+    // 전화번호 정규화 (E.164)
+    let phoneE164 = null
     if (phoneNumber) {
-      // nationality가 없어도 전화번호 정규화 시도
-      normalizedPhoneNumber = toE164(phoneNumber, nationality)
+      phoneE164 = toE164(phoneNumber, nationality)
       console.log('[VERIFICATION_CHECK] 전화번호 정규화 (toE164):', { 
         original: phoneNumber, 
-        normalized: normalizedPhoneNumber, 
+        normalized: phoneE164, 
         nationality: nationality || 'auto-detect'
       })
     }
     
     // 유효성 검사
     if ((!email && !phoneNumber) || !normalizedInputCode) {
-      return NextResponse.json(
-        { success: false, reason: 'INVALID_INPUT', error: '이메일 또는 전화번호와 인증코드가 필요합니다.' },
-        { status: 400 }
-      )
+      return NextResponse.json({
+        success: false,
+        reason: 'INVALID_INPUT',
+        detail: '이메일 또는 전화번호와 인증코드가 필요합니다.'
+      }, { status: 400 })
     }
-
+    
     const supabase = createClient()
-
-    // 데이터베이스에서 가장 최신 인증코드 조회 (DESC LIMIT 1)
+    
+    // DB 조회: phone_e164 기준으로 최신 active 코드 찾기
     let query = supabase
       .from('verification_codes')
       .select('*')
       .eq('type', type)
-      .eq('verified', false)
-      .order('created_at', { ascending: false }) // 최신순 정렬
-      .limit(1) // 가장 최신 1건만
-
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+    
     if (email) {
       query = query.eq('email', email)
     }
-    if (normalizedPhoneNumber) {
-      query = query.eq('phone_number', normalizedPhoneNumber)
+    if (phoneE164) {
+      query = query.eq('phone_e164', phoneE164)
     }
-
-    const { data: verificationData, error: verificationError } = await query.single()
-
-    console.log('[VERIFICATION_CHECK] 데이터베이스 조회 결과:', { 
-      found: !!verificationData,
-      error: verificationError,
-      queryConditions: {
-        type,
-        phoneNumber: normalizedPhoneNumber,
-        email
-      }
+    
+    const { data: verificationData, error: queryError } = await query
+    
+    console.log('[VERIFICATION_CHECK] 데이터베이스 조회 결과:', {
+      found: !!verificationData?.length,
+      error: queryError,
+      queryConditions: { type, phoneE164, email }
     })
     
-    // DB 조회 결과 상세 로깅
-    if (verificationData) {
-      const dbCode = normalizeDigits(verificationData.code || '')
-      console.log('[VERIFICATION_CHECK] DB 코드 상세:', {
-        dbCode: verificationData.code,
-        dbCodeNormalized: dbCode,
-        dbCodeLength: dbCode.length,
-        dbCodeType: typeof verificationData.code,
-        createdAt: verificationData.created_at,
-        expiresAt: verificationData.expires_at,
-        verified: verificationData.verified,
-        phoneNumber: verificationData.phone_number
-      })
-      console.log('[VERIFICATION_CHECK] 입력 코드 상세:', {
-        inputCode: code,
-        inputCodeNormalized: normalizedInputCode,
-        inputCodeLength: normalizedInputCode.length,
-        inputCodeType: typeof code
-      })
+    // 에러 처리
+    if (queryError) {
+      console.error('[VERIFICATION_CHECK] ❌ DB 조회 실패:', queryError)
+      return NextResponse.json({
+        success: false,
+        reason: 'DB_ERROR',
+        detail: '데이터베이스 조회에 실패했습니다.'
+      }, { status: 400 })
     }
-
-    // DB에서 코드를 찾지 못한 경우
-    if (verificationError || !verificationData) {
-      console.error('[VERIFICATION_CHECK] ❌ DB 조회 실패 또는 데이터 없음')
-      console.error('[VERIFICATION_CHECK] 에러:', verificationError)
+    
+    // 레코드 없음
+    if (!verificationData || verificationData.length === 0) {
+      console.error('[VERIFICATION_CHECK] ❌ 레코드 없음')
       
-      // 디버깅: 최근 5개 미인증 코드 조회
-      const { data: allCodes } = await supabase
+      // 최근 5개 코드 로깅 (디버깅용)
+      const { data: recentCodes } = await supabase
         .from('verification_codes')
-        .select('*')
-        .eq('type', type)
-        .eq('verified', false)
+        .select('id, code, type, email, phone_number, phone_e164, status, created_at, expires_at')
         .order('created_at', { ascending: false })
         .limit(5)
       
-      console.log('[VERIFICATION_CHECK] 최근 5개 미인증 코드:', allCodes?.map(c => ({
-        code: c.code,
-        phone: c.phone_number,
-        email: c.email,
+      console.error('[VERIFICATION_CHECK] 최근 5개 코드:', recentCodes?.map(c => ({
+        id: c.id,
+        code: c.code?.substring(0, 2) + '****',
+        type: c.type,
+        status: c.status,
+        target: c.email || c.phone_e164 || c.phone_number,
         created: c.created_at,
-        expires: c.expires_at,
         expired: new Date(c.expires_at) < new Date()
       })))
       
-      return NextResponse.json(
-        { success: false, reason: 'NOT_FOUND', error: '인증코드가 만료되었거나 존재하지 않습니다.' },
-        { status: 400 }
-      )
+      return NextResponse.json({
+        success: false,
+        reason: 'NOT_FOUND',
+        detail: '인증코드를 찾을 수 없습니다. 다시 발송해주세요.'
+      }, { status: 400 })
     }
+    
+    const verificationRecord = verificationData[0]
+    
+    console.log('[VERIFICATION_CHECK] DB 코드 상세:', {
+      dbCode: verificationRecord.code?.substring(0, 2) + '****',
+      dbCodeLength: verificationRecord.code?.length,
+      createdAt: verificationRecord.created_at,
+      expiresAt: verificationRecord.expires_at,
+      status: verificationRecord.status,
+      phoneE164: verificationRecord.phone_e164
+    })
     
     // 만료 확인
     const now = new Date()
-    const expiresAt = new Date(verificationData.expires_at)
-    if (expiresAt < now) {
-      console.error('[VERIFICATION_CHECK] ❌ 코드 만료')
-      console.error('[VERIFICATION_CHECK] 만료 시각:', expiresAt.toISOString())
-      console.error('[VERIFICATION_CHECK] 현재 시각:', now.toISOString())
+    const expiresAt = new Date(verificationRecord.expires_at)
+    
+    if (now > expiresAt) {
+      console.error('[VERIFICATION_CHECK] ❌ 코드 만료:', {
+        now: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        expiredMinutes: Math.round((now.getTime() - expiresAt.getTime()) / 60000)
+      })
       
-      return NextResponse.json(
-        { success: false, reason: 'EXPIRED', error: '인증코드가 만료되었습니다.' },
-        { status: 400 }
-      )
+      return NextResponse.json({
+        success: false,
+        reason: 'EXPIRED',
+        detail: '인증코드가 만료되었습니다. 새로운 코드를 발송해주세요.'
+      }, { status: 400 })
     }
     
-    // 코드 비교 (normalizeDigits로 정규화 후 비교)
-    const dbCode = normalizeDigits(verificationData.code || '')
-    const isMatch = await safeCompare(dbCode, normalizedInputCode)
+    // 상태 확인
+    if (verificationRecord.status !== 'active') {
+      console.error('[VERIFICATION_CHECK] ❌ 상태 이상:', {
+        status: verificationRecord.status,
+        expected: 'active'
+      })
+      
+      return NextResponse.json({
+        success: false,
+        reason: 'REPLACED_OR_USED',
+        detail: '이미 사용되었거나 교체된 인증코드입니다.'
+      }, { status: 400 })
+    }
     
-    console.log('[VERIFICATION_CHECK] 코드 비교 결과:', {
-      dbCode,
-      inputCode: normalizedInputCode,
-      match: isMatch
+    // 코드 비교 (안전한 문자열 비교)
+    const dbCode = verificationRecord.code
+    const isMatch = await safeCompare(normalizedInputCode, dbCode)
+    
+    console.log('[VERIFICATION_CHECK] 코드 비교 결과:', { 
+      dbCode: dbCode?.substring(0, 2) + '****', 
+      inputCode: normalizedInputCode.substring(0, 2) + '****',
+      match: isMatch 
     })
     
     if (!isMatch) {
       console.error('[VERIFICATION_CHECK] ❌ 코드 불일치')
       
-      return NextResponse.json(
-        { success: false, reason: 'MISMATCH', error: '인증코드가 일치하지 않습니다.' },
-        { status: 400 }
-      )
+      return NextResponse.json({
+        success: false,
+        reason: 'MISMATCH',
+        detail: '인증코드가 일치하지 않습니다.'
+      }, { status: 400 })
     }
-
-    // 인증코드를 verified로 업데이트
-    console.log('[VERIFICATION_CHECK] ✅ 코드 일치! 인증 처리 중...')
     
+    // 인증 성공: 상태를 'used'로 변경
     const { error: updateError } = await supabase
       .from('verification_codes')
       .update({ 
-        verified: true, 
-        verified_at: new Date().toISOString(),
+        status: 'used',
+        verified: true,
         updated_at: new Date().toISOString()
       })
-      .eq('id', verificationData.id)
-
+      .eq('id', verificationRecord.id)
+    
     if (updateError) {
-      console.error('[VERIFICATION_CHECK] ❌ 인증코드 업데이트 실패:', updateError)
-      
-      return NextResponse.json(
-        { success: false, reason: 'UPDATE_FAILED', error: '인증 처리 중 오류가 발생했습니다.' },
-        { status: 400 }
-      )
+      console.error('[VERIFICATION_CHECK] ❌ 상태 업데이트 실패:', updateError)
+      // 인증은 성공했지만 상태 업데이트 실패 - 성공으로 처리
     }
-
+    
     console.log('[VERIFICATION_CHECK] ✅✅✅ 인증 성공!')
     console.log('[VERIFICATION_CHECK] ========================================')
     
@@ -251,17 +227,40 @@ export async function POST(request: NextRequest) {
     console.error('[VERIFICATION_CHECK] 에러 메시지:', error instanceof Error ? error.message : String(error))
     console.error('[VERIFICATION_CHECK] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
     
-    // 입력값 로깅 (이미 파싱된 경우)
-    if (requestBody) {
-      console.error('[VERIFICATION_CHECK] 입력값:', {
+    // 입력값 로깅 (마스킹된 코드)
+    console.error('[VERIFICATION_CHECK] 입력값:', {
+      to: normalizedTo,
+      code: inputCode ? `${inputCode.substring(0, 2)}****` : 'not-provided',
+      normalizedTo: normalizedTo,
+      inputCodeLength: inputCode.length,
+      requestBody: requestBody ? {
         email: requestBody.email,
         phoneNumber: requestBody.phoneNumber,
-        code: requestBody.code,
         type: requestBody.type,
         nationality: requestBody.nationality
-      })
-    } else {
-      console.error('[VERIFICATION_CHECK] 입력값: 파싱 전 에러 발생')
+      } : 'parsing-failed'
+    })
+    
+    // DB 조회 결과 로깅 (최근 3개)
+    try {
+      const supabase = createClient()
+      const { data: recentCodes } = await supabase
+        .from('verification_codes')
+        .select('id, code, type, email, phone_number, phone_e164, status, created_at, expires_at')
+        .order('created_at', { ascending: false })
+        .limit(3)
+      
+      console.error('[VERIFICATION_CHECK] 최근 DB 코드들:', recentCodes?.map(c => ({
+        id: c.id,
+        status: c.status,
+        created_at: c.created_at,
+        expires_at: c.expires_at,
+        hasCode: !!c.code,
+        type: c.type,
+        target: c.email || c.phone_e164 || c.phone_number
+      })))
+    } catch (dbError) {
+      console.error('[VERIFICATION_CHECK] DB 조회 실패:', dbError)
     }
     
     console.error('[VERIFICATION_CHECK] ========================================')
@@ -269,15 +268,23 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
     const errorName = error instanceof Error ? error.name : 'UnknownError'
     
+    // 에러 타입별 reason 매핑
+    let reason = 'UNKNOWN_ERROR'
+    if (errorMessage.includes('verification_codes_type_check')) {
+      reason = 'INVALID_TYPE'
+    } else if (errorMessage.includes('connection')) {
+      reason = 'DB_CONNECTION_ERROR'
+    } else if (errorMessage.includes('JSON')) {
+      reason = 'INVALID_REQUEST'
+    }
+    
     // 500이 아닌 400 응답으로 변경
-    return NextResponse.json(
-      { 
-        success: false, 
-        reason: errorMessage,
-        errorType: errorName,
-        timestamp: new Date().toISOString()
-      },
-      { status: 400 }
-    )
+    return NextResponse.json({
+      success: false,
+      reason: reason,
+      detail: errorMessage,
+      errorType: errorName,
+      timestamp: new Date().toISOString()
+    }, { status: 400 })
   }
 }

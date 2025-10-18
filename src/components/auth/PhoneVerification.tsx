@@ -138,6 +138,9 @@ export default function PhoneVerification({
       setIsWaitingForCode(true)
       setTimeLeft(300) // 5분 타이머 시작
       
+      // 재전송 시 입력창 리셋
+      setVerificationCode('')
+      
       try {
         console.log('📤 [DEBUG] onResend 호출:', selectedMethod)
         await onResend(selectedMethod)

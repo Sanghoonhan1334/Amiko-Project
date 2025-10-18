@@ -361,14 +361,27 @@ export default function SignUpPage() {
       })
 
       const result = await response.json()
-      if (!response.ok) throw new Error(result.error)
+      if (!response.ok) {
+        // 서버 응답의 reason에 따른 명확한 에러 메시지
+        const errorMessage = result.reason === 'NOT_FOUND' 
+          ? '인증코드를 찾을 수 없습니다. 다시 발송해주세요.'
+          : result.reason === 'EXPIRED'
+          ? '인증코드가 만료되었습니다. 새로운 코드를 발송해주세요.'
+          : result.reason === 'REPLACED_OR_USED'
+          ? '이미 사용되었거나 교체된 인증코드입니다.'
+          : result.reason === 'MISMATCH'
+          ? '인증코드가 일치하지 않습니다.'
+          : result.detail || result.error || '인증에 실패했습니다.'
+        
+        throw new Error(errorMessage)
+      }
 
       setAuthData(prev => ({ ...prev, isSMSVerified: true }))
       // SMS 인증 완료 후 회원가입 처리
       handleSignUp()
     } catch (error) {
       console.error('SMS 인증 실패:', error)
-      alert(t('auth.verificationCodeIncorrect'))
+      alert(error instanceof Error ? error.message : t('auth.verificationCodeIncorrect'))
     } finally {
       setIsLoading(false)
     }
