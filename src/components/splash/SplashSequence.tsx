@@ -85,11 +85,6 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           width={1920}
           height={1920}
           className="w-30 h-30 md:w-40 md:h-40 lg:w-[1920px] lg:h-[1920px]"
-          style={{
-            width: '120px',
-            height: '120px',
-            display: 'block'
-          }}
         />
       </motion.div>
     </motion.div>
