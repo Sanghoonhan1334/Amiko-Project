@@ -606,15 +606,15 @@ export default function SignUpPage() {
                 {t('auth.email')}
               </Label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="example@email.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="pl-16 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
-                  style={{ paddingLeft: '4rem' }}
+                  className="border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
+                  style={{ paddingLeft: '2.2rem', paddingRight: '0.75rem' }}
                   required
                   title="올바른 이메일 주소를 입력해주세요"
                 />

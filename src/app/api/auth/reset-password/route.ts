@@ -1,43 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { sendPasswordResetEmail } from '@/lib/emailService'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { password } = await request.json()
+    console.log('[RESET_PASSWORD] 비밀번호 재설정 요청 시작')
 
-    // 입력 검증
-    if (!password) {
+    const body = await request.json()
+    const { email, nationality } = body
+
+    console.log('[RESET_PASSWORD] 요청 데이터:', { email, nationality })
+
+    // 유효성 검사
+    if (!email) {
       return NextResponse.json(
-        { error: '비밀번호를 입력해주세요.' },
+        { success: false, error: '이메일 주소가 필요합니다.' },
         { status: 400 }
       )
     }
 
-    // 비밀번호 강도 검증
-    if (password.length < 8) {
+    const supabase = createClient()
+
+    // 언어 설정 (요청에서 제공된 국적 기반)
+    const userNationality = nationality || 'KR'
+    const language = userNationality === 'KR' ? 'ko' : 'es'
+
+    console.log('[RESET_PASSWORD] 언어 설정:', { userNationality, language })
+
+    // 커스텀 비밀번호 재설정 토큰 생성 (Supabase Auth 우회)
+    const resetToken = Buffer.from(`${email}:${Date.now()}`).toString('base64')
+    
+    // 개발 환경에서는 localhost로, 프로덕션에서는 실제 도메인으로
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000' 
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://helloamiko.com')
+    
+    const resetLink = `${baseUrl}/reset-password?token=${resetToken}`
+    
+    console.log('[RESET_PASSWORD] 커스텀 비밀번호 재설정 토큰 생성:', { 
+      resetToken, 
+      resetLink, 
+      environment: process.env.NODE_ENV,
+      baseUrl 
+    })
+
+    // 커스텀 이메일만 발송 (언어별)
+    const emailSent = await sendPasswordResetEmail(email, resetLink, language)
+
+    if (!emailSent) {
+      console.error('[RESET_PASSWORD] 커스텀 이메일 발송 실패')
       return NextResponse.json(
-        { error: '비밀번호는 최소 8자 이상이어야 합니다.' },
-        { status: 400 }
+        { success: false, error: '이메일 발송에 실패했습니다.' },
+        { status: 500 }
       )
     }
 
-    // Supabase의 비밀번호 재설정은 이메일 링크를 통해 자동으로 세션이 설정됨
-    // 서버에서 직접 비밀번호 업데이트 (관리자 권한 사용)
+    console.log(`[RESET_PASSWORD] ${language} 언어로 비밀번호 재설정 이메일 발송 성공`)
     
-    // 이메일 주소를 URL에서 가져오거나 다른 방법으로 사용자 식별
-    // 임시로 모든 사용자의 비밀번호를 업데이트 (실제 환경에서는 더 안전한 방법 필요)
-    
-    // 실제로는 이메일 주소나 사용자 ID를 받아서 처리해야 함
-    // 현재는 간단한 구현을 위해 에러 반환
-    return NextResponse.json(
-      { error: '비밀번호 재설정 기능을 준비 중입니다. 관리자에게 문의해주세요.' },
-      { status: 501 }
-    )
+    return NextResponse.json({
+      success: true,
+      message: language === 'ko' ? '비밀번호 재설정 이메일이 발송되었습니다.' : 'Se ha enviado el email de restablecimiento de contraseña.',
+      language: language
+    })
 
-  } catch (error) {
-    console.error('[RESET_PASSWORD] 오류:', error)
+  } catch (error: any) {
+    console.error('[RESET_PASSWORD] 에러 발생:', error)
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { success: false, error: '서버 오류가 발생했습니다.', details: error.message },
       { status: 500 }
     )
   }

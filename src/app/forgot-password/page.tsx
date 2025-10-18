@@ -21,10 +21,13 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ 
+          email: email,
+          nationality: 'KR' // 한국 사용자로 가정, 실제로는 사용자 정보에서 가져와야 함
+        })
       })
 
       const result = await response.json()
@@ -108,14 +111,15 @@ export default function ForgotPasswordPage() {
                   {t('auth.forgotPassword.emailAddress')}
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="example@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-16 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                    className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                    style={{ paddingLeft: '2.2rem', paddingRight: '0.75rem' }}
                     required
                   />
                 </div>
