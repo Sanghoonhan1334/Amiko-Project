@@ -82,9 +82,9 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
         <Image
           src="/amiko-logo.png"
           alt="Amiko Logo"
-          width={120}
-          height={120}
-          className="w-30 h-30 md:w-40 md:h-40 lg:w-48 lg:h-48"
+          width={480}
+          height={480}
+          className="w-30 h-30 md:w-40 md:h-40 lg:w-[480px] lg:h-[480px]"
           style={{
             width: '120px',
             height: '120px',
