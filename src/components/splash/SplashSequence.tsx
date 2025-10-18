@@ -82,9 +82,9 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
         <Image
           src="/amiko-logo.png"
           alt="Amiko Logo"
-          width={1920}
-          height={1920}
-          className="w-30 h-30 md:w-40 md:h-40 lg:w-[1920px] lg:h-[1920px]"
+          width={300}
+          height={300}
+          className="w-30 h-30 md:w-40 md:h-40 lg:w-[300px] lg:h-[300px]"
         />
       </motion.div>
     </motion.div>
