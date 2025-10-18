@@ -525,6 +525,19 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
       console.warn('⚠️ SMTP 인증 정보가 설정되지 않았습니다.')
       console.warn('SMTP_USER:', smtpUser ? '설정됨' : '미설정')
       console.warn('SMTP_PASS:', smtpPass ? '설정됨' : '미설정')
+      
+      // 개발 환경에서는 콘솔에 출력하고 true 반환
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n' + '='.repeat(80))
+        console.log('📧 이메일 발송 (개발 환경 - SMTP 미설정)')
+        console.log('='.repeat(80))
+        console.log(`받는 사람: ${to}`)
+        console.log(`제목: ${subject}`)
+        console.log(`내용: ${html.substring(0, 200)}...`)
+        console.log('='.repeat(80) + '\n')
+        return true
+      }
+      
       return false
     }
     

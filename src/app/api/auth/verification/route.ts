@@ -4,20 +4,58 @@ import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 import { createClient } from '@/lib/supabase/server'
 import { formatPhoneNumber } from '@/lib/twilioService'
 
+// Edge 런타임 문제 방지
+export const runtime = 'nodejs'
+
+// 유니코드 숫자만 추출 (앞자리 0 유지)
+function normalizeDigits(code: string): string {
+  if (!code) return ''
+  // 모든 유니코드 숫자를 ASCII 숫자로 변환
+  return code.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (c) => 
+    String.fromCharCode(c.charCodeAt(0) - (c.charCodeAt(0) >= 0x06F0 ? 0x06F0 : 0x0660) + 48)
+  ).replace(/\D/g, '')
+}
+
+// E.164 형식으로 전화번호 정규화 (발송/검증 통일)
+function toE164(phoneNumber: string, countryCode?: string): string {
+  if (!phoneNumber) return ''
+  
+  // 이미 E.164 형식이면 그대로 반환
+  if (phoneNumber.startsWith('+')) {
+    return phoneNumber
+  }
+  
+  // formatPhoneNumber 사용
+  return formatPhoneNumber(phoneNumber, countryCode)
+}
+
 export async function POST(request: NextRequest) {
+  let requestBody: any = null
+  
   try {
+    console.log('[VERIFICATION] ========================================')
     console.log('[VERIFICATION] 인증 요청 시작')
+    console.log('[VERIFICATION] 환경:', process.env.NODE_ENV)
     
-    const body = await request.json()
-    const { email, phoneNumber, type, nationality } = body
+    requestBody = await request.json()
+    const { email, phoneNumber, type, nationality } = requestBody
     
     console.log('[VERIFICATION] 요청 데이터:', { email, phoneNumber, type, nationality })
+    console.log('[VERIFICATION] 환경변수 확인:', {
+      hasSmtpUser: !!process.env.SMTP_USER,
+      hasSmtpPass: !!process.env.SMTP_PASS,
+      hasTwilioSid: !!process.env.TWILIO_ACCOUNT_SID,
+      hasTwilioToken: !!process.env.TWILIO_AUTH_TOKEN,
+      hasTwilioPhone: !!process.env.TWILIO_PHONE_NUMBER,
+      supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    })
 
-    // 전화번호 정규화 (저장과 검증에서 동일한 형식 사용)
+    // 전화번호 정규화 (발송/검증 통일된 함수 사용)
     let normalizedPhoneNumber = phoneNumber
     if (phoneNumber && nationality) {
-      normalizedPhoneNumber = formatPhoneNumber(phoneNumber, nationality)
-      console.log('[VERIFICATION] 전화번호 정규화:', { original: phoneNumber, normalized: normalizedPhoneNumber })
+      normalizedPhoneNumber = toE164(phoneNumber, nationality)
+      console.log('[VERIFICATION] 전화번호 정규화 (toE164):', { original: phoneNumber, normalized: normalizedPhoneNumber, nationality })
     }
 
     // 유효성 검사
@@ -28,50 +66,73 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // 6자리 인증코드 생성
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    // 6자리 인증코드 생성 (normalizeDigits로 정규화)
+    const rawCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const verificationCode = normalizeDigits(rawCode)
     
-    console.log('[VERIFICATION] 인증코드 생성:', verificationCode)
+    console.log('[VERIFICATION] 인증코드 생성:', { raw: rawCode, normalized: verificationCode, length: verificationCode.length })
     
     const supabase = createClient()
     
-    // 기존 미인증 코드들 비활성화
-    const deactivateQuery = supabase
-      .from('verification_codes')
-      .update({ verified: true }) // 이미 사용된 것으로 처리
-      .eq('type', type)
-      .eq('verified', false)
+    // 재전송 시 이전 코드를 'replaced' 상태로 변경 (1건만 유지)
+    try {
+      console.log('[VERIFICATION] 기존 미인증 코드 처리 시작')
+      
+      let deactivateQuery = supabase
+        .from('verification_codes')
+        .update({ 
+          verified: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('type', type)
+        .eq('verified', false)
 
-    if (email) {
-      deactivateQuery.eq('email', email)
-    }
-    if (normalizedPhoneNumber) {
-      deactivateQuery.eq('phone_number', normalizedPhoneNumber)
-    }
+      if (email) {
+        deactivateQuery = deactivateQuery.eq('email', email)
+      }
+      if (normalizedPhoneNumber) {
+        deactivateQuery = deactivateQuery.eq('phone_number', normalizedPhoneNumber)
+      }
 
-    const { error: deactivateError } = await deactivateQuery
+      const { error: deactivateError, count } = await deactivateQuery
 
-    if (deactivateError) {
-      console.error('기존 인증코드 비활성화 실패:', deactivateError)
+      if (deactivateError) {
+        console.error('[VERIFICATION] 기존 인증코드 비활성화 실패:', deactivateError)
+      } else {
+        console.log(`[VERIFICATION] 기존 미인증 코드 ${count || 0}건 비활성화 완료`)
+      }
+    } catch (deactivateErr) {
+      console.error('[VERIFICATION] 기존 코드 처리 예외:', deactivateErr)
+      // 계속 진행
     }
 
     // 새 인증코드 저장 (10분간 유효)
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    const insertData = {
+      email: email || null,
+      phone_number: normalizedPhoneNumber || null,
+      code: verificationCode,
+      type: type,
+      verified: false,
+      expires_at: expiresAt,
+      ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
+      user_agent: request.headers.get('user-agent') || 'Unknown'
+    }
+    
+    console.log('[VERIFICATION] 데이터베이스 삽입 시도:', insertData)
+    
     const { error: insertError } = await supabase
       .from('verification_codes')
-      .insert([{
-        email: email || null,
-        phone_number: normalizedPhoneNumber || null,
-        code: verificationCode,
-        type: type,
-        verified: false,
-        expires_at: expiresAt,
-        ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
-        user_agent: request.headers.get('user-agent') || 'Unknown'
-      }])
+      .insert([insertData])
 
     if (insertError) {
-      console.error('인증코드 저장 실패:', insertError)
+      console.error('[VERIFICATION] ❌ 인증코드 저장 실패:', insertError)
+      console.error('[VERIFICATION] 에러 상세:', {
+        message: insertError.message,
+        code: insertError.code,
+        hint: insertError.hint,
+        details: insertError.details
+      })
       return NextResponse.json(
         { 
           success: false, 
@@ -84,7 +145,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[VERIFICATION] 인증코드 데이터베이스 저장 완료:', { email, phoneNumber: normalizedPhoneNumber, code: verificationCode })
+    console.log('[VERIFICATION] ✅ 인증코드 데이터베이스 저장 완료:', { email, phoneNumber: normalizedPhoneNumber, code: verificationCode })
     
     // 인증 방식에 따른 발송
     let sendResult = false
@@ -136,6 +197,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response)
     } else {
       console.error(`[VERIFICATION] ${sendMethod} 발송 실패`)
+      console.error(`[VERIFICATION] 발송 실패 상세:`, {
+        type,
+        email,
+        phoneNumber,
+        nationality,
+        hasSmtpUser: !!process.env.SMTP_USER,
+        hasSmtpPass: !!process.env.SMTP_PASS,
+        hasTwilioSid: !!process.env.TWILIO_ACCOUNT_SID,
+        hasTwilioToken: !!process.env.TWILIO_AUTH_TOKEN,
+        hasTwilioPhone: !!process.env.TWILIO_PHONE_NUMBER
+      })
+      
+      // 개발 환경에서는 발송 실패해도 성공 처리 (인증코드는 DB에 저장됨)
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[VERIFICATION] 개발 환경 - 발송 실패했지만 성공으로 처리`)
+        return NextResponse.json({
+          success: true,
+          message: '인증코드가 생성되었습니다. (개발 환경)',
+          timestamp: new Date().toISOString(),
+          debug: {
+            verificationCode: verificationCode,
+            email: email,
+            phoneNumber: phoneNumber,
+            type: type,
+            nationality: nationality,
+            warning: '실제 발송은 실패했지만 개발 환경이므로 성공 처리'
+          }
+        })
+      }
+      
       return NextResponse.json(
         { success: false, error: `${sendMethod} 발송에 실패했습니다.` },
         { status: 500 }
@@ -143,10 +234,39 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error('[VERIFICATION] 에러 발생:', error)
+    // 무조건 콘솔 로그 출력
+    console.error('[VERIFICATION] ========================================')
+    console.error('[VERIFICATION] ❌ 예외 발생!')
+    console.error('[VERIFICATION] 에러 타입:', error?.constructor?.name)
+    console.error('[VERIFICATION] 에러 메시지:', error instanceof Error ? error.message : String(error))
+    console.error('[VERIFICATION] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
+    
+    // 입력값 로깅 (이미 파싱된 경우)
+    if (requestBody) {
+      console.error('[VERIFICATION] 입력값:', {
+        email: requestBody.email,
+        phoneNumber: requestBody.phoneNumber,
+        type: requestBody.type,
+        nationality: requestBody.nationality
+      })
+    } else {
+      console.error('[VERIFICATION] 입력값: 파싱 전 에러 발생')
+    }
+    
+    console.error('[VERIFICATION] ========================================')
+    
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
+    const errorName = error instanceof Error ? error.name : 'UnknownError'
+    
+    // 500이 아닌 400 응답으로 변경
     return NextResponse.json(
-      { success: false, error: '서버 오류가 발생했습니다.', details: error.message },
-      { status: 500 }
+      { 
+        success: false, 
+        reason: errorMessage,
+        errorType: errorName,
+        timestamp: new Date().toISOString()
+      },
+      { status: 400 }
     )
   }
 }
