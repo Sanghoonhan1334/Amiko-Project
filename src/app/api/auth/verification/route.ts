@@ -2,10 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/emailService'
 import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 import { createClient } from '@/lib/supabase/server'
-import { toE164, normalizeDigits } from '@/lib/phoneUtils'
+import { formatPhoneNumber } from '@/lib/twilioService'
 
 // Edge 런타임 문제 방지
 export const runtime = 'nodejs'
+
+// 유니코드 숫자만 추출 (앞자리 0 유지)
+function normalizeDigits(code: string): string {
+  if (!code) return ''
+  // 모든 유니코드 숫자를 ASCII 숫자로 변환
+  return code.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (c) => 
+    String.fromCharCode(c.charCodeAt(0) - (c.charCodeAt(0) >= 0x06F0 ? 0x06F0 : 0x0660) + 48)
+  ).replace(/\D/g, '')
+}
+
+// E.164 형식으로 전화번호 정규화 (발송/검증 통일)
+function toE164(phoneNumber: string, countryCode?: string): string {
+  if (!phoneNumber) return ''
+  
+  // 이미 E.164 형식이면 그대로 반환
+  if (phoneNumber.startsWith('+')) {
+    return phoneNumber
+  }
+  
+  // formatPhoneNumber 사용
+  return formatPhoneNumber(phoneNumber, countryCode)
+}
 
 export async function POST(request: NextRequest) {
   let requestBody: any = null
@@ -62,62 +84,91 @@ export async function POST(request: NextRequest) {
     
     const supabase = createClient()
     
-    // Upsert 방식: 번호당 1개의 active 코드만 유지
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10분 후 만료
-    const now = new Date().toISOString()
+    // 간단한 Insert 방식 (문제 해결을 위해)
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
     
-    // 전화번호 정규화 (E.164)
-    let phoneE164 = null
-    if (phoneNumber) {
-      phoneE164 = toE164(phoneNumber, nationality)
+    // 전화번호 정규화
+    let normalizedPhoneNumber = phoneNumber
+    if (phoneNumber && nationality) {
+      normalizedPhoneNumber = toE164(phoneNumber, nationality)
       console.log('[VERIFICATION] 전화번호 정규화 (toE164):', { 
         original: phoneNumber, 
-        normalized: phoneE164, 
+        normalized: normalizedPhoneNumber, 
         nationality: nationality || 'auto-detect'
       })
     }
     
-    // Upsert: 기존 코드가 있으면 덮어쓰기, 없으면 새로 생성
-    const upsertData = {
+    // 기존 코드 비활성화 (선택사항)
+    try {
+      console.log('[VERIFICATION] 기존 미인증 코드 처리 시작')
+      
+      let deactivateQuery = supabase
+        .from('verification_codes')
+        .update({ 
+          verified: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('type', type)
+        .eq('verified', false)
+
+      if (email) {
+        deactivateQuery = deactivateQuery.eq('email', email)
+      }
+      if (normalizedPhoneNumber) {
+        deactivateQuery = deactivateQuery.eq('phone_number', normalizedPhoneNumber)
+      }
+
+      const { error: deactivateError, count } = await deactivateQuery
+
+      if (deactivateError) {
+        console.error('[VERIFICATION] 기존 인증코드 비활성화 실패:', deactivateError)
+      } else {
+        console.log(`[VERIFICATION] 기존 미인증 코드 ${count || 0}건 비활성화 완료`)
+      }
+    } catch (deactivateErr) {
+      console.error('[VERIFICATION] 기존 코드 처리 예외:', deactivateErr)
+      // 계속 진행
+    }
+
+    // 새 인증코드 저장 (10분간 유효)
+    const insertData = {
       email: email || null,
-      phone_number: phoneE164 || phoneNumber || null,
-      phone_e164: phoneE164, // E.164 키 추가
+      phone_number: normalizedPhoneNumber || null,
       code: verificationCode,
       type: type,
       verified: false,
-      status: 'active', // 상태 필드 추가
       expires_at: expiresAt.toISOString(),
       ip_address: request.headers.get('x-forwarded-for') || '127.0.0.1',
-      user_agent: request.headers.get('user-agent') || '',
-      created_at: now,
-      updated_at: now
+      user_agent: request.headers.get('user-agent') || 'Unknown'
     }
     
-    console.log('[VERIFICATION] Upsert 데이터:', upsertData)
+    console.log('[VERIFICATION] 데이터베이스 삽입 시도:', insertData)
     
-    // Upsert 실행 (phone_e164 기준으로 중복 처리)
-    const { data: upsertResult, error: upsertError } = await supabase
+    const { error: insertError } = await supabase
       .from('verification_codes')
-      .upsert(upsertData, {
-        onConflict: 'phone_e164,type', // phone_e164 + type 기준으로 중복 처리
-        ignoreDuplicates: false
+      .insert([insertData])
+
+    if (insertError) {
+      console.error('[VERIFICATION] ❌ 인증코드 저장 실패:', insertError)
+      console.error('[VERIFICATION] 에러 상세:', {
+        message: insertError.message,
+        code: insertError.code,
+        hint: insertError.hint,
+        details: insertError.details
       })
-      .select()
-    
-    if (upsertError) {
-      console.error('[VERIFICATION] ❌ 인증코드 Upsert 실패:', upsertError)
       return NextResponse.json(
-        { success: false, error: '인증코드 저장에 실패했습니다.' },
+        { 
+          success: false, 
+          error: '인증코드 저장에 실패했습니다.',
+          details: insertError.message,
+          code: insertError.code,
+          hint: insertError.hint
+        },
         { status: 500 }
       )
     }
-    
-    console.log('[VERIFICATION] ✅ 인증코드 Upsert 완료:', { 
-      email: email, 
-      phoneNumber: phoneE164 || phoneNumber, 
-      code: verificationCode,
-      upserted: upsertResult?.length || 0
-    })
+
+    console.log('[VERIFICATION] ✅ 인증코드 데이터베이스 저장 완료:', { email, phoneNumber: normalizedPhoneNumber, code: verificationCode })
     
     // 인증 방식에 따른 발송
     let sendResult = false
