@@ -30,13 +30,13 @@ export default function ForgotPasswordPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || t('forgotPassword.requestFailed'))
+        throw new Error(result.error || t('auth.forgotPassword.requestFailed'))
       }
 
       setIsEmailSent(true)
     } catch (error) {
       console.error('비밀번호 재설정 오류:', error)
-      alert(error instanceof Error ? error.message : t('forgotPassword.resetError'))
+      alert(error instanceof Error ? error.message : t('auth.forgotPassword.resetError'))
     } finally {
       setIsLoading(false)
     }
@@ -52,16 +52,16 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                {t('forgotPassword.checkEmail')}
+                {t('auth.forgotPassword.checkEmail')}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                {t('forgotPassword.emailSent', { email })}
+                {t('auth.forgotPassword.emailSent', { email })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center space-y-4">
                 <p className="text-sm text-slate-600">
-                  {t('forgotPassword.checkSpam')}
+                  {t('auth.forgotPassword.checkSpam')}
                 </p>
                 <div className="space-y-3">
                   <Button
@@ -72,13 +72,13 @@ export default function ForgotPasswordPage() {
                     variant="outline"
                     className="w-full"
                   >
-{t('forgotPassword.tryAgain')}
+{t('auth.forgotPassword.tryAgain')}
                   </Button>
                   <Button
                     onClick={() => router.push('/sign-in')}
                     className="w-full bg-slate-900 hover:bg-slate-800 text-white"
                   >
-{t('forgotPassword.backToLogin')}
+{t('auth.forgotPassword.backToLogin')}
                   </Button>
                 </div>
               </div>
@@ -95,17 +95,17 @@ export default function ForgotPasswordPage() {
         <Card className="w-full max-w-md bg-white border shadow-lg">
           <CardHeader className="text-center space-y-4 pb-6">
             <CardTitle className="text-2xl font-semibold text-slate-900">
-              {t('forgotPassword.title')}
+              {t('auth.forgotPassword.title')}
             </CardTitle>
             <CardDescription className="text-slate-600">
-              {t('forgotPassword.description')}
+              {t('auth.forgotPassword.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                  {t('forgotPassword.emailAddress')}
+                  {t('auth.forgotPassword.emailAddress')}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -129,10 +129,10 @@ export default function ForgotPasswordPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-{t('forgotPassword.sending')}
+{t('auth.forgotPassword.sending')}
                   </div>
                 ) : (
-t('forgotPassword.sendResetLink')
+{t('auth.forgotPassword.sendResetLink')}
                 )}
               </Button>
             </form>
@@ -152,9 +152,9 @@ t('forgotPassword.sendResetLink')
                 </a>
               </div>
               <p className="text-sm text-slate-600">
-                {t('forgotPassword.rememberAccount')}{' '}
+                {t('auth.forgotPassword.rememberAccount')}{' '}
                 <a href="/sign-in" className="text-slate-900 hover:text-slate-700 font-medium">
-                  {t('forgotPassword.login')}
+                  {t('auth.forgotPassword.login')}
                 </a>
               </p>
             </div>
