@@ -2,18 +2,39 @@
 -- phone_e164 필드와 status 필드 추가
 
 -- 1. phone_e164 필드 추가 (E.164 형식 전화번호)
-ALTER TABLE verification_codes 
-ADD COLUMN IF NOT EXISTS phone_e164 TEXT;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'verification_codes' AND column_name = 'phone_e164'
+    ) THEN
+        ALTER TABLE verification_codes ADD COLUMN phone_e164 TEXT;
+    END IF;
+END $$;
 
 -- 2. status 필드 추가 (active, used, expired, replaced)
-ALTER TABLE verification_codes 
-ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active';
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'verification_codes' AND column_name = 'status'
+    ) THEN
+        ALTER TABLE verification_codes ADD COLUMN status TEXT DEFAULT 'active';
+    END IF;
+END $$;
 
 -- 3. updated_at 필드 추가 (업데이트 시간 추적)
-ALTER TABLE verification_codes 
-ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'verification_codes' AND column_name = 'updated_at'
+    ) THEN
+        ALTER TABLE verification_codes ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+    END IF;
+END $$;
 
--- 4. 인덱스 추가 (성능 최적화)
+-- 4. 인덱스 추가 (성능 최적화) - PostgreSQL 호환
 CREATE INDEX IF NOT EXISTS idx_verification_codes_phone_e164_type 
 ON verification_codes(phone_e164, type);
 
@@ -37,10 +58,18 @@ SET status = CASE
 END
 WHERE status IS NULL;
 
--- 7. 제약 조건 추가
-ALTER TABLE verification_codes 
-ADD CONSTRAINT IF NOT EXISTS verification_codes_status_check 
-CHECK (status IN ('active', 'used', 'expired', 'replaced'));
+-- 7. 제약 조건 추가 (IF NOT EXISTS 대신 DO 블록 사용)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'verification_codes_status_check'
+    ) THEN
+        ALTER TABLE verification_codes 
+        ADD CONSTRAINT verification_codes_status_check 
+        CHECK (status IN ('active', 'used', 'expired', 'replaced'));
+    END IF;
+END $$;
 
 -- 8. 결과 확인
 SELECT 
