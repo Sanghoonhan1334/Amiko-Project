@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/emailService'
 import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 import { createClient } from '@/lib/supabase/server'
-import { formatPhoneNumber } from '@/lib/twilioService'
+import { toE164 } from '@/lib/phoneUtils'
 
 // Edge 런타임 문제 방지
 export const runtime = 'nodejs'
@@ -14,19 +14,6 @@ function normalizeDigits(code: string): string {
   return code.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (c) => 
     String.fromCharCode(c.charCodeAt(0) - (c.charCodeAt(0) >= 0x06F0 ? 0x06F0 : 0x0660) + 48)
   ).replace(/\D/g, '')
-}
-
-// E.164 형식으로 전화번호 정규화 (발송/검증 통일)
-function toE164(phoneNumber: string, countryCode?: string): string {
-  if (!phoneNumber) return ''
-  
-  // 이미 E.164 형식이면 그대로 반환
-  if (phoneNumber.startsWith('+')) {
-    return phoneNumber
-  }
-  
-  // formatPhoneNumber 사용
-  return formatPhoneNumber(phoneNumber, countryCode)
 }
 
 export async function POST(request: NextRequest) {
