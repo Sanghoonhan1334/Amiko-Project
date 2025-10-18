@@ -247,7 +247,8 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     // 운영자 이메일 목록 (실제 운영자 이메일로 변경 필요)
     const adminEmails = [
       'admin@amiko.com',
-      'sanghoonhan1334@naver.com', // 추가된 운영자 이메일
+      'info@helloamiko.com', // 현재 운영자 이메일
+      'sanghoonhan1334@naver.com',
       'editor@amiko.com',
       'manager@amiko.com'
     ]
