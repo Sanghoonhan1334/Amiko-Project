@@ -613,8 +613,8 @@ export default function SignUpPage() {
                   placeholder="example@email.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
-                  style={{ paddingLeft: '2.5rem' }}
+                  className="pl-12 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
+                  style={{ paddingLeft: '3rem' }}
                   required
                   title="올바른 이메일 주소를 입력해주세요"
                 />
