@@ -228,14 +228,7 @@ export const translations = {
 
     // 인증 관련
     auth: {
-      forgotPassword: {
-        title: '비밀번호 찾기',
-        description: '가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.',
-        emailAddress: '이메일 주소',
-        sendResetLink: '재설정 링크 보내기',
-        rememberAccount: '계정을 기억하셨나요?',
-        login: '로그인'
-      },
+      forgotPassword: '비밀번호 찾기',
       signUp: '회원가입',
       signIn: '로그인',
       signInDescription: '계정에 로그인하여 Amiko의 모든 기능을 이용하세요',
@@ -2544,14 +2537,7 @@ export const translations = {
 
     // 인증 관련
     auth: {
-      forgotPassword: {
-        title: 'Recuperar contraseña',
-        description: 'Ingresa tu dirección de correo electrónico registrada y te enviaremos un enlace para restablecer tu contraseña.',
-        emailAddress: 'Dirección de correo electrónico',
-        sendResetLink: 'Enviar enlace de restablecimiento',
-        rememberAccount: '¿Recuerdas tu cuenta?',
-        login: 'Iniciar sesión'
-      },
+      forgotPassword: 'Recuperar contraseña',
       signUp: 'Registrarse',
       signIn: 'Iniciar sesión',
       signInDescription: 'Inicia sesión en tu cuenta para acceder a todas las funciones de Amiko',
