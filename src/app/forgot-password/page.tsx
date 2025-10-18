@@ -129,10 +129,10 @@ export default function ForgotPasswordPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-{t('auth.forgotPassword.sending')}
+                    {t('auth.forgotPassword.sending')}
                   </div>
                 ) : (
-{t('auth.forgotPassword.sendResetLink')}
+                  t('auth.forgotPassword.sendResetLink')
                 )}
               </Button>
             </form>
