@@ -154,16 +154,16 @@ function SimpleVerificationContent() {
     setError('')
 
     try {
-      const response = await fetch('/api/auth/verification', {
+      const response = await fetch('/api/auth/verification/check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          type: 'verify',
-          phone: phoneNumber,
+          phoneNumber: phoneNumber,
           code: verificationCode,
-          userId: currentUser?.id
+          type: method === 'whatsapp' ? 'whatsapp' : 'sms',
+          nationality: 'KR'
         })
       })
 
