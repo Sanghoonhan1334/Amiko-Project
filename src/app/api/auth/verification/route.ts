@@ -31,14 +31,21 @@ function toE164(phoneNumber: string, countryCode?: string): string {
 
 export async function POST(request: NextRequest) {
   let requestBody: any = null
+  let normalizedTo: string = ''
+  let inputCode: string = ''
   
   try {
     console.log('[VERIFICATION] ========================================')
     console.log('[VERIFICATION] 인증 요청 시작')
     console.log('[VERIFICATION] 환경:', process.env.NODE_ENV)
+    console.log('[VERIFICATION] 런타임:', 'nodejs')
     
     requestBody = await request.json()
     const { email, phoneNumber, type, nationality } = requestBody
+    
+    // 입력값 저장 (로깅용)
+    normalizedTo = email || phoneNumber || 'unknown'
+    inputCode = 'generating...'
     
     console.log('[VERIFICATION] 요청 데이터:', { email, phoneNumber, type, nationality })
     console.log('[VERIFICATION] 환경변수 확인:', {
@@ -69,6 +76,9 @@ export async function POST(request: NextRequest) {
     // 6자리 인증코드 생성 (normalizeDigits로 정규화)
     const rawCode = Math.floor(100000 + Math.random() * 900000).toString()
     const verificationCode = normalizeDigits(rawCode)
+    
+    // 입력값 저장 (로깅용)
+    inputCode = verificationCode
     
     console.log('[VERIFICATION] 인증코드 생성:', { raw: rawCode, normalized: verificationCode, length: verificationCode.length })
     
@@ -236,21 +246,45 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // 무조건 콘솔 로그 출력
     console.error('[VERIFICATION] ========================================')
-    console.error('[VERIFICATION] ❌ 예외 발생!')
+    console.error('[VERIFICATION] ❌❌❌ 예외 발생!')
     console.error('[VERIFICATION] 에러 타입:', error?.constructor?.name)
     console.error('[VERIFICATION] 에러 메시지:', error instanceof Error ? error.message : String(error))
     console.error('[VERIFICATION] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
     
-    // 입력값 로깅 (이미 파싱된 경우)
-    if (requestBody) {
-      console.error('[VERIFICATION] 입력값:', {
+    // 입력값 로깅 (마스킹된 코드)
+    console.error('[VERIFICATION] 입력값:', {
+      to: normalizedTo,
+      code: inputCode ? `${inputCode.substring(0, 2)}****` : 'not-generated',
+      normalizedTo: normalizedTo,
+      inputCodeLength: inputCode.length,
+      requestBody: requestBody ? {
         email: requestBody.email,
         phoneNumber: requestBody.phoneNumber,
         type: requestBody.type,
         nationality: requestBody.nationality
-      })
-    } else {
-      console.error('[VERIFICATION] 입력값: 파싱 전 에러 발생')
+      } : 'parsing-failed'
+    })
+    
+    // DB 조회 결과 로깅 (최근 3개)
+    try {
+      const supabase = createClient()
+      const { data: recentCodes } = await supabase
+        .from('verification_codes')
+        .select('id, code, type, email, phone_number, verified, created_at, expires_at')
+        .order('created_at', { ascending: false })
+        .limit(3)
+      
+      console.error('[VERIFICATION] 최근 DB 코드들:', recentCodes?.map(c => ({
+        id: c.id,
+        status: c.verified ? 'verified' : 'pending',
+        created_at: c.created_at,
+        expires_at: c.expires_at,
+        hasCode: !!c.code,
+        type: c.type,
+        target: c.email || c.phone_number
+      })))
+    } catch (dbError) {
+      console.error('[VERIFICATION] DB 조회 실패:', dbError)
     }
     
     console.error('[VERIFICATION] ========================================')
@@ -258,11 +292,24 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
     const errorName = error instanceof Error ? error.name : 'UnknownError'
     
+    // 에러 타입별 reason 매핑
+    let reason = 'UNKNOWN_ERROR'
+    if (errorMessage.includes('verification_codes_type_check')) {
+      reason = 'INVALID_TYPE'
+    } else if (errorMessage.includes('duplicate key')) {
+      reason = 'DUPLICATE_REQUEST'
+    } else if (errorMessage.includes('connection')) {
+      reason = 'DB_CONNECTION_ERROR'
+    } else if (errorMessage.includes('SMTP') || errorMessage.includes('Twilio')) {
+      reason = 'SEND_FAILED'
+    }
+    
     // 500이 아닌 400 응답으로 변경
     return NextResponse.json(
       { 
         success: false, 
-        reason: errorMessage,
+        reason: reason,
+        detail: errorMessage,
         errorType: errorName,
         timestamp: new Date().toISOString()
       },
