@@ -32,8 +32,8 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react'
-import StorySettings from './StorySettings'
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
+import StorySettings from './StorySettings'
 import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -477,7 +477,7 @@ export default function MyTab() {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">{t('myTab.loading')}</p>
-      </div>
+        </div>
       </div>
     )
   }
