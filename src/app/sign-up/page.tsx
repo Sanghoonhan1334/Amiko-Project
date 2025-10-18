@@ -349,13 +349,14 @@ export default function SignUpPage() {
   const handleSMSVerify = async (code: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/auth/verification', {
+      const response = await fetch('/api/auth/verification/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           phoneNumber: authData.phoneNumber, 
           code, 
-          type: 'verify' 
+          type: 'sms',
+          nationality: authData.nationality
         })
       })
 
