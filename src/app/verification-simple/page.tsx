@@ -162,7 +162,7 @@ function SimpleVerificationContent() {
         body: JSON.stringify({
           phoneNumber: phoneNumber,
           code: verificationCode,
-          type: method === 'whatsapp' ? 'whatsapp' : 'sms',
+          type: 'sms', // whatsapp도 sms로 처리
           nationality: 'KR'
         })
       })

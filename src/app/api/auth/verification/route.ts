@@ -98,10 +98,9 @@ export async function POST(request: NextRequest) {
         .from('verification_codes')
         .update({ 
           verified: true,
-          status: 'replaced', // 상태를 replaced로 변경
           updated_at: new Date().toISOString()
         })
-        .eq('type', type)
+        .eq('type', dbType)
         .eq('verified', false)
 
       if (email) {
@@ -124,11 +123,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 새 인증코드 저장 (10분간 유효)
+    // whatsapp는 데이터베이스에서 sms로 저장 (스키마 제약 조건)
+    const dbType = type === 'whatsapp' ? 'sms' : type
     const insertData = {
       email: email || null,
       phone_number: normalizedPhoneNumber || null,
       code: verificationCode,
-      type: type,
+      type: dbType,
       verified: false,
       expires_at: expiresAt,
       ip_address: request.headers.get('x-forwarded-for') || '127.0.0.1',
