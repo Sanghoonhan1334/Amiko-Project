@@ -37,6 +37,18 @@ body {
   margin: 0 !important;
 }
 
+/* Vercel 배너 숨기기 */
+[data-vercel-banner] {
+  display: none !important;
+}
+
+/* Vercel 관련 배너들 숨기기 */
+iframe[src*="vercel.com"],
+div[class*="vercel"],
+div[id*="vercel"] {
+  display: none !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
