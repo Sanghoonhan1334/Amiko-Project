@@ -492,8 +492,8 @@ export default function MyTab() {
           <div className="relative h-80 bg-gray-100 flex items-center justify-center">
             <div className="text-center text-gray-500">
               <User className="w-16 h-16 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold mb-2">프로필을 설정해주세요</h2>
-              <p className="text-sm">편집 버튼을 눌러 프로필을 완성해보세요</p>
+              <h2 className="text-lg font-semibold mb-2">{t('profile.setupProfile')}</h2>
+              <p className="text-sm">{t('profile.editToComplete')}</p>
           </div>
         </div>
 
@@ -516,7 +516,7 @@ export default function MyTab() {
               <User className="w-4 h-4 text-blue-500" />
               <h2 className="font-semibold text-gray-800">{t('profile.academicCareerInfo')}</h2>
           </div>
-            <p className="text-gray-600 text-sm">프로필을 설정해주세요</p>
+            <p className="text-gray-600 text-sm">{t('profile.setupProfile')}</p>
         </div>
             </div>
           </div>
