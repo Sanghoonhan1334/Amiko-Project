@@ -45,7 +45,7 @@ export const metadata: Metadata = {
       { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
       { url: '/favicon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
-    shortcut: '/favicon-64x64.png',
+    shortcut: '/favicon-128x128.png',
     apple: '/apple-touch-icon.png',
   },
   keywords: ['한국문화', '문화교류', '언어교환', 'K-Culture', 'Amiko'],
@@ -198,8 +198,14 @@ export default function RootLayout({
                 const faviconSizes = ['512x512', '192x192', '128x128', '96x96', '64x64', '32x32', '16x16'];
                 const existingFavicon = document.querySelector('link[rel="icon"]');
                 if (existingFavicon) {
-                  existingFavicon.href = '/favicon-64x64.png';
+                  existingFavicon.href = '/favicon-128x128.png';
                 }
+                
+                // 파비콘 크기 강제 조정
+                const allFavicons = document.querySelectorAll('link[rel="icon"]');
+                allFavicons.forEach(favicon => {
+                  favicon.href = '/favicon-128x128.png';
+                });
                 
                 // 추가 파비콘 링크들 생성
                 faviconSizes.forEach(size => {
