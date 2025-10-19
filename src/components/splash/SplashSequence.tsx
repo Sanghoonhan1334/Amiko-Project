@@ -89,7 +89,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
       className="fixed inset-0 bg-white flex items-center justify-center z-50"
     >
       {/* 로고와 텍스트 표시 */}
-      <div className="flex flex-col items-center -mt-64">
+      <div className="flex flex-col items-center -mt-32 md:-mt-64">
         {/* 로고 */}
         <motion.div
           variants={logoVariants}
@@ -108,7 +108,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
             alt="Amiko Logo"
             width={500}
             height={500}
-            className="w-48 h-48 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
+            className="w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
           />
         </motion.div>
 
@@ -123,7 +123,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
             duration: 0.6, 
             ease: [0.25, 0.46, 0.45, 0.94]
           }}
-          className="text-center -mt-20"
+          className="text-center -mt-8 md:-mt-20"
         >
           <h1 
             className="text-base md:text-lg lg:text-xl font-bold text-gray-700 tracking-wide"
