@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     console.log('[AUTH_STATUS] 요청 받음:', { userId })
 
     if (!supabaseServer) {
+      console.error('[AUTH_STATUS] Supabase 서버 클라이언트가 초기화되지 않음')
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
         { status: 500 }
@@ -121,9 +122,22 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('인증 상태 확인 오류:', error)
+    console.error('[AUTH_STATUS] 인증 상태 확인 오류:', error)
+    
+    // 더 구체적인 에러 메시지 제공
+    if (error instanceof Error) {
+      console.error('[AUTH_STATUS] 에러 상세:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
+    }
+    
     return NextResponse.json(
-      { error: '인증 상태 확인 중 오류가 발생했습니다.' },
+      { 
+        error: '인증 상태 확인 중 오류가 발생했습니다.',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     )
   }

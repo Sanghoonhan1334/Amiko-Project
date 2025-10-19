@@ -54,7 +54,14 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         setVerificationStatus('unverified')
         return
       }
+      
+      // 이미 확인 중이면 중복 호출 방지
+      if (verificationStatus === 'loading') {
+        return
+      }
+      
       try {
+        setVerificationStatus('loading')
         const response = await fetch(`/api/auth/status?userId=${user.id}`)
         const result = await response.json()
         if (response.ok && result.success) {
@@ -71,8 +78,12 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         setVerificationStatus('unverified')
       }
     }
-    checkAuthStatus()
-  }, [user?.id])
+    
+    // user.id가 존재할 때만 실행
+    if (user?.id) {
+      checkAuthStatus()
+    }
+  }, [user?.id]) // verificationStatus는 의존성에서 제거
 
 
 
