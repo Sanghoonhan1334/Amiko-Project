@@ -137,6 +137,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 관리자에게 제휴 문의 이메일 알림 발송
+    try {
+      const { sendNotificationEmail } = await import('@/lib/emailService')
+      await sendNotificationEmail(
+        'admin@helloamiko.com', // 관리자 이메일
+        'new_partnership_inquiry',
+        {
+          inquiryId: data[0].id,
+          companyName: companyName,
+          representativeName: representativeName,
+          email: email,
+          phone: phone,
+          businessField: businessField,
+          partnershipType: partnershipType,
+          budget: budget,
+          message: message
+        }
+      )
+      console.log('✅ 제휴 문의 관리자 이메일 알림 발송 완료')
+    } catch (emailError) {
+      console.error('❌ 제휴 문의 관리자 이메일 알림 발송 실패:', emailError)
+    }
+
     return NextResponse.json(
       { 
         message: '제휴 문의가 성공적으로 제출되었습니다.',

@@ -13,7 +13,7 @@ export interface EmailOptions {
 }
 
 // 이메일 템플릿 생성
-export function createEmailTemplate(type: 'verification' | 'passwordReset', data: Record<string, any>, language: 'ko' | 'es' = 'ko'): EmailTemplate {
+export function createEmailTemplate(type: 'verification' | 'passwordReset' | 'new_inquiry' | 'new_partnership_inquiry', data: Record<string, any>, language: 'ko' | 'es' = 'ko'): EmailTemplate {
   switch (type) {
     case 'verification':
       if (language === 'es') {
@@ -456,6 +456,106 @@ Amiko 팀
 © 2025 Amiko. All rights reserved.
           `
         }
+      }
+    case 'new_inquiry':
+      return {
+        subject: `[Amiko] 새로운 문의가 접수되었습니다 - ${data.subject}`,
+        html: `
+          <!DOCTYPE html>
+          <html lang="ko">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>새로운 문의 알림</title>
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+              .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+              .content { padding: 40px 30px; }
+              .info-box { background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; }
+              .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🔔 새로운 문의 알림</h1>
+              </div>
+              <div class="content">
+                <h2>새로운 문의가 접수되었습니다</h2>
+                <div class="info-box">
+                  <h3>문의 정보</h3>
+                  <p><strong>문의 ID:</strong> ${data.inquiryId}</p>
+                  <p><strong>유형:</strong> ${data.type}</p>
+                  <p><strong>제목:</strong> ${data.subject}</p>
+                  <p><strong>우선순위:</strong> ${data.priority}</p>
+                  <p><strong>사용자:</strong> ${data.userName} (${data.userEmail})</p>
+                </div>
+                <div class="info-box">
+                  <h3>문의 내용</h3>
+                  <p>${data.content}</p>
+                </div>
+                <p>관리자 대시보드에서 확인하세요: <a href="https://www.helloamiko.com/admin/inquiries">https://www.helloamiko.com/admin/inquiries</a></p>
+              </div>
+              <div class="footer">
+                <p>Amiko - 한국 문화 교류 플랫폼</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        text: `새로운 문의가 접수되었습니다.\n\n문의 ID: ${data.inquiryId}\n유형: ${data.type}\n제목: ${data.subject}\n우선순위: ${data.priority}\n사용자: ${data.userName} (${data.userEmail})\n\n문의 내용:\n${data.content}\n\n관리자 대시보드: https://www.helloamiko.com/admin/inquiries`
+      }
+    case 'new_partnership_inquiry':
+      return {
+        subject: `[Amiko] 새로운 제휴 문의가 접수되었습니다 - ${data.companyName}`,
+        html: `
+          <!DOCTYPE html>
+          <html lang="ko">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>새로운 제휴 문의 알림</title>
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+              .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+              .content { padding: 40px 30px; }
+              .info-box { background-color: #e8f5e8; border-left: 4px solid #4caf50; padding: 15px; margin: 20px 0; }
+              .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🤝 새로운 제휴 문의 알림</h1>
+              </div>
+              <div class="content">
+                <h2>새로운 제휴 문의가 접수되었습니다</h2>
+                <div class="info-box">
+                  <h3>회사 정보</h3>
+                  <p><strong>회사명:</strong> ${data.companyName}</p>
+                  <p><strong>담당자:</strong> ${data.representativeName}</p>
+                  <p><strong>이메일:</strong> ${data.email}</p>
+                  <p><strong>전화번호:</strong> ${data.phone}</p>
+                  <p><strong>업종:</strong> ${data.businessField}</p>
+                  <p><strong>제휴 유형:</strong> ${data.partnershipType}</p>
+                  <p><strong>예산:</strong> ${data.budget}</p>
+                </div>
+                <div class="info-box">
+                  <h3>제휴 문의 내용</h3>
+                  <p>${data.message}</p>
+                </div>
+                <p>관리자 대시보드에서 확인하세요: <a href="https://www.helloamiko.com/admin/inquiries">https://www.helloamiko.com/admin/inquiries</a></p>
+              </div>
+              <div class="footer">
+                <p>Amiko - 한국 문화 교류 플랫폼</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        text: `새로운 제휴 문의가 접수되었습니다.\n\n회사명: ${data.companyName}\n담당자: ${data.representativeName}\n이메일: ${data.email}\n전화번호: ${data.phone}\n업종: ${data.businessField}\n제휴 유형: ${data.partnershipType}\n예산: ${data.budget}\n\n제휴 문의 내용:\n${data.message}\n\n관리자 대시보드: https://www.helloamiko.com/admin/inquiries`
       }
     default:
       throw new Error(`지원되지 않는 이메일 템플릿 타입: ${type}`)

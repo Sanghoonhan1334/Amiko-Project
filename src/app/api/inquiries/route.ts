@@ -134,6 +134,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 관리자에게 이메일 알림 발송
+    try {
+      const { sendNotificationEmail } = await import('@/lib/emailService')
+      await sendNotificationEmail(
+        'admin@helloamiko.com', // 관리자 이메일
+        'new_inquiry',
+        {
+          inquiryId: inquiry.id,
+          type: type,
+          subject: subject,
+          content: content,
+          priority: priority,
+          userEmail: inquiry.users?.email || 'Unknown',
+          userName: inquiry.users?.name || 'Unknown'
+        }
+      )
+      console.log('✅ 관리자 이메일 알림 발송 완료')
+    } catch (emailError) {
+      console.error('❌ 관리자 이메일 알림 발송 실패:', emailError)
+    }
+
     return NextResponse.json({
       inquiry: {
         ...inquiry,
