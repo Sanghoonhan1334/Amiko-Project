@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
     try {
       const { sendNotificationEmail } = await import('@/lib/emailService')
       await sendNotificationEmail(
-        'admin@helloamiko.com', // 관리자 이메일
+        'info@helloamiko.com', // 관리자 이메일
         'new_partnership_inquiry',
         {
           inquiryId: data[0].id,
