@@ -34,6 +34,52 @@ const pretendard = {
 export const metadata: Metadata = {
   title: 'Amiko - 한국 문화 교류 플랫폼',
   description: '한국 문화를 배우고 소통하는 플랫폼',
+  keywords: ['한국문화', '문화교류', '언어교환', 'K-Culture', 'Amiko'],
+  authors: [{ name: 'Amiko Team' }],
+  creator: 'Amiko',
+  publisher: 'Amiko',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://www.helloamiko.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Amiko - 한국 문화 교류 플랫폼',
+    description: '한국 문화를 배우고 소통하는 플랫폼',
+    url: 'https://www.helloamiko.com',
+    siteName: 'Amiko',
+    images: [
+      {
+        url: '/amiko-logo.png', // Amiko 로고 이미지
+        width: 1200,
+        height: 630,
+        alt: 'Amiko - 한국 문화 교류 플랫폼',
+      },
+    ],
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Amiko - 한국 문화 교류 플랫폼',
+    description: '한국 문화를 배우고 소통하는 플랫폼',
+    images: ['/amiko-logo.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   viewport: {
     width: 'device-width',
     initialScale: 1,
