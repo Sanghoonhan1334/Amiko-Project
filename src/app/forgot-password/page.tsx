@@ -21,12 +21,12 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email: email,
-          nationality: 'KR' // 한국 사용자로 가정, 실제로는 사용자 정보에서 가져와야 함
+          language: t('common.language') === 'Español' ? 'es' : 'ko' // 현재 언어 설정 사용
         })
       })
 

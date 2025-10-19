@@ -557,6 +557,154 @@ Amiko 팀
         `,
         text: `새로운 제휴 문의가 접수되었습니다.\n\n회사명: ${data.companyName}\n담당자: ${data.representativeName}\n이메일: ${data.email}\n전화번호: ${data.phone}\n업종: ${data.businessField}\n제휴 유형: ${data.partnershipType}\n예산: ${data.budget}\n\n제휴 문의 내용:\n${data.message}\n\n관리자 대시보드: https://www.helloamiko.com/admin/inquiries`
       }
+    case 'passwordReset':
+      if (language === 'es') {
+        return {
+          subject: '[Amiko] Restablecer contraseña',
+          html: `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Restablecer Contraseña - Amiko</title>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+                .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+                .content { padding: 40px 30px; }
+                .button { display: inline-block; background-color: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+                .info { background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; }
+                .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>🔐 Restablecer Contraseña</h1>
+                </div>
+                <div class="content">
+                  <h2>¡Hola!</h2>
+                  <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta de Amiko. Si realizaste esta solicitud, haz clic en el botón de abajo para restablecer tu contraseña:</p>
+                  
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${data.resetLink}" class="button">Restablecer Contraseña</a>
+                  </div>
+                  
+                  <div class="info">
+                    <h3>🔒 Información de Seguridad</h3>
+                    <p>• Este enlace es válido por 24 horas</p>
+                    <p>• Si no solicitaste este cambio, ignora este correo</p>
+                    <p>• Tu contraseña no cambiará hasta que hagas clic en el enlace</p>
+                  </div>
+                  
+                  <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+                  <p style="word-break: break-all; color: #667eea;">${data.resetLink}</p>
+                </div>
+                <div class="footer">
+                  <p><strong>Equipo Amiko</strong></p>
+                  <p>Plataforma de intercambio cultural que conecta Corea y Centroamérica</p>
+                  <p>Email: info@helloamiko.com | Sitio web: https://helloamiko.com</p>
+                  <p>© 2025 Amiko. Todos los derechos reservados.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `Restablecer Contraseña - Amiko
+
+¡Hola!
+
+Hemos recibido una solicitud para restablecer la contraseña de tu cuenta de Amiko. Si realizaste esta solicitud, haz clic en el enlace de abajo para restablecer tu contraseña:
+
+${data.resetLink}
+
+Información de Seguridad:
+- Este enlace es válido por 24 horas
+- Si no solicitaste este cambio, ignora este correo
+- Tu contraseña no cambiará hasta que hagas clic en el enlace
+
+Equipo Amiko
+Plataforma de intercambio cultural que conecta Corea y Centroamérica
+Email: info@helloamiko.com
+Sitio web: https://helloamiko.com
+
+© 2025 Amiko. Todos los derechos reservados.`
+        }
+      } else {
+        return {
+          subject: '[Amiko] 비밀번호 재설정',
+          html: `
+            <!DOCTYPE html>
+            <html lang="ko">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>비밀번호 재설정 - Amiko</title>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+                .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+                .content { padding: 40px 30px; }
+                .button { display: inline-block; background-color: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+                .info { background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; }
+                .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>🔐 비밀번호 재설정</h1>
+                </div>
+                <div class="content">
+                  <h2>안녕하세요!</h2>
+                  <p>Amiko 계정의 비밀번호 재설정 요청을 받았습니다. 이 요청을 하신 것이 맞다면, 아래 버튼을 클릭하여 비밀번호를 재설정하세요:</p>
+                  
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${data.resetLink}" class="button">비밀번호 재설정</a>
+                  </div>
+                  
+                  <div class="info">
+                    <h3>🔒 보안 안내</h3>
+                    <p>• 이 링크는 24시간 동안 유효합니다</p>
+                    <p>• 본인이 요청하지 않았다면 이 이메일을 무시하세요</p>
+                    <p>• 링크를 클릭하기 전까지 비밀번호는 변경되지 않습니다</p>
+                  </div>
+                  
+                  <p>버튼이 작동하지 않는다면, 아래 링크를 복사하여 브라우저에 붙여넣으세요:</p>
+                  <p style="word-break: break-all; color: #667eea;">${data.resetLink}</p>
+                </div>
+                <div class="footer">
+                  <p><strong>Amiko 팀</strong></p>
+                  <p>한국과 중남미를 연결하는 문화교류 플랫폼</p>
+                  <p>이메일: info@helloamiko.com | 웹사이트: https://helloamiko.com</p>
+                  <p>© 2025 Amiko. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `비밀번호 재설정 - Amiko
+
+안녕하세요!
+
+Amiko 계정의 비밀번호 재설정 요청을 받았습니다. 이 요청을 하신 것이 맞다면, 아래 링크를 클릭하여 비밀번호를 재설정하세요:
+
+${data.resetLink}
+
+보안 안내:
+- 이 링크는 24시간 동안 유효합니다
+- 본인이 요청하지 않았다면 이 이메일을 무시하세요
+- 링크를 클릭하기 전까지 비밀번호는 변경되지 않습니다
+
+Amiko 팀
+한국과 중남미를 연결하는 문화교류 플랫폼
+이메일: info@helloamiko.com
+웹사이트: https://helloamiko.com
+
+© 2025 Amiko. All rights reserved.`
+        }
+      }
     default:
       throw new Error(`지원되지 않는 이메일 템플릿 타입: ${type}`)
   }
