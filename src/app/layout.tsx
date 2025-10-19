@@ -36,9 +36,14 @@ export const metadata: Metadata = {
   title: 'Amiko - 한국 문화 교류 플랫폼',
   description: '한국 문화를 배우고 소통하는 플랫폼',
   icons: {
-    icon: '/amiko-logo.png',
-    shortcut: '/amiko-logo.png',
-    apple: '/amiko-logo.png',
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/favicon-32x32.png',
+    apple: '/apple-touch-icon.png',
   },
   keywords: ['한국문화', '문화교류', '언어교환', 'K-Culture', 'Amiko'],
   authors: [{ name: 'Amiko Team' }],
