@@ -35,6 +35,11 @@ const pretendard = {
 export const metadata: Metadata = {
   title: 'Amiko - 한국 문화 교류 플랫폼',
   description: '한국 문화를 배우고 소통하는 플랫폼',
+  icons: {
+    icon: '/amiko-logo.png',
+    shortcut: '/amiko-logo.png',
+    apple: '/amiko-logo.png',
+  },
   keywords: ['한국문화', '문화교류', '언어교환', 'K-Culture', 'Amiko'],
   authors: [{ name: 'Amiko Team' }],
   creator: 'Amiko',
@@ -99,6 +104,11 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <head>
         <style dangerouslySetInnerHTML={{ __html: pretendard.style }} />
+        {/* 파비콘 설정 */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="shortcut icon" href="/amiko-logo.png" />
         {/* 폰트 preload로 초기 렌더링 최적화 */}
         <link 
           rel="preload" 
