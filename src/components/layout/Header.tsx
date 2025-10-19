@@ -621,15 +621,17 @@ export default function Header() {
                     maxHeight: '160px'
                   }}
                 />
-                {/* 다크 모드 로고 - amiko-logo.png 사용 */}
+                {/* 다크 모드 로고 - amiko-logo-dark.png 사용 */}
                 <img 
-                  src="/amiko-logo.png?v=3" 
+                  src="/amiko-logo-dark.png" 
                   alt="Amiko" 
-                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 hidden dark:block"
+                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 hidden dark:block amiko-logo-dark"
                   style={{ 
                     maxHeight: '160px',
-                    filter: 'brightness(0) invert(1)',
-                    WebkitFilter: 'brightness(0) invert(1)'
+                    background: 'transparent',
+                    mixBlendMode: 'normal',
+                    opacity: 1,
+                    filter: 'none'
                   }}
                 />
                 {/* 로고 클릭 영역 - 완전 투명 */}

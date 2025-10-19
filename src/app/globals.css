@@ -62,6 +62,19 @@ link[rel="shortcut icon"] img {
   object-fit: contain !important;
 }
 
+/* 다크모드 로고 스타일링 */
+.amiko-logo-dark {
+  background: transparent !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* 다크모드에서 로고 흰색 부분 강조 */
+.dark .amiko-logo-dark {
+  filter: brightness(1.2) contrast(1.1) !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
