@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     siteName: 'Amiko',
     images: [
       {
-        url: '/amiko-logo.png', // Amiko 로고 이미지
+        url: 'https://www.helloamiko.com/amiko-logo.png',
         width: 1200,
         height: 630,
         alt: 'Amiko - 한국 문화 교류 플랫폼',
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Amiko - 한국 문화 교류 플랫폼',
     description: '한국 문화를 배우고 소통하는 플랫폼',
-    images: ['/amiko-logo.png'],
+    images: ['https://www.helloamiko.com/amiko-logo.png'],
   },
   robots: {
     index: true,
@@ -153,6 +153,47 @@ export default function RootLayout({
           </ThemeProvider>
         </QueryProvider>
         <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
+        {/* 카카오톡 링크 미리보기용 추가 메타 태그 */}
+        <Script
+          id="kakao-meta-tags"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // 카카오톡 링크 미리보기 강제 업데이트
+              if (typeof window !== 'undefined') {
+                const metaTags = [
+                  { property: 'og:title', content: 'Amiko - 한국 문화 교류 플랫폼' },
+                  { property: 'og:description', content: '한국 문화를 배우고 소통하는 플랫폼' },
+                  { property: 'og:image', content: 'https://www.helloamiko.com/amiko-logo.png' },
+                  { property: 'og:url', content: 'https://www.helloamiko.com' },
+                  { property: 'og:type', content: 'website' },
+                  { property: 'og:site_name', content: 'Amiko' },
+                  { name: 'twitter:card', content: 'summary_large_image' },
+                  { name: 'twitter:title', content: 'Amiko - 한국 문화 교류 플랫폼' },
+                  { name: 'twitter:description', content: '한국 문화를 배우고 소통하는 플랫폼' },
+                  { name: 'twitter:image', content: 'https://www.helloamiko.com/amiko-logo.png' }
+                ];
+                
+                metaTags.forEach(tag => {
+                  let element = document.querySelector(\`meta[property="\${tag.property}"]\`) || 
+                               document.querySelector(\`meta[name="\${tag.name}"]\`);
+                  if (element) {
+                    element.setAttribute('content', tag.content);
+                  } else {
+                    element = document.createElement('meta');
+                    if (tag.property) {
+                      element.setAttribute('property', tag.property);
+                    } else {
+                      element.setAttribute('name', tag.name);
+                    }
+                    element.setAttribute('content', tag.content);
+                    document.head.appendChild(element);
+                  }
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   )
