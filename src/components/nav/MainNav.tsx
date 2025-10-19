@@ -39,9 +39,18 @@ export default function MainNav() {
           onClick={() => router.push('/')}
           className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
         >
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Amiko
-          </h1>
+          {/* 라이트 모드 로고 */}
+          <img 
+            src="/amiko-logo.png" 
+            alt="Amiko" 
+            className="h-8 w-auto object-contain dark:hidden"
+          />
+          {/* 다크 모드 로고 */}
+          <img 
+            src="/amiko-logo-dark.png" 
+            alt="Amiko" 
+            className="h-8 w-auto object-contain hidden dark:block"
+          />
         </button>
 
         {/* Desktop Menu */}

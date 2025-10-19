@@ -616,7 +616,7 @@ export default function Header() {
                 <img 
                   src="/amiko-logo.png" 
                   alt="Amiko" 
-                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 dark:hidden"
+                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 hidden"
                   style={{ 
                     maxHeight: '160px'
                   }}
@@ -625,7 +625,7 @@ export default function Header() {
                 <img 
                   src="/amiko-logo-dark.png" 
                   alt="Amiko" 
-                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 hidden dark:block amiko-logo-dark"
+                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 block amiko-logo-dark"
                   style={{ 
                     maxHeight: '160px',
                     background: 'transparent',
