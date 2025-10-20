@@ -37,6 +37,7 @@ import StorySettings from './StorySettings'
 import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import ChargingTab from '../charging/ChargingTab'
 import PointsCard from './PointsCard'
 import ChargingHeader from './ChargingHeader'
@@ -46,6 +47,13 @@ export default function MyTab() {
   const { user, token } = useAuth()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
+
+  // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
+  useEffect(() => {
+    if (user && !user.isVerified) {
+      checkAuthAndRedirect(user, router, '마이페이지 접근')
+    }
+  }, [user, router])
   const [editForm, setEditForm] = useState({
     full_name: '',
     korean_name: '',

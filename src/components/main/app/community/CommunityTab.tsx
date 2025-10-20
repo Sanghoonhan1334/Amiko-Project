@@ -40,6 +40,7 @@ import CommunityMain from './CommunityMain'
 import NewsDetail from './NewsDetail'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
@@ -473,6 +474,11 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
 
   // 글쓰기 함수
   const handleWritePost = async () => {
+    // 인증 체크 - 게시물 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '게시물 작성')) {
+      return
+    }
+    
     if (!writeTitle.trim() || !writeContent.trim()) {
       alert('제목과 내용을 입력해주세요.')
       return
@@ -1020,6 +1026,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 답변 작성 함수
   const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // 인증 체크 - 답변 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '답변 작성')) {
+      return
+    }
+    
     if (!user || !selectedQuestion) return
     
     // 🚀 최적화: 로딩 상태 제거 (불필요한 상태 관리 방지)
@@ -1184,6 +1196,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 질문 작성 처리
   const handleSubmitQuestion = async () => {
+    // 인증 체크 - 질문 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '질문 작성')) {
+      return
+    }
+    
     if (!questionForm.title.trim() || !questionForm.content.trim()) {
       alert('제목과 내용을 모두 입력해주세요.')
       return
@@ -1815,6 +1832,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 댓글 작성
   const handleCommentSubmit = () => {
+    // 인증 체크 - 댓글 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '댓글 작성')) {
+      return
+    }
+    
     if (!commentText.trim()) return
     
     // 여기서 실제 댓글 API 호출
@@ -2010,6 +2032,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 뉴스 작성 함수
   const handleNewsWrite = async () => {
+    // 인증 체크 - 뉴스 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '뉴스 작성')) {
+      return
+    }
+    
     if (!newsWriteForm.title.trim()) {
       toast.error('제목을 입력해주세요.')
       return

@@ -66,7 +66,7 @@ export default function Header() {
     setLocalTime(mexicoTimeStr)
   }
 
-  // 포인트 로딩 함수 - 로그 최소화
+  // 포인트 로딩 함수 - 실제 데이터베이스 연결
   const loadUserPoints = async () => {
     if (!user?.id) return
 
@@ -76,17 +76,22 @@ export default function Header() {
       if (response.ok) {
         const data = await response.json()
         
-        // 다양한 포인트 필드 확인
-        const points = data.userPoints?.available_points || 
+        // 실제 데이터베이스 응답 구조에 맞게 수정
+        const points = data.totalPoints || 
                       data.userPoints?.total_points || 
-                      data.totalPoints || 
                       data.availablePoints || 
+                      data.userPoints?.available_points || 
                       0
         
+        console.log('포인트 로딩 성공:', { userId: user.id, points, data })
         setUserPoints(points)
+      } else {
+        console.error('포인트 API 응답 오류:', response.status, response.statusText)
+        setUserPoints(0) // 오류 시 0으로 설정
       }
     } catch (error) {
       console.error('포인트 로딩 실패:', error)
+      setUserPoints(0) // 오류 시 0으로 설정
     }
   }
 
@@ -223,12 +228,13 @@ export default function Header() {
           },
         })
         
-        // 404 오류 시 (사용자가 users 테이블에 없음) 인증 필요로 표시
+        // 404 오류 시 (라우트가 없거나 사용자가 users 테이블에 없음) 조용히 미인증 처리
         if (authStatusResponse.status === 404) {
           setVerificationStatus('unverified')
           return
         }
         
+        // 5xx/기타 에러만 로그
         if (!authStatusResponse.ok) {
           console.error('[HEADER] 인증 상태 API 오류:', authStatusResponse.status, authStatusResponse.statusText)
           setVerificationStatus('unverified')
@@ -236,13 +242,11 @@ export default function Header() {
         }
         
         const authStatusResult = await authStatusResponse.json()
-        console.log('[HEADER] 인증 상태 결과:', authStatusResult)
-
-        if (authStatusResponse.ok && authStatusResult.success && (authStatusResult.emailVerified || authStatusResult.smsVerified)) {
-          console.log('[HEADER] 인증 완료로 설정')
+        
+        // 인증 상태에 따라 설정
+        if (authStatusResult.success && (authStatusResult.emailVerified || authStatusResult.smsVerified)) {
           setVerificationStatus('verified')
         } else {
-          console.log('[HEADER] 인증 미완료로 설정')
           setVerificationStatus('unverified')
         }
 
@@ -328,9 +332,9 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 [isolation:isolate] bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
-          <div className="flex justify-between items-center h-16 sm:h-20 md:h-32 lg:h-32 xl:h-32 2xl:h-32 3xl:h-32 relative">
+          <div className="flex justify-between items-center h-16 sm:h-20 md:h-28 lg:h-28 xl:h-28 2xl:h-28 3xl:h-28 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-0.5 sm:gap-2 flex-shrink-0 w-16 sm:w-24 md:w-28">
               {/* 언어 드롭다운 - 시계 위에 */}
@@ -412,7 +416,7 @@ export default function Header() {
                         background: 'transparent !important',
                         filter: 'none !important',
                         textShadow: 'none !important',
-                        mixBlendMode: 'normal !important'
+                        mixBlendMode: 'normal' as any
                       }}
                     >
                       🇰🇷 {koreanTime}
@@ -424,7 +428,7 @@ export default function Header() {
                         background: 'transparent !important',
                         filter: 'none !important',
                         textShadow: 'none !important',
-                        mixBlendMode: 'normal !important'
+                        mixBlendMode: 'normal' as any
                       }}
                     >
                       🇲🇽 {localTime}
@@ -609,50 +613,36 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-6 lg:-top-8 z-0 flex flex-col items-center">
+            <div className="absolute left-1/2 -translate-x-1/2 -top-4 sm:-top-4 md:-top-6 lg:-top-8 z-[60] flex flex-col items-center">
               {/* 로고 */}
-              <div className="relative logo-container">
-                {/* 라이트 모드 로고 */}
-                <img 
-                  src="/amiko-logo.png" 
-                  alt="Amiko" 
-                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 hidden"
-                  style={{ 
-                    maxHeight: '160px'
-                  }}
+              <div className="relative logo-container z-[60] overflow-hidden">
+                {/* 라이트 모드 */}
+                <img
+                  src="/amiko-logo.png"
+                  alt="Amiko"
+                  width={192}
+                  height={64}
+                  className="block dark:hidden h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none"
                 />
-                {/* 다크 모드 로고 - amiko-logo-dark.png 사용 */}
-                <img 
-                  src="/amiko-logo-dark.png" 
-                  alt="Amiko" 
-                  className="h-28 sm:h-32 md:h-36 lg:h-36 xl:h-36 w-auto object-contain transition-all duration-300 block amiko-logo-dark"
-                  style={{ 
-                    maxHeight: '160px',
-                    background: 'transparent',
-                    mixBlendMode: 'normal',
-                    opacity: 1,
-                    filter: 'none'
-                  }}
+                {/* 다크 모드(순백 자산) */}
+                <img
+                  src="/amiko-logo-dark.png"
+                  alt="Amiko"
+                  width={192}
+                  height={64}
+                  className="hidden dark:block h-20 sm:h-20 md:h-26 lg:h-30 w-auto object-contain select-none pointer-events-none
+                             drop-shadow-[0_0_6px_rgba(0,0,0,0.35)]"  // 살짝 글로우로 가독성 ↑
                 />
-                {/* 로고 클릭 영역 - 완전 투명 */}
-                <div 
-                  className="absolute cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    router.push('/')
-                  }}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    left: '0',
-                    top: '0'
-                  }}
-                >
-                </div>
+
+                {/* 클릭 히트영역 - 로고보다 작게 제한 */}
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[70] bg-transparent"
+                  onClick={(e) => { e.stopPropagation(); router.push('/'); }}
+                />
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 sm:-mt-8 md:-mt-12 lg:-mt-12 xl:-mt-12 2xl:-mt-12 3xl:-mt-12 relative z-20 ml-[12px]">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-8 md:-mt-10 relative z-[80] ml-[12px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지에서는 네비게이션 제거 - 아코디언으로 모든 정보 제공
                   <></>
@@ -666,7 +656,7 @@ export default function Header() {
                         console.log('Home 버튼 클릭됨')
                         handleMainNavClick('home')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'home' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
@@ -682,7 +672,7 @@ export default function Header() {
                         console.log('Community 버튼 클릭됨')
                         handleMainNavClick('community')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'community' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
@@ -698,7 +688,7 @@ export default function Header() {
                         console.log('Meet 버튼 클릭됨')
                         handleMainNavClick('meet')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'meet' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
@@ -714,7 +704,7 @@ export default function Header() {
                         console.log('Event 버튼 클릭됨')
                         handleMainNavClick('event')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'event' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
@@ -743,9 +733,9 @@ export default function Header() {
               {/* 데스크톱용 버튼들 - 데스크톱에서만 표시 */}
               {isMainPage && user && (
                 <div className="hidden md:flex flex-col items-end gap-1">
-                  {/* 상단: 쿠폰(포인트) 표시 */}
+                  {/* 상단: 포인트 표시 */}
                   <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
-                    <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">💰</span>
+                    <span className="w-4 h-4 bg-blue-600 dark:bg-blue-400 text-white text-xs font-bold rounded-full flex items-center justify-center">P</span>
                     <span className="text-blue-700 dark:text-blue-300 text-sm font-bold">{userPoints.toLocaleString()}</span>
                   </div>
                   

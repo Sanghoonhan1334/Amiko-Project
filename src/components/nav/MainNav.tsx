@@ -37,7 +37,7 @@ export default function MainNav() {
         {/* Logo */}
         <button
           onClick={() => router.push('/')}
-          className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          className="flex items-center space-x-2 hover:opacity-80 transition-opacity p-1"
         >
           {/* 라이트 모드 로고 */}
           <img 

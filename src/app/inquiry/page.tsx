@@ -11,10 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { MessageSquare, Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 
 export default function InquiryPage() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     type: '',
     subject: '',
@@ -54,6 +57,12 @@ export default function InquiryPage() {
     setIsSubmitting(true)
     setSubmitStatus('idle')
     setErrorMessage('')
+
+    // 인증 체크 - 문의 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '문의 작성')) {
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       // 사용자 ID 가져오기 (로컬 스토리지에서)

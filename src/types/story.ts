@@ -9,6 +9,8 @@ export interface Story {
   createdAt: Date
   expiresAt: Date
   isExpired: boolean
+  // 번역된 필드들
+  translatedText?: string
 }
 
 export interface StoryForm {

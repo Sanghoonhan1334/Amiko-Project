@@ -245,13 +245,16 @@ async function handleProfileUpdate(request: NextRequest) {
 
 // 사용자 프로필 조회
 export async function GET(request: NextRequest) {
+  console.log('[PROFILE GET] API 호출 시작')
   try {
     if (!supabaseServer) {
+      console.log('[PROFILE GET] Supabase 서버 클라이언트가 없음')
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
         { status: 500 }
       )
     }
+    console.log('[PROFILE GET] Supabase 서버 클라이언트 확인됨')
 
     const { searchParams } = new URL(request.url)
     let userId = searchParams.get('userId')
@@ -340,6 +343,7 @@ export async function GET(request: NextRequest) {
         }
       })
     }
+    console.log('[PROFILE GET] users 테이블에서 사용자 조회 시작:', userId)
     const { data: user, error: userError } = await supabaseServer
       .from('users')
       .select('*')
@@ -347,10 +351,12 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (userError) {
+      console.log('[PROFILE GET] users 테이블에서 사용자 없음, auth.users 확인:', userError.message)
       // 사용자가 없으면 auth.users에서 확인
       const { data: authUser, error: authError } = await supabaseServer.auth.admin.getUserById(userId)
       
       if (authUser && !authError) {
+        console.log('[PROFILE GET] auth.users에는 있지만 public.users에는 없음')
         // auth.users에는 있지만 public.users에는 없는 경우
         return NextResponse.json({
           error: '사용자 프로필이 설정되지 않았습니다. 인증을 완료해주세요.',

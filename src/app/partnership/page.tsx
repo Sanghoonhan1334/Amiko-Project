@@ -11,10 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Handshake, Send, CheckCircle, AlertCircle, Building2, Users, DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 
 export default function PartnershipPage() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     companyName: '',
     representativeName: '',
@@ -94,6 +97,12 @@ export default function PartnershipPage() {
     setIsSubmitting(true)
     setSubmitStatus('idle')
     setErrorMessage('')
+
+    // 인증 체크 - 제휴 문의 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '제휴 문의 작성')) {
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const formDataToSend = new FormData()

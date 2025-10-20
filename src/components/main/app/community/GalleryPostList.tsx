@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Languages } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { TranslationService } from '@/lib/translation'
 import PostFilters, { FilterOptions } from './PostFilters'
 import GalleryNavigation from './GalleryNavigation'
 
@@ -27,6 +29,9 @@ interface Post {
     full_name: string
     avatar_url?: string
   }
+  // 번역된 필드들
+  translatedTitle?: string
+  translatedContent?: string
 }
 
 interface Gallery {
@@ -61,6 +66,7 @@ export default function GalleryPostList({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userVotes, setUserVotes] = useState<Record<string, 'like' | 'dislike' | null>>({})
+  const [translatingPosts, setTranslatingPosts] = useState<Set<string>>(new Set())
   const [filters, setFilters] = useState<FilterOptions>({
     sortBy: 'latest',
     timeRange: 'all',
@@ -68,6 +74,8 @@ export default function GalleryPostList({
     status: 'all',
     searchQuery: ''
   })
+  
+  const translationService = new TranslationService()
 
   useEffect(() => {
     loadPosts()
@@ -184,6 +192,40 @@ export default function GalleryPostList({
     } catch (err) {
       console.error('투표 오류:', err)
       setError(err instanceof Error ? err.message : '투표 처리 중 오류가 발생했습니다')
+    }
+  }
+
+  // 갤러리 게시물 번역
+  const handleTranslatePost = async (post: Post, type: 'title' | 'content') => {
+    if (translatingPosts.has(post.id)) return // 이미 번역 중이면 무시
+    
+    setTranslatingPosts(prev => new Set(prev).add(post.id))
+    
+    try {
+      const text = type === 'title' ? post.title : post.content
+      const targetLang = language === 'ko' ? 'es' : 'ko'
+      
+      const translatedText = await translationService.translate(text, targetLang)
+      
+      setPosts(prevPosts => 
+        prevPosts.map(p => 
+          p.id === post.id 
+            ? { 
+                ...p, 
+                [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText 
+              }
+            : p
+        )
+      )
+    } catch (error) {
+      console.error('갤러리 게시물 번역 실패:', error)
+      setError('번역에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setTranslatingPosts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(post.id)
+        return newSet
+      })
     }
   }
 
@@ -350,14 +392,52 @@ export default function GalleryPostList({
               </div>
 
               {/* 게시물 제목 */}
-              <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
-                {post.title}
-              </h3>
+              <div className="mb-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 flex-1">
+                    {post.translatedTitle || post.title}
+                  </h3>
+                  {post.translatedTitle && (
+                    <span className="text-xs text-blue-500">(번역됨)</span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleTranslatePost(post, 'title')
+                    }}
+                    disabled={translatingPosts.has(post.id)}
+                  >
+                    <Languages className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
 
               {/* 게시물 미리보기 */}
-              <p className="text-gray-600 mb-4 line-clamp-3">
-                {getPostPreview(post.content)}
-              </p>
+              <div className="mb-4">
+                <div className="flex items-start gap-2">
+                  <p className="text-gray-600 line-clamp-3 flex-1">
+                    {getPostPreview(post.translatedContent || post.content)}
+                  </p>
+                  {post.translatedContent && (
+                    <span className="text-xs text-blue-500 mt-1">(번역됨)</span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500 mt-1"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleTranslatePost(post, 'content')
+                    }}
+                    disabled={translatingPosts.has(post.id)}
+                  >
+                    <Languages className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
 
               {/* 이미지 미리보기 */}
               {post.images && post.images.length > 0 && (

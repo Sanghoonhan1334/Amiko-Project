@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 
 interface Gallery {
   id: string
@@ -24,7 +26,15 @@ interface PostCreateProps {
 export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateProps) {
   const { t, language } = useLanguage()
   const { user, refreshSession } = useAuth()
+  const router = useRouter()
   const [title, setTitle] = useState('')
+
+  // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
+  React.useEffect(() => {
+    if (user && !user.isVerified) {
+      checkAuthAndRedirect(user, router, '게시물 작성')
+    }
+  }, [user, router])
   const [content, setContent] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -116,6 +126,11 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
   const handleSubmit = async () => {
     if (!user) {
       setError('로그인이 필요합니다')
+      return
+    }
+
+    // 인증 체크 - 게시물 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '게시물 작성')) {
       return
     }
 

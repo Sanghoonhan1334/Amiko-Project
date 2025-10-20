@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Supabase 환경 변수가 설정되지 않았습니다')
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { createClient } from '@/lib/supabase/server'
 
 // 포인트 랭킹 조회
 export async function GET(request: NextRequest) {
@@ -17,21 +8,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const userId = searchParams.get('userId')
 
-    // 사용자 정보와 포인트를 함께 조회
+    // Supabase 클라이언트 생성
+    const supabase = createClient()
+
+    // 통합 랭킹 함수 사용
     const { data: ranking, error: rankingError } = await supabase
-      .from('user_points')
-      .select(`
-        user_id,
-        total_points,
-        available_points,
-        users!inner(
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
-      .order('total_points', { ascending: false })
-      .limit(limit)
+      .rpc('get_points_ranking', { p_limit: limit })
 
     if (rankingError) {
       throw rankingError

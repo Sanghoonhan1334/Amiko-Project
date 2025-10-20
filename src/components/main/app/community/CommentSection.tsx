@@ -4,8 +4,12 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Languages } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
+import { TranslationService } from '@/lib/translation'
 
 interface Comment {
   id: string
@@ -27,6 +31,8 @@ interface Comment {
   parent_comment_id?: string
   replies?: Comment[]
   user_vote?: 'like' | 'dislike' | null
+  // 번역된 필드들
+  translatedContent?: string
 }
 
 interface CommentSectionProps {
@@ -37,6 +43,7 @@ interface CommentSectionProps {
 export default function CommentSection({ postId, onCommentCountChange }: CommentSectionProps) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
+  const router = useRouter()
   
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
@@ -45,9 +52,11 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
   const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'replies'>('latest')
+  const [translatingComments, setTranslatingComments] = useState<Set<string>>(new Set())
   
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const translationService = new TranslationService()
 
   // 댓글 로딩
   const loadComments = async () => {
@@ -106,6 +115,11 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const handleSubmitComment = async () => {
     if (!commentContent.trim() || submitting) return
 
+    // 인증 체크 - 댓글 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '댓글 작성')) {
+      return
+    }
+
     try {
       setSubmitting(true)
       const response = await fetch(`/api/posts/${postId}/comments`, {
@@ -134,6 +148,11 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   // 답글 작성
   const handleSubmitReply = async (parentId: string) => {
     if (!replyContent.trim() || submitting) return
+
+    // 인증 체크 - 답글 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '답글 작성')) {
+      return
+    }
 
     try {
       setSubmitting(true)
@@ -264,6 +283,77 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       console.error('투표 오류:', error)
       // 에러 시 원래 상태로 복구
       await loadComments()
+    }
+  }
+
+  // 댓글 번역
+  const handleTranslateComment = async (commentId: string, isReply: boolean = false) => {
+    if (translatingComments.has(commentId)) return // 이미 번역 중이면 무시
+    
+    setTranslatingComments(prev => new Set(prev).add(commentId))
+    
+    try {
+      // 댓글 찾기
+      let targetComment: Comment | null = null
+      let commentPath: string[] = []
+      
+      if (isReply) {
+        // 답글인 경우
+        for (const comment of comments) {
+          if (comment.replies) {
+            const reply = comment.replies.find(r => r.id === commentId)
+            if (reply) {
+              targetComment = reply
+              commentPath = [comment.id, 'replies']
+              break
+            }
+          }
+        }
+      } else {
+        // 메인 댓글인 경우
+        targetComment = comments.find(c => c.id === commentId) || null
+        commentPath = [commentId]
+      }
+      
+      if (!targetComment) return
+      
+      const targetLang = language === 'ko' ? 'es' : 'ko'
+      const translatedContent = await translationService.translate(targetComment.content, targetLang)
+      
+      // 상태 업데이트
+      setComments(prevComments => {
+        if (isReply) {
+          // 답글 번역
+          return prevComments.map(comment => {
+            if (comment.id === commentPath[0] && comment.replies) {
+              return {
+                ...comment,
+                replies: comment.replies.map(reply => 
+                  reply.id === commentId 
+                    ? { ...reply, translatedContent }
+                    : reply
+                )
+              }
+            }
+            return comment
+          })
+        } else {
+          // 메인 댓글 번역
+          return prevComments.map(comment => 
+            comment.id === commentId 
+              ? { ...comment, translatedContent }
+              : comment
+          )
+        }
+      })
+    } catch (error) {
+      console.error('댓글 번역 실패:', error)
+    } finally {
+      setTranslatingComments(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(commentId)
+        return newSet
+      })
     }
   }
 
@@ -403,9 +493,14 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                       </span>
                     </div>
                     
-                    <p className="text-gray-700 mb-3 whitespace-pre-wrap">
-                      {comment.content}
-                    </p>
+                    <div className="mb-3">
+                      <p className="text-gray-700 whitespace-pre-wrap">
+                        {comment.translatedContent || comment.content}
+                      </p>
+                      {comment.translatedContent && (
+                        <span className="text-xs text-blue-500">(번역됨)</span>
+                      )}
+                    </div>
                     
                     <div className="flex items-center space-x-4">
                       <button
@@ -431,6 +526,16 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                         <span>👎</span>
                         <span>{comment.dislike_count}</span>
                       </button>
+                      
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                        onClick={() => handleTranslateComment(comment.id, false)}
+                        disabled={translatingComments.has(comment.id)}
+                      >
+                        <Languages className="h-3 w-3" />
+                      </Button>
                       
                       {user && (
                         <button
@@ -502,9 +607,14 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                               </span>
                             </div>
                             
-                            <p className="text-gray-700 mb-3 whitespace-pre-wrap">
-                              {reply.content}
-                            </p>
+                            <div className="mb-3">
+                              <p className="text-gray-700 whitespace-pre-wrap">
+                                {reply.translatedContent || reply.content}
+                              </p>
+                              {reply.translatedContent && (
+                                <span className="text-xs text-blue-500">(번역됨)</span>
+                              )}
+                            </div>
                             
                             <div className="flex items-center space-x-4">
                               <button
@@ -530,6 +640,16 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                                 <span>👎</span>
                                 <span>{reply.dislike_count}</span>
                               </button>
+                              
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                                onClick={() => handleTranslateComment(reply.id, true)}
+                                disabled={translatingComments.has(reply.id)}
+                              >
+                                <Languages className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
                         </div>

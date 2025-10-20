@@ -1,7 +1,6 @@
 'use client'
 
 import VideoCallStarter from '@/components/video/VideoCallStarter'
-import VerificationGuard from '@/components/common/VerificationGuard'
 
 export default function MeetTab() {
   const handleStartCall = (channelName: string) => {
@@ -11,9 +10,8 @@ export default function MeetTab() {
 
   return (
     <div className="w-full">
-      <VerificationGuard requiredLevel="email">
-        <VideoCallStarter onStartCall={handleStartCall} />
-      </VerificationGuard>
+      {/* VerificationGuard 제거 - VideoCallStarter 내부에서 인증 체크 처리 */}
+      <VideoCallStarter onStartCall={handleStartCall} />
     </div>
   )
 }

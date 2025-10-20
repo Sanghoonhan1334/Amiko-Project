@@ -12,11 +12,13 @@ import {
   CheckCircle, 
   Clock,
   Users,
-  Star
+  Star,
+  Languages
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
+import { TranslationService } from '@/lib/translation'
 
 interface Quiz {
   id: string
@@ -32,6 +34,7 @@ interface Question {
   question_text: string
   question_order: number
   quiz_options: Option[]
+  translatedQuestionText?: string
 }
 
 interface Option {
@@ -40,6 +43,7 @@ interface Option {
   option_order: number
   mbti_axis?: string
   axis_weight?: number
+  translatedOptionText?: string
 }
 
 interface QuizData {
@@ -60,6 +64,8 @@ export default function QuizParticipationPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [translatingQuestions, setTranslatingQuestions] = useState<Set<string>>(new Set())
+  const [translationService] = useState(() => new TranslationService())
 
   const quizId = params.id as string
 
@@ -106,6 +112,68 @@ export default function QuizParticipationPage() {
       ...prev,
       [questionId]: optionId
     }))
+  }
+
+  const handleTranslateQuestion = async (questionId: string) => {
+    if (!quizData) return
+
+    const question = quizData.questions.find(q => q.id === questionId)
+    if (!question) return
+
+    setTranslatingQuestions(prev => new Set(prev).add(questionId))
+
+    try {
+      // Translate question text
+      const translatedQuestionText = await translationService.translateText(
+        question.question_text,
+        'ko',
+        'es'
+      )
+
+      // Translate all options
+      const translatedOptions = await Promise.all(
+        question.quiz_options.map(async (option) => {
+          const translatedOptionText = await translationService.translateText(
+            option.option_text,
+            'ko',
+            'es'
+          )
+          return {
+            ...option,
+            translatedOptionText
+          }
+        })
+      )
+
+      // Update quiz data with translations
+      setQuizData(prev => {
+        if (!prev) return prev
+
+        return {
+          ...prev,
+          questions: prev.questions.map(q => 
+            q.id === questionId 
+              ? {
+                  ...q,
+                  translatedQuestionText,
+                  quiz_options: translatedOptions
+                }
+              : q
+          )
+        }
+      })
+
+      toast.success('질문이 번역되었습니다!')
+    } catch (error) {
+      console.error('번역 실패:', error)
+      toast.error('번역에 실패했습니다.')
+    } finally {
+      setTranslatingQuestions(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(questionId)
+        return newSet
+      })
+    }
   }
 
   const handleNext = () => {
@@ -276,9 +344,27 @@ export default function QuizParticipationPage() {
         {/* 질문 */}
         <Card className="mb-8">
           <CardContent className="p-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              {currentQuestionData.question_text}
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {currentQuestionData.translatedQuestionText || currentQuestionData.question_text}
+              </h2>
+              <div className="flex items-center gap-2">
+                {currentQuestionData.translatedQuestionText && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                    번역됨
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleTranslateQuestion(currentQuestionData.id)}
+                  disabled={translatingQuestions.has(currentQuestionData.id)}
+                  className="h-8 px-2"
+                >
+                  <Languages className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
             
             <div className="space-y-3">
               {currentQuestionData.quiz_options.map((option) => (
@@ -292,10 +378,19 @@ export default function QuizParticipationPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{option.option_text}</span>
-                    {selectedOptions[currentQuestionData.id] === option.id && (
-                      <CheckCircle className="w-5 h-5 text-purple-500" />
-                    )}
+                    <span className="font-medium">
+                      {option.translatedOptionText || option.option_text}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {option.translatedOptionText && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                          번역됨
+                        </Badge>
+                      )}
+                      {selectedOptions[currentQuestionData.id] === option.id && (
+                        <CheckCircle className="w-5 h-5 text-purple-500" />
+                      )}
+                    </div>
                   </div>
                 </button>
               ))}

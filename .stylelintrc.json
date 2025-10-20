@@ -1,0 +1,12 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-tailwindcss"
+  ],
+  "rules": {
+    "declaration-no-important": true,
+    "selector-max-compound-selectors": 3,
+    "selector-disallowed-list": [":where(img)", "img", ".dark img"],
+    "property-disallowed-list": ["filter", "mix-blend-mode"]
+  }
+}

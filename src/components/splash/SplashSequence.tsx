@@ -86,7 +86,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
       variants={containerVariants}
       initial="initial"
       exit="exit"
-      className="fixed inset-0 bg-white flex items-center justify-center z-50"
+      className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50"
     >
       {/* 로고와 텍스트 표시 */}
       <div className="flex flex-col items-center -mt-32 md:-mt-64">
@@ -103,12 +103,21 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           }}
           className="flex items-center justify-center"
         >
+          {/* 라이트 모드 로고 */}
           <Image
             src="/amiko-logo.png"
             alt="Amiko Logo"
             width={500}
             height={500}
-            className="w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
+            className="block dark:hidden w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
+          />
+          {/* 다크 모드 로고 */}
+          <Image
+            src="/amiko-logo-dark.png"
+            alt="Amiko Logo"
+            width={500}
+            height={500}
+            className="hidden dark:block w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
           />
         </motion.div>
 
@@ -126,7 +135,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           className="text-center -mt-8 md:-mt-20"
         >
           <h1 
-            className="text-base md:text-lg lg:text-xl font-bold text-gray-700 tracking-wide"
+            className="text-base md:text-lg lg:text-xl font-bold text-gray-700 dark:text-white tracking-wide"
             style={{ 
               fontStyle: 'italic !important',
               transform: 'skewX(-10deg)',

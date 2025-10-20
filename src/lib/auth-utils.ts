@@ -85,3 +85,52 @@ export function getUserLevel(profile: UserProfile | null): 'unverified' | 'verif
   // TODO: 프리미엄 등급 로직 추가
   return 'verified'
 }
+
+/**
+ * 인증이 필요한 액션을 체크하고 인증센터로 리다이렉트합니다
+ * @param profile 사용자 프로필 객체 (선택사항)
+ * @param router Next.js router 객체 (선택사항)
+ * @param action 액션 이름 (로그용)
+ * @returns 인증 완료 여부
+ */
+export function checkAuthAndRedirect(
+  profile?: UserProfile | null, 
+  router?: any, 
+  action: string = '액션'
+): boolean {
+  // 매개변수가 없으면 브라우저의 window.location을 사용
+  if (!router) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/verification-center'
+      return false
+    }
+    return false
+  }
+
+  if (!isVerified(profile)) {
+    console.log(`❌ ${action} 실행 실패: 인증이 필요합니다`)
+    router.push('/verification-center')
+    return false
+  }
+  return true
+}
+
+/**
+ * 인증이 필요한 액션을 체크하고 콜백을 실행합니다
+ * @param profile 사용자 프로필 객체 (선택사항)
+ * @param router Next.js router 객체 (선택사항)
+ * @param callback 인증 완료 시 실행할 콜백
+ * @param action 액션 이름 (로그용)
+ */
+export function requireAuth(
+  profile?: UserProfile | null,
+  router?: any,
+  callback?: () => void,
+  action: string = '액션'
+): void {
+  if (checkAuthAndRedirect(profile, router, action)) {
+    if (callback) {
+      callback()
+    }
+  }
+}

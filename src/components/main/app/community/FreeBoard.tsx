@@ -21,11 +21,15 @@ import {
   Star,
   Search,
   Pin,
-  ArrowLeft
+  ArrowLeft,
+  Languages
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { createClientComponentClient } from '@/lib/supabase'
+import { TranslationService } from '@/lib/translation'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
+import { useRouter } from 'next/navigation'
 import PostDetail from './PostDetail'
 import PostEditModal from './PostEditModal'
 import { CardGridSkeleton } from '@/components/ui/skeleton'
@@ -54,6 +58,9 @@ interface Post {
     id: string
     name: string
   }
+  // 번역된 필드들
+  translatedTitle?: string
+  translatedContent?: string
 }
 
 interface PostListResponse {
@@ -68,8 +75,12 @@ interface PostListResponse {
 
 export default function FreeBoard() {
   const { user, session, token } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const router = useRouter()
   const supabase = createClientComponentClient()
+  
+  // 번역 서비스 초기화
+  const translationService = TranslationService.getInstance()
   
   // 상태 관리
   const [posts, setPosts] = useState<Post[]>([])
@@ -81,6 +92,9 @@ export default function FreeBoard() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingPost, setEditingPost] = useState<Post | null>(null)
   const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false)
+  
+  // 번역 상태 관리
+  const [translatingPosts, setTranslatingPosts] = useState<Set<string>>(new Set())
   
   // 필터 및 검색
   const [currentCategory, setCurrentCategory] = useState('all')
@@ -349,6 +363,11 @@ export default function FreeBoard() {
       return
     }
 
+    // 인증 체크 - 게시물 작성은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '게시물 작성')) {
+      return
+    }
+
     if (!writeTitle.trim() || !writeContent.trim()) {
       setError('제목과 내용을 입력해주세요.')
       return
@@ -561,6 +580,11 @@ export default function FreeBoard() {
       return
     }
 
+    // 인증 체크 - 좋아요/싫어요는 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '좋아요/싫어요')) {
+      return
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
@@ -617,6 +641,40 @@ export default function FreeBoard() {
   const handleEditPost = (post: Post) => {
     setEditingPost(post)
     setShowEditModal(true)
+  }
+
+  // 게시글 번역 핸들러
+  const handleTranslatePost = async (post: Post, type: 'title' | 'content') => {
+    if (translatingPosts.has(post.id)) return // 이미 번역 중이면 무시
+    
+    setTranslatingPosts(prev => new Set(prev).add(post.id))
+    
+    try {
+      const text = type === 'title' ? post.title : post.content
+      const targetLang = language === 'ko' ? 'es' : 'ko'
+      
+      const translatedText = await translationService.translate(text, targetLang)
+      
+      setPosts(prevPosts => 
+        prevPosts.map(p => 
+          p.id === post.id 
+            ? { 
+                ...p, 
+                [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText 
+              }
+            : p
+        )
+      )
+    } catch (error) {
+      console.error('번역 실패:', error)
+      setError('번역에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setTranslatingPosts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(post.id)
+        return newSet
+      })
+    }
   }
 
   // 게시글 수정 완료 핸들러
@@ -1374,8 +1432,13 @@ export default function FreeBoard() {
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 font-medium">
                           <div className="flex items-center gap-2">
                             <span className="truncate max-w-xs">
-                              {post.title}
+                              {post.translatedTitle || post.title}
                             </span>
+                            {post.translatedTitle && (
+                              <span className="text-xs text-blue-500 dark:text-blue-400">
+                                (번역됨)
+                              </span>
+                            )}
                             {post.comment_count > 0 && (
                               <span className="text-xs text-gray-500 dark:text-gray-400">
                                 [{post.comment_count}]
@@ -1386,6 +1449,18 @@ export default function FreeBoard() {
                                 개념글
                               </Badge>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleTranslatePost(post, 'title')
+                              }}
+                              disabled={translatingPosts.has(post.id)}
+                            >
+                              <Languages className="h-3 w-3" />
+                            </Button>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">

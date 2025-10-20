@@ -4,9 +4,12 @@ import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Languages } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { TranslationService } from '@/lib/translation'
+import { useRouter } from 'next/navigation'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import CommentSection from './CommentSection'
 
 interface Post {
@@ -28,6 +31,9 @@ interface Post {
     full_name: string
     profile_image?: string
   }
+  // 번역된 필드들
+  translatedTitle?: string
+  translatedContent?: string
 }
 
 
@@ -41,11 +47,16 @@ interface PostDetailProps {
 export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDetailProps) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
+  const router = useRouter()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  
+  // 번역 서비스 초기화
+  const translationService = TranslationService.getInstance()
+  const [translating, setTranslating] = useState(false)
 
   // 운영자 권한 확인
   const checkAdminStatus = () => {
@@ -119,9 +130,40 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     }
   }
 
+  // 게시물 번역 핸들러
+  const handleTranslatePost = async (type: 'title' | 'content') => {
+    if (!post || translating) return
+    
+    setTranslating(true)
+    
+    try {
+      const text = type === 'title' ? post.title : post.content
+      const targetLang = language === 'ko' ? 'es' : 'ko'
+      
+      const translatedText = await translationService.translate(text, targetLang)
+      
+      setPost(prevPost => 
+        prevPost ? {
+          ...prevPost,
+          [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText
+        } : null
+      )
+    } catch (error) {
+      console.error('번역 실패:', error)
+      setError('번역에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setTranslating(false)
+    }
+  }
+
   const handleVote = async (voteType: 'like' | 'dislike') => {
     if (!user || !token) {
       setError('로그인이 필요합니다')
+      return
+    }
+
+    // 인증 체크 - 좋아요/싫어요는 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '좋아요/싫어요')) {
       return
     }
 
@@ -272,8 +314,24 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       <div className="p-4 md:p-6">
         {/* 게시물 헤더 */}
         <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-bold text-gray-800 mb-1">{post.title}</h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-xl font-bold text-gray-800">
+                {post.translatedTitle || post.title}
+              </h1>
+              {post.translatedTitle && (
+                <span className="text-xs text-blue-500">(번역됨)</span>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                onClick={() => handleTranslatePost('title')}
+                disabled={translating}
+              >
+                <Languages className="h-3 w-3" />
+              </Button>
+            </div>
             <p className="text-sm text-gray-500">{post.author?.full_name || '익명'} / {formatDate(post.created_at)}</p>
           </div>
 
@@ -330,10 +388,27 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         </div>
 
         {/* 게시물 내용 */}
-        <div 
-          className="prose max-w-none mb-6"
-          dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
-        />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="text-lg font-semibold text-gray-800">내용</h3>
+            {post.translatedContent && (
+              <span className="text-xs text-blue-500">(번역됨)</span>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+              onClick={() => handleTranslatePost('content')}
+              disabled={translating}
+            >
+              <Languages className="h-3 w-3" />
+            </Button>
+          </div>
+          <div 
+            className="prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: formatContent(post.translatedContent || post.content) }}
+          />
+        </div>
 
         {/* 이미지 갤러리 */}
         {post.images && post.images.length > 0 && (

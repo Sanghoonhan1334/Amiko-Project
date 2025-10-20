@@ -103,8 +103,8 @@ export default function VerificationCenterPage() {
         // 사용자 프로필에서 한국인 여부 확인
         try {
           const token = localStorage.getItem('amiko_token')
-          if (token) {
-            const profileResponse = await fetch('/api/profile', {
+          if (token && user?.id) {
+            const profileResponse = await fetch(`/api/profile?userId=${user.id}`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -127,6 +127,13 @@ export default function VerificationCenterPage() {
                 country: userProfile?.country,
                 is_korean: userProfile?.is_korean
               })
+            } else if (profileResponse.status === 404) {
+              // 프로필이 설정되지 않은 경우 (auth.users에는 있지만 public.users에는 없음)
+              const errorData = await profileResponse.json()
+              if (errorData.needsVerification) {
+                console.log('[VERIFICATION] 프로필 미설정, 기본값 사용 (한국인으로 가정)')
+                setIsKorean(true) // 기본값으로 한국인으로 설정
+              }
             }
           }
         } catch (profileError) {

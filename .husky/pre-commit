@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+echo "🔍 Checking for CSS violations..."
+
+# block !important anywhere
+if git diff --cached -U0 | grep -E '^\+.*!important'; then
+  echo "❌ Found !important in staged changes. Use Tailwind utilities or refactor." >&2
+  echo "💡 Tip: Replace with Tailwind utilities or component-scoped styles" >&2
+  exit 1
+fi
+
+# block risky globals in globals.css
+if git diff --cached -- src/app/globals.css | grep -E '^\+.*(filter|mix-blend-mode|img|\.dark img)'; then
+  echo "❌ Risky global CSS change in globals.css (filter/mix-blend/img). Move to component or remove." >&2
+  echo "💡 Tip: Use component-scoped styles or Tailwind utilities instead" >&2
+  exit 1
+fi
+
+echo "✅ CSS checks passed!"

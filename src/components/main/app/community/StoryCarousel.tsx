@@ -22,7 +22,8 @@ import {
   ChevronRight,
   Heart,
   MessageSquare,
-  Send
+  Send,
+  Languages
 } from 'lucide-react'
 import { Story, StoryForm } from '@/types/story'
 import UserProfileModal from '@/components/common/UserProfileModal'
@@ -41,6 +42,9 @@ interface Comment {
 import { useAuth } from '@/context/AuthContext'
 import { useUser } from '@/context/UserContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useRouter } from 'next/navigation'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
+import { TranslationService } from '@/lib/translation'
 import VerificationGuard from '@/components/common/VerificationGuard'
 
 // 실제 스토리 데이터는 API에서 가져올 예정
@@ -49,7 +53,10 @@ const getMockStories = (userName: string = '한상훈'): Story[] => []
 export default function StoryCarousel() {
   const { user } = useUser()
   const { token, user: authUser, session } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const router = useRouter()
+  
+  const translationService = new TranslationService()
   
   // 운영자 권한 확인
   const [isAdmin, setIsAdmin] = useState(false)
@@ -168,6 +175,9 @@ export default function StoryCarousel() {
   const [showCommentModal, setShowCommentModal] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
   const [storyComments, setStoryComments] = useState<Record<string, Comment[]>>({})
+  
+  // 번역 관련 상태
+  const [translatingStories, setTranslatingStories] = useState<Set<string>>(new Set())
 
   // 댓글 모달이 열릴 때 댓글 로드
   useEffect(() => {
@@ -710,6 +720,37 @@ export default function StoryCarousel() {
     }))
   }
 
+  // 스토리 번역
+  const handleTranslateStory = async (storyId: string) => {
+    if (translatingStories.has(storyId)) return // 이미 번역 중이면 무시
+    
+    setTranslatingStories(prev => new Set(prev).add(storyId))
+    
+    try {
+      const story = stories.find(s => s.id === storyId)
+      if (!story) return
+      
+      const targetLang = language === 'ko' ? 'es' : 'ko'
+      const translatedText = await translationService.translate(story.text, targetLang)
+      
+      setStories(prevStories => 
+        prevStories.map(s => 
+          s.id === storyId 
+            ? { ...s, translatedText }
+            : s
+        )
+      )
+    } catch (error) {
+      console.error('스토리 번역 실패:', error)
+    } finally {
+      setTranslatingStories(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(storyId)
+        return newSet
+      })
+    }
+  }
+
   // 프로필 보기
   const handleViewProfile = (userId: string) => {
     setSelectedUserId(userId)
@@ -797,6 +838,11 @@ export default function StoryCarousel() {
          const currentUser = user || authUser
          if (!currentUser) {
            alert('로그인이 필요합니다.')
+           return
+         }
+
+         // 인증 체크 - 스토리 작성은 인증이 필요
+         if (!checkAuthAndRedirect(currentUser, router, '스토리 작성')) {
            return
          }
 
@@ -1219,9 +1265,25 @@ export default function StoryCarousel() {
                           </div>
                         </div>
                         
-                        <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                          {stories[currentIndex].text}
-                        </p>
+                        <div className="mb-3">
+                          <div className="flex items-start gap-2">
+                            <p className="text-sm text-gray-700 leading-relaxed flex-1">
+                              {stories[currentIndex].translatedText || stories[currentIndex].text}
+                            </p>
+                            {stories[currentIndex].translatedText && (
+                              <span className="text-xs text-blue-500 mt-1">(번역됨)</span>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500 mt-1"
+                              onClick={() => handleTranslateStory(stories[currentIndex].id)}
+                              disabled={translatingStories.has(stories[currentIndex].id)}
+                            >
+                              <Languages className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
                         
                         <div className="flex items-center justify-between text-xs text-gray-500">
                           <span>24시간 후 삭제</span>
@@ -1354,15 +1416,34 @@ export default function StoryCarousel() {
                                 </button>
                               </div>
                               
-                              <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words leading-relaxed" style={{
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                wordBreak: 'break-word'
-                              }}>
-                                {story.text}
-                              </p>
+                              <div className="mb-2">
+                                <div className="flex items-start gap-2">
+                                  <p className="text-xs sm:text-sm text-gray-600 break-words leading-relaxed flex-1" style={{
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    wordBreak: 'break-word'
+                                  }}>
+                                    {story.translatedText || story.text}
+                                  </p>
+                                  {story.translatedText && (
+                                    <span className="text-xs text-blue-500 mt-1">(번역됨)</span>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500 mt-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleTranslateStory(story.id)
+                                    }}
+                                    disabled={translatingStories.has(story.id)}
+                                  >
+                                    <Languages className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
                               
                               <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                                 <span>{story.createdAt.toLocaleTimeString('ko-KR', { 
@@ -1596,9 +1677,23 @@ export default function StoryCarousel() {
               {/* 스토리 텍스트 내용 */}
               {selectedStory.text && (
                 <div className="w-full max-w-2xl mb-6 p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">스토리 내용</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-lg font-semibold text-gray-800">스토리 내용</h3>
+                    {selectedStory.translatedText && (
+                      <span className="text-xs text-blue-500">(번역됨)</span>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                      onClick={() => handleTranslateStory(selectedStory.id)}
+                      disabled={translatingStories.has(selectedStory.id)}
+                    >
+                      <Languages className="h-3 w-3" />
+                    </Button>
+                  </div>
                   <p className="text-gray-700 leading-relaxed text-base whitespace-pre-wrap">
-                    {selectedStory.text}
+                    {selectedStory.translatedText || selectedStory.text}
                   </p>
                 </div>
               )}

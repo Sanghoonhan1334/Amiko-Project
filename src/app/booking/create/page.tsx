@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 
 
 interface TimeSlot {
@@ -167,6 +168,12 @@ export default function CreateBookingPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    // 인증 체크 - 예약 신청은 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '예약 신청')) {
+      setLoading(false)
+      return
+    }
 
     try {
       // 필수 필드 검증

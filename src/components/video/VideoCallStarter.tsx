@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -90,6 +91,11 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const handleStartCall = () => {
     if (!channelName.trim()) {
       alert(t('videoCall.enterChannelName'))
+      return
+    }
+
+    // 인증 체크 - 화상채팅 참여는 인증이 필요
+    if (!checkAuthAndRedirect(user, router, '화상채팅 참여')) {
       return
     }
     
@@ -235,12 +241,13 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                   return
                 }
                 
-                // 로그인한 사용자는 인증 상태에 따라 처리
-                if (verificationStatus === 'verified') {
-                  setShowStartDialog(true)
-                } else {
-                  router.push('/verification')
+                // 인증 체크 - 화상채팅 시작은 인증이 필요
+                if (!checkAuthAndRedirect(user, router, '화상채팅 시작')) {
+                  return
                 }
+                
+                // 인증된 사용자는 화상채팅 시작 다이얼로그 표시
+                setShowStartDialog(true)
               }}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-2 text-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
@@ -379,6 +386,24 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         variant={partner.status === 'online' ? 'default' : 'outline'}
                         size="sm"
                         disabled={partner.status === 'offline'}
+                        onClick={() => {
+                          if (partner.status === 'online') {
+                            // 로그인하지 않은 사용자는 로그인 페이지로 이동
+                            if (!user) {
+                              router.push('/sign-in')
+                              return
+                            }
+                            
+                            // 인증 체크 - 화상채팅 참여는 인증이 필요
+                            if (!checkAuthAndRedirect(user, router, '화상채팅 참여')) {
+                              return
+                            }
+                            
+                            // 인증된 사용자는 화상채팅 시작
+                            setChannelName(`partner-${partner.id}`)
+                            setShowStartDialog(true)
+                          }
+                        }}
                         className={partner.status === 'online' 
                           ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 
                           : ''
@@ -459,6 +484,24 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         variant={partner.status === 'online' ? 'default' : 'outline'}
                         size="sm"
                         disabled={partner.status === 'offline'}
+                        onClick={() => {
+                          if (partner.status === 'online') {
+                            // 로그인하지 않은 사용자는 로그인 페이지로 이동
+                            if (!user) {
+                              router.push('/sign-in')
+                              return
+                            }
+                            
+                            // 인증 체크 - 화상채팅 참여는 인증이 필요
+                            if (!checkAuthAndRedirect(user, router, '화상채팅 참여')) {
+                              return
+                            }
+                            
+                            // 인증된 사용자는 화상채팅 시작
+                            setChannelName(`partner-${partner.id}`)
+                            setShowStartDialog(true)
+                          }
+                        }}
                         className={`flex-1 text-xs py-2 ${
                           partner.status === 'online' 
                             ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white' 

@@ -177,9 +177,9 @@ export default function Hero() {
                 {/* 왼쪽: 텍스트 */}
                 <div className="text-left max-w-lg">
                   <h1 
-                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight font-['Inter']"
+                    className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight font-['Inter']"
                     style={{
-                      fontSize: '32px',
+                      fontSize: '36px',
                       fontWeight: '700',
                       color: '#111827',
                       lineHeight: '1.2',
@@ -190,7 +190,7 @@ export default function Hero() {
                   </h1>
                   
                   <p 
-                    className="text-gray-600 dark:text-gray-400 text-sm sm:text-base md:text-lg leading-relaxed mb-0"
+                    className="text-gray-600 dark:text-gray-400 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-relaxed mb-0"
                     style={{
                       fontSize: '16px',
                       color: '#6b7280',
@@ -233,9 +233,9 @@ export default function Hero() {
                 {/* 제목 섹션 */}
                 <div className="text-left ml-4 sm:ml-6 md:ml-12 lg:ml-16">
                   <h2 
-                    className="text-lg sm:text-xl md:text-2xl font-normal text-gray-900 dark:text-gray-100 mb-2 sm:mb-3"
+                    className="text-base sm:text-lg md:text-3xl lg:text-4xl xl:text-4xl font-normal text-gray-900 dark:text-gray-100 mb-2 sm:mb-3"
                     style={{
-                      fontSize: '20px',
+                      fontSize: '16px',
                       fontWeight: '400',
                       color: '#111827',
                       marginBottom: '12px'
@@ -244,9 +244,9 @@ export default function Hero() {
                     {t('heroSlides.slide3.subtitle')}
                   </h2>
                   <h1 
-                    className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 font-['Inter']"
+                    className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 font-['Inter']"
                     style={{
-                      fontSize: '40px',
+                      fontSize: '36px',
                       fontWeight: '700',
                       color: '#111827',
                       lineHeight: '1.2',
@@ -256,7 +256,7 @@ export default function Hero() {
                     {t('heroSlides.slide3.title')}
                   </h1>
                   <div 
-                    className="space-y-1 text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed"
+                    className="space-y-1 text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-lg lg:text-xl xl:text-2xl leading-relaxed"
                     style={{
                       fontSize: '16px',
                       color: '#374151',
@@ -278,8 +278,8 @@ export default function Hero() {
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
                         <img src="/topic-board.png" alt="주제별 게시판" className="w-8 h-8 object-contain" />
                       </div>
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.topicBoard.title')}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                      <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.topicBoard.title')}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                         {t('heroSlides.slide3.cards.topicBoard.description')}
                       </p>
                     </div>
@@ -294,8 +294,8 @@ export default function Hero() {
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
                         <img src="/k-magazine.png" alt="K-매거진" className="w-8 h-8 object-contain" />
                       </div>
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanNews.title')}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                      <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanNews.title')}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                         {t('heroSlides.slide3.cards.koreanNews.description')}
                       </p>
                     </div>
@@ -310,8 +310,8 @@ export default function Hero() {
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
                         <img src="/psychology-test.png" alt="한국성향테스트" className="w-8 h-8 object-contain" />
                       </div>
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanTest.title')}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                      <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanTest.title')}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                         {t('heroSlides.slide3.cards.koreanTest.description')}
                       </p>
                     </div>
@@ -326,8 +326,8 @@ export default function Hero() {
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
                         <img src="/story.png" alt="스토리" className="w-8 h-8 object-contain" />
                       </div>
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.story.title')}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-[10px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                      <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.story.title')}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
                         {t('heroSlides.slide3.cards.story.description')}
                       </p>
                     </div>

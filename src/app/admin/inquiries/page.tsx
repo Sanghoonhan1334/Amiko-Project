@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useLanguage } from '@/context/LanguageContext'
+import { TranslationService } from '@/lib/translation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +17,8 @@ import {
   Send,
   User,
   Calendar,
-  Filter
+  Filter,
+  Languages
 } from 'lucide-react'
 
 interface Inquiry {
@@ -34,6 +36,9 @@ interface Inquiry {
     email: string
     name: string
   }
+  // 번역된 필드들
+  translatedSubject?: string
+  translatedContent?: string
 }
 
 interface Response {
@@ -71,7 +76,7 @@ const getTypeConfig = (t: any) => ({
 })
 
 export default function AdminInquiriesPage() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [responses, setResponses] = useState<Response[]>([])
@@ -81,6 +86,9 @@ export default function AdminInquiriesPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [responseText, setResponseText] = useState('')
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false)
+  const [translatingInquiries, setTranslatingInquiries] = useState<Set<string>>(new Set())
+  
+  const translationService = new TranslationService()
 
   const fetchInquiries = async () => {
     try {
@@ -140,6 +148,41 @@ export default function AdminInquiriesPage() {
     } catch (error) {
       console.error('상태 업데이트 오류:', error)
       alert(t('adminInquiries.errors.updateStatus'))
+    }
+  }
+
+  // 문의 번역
+  const handleTranslateInquiry = async (inquiryId: string, type: 'subject' | 'content') => {
+    if (translatingInquiries.has(inquiryId)) return // 이미 번역 중이면 무시
+    
+    setTranslatingInquiries(prev => new Set(prev).add(inquiryId))
+    
+    try {
+      const inquiry = inquiries.find(i => i.id === inquiryId)
+      if (!inquiry) return
+      
+      const text = type === 'subject' ? inquiry.subject : inquiry.content
+      const targetLang = language === 'ko' ? 'es' : 'ko'
+      const translatedText = await translationService.translate(text, targetLang)
+      
+      setInquiries(prevInquiries => 
+        prevInquiries.map(i => 
+          i.id === inquiryId 
+            ? { 
+                ...i, 
+                [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText 
+              }
+            : i
+        )
+      )
+    } catch (error) {
+      console.error('문의 번역 실패:', error)
+    } finally {
+      setTranslatingInquiries(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(inquiryId)
+        return newSet
+      })
     }
   }
 
@@ -296,10 +339,46 @@ export default function AdminInquiriesPage() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <CardTitle className="text-lg mb-2">{inquiry.subject}</CardTitle>
-                        <CardDescription className="line-clamp-2">
-                          {inquiry.content}
-                        </CardDescription>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CardTitle className="text-lg flex-1">
+                            {inquiry.translatedSubject || inquiry.subject}
+                          </CardTitle>
+                          {inquiry.translatedSubject && (
+                            <span className="text-xs text-blue-500">(번역됨)</span>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleTranslateInquiry(inquiry.id, 'subject')
+                            }}
+                            disabled={translatingInquiries.has(inquiry.id)}
+                          >
+                            <Languages className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CardDescription className="line-clamp-2 flex-1">
+                            {inquiry.translatedContent || inquiry.content}
+                          </CardDescription>
+                          {inquiry.translatedContent && (
+                            <span className="text-xs text-blue-500 mt-1">(번역됨)</span>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500 mt-1"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleTranslateInquiry(inquiry.id, 'content')
+                            }}
+                            disabled={translatingInquiries.has(inquiry.id)}
+                          >
+                            <Languages className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-2 ml-4">
                         <Badge className={statusInfo.color}>
@@ -369,12 +448,40 @@ export default function AdminInquiriesPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">{t('adminInquiries.subject')}</h4>
-                        <p className="text-gray-700">{selectedInquiry.subject}</p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-gray-800">{t('adminInquiries.subject')}</h4>
+                          {selectedInquiry.translatedSubject && (
+                            <span className="text-xs text-blue-500">(번역됨)</span>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                            onClick={() => handleTranslateInquiry(selectedInquiry.id, 'subject')}
+                            disabled={translatingInquiries.has(selectedInquiry.id)}
+                          >
+                            <Languages className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <p className="text-gray-700">{selectedInquiry.translatedSubject || selectedInquiry.subject}</p>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">{t('adminInquiries.content')}</h4>
-                        <p className="text-gray-700 whitespace-pre-wrap">{selectedInquiry.content}</p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-gray-800">{t('adminInquiries.content')}</h4>
+                          {selectedInquiry.translatedContent && (
+                            <span className="text-xs text-blue-500">(번역됨)</span>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                            onClick={() => handleTranslateInquiry(selectedInquiry.id, 'content')}
+                            disabled={translatingInquiries.has(selectedInquiry.id)}
+                          >
+                            <Languages className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <p className="text-gray-700 whitespace-pre-wrap">{selectedInquiry.translatedContent || selectedInquiry.content}</p>
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-800 mb-2">{t('adminInquiries.author')}</h4>
