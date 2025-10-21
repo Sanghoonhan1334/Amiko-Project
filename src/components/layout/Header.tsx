@@ -620,7 +620,7 @@ export default function Header() {
             {/* 중앙: 로고와 네비게이션 */}
             <div className="absolute left-1/2 -translate-x-1/2 -top-4 sm:-top-4 md:-top-6 lg:-top-8 z-[100] flex flex-col items-center">
               {/* 로고 */}
-              <div className="relative logo-container z-[100] overflow-hidden">
+              <div className="relative logo-container z-[100] dark:z-[50] overflow-hidden">
                 {/* 라이트 모드 */}
                 <img
                   src="/amiko-logo.png"
@@ -629,25 +629,25 @@ export default function Header() {
                   height={64}
                   className="block dark:hidden h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none"
                 />
-                {/* 다크 모드(흰색 필터 적용) */}
+                {/* 다크 모드(흰색 필터 적용) - 네비게이션 뒤로 */}
                 <img
                   src="/amiko-logo-dark.png"
                   alt="Amiko"
                   width={192}
                   height={64}
-                  className="hidden dark:block h-20 sm:h-20 md:h-26 lg:h-30 w-auto object-contain select-none pointer-events-none
-                             brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"  // 흰색으로 변환 + 글로우
+                  className="hidden dark:block h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none
+                             brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.3)] relative z-[50]"  // 네비게이션(z-[80]) 뒤로
                 />
 
                 {/* 클릭 히트영역 - 로고보다 작게 제한 */}
                 <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[110] bg-transparent"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[60] dark:z-[40] bg-transparent"
                   onClick={(e) => { e.stopPropagation(); router.push('/'); }}
                 />
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-8 md:-mt-10 relative z-[80] ml-[12px]">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 md:-mt-8 relative z-[80] ml-[12px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지에서는 네비게이션 제거 - 아코디언으로 모든 정보 제공
                   <></>
@@ -664,7 +664,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'home' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
+                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
@@ -680,7 +680,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'community' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
+                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
@@ -696,7 +696,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'meet' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
+                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
@@ -712,7 +712,7 @@ export default function Header() {
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
                         activeMainTab === 'event' 
                           ? 'text-purple-500' 
-                          : 'text-gray-800 dark:text-gray-200 hover:text-purple-500'
+                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >

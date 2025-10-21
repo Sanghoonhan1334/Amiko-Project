@@ -257,7 +257,7 @@ export default function VerificationCenterPage() {
   // 운영자라면 로딩 중 표시
   if (!adminCheckComplete) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-600">운영자 상태 확인 중...</p>
@@ -269,7 +269,7 @@ export default function VerificationCenterPage() {
   // 운영자가 이미 리다이렉트되었는지 확인 (추가 안전장치)
   if (isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-green-600">메인 페이지로 이동 중...</p>
@@ -281,7 +281,7 @@ export default function VerificationCenterPage() {
   // 로그인하지 않은 경우
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle>로그인이 필요합니다</CardTitle>
@@ -415,7 +415,7 @@ export default function VerificationCenterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-24 md:pt-36 pb-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 pt-24 md:pt-36 pb-8">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* 헤더 */}
         <div className="mb-8">
@@ -428,8 +428,8 @@ export default function VerificationCenterPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{t('verification.title')}</h1>
-              <p className="text-gray-600">{t('verification.subtitle')}</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('verification.title')}</h1>
+              <p className="text-gray-600 dark:text-gray-300">{t('verification.subtitle')}</p>
             </div>
           </div>
           
