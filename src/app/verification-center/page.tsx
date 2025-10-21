@@ -55,10 +55,10 @@ export default function VerificationCenterPage() {
     matching_preferences: [] as string[], // 'instant' | 'selective'
     language: 'ko',
     
-    // 언어 수준
+    // 언어 수준 (사용자 타입에 따라 동적으로 설정됨)
     korean_level: 'native', // 한국인은 기본적으로 모국어
     english_level: 'none',
-    spanish_level: 'beginner' // 스페인어 학습자들을 위해 초급으로 기본 설정
+    spanish_level: 'beginner' // 기본값, 사용자 타입에 따라 변경됨
   })
 
   // 이전 페이지 저장
@@ -71,6 +71,25 @@ export default function VerificationCenterPage() {
       console.log('[VERIFICATION_CENTER] 이전 페이지 저장:', pathname)
     }
   }, [])
+
+  // 사용자 타입에 따른 언어 수준 기본값 설정
+  useEffect(() => {
+    if (isKorean) {
+      // 한국인: 한국어 모국어, 스페인어 초급
+      setFormData(prev => ({
+        ...prev,
+        korean_level: 'native',
+        spanish_level: 'beginner'
+      }))
+    } else {
+      // 현지인: 스페인어 모국어, 한국어 초급
+      setFormData(prev => ({
+        ...prev,
+        korean_level: 'beginner',
+        spanish_level: 'native'
+      }))
+    }
+  }, [isKorean])
 
   // 운영자 체크 및 사용자 타입 확인 로직
   useEffect(() => {
@@ -648,7 +667,7 @@ export default function VerificationCenterPage() {
                   </div>
                   {formData.interests.length > 0 && (
                     <p className="mt-2 text-sm text-gray-600">
-                      선택됨: {formData.interests.join(', ')} 
+                      {isKorean ? '선택됨' : 'Seleccionados'}: {formData.interests.join(', ')} 
                       <span className="ml-2 text-blue-600">({formData.interests.length}/5)</span>
                     </p>
                   )}
@@ -656,49 +675,90 @@ export default function VerificationCenterPage() {
 
                 {/* 언어 수준 */}
                 <div>
-                  <Label className="text-lg font-medium mb-4 block">언어 수준</Label>
+                  <Label className="text-lg font-medium mb-4 block">
+                    {isKorean ? '언어 수준' : 'Nivel de idiomas'}
+                  </Label>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="korean_level">한국어</Label>
+                      <Label htmlFor="korean_level">
+                        {isKorean ? '한국어' : 'Coreano'}
+                      </Label>
                       <Select value={formData.korean_level} onValueChange={(value) => handleInputChange('korean_level', value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="수준 선택" />
+                          <SelectValue placeholder={isKorean ? '수준 선택' : 'Seleccionar nivel'} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="beginner">초급</SelectItem>
-                          <SelectItem value="intermediate">중급</SelectItem>
-                          <SelectItem value="advanced">고급</SelectItem>
-                          <SelectItem value="native">모국어</SelectItem>
+                          {isKorean ? (
+                            <>
+                              <SelectItem value="beginner">초급</SelectItem>
+                              <SelectItem value="intermediate">중급</SelectItem>
+                              <SelectItem value="advanced">고급</SelectItem>
+                              <SelectItem value="native">모국어</SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="beginner">Principiante</SelectItem>
+                              <SelectItem value="intermediate">Intermedio</SelectItem>
+                              <SelectItem value="advanced">Avanzado</SelectItem>
+                              <SelectItem value="native">Nativo</SelectItem>
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div>
-                      <Label htmlFor="english_level">영어</Label>
+                      <Label htmlFor="english_level">
+                        {isKorean ? '영어' : 'Inglés'}
+                      </Label>
                       <Select value={formData.english_level} onValueChange={(value) => handleInputChange('english_level', value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="수준 선택" />
+                          <SelectValue placeholder={isKorean ? '수준 선택' : 'Seleccionar nivel'} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">불가능</SelectItem>
-                          <SelectItem value="beginner">초급</SelectItem>
-                          <SelectItem value="intermediate">중급</SelectItem>
-                          <SelectItem value="advanced">고급</SelectItem>
+                          {isKorean ? (
+                            <>
+                              <SelectItem value="none">불가능</SelectItem>
+                              <SelectItem value="beginner">초급</SelectItem>
+                              <SelectItem value="intermediate">중급</SelectItem>
+                              <SelectItem value="advanced">고급</SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="none">No disponible</SelectItem>
+                              <SelectItem value="beginner">Principiante</SelectItem>
+                              <SelectItem value="intermediate">Intermedio</SelectItem>
+                              <SelectItem value="advanced">Avanzado</SelectItem>
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
-                      <Label htmlFor="spanish_level">스페인어</Label>
+                      <Label htmlFor="spanish_level">
+                        {isKorean ? '스페인어' : 'Español'}
+                      </Label>
                       <Select value={formData.spanish_level} onValueChange={(value) => handleInputChange('spanish_level', value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="수준 선택" />
+                          <SelectValue placeholder={isKorean ? '수준 선택' : 'Seleccionar nivel'} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">불가능</SelectItem>
-                          <SelectItem value="beginner">초급</SelectItem>
-                          <SelectItem value="intermediate">중급</SelectItem>
-                          <SelectItem value="advanced">고급</SelectItem>
+                          {isKorean ? (
+                            <>
+                              <SelectItem value="none">불가능</SelectItem>
+                              <SelectItem value="beginner">초급</SelectItem>
+                              <SelectItem value="intermediate">중급</SelectItem>
+                              <SelectItem value="advanced">고급</SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="native">Nativo</SelectItem>
+                              <SelectItem value="advanced">Avanzado</SelectItem>
+                              <SelectItem value="intermediate">Intermedio</SelectItem>
+                              <SelectItem value="beginner">Principiante</SelectItem>
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -764,7 +824,7 @@ export default function VerificationCenterPage() {
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'
             }`}
           >
-{isKorean ? '← 이전' : '← Anterior'}
+            {isKorean ? '← 이전' : '← Anterior'}
           </Button>
           
           {step === 2 ? (
@@ -776,10 +836,10 @@ export default function VerificationCenterPage() {
               {loading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-{isKorean ? '처리 중...' : 'Procesando...'}
+                  {isKorean ? '처리 중...' : 'Procesando...'}
                 </div>
               ) : (
-{isKorean ? '✅ 완료' : '✅ Completar'}
+                isKorean ? '✅ 완료' : '✅ Completar'
               )}
             </Button>
           ) : (
@@ -792,7 +852,7 @@ export default function VerificationCenterPage() {
               }
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-{isKorean ? '다음 →' : 'Siguiente →'}
+              {isKorean ? '다음 →' : 'Siguiente →'}
             </Button>
           )}
         </div>
