@@ -92,7 +92,25 @@ export async function GET(request: NextRequest) {
     query = query.order('is_pinned', { ascending: false })
 
     // 전체 게시글 수 조회 (페이지네이션 없이)
-    const { count: totalPosts, error: countError } = await query.select('*', { count: 'exact', head: true })
+    const countQuery = supabaseServer
+      .from('gallery_posts')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_deleted', false)
+    
+    // 갤러리 필터링 적용 (count 쿼리에도)
+    if (gallerySlug && gallerySlug !== 'all') {
+      const { data: galleryData } = await supabaseServer
+        .from('galleries')
+        .select('id')
+        .eq('slug', gallerySlug)
+        .single()
+      
+      if (galleryData) {
+        countQuery.eq('gallery_id', galleryData.id)
+      }
+    }
+    
+    const { count: totalPosts, error: countError } = await countQuery
     
     if (countError) {
       console.error('[POSTS_GET] 전체 게시글 수 조회 오류:', countError)
