@@ -618,9 +618,9 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 -translate-x-1/2 -top-4 sm:-top-4 md:-top-6 lg:-top-8 z-[60] flex flex-col items-center">
+            <div className="absolute left-1/2 -translate-x-1/2 -top-4 sm:-top-4 md:-top-6 lg:-top-8 z-[100] flex flex-col items-center">
               {/* 로고 */}
-              <div className="relative logo-container z-[60] overflow-hidden">
+              <div className="relative logo-container z-[100] overflow-hidden">
                 {/* 라이트 모드 */}
                 <img
                   src="/amiko-logo.png"
@@ -641,7 +641,7 @@ export default function Header() {
 
                 {/* 클릭 히트영역 - 로고보다 작게 제한 */}
                 <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[70] bg-transparent"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[110] bg-transparent"
                   onClick={(e) => { e.stopPropagation(); router.push('/'); }}
                 />
               </div>
