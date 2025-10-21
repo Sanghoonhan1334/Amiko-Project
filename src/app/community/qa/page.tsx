@@ -365,31 +365,6 @@ export default function QAPage() {
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
-      {/* 페이지별 헤더 */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t('buttons.back')}
-            </Button>
-            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Q&A</h1>
-          </div>
-          
-          <Button
-            onClick={() => setShowQuestionModal(true)}
-            className="bg-purple-500 hover:bg-purple-600 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {t('community.askQuestion')}
-          </Button>
-        </div>
-      </div>
 
       {/* 메인 컨텐츠 */}
       <div className="max-w-6xl mx-auto px-2 pt-2 md:pt-20 pb-4">
