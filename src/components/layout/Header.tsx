@@ -629,14 +629,14 @@ export default function Header() {
                   height={64}
                   className="block dark:hidden h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none"
                 />
-                {/* 다크 모드(순백 자산) */}
+                {/* 다크 모드(흰색 필터 적용) */}
                 <img
                   src="/amiko-logo-dark.png"
                   alt="Amiko"
                   width={192}
                   height={64}
                   className="hidden dark:block h-20 sm:h-20 md:h-26 lg:h-30 w-auto object-contain select-none pointer-events-none
-                             drop-shadow-[0_0_6px_rgba(0,0,0,0.35)]"  // 살짝 글로우로 가독성 ↑
+                             brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"  // 흰색으로 변환 + 글로우
                 />
 
                 {/* 클릭 히트영역 - 로고보다 작게 제한 */}
