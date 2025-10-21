@@ -56,7 +56,7 @@ export default function QuizParticipationPage() {
   const params = useParams()
   const router = useRouter()
   const { t } = useLanguage()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -83,6 +83,12 @@ export default function QuizParticipationPage() {
       // 샘플/임베디드 퀴즈인 경우 다른 페이지로 리다이렉트
       if (quizId.startsWith('sample-mbti') || quizId.startsWith('embedded-mbti')) {
         router.push('/quiz/sample-mbti')
+        return
+      }
+      
+      // MBTI 셀럽 테스트인 경우 전용 페이지로 리다이렉트
+      if (quizId === '268caf0b-0031-4e58-9245-606e3421f1fd') {
+        router.push('/quiz/mbti-celeb')
         return
       }
 
@@ -195,6 +201,12 @@ export default function QuizParticipationPage() {
       return
     }
 
+    if (!token) {
+      toast.error('인증 토큰이 없습니다. 다시 로그인해주세요.')
+      router.push('/sign-in')
+      return
+    }
+
     if (!quizData) return
 
     // 모든 질문에 답변했는지 확인
@@ -220,7 +232,7 @@ export default function QuizParticipationPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(user.token)}`
+          'Authorization': `Bearer ${encodeURIComponent(token)}`
         },
         body: JSON.stringify({
           quizId: quizData.quiz.id,

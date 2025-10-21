@@ -141,6 +141,8 @@ export default function QuizResultPage() {
       setLoading(true)
       setError(null)
 
+      console.log('[RESULT] 로드 시작:', { quizId, mbtiType })
+
       // 퀴즈 정보 조회
       const quizResponse = await fetch(`/api/quizzes/${quizId}`)
       if (quizResponse.ok) {
@@ -161,10 +163,13 @@ export default function QuizResultPage() {
         }
       }
 
+      console.log('[RESULT] MBTI 타입 확인:', { mbtiType, availableTypes: Object.keys(mbtiDescriptions) })
+
       // MBTI 설명 가져오기
       const mbtiInfo = mbtiDescriptions[mbtiType || '']
       if (!mbtiInfo) {
-        throw new Error('알 수 없는 MBTI 타입입니다.')
+        console.error('[RESULT] MBTI 타입을 찾을 수 없음:', mbtiType)
+        throw new Error(`알 수 없는 MBTI 타입입니다: ${mbtiType}`)
       }
 
       setResult({

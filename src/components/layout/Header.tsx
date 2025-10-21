@@ -83,7 +83,12 @@ export default function Header() {
                       data.userPoints?.available_points || 
                       0
         
-        console.log('포인트 로딩 성공:', { userId: user.id, points, data })
+        // 더미 데이터인 경우 로그 출력
+        if (data.isDummy) {
+          console.log('[HEADER POINTS] 더미 데이터 사용:', data.reason)
+        }
+        
+        console.log('포인트 로딩 성공:', { userId: user.id, points, isDummy: data.isDummy })
         setUserPoints(points)
       } else {
         console.error('포인트 API 응답 오류:', response.status, response.statusText)

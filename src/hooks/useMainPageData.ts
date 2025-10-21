@@ -72,9 +72,16 @@ export function useMainPageData() {
       
       if (pointsResponse.ok) {
         const data = await pointsResponse.json()
-        currentPoints = data.userPoints?.total_points || 0
+        currentPoints = data.userPoints?.total_points || data.totalPoints || 0
+        
+        // 더미 데이터인 경우 로그 출력
+        if (data.isDummy) {
+          console.log('[POINTS] 더미 데이터 사용:', data.reason)
+        }
       } else {
         console.error('포인트 조회 실패:', pointsResponse.status)
+        // API 오류 시에도 기본값 사용
+        currentPoints = 0
       }
       
       // 쿠폰 응답이 있을 때만 처리

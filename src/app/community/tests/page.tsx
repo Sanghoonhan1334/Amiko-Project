@@ -44,6 +44,11 @@ const categoryConfig: { [key: string]: { icon: string; color: string; bgColor: s
     color: 'text-blue-700',
     bgColor: 'bg-blue-100'
   },
+  personality: {
+    icon: '👑',
+    color: 'text-pink-700',
+    bgColor: 'bg-pink-100'
+  },
   meme: {
     icon: '🎭',
     color: 'text-green-700',
@@ -114,82 +119,41 @@ export default function TestsPage() {
       console.log('TestsPage: fetchQuizzes 호출됨, 카테고리:', selectedCategory)
       setQuizzesLoading(true)
       
-      // 임시로 하드코딩된 테스트 데이터 사용 (데이터베이스 설정 전까지)
-      const allSampleTests = [
-        {
-          id: 'mbti-celeb-test',
-          title: t('tests.mbti.title'),
-          description: t('tests.mbti.description'),
-          category: 'culture',
-          thumbnail_url: null,
-          total_questions: 24,
-          is_active: true,
-          isCompleted: true,
-          participantCount: 1247,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'color-personality-test',
-          title: t('tests.sampleTests.colorPersonality.title'),
-          description: t('tests.sampleTests.colorPersonality.description'),
-          category: 'psychology',
-          thumbnail_url: null,
-          total_questions: 6,
-          is_active: true,
-          isCompleted: false,
-          participantCount: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'kpop-style-test',
-          title: t('tests.sampleTests.kpopStyle.title'),
-          description: t('tests.sampleTests.kpopStyle.description'),
-          category: 'culture',
-          thumbnail_url: null,
-          total_questions: 7,
-          is_active: true,
-          isCompleted: false,
-          participantCount: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'fortune-daily-test',
-          title: t('tests.sampleTests.fortuneDaily.title'),
-          description: t('tests.sampleTests.fortuneDaily.description'),
-          category: 'fortune',
-          thumbnail_url: null,
-          total_questions: 5,
-          is_active: true,
-          isCompleted: false,
-          participantCount: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'meme-personality-test',
-          title: t('tests.sampleTests.memePersonality.title'),
-          description: t('tests.sampleTests.memePersonality.description'),
-          category: 'meme',
-          thumbnail_url: null,
-          total_questions: 6,
-          is_active: true,
-          isCompleted: false,
-          participantCount: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ]
+      // 실제 API에서 퀴즈 데이터 가져오기
+      const response = await fetch('/api/quizzes')
+      if (!response.ok) {
+        throw new Error('퀴즈 데이터를 가져올 수 없습니다.')
+      }
       
-      // 카테고리 필터링
-      const filteredTests = selectedCategory === 'all' 
-        ? allSampleTests 
-        : allSampleTests.filter(test => test.category === selectedCategory)
+      const result = await response.json()
+      console.log('API 응답:', result)
       
-      setQuizzes(filteredTests)
-      console.log('샘플 테스트 로드됨:', filteredTests.length, '개 (카테고리:', selectedCategory, ')')
+      if (result.success && result.data) {
+        // API 데이터를 프론트엔드 형식으로 변환
+        const apiQuizzes = result.data.map((quiz: any) => ({
+          id: quiz.id,
+          title: quiz.title,
+          description: quiz.description,
+          category: quiz.category,
+          thumbnail_url: quiz.thumbnail_url,
+          total_questions: quiz.total_questions,
+          is_active: quiz.is_active,
+          isCompleted: quiz.title?.includes('posición de idol') || quiz.title?.includes('MBTI'), // 완성된 테스트 판별
+          participantCount: quiz.total_participants || 0,
+          created_at: quiz.created_at,
+          updated_at: quiz.updated_at
+        }))
+        
+        // 카테고리 필터링
+        const filteredTests = selectedCategory === 'all' 
+          ? apiQuizzes 
+          : apiQuizzes.filter((test: any) => test.category === selectedCategory)
+        
+        setQuizzes(filteredTests)
+        console.log('API에서 퀴즈 로드됨:', filteredTests.length, '개 (카테고리:', selectedCategory, ')')
+      } else {
+        throw new Error('퀴즈 데이터 형식이 올바르지 않습니다.')
+      }
     } catch (error) {
       console.error('퀴즈 로딩 오류:', error)
       toast.error(t('tests.errorLoading'))
@@ -205,7 +169,10 @@ export default function TestsPage() {
     
     // 미완성 테스트 체크
     const quiz = quizzes.find(q => q.id === quizId)
-    if (quiz && !quiz.isCompleted) {
+    const isCompleted = quiz?.isCompleted !== undefined ? quiz.isCompleted : 
+      (quiz?.title?.includes('MBTI'))
+    
+    if (quiz && !isCompleted) {
       toast.info(
         language === 'ko' 
           ? '이 테스트는 아직 준비 중입니다. 조금만 기다려주세요! 🚧' 
@@ -219,7 +186,7 @@ export default function TestsPage() {
     
     if (quizId.startsWith('sample-mbti') || quizId.startsWith('embedded-mbti')) {
       router.push('/quiz/sample-mbti')
-    } else if (quizId === 'mbti-celeb-test') {
+    } else if (quizId === 'mbti-celeb-test' || quizId === '268caf0b-0031-4e58-9245-606e3421f1fd') {
       router.push('/quiz/mbti-celeb')
     } else {
       router.push(`/quiz/${quizId}`)
@@ -410,11 +377,15 @@ export default function TestsPage() {
                 const isNew = index < 3 // 처음 3개는 NEW로 표시
                 const isHot = quiz.participantCount && quiz.participantCount > 500 // 500명 이상이면 HOT 표시
                 
+                // 아이돌 포지션 테스트는 완성된 것으로 표시
+                const isCompleted = quiz.isCompleted !== undefined ? quiz.isCompleted : 
+                  (quiz.title?.includes('posición de idol') || quiz.title?.includes('MBTI'))
+                
                 return (
                   <Card
                     key={quiz.id}
                     className={`group transition-all duration-300 ${
-                      quiz.isCompleted 
+                      isCompleted 
                         ? 'cursor-pointer hover:shadow-md hover:scale-105 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600' 
                         : 'cursor-not-allowed bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 opacity-75'
                     } overflow-hidden`}
@@ -422,10 +393,10 @@ export default function TestsPage() {
                   >
                     <div className="relative">
                       {/* 썸네일 영역 - BTS 이미지가 전체 상단을 차지 */}
-                      <div className={`h-16 ${quiz.category === 'culture' && quiz.isCompleted ? '' : config.bgColor} flex items-center justify-center relative overflow-hidden ${
-                        !quiz.isCompleted ? 'grayscale opacity-60' : ''
+                      <div className={`h-16 ${quiz.category === 'culture' && isCompleted ? '' : config.bgColor} flex items-center justify-center relative overflow-hidden ${
+                        !isCompleted ? 'grayscale opacity-60' : ''
                       }`}>
-                        {quiz.category === 'culture' && quiz.isCompleted ? (
+                        {quiz.category === 'culture' && isCompleted ? (
                           <img 
                             src="/celebs/bts.webp" 
                             alt="BTS" 
@@ -441,12 +412,12 @@ export default function TestsPage() {
                         
                         {/* 배지 - 이미지 위에 오버레이 */}
                         <div className="absolute top-0.5 left-0.5 z-10 flex gap-0.5">
-                          {isNew && quiz.isCompleted && (
+                          {isNew && isCompleted && (
                             <span className="bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
                               NEW
                             </span>
                           )}
-                          {isHot && quiz.isCompleted && (
+                          {isHot && isCompleted && (
                             <span className="bg-orange-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
                               HOT
                             </span>
@@ -464,7 +435,7 @@ export default function TestsPage() {
                         
                         {/* 제목 */}
                         <h3 className={`text-xs font-semibold line-clamp-2 mb-1 transition-colors ${
-                          quiz.isCompleted 
+                          isCompleted 
                             ? 'text-gray-800 dark:text-gray-100 group-hover:text-purple-600 dark:group-hover:text-purple-400' 
                             : 'text-gray-500 dark:text-gray-500'
                         }`}>
@@ -473,7 +444,7 @@ export default function TestsPage() {
                         
                         {/* 설명 */}
                         <p className={`text-xs line-clamp-1 mb-1 ${
-                          quiz.isCompleted ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
+                          isCompleted ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
                         }`}>
                           {quiz.description}
                         </p>
@@ -486,7 +457,7 @@ export default function TestsPage() {
                               <span className="text-xs">{quiz.total_questions}{t('tests.questions')}</span>
                             </span>
                             {/* 미완성 표시 */}
-                            {!quiz.isCompleted && (
+                            {!isCompleted && (
                               <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
                                 {language === 'ko' ? '준비중' : 'Próximamente'}
                               </span>

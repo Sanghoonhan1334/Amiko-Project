@@ -9,9 +9,9 @@ export async function GET(
     const { id } = await params;
     console.log('[QUIZ_DETAIL] API 호출 시작, 퀴즈 ID:', id);
 
-    // 문제가 있는 UUID 테스트들을 임시로 막음
-    if (id === '268caf0b-0031-4e58-9245-606e3421f1fd' || id.includes('-00') || id.includes('-01-')) {
-      console.log('[QUIZ_DETAIL] 문제가 있는 퀴즈 ID 감지, 빈 응답');
+    // 아이돌 포지션 테스트만 차단
+    if (id === 'a11f4f9d-8819-49d9-bfd0-4d4a97641981' || id.includes('idol-position')) {
+      console.log('[QUIZ_DETAIL] 아이돌 포지션 테스트 차단');
       return NextResponse.json({
         success: false,
         error: '해당 테스트는 현재 사용할 수 없습니다.'
