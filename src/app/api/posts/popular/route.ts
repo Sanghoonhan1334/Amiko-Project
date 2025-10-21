@@ -16,11 +16,6 @@ export async function GET(request: NextRequest) {
 
     console.log('[POPULAR_POSTS] 인기글 조회:', { filter, limit, offset })
 
-    // 3일 전 날짜 계산 (최근 3일 이내 글만 표시)
-    const threeDaysAgo = new Date()
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
-    const threeDaysAgoISO = threeDaysAgo.toISOString()
-
     let query = supabaseServer
       .from('gallery_posts')
       .select(`
@@ -51,7 +46,6 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('is_deleted', false)
-      .gte('created_at', threeDaysAgoISO)
 
     // 필터에 따른 조건 추가
     switch (filter) {

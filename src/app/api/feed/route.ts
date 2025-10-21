@@ -37,6 +37,13 @@ export async function GET(request: NextRequest) {
       query = query.eq('user_id', userId)
     }
 
+    // 추천글의 경우 3일 이내 글만 표시
+    if (sort === 'recommended') {
+      const threeDaysAgo = new Date()
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+      query = query.gte('created_at', threeDaysAgo.toISOString())
+    }
+
     // 정렬 적용
     switch (sort) {
       case 'latest':

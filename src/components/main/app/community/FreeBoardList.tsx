@@ -326,6 +326,17 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
   // 검색어에 따라 게시글 필터링 - 단순화
   const filteredPosts = posts.filter(post => {
+    // 추천글 탭의 경우 3일 이내 글만 표시
+    if (activeTab === 'recommended') {
+      const threeDaysAgo = new Date()
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+      const postDate = new Date(post.created_at)
+      
+      if (postDate < threeDaysAgo) {
+        return false // 3일 이상 된 글은 추천글에서 제외
+      }
+    }
+    
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       return (

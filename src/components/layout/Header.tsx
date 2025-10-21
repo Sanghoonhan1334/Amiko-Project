@@ -739,9 +739,9 @@ export default function Header() {
               {isMainPage && user && (
                 <div className="hidden md:flex flex-col items-end gap-1">
                   {/* 상단: 포인트 표시 */}
-                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
-                    <span className="w-4 h-4 bg-blue-600 dark:bg-blue-400 text-white text-xs font-bold rounded-full flex items-center justify-center">P</span>
-                    <span className="text-blue-700 dark:text-blue-300 text-sm font-bold">{userPoints.toLocaleString()}</span>
+                  <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <span className="w-3 h-3 bg-blue-600 dark:bg-blue-400 text-white text-xs font-bold rounded-full flex items-center justify-center">P</span>
+                    <span className="text-blue-700 dark:text-blue-300 text-xs font-bold">{userPoints.toLocaleString()}</span>
                   </div>
                   
                   {/* 중간: 로그아웃, 알림, 프로필 버튼 */}
@@ -788,9 +788,9 @@ export default function Header() {
                       <span className="text-green-700 dark:text-green-300 text-sm font-medium">{t('notifications.verified')}</span>
                     </div>
                   ) : verificationStatus === 'unverified' ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <span className="text-amber-600 dark:text-amber-400 text-sm">⚠️</span>
-                      <span className="text-amber-700 dark:text-amber-300 text-sm font-medium">{t('notifications.unverified')}</span>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                      <span className="text-amber-600 dark:text-amber-400 text-xs">⚠️</span>
+                      <span className="text-amber-700 dark:text-amber-300 text-xs font-medium">{t('notifications.unverified')}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
