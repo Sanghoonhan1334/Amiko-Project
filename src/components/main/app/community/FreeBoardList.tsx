@@ -610,11 +610,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       console.log('[LOAD_POSTS] API 응답 상태:', response.status)
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        console.error('[LOAD_POSTS] API 응답 실패:', response.status, response.statusText)
+        const errorText = await response.text()
+        console.error('[LOAD_POSTS] 오류 응답 내용:', errorText)
+        throw new Error(`게시글을 불러오는데 실패했습니다. (${response.status})`)
       }
 
       const data = await response.json()
       console.log('[LOAD_POSTS] API 응답 데이터:', data)
+      console.log('[LOAD_POSTS] 게시글 개수:', data.posts?.length || 0)
+      console.log('[LOAD_POSTS] 첫 번째 게시글:', data.posts?.[0])
 
       if (data.success && data.posts) {
         // API 응답을 Post 인터페이스에 맞게 변환
