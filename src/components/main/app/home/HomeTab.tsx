@@ -615,7 +615,6 @@ export default function HomeTab() {
                 className="cursor-pointer group"
                 onClick={() => router.push(test.route || '/community/tests')}
               >
-                {/* 이미지 */}
                 <div className="relative mb-3">
                   <img
                     src={test.image}
@@ -624,12 +623,10 @@ export default function HomeTab() {
                   />
                 </div>
                 
-                {/* 제목 */}
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
                   {test.title}
                 </h3>
                 
-                {/* 참여자 수 */}
                 <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                   <Play className="w-3 h-3" />
                   <span>{formatNumber(test.participants)}명</span>
