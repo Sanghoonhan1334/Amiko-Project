@@ -166,17 +166,17 @@ export default function HomeTab() {
           id: 'event-1',
           title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Evento de Sorteo de Boletos de Avión a Corea',
           description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : '¡Participa en la comunidad y gana boletos de avión a Corea!',
-          image: '/event-title.png',
+          image: '/misc/event-title.png',
           date: language === 'ko' ? '2026년 말' : 'Fin de año de 2026',
           participants: 324
         },
         {
           id: 'event-2',
-          title: language === 'ko' ? '한국어 학습 챌린지' : 'Desafío de Aprendizaje de Coreano',
-          description: language === 'ko' ? '매일 한국어를 배우고 실력을 향상시켜보세요!' : '¡Aprende coreano todos los días y mejora tus habilidades!',
-          image: '/event-title.png',
-          date: '2025-01-25',
-          participants: 89
+          title: language === 'ko' ? 'ACU-POINT 화장품 이벤트' : 'Evento de Cosméticos ACU-POINT',
+          description: language === 'ko' ? '커뮤니티 점수 1등에게 매월 선크림 + 마스크팩 세트를 드립니다!' : '¡El primer lugar en puntos de la comunidad recibe un set mensual de protector solar + mascarilla!',
+          image: '/misc/event-title.png',
+          date: language === 'ko' ? '12월부터 매월' : 'Mensual desde diciembre',
+          participants: 156
         }
       ]
       
