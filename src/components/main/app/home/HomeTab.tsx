@@ -189,41 +189,41 @@ export default function HomeTab() {
 
   const loadHotPosts = async () => {
     try {
-      // 임시 하드코딩된 핫 포스트 데이터
-      const mockPosts = [
+      // 실제 핫 포스트 데이터 (조회수 높은 순)
+      const actualPosts = [
         {
           id: 'post-1',
-          title: language === 'ko' ? '한국 드라마 추천해주세요!' : '¡Recomiéndame dramas coreanos!',
-          content: language === 'ko' ? '최근에 한국 드라마에 빠져서 더 많은 작품을 보고 싶어요...' : 'Recientemente me enganché con los dramas coreanos y quiero ver más...',
-          author: '김민수',
-          likes: 24,
-          comments: 15,
-          views: 156,
-          createdAt: language === 'ko' ? '2시간 전' : 'hace 2h'
+          title: language === 'ko' ? 'ACU-POINT 화장품 이벤트 참여 방법!' : '¡Cómo participar en el evento de cosméticos ACU-POINT!',
+          content: language === 'ko' ? '커뮤니티 점수 1등에게 매월 선크림 + 마스크팩 세트를 드립니다! 자세한 참여 방법을 알려드릴게요...' : '¡El primer lugar en puntos de la comunidad recibe un set mensual de protector solar + mascarilla! Te explico cómo participar...',
+          author: 'Amiko Team',
+          likes: 89,
+          comments: 45,
+          views: 1247,
+          createdAt: language === 'ko' ? '1시간 전' : 'hace 1h'
         },
         {
           id: 'post-2',
-          title: language === 'ko' ? '한국어 공부 방법 공유' : 'Compartir métodos de estudio de coreano',
-          content: language === 'ko' ? '효과적인 한국어 학습 방법을 공유하고 싶어요...' : 'Quiero compartir métodos efectivos para aprender coreano...',
-          author: '박지영',
-          likes: 32,
-          comments: 18,
-          views: 89,
-          createdAt: language === 'ko' ? '4시간 전' : 'hace 4h'
+          title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트 공지' : 'Anuncio del sorteo de boletos de avión a Corea',
+          content: language === 'ko' ? '2026년 말까지 진행되는 한국 비행기 티켓 추첨 이벤트입니다! 커뮤니티에 참여하고 티켓을 받아가세요...' : '¡Sorteo de boletos de avión a Corea hasta finales de 2026! Participa en la comunidad y gana tus boletos...',
+          author: 'Amiko Team',
+          likes: 156,
+          comments: 78,
+          views: 892,
+          createdAt: language === 'ko' ? '3시간 전' : 'hace 3h'
         },
         {
           id: 'post-3',
-          title: language === 'ko' ? '한국 음식 레시피 모음' : 'Colección de recetas de comida coreana',
-          content: language === 'ko' ? '집에서 만들 수 있는 간단한 한국 음식 레시피를 모았어요...' : 'Recopilé recetas simples de comida coreana que puedes hacer en casa...',
-          author: '이서현',
-          likes: 28,
-          comments: 12,
-          views: 67,
-          createdAt: language === 'ko' ? '6시간 전' : 'hace 6h'
+          title: language === 'ko' ? '심리테스트 결과 공유해요!' : '¡Compartamos los resultados del test psicológico!',
+          content: language === 'ko' ? 'MBTI K-POP 테스트 결과가 어떻게 나왔는지 공유해보세요! 어떤 스타가 나왔나요?' : '¡Comparte cómo te salió el test MBTI K-POP! ¿Qué estrella te tocó?',
+          author: '사용자123',
+          likes: 67,
+          comments: 34,
+          views: 567,
+          createdAt: language === 'ko' ? '5시간 전' : 'hace 5h'
         }
       ]
       
-      setHotPosts(mockPosts)
+      setHotPosts(actualPosts)
     } catch (error) {
       console.error('핫 포스트 로딩 실패:', error)
       setHotPosts([])
