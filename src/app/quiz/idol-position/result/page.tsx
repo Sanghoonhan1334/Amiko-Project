@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -32,7 +32,7 @@ interface QuizResult {
   incompatible: CompatibleData | null
 }
 
-export default function IdolPositionResultPage() {
+function IdolPositionResultContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -257,5 +257,17 @@ export default function IdolPositionResultPage() {
             <ShareBar title={result?.titulo ?? "Mi resultado"} imageUrl={result?.imagen} />
       </div>
     </div>
+  )
+}
+
+export default function IdolPositionResultPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#6C8FCC] to-[#9DB7E3]">
+        <div className="text-white text-lg font-medium">Cargando...</div>
+      </div>
+    }>
+      <IdolPositionResultContent />
+    </Suspense>
   )
 }
