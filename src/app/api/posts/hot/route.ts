@@ -9,9 +9,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '3')
     
+    console.log('Fetching hot posts with limit:', limit)
+    
     // 조회수가 높은 순으로 게시물 가져오기
     const { data: posts, error } = await supabase
-      .from('posts')
+      .from('gallery_posts')
       .select(`
         id,
         title,
@@ -26,10 +28,13 @@ export async function GET(request: NextRequest) {
       .order('views_count', { ascending: false })
       .limit(limit)
     
+    console.log('Posts fetched:', posts?.length || 0)
+    console.log('Error:', error)
+    
     if (error) {
       console.error('Error fetching hot posts:', error)
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch hot posts' },
+        { success: false, error: 'Failed to fetch hot posts', details: error.message },
         { status: 500 }
       )
     }
