@@ -608,35 +608,33 @@ export default function HomeTab() {
         </div>
         
         {popularTests.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {popularTests.map((test) => (
-              <Card 
+              <div 
                 key={test.id} 
-                className="cursor-pointer hover:shadow-md transition-shadow"
+                className="cursor-pointer group"
                 onClick={() => router.push(test.route || '/community/tests')}
               >
-                <CardContent className="p-3">
-                  <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg mb-3 flex items-center justify-center">
-                    <img
-                      src={test.image}
-                      alt={test.title}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2">
-                    {test.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 line-clamp-2">
-                    {test.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="text-xs">
-                      {formatNumber(test.participants)}명
-                    </Badge>
-                    <span className="text-xs text-gray-500">{test.category}</span>
-                  </div>
-                </CardContent>
-              </Card>
+                {/* 이미지 */}
+                <div className="relative mb-3">
+                  <img
+                    src={test.image}
+                    alt={test.title}
+                    className="w-full h-32 md:h-40 lg:h-48 object-contain rounded-lg"
+                  />
+                </div>
+                
+                {/* 제목 */}
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
+                  {test.title}
+                </h3>
+                
+                {/* 참여자 수 */}
+                <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                  <Play className="w-3 h-3" />
+                  <span>{formatNumber(test.participants)}명</span>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -888,48 +886,41 @@ export default function HomeTab() {
               </div>
               
               {popularTests.length > 0 ? (
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {popularTests.map((test) => (
-                    <Card 
+                    <div 
                       key={test.id} 
-                      className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-purple-500 hover:border-l-purple-600"
+                      className="cursor-pointer group"
                       onClick={() => router.push(test.route || '/community/tests')}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="aspect-square w-16 bg-gradient-to-br from-purple-100 via-pink-100 to-indigo-100 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center relative overflow-hidden flex-shrink-0">
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-400/20 dark:to-pink-400/20"></div>
-                            <img
-                              src={test.image}
-                              alt={test.title}
-                              className="w-10 h-10 rounded-full object-cover shadow-lg relative z-10"
-                            />
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-bold">🧠</span>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                              {test.title}
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 line-clamp-2">
-                              {test.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <Badge variant="secondary" className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                                <Users className="w-3 h-3 mr-1" />
-                                {formatNumber(test.participants)}명
-                              </Badge>
-                              <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">{test.category}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      {/* 이미지 */}
+                      <div className="relative mb-3">
+                        <img
+                          src={test.image}
+                          alt={test.title}
+                          className="w-full h-32 md:h-40 lg:h-48 object-contain rounded-lg"
+                        />
+                      </div>
+                      
+                      {/* 제목 */}
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
+                        {test.title}
+                      </h3>
+                      
+                      {/* 참여자 수 */}
+                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                        <Play className="w-3 h-3" />
+                        <span>{formatNumber(test.participants)}명</span>
+                      </div>
+                    </div>
                   ))}
+                </div>
+                
+                {/* 더 보기 버튼 */}
+                <div className="mt-4 text-center">
                   <Button
                     variant="ghost"
-                    className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                     onClick={() => router.push('/community/tests')}
                   >
                     <Brain className="w-5 h-5 mr-2" />
