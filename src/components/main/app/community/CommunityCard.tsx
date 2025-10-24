@@ -53,19 +53,43 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
         </div>
       )}
 
-      {/* Icono */}
+      {/* Icono with background container */}
       <div className="mb-2 md:mb-3 flex items-center justify-center">
-        {isImage ? (
-          <img
-            src={item.icon}
-            alt={item.title}
-            className="w-8 h-8 md:w-14 md:h-14 object-contain"
-            loading="eager"
-            decoding="async"
-          />
-        ) : (
-          <div className="text-2xl md:text-5xl">{item.icon}</div>
-        )}
+        <div className="relative">
+          {/* Background container - only on mobile */}
+          <div className="md:hidden">
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 transition-all duration-200 group-hover:border-gray-400 dark:group-hover:border-gray-400 group-hover:shadow-md group-hover:scale-110"
+            >
+              {isImage ? (
+                <img
+                  src={item.icon}
+                  alt={item.title}
+                  className="w-6 h-6 object-contain"
+                  loading="eager"
+                  decoding="async"
+                />
+              ) : (
+                <div className="text-lg">{item.icon}</div>
+              )}
+            </div>
+          </div>
+          
+          {/* Desktop - no background container */}
+          <div className="hidden md:flex items-center justify-center">
+            {isImage ? (
+              <img
+                src={item.icon}
+                alt={item.title}
+                className="w-14 h-14 object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            ) : (
+              <div className="text-5xl">{item.icon}</div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Título */}

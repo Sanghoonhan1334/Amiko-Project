@@ -238,7 +238,7 @@ function AppPageContent() {
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
                         <img 
-                          src="/community-title.png" 
+                          src="/misc/community-title.png" 
                           alt="커뮤니티" 
                           className="w-full h-full object-contain"
                         />

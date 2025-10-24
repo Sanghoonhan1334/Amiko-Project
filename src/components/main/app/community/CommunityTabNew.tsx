@@ -193,7 +193,7 @@ export default function CommunityTabNew() {
               title: '내가 가장 잘 맞는 K-POP 아이돌은?',
               description: '성격으로 알아보는 나의 아이돌',
               participants: 1250,
-              image: '/celebs/bts.webp',
+              image: '/quizzes/mbti-with-kpop-stars/cover/cover.png',
               category: 'meme',
               rating: 4.8
             },
@@ -202,7 +202,7 @@ export default function CommunityTabNew() {
               title: '한국어 실력 테스트',
               description: '나의 한국어 수준은?',
               participants: 890,
-              image: '/celebs/jennie.png',
+              image: '/quizzes/mbti-with-kpop-stars/celebs/jennie.png',
               category: 'culture',
               rating: 4.6
             },
@@ -211,7 +211,7 @@ export default function CommunityTabNew() {
               title: '내 성격은 어떤 한국 드라마 주인공?',
               description: '성격으로 알아보는 드라마 캐릭터',
               participants: 634,
-              image: '/celebs/iu.png',
+              image: '/quizzes/mbti-with-kpop-stars/celebs/iu.png',
               category: 'personality',
               rating: 4.7
             }

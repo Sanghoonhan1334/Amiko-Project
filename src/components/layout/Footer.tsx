@@ -32,7 +32,7 @@ export default function Footer() {
                 className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center"
               >
                 <img 
-                  src="/tiktok.png" 
+                  src="/social/tiktok.png" 
                   alt="TikTok" 
                   className="w-8 h-8 md:w-10 md:h-10 object-contain"
                 />
@@ -46,7 +46,7 @@ export default function Footer() {
                 className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center"
               >
                 <img 
-                  src="/instagram.jpeg" 
+                  src="/social/instagram.jpeg" 
                   alt="Instagram" 
                   className="w-8 h-8 md:w-10 md:h-10 object-contain"
                 />
@@ -60,7 +60,7 @@ export default function Footer() {
                 className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center"
               >
                 <img 
-                  src="/youtube.png" 
+                  src="/social/youtube.png" 
                   alt="YouTube" 
                   className="w-8 h-8 md:w-10 md:h-10 object-contain"
                 />

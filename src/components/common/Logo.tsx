@@ -17,7 +17,7 @@ export function Logo({
     <div className={`relative select-none ${className}`}>
       {/* 라이트 모드 로고 */}
       <Image
-        src="/amiko-logo.png"
+        src="/logos/amiko-logo.png"
         alt="Amiko"
         width={width}
         height={height}
@@ -26,7 +26,7 @@ export function Logo({
       />
       {/* 다크 모드 로고 */}
       <Image
-        src="/amiko-logo-dark.png"
+        src="/logos/amiko-logo-dark.png"
         alt="Amiko"
         width={width}
         height={height}

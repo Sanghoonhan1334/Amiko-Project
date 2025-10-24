@@ -41,7 +41,7 @@ export default function MainNav() {
         >
           {/* 라이트 모드 로고 */}
           <img 
-            src="/amiko-logo.png" 
+            src="/logos/amiko-logo.png" 
             alt="Amiko" 
             className="h-8 w-auto object-contain dark:hidden"
           />

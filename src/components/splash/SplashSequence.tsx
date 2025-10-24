@@ -105,7 +105,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
         >
           {/* 라이트 모드 로고 */}
           <Image
-            src="/amiko-logo.png"
+            src="/logos/amiko-logo.png"
             alt="Amiko Logo"
             width={500}
             height={500}

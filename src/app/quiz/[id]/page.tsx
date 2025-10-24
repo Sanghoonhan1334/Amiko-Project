@@ -30,7 +30,16 @@ export default function QuizByIdPage({ params }: QuizByIdPageProps) {
           return
         }
 
-        const quiz = await response.json()
+        const responseData = await response.json()
+        console.log('[QUIZ_ROUTING] API 응답:', responseData)
+        
+        if (!responseData.success) {
+          console.log('[QUIZ_ROUTING] API 응답 실패:', responseData.error)
+          router.push('/community/tests')
+          return
+        }
+
+        const quiz = responseData.data?.quiz || responseData.data
         
         // 이 퀴즈가 slug형 전용 페이지 대상이면 안전하게 리다이렉트
         if (quiz.slug === 'idol-position') {

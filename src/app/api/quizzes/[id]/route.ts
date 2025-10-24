@@ -49,13 +49,36 @@ export async function GET(
     
     const supabase = supabaseClient;
 
-    // 퀴즈 상세 정보 조회 - ID로만 조회 (slug 컬럼 제거됨)
-    const { data: quiz, error: quizError } = await supabase
-      .from('quizzes')
-      .select('*')
-      .eq('id', id)
-      .eq('is_active', true)
-      .single();
+    // UUID 형식인지 확인하는 함수
+    const isUUID = (str: string) => {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(str);
+    };
+
+    let quiz, quizError;
+
+    // UUID 형식인 경우 ID로 조회, 그렇지 않으면 slug로 조회
+    if (isUUID(id)) {
+      console.log('[QUIZ_DETAIL] UUID 형식으로 ID 조회:', id);
+      const result = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('id', id)
+        .eq('is_active', true)
+        .single();
+      quiz = result.data;
+      quizError = result.error;
+    } else {
+      console.log('[QUIZ_DETAIL] slug 형식으로 조회:', id);
+      const result = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('slug', id)
+        .eq('is_active', true)
+        .single();
+      quiz = result.data;
+      quizError = result.error;
+    }
 
     if (quizError) {
       console.log('[QUIZ_DETAIL] 퀴즈 조회 실패:', quizError);

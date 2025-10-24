@@ -237,7 +237,7 @@ export default function HomeTab() {
           title: language === 'ko' ? '내가 가장 좋아할 한국 드라마는?' : '¿Qué drama coreano me gustaría más?',
           description: language === 'ko' ? '20가지 질문으로 알아보는 나의 MBTI와 같은 K-POP 스타' : 'Descubre tu MBTI y estrella de K-POP compatible con 20 preguntas',
           participants: 799,
-          image: '/celebs/bts.webp',
+          image: '/quizzes/mbti-with-kpop-stars/cover/cover.png',
           category: 'personality'
         },
         {
@@ -245,7 +245,7 @@ export default function HomeTab() {
           title: language === 'ko' ? '한국어 레벨 테스트' : 'Prueba de Nivel de Coreano',
           description: language === 'ko' ? '나의 한국어 실력은 어느 정도일까요?' : '¿Cuál es mi nivel de coreano?',
           participants: 456,
-          image: '/celebs/iu.png',
+          image: '/quizzes/mbti-with-kpop-stars/celebs/iu.png',
           category: 'language'
         },
         {
@@ -253,7 +253,7 @@ export default function HomeTab() {
           title: language === 'ko' ? '문화 적응도 테스트' : 'Prueba de Adaptación Cultural',
           description: language === 'ko' ? '한국 문화에 얼마나 잘 적응할 수 있을까요?' : '¿Qué tan bien puedes adaptarte a la cultura coreana?',
           participants: 234,
-          image: '/celebs/jimin.png',
+          image: '/quizzes/mbti-with-kpop-stars/celebs/jimin.png',
           category: 'culture'
         }
       ]
@@ -273,19 +273,19 @@ export default function HomeTab() {
         {
           id: '1',
           name: '김민수',
-          profileImage: '/celebs/jimin.png',
+          profileImage: '/quizzes/mbti-with-kpop-stars/celebs/jimin.png',
           isOnline: true
         },
         {
           id: '2',
           name: '이지은',
-          profileImage: '/celebs/iu.png',
+          profileImage: '/quizzes/mbti-with-kpop-stars/celebs/iu.png',
           isOnline: true
         },
         {
           id: '3',
           name: '박서준',
-          profileImage: '/celebs/jungkook.png',
+          profileImage: '/quizzes/mbti-with-kpop-stars/celebs/jungkook.png',
           isOnline: true
         }
       ]

@@ -638,7 +638,7 @@ export default function Header() {
               <div className="relative logo-container z-[100] dark:z-[50] overflow-hidden">
                 {/* 라이트 모드 */}
                 <img
-                  src="/amiko-logo.png"
+                  src="/logos/amiko-logo.png"
                   alt="Amiko"
                   width={192}
                   height={64}
@@ -646,7 +646,7 @@ export default function Header() {
                 />
                 {/* 다크 모드(흰색 필터 적용) - 네비게이션 뒤로 */}
                 <img
-                  src="/amiko-logo-dark.png"
+                  src="/logos/amiko-logo-dark.png"
                   alt="Amiko"
                   width={192}
                   height={64}
@@ -955,7 +955,7 @@ export default function Header() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
               >
-                <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain" />
+                <img src="/social/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain" />
                 <span className="text-sm font-medium">TikTok</span>
               </a>
 
@@ -965,7 +965,7 @@ export default function Header() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
               >
-                <img src="/instagram.jpeg" alt="Instagram" className="w-5 h-5 object-contain rounded" />
+                <img src="/social/instagram.jpeg" alt="Instagram" className="w-5 h-5 object-contain rounded" />
                 <span className="text-sm font-medium">Instagram</span>
               </a>
 
@@ -975,7 +975,7 @@ export default function Header() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
               >
-                <img src="/youtube.png" alt="YouTube" className="w-5 h-5 object-contain" />
+                <img src="/social/youtube.png" alt="YouTube" className="w-5 h-5 object-contain" />
                 <span className="text-sm font-medium">YouTube</span>
               </a>
             </div>

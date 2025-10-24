@@ -160,7 +160,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       status: 'online',
         interests: ['영화', '음악', '여행', '요리', '댄스'],
       bio: '안녕하세요! 한국어를 가르치고 싶은 김민수입니다. 다양한 문화에 관심이 많아요!',
-      avatar: '/celebs/jin.webp'
+      avatar: '/quizzes/mbti-with-kpop-stars/celebs/jin.webp'
     },
     {
       id: '2',
@@ -170,7 +170,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       status: 'online',
         interests: ['K-POP', '드라마', '패션', '맛집', '애니메이션'],
       bio: 'K-POP과 한국 드라마를 좋아하는 이지은이에요. 함께 한국 문화를 나눠요!',
-      avatar: '/celebs/rm.jpg'
+      avatar: '/quizzes/mbti-with-kpop-stars/celebs/rm.jpg'
     },
     {
       id: '3',
@@ -180,7 +180,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       status: 'offline',
         interests: ['스포츠', '게임', '기술', '독서', '사진'],
       bio: '스포츠와 게임을 좋아하는 박준호입니다. 활발한 대화를 좋아해요!',
-      avatar: '/celebs/suga.jpg'
+      avatar: '/quizzes/mbti-with-kpop-stars/celebs/suga.jpg'
     },
     {
       id: '4',

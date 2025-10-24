@@ -24,7 +24,7 @@ export default function CustomBanner() {
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0">
               <Image
-                src="/amiko-logo.png"
+                src="/logos/amiko-logo.png"
                 alt="Amiko"
                 width={24}
                 height={24}

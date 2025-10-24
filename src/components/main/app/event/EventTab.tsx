@@ -329,7 +329,7 @@ export default function EventTab() {
             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                 <img 
-                  src="/airport.jpeg" 
+                  src="/misc/airport.jpeg" 
                   alt="Airport" 
                   className="w-full h-full object-cover"
                 />
@@ -407,7 +407,7 @@ export default function EventTab() {
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                 <img 
-                  src="/airport.jpeg" 
+                  src="/misc/airport.jpeg" 
                   alt="Airport" 
                   className="w-full h-full object-cover"
                 />

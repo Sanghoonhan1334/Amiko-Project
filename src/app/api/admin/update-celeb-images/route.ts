@@ -18,62 +18,62 @@ export async function POST(request: NextRequest) {
     // 연예인 이미지 매핑 데이터
     const celebImageMappings = [
       // BTS 멤버들
-      { stage_name: 'RM', group_name: 'BTS', image_url: '/celebs/rm.jpg' },
-      { stage_name: 'Jin', group_name: 'BTS', image_url: '/celebs/jin.webp' },
-      { stage_name: 'Suga', group_name: 'BTS', image_url: '/celebs/suga.jpg' },
-      { stage_name: 'j-hope', group_name: 'BTS', image_url: '/celebs/jhope.png' },
-      { stage_name: 'Jimin', group_name: 'BTS', image_url: '/celebs/jimin.png' },
-      { stage_name: 'V', group_name: 'BTS', image_url: '/celebs/v.png' },
-      { stage_name: 'Jungkook', group_name: 'BTS', image_url: '/celebs/jungkook.png' },
+      { stage_name: 'RM', group_name: 'BTS', image_url: '/quizzes/mbti-with-kpop-stars/celebs/rm.jpg' },
+      { stage_name: 'Jin', group_name: 'BTS', image_url: '/quizzes/mbti-with-kpop-stars/celebs/jin.webp' },
+      { stage_name: 'Suga', group_name: 'BTS', image_url: '/quizzes/mbti-with-kpop-stars/celebs/suga.jpg' },
+      { stage_name: 'j-hope', group_name: 'BTS', image_url: '/quizzes/mbti-with-kpop-stars/celebs/jhope.png' },
+      { stage_name: 'Jimin', group_name: 'BTS', image_url: '/quizzes/mbti-with-kpop-stars/celebs/jimin.png' },
+      { stage_name: 'V', group_name: 'BTS', image_url: '/quizzes/mbti-with-kpop-stars/celebs/v.png' },
+      { stage_name: 'Jungkook', group_name: 'BTS', image_url: '/quizzes/mbti-with-kpop-stars/celebs/jungkook.png' },
       
       // BLACKPINK 멤버들
-      { stage_name: 'Jennie', group_name: 'BLACKPINK', image_url: '/celebs/jennie.png' },
-      { stage_name: 'Lisa', group_name: 'BLACKPINK', image_url: '/celebs/lisa.png' },
-      { stage_name: 'Jisoo', group_name: 'BLACKPINK', image_url: '/celebs/jisoo.png' },
-      { stage_name: 'Rose', group_name: 'BLACKPINK', image_url: '/celebs/rose.png' },
-      { stage_name: 'Rosé', group_name: 'BLACKPINK', image_url: '/celebs/rose.png' },
+      { stage_name: 'Jennie', group_name: 'BLACKPINK', image_url: '/quizzes/mbti-with-kpop-stars/celebs/jennie.png' },
+      { stage_name: 'Lisa', group_name: 'BLACKPINK', image_url: '/quizzes/mbti-with-kpop-stars/celebs/lisa.png' },
+      { stage_name: 'Jisoo', group_name: 'BLACKPINK', image_url: '/quizzes/mbti-with-kpop-stars/celebs/jisoo.png' },
+      { stage_name: 'Rose', group_name: 'BLACKPINK', image_url: '/quizzes/mbti-with-kpop-stars/celebs/rose.png' },
+      { stage_name: 'Rosé', group_name: 'BLACKPINK', image_url: '/quizzes/mbti-with-kpop-stars/celebs/rose.png' },
       
       // BIGBANG 멤버들
-      { stage_name: 'G-Dragon', group_name: 'BIGBANG', image_url: '/celebs/gdragon.png' },
-      { stage_name: 'TOP', group_name: 'BIGBANG', image_url: '/celebs/top.png' },
+      { stage_name: 'G-Dragon', group_name: 'BIGBANG', image_url: '/quizzes/mbti-with-kpop-stars/celebs/gdragon.png' },
+      { stage_name: 'TOP', group_name: 'BIGBANG', image_url: '/quizzes/mbti-with-kpop-stars/celebs/top.png' },
       
       // EXO 멤버들
-      { stage_name: 'Kai', group_name: 'EXO', image_url: '/celebs/kai.png' },
-      { stage_name: 'Baekhyun', group_name: 'EXO', image_url: '/celebs/baekhyun.png' },
-      { stage_name: 'D.O.', group_name: 'EXO', image_url: '/celebs/dohyun.jpeg' },
+      { stage_name: 'Kai', group_name: 'EXO', image_url: '/quizzes/mbti-with-kpop-stars/celebs/kai.png' },
+      { stage_name: 'Baekhyun', group_name: 'EXO', image_url: '/quizzes/mbti-with-kpop-stars/celebs/baekhyun.png' },
+      { stage_name: 'D.O.', group_name: 'EXO', image_url: '/quizzes/mbti-with-kpop-stars/celebs/dohyun.jpeg' },
       
       // Red Velvet 멤버들
-      { stage_name: 'Irene', group_name: 'Red Velvet', image_url: '/celebs/irene.webp' },
-      { stage_name: 'Seulgi', group_name: 'Red Velvet', image_url: '/celebs/seulgi.png' },
-      { stage_name: 'Wendy', group_name: 'Red Velvet', image_url: '/celebs/wendy.png' },
+      { stage_name: 'Irene', group_name: 'Red Velvet', image_url: '/quizzes/mbti-with-kpop-stars/celebs/irene.webp' },
+      { stage_name: 'Seulgi', group_name: 'Red Velvet', image_url: '/quizzes/mbti-with-kpop-stars/celebs/seulgi.png' },
+      { stage_name: 'Wendy', group_name: 'Red Velvet', image_url: '/quizzes/mbti-with-kpop-stars/celebs/wendy.png' },
       
       // SNSD 멤버들
-      { stage_name: 'Taeyeon', group_name: 'SNSD', image_url: '/celebs/taeyeon.png' },
-      { stage_name: 'Yoona', group_name: 'SNSD', image_url: '/celebs/yoona.png' },
-      { stage_name: 'Sunny', group_name: 'SNSD', image_url: '/celebs/sunny.png' },
+      { stage_name: 'Taeyeon', group_name: 'SNSD', image_url: '/quizzes/mbti-with-kpop-stars/celebs/taeyeon.png' },
+      { stage_name: 'Yoona', group_name: 'SNSD', image_url: '/quizzes/mbti-with-kpop-stars/celebs/yoona.png' },
+      { stage_name: 'Sunny', group_name: 'SNSD', image_url: '/quizzes/mbti-with-kpop-stars/celebs/sunny.png' },
       
       // MAMAMOO 멤버들
-      { stage_name: 'Solar', group_name: 'MAMAMOO', image_url: '/celebs/solar.png' },
-      { stage_name: 'Hwasa', group_name: 'MAMAMOO', image_url: '/celebs/hwasa.png' },
+      { stage_name: 'Solar', group_name: 'MAMAMOO', image_url: '/quizzes/mbti-with-kpop-stars/celebs/solar.png' },
+      { stage_name: 'Hwasa', group_name: 'MAMAMOO', image_url: '/quizzes/mbti-with-kpop-stars/celebs/hwasa.png' },
       
       // 솔로 아티스트들
-      { stage_name: 'IU', group_name: null, image_url: '/celebs/iu.png' },
-      { stage_name: 'CL', group_name: null, image_url: '/celebs/cl.png' },
-      { stage_name: 'Jay Park', group_name: null, image_url: '/celebs/jaypark.png' },
-      { stage_name: 'Hyuna', group_name: null, image_url: '/celebs/hyuna.png' },
-      { stage_name: 'Zico', group_name: null, image_url: '/celebs/zico.png' },
-      { stage_name: 'Sunmi', group_name: null, image_url: '/celebs/sunmi.png' },
-      { stage_name: 'Heechul', group_name: 'Super Junior', image_url: '/celebs/heechul.png' },
+      { stage_name: 'IU', group_name: null, image_url: '/quizzes/mbti-with-kpop-stars/celebs/iu.png' },
+      { stage_name: 'CL', group_name: null, image_url: '/quizzes/mbti-with-kpop-stars/celebs/cl.png' },
+      { stage_name: 'Jay Park', group_name: null, image_url: '/quizzes/mbti-with-kpop-stars/celebs/jaypark.png' },
+      { stage_name: 'Hyuna', group_name: null, image_url: '/quizzes/mbti-with-kpop-stars/celebs/hyuna.png' },
+      { stage_name: 'Zico', group_name: null, image_url: '/quizzes/mbti-with-kpop-stars/celebs/zico.png' },
+      { stage_name: 'Sunmi', group_name: null, image_url: '/quizzes/mbti-with-kpop-stars/celebs/sunmi.png' },
+      { stage_name: 'Heechul', group_name: 'Super Junior', image_url: '/quizzes/mbti-with-kpop-stars/celebs/heechul.png' },
       
       // NCT 멤버들
-      { stage_name: 'Mark', group_name: 'NCT', image_url: '/celebs/mark.png' },
+      { stage_name: 'Mark', group_name: 'NCT', image_url: '/quizzes/mbti-with-kpop-stars/celebs/mark.png' },
       
       // NewJeans 멤버들
-      { stage_name: 'Minji', group_name: 'NewJeans', image_url: '/celebs/minji.png' },
-      { stage_name: 'Hanni', group_name: 'NewJeans', image_url: '/celebs/hanni.png' },
-      { stage_name: 'Danielle', group_name: 'NewJeans', image_url: '/celebs/danielle.png' },
-      { stage_name: 'Haerin', group_name: 'NewJeans', image_url: '/celebs/haerin.png' },
-      { stage_name: 'Hyein', group_name: 'NewJeans', image_url: '/celebs/hyein.png' },
+      { stage_name: 'Minji', group_name: 'NewJeans', image_url: '/quizzes/mbti-with-kpop-stars/celebs/minji.png' },
+      { stage_name: 'Hanni', group_name: 'NewJeans', image_url: '/quizzes/mbti-with-kpop-stars/celebs/hanni.png' },
+      { stage_name: 'Danielle', group_name: 'NewJeans', image_url: '/quizzes/mbti-with-kpop-stars/celebs/danielle.png' },
+      { stage_name: 'Haerin', group_name: 'NewJeans', image_url: '/quizzes/mbti-with-kpop-stars/celebs/haerin.png' },
+      { stage_name: 'Hyein', group_name: 'NewJeans', image_url: '/quizzes/mbti-with-kpop-stars/celebs/hyein.png' },
     ];
     
     let updatedCount = 0;

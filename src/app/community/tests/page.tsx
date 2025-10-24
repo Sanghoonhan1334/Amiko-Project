@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Plus, Target, Clock, Star } from 'lucide-react'
+import { ArrowLeft, Plus, Target, Clock, Star, Play } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
@@ -275,14 +275,14 @@ export default function TestsPage() {
   useEffect(() => {
     // BTS 이미지 프리로딩
     const preloadImage = new Image()
-    preloadImage.src = '/celebs/bts.webp'
+    preloadImage.src = '/quizzes/mbti-with-kpop-stars/cover/cover.png'
     
     // 다른 셀럽 이미지들도 프리로딩
     const celebImages = [
-      '/celebs/bts.jpg',
-      '/celebs/jennie.png',
-      '/celebs/jimin.png',
-      '/celebs/jungkook.png'
+      '/quizzes/mbti-with-kpop-stars/cover/cover.png',
+      '/quizzes/mbti-with-kpop-stars/celebs/jennie.png',
+      '/quizzes/mbti-with-kpop-stars/celebs/jimin.png',
+      '/quizzes/mbti-with-kpop-stars/celebs/jungkook.png'
     ]
     
     celebImages.forEach(src => {
@@ -389,7 +389,7 @@ export default function TestsPage() {
               <p className="text-xs text-gray-500 dark:text-gray-400">{t('tests.beFirst')}</p>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {quizzes.map((quiz, index) => {
                 const config = categoryConfig[quiz.category] || categoryConfig.fun
                 const isNew = index < 3 // 처음 3개는 NEW로 표시
@@ -402,43 +402,36 @@ export default function TestsPage() {
                 return (
                   <div
                     key={quiz.id}
-                    className={`group transition-all duration-300 ${
-                      isCompleted 
-                        ? 'cursor-pointer hover:bg-gray-50 bg-white border border-gray-100' 
-                        : 'cursor-not-allowed bg-gray-50 border border-gray-100 opacity-75'
-                    } rounded-lg overflow-hidden`}
+                    className={`group transition-all duration-300 cursor-pointer`}
                     onClick={() => handleQuizClick(quiz)}
                   >
-                    {/* 모바일: 세로 레이아웃, 데스크톱: 가로 레이아웃 */}
-                    <div className="flex flex-col md:flex-row">
-                      {/* 썸네일 이미지 */}
-                      <div className="w-full md:w-96 h-32 md:h-56 overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        {quiz.thumbnail_url ? (
-                          <img 
-                            src={quiz.thumbnail_url} 
-                            alt={quiz.title} 
-                            className="max-w-full max-h-full object-contain"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className={`w-full h-full ${config.bgColor} flex items-center justify-center ${
-                            !isCompleted ? 'grayscale opacity-60' : ''
-                          }`}>
-                            <span className="text-lg">{config.icon}</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* 제목과 이용수 */}
-                      <div className="w-full p-3 text-center md:text-left flex flex-col justify-center">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 leading-tight">
-                          {quiz.title}
-                        </h3>
-                        <div className="flex items-center justify-center md:justify-start gap-1 text-xs text-gray-500">
-                          <span>▷</span>
-                          <span>{quiz.participantCount ? quiz.participantCount.toLocaleString() : 0}만</span>
+                    {/* 썸네일 이미지 */}
+                    <div className="w-full h-64 md:h-80 overflow-hidden bg-gray-100 flex items-center justify-center mb-3">
+                      {quiz.thumbnail_url ? (
+                        <img 
+                          src={quiz.thumbnail_url} 
+                          alt={quiz.title} 
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className={`w-full h-full ${config.bgColor} flex items-center justify-center ${
+                          !isCompleted ? 'grayscale opacity-60' : ''
+                        }`}>
+                          <span className="text-lg">{config.icon}</span>
                         </div>
-                      </div>
+                      )}
+                    </div>
+                    
+                    {/* 제목 */}
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight text-center">
+                      {quiz.title}
+                    </h3>
+                    
+                    {/* 실행수 */}
+                    <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+                      <Play className="w-3 h-3 text-gray-400" />
+                      <span>{quiz.participantCount ? quiz.participantCount.toLocaleString() : 0}</span>
                     </div>
                   </div>
                 )

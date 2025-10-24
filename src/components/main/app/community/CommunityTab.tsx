@@ -39,7 +39,6 @@ import {
 import CommunityMain from './CommunityMain'
 import NewsDetail from './NewsDetail'
 import CommunityCard from './CommunityCard'
-import PollBoard from './PollBoard'
 import { communityItems } from './communityItems'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -141,13 +140,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const handleNavigation = useCallback(async (path: string) => {
     if (isNavigating) return // 중복 클릭 방지
     
-    // polls 라우팅 처리
-    if (path === '/community/polls') {
-      setCurrentView('polls')
-      setActiveTab('polls')
-      onViewChange?.('polls')
-      return
-    }
     
     // 즉시 로딩 상태 표시
     setIsNavigating(true)
@@ -164,7 +156,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
   
   // 뷰 상태 (먼저 선언해야 useEffect에서 사용 가능)
-  const [currentView, setCurrentView] = useState('home') // 'home', 'news', 'qa', 'tests', 'polls'
+  const [currentView, setCurrentView] = useState('home') // 'home', 'news', 'qa', 'tests'
   
   // 실제 데이터 상태
   const [recentStories, setRecentStories] = useState<any[]>([])
@@ -3888,10 +3880,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         </div>
       )}
 
-      {/* 투표게시판 */}
-      {currentView === 'polls' && (
-        <PollBoard />
-      )}
 
       {/* 테스트 작성 모달 */}
       <Dialog open={showTestWriteModal} onOpenChange={setShowTestWriteModal}>
