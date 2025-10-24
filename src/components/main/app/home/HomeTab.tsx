@@ -471,45 +471,60 @@ export default function HomeTab() {
         )}
       </div>
 
-      {/* 화상채팅 온라인 인원 */}
+      {/* 최근 스토리 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-green-600" />
+            <div className="w-5 h-5 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">📸</span>
+            </div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {t('home.sections.videoChatOnline')}
+              {t('home.sections.recentStories')}
             </h2>
           </div>
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            {onlineUsers.length}명
+          <Badge variant="outline" className="text-purple-600 border-purple-600">
+            {recentStories.length}개
           </Badge>
         </div>
         
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3 overflow-x-auto">
-              {onlineUsers.map((user) => (
-                <div key={user.id} className="flex flex-col items-center min-w-16">
-                  <div className="relative">
-                    <img
-                      src={user.profileImage}
-                      alt={user.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+              {recentStories.length > 0 ? (
+                recentStories.map((story) => (
+                  <div key={story.id} className="flex flex-col items-center min-w-16">
+                    <div className="relative">
+                      <img
+                        src={story.user_profile_image || '/icons/default-avatar.png'}
+                        alt={story.user_name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center max-w-16 truncate">
+                      {story.user_name}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">
-                    {user.name}
-                  </span>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full py-8">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                    <span className="text-gray-400 text-xl">📸</span>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {language === 'ko' ? '아직 스토리가 없습니다' : 'No hay historias aún'}
+                  </p>
                 </div>
-              ))}
+              )}
               <Button
                 variant="outline"
                 size="sm"
                 className="ml-2"
-                onClick={() => router.push('/main?tab=meet')}
+                onClick={() => router.push('/community/stories')}
               >
-                <Users className="w-4 h-4 mr-1" />
+                <div className="w-4 h-4 mr-1 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">📸</span>
+                </div>
                 {t('home.community.seeMore')}
               </Button>
             </div>
@@ -928,6 +943,52 @@ export default function HomeTab() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 화상채팅 온라인 인원 - 맨 아래로 이동 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-green-600" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              {t('home.sections.videoChatOnline')}
+            </h2>
+          </div>
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            {onlineUsers.length}명
+          </Badge>
+        </div>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 overflow-x-auto">
+              {onlineUsers.map((user) => (
+                <div key={user.id} className="flex flex-col items-center min-w-16">
+                  <div className="relative">
+                    <img
+                      src={user.profileImage}
+                      alt={user.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">
+                    {user.name}
+                  </span>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-2"
+                onClick={() => router.push('/main?tab=meet')}
+              >
+                <Users className="w-4 h-4 mr-1" />
+                {t('home.community.seeMore')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </>
   )
