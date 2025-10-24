@@ -53,8 +53,8 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
         </div>
       )}
 
-      {/* Icono with background container */}
-      <div className="mb-2 md:mb-3 flex items-center justify-center">
+      {/* Icono with background container - Fixed height for alignment */}
+      <div className="mb-2 md:mb-3 flex items-center justify-center h-16 md:h-auto">
         <div className="relative">
           {/* Background container - only on mobile */}
           <div className="md:hidden">
@@ -92,10 +92,12 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
         </div>
       </div>
 
-      {/* Título */}
-      <h3 className="text-xs md:text-base font-semibold text-[#111827] dark:text-gray-100 text-center leading-tight mb-0 md:mb-1">
-        {item.title}
-      </h3>
+      {/* Título - Fixed height for alignment */}
+      <div className="h-8 md:h-auto flex items-center justify-center mb-0 md:mb-1">
+        <h3 className="text-xs md:text-base font-semibold text-[#111827] dark:text-gray-100 text-center leading-tight">
+          {item.title}
+        </h3>
+      </div>
 
       {/* Microcopy (opcional) - Solo en desktop */}
       {item.microcopy && (
