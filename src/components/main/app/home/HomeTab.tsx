@@ -512,8 +512,8 @@ export default function HomeTab() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">📸</span>
+            <div className="w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">📖</span>
             </div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {language === 'ko' ? '최근 스토리' : 'Historias Recientes'}
@@ -564,8 +564,8 @@ export default function HomeTab() {
                 onClick={() => router.push('/community/stories')}
               >
                 <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-1">
-                    <span className="text-white text-xs">📸</span>
+                  <div className="w-6 h-6 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-1">
+                    <span className="text-white text-xs">➡️</span>
                   </div>
                   <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     {language === 'ko' ? '더보기' : 'Ver Más'}
