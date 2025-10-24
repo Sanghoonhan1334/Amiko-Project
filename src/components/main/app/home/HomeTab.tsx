@@ -516,7 +516,7 @@ export default function HomeTab() {
               <span className="text-white text-xs">📸</span>
             </div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {t('home.sections.recentStories')}
+              {language === 'ko' ? '최근 스토리' : 'Historias Recientes'}
             </h2>
           </div>
           <Badge variant="outline" className="text-purple-600 border-purple-600">
@@ -524,7 +524,7 @@ export default function HomeTab() {
           </Badge>
         </div>
         
-        <Card>
+        <Card className="relative overflow-hidden">
           <CardContent className="p-4">
             <div className="flex items-center gap-3 overflow-x-auto">
               {recentStories.length > 0 ? (
@@ -553,16 +553,24 @@ export default function HomeTab() {
                   </p>
                 </div>
               )}
+            </div>
+            
+            {/* 고급스러운 더보기 버튼 - 오른쪽 끝에 투명 효과 */}
+            <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80 dark:to-transparent flex items-center justify-end pr-2 pointer-events-none">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="ml-2"
+                className="pointer-events-auto bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white dark:hover:bg-gray-700"
                 onClick={() => router.push('/community/stories')}
               >
-                <div className="w-4 h-4 mr-1 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs">📸</span>
+                <div className="flex flex-col items-center">
+                  <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-1">
+                    <span className="text-white text-xs">📸</span>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    {language === 'ko' ? '더보기' : 'Ver Más'}
+                  </span>
                 </div>
-                {t('home.community.seeMore')}
               </Button>
             </div>
           </CardContent>
