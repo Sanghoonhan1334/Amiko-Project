@@ -916,7 +916,6 @@ export default function HomeTab() {
                   ))}
                 </div>
                 
-                {/* 더 보기 버튼 */}
                 <div className="mt-4 text-center">
                   <Button
                     variant="ghost"
