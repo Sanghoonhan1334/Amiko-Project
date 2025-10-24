@@ -47,7 +47,7 @@ export default function MainNav() {
           />
           {/* 다크 모드 로고 */}
           <img 
-            src="/amiko-logo-dark.png" 
+            src="/logos/amiko-logo-dark.png" 
             alt="Amiko" 
             className="h-8 w-auto object-contain hidden dark:block"
           />

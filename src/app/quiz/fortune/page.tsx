@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Bookmark, Heart, Target, Share2, MessageCircle, ThumbsUp, ThumbsDown, Play, Clock } from 'lucide-react'
+import { ArrowLeft, Bookmark, Heart, Target, Share2, Play, Clock } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import { useLanguage } from '@/context/LanguageContext'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
@@ -21,11 +21,12 @@ interface QuizData {
   updated_at: string
 }
 
-export default function MbtiKpopTestPage() {
+export default function FortuneTestPage() {
   const router = useRouter()
   const { language } = useLanguage()
   const { user } = useAuth()
   const [isStarting, setIsStarting] = useState(false)
+  const [currentlyStarting, setCurrentlyStarting] = useState(false)
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -37,31 +38,22 @@ export default function MbtiKpopTestPage() {
   const [funCount, setFunCount] = useState(0)
   const [accurateCount, setAccurateCount] = useState(0)
 
-  // 데이터베이스에서 퀴즈 데이터 가져오기
+  // 운세 테스트 데이터 설정
   useEffect(() => {
-    const fetchQuizData = async () => {
-      try {
-        const supabase = createSupabaseBrowserClient()
-        const { data, error } = await supabase
-          .from('quizzes')
-          .select('*')
-          .eq('slug', 'mbti-kpop')
-          .single()
-
-        if (error) {
-          throw error
-        }
-
-        setQuizData(data)
-      } catch (err) {
-        console.error('퀴즈 데이터 로딩 실패:', err)
-        setError('퀴즈 데이터를 불러올 수 없습니다.')
-      } finally {
-        setLoading(false)
-      }
+    // 하드코딩된 운세 테스트 데이터
+    const fortuneTestData: QuizData = {
+      id: 'fortune-test-' + Date.now(),
+      title: 'Test de Fortuna Personalizada',
+      description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
+      thumbnail_url: '/quizzes/fortune/cover/cover.png',
+      total_questions: 9,
+      total_participants: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }
 
-    fetchQuizData()
+    setQuizData(fortuneTestData)
+    setLoading(false)
   }, [])
 
   const handleBack = () => {
@@ -70,8 +62,8 @@ export default function MbtiKpopTestPage() {
 
   const handleStart = () => {
     setIsStarting(true)
-    // MBTI 테스트 시작 - 질문 페이지로 이동
-    router.push('/quiz/mbti-kpop/questions')
+    // 시작 페이지로 이동
+    router.push('/quiz/fortune/start')
   }
 
   // 상호작용 버튼 핸들러들
@@ -96,7 +88,7 @@ export default function MbtiKpopTestPage() {
         setIsSaved(true)
       }
     } catch (error) {
-      console.error('저장 실패:', error)
+      console.error('Error al guardar:', error)
     }
   }
 
@@ -115,7 +107,7 @@ export default function MbtiKpopTestPage() {
         setFunCount(prev => prev + 1)
       }
     } catch (error) {
-      console.error('재밌어요 실패:', error)
+      console.error('Error al marcar como divertido:', error)
     }
   }
 
@@ -134,7 +126,7 @@ export default function MbtiKpopTestPage() {
         setAccurateCount(prev => prev + 1)
       }
     } catch (error) {
-      console.error('정확해요 실패:', error)
+      console.error('Error al marcar como preciso:', error)
     }
   }
 
@@ -152,7 +144,7 @@ export default function MbtiKpopTestPage() {
         alert('URL copiada al portapapeles')
       }
     } catch (error) {
-      console.error('공유 실패:', error)
+      console.error('Error al compartir:', error)
     }
   }
 
@@ -161,7 +153,7 @@ export default function MbtiKpopTestPage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <p className="text-gray-600">
             Cargando test...
           </p>
@@ -196,7 +188,7 @@ export default function MbtiKpopTestPage() {
           {/* 뒤로가기 버튼 */}
           <div className="mb-6">
             <Button
-              variant="ghost"
+              variant="ghost慰"
               size="sm"
               onClick={handleBack}
               className="p-2 hover:bg-gray-100 rounded-full"
@@ -229,37 +221,28 @@ export default function MbtiKpopTestPage() {
               </div>
             </div>
 
-            {/* 썸네일 이미지 */}
+            {/* 썸네일 이미지 - 작게 표시 */}
             <div className="mb-6">
-              <div className="relative w-full h-64 rounded-lg overflow-hidden">
+              <div className="relative w-full h-48 rounded-lg overflow-hidden">
                 <img 
-                  src={quizData.thumbnail_url || "/quizzes/mbti-with-kpop-stars/cover/cover.png"} 
+                  src={quizData.thumbnail_url || "/quizzes/fortune/cover/cover.png"} 
                   alt={quizData.title}
                   className="w-full h-full object-cover"
                 />
                 
                 {/* 그라데이션 오버레이 */}
-                <div className="absolute inset-0 bg-gradient-to-b from-purple-600/60 to-pink-500/60"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-orange-600/60 to-yellow-500/60"></div>
                 
                 {/* 이미지 오버레이 텍스트 */}
                 <div className="absolute top-4 left-4 right-4">
                   <p className="text-white text-sm font-medium drop-shadow-lg">
-                    Descubre tu personalidad MBTI
+                    Descubre tu fortuna de hoy
                   </p>
                 </div>
                 <div className="absolute bottom-8 left-4 right-4">
                   <h2 className="text-white text-xl font-bold mb-2 drop-shadow-lg">
-                    ¿Qué estrella K-POP coincide contigo?
+                    ¿Qué te depara el destino?
                   </h2>
-                </div>
-                
-                {/* MBTI 아이콘 */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-32 h-32 border-2 border-white/30 rounded-lg transform rotate-45 flex items-center justify-center">
-                    <div className="w-20 h-20 bg-white/20 rounded-lg transform -rotate-45 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">MBTI</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -272,31 +255,31 @@ export default function MbtiKpopTestPage() {
               
               <div className="space-y-2 mb-4">
                 <p className="text-gray-700">
-                  ¿Eres extrovertido o introvertido? 🤔
+                  ¿Cómo te sientes hoy? 😊
                 </p>
                 <p className="text-gray-700">
-                  ¿Prefieres la intuición o los sentidos? ✨
+                  ¿Qué esperas del futuro? ✨
                 </p>
                 <p className="text-gray-700">
-                  ¿Decides con lógica o sentimientos? 💭
+                  ¿Cuál es tu estado de ánimo? 💭
                 </p>
                 <p className="text-gray-700">
-                  ¿Eres organizado o espontáneo? 📋
+                  ¿Qué te preocupa más? 📋
                 </p>
               </div>
               
               <p className="text-gray-800 font-medium">
-                ¡Descubre tu tipo MBTI y encuentra tu estrella K-POP perfecta! 🌟
+                ¡Descubre tu fortuna personalizada basada en tus respuestas! 🌟
               </p>
             </div>
 
             {/* 해시태그 */}
             <div className="flex gap-2 mb-6">
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                #MBTI
+                #Fortuna
               </span>
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                #K-POP
+                #Destino
               </span>
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
                 #Test de Personalidad
@@ -308,7 +291,7 @@ export default function MbtiKpopTestPage() {
               <Button
                 onClick={handleStart}
                 disabled={isStarting}
-                className="w-full bg-purple-500 hover:bg-purple-600 text-white py-4 text-lg font-semibold rounded-lg"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 text-lg font-semibold rounded-lg"
               >
                 {isStarting ? (
                   <div className="flex items-center justify-center gap-2">
@@ -316,7 +299,7 @@ export default function MbtiKpopTestPage() {
                     <span>Cargando...</span>
                   </div>
                 ) : (
-                  'Comenzar Test MBTI'
+                  'Comenzar Test de Fortuna'
                 )}
               </Button>
             </div>
@@ -367,7 +350,7 @@ export default function MbtiKpopTestPage() {
           
           {/* 댓글 섹션 */}
           <div className="border-t pt-6 mt-8">
-            <TestComments testId="mbti-kpop" />
+            <TestComments testId="fortune" />
           </div>
         </div>
       </div>

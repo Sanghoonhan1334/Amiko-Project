@@ -113,7 +113,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           />
           {/* 다크 모드 로고 */}
           <Image
-            src="/amiko-logo-dark.png"
+            src="/logos/amiko-logo-dark.png"
             alt="Amiko Logo"
             width={500}
             height={500}

@@ -159,11 +159,29 @@ export default function TestsPage() {
           thumbnail_url: quiz.thumbnail_url,
           total_questions: quiz.total_questions,
           is_active: quiz.is_active,
-          isCompleted: quiz.title?.includes('posición') || quiz.title?.includes('MBTI'), // 완성된 테스트 판별
+          isCompleted: quiz.title?.includes('posición') || quiz.title?.includes('MBTI') || quiz.title?.includes('Fortuna'), // 완성된 테스트 판별
           participantCount: quiz.total_participants || 0,
           created_at: quiz.created_at,
           updated_at: quiz.updated_at
         }))
+
+        // 운세 테스트 하드코딩 추가 (데이터베이스에 없을 경우를 대비)
+        const fortuneTest = {
+          id: 'fortune-test-' + Date.now(),
+          slug: 'fortune',
+          title: 'Test de Fortuna Personalizada',
+          description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad.',
+          category: 'fortune',
+          thumbnail_url: '/quizzes/fortune/cover/cover.png',
+          total_questions: 9,
+          is_active: true,
+          isCompleted: true,
+          participantCount: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+
+        apiQuizzes.push(fortuneTest)
         
         // 카테고리 필터링
         const filteredTests = selectedCategory === 'all' 
@@ -389,7 +407,7 @@ export default function TestsPage() {
               <p className="text-xs text-gray-500 dark:text-gray-400">{t('tests.beFirst')}</p>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {quizzes.map((quiz, index) => {
                 const config = categoryConfig[quiz.category] || categoryConfig.fun
                 const isNew = index < 3 // 처음 3개는 NEW로 표시

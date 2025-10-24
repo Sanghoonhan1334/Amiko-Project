@@ -205,7 +205,7 @@ function AppPageContent() {
                     <div className="flex items-center gap-3 mb-2 sm:mb-0 md:mb-0">
                       <div className="w-16 h-16 rounded-3xl flex items-center justify-center overflow-hidden">
                         <img 
-                          src="/video-call-title.png" 
+                          src="/misc/video-call-title.png" 
                           alt="화상통화" 
                           className="w-full h-full object-contain"
                         />

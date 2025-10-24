@@ -62,12 +62,18 @@ export default function TestComments({ testId }: TestCommentsProps) {
     try {
       setIsSubmitting(true)
       
+      // 닉네임이 없으면 댓글 작성 불가
+      if (!user.user_metadata?.name) {
+        alert('Por favor, completa tu perfil con un nombre de usuario para poder comentar.')
+        return
+      }
+
       // 새 댓글 객체 생성
       const newCommentObj: Comment = {
         id: Date.now().toString(),
         test_id: testId,
         user_id: user.id,
-        user_name: user.user_metadata?.name || 'Anonymous',
+        user_name: user.user_metadata.name,
         user_avatar_url: user.user_metadata?.avatar_url || null,
         comment: newComment.trim(),
         created_at: new Date().toISOString(),
@@ -98,12 +104,18 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const handleSubmitReply = async (parentId: string) => {
     if (!replyText.trim() || !user) return
     
+    // 닉네임이 없으면 답글 작성 불가
+    if (!user.user_metadata?.name) {
+      alert('Por favor, completa tu perfil con un nombre de usuario para poder responder.')
+      return
+    }
+    
     try {
       const newReply: Comment = {
         id: Date.now().toString(),
         test_id: testId,
         user_id: user.id,
-        user_name: user.user_metadata?.name || 'Anonymous',
+        user_name: user.user_metadata.name,
         user_avatar_url: user.user_metadata?.avatar_url || null,
         comment: replyText.trim(),
         created_at: new Date().toISOString(),
@@ -259,26 +271,27 @@ export default function TestComments({ testId }: TestCommentsProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border">
       <div className="p-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <MessageCircle className="w-5 h-5 text-purple-500" />
+        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+          <MessageCircle className="w-4 h-4 text-purple-500" />
           Comentarios ({comments.length})
         </h3>
       </div>
       
       {/* 댓글 작성 폼 */}
       {user ? (
-        <form onSubmit={handleSubmitComment} className="p-4 border-b">
-          <div className="flex gap-3">
+        user.user_metadata?.name ? (
+          <form onSubmit={handleSubmitComment} className="p-3 border-b">
+          <div className="flex gap-2">
             <div className="flex-shrink-0">
               {user.user_metadata?.avatar_url ? (
                 <img 
                   src={user.user_metadata.avatar_url} 
                   alt="Profile" 
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-6 h-6 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-purple-600" />
+                <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                  <User className="w-3 h-3 text-purple-600" />
                 </div>
               )}
             </div>
@@ -287,8 +300,8 @@ export default function TestComments({ testId }: TestCommentsProps) {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Escribe tu comentario..."
-                className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                rows={3}
+                className="w-full p-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                rows={2}
                 maxLength={500}
               />
               <div className="flex justify-between items-center mt-2">
@@ -298,12 +311,12 @@ export default function TestComments({ testId }: TestCommentsProps) {
                 <button
                   type="submit"
                   disabled={!newComment.trim() || isSubmitting}
-                  className="px-3 py-1.5 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-2 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 >
                   {isSubmitting ? (
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
                   ) : (
-                    <Send className="w-3 h-3" />
+                    <Send className="w-2.5 h-2.5" />
                   )}
                   Comentar
                 </button>
@@ -311,8 +324,17 @@ export default function TestComments({ testId }: TestCommentsProps) {
             </div>
           </div>
         </form>
+        ) : (
+          <div className="p-3 border-b">
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-sm">
+                Por favor, completa tu perfil con un nombre de usuario para poder comentar.
+              </p>
+            </div>
+          </div>
+        )
       ) : (
-        <div className="p-4 border-b text-center text-gray-500">
+        <div className="p-3 border-b text-center text-gray-500 text-sm">
           Por favor, inicia sesión para escribir comentarios.
         </div>
       )}
@@ -320,28 +342,28 @@ export default function TestComments({ testId }: TestCommentsProps) {
       {/* 댓글 목록 */}
       <div className="max-h-96 overflow-y-auto">
         {isLoading ? (
-          <div className="p-4 text-center text-gray-500">
+          <div className="p-3 text-center text-gray-500 text-sm">
             Cargando comentarios...
           </div>
         ) : comments.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
+          <div className="p-3 text-center text-gray-500 text-sm">
             Aún no hay comentarios. ¡Sé el primero en comentar!
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {comments.map((comment) => (
-              <div key={comment.id} className="p-4">
-                <div className="flex gap-3">
+              <div key={comment.id} className="p-3">
+                <div className="flex gap-2">
                   <div className="flex-shrink-0">
                     {comment.user_avatar_url ? (
                       <img 
                         src={comment.user_avatar_url} 
                         alt={comment.user_name} 
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-6 h-6 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                        <User className="w-4 h-4 text-gray-600" />
+                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <User className="w-3 h-3 text-gray-600" />
                       </div>
                     )}
                   </div>
@@ -359,7 +381,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                     </p>
                     
                     {/* 추천/비추천 및 답글 버튼 */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleLikeDislike(comment.id, 'like')}
                         className={`flex items-center gap-1 text-xs ${
@@ -391,19 +413,19 @@ export default function TestComments({ testId }: TestCommentsProps) {
                     
                     {/* 답글 작성 폼 */}
                     {replyingTo === comment.id && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex gap-2">
+                      <div className="mt-2 p-2 bg-gray-50 rounded-lg">
+                        <div className="flex gap-1">
                           <input
                             type="text"
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
                             placeholder="Escribe tu respuesta..."
-                            className="flex-1 p-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="flex-1 p-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                           />
                           <button
                             onClick={() => handleSubmitReply(comment.id)}
                             disabled={!replyText.trim()}
-                            className="px-2 py-1.5 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 disabled:opacity-50"
+                            className="px-1.5 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 disabled:opacity-50"
                           >
                             Enviar
                           </button>
@@ -412,7 +434,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                               setReplyingTo(null)
                               setReplyText('')
                             }}
-                            className="px-2 py-1.5 bg-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-400"
+                            className="px-1.5 py-1 bg-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-400"
                           >
                             Cancelar
                           </button>
@@ -422,19 +444,19 @@ export default function TestComments({ testId }: TestCommentsProps) {
                     
                     {/* 대댓글 목록 */}
                     {comment.replies && comment.replies.length > 0 && (
-                      <div className="mt-3 ml-4 space-y-3">
+                      <div className="mt-2 ml-3 space-y-2">
                         {comment.replies.map((reply) => (
-                          <div key={reply.id} className="flex gap-3">
+                          <div key={reply.id} className="flex gap-2">
                             <div className="flex-shrink-0">
                               {reply.user_avatar_url ? (
                                 <img 
                                   src={reply.user_avatar_url} 
                                   alt={reply.user_name} 
-                                  className="w-6 h-6 rounded-full object-cover"
+                                  className="w-5 h-5 rounded-full object-cover"
                                 />
                               ) : (
-                                <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                                  <User className="w-3 h-3 text-gray-600" />
+                                <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center">
+                                  <User className="w-2.5 h-2.5 text-gray-600" />
                                 </div>
                               )}
                             </div>
@@ -452,7 +474,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                               </p>
                               
                               {/* 대댓글 추천/비추천 */}
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => handleLikeDislike(reply.id, 'like')}
                                   className={`flex items-center gap-1 text-xs ${

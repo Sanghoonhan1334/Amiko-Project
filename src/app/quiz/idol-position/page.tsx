@@ -65,8 +65,8 @@ export default function IdolPositionTestPage() {
 
         setQuizData(data)
       } catch (err) {
-        console.error('퀴즈 데이터 로딩 실패:', err)
-        setError('퀴즈 데이터를 불러올 수 없습니다.')
+        console.error('Error al cargar los datos del quiz:', err)
+        setError('No se pudieron cargar los datos del quiz.')
       } finally {
         setLoading(false)
       }
@@ -108,7 +108,7 @@ export default function IdolPositionTestPage() {
         setIsSaved(savedQuizzes.includes(quizData?.id))
       }
     } catch (error) {
-      console.error('상호작용 데이터 로딩 실패:', error)
+      console.error('Error al cargar los datos de interacción:', error)
     }
   }
 
@@ -134,7 +134,7 @@ export default function IdolPositionTestPage() {
       
       setComments(commentsWithUsers)
     } catch (error) {
-      console.error('댓글 로딩 실패:', error)
+      console.error('Error al cargar los comentarios:', error)
       setComments([])
     } finally {
       setCommentsLoading(false)
@@ -154,7 +154,7 @@ export default function IdolPositionTestPage() {
   // 상호작용 버튼 핸들러들
   const handleSave = async () => {
     if (!user) {
-      alert(language === 'es' ? 'Por favor, inicia sesión para guardar el test.' : '테스트를 저장하려면 로그인해주세요.')
+      alert('Por favor, inicia sesión para guardar el test.')
       return
     }
     
@@ -173,13 +173,13 @@ export default function IdolPositionTestPage() {
         setIsSaved(true)
       }
     } catch (error) {
-      console.error('저장 실패:', error)
+      console.error('Error al guardar:', error)
     }
   }
 
   const handleFun = async () => {
     if (!user) {
-      alert(language === 'es' ? 'Por favor, inicia sesión para dar like.' : '좋아요를 누르려면 로그인해주세요.')
+      alert('Por favor, inicia sesión para dar like.')
       return
     }
     
@@ -209,13 +209,13 @@ export default function IdolPositionTestPage() {
         setFunCount(prev => prev + 1)
       }
     } catch (error) {
-      console.error('재밌어요 실패:', error)
+      console.error('Error al marcar como divertido:', error)
     }
   }
 
   const handleAccurate = async () => {
     if (!user) {
-      alert(language === 'es' ? 'Por favor, inicia sesión para calificar.' : '평가하려면 로그인해주세요.')
+      alert('Por favor, inicia sesión para calificar.')
       return
     }
     
@@ -245,7 +245,7 @@ export default function IdolPositionTestPage() {
         setAccurateCount(prev => prev + 1)
       }
     } catch (error) {
-      console.error('정확해요 실패:', error)
+      console.error('Error al marcar como preciso:', error)
     }
   }
 
@@ -260,17 +260,23 @@ export default function IdolPositionTestPage() {
       } else {
         // 클립보드에 URL 복사
         await navigator.clipboard.writeText(window.location.href)
-        alert(language === 'es' ? 'URL copiada al portapapeles' : 'URL이 클립보드에 복사되었습니다')
+        alert('URL copiada al portapapeles')
       }
     } catch (error) {
-      console.error('공유 실패:', error)
+      console.error('Error al compartir:', error)
     }
   }
 
   // 댓글 작성 (로컬 스토리지 사용)
   const handleCommentSubmit = async () => {
     if (!user) {
-      alert(language === 'es' ? 'Por favor, inicia sesión para comentar.' : '댓글을 작성하려면 로그인해주세요.')
+      alert('Por favor, inicia sesión para comentar.')
+      return
+    }
+    
+    // 닉네임이 없으면 댓글 작성 불가
+    if (!user.user_metadata?.name) {
+      alert('Por favor, completa tu perfil con un nombre de usuario para poder comentar.')
       return
     }
     
@@ -287,7 +293,7 @@ export default function IdolPositionTestPage() {
         id: Date.now().toString(),
         quiz_id: quizData?.id,
         user_id: user.id,
-        user_name: user.email || 'Usuario',
+        user_name: user.user_metadata?.name || user.email || 'Usuario',
         content: newComment.trim(),
         like_count: 0,
         dislike_count: 0,
@@ -301,12 +307,12 @@ export default function IdolPositionTestPage() {
       // 로컬 스토리지에 저장
       localStorage.setItem('quiz_comments_temp', JSON.stringify(existingComments))
       
-      console.log('댓글 작성 성공:', newCommentObj)
+      console.log('Comentario creado exitosamente:', newCommentObj)
       setNewComment('')
       await fetchComments() // 댓글 목록 새로고침
     } catch (error) {
-      console.error('댓글 작성 실패:', error)
-      alert(language === 'es' ? 'Error al escribir el comentario' : '댓글 작성 중 오류가 발생했습니다')
+      console.error('Error al crear comentario:', error)
+      alert('Error al escribir el comentario')
     } finally {
       setCommentLoading(false)
     }
@@ -315,7 +321,13 @@ export default function IdolPositionTestPage() {
   // 답글 작성 (임시로 로컬 스토리지 사용)
   const handleReplySubmit = async (parentCommentId: string) => {
     if (!user) {
-      alert(language === 'es' ? 'Por favor, inicia sesión para responder.' : '답글을 작성하려면 로그인해주세요.')
+      alert('Por favor, inicia sesión para responder.')
+      return
+    }
+    
+    // 닉네임이 없으면 답글 작성 불가
+    if (!user.user_metadata?.name) {
+      alert('Por favor, completa tu perfil con un nombre de usuario para poder responder.')
       return
     }
     
@@ -331,7 +343,7 @@ export default function IdolPositionTestPage() {
       const newReply = {
         id: Date.now().toString(),
         user_id: user.id,
-        user_name: user.email || 'Usuario',
+        user_name: user.user_metadata?.name || user.email || 'Usuario',
         content: replyText.trim(),
         like_count: 0,
         dislike_count: 0,
@@ -352,13 +364,13 @@ export default function IdolPositionTestPage() {
       // 로컬 스토리지에 저장
       localStorage.setItem('quiz_comments_temp', JSON.stringify(updatedComments))
       
-      console.log('답글 작성 성공:', newReply)
+      console.log('Respuesta creada exitosamente:', newReply)
       setReplyText('')
       setReplyingTo(null)
       await fetchComments() // 댓글 목록 새로고침
     } catch (error) {
-      console.error('답글 작성 실패:', error)
-      alert(language === 'es' ? 'Error al escribir la respuesta' : '답글 작성 중 오류가 발생했습니다')
+      console.error('Error al crear respuesta:', error)
+      alert('Error al escribir la respuesta')
     } finally {
       setReplyLoading(false)
     }
@@ -367,7 +379,7 @@ export default function IdolPositionTestPage() {
   // 좋아요/싫어요 토글 (임시로 로컬 스토리지 사용)
   const handleLikeToggle = async (commentId: string, reactionType: 'like' | 'dislike') => {
     if (!user) {
-      alert(language === 'es' ? 'Por favor, inicia sesión para dar like.' : '좋아요를 누르려면 로그인해주세요.')
+      alert('Por favor, inicia sesión para dar like.')
       return
     }
 
@@ -449,15 +461,15 @@ export default function IdolPositionTestPage() {
       // 댓글 목록 새로고침
       await fetchComments()
     } catch (error) {
-      console.error('반응 토글 실패:', error)
-      alert(language === 'es' ? 'Error al procesar la reacción' : '반응 처리 중 오류가 발생했습니다')
+      console.error('Error al procesar la reacción:', error)
+      alert('Error al procesar la reacción')
     }
   }
 
   // 답글의 좋아요/싫어요 토글
   const handleReplyLikeToggle = async (parentCommentId: string, replyId: string, reactionType: 'like' | 'dislike') => {
     if (!user) {
-      alert(language === 'es' ? 'Por favor, inicia sesión para dar like.' : '좋아요를 누르려면 로그인해주세요.')
+      alert('Por favor, inicia sesión para dar like.')
       return
     }
 
@@ -546,8 +558,8 @@ export default function IdolPositionTestPage() {
       // 댓글 목록 새로고침
       await fetchComments()
     } catch (error) {
-      console.error('답글 반응 토글 실패:', error)
-      alert(language === 'es' ? 'Error al procesar la reacción' : '반응 처리 중 오류가 발생했습니다')
+      console.error('Error al procesar la reacción de respuesta:', error)
+      alert('Error al procesar la reacción')
     }
   }
 
@@ -566,7 +578,7 @@ export default function IdolPositionTestPage() {
   const cleanupLocalStorage = () => {
     if (localStorage.getItem('quiz_comments')) {
       localStorage.removeItem('quiz_comments')
-      console.log('로컬 스토리지 댓글 데이터 정리 완료')
+      console.log('Limpieza de datos de comentarios en localStorage completada')
     }
   }
 
@@ -577,7 +589,7 @@ export default function IdolPositionTestPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {language === 'es' ? 'Cargando test...' : '테스트 로딩 중...'}
+            Cargando test...
           </p>
         </div>
       </div>
@@ -590,10 +602,10 @@ export default function IdolPositionTestPage() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">
-            {language === 'es' ? 'Error al cargar el test' : '테스트 로드 중 오류 발생'}
+            Error al cargar el test
           </p>
           <Button onClick={handleBack} variant="outline">
-            {language === 'es' ? 'Volver' : '돌아가기'}
+            Volver
           </Button>
         </div>
       </div>
@@ -630,15 +642,15 @@ export default function IdolPositionTestPage() {
               <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                 <div className="flex items-center gap-1">
                   <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
-                  <span>{language === 'es' ? 'AMIKO' : '푸망'}</span>
+                  <span>AMIKO</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-gray-400"></div>
-                  <span>{quizData.total_participants.toLocaleString()}만</span>
+                  <span>{quizData.total_participants.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-gray-400"></div>
-                  <span>{language === 'es' ? `Aprox. ${quizData.total_questions} min` : `약 ${quizData.total_questions}분`}</span>
+                  <span>Aprox. {quizData.total_questions} min</span>
                 </div>
               </div>
             </div>
@@ -659,12 +671,12 @@ export default function IdolPositionTestPage() {
                 {/* 이미지 오버레이 텍스트 */}
                 <div className="absolute top-4 left-4 right-4">
                   <p className="text-white text-sm font-medium drop-shadow-lg">
-                    {language === 'es' ? 'Encuentra la posición perfecta para ti' : '나와 꼭 맞는 포지션 찾기'}
+                    Encuentra la posición perfecta para ti
                   </p>
                 </div>
                 <div className="absolute bottom-8 left-4 right-4">
                   <h2 className="text-white text-xl font-bold mb-2 drop-shadow-lg">
-                    {language === 'es' ? '¿Qué posición de idol me quedaría mejor?' : '나에게 어울리는 아이돌 포지션은?'}
+                    ¿Qué posición de idol me quedaría mejor?
                   </h2>
                 </div>
                 
@@ -686,31 +698,28 @@ export default function IdolPositionTestPage() {
               
               <div className="space-y-2 mb-4">
                 <p className="text-gray-700">
-                  {language === 'es' ? '¿Maknae del equipo 😊?' : '팀 막내😊?'}
+                  ¿Maknae del equipo 😊?
                 </p>
                 <p className="text-gray-700">
-                  {language === 'es' ? '¿Bailarín principal 💃?' : '메인 댄서💃?'}
+                  ¿Bailarín principal 💃?
                 </p>
                 <p className="text-gray-700">
-                  {language === 'es' ? '¿Centro definitivo ✨?' : '확신의 센터✨?'}
+                  ¿Centro definitivo ✨?
                 </p>
               </div>
               
               <p className="text-gray-800 font-medium">
-                {language === 'es' 
-                  ? '¿En qué posición debutaré? 🎤 ¡Descubrámoslo ahora!'
-                  : '과연 나는 어떤 포지션으로 데뷔할까? 🎤 지금 알아보자!'
-                }
+                ¿En qué posición debutaré? 🎤 ¡Descubrámoslo ahora!
               </p>
             </div>
 
             {/* 해시태그 */}
             <div className="flex gap-2 mb-6">
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                #{language === 'es' ? 'idol' : '아이돌'}
+                #idol
               </span>
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                #{language === 'es' ? 'test' : '유형테스트'}
+                #test
               </span>
             </div>
 
@@ -724,10 +733,10 @@ export default function IdolPositionTestPage() {
                 {isStarting ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>{language === 'es' ? 'Cargando...' : '로딩 중...'}</span>
+                    <span>Cargando...</span>
                   </div>
                 ) : (
-                  language === 'es' ? 'Comenzar Test' : '테스트 시작'
+                  'Comenzar Test'
                 )}
               </Button>
             </div>
@@ -741,7 +750,7 @@ export default function IdolPositionTestPage() {
                 }`}
               >
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'text-blue-600 fill-current' : 'text-gray-600'}`} />
-                <span className="text-xs">{language === 'es' ? 'Guardar' : '저장하기'}</span>
+                <span className="text-xs">Guardar</span>
               </button>
               
               <button 
@@ -751,7 +760,7 @@ export default function IdolPositionTestPage() {
                 }`}
               >
                 <Heart className={`w-5 h-5 ${isFun ? 'text-red-600 fill-current' : 'text-gray-600'}`} />
-                <span className="text-xs">{language === 'es' ? 'Divertido' : '재밌어요'}</span>
+                <span className="text-xs">Divertido</span>
                 <span className="text-xs text-gray-500">{funCount}</span>
               </button>
               
@@ -762,7 +771,7 @@ export default function IdolPositionTestPage() {
                 }`}
               >
                 <Target className={`w-5 h-5 ${isAccurate ? 'text-green-600 fill-current' : 'text-gray-600'}`} />
-                <span className="text-xs">{language === 'es' ? 'Preciso' : '정확해요'}</span>
+                <span className="text-xs">Preciso</span>
                 <span className="text-xs text-gray-500">{accurateCount}</span>
               </button>
               
@@ -771,42 +780,62 @@ export default function IdolPositionTestPage() {
                 className="flex flex-col items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
               >
                 <Share2 className="w-5 h-5" />
-                <span className="text-xs">{language === 'es' ? 'Compartir' : '공유하기'}</span>
+                <span className="text-xs">Compartir</span>
               </button>
             </div>
 
             {/* 댓글 섹션 */}
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {language === 'es' ? `Comentarios (${comments.length})` : `댓글 (${comments.length})`}
+                Comentarios ({comments.length})
               </h3>
               
               {/* 댓글 입력 */}
               <div className="mb-6">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-                  <input
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder={language === 'es' ? 'Quiero escuchar tu historia :D' : '너의 얘기가 듣고 싶어 :D'}
-                    className="flex-1 bg-transparent text-gray-600 placeholder-gray-400 outline-none"
-                    onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
-                  />
-                  <button 
-                    onClick={handleCommentSubmit}
-                    disabled={commentLoading || !newComment.trim()}
-                    className="p-1 disabled:opacity-50"
-                  >
-                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                      {commentLoading ? (
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                      ) : (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
+                {user ? (
+                  user.user_metadata?.name ? (
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600">
+                          {user.user_metadata.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Quiero escuchar tu historia :D"
+                        className="flex-1 bg-transparent text-gray-600 placeholder-gray-400 outline-none"
+                        onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
+                      />
+                      <button 
+                        onClick={handleCommentSubmit}
+                        disabled={commentLoading || !newComment.trim()}
+                        className="p-1 disabled:opacity-50"
+                      >
+                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                          {commentLoading ? (
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          ) : (
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          )}
+                        </div>
+                      </button>
                     </div>
-                  </button>
-                </div>
+                  ) : (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-yellow-800 text-sm">
+                        Por favor, completa tu perfil con un nombre de usuario para poder comentar.
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-lg text-center">
+                    <p className="text-gray-600 text-sm">
+                      Por favor, inicia sesión para escribir comentarios.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* 댓글 목록 */}
@@ -826,7 +855,7 @@ export default function IdolPositionTestPage() {
                 <div className="space-y-4">
                   {comments.length === 0 ? (
                     <p className="text-gray-500 text-center py-8">
-                      {language === 'es' ? 'No hay comentarios aún. ¡Sé el primero en comentar!' : '아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!'}
+                      No hay comentarios aún. ¡Sé el primero en comentar!
                     </p>
                   ) : (
                     comments.map((comment) => (
@@ -841,7 +870,7 @@ export default function IdolPositionTestPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-medium text-gray-900">
-                                {comment.users?.full_name || 'Usuario'}
+                                {comment.users?.full_name || comment.user_name || 'Usuario'}
                               </span>
                               <span className="text-xs text-gray-500">
                                 {new Date(comment.created_at).toLocaleDateString()}
@@ -853,16 +882,13 @@ export default function IdolPositionTestPage() {
                                 onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
                                 className="hover:text-gray-700"
                               >
-                                {language === 'es' ? 'Respuesta' : '답글'}
+                                Respuesta
                               </button>
                               <button 
                                 onClick={() => toggleReplies(comment.id)}
                                 className="hover:text-gray-700"
                               >
-                                {language === 'es' 
-                                  ? `Respuestas ${comment.replies?.length || 0}` 
-                                  : `답글 ${comment.replies?.length || 0}`
-                                }
+                                Respuestas {comment.replies?.length || 0}
                               </button>
                               <div className="flex items-center gap-2">
                                 <button 
@@ -901,7 +927,7 @@ export default function IdolPositionTestPage() {
                                 type="text"
                                 value={replyText}
                                 onChange={(e) => setReplyText(e.target.value)}
-                                placeholder={language === 'es' ? 'Escribe tu respuesta...' : '답글을 작성하세요...'}
+                                placeholder="Escribe tu respuesta..."
                                 className="flex-1 bg-transparent text-gray-600 placeholder-gray-400 outline-none"
                                 onKeyPress={(e) => e.key === 'Enter' && handleReplySubmit(comment.id)}
                               />
@@ -910,7 +936,7 @@ export default function IdolPositionTestPage() {
                                 disabled={replyLoading || !replyText.trim()}
                                 className="px-3 py-1 bg-blue-500 text-white rounded text-sm disabled:opacity-50"
                               >
-                                {replyLoading ? '...' : (language === 'es' ? 'Enviar' : '전송')}
+                                {replyLoading ? '...' : 'Enviar'}
                               </button>
                             </div>
                           </div>

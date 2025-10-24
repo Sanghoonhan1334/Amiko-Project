@@ -9,7 +9,7 @@ export default function ChargingHeader() {
     <div className="flex items-center gap-3 mb-6">
       <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
         <img
-          src="/charging-title.png"
+          src="/misc/charging-title.png"
           alt="충전소"
           className="w-full h-full object-contain"
         />

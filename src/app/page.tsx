@@ -169,12 +169,12 @@ export default function HomePage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <img src="/1.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
-                    <img src="/amiko-logo-dark.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
+                    <img src="/misc/1.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
+                    <img src="/logos/amiko-logo-dark.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.description')}</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <img src="/2.png" alt="Bridge" className="w-24 h-24 mx-auto mb-2" />
+                    <img src="/misc/2.png" alt="Bridge" className="w-24 h-24 mx-auto mb-2" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       {language === 'es' ? (
                         <>
@@ -188,8 +188,8 @@ export default function HomePage() {
                     </p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <img src="/3.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
-                    <img src="/amiko-logo-dark.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
+                    <img src="/misc/3.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
+                    <img src="/logos/amiko-logo-dark.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.connectDescription')}</p>
                   </div>
                 </div>

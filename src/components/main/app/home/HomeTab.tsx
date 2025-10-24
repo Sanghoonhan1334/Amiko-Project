@@ -48,6 +48,7 @@ interface PopularTest {
   participants: number
   image: string
   category: string
+  route?: string
 }
 
 interface OnlineUser {
@@ -230,35 +231,38 @@ export default function HomeTab() {
 
   const loadPopularTests = async () => {
     try {
-      // 임시 하드코딩된 심리테스트 데이터
-      const mockTests = [
+      // 실제 심리테스트 데이터
+      const actualTests = [
         {
-          id: 'test-1',
-          title: language === 'ko' ? '내가 가장 좋아할 한국 드라마는?' : '¿Qué drama coreano me gustaría más?',
-          description: language === 'ko' ? '20가지 질문으로 알아보는 나의 MBTI와 같은 K-POP 스타' : 'Descubre tu MBTI y estrella de K-POP compatible con 20 preguntas',
-          participants: 799,
+          id: 'mbti-kpop',
+          title: language === 'ko' ? 'Test de MBTI con Estrellas K-POP' : 'Test de MBTI con Estrellas K-POP',
+          description: language === 'ko' ? 'Descubre tu tipo MBTI y la estrella K-POP que más te representa' : 'Descubre tu tipo MBTI y la estrella K-POP que más te representa',
+          participants: 1247,
           image: '/quizzes/mbti-with-kpop-stars/cover/cover.png',
-          category: 'personality'
+          category: 'personality',
+          route: '/quiz/mbti-kpop'
         },
         {
-          id: 'test-2',
-          title: language === 'ko' ? '한국어 레벨 테스트' : 'Prueba de Nivel de Coreano',
-          description: language === 'ko' ? '나의 한국어 실력은 어느 정도일까요?' : '¿Cuál es mi nivel de coreano?',
-          participants: 456,
-          image: '/quizzes/mbti-with-kpop-stars/celebs/iu.png',
-          category: 'language'
+          id: 'idol-position',
+          title: language === 'ko' ? '¿Qué posición de idol te queda mejor?' : '¿Qué posición de idol te queda mejor?',
+          description: language === 'ko' ? 'Descubre qué posición de ídolo te queda mejor según tu personalidad' : 'Descubre qué posición de ídolo te queda mejor según tu personalidad',
+          participants: 892,
+          image: '/quizzes/idol-position/thumbnail.png',
+          category: 'personality',
+          route: '/quiz/idol-position'
         },
         {
-          id: 'test-3',
-          title: language === 'ko' ? '문화 적응도 테스트' : 'Prueba de Adaptación Cultural',
-          description: language === 'ko' ? '한국 문화에 얼마나 잘 적응할 수 있을까요?' : '¿Qué tan bien puedes adaptarte a la cultura coreana?',
-          participants: 234,
-          image: '/quizzes/mbti-with-kpop-stars/celebs/jimin.png',
-          category: 'culture'
+          id: 'fortune',
+          title: language === 'ko' ? 'Test de Fortuna Personalizada' : 'Test de Fortuna Personalizada',
+          description: language === 'ko' ? 'Descubre tu fortuna de hoy basada en tu estado emocional' : 'Descubre tu fortuna de hoy basada en tu estado emocional',
+          participants: 567,
+          image: '/quizzes/fortune/cover/cover.png',
+          category: 'fortune',
+          route: '/quiz/fortune'
         }
       ]
       
-      setPopularTests(mockTests)
+      setPopularTests(actualTests)
     } catch (error) {
       console.error('인기 테스트 로딩 실패:', error)
       setPopularTests([])
@@ -609,7 +613,7 @@ export default function HomeTab() {
               <Card 
                 key={test.id} 
                 className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => router.push('/community/tests')}
+                onClick={() => router.push(test.route || '/community/tests')}
               >
                 <CardContent className="p-3">
                   <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg mb-3 flex items-center justify-center">
@@ -889,7 +893,7 @@ export default function HomeTab() {
                     <Card 
                       key={test.id} 
                       className="cursor-pointer hover:shadow-lg transition-all duration-300 group border-l-4 border-l-purple-500 hover:border-l-purple-600"
-                      onClick={() => router.push('/community/tests')}
+                      onClick={() => router.push(test.route || '/community/tests')}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">

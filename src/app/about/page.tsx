@@ -99,7 +99,7 @@ export default function AboutPage() {
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 dark:border-gray-700 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
-                          src="/1.png" 
+                          src="/misc/1.png" 
                           alt="AMIKO Logo 1" 
                           className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10 dark:hidden"
                           loading="lazy"
@@ -122,7 +122,7 @@ export default function AboutPage() {
                     <div className="bg-white rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
-                          src="/2.png" 
+                          src="/misc/2.png" 
                           alt="AMIKO Logo 2" 
                           className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10"
                           loading="lazy"
@@ -146,7 +146,7 @@ export default function AboutPage() {
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 pt-0 pb-4 shadow-lg border border-gray-100 dark:border-gray-700 max-w-md mx-auto">
                       <div className="flex flex-col items-center text-center -mt-6">
                         <img 
-                          src="/3.png" 
+                          src="/misc/3.png" 
                           alt="AMIKO Logo 3" 
                           className="w-32 h-32 md:w-48 md:h-48 object-contain -mb-8 md:-mb-10 dark:hidden"
                           loading="lazy"
