@@ -49,6 +49,9 @@ export async function GET(
       case 'hot':
         orderBy = 'comment_count'
         break
+      case 'views':
+        orderBy = 'view_count'
+        break
       case 'latest':
       default:
         orderBy = 'created_at'
