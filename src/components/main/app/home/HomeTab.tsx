@@ -59,6 +59,15 @@ interface OnlineUser {
   isOnline: boolean
 }
 
+interface RecentStory {
+  id: string
+  user_name: string
+  user_profile_image?: string
+  image_url?: string
+  text_content?: string
+  created_at: string
+}
+
 export default function HomeTab() {
   const { t, language } = useLanguage()
   const { user } = useAuth()
@@ -68,6 +77,7 @@ export default function HomeTab() {
   const [hotPosts, setHotPosts] = useState<HotPost[]>([])
   const [popularTests, setPopularTests] = useState<PopularTest[]>([])
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
+  const [recentStories, setRecentStories] = useState<RecentStory[]>([])
   const [loading, setLoading] = useState(true)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(true)
@@ -302,6 +312,32 @@ export default function HomeTab() {
     }
   }
 
+  const loadRecentStories = async () => {
+    try {
+      console.log('Loading recent stories...')
+      
+      const response = await fetch('/api/stories?isPublic=true&limit=6')
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch stories: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      console.log('Stories data:', data)
+      
+      if (data.stories && data.stories.length > 0) {
+        setRecentStories(data.stories)
+      } else {
+        console.log('No stories found')
+        setRecentStories([])
+      }
+      
+    } catch (error) {
+      console.error('최근 스토리 로딩 실패:', error)
+      setRecentStories([])
+    }
+  }
+
   // 유틸리티 함수
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
@@ -327,7 +363,8 @@ export default function HomeTab() {
         loadCurrentEvents(),
         loadHotPosts(),
         loadPopularTests(),
-        loadOnlineUsers()
+        loadOnlineUsers(),
+        loadRecentStories()
       ])
     } catch (error) {
       console.error('데이터 로딩 실패:', error)
