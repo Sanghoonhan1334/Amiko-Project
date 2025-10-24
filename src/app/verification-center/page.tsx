@@ -24,6 +24,7 @@ export default function VerificationCenterPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminCheckComplete, setAdminCheckComplete] = useState(false)
   const [isKorean, setIsKorean] = useState(true) // 기본값: 한국인
+  const [isKoreanDetermined, setIsKoreanDetermined] = useState(false) // 한국인 여부가 결정되었는지
   const [previousPage, setPreviousPage] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
@@ -134,64 +135,123 @@ export default function VerificationCenterPage() {
               const profileData = await profileResponse.json()
               const userProfile = profileData.user || profileData.profile
               
-              // 한국인 여부 확인 (언어가 'ko'이거나 is_korean이 true이거나 country가 'KR'인 경우)
-              const isKoreanUser = userProfile?.language === 'ko' || 
-                                  userProfile?.is_korean === true ||
-                                  userProfile?.country === 'KR'
+              // 인증 완료 여부 확인 - 더 유연한 조건으로 변경
+              const isVerified = userProfile?.is_verified || 
+                                userProfile?.verification_completed ||
+                                (userProfile?.korean_name && userProfile?.nickname) ||
+                                (userProfile?.spanish_name && userProfile?.nickname) ||
+                                (userProfile?.full_name && userProfile?.phone) ||
+                                (userProfile?.full_name && userProfile?.university && userProfile?.major)
+              
+              console.log('[VERIFICATION] 인증 상태 확인:', {
+                is_verified: userProfile?.is_verified,
+                verification_completed: userProfile?.verification_completed,
+                korean_name: userProfile?.korean_name,
+                spanish_name: userProfile?.spanish_name,
+                nickname: userProfile?.nickname,
+                full_name: userProfile?.full_name,
+                phone: userProfile?.phone,
+                university: userProfile?.university,
+                major: userProfile?.major,
+                isVerified: isVerified
+              })
+              
+              if (isVerified) {
+                console.log('[VERIFICATION] 이미 인증 완료된 사용자, 메인 페이지로 리다이렉트')
+                router.push('/main?tab=me')
+                return
+              }
+              
+              // 한국인 여부 확인 (국적이 'KR'이거나 언어가 'ko'이거나 is_korean이 true인 경우)
+              const isKoreanUser = userProfile?.nationality === 'KR' ||
+                                  userProfile?.country === 'KR' ||
+                                  userProfile?.language === 'ko' || 
+                                  userProfile?.is_korean === true
               
               // 페루, 멕시코 등 스페인어권 국가는 현지인으로 처리
-              const isLocalUser = userProfile?.country === 'PE' || // 페루
+              const isLocalUser = userProfile?.nationality === 'PE' || // 페루
+                                 userProfile?.nationality === 'MX' || // 멕시코
+                                 userProfile?.nationality === 'CO' || // 콜롬비아
+                                 userProfile?.nationality === 'AR' || // 아르헨티나
+                                 userProfile?.nationality === 'CL' || // 칠레
+                                 userProfile?.nationality === 'ES' || // 스페인
+                                 userProfile?.country === 'PE' || // 페루
                                  userProfile?.country === 'MX' || // 멕시코
                                  userProfile?.country === 'CO' || // 콜롬비아
                                  userProfile?.country === 'AR' || // 아르헨티나
                                  userProfile?.country === 'CL' || // 칠레
                                  userProfile?.country === 'ES'    // 스페인
               
-              // 최종 판단: 한국인이 아니거나 스페인어권 국가인 경우 현지인으로 처리
-              const finalIsKorean = isKoreanUser && !isLocalUser
+              // 최종 판단: 한국인 사용자는 항상 한국인으로 처리 (국가와 관계없이)
+              const finalIsKorean = isKoreanUser
               
-              setIsKorean(finalIsKorean)
               console.log('[VERIFICATION] 사용자 타입 확인:', { 
                 isKorean: finalIsKorean, 
                 isKoreanUser,
                 isLocalUser,
-                language: userProfile?.language,
+                nationality: userProfile?.nationality,
                 country: userProfile?.country,
+                language: userProfile?.language,
                 is_korean: userProfile?.is_korean,
-                email: user?.email
+                email: user?.email,
+                profileData: userProfile
               })
+              
+              // 디버깅: isKorean 상태 변경 추적
+              console.log('[VERIFICATION] isKorean 상태 변경:', {
+                from: '기존값',
+                to: finalIsKorean,
+                reason: '프로필 기반 판단',
+                alreadyDetermined: isKoreanDetermined
+              })
+              
+              // 이미 결정되지 않은 경우에만 설정
+              if (!isKoreanDetermined) {
+                setIsKorean(finalIsKorean)
+                setIsKoreanDetermined(true)
+              }
             } else if (profileResponse.status === 404) {
-              // 프로필이 설정되지 않은 경우 - 이메일로 사용자 타입 추정
+              // 프로필이 설정되지 않은 경우 - 기본값(한국인) 사용
               const errorData = await profileResponse.json()
               if (errorData.needsVerification) {
-                // 이메일 도메인으로 사용자 타입 추정
-                const email = user?.email || ''
-                const isKoreanEmail = email.includes('.kr') || 
-                                    email.includes('naver.com') || 
-                                    email.includes('daum.net') || 
-                                    email.includes('gmail.com') // 한국인도 많이 사용하지만 기본값
-                
-                // 스페인어/멕시코 도메인 체크
-                const isLocalEmail = email.includes('.mx') || 
-                                   email.includes('gmail.com') // 멕시코에서도 많이 사용
-                
-                // 기본값을 현지인으로 설정 (멕시코 사용자)
-                const defaultIsKorean = false
-                
-                setIsKorean(defaultIsKorean)
-                console.log('[VERIFICATION] 프로필 미설정, 이메일 기반 추정:', { 
-                  email, 
-                  isKorean: defaultIsKorean,
-                  isKoreanEmail,
-                  isLocalEmail
+                console.log('[VERIFICATION] 프로필 미설정, 기본값(한국인) 사용:', { 
+                  email: user?.email,
+                  reason: '프로필 미설정 - 기본값 사용'
                 })
+                
+                // 디버깅: isKorean 상태 변경 추적
+                console.log('[VERIFICATION] isKorean 상태 변경:', {
+                  from: '기존값',
+                  to: true,
+                  reason: '프로필 미설정 - 기본값 사용',
+                  alreadyDetermined: isKoreanDetermined
+                })
+                
+                // 이미 결정되지 않은 경우에만 설정
+                if (!isKoreanDetermined) {
+                  setIsKorean(true) // 기본값: 한국인
+                  setIsKoreanDetermined(true)
+                }
               }
             }
           }
         } catch (profileError) {
           console.log('[VERIFICATION] 프로필 확인 실패, 기본값 사용:', profileError)
-          // 프로필 확인 실패 시 기본값 사용 (현지인으로 가정 - 멕시코 사용자)
-          setIsKorean(false)
+          // 프로필 확인 실패 시 기본값 사용 (한국인으로 가정)
+          
+          // 디버깅: isKorean 상태 변경 추적
+          console.log('[VERIFICATION] isKorean 상태 변경:', {
+            from: '기존값',
+            to: true,
+            reason: '프로필 확인 실패 - 기본값 사용',
+            alreadyDetermined: isKoreanDetermined
+          })
+          
+          // 이미 결정되지 않은 경우에만 설정
+          if (!isKoreanDetermined) {
+            setIsKorean(true)
+            setIsKoreanDetermined(true)
+          }
         }
       } catch (error) {
         console.error('사용자 상태 확인 오류:', error)
@@ -308,8 +368,10 @@ export default function VerificationCenterPage() {
     try {
       const dataToSubmit = {
         ...formData,
-        is_korean: true, // 한국 사용자로 고정
-        language: 'ko' // 한국어로 고정
+        is_korean: isKorean, // 실제 한국인 여부 사용
+        language: isKorean ? 'ko' : 'es', // 한국인이면 한국어, 아니면 스페인어
+        is_verified: true, // 인증 완료 상태
+        verification_completed: true // 인증 완료 플래그
       }
 
       // 토큰 확인 및 갱신
@@ -389,7 +451,7 @@ export default function VerificationCenterPage() {
         console.log('[VERIFICATION] 프로필 생성 완료 - 인증 상태는 자동으로 업데이트됩니다')
         
         // 성공 메시지 표시 후 메인 페이지로 이동
-        alert('인증이 완료되었습니다!')
+        alert(isKorean ? '인증이 완료되었습니다!' : '¡Verificación completada!')
         router.push('/main?tab=me')
       } else {
         const errorData = await response.json()
@@ -408,7 +470,7 @@ export default function VerificationCenterPage() {
       }
     } catch (error) {
       console.error('프로필 생성 오류:', error)
-      alert('인증 중 오류가 발생했습니다. 다시 시도해주세요.')
+      alert(isKorean ? '인증 중 오류가 발생했습니다. 다시 시도해주세요.' : 'Error durante la verificación. Inténtalo de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -428,8 +490,12 @@ export default function VerificationCenterPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('verification.title')}</h1>
-              <p className="text-gray-600 dark:text-gray-300">{t('verification.subtitle')}</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {isKorean ? '상세 인증' : 'Verificación detallada'}
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300">
+                {isKorean ? '더 많은 기능을 이용하기 위해 추가 정보를 입력해주세요.' : 'Por favor, ingrese información adicional para utilizar más funciones.'}
+              </p>
             </div>
           </div>
           

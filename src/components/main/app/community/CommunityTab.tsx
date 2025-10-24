@@ -38,6 +38,8 @@ import {
 } from 'lucide-react'
 import CommunityMain from './CommunityMain'
 import NewsDetail from './NewsDetail'
+import CommunityCard from './CommunityCard'
+import { communityItems } from './communityItems'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
@@ -363,6 +365,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       )
       
       console.log('필터링된 퀴즈:', filteredQuizzes.length, '개 (전체:', allQuizzes.length, '개)')
+      console.log('퀴즈 목록:', filteredQuizzes.map(q => ({ id: q.id, title: q.title })))
       setQuizzes(filteredQuizzes)
     } catch (error) {
       console.error('퀴즈 목록 불러오기 실패:', error)
@@ -373,14 +376,13 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     }
   }
 
-  const handleQuizClick = (quizId: string) => {
-    console.log('퀴즈 클릭:', quizId)
-    // 임베디드 퀴즈인 경우 특별 페이지로 이동
-    if (quizId.startsWith('sample-mbti') || quizId.startsWith('embedded-mbti')) {
-      router.push('/quiz/sample-mbti')
-    } else {
-      router.push(`/quiz/${quizId}`)
-    }
+  const handleQuizClick = (quiz: Quiz) => {
+    console.log('퀴즈 클릭:', quiz.title, 'slug:', quiz.slug)
+    
+    // slug 우선 라우팅
+    const href = quiz?.slug ? `/quiz/${quiz.slug}` : `/quiz/${quiz.id}`;
+    console.log('라우팅할 경로:', href);
+    router.push(href);
   }
   
   // 이미지 업로드 함수
@@ -2142,96 +2144,36 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 스토리 섹션 제거됨 - 이제 아이콘으로 대체 */}
 
-      {/* 커뮤니티 홈 메뉴 - 제목과 5개 아이콘 */}
+      {/* 커뮤니티 홈 메뉴 - Nuevo diseño con 6 íconos (2×3) */}
       {currentView === 'home' && (
             <div className="w-full">
-               {/* 제목 섹션 */}
-               <div className="text-center mb-4">
+               {/* Encabezado de sección */}
+               <div className="text-center mb-6">
                  <div className="flex justify-center mb-3">
-                   <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
-                     <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                   <div className="w-4 h-4 bg-gray-800 dark:bg-gray-100 rounded-full flex items-center justify-center">
+                     <div className="w-1.5 h-1.5 bg-white dark:bg-gray-800 rounded-full"></div>
                    </div>
                  </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 font-['Inter']">{t('mainPage.title')}</h2>
-                <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
-        </div>
+                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 font-['Inter']">
+                   COMUNIDAD
+                 </h2>
+                 <p className="text-xs text-[#6B7280] dark:text-gray-400 mb-3">
+                   Explora la cultura coreana y conecta con la comunidad
+                 </p>
+                 <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
+               </div>
         
-                 {/* 5개 아이콘 - 2-2-1 배치 */}
-                 <div className="w-full grid grid-cols-2 gap-1 md:gap-3 px-2 mb-0 max-w-md mx-auto">
-                   {/* 주제별 게시판 */}
-                   <button
-                     onClick={() => handleNavigation('/community/freeboard')}
-                     disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                     }`}
-                   >
-                    <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 md:mb-2 overflow-hidden">
-                      <img src="/topic-board.png" alt="주제별 게시판" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
-                    </div>
-                    <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.freeBoard')}</h3>
-                   </button>
-
-                   {/* K-매거진 */}
-                   <button
-                     onClick={() => handleNavigation('/community/news')}
-                     disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                     }`}
-                   >
-                     <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                       <img src="/k-magazine.png" alt="K-매거진" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
-                     </div>
-                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.koreanNews')}</h3>
-                   </button>
-                   
-                   {/* Q&A */}
-                   <button
-                     onClick={() => handleNavigation('/community/qa')}
-                     disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                     }`}
-                   >
-                     <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                       <img src="/qa.png" alt="Q&A" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
-                     </div>
-                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.qa')}</h3>
-                   </button>
-                   
-                   {/* 심리테스트 */}
-                   <button
-                     onClick={() => handleNavigation('/community/tests')}
-                     disabled={isNavigating}
-                     className={`flex flex-col items-center p-2 md:p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                     }`}
-                   >
-                     <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                       <img src="/psychology-test.png" alt="심리테스트" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
-                     </div>
-                     <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('tests.title')}</h3>
-                   </button>
-
-                   {/* 스토리 - 세 번째 줄 중앙 정렬 */}
-                   <div className="col-span-2 flex justify-center">
-                   <button
-                     onClick={() => handleNavigation('/community/stories')}
-                     disabled={isNavigating}
-                       className={`flex flex-col items-center p-3 transition-all duration-300 hover:scale-105 group flex-shrink-0 overflow-visible ${
-                       isNavigating ? 'opacity-70 cursor-not-allowed' : ''
-                     }`}
-                   >
-                       <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-1 md:mb-2 overflow-hidden">
-                         <img src="/story.png" alt="스토리" className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 object-contain" loading="eager" decoding="async" />
-                     </div>
-                       <h3 className="font-medium text-gray-700 dark:text-gray-300 text-center leading-tight text-xs md:text-sm lg:text-base h-8 flex items-center justify-center">{t('community.story')}</h3>
-                   </button>
-                 </div>
-                           </div>
-
-
+               {/* Grid 2×3 - Mobile first design */}
+               <div className="w-full grid grid-cols-2 gap-x-3 gap-y-4 md:gap-5 px-4 py-6 max-w-md md:max-w-xl mx-auto">
+                 {communityItems.map((item) => (
+                   <CommunityCard
+                     key={item.id}
+                     item={item}
+                     isNavigating={isNavigating}
+                     onNavigate={handleNavigation}
+                   />
+                 ))}
+               </div>
             </div>
       )}
 
@@ -3769,10 +3711,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* Tests 탭 */}
       {currentView === 'tests' && (
-        <div className="w-full max-w-none bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-4 md:p-6">
+        <div className="w-full max-w-none bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600">
           <div className="space-y-6 w-full">
             {/* 카테고리 필터 및 버튼들 */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 px-4 md:px-6 pt-4 md:pt-6">
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1">
                 {[
                   { id: 'all', name: t('tests.categories.all') },
@@ -3862,6 +3804,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             </div>
 
             {/* 퀴즈 목록 */}
+            <div className="px-4 md:px-6 pb-4 md:pb-6">
             {quizzesLoading ? (
               // 로딩 상태
               <div className="space-y-4">
@@ -3883,64 +3826,52 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                 </div>
               </div>
             ) : (
-              // 퀴즈 카드 목록
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 w-full">
-                {quizzes.map((quiz) => {
+              // 퀴즈 카드 목록 - 1줄에 2개씩
+              <div className="grid grid-cols-2 gap-3 w-full">
+                {quizzes.map((quiz, index) => {
                   const config = categoryConfig[quiz.category] || categoryConfig.fun
                   
                   return (
                     <div
                       key={quiz.id}
-                      className="bg-white dark:bg-gray-700 rounded-2xl p-6 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500"
-                      onClick={() => handleQuizClick(quiz.id)}
+                      className="bg-white rounded-lg overflow-hidden hover:bg-gray-50 transition-colors cursor-pointer border border-gray-100"
+                      onClick={() => handleQuizClick(quiz)}
                     >
-                      {/* 카테고리 배지 */}
-                      <div className="flex items-center justify-between mb-4">
-                        <Badge className={`${config.bgColor} ${config.color} border-0`}>
-                          <span className="mr-1">{config.icon}</span>
-                          {t(`tests.categories.${quiz.category}`)}
-                        </Badge>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-                      </div>
-
-                      {/* 제목 */}
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                        {quiz.title}
-                      </h3>
-
-                      {/* 설명 */}
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {quiz.description}
-                      </p>
-
-                      {/* 정보 */}
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Sparkles className="w-4 h-4" />
-                          <span>{quiz.total_questions} {t('tests.questions')}</span>
+                      {/* 모바일: 세로 레이아웃, 데스크톱: 가로 레이아웃 */}
+                      <div className="flex flex-col md:flex-row">
+                        {/* 썸네일 이미지 */}
+                        <div className="w-full md:w-96 h-32 md:h-56 overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                          {quiz.thumbnail_url ? (
+                            <img 
+                              src={quiz.thumbnail_url} 
+                              alt={quiz.title} 
+                              className="max-w-full max-h-full object-contain"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className={`w-full h-full ${config.bgColor} flex items-center justify-center`}>
+                              <span className="text-lg">{config.icon}</span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span>{Math.ceil(quiz.total_questions * 0.5)} {t('tests.minutes')}</span>
+                        
+                        {/* 제목과 이용수 */}
+                        <div className="w-full p-3 text-center md:text-left flex flex-col justify-center">
+                          <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 leading-tight">
+                            {quiz.title}
+                          </h3>
+                          <div className="flex items-center justify-center md:justify-start gap-1 text-xs text-gray-500">
+                            <span>▷</span>
+                            <span>{quiz.total_participants.toLocaleString()}만</span>
+                          </div>
                         </div>
                       </div>
-
-                      {/* 시작 버튼 */}
-                      <Button 
-                        className="w-full mt-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleQuizClick(quiz.id)
-                        }}
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        {t('tests.startButton')}
-                      </Button>
                     </div>
                   )
                 })}
               </div>
             )}
+            </div>
           </div>
         </div>
       )}

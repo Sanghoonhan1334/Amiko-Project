@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
-import { createClientComponentClient } from '@/lib/supabase'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { useLanguage } from '@/context/LanguageContext'
 
 function ResetPasswordForm() {
@@ -28,7 +28,7 @@ function ResetPasswordForm() {
   })
 
   // Supabase 클라이언트 생성
-  const supabase = createClientComponentClient()
+  const supabase = createSupabaseBrowserClient()
 
   // Supabase 비밀번호 재설정은 자동으로 세션을 설정하므로 별도 처리 불필요
   useEffect(() => {

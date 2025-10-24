@@ -800,6 +800,17 @@ export const translations = {
         popular: '인기글',
         latest: '최신글'
       },
+      labels: {
+        sort: '정렬:',
+        topic: '주제:'
+      },
+      notice: '공지사항',
+          translate: '번역',
+          translating: '번역 중...',
+          showOriginal: '원본 보기',
+          translateSelect: '번역 선택',
+          translateKoToEs: '한국어 → 스페인어',
+          translateEsToKo: '스페인어 → 한국어',
       searchPlaceholder: '갤러리 & 통합검색',
       noPosts: '게시물이 없습니다',
       beFirstToWrite: '첫 번째 게시글을 작성해보세요!',
@@ -1836,7 +1847,8 @@ export const translations = {
       retry: '다시 시도',
       uploadedPhotos: '업로드된 사진',
       profilePhoto: '프로필 사진',
-      addProfilePhoto: '프로필 사진 추가',
+      addProfilePhoto: '프로필 사진을 추가해주세요',
+      photoUpload: '클릭하여 업로드',
       photoSelectionTip: '사진을 클릭하여 대표 사진으로 설정하세요',
       korean: '한국인',
       local: '현지인',
@@ -3084,7 +3096,7 @@ export const translations = {
     // 커뮤니티 섹션
     community: {
       story: 'Historia',
-      qa: 'P&R',
+      qa: 'Pregunta y Respuesta',
       freeBoard: 'Tablero por Temas',
       koreanNews: 'K-Magazine',
       newsDetail: 'Detalle de Noticias',
@@ -3150,12 +3162,23 @@ export const translations = {
         korean: 'Coreano',
         spanish: 'Español'
       },
-      tabs: {
-        recommended: 'Recomendado',
-        all: 'Todos',
-        popular: 'Popular',
-        latest: 'Reciente'
-      },
+        tabs: {
+          recommended: 'Recomendado',
+          all: 'Todos',
+          popular: 'Popular',
+          latest: 'Reciente'
+        },
+        labels: {
+          sort: 'Ordenar:',
+          topic: 'Tema:'
+        },
+        notice: 'Anuncio',
+          translate: 'Traducir',
+          translating: 'Traduciendo...',
+          showOriginal: 'Ver Original',
+          translateSelect: 'Traducción',
+          translateKoToEs: 'Coreano → Español',
+          translateEsToKo: 'Español → Coreano',
       searchPlaceholder: 'Galería & Búsqueda Integrada',
       noPosts: 'No hay publicaciones disponibles',
       beFirstToWrite: '¡Sé el primero en escribir una publicación!',
@@ -3915,6 +3938,7 @@ export const translations = {
         all: 'Todo',
         fortune: 'Fortuna/Horóscopo',
         psychology: 'Psicología/Personalidad',
+        personality: 'Personalidad',
         meme: 'Memes/Humor',
         culture: 'Cultura/Vida'
       },
@@ -4175,7 +4199,8 @@ export const translations = {
       retry: 'Reintentar',
       uploadedPhotos: 'Fotos subidas',
       profilePhoto: 'Foto de perfil',
-      addProfilePhoto: 'Agregar foto de perfil',
+      addProfilePhoto: 'Por favor agrega una foto de perfil',
+      photoUpload: 'Haz clic para subir',
       photoSelectionTip: 'Haz clic en una foto para establecerla como foto principal',
       korean: 'Coreano',
       local: 'Local',

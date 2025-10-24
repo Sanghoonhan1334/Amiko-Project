@@ -46,20 +46,20 @@ export default function MBTICelebTestPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<TestResult | null>(null)
   
-  // MBTI 테스트 질문 데이터 (12개 질문 - 각 차원당 3개씩 선별)
+  // MBTI 테스트 질문 데이터 (12개 질문 - 스페인어)
   const questions = [
-    { id: 1, question: t('tests.mbti.questions.q1'), options: [t('tests.mbti.questions.q1a'), t('tests.mbti.questions.q1b')], dimension: "EI" },
-    { id: 2, question: t('tests.mbti.questions.q2'), options: [t('tests.mbti.questions.q2a'), t('tests.mbti.questions.q2b')], dimension: "SN" },
-    { id: 3, question: t('tests.mbti.questions.q3'), options: [t('tests.mbti.questions.q3a'), t('tests.mbti.questions.q3b')], dimension: "TF" },
-    { id: 4, question: t('tests.mbti.questions.q4'), options: [t('tests.mbti.questions.q4a'), t('tests.mbti.questions.q4b')], dimension: "JP" },
-    { id: 5, question: t('tests.mbti.questions.q5'), options: [t('tests.mbti.questions.q5a'), t('tests.mbti.questions.q5b')], dimension: "EI" },
-    { id: 6, question: t('tests.mbti.questions.q6'), options: [t('tests.mbti.questions.q6a'), t('tests.mbti.questions.q6b')], dimension: "SN" },
-    { id: 7, question: t('tests.mbti.questions.q7'), options: [t('tests.mbti.questions.q7a'), t('tests.mbti.questions.q7b')], dimension: "TF" },
-    { id: 8, question: t('tests.mbti.questions.q8'), options: [t('tests.mbti.questions.q8a'), t('tests.mbti.questions.q8b')], dimension: "JP" },
-    { id: 9, question: t('tests.mbti.questions.q9'), options: [t('tests.mbti.questions.q9a'), t('tests.mbti.questions.q9b')], dimension: "EI" },
-    { id: 10, question: t('tests.mbti.questions.q10'), options: [t('tests.mbti.questions.q10a'), t('tests.mbti.questions.q10b')], dimension: "SN" },
-    { id: 11, question: t('tests.mbti.questions.q11'), options: [t('tests.mbti.questions.q11a'), t('tests.mbti.questions.q11b')], dimension: "TF" },
-    { id: 12, question: t('tests.mbti.questions.q12'), options: [t('tests.mbti.questions.q12a'), t('tests.mbti.questions.q12b')], dimension: "JP" }
+    { id: 1, question: 'En una fiesta con gente nueva...', options: ['Converso con muchas personas y obtengo energía', 'Tengo conversaciones profundas con pocas personas cercanas'], dimension: "EI" },
+    { id: 2, question: 'Al resolver problemas...', options: ['Me acerco basándome en experiencia y hechos reales', 'Exploro nuevas ideas y posibilidades'], dimension: "SN" },
+    { id: 3, question: 'Al tomar decisiones importantes...', options: ['Priorizo el análisis lógico y criterios objetivos', 'Considero el impacto emocional y los valores'], dimension: "TF" },
+    { id: 4, question: 'En mi estilo de vida...', options: ['Prefiero planificar y tener estructura', 'Me adapto flexiblemente a las circunstancias'], dimension: "JP" },
+    { id: 5, question: 'Cuando estoy estresado...', options: ['Busco compañía y hablo con otros', 'Necesito tiempo a solas para procesar'], dimension: "EI" },
+    { id: 6, question: 'Al aprender algo nuevo...', options: ['Prefiero métodos probados y prácticos', 'Disfruto explorando teorías y conceptos'], dimension: "SN" },
+    { id: 7, question: 'En situaciones de conflicto...', options: ['Analizo los hechos y busco la verdad', 'Me enfoco en mantener la armonía'], dimension: "TF" },
+    { id: 8, question: 'En proyectos de trabajo...', options: ['Me gusta completar todo antes de empezar algo nuevo', 'Prefiero tener múltiples proyectos en progreso'], dimension: "JP" },
+    { id: 9, question: 'En reuniones sociales...', options: ['Soy el centro de atención y hablo mucho', 'Escucho más de lo que hablo'], dimension: "EI" },
+    { id: 10, question: 'Cuando leo un libro...', options: ['Me enfoco en los detalles y hechos específicos', 'Me interesan las ideas generales y el significado'], dimension: "SN" },
+    { id: 11, question: 'Al dar consejos...', options: ['Soy directo y objetivo', 'Considero los sentimientos de la persona'], dimension: "TF" },
+    { id: 12, question: 'En mis vacaciones...', options: ['Planifico actividades específicas con anticipación', 'Prefiero improvisar y ser espontáneo'], dimension: "JP" }
   ]
 
   const handleAnswerSelect = (answerIndex: number) => {
@@ -120,11 +120,11 @@ export default function MBTICelebTestPage() {
       if (data.success) {
         setResult(data.data)
       } else {
-        toast.error(data.error || '결과를 불러오는데 실패했습니다.')
+        toast.error(data.error || 'Error al cargar los resultados.')
       }
     } catch (error) {
       console.error('테스트 결과 오류:', error)
-      toast.error('테스트 처리 중 오류가 발생했습니다.')
+      toast.error('Error al procesar el test.')
     } finally {
       setIsLoading(false)
     }
@@ -164,10 +164,10 @@ export default function MBTICelebTestPage() {
             </Button>
             <div>
               <h1 className="text-lg font-bold text-gray-800">
-                {t('tests.mbti.title')}
+                Test de MBTI × Celebridades
               </h1>
               <p className="text-xs text-gray-600">
-                {t('tests.mbti.description')}
+                ¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!
               </p>
             </div>
           </div>
@@ -175,7 +175,7 @@ export default function MBTICelebTestPage() {
           {/* 진행률 */}
           <div className="mb-6">
             <div className="flex justify-between text-xs text-gray-600 mb-2">
-              <span>{t('tests.question')} {currentQuestion + 1} / {questions.length}</span>
+              <span>Pregunta {currentQuestion + 1} / {questions.length}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2 transition-all duration-500 ease-out" />
@@ -218,7 +218,7 @@ export default function MBTICelebTestPage() {
                 disabled={currentQuestion === 0 || isTransitioning}
                 className="px-2 text-xs"
               >
-                {t('tests.mbti.navigation.previous')}
+                Anterior
               </Button>
               
               <Button
@@ -227,8 +227,8 @@ export default function MBTICelebTestPage() {
                 className="px-2 bg-purple-500 hover:bg-purple-600 text-white disabled:text-gray-400 text-xs"
               >
                 {currentQuestion === questions.length - 1 
-                  ? t('tests.mbti.navigation.seeResult')
-                  : t('tests.mbti.navigation.next')
+                  ? 'Ver Resultado'
+                  : 'Siguiente'
                 }
               </Button>
             </div>
@@ -239,7 +239,7 @@ export default function MBTICelebTestPage() {
             <Card className="p-6 bg-white shadow-lg">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                <p className="text-gray-600">{language === 'ko' ? '결과를 분석하고 있어요...' : 'Analizando resultados...'}</p>
+                <p className="text-gray-600">Analizando resultados...</p>
               </div>
             </Card>
           )}
@@ -256,15 +256,15 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
     <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       <Header />
       
-      <div className="pt-24 pb-8 px-2">
+      <div className="pt-32 pb-8 px-2">
         <div className="max-w-4xl mx-auto px-2">
           {/* 결과 헤더 */}
           <div className="text-center mb-6">
             <h1 className="text-xl font-bold text-gray-800 mb-2">
-              {language === 'ko' ? `당신의 유형은 ${result.mbti}입니다!` : `¡Tu tipo es ${result.mbti}!`}
+              ¡Tu tipo es {result.mbti}!
             </h1>
             <p className="text-sm text-gray-600">
-              {language === 'ko' ? '나와 같은 MBTI 유형의 셀럽과 궁합이 좋은 유형을 찾아보세요!' : '¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!'}
+              ¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!
             </p>
           </div>
 
@@ -272,7 +272,7 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
           <div className="mb-6">
             <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
               <Star className="w-4 h-4 text-yellow-500" />
-              {language === 'ko' ? '나와 같은 유형의 셀럽' : 'Celebridades de mi tipo'}
+              Celebridades de mi tipo
             </h2>
             <div className="grid md:grid-cols-2 gap-3">
               {result.myType.male && (
@@ -289,11 +289,11 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <Heart className="w-4 h-4 text-red-500" />
-                {language === 'ko' ? `나와 잘 맞는 유형: ${result.bestMatchMbti}` : `Tipo compatible: ${result.bestMatchMbti}`}
+                Tipo compatible: {result.bestMatchMbti}
               </h2>
               {result.compatibility && (
                 <p className="text-sm text-gray-600 mb-3 p-2 bg-blue-50 rounded-lg">
-                  {language === 'ko' ? result.compatibility.note_ko : result.compatibility.note_es}
+                  {result.compatibility.note_es}
                 </p>
               )}
               <div className="grid md:grid-cols-2 gap-3">
@@ -310,7 +310,7 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
           {/* 주의사항 */}
           <Card className="p-3 bg-yellow-50 border-yellow-200">
             <p className="text-xs text-yellow-800">
-              ⚠️ {language === 'ko' ? '엔터테인먼트용 비공식 매칭이며, MBTI·셀럽 정보는 시점/출처에 따라 달라질 수 있어요.' : 'Emparejamiento no oficial para entretenimiento. La información de MBTI y celebridades puede variar según el momento y la fuente.'}
+              ⚠️ Emparejamiento no oficial para entretenimiento. La información de MBTI y celebridades puede variar según el momento y la fuente.
             </p>
           </Card>
 
@@ -320,7 +320,7 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
               onClick={onRestart}
               className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 text-sm"
             >
-              {language === 'ko' ? '다시 테스트하기' : 'Hacer test de nuevo'}
+              Hacer test de nuevo
             </Button>
           </div>
         </div>
@@ -364,7 +364,7 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
                   {selectedCeleb.mbti_code}
                 </span>
                 <span className="text-sm text-gray-500">
-                  {selectedCeleb.gender === 'male' ? (language === 'ko' ? '남성' : 'Hombre') : (language === 'ko' ? '여성' : 'Mujer')}
+                  {selectedCeleb.gender === 'male' ? 'Hombre' : 'Mujer'}
                 </span>
               </div>
             </div>
@@ -406,7 +406,7 @@ function CelebCard({ celeb, language, onClick }: { celeb: any, language: string,
               {celeb.mbti_code}
             </span>
             <span className="text-xs text-gray-500">
-              {celeb.gender === 'male' ? (language === 'ko' ? '남성' : 'Hombre') : (language === 'ko' ? '여성' : 'Mujer')}
+              {celeb.gender === 'male' ? 'Hombre' : 'Mujer'}
             </span>
           </div>
         </div>

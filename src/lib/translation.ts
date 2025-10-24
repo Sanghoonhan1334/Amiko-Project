@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 
 // 번역 서비스 타입
-type TranslationProvider = 'openai' | 'google' | 'mock'
+type TranslationProvider = 'openai' | 'google' | 'mock' | 'libretranslate'
 
 // 번역 서비스 래퍼
 export class TranslationService {
@@ -51,6 +51,9 @@ export class TranslationService {
           break
         case 'google':
           translated = await this.callGoogleTranslate(text, targetLang, sourceLang)
+          break
+        case 'libretranslate':
+          translated = await this.callLibreTranslate(text, targetLang, sourceLang)
           break
         case 'mock':
           translated = await this.callMockTranslation(text, targetLang, sourceLang)
@@ -130,6 +133,38 @@ export class TranslationService {
 
     const data = await response.json()
     return data.data.translations[0].translatedText
+  }
+
+  // LibreTranslate API 호출 (무료) - API 라우트를 통해 호출
+  private async callLibreTranslate(text: string, targetLang: 'ko' | 'es', sourceLang?: 'ko' | 'es'): Promise<string> {
+    try {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          targetLang: targetLang,
+          sourceLang: sourceLang
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`번역 API 오류: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (!data.success) {
+        throw new Error(data.error || '번역 실패')
+      }
+
+      return data.translatedText
+    } catch (error) {
+      console.error('[TRANSLATION] LibreTranslate API 호출 실패:', error)
+      throw error
+    }
   }
 
   // Mock 번역 (개발/테스트용)

@@ -131,6 +131,7 @@ export default function QuizResultPage() {
   const mbtiType = searchParams.get('mbti')
 
   useEffect(() => {
+
     if (quizId && mbtiType) {
       loadResult()
     }

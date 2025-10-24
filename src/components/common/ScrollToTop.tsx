@@ -41,7 +41,7 @@ export default function ScrollToTop() {
   }
 
   return (
-    <div className="fixed bottom-44 right-4 z-50 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
+    <div className="fixed bottom-44 right-4 z-50 md:bottom-32 md:right-6 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
       <Button
         onClick={scrollToTop}
         className="w-11 h-11 rounded-full bg-gray-800 hover:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"

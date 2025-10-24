@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 interface AuthContextType {
   user: User | null
@@ -57,37 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // 환경 변수가 설정된 경우에만 Supabase 클라이언트 생성
       if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        const client = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-          {
-            auth: {
-              persistSession: true,
-              autoRefreshToken: true,
-              detectSessionInUrl: true,
-              storage: {
-                getItem: (key) => {
-                  if (typeof window !== 'undefined') {
-                    return localStorage.getItem(key)
-                  }
-                  return null
-                },
-                setItem: (key, value) => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.setItem(key, value)
-                  }
-                },
-                removeItem: (key) => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem(key)
-                  }
-                }
-              }
-            }
-          }
-        )
+        const client = createSupabaseBrowserClient()
         setSupabase(client as any)
-        console.log('[AUTH] Supabase 클라이언트 생성 완료')
+        console.log('[AUTH] Supabase 클라이언트 생성 완료 (쿠키 지원)')
       } else {
         console.log('[AUTH] Supabase 환경 변수가 설정되지 않았습니다. 인증 기능이 비활성화됩니다.')
         setSupabase(null)

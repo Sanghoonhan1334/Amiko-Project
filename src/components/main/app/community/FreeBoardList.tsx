@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@/lib/supabase'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { toast } from 'sonner'
+import { TranslationService } from '@/lib/translation'
 import { 
   MessageSquare, 
   ThumbsUp, 
@@ -24,7 +25,8 @@ import {
   TrendingUp,
   Star,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Globe
 } from 'lucide-react'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -61,6 +63,14 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const { language, t } = useLanguage()
   const router = useRouter()
   
+  // 번역 서비스 초기화
+  const translationService = TranslationService.getInstance()
+  
+  // LibreTranslate 무료 번역 서비스 설정
+  useEffect(() => {
+    translationService.setProvider('libretranslate')
+  }, [])
+  
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -73,7 +83,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [hasMobileNavigation, setHasMobileNavigation] = useState(false)
   const [selectedBoard, setSelectedBoard] = useState(language === 'es' ? 'Todos' : '전체')
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState('recommended')
+  const [activeTab, setActiveTab] = useState('all')
   const [isFabExpanded, setIsFabExpanded] = useState(false)
   const [showPostModal, setShowPostModal] = useState(false)
   const [postTitle, setPostTitle] = useState('')
@@ -92,6 +102,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [uploadingImages, setUploadingImages] = useState(false)
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [isSubmittingPost, setIsSubmittingPost] = useState(false)
+  
+  // 번역 상태 관리
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translatedPosts, setTranslatedPosts] = useState<Post[]>([])
+  const [translationMode, setTranslationMode] = useState<'none' | 'ko-to-es' | 'es-to-ko'>('none')
   
   // 운영자 권한 체크
   const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
@@ -114,6 +129,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     { id: 'korean', name: language === 'es' ? 'Foro de Coreano' : '한국어', icon: '' },
     { id: 'spanish', name: language === 'es' ? 'Foro de Español' : '스페인어', icon: '' }
   ]
+
+  // 언어 변경 시 기본값 업데이트
+  useEffect(() => {
+    setSelectedBoard(language === 'es' ? 'Todos' : '전체')
+  }, [language])
 
   // 모바일 네비게이션 감지
   useEffect(() => {
@@ -169,7 +189,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const requestData = {
         title: announcementTitle,
         content: announcementContent,
-        category: '공지사항',
+        category: '', // 공지사항은 빈칸으로 설정
         is_notice: true,
         is_pinned: true,
         images: announcementImages
@@ -228,7 +248,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       formData.append('folder', 'announcements')
 
       // Supabase 클라이언트 생성
-      const supabase = createClientComponentClient()
+      const supabase = createSupabaseBrowserClient()
       
       // 세션에서 토큰 가져오기
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -291,6 +311,63 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   // 공지사항 이미지 삭제 핸들러
   const handleAnnouncementImageRemove = (index: number) => {
     setAnnouncementImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // 번역 함수들
+  const handleTranslateToSpanish = async () => {
+    if (isTranslating) return
+    await performTranslation('ko', 'es')
+  }
+
+  const handleTranslateToKorean = async () => {
+    if (isTranslating) return
+    await performTranslation('es', 'ko')
+  }
+
+  const performTranslation = async (sourceLang: 'ko' | 'es', targetLang: 'ko' | 'es') => {
+    setIsTranslating(true)
+    try {
+      const postsToTranslate = posts
+
+      const translatedPostsData = await Promise.all(
+        postsToTranslate.map(async (post) => {
+          try {
+            const [translatedTitle, translatedContent] = await Promise.all([
+              translationService.translate(post.title, targetLang, sourceLang),
+              translationService.translate(post.content, targetLang, sourceLang)
+            ])
+
+            return {
+              ...post,
+              translatedTitle,
+              translatedContent
+            }
+          } catch (error) {
+            console.error('번역 실패:', error)
+            // 번역 실패 시 원본 텍스트 반환
+            return {
+              ...post,
+              translatedTitle: post.title,
+              translatedContent: post.content
+            }
+          }
+        })
+      )
+
+      setTranslatedPosts(translatedPostsData)
+      setTranslationMode(sourceLang === 'ko' ? 'ko-to-es' : 'es-to-ko')
+      toast.success('번역이 완료되었습니다.')
+    } catch (error) {
+      console.error('번역 오류:', error)
+      toast.error('번역 중 오류가 발생했습니다.')
+    } finally {
+      setIsTranslating(false)
+    }
+  }
+
+  // 원본으로 돌아가기
+  const handleShowOriginal = () => {
+    setTranslationMode('none')
   }
 
   // 검색 핸들러
@@ -738,21 +815,75 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 {t('buttons.back')}
               </Button>
               
-              {/* 데스크톱: 일렬로 나열된 게시판 탭, 모바일: 드롭다운 */}
-              <div className="hidden md:flex items-center gap-1 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                {boardOptions.map((board) => (
-                  <button
-                    key={board.id}
-                    onClick={() => handleBoardChange(board.name)}
-                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200 rounded-lg flex-shrink-0 ${
-                      selectedBoard === board.name
-                        ? 'bg-blue-500 text-white shadow-sm'
-                        : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 hover:shadow-sm'
-                    }`}
+              {/* 웹용 정렬 드롭다운 - 카테고리 탭 왼쪽 */}
+              <div className="hidden md:flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('community.labels.sort')}</span>
+                <Select value={activeTab} onValueChange={handleTabChange}>
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('community.tabs.all')}</SelectItem>
+                    <SelectItem value="recommended">{t('community.tabs.recommended')}</SelectItem>
+                    <SelectItem value="popular">{t('community.tabs.popular')}</SelectItem>
+                    <SelectItem value="latest">{t('community.tabs.latest')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 웹용 카테고리 드롭다운 */}
+              <div className="hidden md:flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('community.labels.topic')}</span>
+                <Select value={selectedBoard} onValueChange={handleBoardChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {boardOptions.map((board) => (
+                      <SelectItem key={board.id} value={board.name}>
+                        <span>{board.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 번역 드롭다운 */}
+              <div className="hidden md:flex items-center">
+                {translationMode === 'none' ? (
+                  <Select onValueChange={(value) => {
+                    if (value === 'ko-to-es') {
+                      handleTranslateToSpanish()
+                    } else if (value === 'es-to-ko') {
+                      handleTranslateToKorean()
+                    }
+                  }}>
+                    <SelectTrigger className="w-40 text-xs">
+                      <div className="flex items-center gap-1">
+                        <Globe className="w-3 h-3" />
+                        <SelectValue placeholder={t('community.translateSelect')} />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ko-to-es" disabled={isTranslating}>
+                        {t('community.translateKoToEs')}
+                      </SelectItem>
+                      <SelectItem value="es-to-ko" disabled={isTranslating}>
+                        {t('community.translateEsToKo')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Button
+                    onClick={handleShowOriginal}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs flex items-center gap-1"
                   >
-                    {board.name}
-                  </button>
-                ))}
+                    <ArrowLeft className="w-3 h-3" />
+                    {t('community.showOriginal')}
+                  </Button>
+                )}
               </div>
               
               {/* 모바일: 드롭다운 */}
@@ -812,6 +943,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {/* 정렬 드롭다운 */}
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="w-24">
                       <SelectValue />
@@ -905,9 +1037,13 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                           <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">추천</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-yellow-50 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {sortedPosts.map((post, index) => (
-                          <tr key={post.id} className="bg-yellow-50 hover:bg-yellow-100 dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer" onClick={() => {
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {(translationMode !== 'none' ? translatedPosts : sortedPosts).map((post, index) => (
+                          <tr key={post.id} className={`${
+                            post.author_name === '운영자' || post.author_name === 'Admin' || post.author_name === 'Administrator'
+                              ? 'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30'
+                              : 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700'
+                          } cursor-pointer`} onClick={() => {
                             if (onPostSelect) {
                               onPostSelect(post)
                             } else {
@@ -916,14 +1052,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                           }}>
                             <td className="px-4 py-3 text-sm text-left">
                               <Badge variant="secondary" className="text-xs font-bold">
-                                {post.category || post.category_name}
+                                {post.is_notice ? t('community.notice') : (post.category || post.category_name)}
                               </Badge>
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-left">
                               <div className="flex items-center gap-2">
                                 {post.is_pinned && <Star className="w-4 h-4 text-yellow-500" />}
                                 {post.is_hot && <TrendingUp className="w-4 h-4 text-red-500" />}
-                                <span className="truncate max-w-xs">{post.title}</span>
+                                <span className="truncate max-w-xs">
+                                  {translationMode !== 'none' && post.translatedTitle ? post.translatedTitle : post.title}
+                                </span>
                                 {post.comments_count > 0 && (
                                   <span className="text-blue-600 dark:text-blue-400 text-xs">[{post.comments_count}]</span>
                                 )}
@@ -1059,18 +1197,6 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
               }               ${
-                activeTab === 'recommended' 
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-              onClick={() => handleTabChange('recommended')}
-            >
-              {t('community.tabs.recommended')}
-            </button>
-            <button 
-              className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
-                language === 'es' ? 'text-[10px]' : 'text-xs'
-              }               ${
                 activeTab === 'all' 
                   ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -1078,6 +1204,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               onClick={() => handleTabChange('all')}
             >
               {t('community.tabs.all')}
+            </button>
+            <button 
+              className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
+                language === 'es' ? 'text-[10px]' : 'text-xs'
+              }               ${
+                activeTab === 'recommended' 
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+              onClick={() => handleTabChange('recommended')}
+            >
+              추천글
             </button>
             <button 
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${

@@ -224,33 +224,48 @@ export default function Header() {
       }
 
       try {
-        // 인증 상태 확인 (users 테이블의 email_verified, phone_verified 확인)
+        // 인증 상태 확인 (profile API 사용)
         const baseUrl = window.location.origin
-        const authStatusResponse = await fetch(`${baseUrl}/api/auth/status?userId=${user.id}`, {
+        const profileResponse = await fetch(`${baseUrl}/api/profile?userId=${user.id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         })
         
-        // 404 오류 시 (라우트가 없거나 사용자가 users 테이블에 없음) 조용히 미인증 처리
-        if (authStatusResponse.status === 404) {
+        if (!profileResponse.ok) {
+          console.error('[HEADER] 프로필 API 오류:', profileResponse.status, profileResponse.statusText)
           setVerificationStatus('unverified')
           return
         }
         
-        // 5xx/기타 에러만 로그
-        if (!authStatusResponse.ok) {
-          console.error('[HEADER] 인증 상태 API 오류:', authStatusResponse.status, authStatusResponse.statusText)
-          setVerificationStatus('unverified')
-          return
-        }
+        const profileResult = await profileResponse.json()
         
-        const authStatusResult = await authStatusResponse.json()
-        
-        // 인증 상태에 따라 설정
-        if (authStatusResult.success && (authStatusResult.emailVerified || authStatusResult.smsVerified)) {
-          setVerificationStatus('verified')
+        if (profileResult.user) {
+          // 인증 상태 확인 - 더 유연한 조건
+          const isVerified = !!(
+            profileResult.user.email_verified_at || 
+            profileResult.user.sms_verified_at || 
+            profileResult.user.kakao_linked_at || 
+            profileResult.user.wa_verified_at ||
+            (profileResult.user.korean_name && profileResult.user.nickname) ||
+            (profileResult.user.spanish_name && profileResult.user.nickname) ||
+            (profileResult.user.full_name && profileResult.user.phone) ||
+            (profileResult.user.full_name && profileResult.user.university && profileResult.user.major)
+          )
+          
+          setVerificationStatus(isVerified ? 'verified' : 'unverified')
+          
+          console.log('[HEADER] 인증 상태 확인:', {
+            korean_name: profileResult.user.korean_name,
+            spanish_name: profileResult.user.spanish_name,
+            nickname: profileResult.user.nickname,
+            full_name: profileResult.user.full_name,
+            phone: profileResult.user.phone,
+            university: profileResult.user.university,
+            major: profileResult.user.major,
+            isVerified: isVerified
+          })
         } else {
           setVerificationStatus('unverified')
         }
@@ -647,7 +662,7 @@ export default function Header() {
               </div>
 
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 md:-mt-8 relative z-[80] ml-[12px]">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 md:-mt-8 relative z-[100] ml-[12px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
                   // 랜딩페이지에서는 네비게이션 제거 - 아코디언으로 모든 정보 제공
                   <></>
@@ -661,7 +676,7 @@ export default function Header() {
                         console.log('Home 버튼 클릭됨')
                         handleMainNavClick('home')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
                         activeMainTab === 'home' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
@@ -677,7 +692,7 @@ export default function Header() {
                         console.log('Community 버튼 클릭됨')
                         handleMainNavClick('community')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
                         activeMainTab === 'community' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
@@ -693,7 +708,7 @@ export default function Header() {
                         console.log('Meet 버튼 클릭됨')
                         handleMainNavClick('meet')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
                         activeMainTab === 'meet' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
@@ -709,7 +724,7 @@ export default function Header() {
                         console.log('Event 버튼 클릭됨')
                         handleMainNavClick('event')
                       }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[90] ${
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
                         activeMainTab === 'event' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'

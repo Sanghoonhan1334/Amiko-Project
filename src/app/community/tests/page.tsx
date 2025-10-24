@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 // 퀴즈 관련 인터페이스
 interface Quiz {
   id: string
+  slug?: string
   title: string
   description: string
   category: string
@@ -86,7 +87,26 @@ export default function TestsPage() {
 
   // 카테고리 이름 반환 함수
   const getCategoryName = (category: string) => {
-    return t(`tests.categories.${category}`)
+    // 번역키가 없으면 기본값 반환
+    const translationKey = `tests.categories.${category}`
+    const translated = t(translationKey)
+    
+    // 번역키가 그대로 반환되면 기본값 사용
+    if (translated === translationKey) {
+      const categoryNames: { [key: string]: string } = {
+        personality: 'Personalidad',
+        celebrity: 'Celebridad',
+        knowledge: 'Conocimiento',
+        fun: 'Diversión',
+        fortune: 'Fortuna',
+        psychology: 'Psicología',
+        meme: 'Meme',
+        culture: 'Cultura'
+      }
+      return categoryNames[category] || category
+    }
+    
+    return translated
   }
 
   // 운영자 권한 확인
@@ -132,13 +152,14 @@ export default function TestsPage() {
         // API 데이터를 프론트엔드 형식으로 변환
         const apiQuizzes = result.data.map((quiz: any) => ({
           id: quiz.id,
+          slug: quiz.slug, // slug 필드 추가
           title: quiz.title,
           description: quiz.description,
           category: quiz.category,
           thumbnail_url: quiz.thumbnail_url,
           total_questions: quiz.total_questions,
           is_active: quiz.is_active,
-          isCompleted: quiz.title?.includes('posición de idol') || quiz.title?.includes('MBTI'), // 완성된 테스트 판별
+          isCompleted: quiz.title?.includes('posición') || quiz.title?.includes('MBTI'), // 완성된 테스트 판별
           participantCount: quiz.total_participants || 0,
           created_at: quiz.created_at,
           updated_at: quiz.updated_at
@@ -164,19 +185,19 @@ export default function TestsPage() {
   }
 
   // 퀴즈 클릭 처리
-  const handleQuizClick = (quizId: string) => {
-    console.log('퀴즈 클릭:', quizId)
+  const handleQuizClick = (quiz: Quiz) => {
+    console.log('퀴즈 클릭 - 전체 데이터:', quiz)
+    console.log('퀴즈 클릭 - title:', quiz.title)
+    console.log('퀴즈 클릭 - slug:', quiz.slug)
+    console.log('퀴즈 클릭 - id:', quiz.id)
     
     // 미완성 테스트 체크
-    const quiz = quizzes.find(q => q.id === quizId)
     const isCompleted = quiz?.isCompleted !== undefined ? quiz.isCompleted : 
       (quiz?.title?.includes('MBTI'))
     
-    if (quiz && !isCompleted) {
+    if (!isCompleted) {
       toast.info(
-        language === 'ko' 
-          ? '이 테스트는 아직 준비 중입니다. 조금만 기다려주세요! 🚧' 
-          : 'Este test aún está en preparación. ¡Por favor espera un poco! 🚧',
+        'Este test aún está en preparación. ¡Por favor espera un poco! 🚧',
         {
           duration: 3000,
         }
@@ -184,24 +205,21 @@ export default function TestsPage() {
       return
     }
     
-    if (quizId.startsWith('sample-mbti') || quizId.startsWith('embedded-mbti')) {
-      router.push('/quiz/sample-mbti')
-    } else if (quizId === 'mbti-celeb-test' || quizId === '268caf0b-0031-4e58-9245-606e3421f1fd') {
-      router.push('/quiz/mbti-celeb')
-    } else {
-      router.push(`/quiz/${quizId}`)
-    }
+    // slug 우선 라우팅
+    const href = quiz?.slug ? `/quiz/${quiz.slug}` : `/quiz/${quiz.id}`;
+    console.log('라우팅할 경로:', href);
+    router.push(href);
   }
 
   // 테스트 생성 함수
   const handleCreateTest = async () => {
     if (!testFormData.title.trim()) {
-      toast.error('테스트 제목을 입력해주세요.')
+      toast.error('Por favor ingresa el título del test.')
       return
     }
     
     if (!testFormData.description.trim()) {
-      toast.error('테스트 설명을 입력해주세요.')
+      toast.error('Por favor ingresa la descripción del test.')
       return
     }
     
@@ -223,7 +241,7 @@ export default function TestsPage() {
       })
       
       if (response.ok) {
-        toast.success('테스트가 생성되었습니다!')
+        toast.success('¡Test creado exitosamente!')
         setShowTestWriteModal(false)
         setTestFormData({
           title: '',
@@ -236,12 +254,12 @@ export default function TestsPage() {
         await fetchQuizzes()
       } else {
         const errorData = await response.json()
-        console.error('테스트 생성 실패:', errorData)
-        toast.error(errorData.error || '테스트 생성에 실패했습니다.')
+        console.error('Error al crear test:', errorData)
+        toast.error(errorData.error || 'Error al crear el test.')
       }
     } catch (error) {
-      console.error('테스트 생성 오류:', error)
-      toast.error('테스트 생성 중 오류가 발생했습니다.')
+      console.error('Error al crear test:', error)
+      toast.error('Error al crear el test.')
     }
   }
 
@@ -332,7 +350,7 @@ export default function TestsPage() {
       </div>
 
       {/* 메인 컨텐츠 - 모바일 컴팩트 */}
-      <div className="max-w-6xl mx-auto px-3 pt-1 pb-4">
+      <div className="max-w-6xl mx-auto pt-1 pb-4">
         {/* 설명 메시지 - 모바일에서만 표시 */}
         <div className="text-center mb-4 px-1 sm:hidden">
           <p className="text-xs text-gray-600 dark:text-gray-400">{t('tests.description')}</p>
@@ -340,7 +358,7 @@ export default function TestsPage() {
 
 
         {/* 테스트 목록 - 모바일 컴팩트 */}
-        <div className="px-1">
+        <div>
           {quizzesLoading ? (
             <div className="grid gap-2 grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -371,7 +389,7 @@ export default function TestsPage() {
               <p className="text-xs text-gray-500 dark:text-gray-400">{t('tests.beFirst')}</p>
             </Card>
           ) : (
-            <div className="grid gap-2 grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3">
               {quizzes.map((quiz, index) => {
                 const config = categoryConfig[quiz.category] || categoryConfig.fun
                 const isNew = index < 3 // 처음 3개는 NEW로 표시
@@ -382,94 +400,47 @@ export default function TestsPage() {
                   (quiz.title?.includes('posición de idol') || quiz.title?.includes('MBTI'))
                 
                 return (
-                  <Card
+                  <div
                     key={quiz.id}
                     className={`group transition-all duration-300 ${
                       isCompleted 
-                        ? 'cursor-pointer hover:shadow-md hover:scale-105 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600' 
-                        : 'cursor-not-allowed bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 opacity-75'
-                    } overflow-hidden`}
-                    onClick={() => handleQuizClick(quiz.id)}
+                        ? 'cursor-pointer hover:bg-gray-50 bg-white border border-gray-100' 
+                        : 'cursor-not-allowed bg-gray-50 border border-gray-100 opacity-75'
+                    } rounded-lg overflow-hidden`}
+                    onClick={() => handleQuizClick(quiz)}
                   >
-                    <div className="relative">
-                      {/* 썸네일 영역 - BTS 이미지가 전체 상단을 차지 */}
-                      <div className={`h-16 ${quiz.category === 'culture' && isCompleted ? '' : config.bgColor} flex items-center justify-center relative overflow-hidden ${
-                        !isCompleted ? 'grayscale opacity-60' : ''
-                      }`}>
-                        {quiz.category === 'culture' && isCompleted ? (
+                    {/* 모바일: 세로 레이아웃, 데스크톱: 가로 레이아웃 */}
+                    <div className="flex flex-col md:flex-row">
+                      {/* 썸네일 이미지 */}
+                      <div className="w-full md:w-96 h-32 md:h-56 overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        {quiz.thumbnail_url ? (
                           <img 
-                            src="/celebs/bts.webp" 
-                            alt="BTS" 
-                            className="w-full h-full object-cover"
-                            loading="eager"
-                            decoding="async"
+                            src={quiz.thumbnail_url} 
+                            alt={quiz.title} 
+                            className="max-w-full max-h-full object-contain"
+                            loading="lazy"
                           />
                         ) : (
-                          <div className="text-xl">{config.icon}</div>
+                          <div className={`w-full h-full ${config.bgColor} flex items-center justify-center ${
+                            !isCompleted ? 'grayscale opacity-60' : ''
+                          }`}>
+                            <span className="text-lg">{config.icon}</span>
+                          </div>
                         )}
-                        {/* 그라데이션 오버레이 */}
-                        <div className="absolute inset-0 bg-white/20"></div>
-                        
-                        {/* 배지 - 이미지 위에 오버레이 */}
-                        <div className="absolute top-0.5 left-0.5 z-10 flex gap-0.5">
-                          {isNew && isCompleted && (
-                            <span className="bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
-                              NEW
-                            </span>
-                          )}
-                          {isHot && isCompleted && (
-                            <span className="bg-orange-500 text-white text-xs font-bold px-1 py-0.5 rounded-full">
-                              HOT
-                            </span>
-                          )}
-                        </div>
                       </div>
                       
-                      {/* 콘텐츠 영역 */}
-                      <div className="p-2">
-                        {/* 카테고리 */}
-                        <div className={`inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium ${config.bgColor} ${config.color} mb-1`}>
-                          <span className="mr-0.5 text-xs">{config.icon}</span>
-                          <span className="text-xs">{getCategoryName(quiz.category)}</span>
-                        </div>
-                        
-                        {/* 제목 */}
-                        <h3 className={`text-xs font-semibold line-clamp-2 mb-1 transition-colors ${
-                          isCompleted 
-                            ? 'text-gray-800 dark:text-gray-100 group-hover:text-purple-600 dark:group-hover:text-purple-400' 
-                            : 'text-gray-500 dark:text-gray-500'
-                        }`}>
+                      {/* 제목과 이용수 */}
+                      <div className="w-full p-3 text-center md:text-left flex flex-col justify-center">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 leading-tight">
                           {quiz.title}
                         </h3>
-                        
-                        {/* 설명 */}
-                        <p className={`text-xs line-clamp-1 mb-1 ${
-                          isCompleted ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
-                        }`}>
-                          {quiz.description}
-                        </p>
-                        
-                        {/* 메타 정보 */}
-                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center gap-0.5">
-                            <span className="flex items-center gap-0.5">
-                              <Target className="w-2 h-2" />
-                              <span className="text-xs">{quiz.total_questions}{t('tests.questions')}</span>
-                            </span>
-                            {/* 미완성 표시 */}
-                            {!isCompleted && (
-                              <span className="inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
-                                {language === 'ko' ? '준비중' : 'Próximamente'}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
-                            {quiz.participantCount ? quiz.participantCount.toLocaleString() : 0}{t('tests.participants')}
-                          </span>
+                        <div className="flex items-center justify-center md:justify-start gap-1 text-xs text-gray-500">
+                          <span>▷</span>
+                          <span>{quiz.participantCount ? quiz.participantCount.toLocaleString() : 0}만</span>
                         </div>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 )
               })}
             </div>

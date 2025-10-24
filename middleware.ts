@@ -1,4 +1,4 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -20,6 +20,7 @@ const publicPaths = [
   '/auth/callback',
   '/api/auth',
   '/api/webhooks',
+  '/api/fanzone',
   '/_next',
   '/favicon.ico',
   '/sw.js',
@@ -68,11 +69,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Supabase 클라이언트 생성
+  // Supabase 클라이언트 생성 (SSR 방식)
   const response = NextResponse.next()
-  const supabase = createMiddlewareClient({ req: request, res: response })
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value)
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
 
-  // 세션 확인
+  // 세션 새로고침 (쿠키 동기화)
   const { data: { session }, error } = await supabase.auth.getSession()
 
   // 공개 경로 체크

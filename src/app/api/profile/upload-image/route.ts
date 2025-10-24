@@ -5,8 +5,24 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[PROFILE_UPLOAD] API 호출 시작')
     
-    // 임시로 하드코딩된 사용자 ID 사용 (테스트용)
-    const userId = '5f83ab21-fd61-4666-94b5-087d73477476'
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('[PROFILE_UPLOAD] Authorization 헤더가 없음')
+      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
+    }
+    
+    const token = authHeader.replace('Bearer ', '')
+    console.log('[PROFILE_UPLOAD] 토큰 확인됨')
+    
+    // 토큰에서 사용자 정보 추출
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+    if (authError || !user) {
+      console.error('[PROFILE_UPLOAD] 토큰 검증 실패:', authError)
+      return NextResponse.json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+    }
+    
+    const userId = user.id
     console.log('[PROFILE_UPLOAD] 사용자 ID:', userId)
     
     if (!supabaseServer) {

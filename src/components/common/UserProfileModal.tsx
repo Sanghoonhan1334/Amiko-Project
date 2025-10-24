@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useLanguage } from '@/context/LanguageContext'
 import { InterestBadges } from './TranslatedInterests'
 import { toast } from 'sonner'
@@ -74,7 +75,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
     company?: string
     work_experience?: string
   }>({})
-  const [showTranslation, setShowTranslation] = useState(false)
+  const [translationMode, setTranslationMode] = useState<'none' | 'ko-to-es' | 'es-to-ko'>('none')
 
   // 목업 프로필 데이터
   const mockProfiles: Record<string, UserProfile> = {
@@ -258,103 +259,76 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
       setProfile(null)
       setError(null)
       setTranslatedFields({})
-      setShowTranslation(false)
+      setTranslationMode('none')
     }
   }, [isOpen])
 
-  // 번역 함수
-  const translateProfile = async () => {
+
+  // 번역 함수들
+  const handleTranslateToSpanish = async () => {
+    if (translating) return
+    await performTranslation('ko', 'es')
+  }
+
+  const handleTranslateToKorean = async () => {
+    if (translating) return
+    await performTranslation('es', 'ko')
+  }
+
+  const performTranslation = async (sourceLang: 'ko' | 'es', targetLang: 'ko' | 'es') => {
     if (!profile) return
 
     setTranslating(true)
     try {
-      // 현재 언어가 한국어면 스페인어로, 스페인어면 한국어로 번역
-      const targetLanguage = language === 'ko' ? 'es' : 'ko'
+      const fieldsToTranslate = [
+        { key: 'bio', value: profile.bio },
+        { key: 'university', value: profile.university },
+        { key: 'major', value: profile.major },
+        { key: 'occupation', value: profile.occupation },
+        { key: 'company', value: profile.company },
+        { key: 'work_experience', value: profile.work_experience }
+      ].filter(field => field.value && field.value.trim())
+
+      const translatedFieldsData: any = {}
       
-      const fieldsToTranslate: Array<keyof typeof translatedFields> = []
-      const textsToTranslate: string[] = []
-
-      // 번역할 필드들 수집
-      if (profile.bio) {
-        fieldsToTranslate.push('bio')
-        textsToTranslate.push(profile.bio)
-        console.log('번역 대상 bio:', profile.bio)
-      }
-      if (profile.university) {
-        fieldsToTranslate.push('university')
-        textsToTranslate.push(profile.university)
-      }
-      if (profile.major) {
-        fieldsToTranslate.push('major')
-        textsToTranslate.push(profile.major)
-      }
-      if (profile.occupation) {
-        fieldsToTranslate.push('occupation')
-        textsToTranslate.push(profile.occupation)
-      }
-      if (profile.company) {
-        fieldsToTranslate.push('company')
-        textsToTranslate.push(profile.company)
-      }
-      if (profile.work_experience) {
-        fieldsToTranslate.push('work_experience')
-        textsToTranslate.push(profile.work_experience)
-      }
-
-      // 모든 필드를 개별적으로 번역
-      const translationPromises = textsToTranslate.map(async (text) => {
-        const response = await fetch('/api/translate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text,
-            targetLanguage
+      for (const field of fieldsToTranslate) {
+        try {
+          const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text: field.value,
+              targetLang: targetLang,
+              sourceLang: sourceLang
+            }),
           })
-        })
 
-        if (!response.ok) {
-          throw new Error('번역 요청 실패')
+          if (response.ok) {
+            const data = await response.json()
+            if (data.success) {
+              translatedFieldsData[field.key] = data.translatedText
+            }
+          }
+        } catch (error) {
+          console.error(`번역 실패 (${field.key}):`, error)
         }
+      }
 
-        const data = await response.json()
-        return data.translatedText
-      })
-
-      const translatedTexts = await Promise.all(translationPromises)
-
-      // 번역 결과를 상태에 저장
-      const newTranslatedFields: typeof translatedFields = {}
-      fieldsToTranslate.forEach((field, index) => {
-        newTranslatedFields[field] = translatedTexts[index]
-        console.log(`번역 결과 ${field}:`, translatedTexts[index])
-      })
-
-      setTranslatedFields(newTranslatedFields)
-      setShowTranslation(true)
-      toast.success(language === 'ko' ? '번역이 완료되었습니다!' : '¡Traducción completada!')
-
+      setTranslatedFields(translatedFieldsData)
+      setTranslationMode(sourceLang === 'ko' ? 'ko-to-es' : 'es-to-ko')
+      toast.success('번역이 완료되었습니다.')
     } catch (error) {
       console.error('번역 오류:', error)
-      toast.error(language === 'ko' ? '번역에 실패했습니다.' : 'Error al traducir.')
+      toast.error('번역 중 오류가 발생했습니다.')
     } finally {
       setTranslating(false)
     }
   }
 
-  // 번역 토글
-  const toggleTranslation = () => {
-    if (showTranslation) {
-      // 원문 보기
-      setShowTranslation(false)
-    } else if (Object.keys(translatedFields).length > 0) {
-      // 이미 번역된 내용이 있으면 그냥 보여주기
-      setShowTranslation(true)
-    } else {
-      // 번역된 내용이 없으면 새로 번역
-      translateProfile()
-    }
+  const handleShowOriginal = () => {
+    setTranslationMode('none')
   }
 
   const formatDate = (dateString: string) => {
@@ -377,7 +351,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
   // 필드 값 가져오기 (번역 여부에 따라)
   const getFieldValue = (field: keyof typeof translatedFields, originalValue?: string) => {
     if (!originalValue) return ''
-    return showTranslation && translatedFields[field] ? translatedFields[field] : originalValue
+    return translationMode !== 'none' && translatedFields[field] ? translatedFields[field] : originalValue
   }
 
   return (
@@ -400,30 +374,44 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               color: 'rgb(17 24 39) !important'
             }}>{t('userProfile.title')}</DialogTitle>
             
-            {/* 번역 버튼 */}
+            {/* 번역 드롭다운 */}
             {profile && !loading && (
-              <Button
-                onClick={toggleTranslation}
-                disabled={translating}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                {translating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {language === 'ko' ? '번역 중...' : 'Traduciendo...'}
-                  </>
-                ) : (
-                  <>
-                    <Languages className="w-4 h-4" />
-                    {showTranslation 
-                      ? (language === 'ko' ? '원문 보기' : 'Ver original')
-                      : (language === 'ko' ? '번역하기' : 'Traducir')
+              <div className="flex items-center">
+                {translationMode === 'none' ? (
+                  <Select onValueChange={(value) => {
+                    if (value === 'ko-to-es') {
+                      handleTranslateToSpanish()
+                    } else if (value === 'es-to-ko') {
+                      handleTranslateToKorean()
                     }
-                  </>
+                  }}>
+                    <SelectTrigger className="w-40 text-xs">
+                      <div className="flex items-center gap-1">
+                        <Languages className="w-3 h-3" />
+                        <SelectValue placeholder={language === 'ko' ? '번역 선택' : 'Traducción'} />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="z-[100000]">
+                      <SelectItem value="ko-to-es" disabled={translating}>
+                        {language === 'ko' ? '한국어 → 스페인어' : 'Coreano → Español'}
+                      </SelectItem>
+                      <SelectItem value="es-to-ko" disabled={translating}>
+                        {language === 'ko' ? '스페인어 → 한국어' : 'Español → Coreano'}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Button
+                    onClick={handleShowOriginal}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs flex items-center gap-1"
+                  >
+                    <Languages className="w-3 h-3" />
+                    {language === 'ko' ? '원본 보기' : 'Ver Original'}
+                  </Button>
                 )}
-              </Button>
+              </div>
             )}
           </div>
         </DialogHeader>

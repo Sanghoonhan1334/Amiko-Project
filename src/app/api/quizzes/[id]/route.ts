@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    console.log('[QUIZ_DETAIL] API 호출 시작, 퀴즈 ID:', id);
+    console.log('[QUIZ_DETAIL] API 호출 시작, 퀴즈 ID/Slug:', id);
 
     // 아이돌 포지션 테스트만 차단
     if (id === 'a11f4f9d-8819-49d9-bfd0-4d4a97641981' || id.includes('idol-position')) {
@@ -49,7 +49,7 @@ export async function GET(
     
     const supabase = supabaseClient;
 
-    // 퀴즈 상세 정보 조회
+    // 퀴즈 상세 정보 조회 - ID로만 조회 (slug 컬럼 제거됨)
     const { data: quiz, error: quizError } = await supabase
       .from('quizzes')
       .select('*')
@@ -68,14 +68,18 @@ export async function GET(
       );
     }
 
-    // 퀴즈 질문들 조회
+    // 실제 quiz_id를 사용하여 관련 데이터 조회
+    const quizId = quiz.id;
+    console.log('[QUIZ_DETAIL] 퀴즈 발견:', quiz.title, '(ID:', quizId, ')');
+
+    // 퀴즈 질문들 조회 - 반드시 quiz_id로 필터링
     const { data: questions, error: questionsError } = await supabase
       .from('quiz_questions')
       .select(`
         *,
         quiz_options (*)
       `)
-      .eq('quiz_id', id)
+      .eq('quiz_id', quizId)
       .order('question_order');
 
     if (questionsError) {
@@ -89,11 +93,11 @@ export async function GET(
       );
     }
 
-    // 퀴즈 결과들 조회
+    // 퀴즈 결과들 조회 - 반드시 quiz_id로 필터링
     const { data: results, error: resultsError } = await supabase
       .from('quiz_results')
       .select('*')
-      .eq('quiz_id', id)
+      .eq('quiz_id', quizId)
       .order('result_type');
 
     if (resultsError) {

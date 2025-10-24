@@ -21,13 +21,14 @@ export async function GET(request: NextRequest) {
     
     console.log('[QUIZZES] 카테고리:', category);
 
-    // 퀴즈 목록 조회
+    // 퀴즈 목록 조회 - slug 필드 포함
     let query = supabase
       .from('quizzes')
-      .select('*')
+      .select('id, slug, title, description, category, thumbnail_url, total_questions, total_participants, is_active, created_at, updated_at')
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
+    // category 필터
     if (category) {
       query = query.eq('category', category);
     }

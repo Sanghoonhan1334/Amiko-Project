@@ -31,8 +31,43 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
 
   // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
   React.useEffect(() => {
-    if (user && !user.isVerified) {
-      checkAuthAndRedirect(user, router, '게시물 작성')
+    if (user) {
+      // 사용자 프로필 정보를 가져와서 인증 상태 확인
+      const checkVerificationStatus = async () => {
+        try {
+          const response = await fetch(`/api/profile?userId=${user.id}`)
+          const result = await response.json()
+          
+          if (response.ok && result.user) {
+            // 인증 상태 확인 - 더 유연한 조건
+            const isVerified = !!(
+              result.user.email_verified_at || 
+              result.user.sms_verified_at || 
+              result.user.kakao_linked_at || 
+              result.user.wa_verified_at ||
+              (result.user.korean_name && result.user.nickname) ||
+              (result.user.spanish_name && result.user.nickname) ||
+              (result.user.full_name && result.user.phone) ||
+              (result.user.full_name && result.user.university && result.user.major)
+            )
+            
+            if (!isVerified) {
+              console.log('사용자가 인증되지 않음, 인증센터로 리다이렉트')
+              // 현재 경로가 이미 verification-center가 아닌 경우에만 리다이렉트
+              if (window.location.pathname !== '/verification-center') {
+                router.push('/verification-center')
+              }
+            }
+          }
+        } catch (error) {
+          console.error('인증 상태 확인 실패:', error)
+          // 오류 발생 시에도 인증센터로 리다이렉트하지 않음 (무한 루프 방지)
+        }
+      }
+      
+      // 1초 딜레이를 두어 무한 루프 방지
+      const timeoutId = setTimeout(checkVerificationStatus, 1000)
+      return () => clearTimeout(timeoutId)
     }
   }, [user, router])
   const [content, setContent] = useState('')

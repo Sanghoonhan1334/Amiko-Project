@@ -44,6 +44,12 @@ const nextConfig = {
   images: {
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000, // 1년
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
   },
   // 🚀 최적화: 웹팩 설정 개선
   webpack: (config, { dev, isServer }) => {

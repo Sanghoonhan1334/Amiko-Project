@@ -35,16 +35,16 @@ export default function BottomTabNavigation() {
 
   const tabs = [
     {
-      id: 'community',
-      label: t('headerNav.community'),
-      icon: MessageSquare,
-      path: '/main?tab=community'
-    },
-    {
       id: 'meet',
       label: t('headerNav.videoCall'),
       icon: Video,
       path: '/main?tab=meet'
+    },
+    {
+      id: 'community',
+      label: t('headerNav.community'),
+      icon: MessageSquare,
+      path: '/main?tab=community'
     },
     {
       id: 'home',

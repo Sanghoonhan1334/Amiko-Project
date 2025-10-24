@@ -1,74 +1,87 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  let requestBody
+  
   try {
-    const { text, targetLanguage } = await request.json()
-    
-    console.log('번역 요청 데이터:', { text, targetLanguage })
+    requestBody = await request.json()
+    const { text, targetLang, sourceLang } = requestBody
 
-    if (!text) {
-      console.log('오류: 번역할 텍스트가 없음')
+    console.log('[TRANSLATE API] 요청:', { text: text?.substring(0, 50), targetLang, sourceLang })
+
+    if (!text || !targetLang) {
       return NextResponse.json(
-        { error: '번역할 텍스트가 필요합니다.' },
+        { 
+          success: false,
+          error: '텍스트와 대상 언어가 필요합니다.' 
+        },
         { status: 400 }
       )
     }
 
-    // Google Translate API 사용
-    const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY
-    
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: '번역 API 키가 설정되지 않았습니다.' },
-        { status: 500 }
-      )
+    // 언어 코드 변환 (MyMemory API 형식)
+    const langMap: Record<string, string> = {
+      'ko': 'ko',
+      'es': 'es'
     }
+    
+    // sourceLang이 없으면 targetLang에 따라 추정
+    let source: string
+    if (sourceLang) {
+      source = langMap[sourceLang]
+    } else {
+      // 언어 감지: targetLang이 'ko'면 'es'로, 'es'면 'ko'로 추정
+      source = targetLang === 'ko' ? 'es' : 'ko'
+    }
+    const target = langMap[targetLang]
 
-    const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`
+    console.log('[TRANSLATE API] 번역 시작:', { source, target })
 
-    const response = await fetch(url, {
-      method: 'POST',
+    // MyMemory API 호출 (무료, 안정적)
+    const encodedText = encodeURIComponent(text)
+    const apiUrl = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=${source}|${target}`
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Referer': 'http://localhost:3000' // 리퍼러 추가
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        q: text,
-        target: targetLanguage, // 'ko' 또는 'es'
-        format: 'text'
-      })
     })
 
+    console.log('[TRANSLATE API] MyMemory 응답 상태:', response.status)
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error('Google Translate API 오류:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-        requestData: { text, targetLanguage }
-      })
-      return NextResponse.json(
-        { 
-          error: '번역 요청에 실패했습니다.',
-          details: errorData,
-          status: response.status
-        },
-        { status: response.status }
-      )
+      const errorText = await response.text()
+      console.error('[TRANSLATE API] MyMemory 오류:', errorText)
+      throw new Error(`MyMemory API 오류: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    const translatedText = data.data.translations[0].translatedText
-
-    return NextResponse.json({ 
-      translatedText,
-      sourceLanguage: data.data.translations[0].detectedSourceLanguage || 'unknown'
+    console.log('[TRANSLATE API] 번역 완료:', { translatedText: data.responseData?.translatedText?.substring(0, 50) })
+    
+    if (!data.responseData || !data.responseData.translatedText) {
+      throw new Error('번역 결과를 받지 못했습니다.')
+    }
+    
+    return NextResponse.json({
+      success: true,
+      translatedText: data.responseData.translatedText,
+      originalText: text,
+      sourceLang: source,
+      targetLang: target
     })
 
   } catch (error) {
-    console.error('번역 오류:', error)
+    console.error('[TRANSLATE API] 번역 실패:', error)
+    
+    const errorMessage = error instanceof Error ? error.message : '번역 중 오류가 발생했습니다.'
+    
     return NextResponse.json(
-      { error: '번역 중 오류가 발생했습니다.' },
+      { 
+        success: false,
+        error: errorMessage,
+        originalText: requestBody?.text || ''
+      },
       { status: 500 }
     )
   }

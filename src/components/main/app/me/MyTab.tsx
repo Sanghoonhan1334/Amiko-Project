@@ -50,8 +50,56 @@ export default function MyTab() {
 
   // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
   useEffect(() => {
-    if (user && !user.isVerified) {
-      checkAuthAndRedirect(user, router, '마이페이지 접근')
+    if (user) {
+      // 사용자 프로필 정보를 가져와서 인증 상태 확인
+      const checkVerificationStatus = async () => {
+        try {
+          const response = await fetch(`/api/profile?userId=${user.id}`)
+          const result = await response.json()
+          
+          if (response.ok && result.user) {
+            // 인증 상태 확인 - 더 유연한 조건
+            const isVerified = !!(
+              result.user.email_verified_at || 
+              result.user.sms_verified_at || 
+              result.user.kakao_linked_at || 
+              result.user.wa_verified_at ||
+              (result.user.korean_name && result.user.nickname) ||
+              (result.user.spanish_name && result.user.nickname) ||
+              (result.user.full_name && result.user.phone) ||
+              (result.user.full_name && result.user.university && result.user.major)
+            )
+            
+            console.log('인증 상태 확인:', {
+              email_verified_at: result.user.email_verified_at,
+              sms_verified_at: result.user.sms_verified_at,
+              full_name: result.user.full_name,
+              phone: result.user.phone,
+              university: result.user.university,
+              major: result.user.major,
+              korean_name: result.user.korean_name,
+              spanish_name: result.user.spanish_name,
+              nickname: result.user.nickname,
+              isVerified: isVerified
+            })
+            
+            if (!isVerified) {
+              console.log('사용자가 인증되지 않음, 인증센터로 리다이렉트')
+              // 현재 경로가 이미 verification-center가 아닌 경우에만 리다이렉트
+              if (window.location.pathname !== '/verification-center') {
+                router.push('/verification-center')
+              }
+            }
+          }
+        } catch (error) {
+          console.error('인증 상태 확인 실패:', error)
+          // 오류 발생 시에도 인증센터로 리다이렉트하지 않음 (무한 루프 방지)
+        }
+      }
+      
+      // 1초 딜레이를 두어 무한 루프 방지
+      const timeoutId = setTimeout(checkVerificationStatus, 1000)
+      return () => clearTimeout(timeoutId)
     }
   }, [user, router])
   const [editForm, setEditForm] = useState({
@@ -218,12 +266,23 @@ export default function MyTab() {
 
       const response = await fetch('/api/profile/upload-image', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData
       })
 
       if (response.ok) {
         const result = await response.json()
         console.log('프로필 이미지 업로드 성공:', result)
+        
+        // 프로필 상태 직접 업데이트
+        if (result.avatar_url) {
+          setProfile(prev => ({
+            ...prev,
+            avatar_url: result.avatar_url
+          }))
+        }
         
         // 프로필 다시 로드하여 업데이트된 이미지 반영
         await loadProfile()
@@ -543,7 +602,7 @@ export default function MyTab() {
   }
 
   // 틴더 스타일 메인 레이아웃
-                    return (
+  return (
     <div className="min-h-screen bg-white">
       {/* 틴더 스타일 풀스크린 컨테이너 */}
       <div className="w-full">
@@ -560,47 +619,71 @@ export default function MyTab() {
             onMouseLeave={handleMouseLeave}
           >
             {/* 프로필 사진들 */}
-            <div
-              className="flex h-full transition-transform duration-300 ease-in-out"
-              style={{
-                transform: `translateX(-${currentImageIndex * 100}%)`,
-                userSelect: 'none',
-                WebkitUserSelect: 'none'
-              }}
-            >
-              {/* 모든 프로필 사진들을 하나의 배열로 합치기 */}
-                {(() => {
-                const allImages = []
-                if (profile?.avatar_url) {
-                  allImages.push({ src: profile.avatar_url, type: 'avatar', index: 0 })
-                }
-                if (profile?.profile_images?.length > 0) {
-                  profile.profile_images.forEach((src, index) => {
-                    allImages.push({ src, type: 'profile_image', index })
-                  })
-                }
-                return allImages
-              })().map((imageData, globalIndex) => (
-                <div key={`${imageData.type}-${imageData.index}`} className="w-full h-full flex-shrink-0 relative group">
-                  <img
-                    src={imageData.src}
-                    alt={`프로필 ${globalIndex + 1}`}
+            {(() => {
+              const allImages = []
+              if (profile?.avatar_url) {
+                allImages.push({ src: profile.avatar_url, type: 'avatar', index: 0 })
+              }
+              if (profile?.profile_images?.length > 0) {
+                profile.profile_images.forEach((src, index) => {
+                  allImages.push({ src, type: 'profile_image', index })
+                })
+              }
+              
+              // 이미지가 없으면 카메라 UI 표시
+              if (allImages.length === 0) {
+                return (
+                  <div className="w-full h-full flex-shrink-0 relative bg-gray-200 flex items-center justify-center">
+                    <label className="text-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">
+                      <Camera className="w-16 h-16 mx-auto mb-2" />
+                      <p className="text-sm">
+                        {language === 'es' ? 'Por favor agrega una foto de perfil' : '프로필 사진을 추가해주세요'}
+                      </p>
+                      <p className="text-xs mt-1 text-gray-400">
+                        {language === 'es' ? 'Haz clic para subir' : '클릭하여 업로드'}
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                )
+              }
+              
+              // 이미지가 있으면 이미지들 표시
+              return (
+                <div
+                  className="flex h-full transition-transform duration-300 ease-in-out"
+                  style={{
+                    transform: `translateX(-${currentImageIndex * 100}%)`,
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none'
+                  }}
+                >
+                  {allImages.map((imageData, globalIndex) => (
+                    <div key={`${imageData.type}-${imageData.index}`} className="w-full h-full flex-shrink-0 relative group">
+                      <img
+                        src={imageData.src}
+                        alt={`프로필 ${globalIndex + 1}`}
                         className="w-full h-full object-cover"
-                    draggable={false}
-                    onDragStart={(e) => e.preventDefault()}
-                  />
-                  {/* 사진 인디케이터 */}
-                  <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
-                    {globalIndex + 1}/{(() => {
-                      const allImages = []
-                      if (profile?.avatar_url) allImages.push(profile.avatar_url)
-                      if (profile?.profile_images?.length > 0) allImages.push(...profile.profile_images)
-                      return allImages.length
-                })()}
-              </div>
-                  {/* 데스크톱용 호버 버튼들 - 모바일에서는 숨김 */}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center hidden md:flex">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                      />
+                      {/* 사진 인디케이터 */}
+                      <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
+                        {globalIndex + 1}/{(() => {
+                          const allImages = []
+                          if (profile?.avatar_url) allImages.push(profile.avatar_url)
+                          if (profile?.profile_images?.length > 0) allImages.push(...profile.profile_images)
+                          return allImages.length
+                        })()}
+                      </div>
+                      {/* 데스크톱용 호버 버튼들 - 모바일에서는 숨김 */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center hidden md:flex">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
                       {/* 사진 변경 버튼 (첫 번째 사진에만) */}
                       {globalIndex === 0 && (
                         <label className="bg-white bg-opacity-90 rounded-full p-2 cursor-pointer hover:bg-opacity-100 transition-all">
@@ -665,56 +748,38 @@ export default function MyTab() {
                         </div>
                     </div>
                   ))}
-              
-              {/* 프로필 사진이 없는 경우 */}
-              {(() => {
-                const hasImages = profile?.avatar_url || (profile?.profile_images?.length > 0)
-                return !hasImages ? (
-                <div className="w-full h-full flex-shrink-0 relative bg-gray-200 flex items-center justify-center">
-                  <label className="text-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">
-                    <Camera className="w-16 h-16 mx-auto mb-2" />
-                    <p className="text-sm">프로필 사진을 추가해주세요</p>
-                    <p className="text-xs mt-1 text-gray-400">클릭하여 업로드</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfileImageUpload}
-                      className="hidden"
-                    />
-                  </label>
                 </div>
-                ) : null
-              })()}
-              </div>
-
-            {/* 하단 인디케이터 점들 */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-              {(() => {
-                const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
-                return totalImages > 1 ? Array.from({ length: totalImages }, (_, index) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                    }`}
-                  />
-                )) : null
-              })()}
-            </div>
-
-            {/* 스와이프 힌트 (프로필 사진이 여러 장 있을 때만 표시) */}
-            {(() => {
-              const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
-              return totalImages > 1 && currentImageIndex === 0 ? (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-xs animate-pulse">
-                  ← 스와이프해서 더 보기 →
-                </div>
-              ) : null
+              )
             })()}
           </div>
 
-          {/* 프로필 정보 오버레이 제거 - 깔끔한 사진만 표시 */}
+          {/* 하단 인디케이터 점들 */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            {(() => {
+              const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
+              return totalImages > 1 ? Array.from({ length: totalImages }, (_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                  }`}
+                />
+              )) : null
+            })()}
+          </div>
+
+          {/* 스와이프 힌트 (프로필 사진이 여러 장 있을 때만 표시) */}
+          {(() => {
+            const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
+            return totalImages > 1 && currentImageIndex === 0 ? (
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-xs animate-pulse">
+                ← 스와이프해서 더 보기 →
+              </div>
+            ) : null
+          })()}
         </div>
+
+        {/* 프로필 정보 오버레이 제거 - 깔끔한 사진만 표시 */}
 
         {/* 편집 버튼 (모바일) */}
         <div className="px-4 py-2 bg-white md:hidden">

@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { createClientComponentClient } from '@/lib/supabase'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { TranslationService } from '@/lib/translation'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
@@ -77,7 +77,7 @@ export default function FreeBoard() {
   const { user, session, token } = useAuth()
   const { t, language } = useLanguage()
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const supabase = createSupabaseBrowserClient()
   
   // 번역 서비스 초기화
   const translationService = TranslationService.getInstance()

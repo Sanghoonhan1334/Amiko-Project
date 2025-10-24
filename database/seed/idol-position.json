@@ -1,0 +1,268 @@
+{
+  "quiz": {
+    "slug": "idol-position",
+    "title": "¿Qué posición de idol te queda mejor?",
+    "description": "Responde 12 preguntas y descubre la posición que más armoniza con tu esencia en un grupo de K-pop.",
+    "category": "personality",
+    "thumbnail_url": "/quizzes/idol-position/thumbnail.png",
+    "language": "es",
+    "is_active": true
+  },
+  "questions": [
+    {
+      "id": 1,
+      "text": "¿Sueles imaginar que debutas como idol o influencer?",
+      "options": [
+        {
+          "label": "Sí, a menudo lo imagino.",
+          "scores": { "centro": 1, "vocalista-principal": 1, "bailarina": 1 }
+        },
+        {
+          "label": "Casi nunca o no me atrae tanto.",
+          "scores": { "productora": 1, "lider": 1, "cantautora": 1 }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "text": "Cuando el estrés llega al límite, ¿qué sueles hacer?",
+      "options": [
+        {
+          "label": "Quedo con amigos y me desahogo hablando.",
+          "scores": { "centro": 1, "bailarina": 1, "la-menor": 1 }
+        },
+        {
+          "label": "Me calmo en casa y recupero mi centro.",
+          "scores": { "productora": 1, "cantautora": 1, "rapera": 1 }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "text": "Te proponen ser el centro en el próximo comeback. ¿Cómo reaccionas?",
+      "options": [
+        {
+          "label": "¡Me encanta! Me da nervios, pero me ilusiona.",
+          "scores": { "centro": 1, "bailarina": 1, "vocalista-principal": 1 }
+        },
+        {
+          "label": "¿De verdad podré con eso? Me lo pienso mucho.",
+          "scores": { "lider": 1, "productora": 1, "la-menor": 1 }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "text": "Un miembro del grupo está llorando por el ritmo de trabajo. ¿Cómo lo apoyas?",
+      "options": [
+        {
+          "label": "Le escucho y comparto su emoción para acompañarle.",
+          "scores": { "lider": 1, "la-menor": 1, "vocalista-principal": 1 }
+        },
+        {
+          "label": "Busco soluciones concretas y próximos pasos.",
+          "scores": { "productora": 1, "cantautora": 1, "rapera": 1 }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "text": "Surge un conflicto dentro del equipo. ¿Cómo lo gestionas?",
+      "options": [
+        {
+          "label": "Escucho a todas las partes y analizo objetivamente.",
+          "scores": { "lider": 1, "productora": 1 }
+        },
+        {
+          "label": "Facilito que se comprendan emocionalmente y se reconcilien.",
+          "scores": { "la-menor": 1, "vocalista-principal": 1 }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "text": "¡Te prepararon una fiesta sorpresa de cumpleaños! Tu reacción es…",
+      "options": [
+        {
+          "label": "Agradecida y práctica: \"¡Gracias! Vamos a disfrutar juntos.\"",
+          "scores": { "productora": 1, "lider": 1 }
+        },
+        {
+          "label": "Muy emotiva: \"No lo olvidaré jamás…\"",
+          "scores": { "la-menor": 1, "vocalista-principal": 1 }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "text": "En un fan-sign, tu fan está muy nervioso. ¿Qué haces?",
+      "options": [
+        {
+          "label": "Rompo el hielo y llevo la conversación.",
+          "scores": { "centro": 1, "vocalista-principal": 1 }
+        },
+        {
+          "label": "Le doy tiempo y espacio para expresarse.",
+          "scores": { "lider": 1, "rapera": 1 }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "text": "En el ensayo, un miembro es regañado y se culpa mucho. Tú…",
+      "options": [
+        {
+          "label": "Voy a abrazarle y le reconforto primero.",
+          "scores": { "la-menor": 1, "vocalista-principal": 1 }
+        },
+        {
+          "label": "Doy feedback claro sobre cómo mejorar.",
+          "scores": { "productora": 1, "cantautora": 1, "bailarina": 1 }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "text": "Ganaron el premio a Rookie del Año. En tu discurso dices…",
+      "options": [
+        {
+          "label": "\"Gracias. Trabajaremos aún más duro.\"",
+          "scores": { "productora": 1, "bailarina": 1, "rapera": 1 }
+        },
+        {
+          "label": "\"Es un sueño hecho realidad. Gracias a fans y miembros.\"",
+          "scores": { "vocalista-principal": 1, "la-menor": 1, "centro": 1 }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "text": "Te ofrecen un programa de variedades en solitario. ¿Qué piensas?",
+      "options": [
+        {
+          "label": "Suena divertido. ¡Quiero intentarlo!",
+          "scores": { "centro": 1, "rapera": 1, "vocalista-principal": 1 }
+        },
+        {
+          "label": "Estar sola me abruma un poco.",
+          "scores": { "productora": 1, "la-menor": 1 }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "text": "Están eligiendo el tracklist del nuevo álbum. Tu propuesta es…",
+      "options": [
+        {
+          "label": "Temas más populares y pegadizos.",
+          "scores": { "vocalista-principal": 1, "centro": 1 }
+        },
+        {
+          "label": "Probar géneros nuevos y arriesgados.",
+          "scores": { "cantautora": 1, "rapera": 1, "productora": 1 }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "text": "Al ganar un gran premio, lo primero que piensas es…",
+      "options": [
+        {
+          "label": "Que este momento dure un poco más.",
+          "scores": { "la-menor": 1, "vocalista-principal": 1 }
+        },
+        {
+          "label": "Quiero repetirlo muchas veces en el futuro.",
+          "scores": { "lider": 1, "productora": 1, "bailarina": 1 }
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "slug": "vocalista-principal",
+      "titulo": "Vocalista principal",
+      "imagen": "/quizzes/idol-roles/vocalista.png",
+      "descripcion": "Tu voz nace del corazón y conecta con la emoción de quienes te escuchan. Tienes una calidez natural que calma, anima y abraza. Tu presencia no busca llamar la atención: simplemente brillas cuando cuentas una historia cantando.",
+      "cuidado": "A veces cargas de más con la emoción del equipo; recuerda darte el mismo cuidado que das a los demás.",
+      "compatible": { "slug": "lider", "titulo": "Líder", "imagen": "/quizzes/idol-roles/lider.png" },
+      "incompatible": { "slug": "rapera", "titulo": "Rapera", "imagen": "/quizzes/idol-roles/rapera.png" }
+    },
+    {
+      "slug": "bailarina",
+      "titulo": "Bailarina principal",
+      "imagen": "/quizzes/idol-roles/bailarina.png",
+      "descripcion": "Lees la música con el cuerpo. Tu energía se adapta al escenario y crea momentos que el público recuerda. Tienes temple, constancia y una sensibilidad afinada al ritmo del equipo.",
+      "cuidado": "En tu afán por hacerlo perfecto, podrías exigirte demasiado. Date permiso para celebrar los pequeños logros.",
+      "compatible": { "slug": "centro", "titulo": "Centro", "imagen": "/quizzes/idol-roles/centro.png" },
+      "incompatible": { "slug": "productora", "titulo": "Productora", "imagen": "/quizzes/idol-roles/productora.png" }
+    },
+    {
+      "slug": "centro",
+      "titulo": "Centro",
+      "imagen": "/quizzes/idol-roles/centro.png",
+      "descripcion": "Tu carisma guía la mirada del público. Eres puente entre el equipo y la audiencia, y tu espontaneidad contagia confianza. Tienes una chispa natural para iniciar conversaciones y crear cercanía.",
+      "cuidado": "No necesitas demostrar nada todo el tiempo. Deja que otros también ocupen el centro cuando lo necesiten.",
+      "compatible": { "slug": "vocalista-principal", "titulo": "Vocalista principal", "imagen": "/quizzes/idol-roles/vocalista.png" },
+      "incompatible": { "slug": "productora", "titulo": "Productora", "imagen": "/quizzes/idol-roles/productora.png" }
+    },
+    {
+      "slug": "cantautora",
+      "titulo": "Cantautora",
+      "imagen": "/quizzes/idol-roles/cantautora.png",
+      "descripcion": "Transformas vivencias en letras y melodías. Tu autenticidad inspira al equipo a probar caminos nuevos. Donde otros ven rutina, tú encuentras ideas y nuevos colores para la música.",
+      "cuidado": "Tu sinceridad es un regalo; equilíbrala con tacto para que el mensaje llegue con suavidad.",
+      "compatible": { "slug": "productora", "titulo": "Productora", "imagen": "/quizzes/idol-roles/productora.png" },
+      "incompatible": { "slug": "la-menor", "titulo": "La menor", "imagen": "/quizzes/idol-roles/la-menor.png" }
+    },
+    {
+      "slug": "rapera",
+      "titulo": "Rapera",
+      "imagen": "/quizzes/idol-roles/rapera.png",
+      "descripcion": "Tu fuerza está en la honestidad cruda. Aunque no siempre muestres tus emociones, tu mundo interior es profundo y vibrante. Eres precisa, rítmica y con gran presencia escénica.",
+      "cuidado": "Proteger tu espacio es importante, pero no te aísles: tu voz también puede sostener a otros.",
+      "compatible": { "slug": "productora", "titulo": "Productora", "imagen": "/quizzes/idol-roles/productora.png" },
+      "incompatible": { "slug": "vocalista-principal", "titulo": "Vocalista principal", "imagen": "/quizzes/idol-roles/vocalista.png" }
+    },
+    {
+      "slug": "la-menor",
+      "titulo": "La menor",
+      "imagen": "/quizzes/idol-roles/la-menor.png",
+      "descripcion": "Tu ternura ilumina al equipo. Eres sociable, espontánea y creas lazos que sostienen. Con tu calidez, transformas los días pesados en momentos ligeros.",
+      "cuidado": "Tu sensibilidad es valiosa; cuídala poniendo límites cuando algo te abrume.",
+      "compatible": { "slug": "lider", "titulo": "Líder", "imagen": "/quizzes/idol-roles/lider.png" },
+      "incompatible": { "slug": "rapera", "titulo": "Rapera", "imagen": "/quizzes/idol-roles/rapera.png" }
+    },
+    {
+      "slug": "lider",
+      "titulo": "Líder",
+      "imagen": "/quizzes/idol-roles/lider.png",
+      "descripcion": "Das dirección con calma y sostienes al equipo en lo invisible. Sabes escuchar, decidir y cuidar el ritmo de todos. Tu ejemplo crea confianza.",
+      "cuidado": "No cargues con todo. Delegar también es una forma de liderazgo.",
+      "compatible": { "slug": "vocalista-principal", "titulo": "Vocalista principal", "imagen": "/quizzes/idol-roles/vocalista.png" },
+      "incompatible": { "slug": "la-menor", "titulo": "La menor", "imagen": "/quizzes/idol-roles/la-menor.png" }
+    },
+    {
+      "slug": "productora",
+      "titulo": "Productora",
+      "imagen": "/quizzes/idol-roles/productora.png",
+      "descripcion": "Eres realista y resolutiva. Ves el proyecto como un todo y das consejos concretos que alivian al grupo. Tu visión técnica se convierte en tranquilidad para todos.",
+      "cuidado": "La eficacia no está reñida con la emoción. Deja que el corazón también marque el tempo.",
+      "compatible": { "slug": "cantautora", "titulo": "Cantautora", "imagen": "/quizzes/idol-roles/cantautora.png" },
+      "incompatible": { "slug": "centro", "titulo": "Centro", "imagen": "/quizzes/idol-roles/centro.png" }
+    }
+  ],
+  "images": {
+    "basePath": "/quizzes/idol-roles/",
+    "files": [
+      "vocalista.png",
+      "bailarina.png",
+      "centro.png",
+      "cantautora.png",
+      "rapera.png",
+      "la-menor.png",
+      "lider.png",
+      "productora.png"
+    ]
+  }
+}

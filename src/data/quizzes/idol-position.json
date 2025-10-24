@@ -1,0 +1,207 @@
+{
+  "id": "idol-position-test-001",
+  "title": "¿Qué posición de idol me quedaría mejor?",
+  "lang": "es",
+  "imageBase": "/quizzes/idol-roles/",
+  "questions": [
+    {
+      "id": 1,
+      "q": "¿Sueles imaginar que debutas como idol o influencer?",
+      "options": [
+        { "text": "Muy a menudo", "scoreTo": ["vocalista-principal","centro","lider"] },
+        { "text": "Muy pocas veces o casi nunca", "scoreTo": ["productora","rapera-principal"] }
+      ]
+    },
+    {
+      "id": 2,
+      "q": "Cuando el nivel de estrés llega al máximo, ¿qué haces?",
+      "options": [
+        { "text": "Quedo con amigos y me desahogo", "scoreTo": ["centro","maknae","vocalista-principal"] },
+        { "text": "Me calmo en casa con tranquilidad", "scoreTo": ["rapera-principal","productora","cantautora"] }
+      ]
+    },
+    {
+      "id": 3,
+      "q": "Te proponen ser el centro en este comeback. ¿Cómo te sientes?",
+      "options": [
+        { "text": "¡Me encanta! Estoy nerviosa pero emocionada", "scoreTo": ["centro","bailarina-principal","vocalista-principal"] },
+        { "text": "¿Podré hacerlo bien...?", "scoreTo": ["productora","cantautora","maknae"] }
+      ]
+    },
+    {
+      "id": 4,
+      "q": "Un miembro llora por un horario difícil. ¿Cómo lo consuelas?",
+      "options": [
+        { "text": "Con empatía y cariño", "scoreTo": ["maknae","vocalista-principal","centro"] },
+        { "text": "Doy consejos prácticos y mejoras", "scoreTo": ["lider","productora","rapera-principal"] }
+      ]
+    },
+    {
+      "id": 5,
+      "q": "Hay un conflicto en el equipo. ¿Cómo lo resuelves?",
+      "options": [
+        { "text": "Escucho a ambas partes y evalúo objetivamente", "scoreTo": ["lider","productora"] },
+        { "text": "Fomento la empatía y la reconciliación", "scoreTo": ["maknae","vocalista-principal","centro"] }
+      ]
+    },
+    {
+      "id": 6,
+      "q": "¡Sorpresa de cumpleaños! Tu reacción es...",
+      "options": [
+        { "text": "¡Gracias! ¡Vamos a celebrarlo juntas!", "scoreTo": ["vocalista-principal","maknae"] },
+        { "text": "Me emociono mucho, casi lloro", "scoreTo": ["centro","cantautora"] }
+      ]
+    },
+    {
+      "id": 7,
+      "q": "Conoces a una fan muy nerviosa en un fansign. Tú...",
+      "options": [
+        { "text": "Le hablas primero para relajarla", "scoreTo": ["centro","lider","vocalista-principal"] },
+        { "text": "Le digo: 'Tranquila, tómate tu tiempo'", "scoreTo": ["maknae","cantautora"] }
+      ]
+    },
+    {
+      "id": 8,
+      "q": "Una miembro se culpa por un error en práctica.",
+      "options": [
+        { "text": "La abrazo y la consuelo", "scoreTo": ["maknae","centro"] },
+        { "text": "Le explico qué puede mejorar", "scoreTo": ["lider","productora","rapera-principal"] }
+      ]
+    },
+    {
+      "id": 9,
+      "q": "Recibís el premio a Rookie del Año. Tu discurso:",
+      "options": [
+        { "text": "Gracias. Trabajaré aún más duro", "scoreTo": ["lider","productora"] },
+        { "text": "Es un sueño… Gracias fans y miembros", "scoreTo": ["vocalista-principal","centro","maknae"] }
+      ]
+    },
+    {
+      "id": 10,
+      "q": "Te invitan a un programa de variedades en solitario.",
+      "options": [
+        { "text": "¡Qué divertido! Me da curiosidad", "scoreTo": ["vocalista-principal","centro","bailarina-principal"] },
+        { "text": "En solitario me da algo de presión", "scoreTo": ["productora","rapera-principal","cantautora"] }
+      ]
+    },
+    {
+      "id": 11,
+      "q": "Estáis armando el tracklist del álbum.",
+      "options": [
+        { "text": "Mejor canciones con gran appeal popular", "scoreTo": ["vocalista-principal","centro","lider"] },
+        { "text": "Probemos géneros diferentes", "scoreTo": ["cantautora","rapera-principal","productora"] }
+      ]
+    },
+    {
+      "id": 12,
+      "q": "Al ganar el gran premio soñado piensas...",
+      "options": [
+        { "text": "Quisiera que este momento dure para siempre", "scoreTo": ["centro","maknae"] },
+        { "text": "Ojalá vivamos más momentos así", "scoreTo": ["lider","productora","bailarina-principal"] }
+      ]
+    }
+  ],
+  "tieBreakPriority": [
+    "centro","lider","vocalista-principal","bailarina-principal",
+    "cantautora","rapera-principal","maknae","productora"
+  ],
+  "results": [
+    {
+      "slug": "vocalista-principal",
+      "title": "Vocalista principal",
+      "image": "vocalista-principal.png",
+      "desc": [
+        "Brillas en el escenario con presencia natural y voz segura.",
+        "Conectas con la gente y ganas energía del público.",
+        "A veces creas momentos virales sin proponértelo."
+      ],
+      "caution": "Puedes obsesionarte con la perfección.",
+      "compatible": "lider",
+      "incompatible": "productora"
+    },
+    {
+      "slug": "bailarina-principal",
+      "title": "Bailarina principal",
+      "image": "bailarina-principal.png",
+      "desc": [
+        "Gran adaptación y energía; destacas en coreografías difíciles.",
+        "Te encantan los retos y el escenario en vivo."
+      ],
+      "caution": "Evita sobreexigirte; cuida el descanso.",
+      "compatible": "centro",
+      "incompatible": "rapera-principal"
+    },
+    {
+      "slug": "centro",
+      "title": "Centro",
+      "image": "centro.png",
+      "desc": [
+        "Libre y espontánea; recibes y das cariño a los fans.",
+        "Eres el rostro del grupo con equilibrio entre presencia y cercanía."
+      ],
+      "caution": "La emotividad puede frenar decisiones rápidas.",
+      "compatible": "vocalista-principal",
+      "incompatible": "cantautora"
+    },
+    {
+      "slug": "cantautora",
+      "title": "Cantautora",
+      "image": "cantautora.png",
+      "desc": [
+        "Honesta y valiente; ideas claras en entrevistas.",
+        "Aportas identidad artística y conceptos nuevos."
+      ],
+      "caution": "Puedes parecer distante al concentrarte en lo creativo.",
+      "compatible": "rapera-principal",
+      "incompatible": "maknae"
+    },
+    {
+      "slug": "rapera-principal",
+      "title": "Rapera principal",
+      "image": "rapera-principal.png",
+      "desc": [
+        "Fuerza interior; piensas profundo aunque muestres poco.",
+        "Tu flow firme equilibra el dulzor del equipo."
+      ],
+      "caution": "No te guardes todo; pide ayuda cuando la necesites.",
+      "compatible": "cantautora",
+      "incompatible": "bailarina-principal"
+    },
+    {
+      "slug": "maknae",
+      "title": "La menor (maknae)",
+      "image": "maknae.png",
+      "desc": [
+        "Dulce y sociable; cuidas a las miembros y te quieren mucho.",
+        "Eres la vitamina del grupo con reacciones genuinas."
+      ],
+      "caution": "Tu libertad puede chocar con reglas del equipo.",
+      "compatible": "vocalista-principal",
+      "incompatible": "cantautora"
+    },
+    {
+      "slug": "lider",
+      "title": "Líder",
+      "image": "lider.png",
+      "desc": [
+        "Organización y corazón; escuchas y decides con calma.",
+        "Te comunicas muy bien con los fans a diario."
+      ],
+      "caution": "Tiendes a cargar de más; delega cuando toque.",
+      "compatible": "vocalista-principal",
+      "incompatible": "rapera-principal"
+    },
+    {
+      "slug": "productora",
+      "title": "Productora",
+      "image": "productora.png",
+      "desc": [
+        "Realista y estratégica; tu consejo siempre es accionable.",
+        "Ves el panorama completo: música, contenido y tiempos."
+      ],
+      "caution": "A veces suenas demasiado pragmática.",
+      "compatible": "cantautora",
+      "incompatible": "vocalista-principal"
+    }
+  ]
+}
