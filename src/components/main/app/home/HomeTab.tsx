@@ -430,10 +430,6 @@ export default function HomeTab() {
                           <h3 className="text-white font-bold text-lg mb-1">{event.title}</h3>
                           <p className="text-white/90 text-sm mb-2">{event.description}</p>
                           <div className="flex items-center gap-4">
-                            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                              <Users className="w-3 h-3 mr-1" />
-                              {formatNumber(event.participants)}명 참여
-                            </Badge>
                             <span className="text-white/80 text-xs">{event.date}</span>
                           </div>
                         </div>
@@ -696,10 +692,6 @@ export default function HomeTab() {
                                 <h3 className="text-white font-bold text-lg mb-3 leading-tight">{event.title}</h3>
                                 <p className="text-white/90 text-sm mb-4 max-w-2xl leading-relaxed">{event.description}</p>
                                 <div className="flex items-center gap-3">
-                                  <span className="text-white text-sm px-3 py-1 flex items-center gap-1">
-                                    <Users className="w-4 h-4" />
-                                    {formatNumber(event.participants)}명 참여
-                                  </span>
                                   <span className="text-white/80 text-sm bg-transparent px-3 py-1 rounded-full">{event.date}</span>
                                 </div>
                               </div>
