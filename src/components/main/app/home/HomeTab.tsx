@@ -883,43 +883,45 @@ export default function HomeTab() {
               </div>
               
               {popularTests.length > 0 ? (
-                <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                  {popularTests.map((test) => (
-                    <div 
-                      key={test.id} 
-                      className="cursor-pointer group"
-                      onClick={() => router.push(test.route || '/community/tests')}
+                <>
+                  <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                    {popularTests.map((test) => (
+                      <div 
+                        key={test.id} 
+                        className="cursor-pointer group"
+                        onClick={() => router.push(test.route || '/community/tests')}
+                      >
+                        <div className="relative mb-3">
+                          <img
+                            src={test.image}
+                            alt={test.title}
+                            className="w-full h-32 md:h-40 lg:h-48 object-contain rounded-lg"
+                          />
+                        </div>
+                        
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
+                          {test.title}
+                        </h3>
+                        
+                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                          <Play className="w-3 h-3" />
+                          <span>{formatNumber(test.participants)}명</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-4 text-center">
+                    <Button
+                      variant="ghost"
+                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                      onClick={() => router.push('/community/tests')}
                     >
-                      <div className="relative mb-3">
-                        <img
-                          src={test.image}
-                          alt={test.title}
-                          className="w-full h-32 md:h-40 lg:h-48 object-contain rounded-lg"
-                        />
-                      </div>
-                      
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
-                        {test.title}
-                      </h3>
-                      
-                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                        <Play className="w-3 h-3" />
-                        <span>{formatNumber(test.participants)}명</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-4 text-center">
-                  <Button
-                    variant="ghost"
-                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                    onClick={() => router.push('/community/tests')}
-                  >
-                    <Brain className="w-5 h-5 mr-2" />
-                    {language === 'ko' ? '더 보기' : 'Ver Más'}
-                  </Button>
-                </div>
+                      <Brain className="w-5 h-5 mr-2" />
+                      {language === 'ko' ? '더 보기' : 'Ver Más'}
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <Card className="shadow-2xl">
                   <CardContent className="p-8 text-center">
