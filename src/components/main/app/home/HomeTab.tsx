@@ -167,7 +167,7 @@ export default function HomeTab() {
           title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Evento de Sorteo de Boletos de Avión a Corea',
           description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : '¡Participa en la comunidad y gana boletos de avión a Corea!',
           image: '/event-title.png',
-          date: '2025-02-15',
+          date: language === 'ko' ? '2026년 말' : 'Fin de año de 2026',
           participants: 324
         },
         {
