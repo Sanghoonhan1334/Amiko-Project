@@ -77,5 +77,17 @@ export const communityItems: CommunityItem[] = [
     isNew: false, // Remove "NUEVO" badge
     badge: undefined, // Remove badge
   },
+  {
+    id: 'polls',
+    title: 'Votaciones',
+    titleKey: 'community.polls',
+    microcopy: 'Participa en encuestas divertidas',
+    microcopyKey: 'community.pollsDesc',
+    icon: '🗳️', // Emoji as placeholder
+    route: '/community/polls',
+    accentColor: '#6366F1', // Indigo
+    isNew: true,
+    badge: 'NUEVO',
+  },
 ]
 

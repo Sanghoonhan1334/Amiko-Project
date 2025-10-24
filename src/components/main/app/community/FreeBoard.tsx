@@ -1025,10 +1025,13 @@ export default function FreeBoard() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
                     <option value="자유게시판">자유게시판</option>
-                    <option value="질문과답변">질문과답변</option>
-                    <option value="정보공유">정보공유</option>
-                    <option value="후기">후기</option>
-                    <option value="모임">모임</option>
+                    <option value="K-POP">K-POP</option>
+                    <option value="K-Drama">K-Drama</option>
+                    <option value="팬아트">팬아트</option>
+                    <option value="아이돌짤">아이돌짤</option>
+                    <option value="뷰티">뷰티</option>
+                    <option value="한국어공부">한국어공부</option>
+                    <option value="스페인어공부">스페인어공부</option>
                   </select>
                 </div>
 

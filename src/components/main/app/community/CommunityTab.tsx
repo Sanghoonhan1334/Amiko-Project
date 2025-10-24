@@ -39,6 +39,7 @@ import {
 import CommunityMain from './CommunityMain'
 import NewsDetail from './NewsDetail'
 import CommunityCard from './CommunityCard'
+import PollBoard from './PollBoard'
 import { communityItems } from './communityItems'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -107,12 +108,15 @@ const pointSystem = {
 
 // 카테고리 정의 함수
 const getCategories = (t: (key: string) => string) => [
-  { id: 'free', name: t('communityTab.categories.free'), icon: '', color: 'bg-gray-100 text-gray-700 border-gray-300' },
-  { id: 'kpop', name: 'K-POP', icon: '', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-  { id: 'kdrama', name: 'K-Drama', icon: '', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { id: 'beauty', name: t('communityTab.categories.beauty'), icon: '', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-  { id: 'korean', name: '한국어', icon: '', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { id: 'spanish', name: '스페인어', icon: '', color: 'bg-red-100 text-red-700 border-red-300' }
+  { id: 'free', name: t('communityTab.categories.free'), icon: '💬', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+  { id: 'kpop', name: 'K-POP', icon: '🎵', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { id: 'kdrama', name: 'K-Drama', icon: '📺', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { id: 'fanart', name: '팬아트', icon: '🎨', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { id: 'idolmemes', name: '아이돌짤', icon: '😄', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  { id: 'beauty', name: t('communityTab.categories.beauty'), icon: '💄', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { id: 'korean', name: '한국어공부', icon: '📚', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { id: 'spanish', name: '스페인어공부', icon: '🌎', color: 'bg-green-100 text-green-700 border-green-300' },
+  { id: 'polls', name: '투표게시판', icon: '🗳️', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' }
 ]
 
 
@@ -137,6 +141,14 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const handleNavigation = useCallback(async (path: string) => {
     if (isNavigating) return // 중복 클릭 방지
     
+    // polls 라우팅 처리
+    if (path === '/community/polls') {
+      setCurrentView('polls')
+      setActiveTab('polls')
+      onViewChange?.('polls')
+      return
+    }
+    
     // 즉시 로딩 상태 표시
     setIsNavigating(true)
     
@@ -146,13 +158,13 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     }, 0)
     
     // 로딩 상태는 페이지 전환 후 자동으로 해제됨
-  }, [router, isNavigating])
+  }, [router, isNavigating, onViewChange])
   
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
   
   // 뷰 상태 (먼저 선언해야 useEffect에서 사용 가능)
-  const [currentView, setCurrentView] = useState('home') // 'home', 'news', 'qa', 'tests'
+  const [currentView, setCurrentView] = useState('home') // 'home', 'news', 'qa', 'tests', 'polls'
   
   // 실제 데이터 상태
   const [recentStories, setRecentStories] = useState<any[]>([])
@@ -3874,6 +3886,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             </div>
           </div>
         </div>
+      )}
+
+      {/* 투표게시판 */}
+      {currentView === 'polls' && (
+        <PollBoard />
       )}
 
       {/* 테스트 작성 모달 */}
