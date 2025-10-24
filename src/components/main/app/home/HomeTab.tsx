@@ -15,7 +15,8 @@ import {
   MessageSquare,
   Brain,
   Newspaper,
-  Activity
+  Activity,
+  Play
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
