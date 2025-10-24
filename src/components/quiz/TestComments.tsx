@@ -292,18 +292,18 @@ export default function TestComments({ testId }: TestCommentsProps) {
                 maxLength={500}
               />
               <div className="flex justify-between items-center mt-2">
-                <span className="text-sm text-gray-500">
+                <span className="text-xs text-gray-500">
                   {newComment.length}/500
                 </span>
                 <button
                   type="submit"
                   disabled={!newComment.trim() || isSubmitting}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-3 py-1.5 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isSubmitting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <Send className="w-3 h-3" />
                   )}
                   Comentar
                 </button>
@@ -347,14 +347,14 @@ export default function TestComments({ testId }: TestCommentsProps) {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-gray-900 text-sm">
                         {comment.user_name}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs text-gray-500">
                         {formatTime(comment.created_at)}
                       </span>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap mb-3">
+                    <p className="text-gray-700 text-sm whitespace-pre-wrap mb-3">
                       {comment.comment}
                     </p>
                     
@@ -362,29 +362,29 @@ export default function TestComments({ testId }: TestCommentsProps) {
                     <div className="flex items-center gap-4">
                       <button
                         onClick={() => handleLikeDislike(comment.id, 'like')}
-                        className={`flex items-center gap-1 text-sm ${
+                        className={`flex items-center gap-1 text-xs ${
                           comment.user_liked ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
                         }`}
                       >
-                        <ThumbsUp className={`w-4 h-4 ${comment.user_liked ? 'fill-current' : ''}`} />
+                        <ThumbsUp className={`w-3 h-3 ${comment.user_liked ? 'fill-current' : ''}`} />
                         <span>{comment.likes}</span>
                       </button>
                       
                       <button
                         onClick={() => handleLikeDislike(comment.id, 'dislike')}
-                        className={`flex items-center gap-1 text-sm ${
+                        className={`flex items-center gap-1 text-xs ${
                           comment.user_disliked ? 'text-red-600' : 'text-gray-500 hover:text-red-600'
                         }`}
                       >
-                        <ThumbsDown className={`w-4 h-4 ${comment.user_disliked ? 'fill-current' : ''}`} />
+                        <ThumbsDown className={`w-3 h-3 ${comment.user_disliked ? 'fill-current' : ''}`} />
                         <span>{comment.dislikes}</span>
                       </button>
                       
                       <button
                         onClick={() => setReplyingTo(comment.id)}
-                        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
                       >
-                        <Reply className="w-4 h-4" />
+                        <Reply className="w-3 h-3" />
                         <span>Responder</span>
                       </button>
                     </div>
@@ -403,7 +403,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                           <button
                             onClick={() => handleSubmitReply(comment.id)}
                             disabled={!replyText.trim()}
-                            className="px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:opacity-50"
+                            className="px-2 py-1.5 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 disabled:opacity-50"
                           >
                             Enviar
                           </button>
@@ -412,7 +412,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                               setReplyingTo(null)
                               setReplyText('')
                             }}
-                            className="px-3 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                            className="px-2 py-1.5 bg-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-400"
                           >
                             Cancelar
                           </button>
@@ -440,14 +440,14 @@ export default function TestComments({ testId }: TestCommentsProps) {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-gray-900 text-sm">
+                                <span className="font-medium text-gray-900 text-xs">
                                   {reply.user_name}
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   {formatTime(reply.created_at)}
                                 </span>
                               </div>
-                              <p className="text-gray-700 text-sm whitespace-pre-wrap mb-2">
+                              <p className="text-gray-700 text-xs whitespace-pre-wrap mb-2">
                                 {reply.comment}
                               </p>
                               
@@ -459,7 +459,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                                     reply.user_liked ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
                                   }`}
                                 >
-                                  <ThumbsUp className={`w-3 h-3 ${reply.user_liked ? 'fill-current' : ''}`} />
+                                  <ThumbsUp className={`w-2.5 h-2.5 ${reply.user_liked ? 'fill-current' : ''}`} />
                                   <span>{reply.likes}</span>
                                 </button>
                                 
@@ -469,7 +469,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                                     reply.user_disliked ? 'text-red-600' : 'text-gray-500 hover:text-red-600'
                                   }`}
                                 >
-                                  <ThumbsDown className={`w-3 h-3 ${reply.user_disliked ? 'fill-current' : ''}`} />
+                                  <ThumbsDown className={`w-2.5 h-2.5 ${reply.user_disliked ? 'fill-current' : ''}`} />
                                   <span>{reply.dislikes}</span>
                                 </button>
                               </div>
