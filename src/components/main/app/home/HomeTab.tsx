@@ -189,18 +189,25 @@ export default function HomeTab() {
 
   const loadHotPosts = async () => {
     try {
+      console.log('Loading hot posts...')
       // 실제 데이터베이스에서 조회수가 높은 게시물 가져오기
       const response = await fetch('/api/posts/hot?limit=3')
+      
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
       
       if (!response.ok) {
         throw new Error('Failed to fetch hot posts')
       }
       
       const data = await response.json()
+      console.log('API Response:', data)
       
       if (data.success && data.posts) {
+        console.log('Setting hot posts:', data.posts)
         setHotPosts(data.posts)
       } else {
+        console.log('API failed or no posts')
         // API 실패 시 빈 배열로 설정
         setHotPosts([])
       }
