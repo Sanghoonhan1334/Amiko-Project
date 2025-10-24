@@ -563,14 +563,9 @@ export default function HomeTab() {
                 className="pointer-events-auto bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white dark:hover:bg-gray-700"
                 onClick={() => router.push('/community/stories')}
               >
-                <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-1">
-                    <span className="text-white text-xs">➡️</span>
-                  </div>
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {language === 'ko' ? '더보기' : 'Ver Más'}
-                  </span>
-                </div>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {language === 'ko' ? '더보기' : 'Ver Más'}
+                </span>
               </Button>
             </div>
           </CardContent>
