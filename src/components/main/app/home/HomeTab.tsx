@@ -209,12 +209,12 @@ export default function HomeTab() {
           id: post.id,
           title: post.title,
           content: post.content,
-          author: post.author_name || post.user_name || '익명',
-          likes: post.likes_count || 0,
-          comments: post.comments_count || 0,
-          views: post.views_count || 0,
+          author: '익명', // 임시로 익명 처리
+          likes: post.like_count || 0,
+          comments: post.comment_count || 0,
+          views: post.view_count || 0,
           createdAt: formatTimeAgo(post.created_at),
-          category: post.category || 'general'
+          category: '자유게시판'
         }))
         
         console.log('Setting hot posts:', formattedPosts)

@@ -74,11 +74,7 @@ export async function GET(
         is_hot,
         created_at,
         updated_at,
-        user:users!gallery_posts_user_id_fkey (
-          id,
-          full_name,
-          avatar_url
-        )
+        user_id
       `)
       .eq('gallery_id', gallery.id)
       .eq('is_deleted', false)
