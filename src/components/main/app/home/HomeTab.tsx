@@ -512,9 +512,7 @@ export default function HomeTab() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">📖</span>
-            </div>
+            <span className="text-lg">📖</span>
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
               {language === 'ko' ? '최근 스토리' : 'Historias Recientes'}
             </h2>
