@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { MessageCircle, Send, User } from 'lucide-react'
+import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply } from 'lucide-react'
 
 interface Comment {
   id: string
@@ -12,6 +12,12 @@ interface Comment {
   user_avatar_url?: string
   comment: string
   created_at: string
+  parent_id?: string // 대댓글용
+  likes: number
+  dislikes: number
+  user_liked?: boolean
+  user_disliked?: boolean
+  replies?: Comment[] // 대댓글 목록
 }
 
 interface TestCommentsProps {
@@ -24,6 +30,8 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const [newComment, setNewComment] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState('')
 
   // 댓글 조회 (로컬 스토리지 기반)
   const fetchComments = async () => {
@@ -62,7 +70,12 @@ export default function TestComments({ testId }: TestCommentsProps) {
         user_name: user.user_metadata?.name || 'Anonymous',
         user_avatar_url: user.user_metadata?.avatar_url || null,
         comment: newComment.trim(),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        likes: 0,
+        dislikes: 0,
+        user_liked: false,
+        user_disliked: false,
+        replies: []
       }
       
       // 기존 댓글 목록에 새 댓글 추가
@@ -79,6 +92,146 @@ export default function TestComments({ testId }: TestCommentsProps) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // 대댓글 작성
+  const handleSubmitReply = async (parentId: string) => {
+    if (!replyText.trim() || !user) return
+    
+    try {
+      const newReply: Comment = {
+        id: Date.now().toString(),
+        test_id: testId,
+        user_id: user.id,
+        user_name: user.user_metadata?.name || 'Anonymous',
+        user_avatar_url: user.user_metadata?.avatar_url || null,
+        comment: replyText.trim(),
+        created_at: new Date().toISOString(),
+        parent_id: parentId,
+        likes: 0,
+        dislikes: 0,
+        user_liked: false,
+        user_disliked: false
+      }
+      
+      // 부모 댓글에 대댓글 추가
+      const updatedComments = comments.map(comment => {
+        if (comment.id === parentId) {
+          return {
+            ...comment,
+            replies: [...(comment.replies || []), newReply]
+          }
+        }
+        return comment
+      })
+      
+      // 로컬 스토리지에 저장
+      localStorage.setItem(`${testId}-comments`, JSON.stringify(updatedComments))
+      
+      // 상태 업데이트
+      setComments(updatedComments)
+      setReplyText('')
+      setReplyingTo(null)
+    } catch (error) {
+      console.error('Error submitting reply:', error)
+    }
+  }
+
+  // 추천/비추천 토글
+  const handleLikeDislike = (commentId: string, type: 'like' | 'dislike') => {
+    if (!user) return
+    
+    const updatedComments = comments.map(comment => {
+      if (comment.id === commentId) {
+        const newComment = { ...comment }
+        
+        if (type === 'like') {
+          if (newComment.user_liked) {
+            // 추천 취소
+            newComment.likes = Math.max(0, newComment.likes - 1)
+            newComment.user_liked = false
+          } else {
+            // 추천
+            newComment.likes += 1
+            newComment.user_liked = true
+            
+            // 비추천이 있었다면 취소
+            if (newComment.user_disliked) {
+              newComment.dislikes = Math.max(0, newComment.dislikes - 1)
+              newComment.user_disliked = false
+            }
+          }
+        } else {
+          if (newComment.user_disliked) {
+            // 비추천 취소
+            newComment.dislikes = Math.max(0, newComment.dislikes - 1)
+            newComment.user_disliked = false
+          } else {
+            // 비추천
+            newComment.dislikes += 1
+            newComment.user_disliked = true
+            
+            // 추천이 있었다면 취소
+            if (newComment.user_liked) {
+              newComment.likes = Math.max(0, newComment.likes - 1)
+              newComment.user_liked = false
+            }
+          }
+        }
+        
+        return newComment
+      }
+      
+      // 대댓글도 처리
+      if (comment.replies) {
+        const updatedReplies = comment.replies.map(reply => {
+          if (reply.id === commentId) {
+            const newReply = { ...reply }
+            
+            if (type === 'like') {
+              if (newReply.user_liked) {
+                newReply.likes = Math.max(0, newReply.likes - 1)
+                newReply.user_liked = false
+              } else {
+                newReply.likes += 1
+                newReply.user_liked = true
+                
+                if (newReply.user_disliked) {
+                  newReply.dislikes = Math.max(0, newReply.dislikes - 1)
+                  newReply.user_disliked = false
+                }
+              }
+            } else {
+              if (newReply.user_disliked) {
+                newReply.dislikes = Math.max(0, newReply.dislikes - 1)
+                newReply.user_disliked = false
+              } else {
+                newReply.dislikes += 1
+                newReply.user_disliked = true
+                
+                if (newReply.user_liked) {
+                  newReply.likes = Math.max(0, newReply.likes - 1)
+                  newReply.user_liked = false
+                }
+              }
+            }
+            
+            return newReply
+          }
+          return reply
+        })
+        
+        return { ...comment, replies: updatedReplies }
+      }
+      
+      return comment
+    })
+    
+    // 로컬 스토리지에 저장
+    localStorage.setItem(`${testId}-comments`, JSON.stringify(updatedComments))
+    
+    // 상태 업데이트
+    setComments(updatedComments)
   }
 
   // 시간 포맷팅
@@ -201,9 +354,130 @@ export default function TestComments({ testId }: TestCommentsProps) {
                         {formatTime(comment.created_at)}
                       </span>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">
+                    <p className="text-gray-700 whitespace-pre-wrap mb-3">
                       {comment.comment}
                     </p>
+                    
+                    {/* 추천/비추천 및 답글 버튼 */}
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => handleLikeDislike(comment.id, 'like')}
+                        className={`flex items-center gap-1 text-sm ${
+                          comment.user_liked ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
+                        }`}
+                      >
+                        <ThumbsUp className={`w-4 h-4 ${comment.user_liked ? 'fill-current' : ''}`} />
+                        <span>{comment.likes}</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleLikeDislike(comment.id, 'dislike')}
+                        className={`flex items-center gap-1 text-sm ${
+                          comment.user_disliked ? 'text-red-600' : 'text-gray-500 hover:text-red-600'
+                        }`}
+                      >
+                        <ThumbsDown className={`w-4 h-4 ${comment.user_disliked ? 'fill-current' : ''}`} />
+                        <span>{comment.dislikes}</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => setReplyingTo(comment.id)}
+                        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        <Reply className="w-4 h-4" />
+                        <span>Responder</span>
+                      </button>
+                    </div>
+                    
+                    {/* 답글 작성 폼 */}
+                    {replyingTo === comment.id && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Escribe tu respuesta..."
+                            className="flex-1 p-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          />
+                          <button
+                            onClick={() => handleSubmitReply(comment.id)}
+                            disabled={!replyText.trim()}
+                            className="px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:opacity-50"
+                          >
+                            Enviar
+                          </button>
+                          <button
+                            onClick={() => {
+                              setReplyingTo(null)
+                              setReplyText('')
+                            }}
+                            className="px-3 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* 대댓글 목록 */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="mt-3 ml-4 space-y-3">
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="flex gap-3">
+                            <div className="flex-shrink-0">
+                              {reply.user_avatar_url ? (
+                                <img 
+                                  src={reply.user_avatar_url} 
+                                  alt={reply.user_name} 
+                                  className="w-6 h-6 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                                  <User className="w-3 h-3 text-gray-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-gray-900 text-sm">
+                                  {reply.user_name}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {formatTime(reply.created_at)}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm whitespace-pre-wrap mb-2">
+                                {reply.comment}
+                              </p>
+                              
+                              {/* 대댓글 추천/비추천 */}
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => handleLikeDislike(reply.id, 'like')}
+                                  className={`flex items-center gap-1 text-xs ${
+                                    reply.user_liked ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
+                                  }`}
+                                >
+                                  <ThumbsUp className={`w-3 h-3 ${reply.user_liked ? 'fill-current' : ''}`} />
+                                  <span>{reply.likes}</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => handleLikeDislike(reply.id, 'dislike')}
+                                  className={`flex items-center gap-1 text-xs ${
+                                    reply.user_disliked ? 'text-red-600' : 'text-gray-500 hover:text-red-600'
+                                  }`}
+                                >
+                                  <ThumbsDown className={`w-3 h-3 ${reply.user_disliked ? 'fill-current' : ''}`} />
+                                  <span>{reply.dislikes}</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
