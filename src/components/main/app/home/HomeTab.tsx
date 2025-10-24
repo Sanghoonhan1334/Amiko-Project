@@ -553,8 +553,8 @@ export default function HomeTab() {
               )}
             </div>
             
-            {/* 고급스러운 더보기 버튼 - 오른쪽 끝에 투명 효과 */}
-            <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80 dark:to-transparent flex items-center justify-end pr-2 pointer-events-none">
+            {/* 더보기 버튼 - 오른쪽 귀퉁이에 세로로 배치 */}
+            <div className="absolute top-0 right-0 bottom-0 w-16 flex flex-col items-end justify-center pr-2 pointer-events-none">
               <Button
                 variant="ghost"
                 size="sm"
