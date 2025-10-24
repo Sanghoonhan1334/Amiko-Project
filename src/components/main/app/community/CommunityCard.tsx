@@ -54,23 +54,23 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
       )}
 
       {/* Icono with background container - Fixed height for alignment */}
-      <div className="mb-2 md:mb-3 flex items-center justify-center h-20 md:h-auto">
+      <div className="mb-2 md:mb-3 flex items-center justify-center h-24 md:h-auto">
         <div className="relative">
           {/* Background container - only on mobile */}
           <div className="md:hidden">
             <div 
-              className="w-16 h-16 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 transition-all duration-200 group-hover:border-gray-400 dark:group-hover:border-gray-400 group-hover:shadow-md group-hover:scale-110"
+              className="w-20 h-20 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 transition-all duration-200 group-hover:border-gray-400 dark:group-hover:border-gray-400 group-hover:shadow-md group-hover:scale-110"
             >
               {isImage ? (
                 <img
                   src={item.icon}
                   alt={item.title}
-                  className="w-8 h-8 object-contain"
+                  className="w-10 h-10 object-contain"
                   loading="eager"
                   decoding="async"
                 />
               ) : (
-                <div className="text-2xl">{item.icon}</div>
+                <div className="text-3xl">{item.icon}</div>
               )}
             </div>
           </div>
