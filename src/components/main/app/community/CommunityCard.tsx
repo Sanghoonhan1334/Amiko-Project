@@ -65,12 +65,12 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
                 <img
                   src={item.icon}
                   alt={item.title}
-                  className="w-10 h-10 object-contain"
+                  className="w-12 h-12 object-contain"
                   loading="eager"
                   decoding="async"
                 />
               ) : (
-                <div className="text-3xl">{item.icon}</div>
+                <div className="text-4xl">{item.icon}</div>
               )}
             </div>
           </div>
