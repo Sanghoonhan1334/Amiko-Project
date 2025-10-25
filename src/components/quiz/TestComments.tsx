@@ -270,9 +270,9 @@ export default function TestComments({ testId }: TestCommentsProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border">
-      <div className="p-4 border-b">
-        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-          <MessageCircle className="w-4 h-4 text-purple-500" />
+      <div className="p-4 md:p-6 border-b">
+        <h3 className="text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <MessageCircle className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
           Comentarios ({comments.length})
         </h3>
       </div>
@@ -280,18 +280,18 @@ export default function TestComments({ testId }: TestCommentsProps) {
       {/* 댓글 작성 폼 */}
       {user ? (
         user.user_metadata?.name ? (
-          <form onSubmit={handleSubmitComment} className="p-3 border-b">
-          <div className="flex gap-2">
+          <form onSubmit={handleSubmitComment} className="p-3 md:p-4 border-b">
+          <div className="flex gap-2 md:gap-3">
             <div className="flex-shrink-0">
               {user.user_metadata?.avatar_url ? (
                 <img 
                   src={user.user_metadata.avatar_url} 
                   alt="Profile" 
-                  className="w-6 h-6 rounded-full object-cover"
+                  className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                  <User className="w-3 h-3 text-purple-600" />
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <User className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
                 </div>
               )}
             </div>
@@ -300,23 +300,23 @@ export default function TestComments({ testId }: TestCommentsProps) {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Escribe tu comentario..."
-                className="w-full p-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full p-2 md:p-3 text-sm md:text-base border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 rows={2}
                 maxLength={500}
               />
               <div className="flex justify-between items-center mt-2">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs md:text-sm text-gray-500">
                   {newComment.length}/500
                 </span>
                 <button
                   type="submit"
                   disabled={!newComment.trim() || isSubmitting}
-                  className="px-2 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  className="px-2 py-1 md:px-3 md:py-2 bg-purple-500 text-white text-xs md:text-sm rounded-md hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 >
                   {isSubmitting ? (
-                    <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-2.5 w-2.5 md:h-3 md:w-3 border-b-2 border-white"></div>
                   ) : (
-                    <Send className="w-2.5 h-2.5" />
+                    <Send className="w-2.5 h-2.5 md:w-3 md:h-3" />
                   )}
                   Comentar
                 </button>
@@ -352,31 +352,31 @@ export default function TestComments({ testId }: TestCommentsProps) {
         ) : (
           <div className="divide-y divide-gray-100">
             {comments.map((comment) => (
-              <div key={comment.id} className="p-3">
-                <div className="flex gap-2">
+              <div key={comment.id} className="p-3 md:p-4">
+                <div className="flex gap-2 md:gap-3">
                   <div className="flex-shrink-0">
                     {comment.user_avatar_url ? (
                       <img 
                         src={comment.user_avatar_url} 
                         alt={comment.user_name} 
-                        className="w-6 h-6 rounded-full object-cover"
+                        className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                        <User className="w-3 h-3 text-gray-600" />
+                      <div className="w-6 h-6 md:w-8 md:h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                        <User className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900 text-sm">
+                      <span className="font-medium text-gray-900 text-sm md:text-base">
                         {comment.user_name}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs md:text-sm text-gray-500">
                         {formatTime(comment.created_at)}
                       </span>
                     </div>
-                    <p className="text-gray-700 text-sm whitespace-pre-wrap mb-3">
+                    <p className="text-gray-700 text-sm md:text-base whitespace-pre-wrap mb-3">
                       {comment.comment}
                     </p>
                     
@@ -384,29 +384,29 @@ export default function TestComments({ testId }: TestCommentsProps) {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleLikeDislike(comment.id, 'like')}
-                        className={`flex items-center gap-1 text-xs ${
+                        className={`flex items-center gap-1 text-xs md:text-sm ${
                           comment.user_liked ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
                         }`}
                       >
-                        <ThumbsUp className={`w-3 h-3 ${comment.user_liked ? 'fill-current' : ''}`} />
+                        <ThumbsUp className={`w-3 h-3 md:w-4 md:h-4 ${comment.user_liked ? 'fill-current' : ''}`} />
                         <span>{comment.likes}</span>
                       </button>
                       
                       <button
                         onClick={() => handleLikeDislike(comment.id, 'dislike')}
-                        className={`flex items-center gap-1 text-xs ${
+                        className={`flex items-center gap-1 text-xs md:text-sm ${
                           comment.user_disliked ? 'text-red-600' : 'text-gray-500 hover:text-red-600'
                         }`}
                       >
-                        <ThumbsDown className={`w-3 h-3 ${comment.user_disliked ? 'fill-current' : ''}`} />
+                        <ThumbsDown className={`w-3 h-3 md:w-4 md:h-4 ${comment.user_disliked ? 'fill-current' : ''}`} />
                         <span>{comment.dislikes}</span>
                       </button>
                       
                       <button
                         onClick={() => setReplyingTo(comment.id)}
-                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+                        className="flex items-center gap-1 text-xs md:text-sm text-gray-500 hover:text-gray-700"
                       >
-                        <Reply className="w-3 h-3" />
+                        <Reply className="w-3 h-3 md:w-4 md:h-4" />
                         <span>Responder</span>
                       </button>
                     </div>

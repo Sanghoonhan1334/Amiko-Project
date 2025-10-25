@@ -131,7 +131,20 @@ export default function FortuneResultPage() {
         alert('URL copiada al portapapeles')
       }
     } catch (error) {
-      console.error('Error al compartir:', error)
+      // 공유가 취소되었거나 오류가 발생한 경우
+      if (error.name === 'AbortError') {
+        // 사용자가 공유를 취소한 경우 - 아무것도 하지 않음
+        return
+      }
+      
+      // 다른 오류의 경우 URL 복사로 대체
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        alert('URL copiada al portapapeles')
+      } catch (clipboardError) {
+        console.error('공유 및 클립보드 복사 실패:', clipboardError)
+        alert('Error al compartir.')
+      }
     }
   }
 

@@ -8,18 +8,39 @@ interface CommunityCardProps {
   item: CommunityItem
   isNavigating: boolean
   onNavigate: (route: string) => void
+  onToggleSubmenu?: (itemId: string) => void
+  showSubmenu?: boolean
+  isFading?: boolean
 }
 
 /**
  * CommunityCard - Card individual del grid de comunidad
  * Weverse-inspired design con glow effect para items nuevos
  */
-export default function CommunityCard({ item, isNavigating, onNavigate }: CommunityCardProps) {
+export default function CommunityCard({ 
+  item, 
+  isNavigating, 
+  onNavigate, 
+  onToggleSubmenu, 
+  showSubmenu,
+  isFading = false
+}: CommunityCardProps) {
   const isImage = item.icon.startsWith('/')
+  const hasSubItems = item.subItems && item.subItems.length > 0
+
+  const handleClick = () => {
+    if (hasSubItems && onToggleSubmenu) {
+      // 서브메뉴가 있는 경우 토글
+      onToggleSubmenu(item.id)
+    } else if (item.route) {
+      // 직접 라우트가 있는 경우 이동
+      onNavigate(item.route)
+    }
+  }
 
   return (
     <button
-      onClick={() => onNavigate(item.route)}
+      onClick={handleClick}
       disabled={isNavigating}
       role="button"
       aria-label={`${item.title}${item.microcopy ? `: ${item.microcopy}` : ''}`}
@@ -30,11 +51,13 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
         md:border md:border-[#F3F4F6] md:dark:border-gray-700
         md:rounded-2xl
         p-2 md:p-5
+        h-32 md:h-40
         transition-all duration-200 ease-out
         md:hover:scale-[1.03] md:hover:shadow-[0_8px_24px_rgba(139,92,246,0.16)]
         active:scale-[0.98]
         focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
         ${isNavigating ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
+        ${isFading ? 'main-item-fade' : ''}
         ${
           item.isNew
             ? 'md:shadow-[0_2px_8px_rgba(0,0,0,0.04),0_0_0_2px_rgba(139,92,246,0.12),0_0_24px_rgba(139,92,246,0.08)]'
@@ -54,7 +77,7 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
       )}
 
       {/* Icono with background container - Fixed height for alignment */}
-      <div className="mb-2 md:mb-3 flex items-center justify-center h-20 md:h-auto">
+      <div className="mb-2 md:mb-3 flex items-center justify-center h-16 md:h-20">
         <div className="relative">
           {/* Background container - only on mobile */}
           <div className="md:hidden">
@@ -72,6 +95,14 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
               ) : (
                 <div className="text-4xl">{item.icon}</div>
               )}
+            {/* 서브메뉴 화살표 */}
+            {hasSubItems && (
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            )}
             </div>
           </div>
           
@@ -88,12 +119,20 @@ export default function CommunityCard({ item, isNavigating, onNavigate }: Commun
             ) : (
               <div className="text-5xl">{item.icon}</div>
             )}
+            {/* 서브메뉴 화살표 - Desktop */}
+            {hasSubItems && (
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full flex items-center justify-center shadow-sm">
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Título - Fixed height for alignment */}
-      <div className="h-8 md:h-auto flex items-center justify-center mb-0 md:mb-1">
+      <div className="h-10 md:h-12 flex items-center justify-center mb-0 md:mb-1">
         <h3 className="text-xs md:text-base font-semibold text-[#111827] dark:text-gray-100 text-center leading-tight">
           {item.title}
         </h3>

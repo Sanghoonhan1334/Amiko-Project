@@ -135,6 +135,33 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { user, token } = useAuth()
   const router = useRouter()
   const [isNavigating, setIsNavigating] = useState(false)
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
+  
+  // 서브메뉴 토글 핸들러
+  const handleToggleSubmenu = useCallback((itemId: string) => {
+    setActiveSubmenu(activeSubmenu === itemId ? null : itemId)
+  }, [activeSubmenu])
+  
+  // CSS 애니메이션 스타일
+  const animationStyles = `
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0.3; }
+    }
+    .main-item-fade {
+      animation: fadeOut 0.3s ease-out forwards;
+    }
+    @keyframes slideInFromTop {
+      from { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0); 
+      }
+    }
+  `
   
   // 네비게이션 핸들러 - 즉시 스켈레톤 표시
   const handleNavigation = useCallback(async (path: string) => {
@@ -2135,6 +2162,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto px-2 md:px-6 bg-white dark:bg-gray-900" style={{ paddingTop: isMobile ? '0px' : '0px', paddingBottom: isMobile ? '20px' : '48px' }}>
+      {/* CSS 애니메이션 스타일 */}
+      <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
+      
       {/* 테스트 요소 - 컴포넌트가 렌더링되는지 확인 */}
       {/* 메인 컨텐츠 */}
       <div className="w-full space-y-6">
@@ -2168,15 +2198,43 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                </div>
         
                {/* Grid 2×3 - Mobile first design */}
-               <div className="w-full grid grid-cols-2 gap-x-3 gap-y-4 md:gap-5 px-4 py-6 max-w-md md:max-w-xl mx-auto">
-                 {communityItems.map((item) => (
-                   <CommunityCard
-                     key={item.id}
-                     item={item}
-                     isNavigating={isNavigating}
-                     onNavigate={handleNavigation}
-                   />
-                 ))}
+               <div className="w-full px-4 py-6 max-w-md md:max-w-xl mx-auto">
+                 <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:gap-6">
+                   {communityItems.map((item) => (
+                     <div key={item.id} className="relative">
+                       <CommunityCard
+                         item={item}
+                         isNavigating={isNavigating}
+                         onNavigate={handleNavigation}
+                         onToggleSubmenu={handleToggleSubmenu}
+                         showSubmenu={activeSubmenu === item.id}
+                         isFading={activeSubmenu !== null && activeSubmenu !== item.id}
+                       />
+                       
+                       {/* Tableros 바로 밑에 세로 일렬 서브메뉴 */}
+                       {activeSubmenu === item.id && item.subItems && (
+                         <div className="absolute top-full left-0 right-0 mt-2 flex flex-col gap-2 z-10">
+                           {item.subItems.map((subItem, index) => (
+                             <button
+                               key={subItem.id}
+                               onClick={() => handleNavigation(subItem.route)}
+                               className="w-full flex items-center gap-2 p-2 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 bg-white dark:bg-gray-800 shadow-sm"
+                               style={{
+                                 animationDelay: `${index * 0.1}s`,
+                                 animation: 'slideInFromTop 0.3s ease-out forwards'
+                               }}
+                             >
+                               <div className="text-lg flex-shrink-0">{subItem.icon}</div>
+                               <div className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+                                 {subItem.title}
+                               </div>
+                             </button>
+                           ))}
+                         </div>
+                       )}
+                     </div>
+                   ))}
+                 </div>
                </div>
             </div>
       )}

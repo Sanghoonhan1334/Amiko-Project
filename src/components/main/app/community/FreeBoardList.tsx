@@ -1215,7 +1215,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               }`}
               onClick={() => handleTabChange('recommended')}
             >
-              추천글
+              {language === 'ko' ? '추천글' : 'Recomendados'}
             </button>
             <button 
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${

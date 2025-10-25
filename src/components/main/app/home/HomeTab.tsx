@@ -78,6 +78,7 @@ export default function HomeTab() {
   const [popularTests, setPopularTests] = useState<PopularTest[]>([])
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
   const [recentStories, setRecentStories] = useState<RecentStory[]>([])
+  const [notices, setNotices] = useState<HotPost[]>([])
   const [loading, setLoading] = useState(true)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(true)
@@ -183,9 +184,9 @@ export default function HomeTab() {
         {
           id: 'event-2',
           title: language === 'ko' ? 'ACU-POINT 화장품 이벤트' : 'Evento de Cosméticos ACU-POINT',
-          description: language === 'ko' ? '커뮤니티 점수 1등에게 매월 선크림 + 마스크팩 세트를 드립니다!' : '¡El primer lugar en puntos de la comunidad recibe un set mensual de protector solar + mascarilla!',
+          description: language === 'ko' ? '가장 많이 사용한 사람에게 매월 선크림 + 마스크팩 세트를 공짜로 드립니다!' : '¡La persona que más use la comunidad recibe un set mensual de protector solar + mascarilla GRATIS!',
           image: '/misc/event-title.png',
-          date: language === 'ko' ? '12월부터 매월' : 'Mensual desde diciembre',
+          date: language === 'ko' ? '1월부터 매달 진행' : 'Mensual desde enero - ¡GRATIS!',
           participants: 156
         }
       ]
@@ -228,7 +229,8 @@ export default function HomeTab() {
         }))
         
         console.log('Setting hot posts:', formattedPosts)
-        setHotPosts(formattedPosts)
+        // 3개로 제한
+        setHotPosts(formattedPosts.slice(0, 3))
       } else {
         console.log('No posts found or API failed')
         setHotPosts([])
@@ -270,6 +272,15 @@ export default function HomeTab() {
           image: '/quizzes/fortune/cover/cover.png',
           category: 'fortune',
           route: '/quiz/fortune'
+        },
+        {
+          id: 'korean-level',
+          title: language === 'ko' ? 'Test de Nivel de Coreano' : 'Test de Nivel de Coreano',
+          description: language === 'ko' ? 'Prueba tu nivel de coreano desde básico hasta avanzado' : 'Prueba tu nivel de coreano desde básico hasta avanzado',
+          participants: 743,
+          image: '/quizzes/korean-level/cover/cover.png',
+          category: 'language',
+          route: '/quiz/korean-level'
         }
       ]
       
@@ -338,6 +349,54 @@ export default function HomeTab() {
     }
   }
 
+  const loadNotices = async () => {
+    try {
+      console.log('Loading notices from topic board...')
+      
+      // 주제별게시판에서 공지사항 가져오기 (공지사항은 보통 제목에 [공지] 또는 특별한 카테고리로 구분)
+      const response = await fetch('/api/galleries/freeboard/posts?sort=created_at&limit=10')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch notices')
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.posts) {
+        // 공지사항 필터링 (제목에 [공지] 포함된 것들)
+        const noticePosts = data.posts.filter((post: any) => 
+          post.title.includes('[공지]') || 
+          post.title.includes('[Notice]') ||
+          post.title.includes('[ANUNCIO]') ||
+          post.category === '공지사항'
+        )
+        
+        // 데이터 포맷팅
+        const formattedNotices = noticePosts.slice(0, 3).map((post: any) => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          author: '관리자', // 공지사항은 관리자가 작성
+          likes: post.like_count || 0,
+          comments: post.comment_count || 0,
+          views: post.view_count || 0,
+          createdAt: formatTimeAgo(post.created_at),
+          category: '공지사항'
+        }))
+        
+        console.log('Setting notices:', formattedNotices)
+        setNotices(formattedNotices)
+      } else {
+        console.log('No notices found')
+        setNotices([])
+      }
+      
+    } catch (error) {
+      console.error('공지사항 로딩 실패:', error)
+      setNotices([])
+    }
+  }
+
   // 유틸리티 함수
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
@@ -364,7 +423,8 @@ export default function HomeTab() {
         loadHotPosts(),
         loadPopularTests(),
         loadOnlineUsers(),
-        loadRecentStories()
+        loadRecentStories(),
+        loadNotices()
       ])
     } catch (error) {
       console.error('데이터 로딩 실패:', error)
@@ -430,6 +490,62 @@ export default function HomeTab() {
     <>
       {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 p-4">
+      
+      {/* 공지사항 - 맨 위에 배치 */}
+      {notices.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📢</span>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                {language === 'ko' ? '공지사항' : 'Avisos'}
+              </h2>
+            </div>
+            <button
+              onClick={() => router.push('/community/freeboard')}
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+            >
+              {language === 'ko' ? '더보기' : 'Ver Más'}
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            {notices.map((notice) => (
+              <Card key={notice.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                        {notice.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                        {notice.content}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+                        <div className="flex items-center space-x-4">
+                          <span className="flex items-center space-x-1">
+                            <span>👁️</span>
+                            <span>{notice.views}</span>
+                          </span>
+                          <span className="flex items-center space-x-1">
+                            <span>💬</span>
+                            <span>{notice.comments}</span>
+                          </span>
+                        </div>
+                        <span className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{notice.createdAt}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 현재 진행 이벤트 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -444,7 +560,7 @@ export default function HomeTab() {
             <CardContent className="p-0">
               <div 
                 id="event-container"
-                className="relative h-32 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                className="relative h-40 md:h-32 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -462,10 +578,10 @@ export default function HomeTab() {
                       className="w-full flex-shrink-0 cursor-pointer"
                       onClick={() => router.push('/main?tab=event')}
                     >
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4 hover:shadow-lg transition-shadow rounded-lg">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4 md:p-4 hover:shadow-lg transition-shadow rounded-lg">
                         <div className="flex-1">
-                          <h3 className="text-white font-bold text-lg mb-1">{event.title}</h3>
-                          <p className="text-white/90 text-sm mb-2">{event.description}</p>
+                          <h3 className="text-white font-bold text-base md:text-lg mb-2 md:mb-1">{event.title}</h3>
+                          <p className="text-white/90 text-xs md:text-sm mb-3 md:mb-2">{event.description}</p>
                           <div className="flex items-center gap-4">
                             <span className="text-white/80 text-xs">{event.date}</span>
                           </div>
@@ -553,18 +669,18 @@ export default function HomeTab() {
               )}
             </div>
             
-            {/* 더보기 버튼 - 오른쪽 귀퉁이에 세로로 배치 */}
-            <div className="absolute top-0 right-0 bottom-0 w-16 flex flex-col items-end justify-center pr-2 pointer-events-none">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="pointer-events-auto bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white dark:hover:bg-gray-700"
+            {/* 반투명 모자이크 효과와 더보기 텍스트 */}
+            <div className="absolute top-0 right-0 bottom-0 w-16 flex flex-col items-end justify-center pointer-events-none">
+              {/* 반투명 모자이크 배경 */}
+              <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm"></div>
+              
+              {/* 더보기 텍스트 - 모자이크 위에 배치, 완전 끝으로 */}
+              <span 
+                className="relative z-10 text-xs font-medium text-gray-700 dark:text-gray-300 transform rotate-90 whitespace-nowrap cursor-pointer pointer-events-auto hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200"
                 onClick={() => router.push('/community/stories')}
               >
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {language === 'ko' ? '더보기' : 'Ver Más'}
-                </span>
-              </Button>
+                {language === 'ko' ? '더보기' : 'Ver Más'}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -658,7 +774,7 @@ export default function HomeTab() {
         </div>
         
         {popularTests.length > 0 ? (
-          <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
             {popularTests.map((test) => (
               <div 
                 key={test.id} 
@@ -669,7 +785,7 @@ export default function HomeTab() {
                   <img
                     src={test.image}
                     alt={test.title}
-                    className="w-full h-32 md:h-40 lg:h-48 object-contain rounded-lg"
+                    className="w-full h-32 md:h-48 lg:h-56 xl:h-64 object-contain rounded-lg"
                   />
                 </div>
                 
@@ -695,6 +811,54 @@ export default function HomeTab() {
           </Card>
         )}
       </div>
+
+      {/* 화상채팅 온라인 인원 - 모바일 버전 */}
+      {onlineUsers.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-green-600" />
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                {t('home.sections.videoChatOnline')}
+              </h2>
+            </div>
+            <Badge variant="outline" className="text-green-600 border-green-600">
+              {onlineUsers.length}명
+            </Badge>
+          </div>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 overflow-x-auto">
+                {onlineUsers.map((user) => (
+                  <div key={user.id} className="flex flex-col items-center min-w-16">
+                    <div className="relative">
+                      <img
+                        src={user.profileImage}
+                        alt={user.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">
+                      {user.name}
+                    </span>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-2"
+                  onClick={() => router.push('/main?tab=meet')}
+                >
+                  <Users className="w-4 h-4 mr-1" />
+                  {t('home.community.seeMore')}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
 
         {/* 데스크톱 버전 - 적당한 크기로 조정 */}
@@ -702,6 +866,65 @@ export default function HomeTab() {
           <div className="grid grid-cols-12 gap-6">
             {/* 왼쪽 컬럼 (8/12) */}
             <div className="col-span-8 space-y-4">
+            
+            {/* 공지사항 - 데스크톱 버전 */}
+            {notices.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                      <span className="text-lg">📢</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                      {language === 'ko' ? '공지사항' : 'Avisos'}
+                    </h2>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push('/community/freeboard')}
+                  >
+                    {language === 'ko' ? '더보기' : 'Ver Más'}
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {notices.map((notice) => (
+                    <Card key={notice.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                              {notice.title}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                              {notice.content}
+                            </p>
+                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+                              <div className="flex items-center space-x-4">
+                                <span className="flex items-center space-x-1">
+                                  <span>👁️</span>
+                                  <span>{notice.views}</span>
+                                </span>
+                                <span className="flex items-center space-x-1">
+                                  <span>💬</span>
+                                  <span>{notice.comments}</span>
+                                </span>
+                              </div>
+                              <span className="flex items-center space-x-1">
+                                <Clock className="w-3 h-3" />
+                                <span>{notice.createdAt}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -869,55 +1092,7 @@ export default function HomeTab() {
 
             {/* 오른쪽 컬럼 (4/12) */}
             <div className="col-span-4 space-y-4">
-            {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {t('home.sections.videoChatOnline')}
-                </h2>
-              </div>
-              
-              <Card className="shadow-2xl">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {onlineUsers.map((user) => (
-                      <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
-                        <div className="relative">
-                          <img
-                            src={user.profileImage}
-                            alt={user.name}
-                            className="w-12 h-12 rounded-full object-cover shadow-md border-2 border-white dark:border-gray-800 group-hover:scale-105 transition-transform"
-                          />
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 shadow-md">
-                            <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                            {user.name}
-                          </h3>
-                          <p className="text-sm text-green-600 dark:text-green-400 font-medium">온라인</p>
-                        </div>
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      className="w-full h-10 border-green-200 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
-                      onClick={() => router.push('/main?tab=meet')}
-                    >
-                      <Users className="w-4 h-4 mr-2 text-green-600" />
-                      <span className="text-green-600 font-medium text-sm">{t('home.community.seeMore')}</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* 인기 심리테스트 - 데스크톱 전용 사이드바 */}
+            {/* 인기 심리테스트 - 데스크톱 전용 사이드바 (위로 이동) */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -930,7 +1105,7 @@ export default function HomeTab() {
               
               {popularTests.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                     {popularTests.map((test) => (
                       <div 
                         key={test.id} 
@@ -941,7 +1116,7 @@ export default function HomeTab() {
                           <img
                             src={test.image}
                             alt={test.title}
-                            className="w-full h-32 md:h-40 lg:h-48 object-contain rounded-lg"
+                            className="w-full h-32 md:h-48 lg:h-56 xl:h-64 object-contain rounded-lg"
                           />
                         </div>
                         
@@ -963,7 +1138,6 @@ export default function HomeTab() {
                       className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                       onClick={() => router.push('/community/tests')}
                     >
-                      <Brain className="w-5 h-5 mr-2" />
                       {language === 'ko' ? '더 보기' : 'Ver Más'}
                     </Button>
                   </div>
@@ -979,55 +1153,61 @@ export default function HomeTab() {
                 </Card>
               )}
             </div>
+
+            {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 */}
+            {onlineUsers.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.videoChatOnline')}
+                  </h2>
+                </div>
+                
+                <Card className="shadow-2xl">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      {onlineUsers.map((user) => (
+                        <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
+                          <div className="relative">
+                            <img
+                              src={user.profileImage}
+                              alt={user.name}
+                              className="w-12 h-12 rounded-full object-cover shadow-md border-2 border-white dark:border-gray-800 group-hover:scale-105 transition-transform"
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 shadow-md">
+                              <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                              {user.name}
+                            </h3>
+                            <p className="text-sm text-green-600 dark:text-green-400 font-medium">온라인</p>
+                          </div>
+                          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                      ))}
+                      <Button
+                        variant="outline"
+                        className="w-full h-10 border-green-200 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
+                        onClick={() => router.push('/main?tab=meet')}
+                      >
+                        <Users className="w-4 h-4 mr-2 text-green-600" />
+                        <span className="text-green-600 font-medium text-sm">{t('home.community.seeMore')}</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* 화상채팅 온라인 인원 - 맨 아래로 이동 */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-green-600" />
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {t('home.sections.videoChatOnline')}
-            </h2>
-          </div>
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            {onlineUsers.length}명
-          </Badge>
-        </div>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 overflow-x-auto">
-              {onlineUsers.map((user) => (
-                <div key={user.id} className="flex flex-col items-center min-w-16">
-                  <div className="relative">
-                    <img
-                      src={user.profileImage}
-                      alt={user.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-                  </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">
-                    {user.name}
-                  </span>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-2"
-                onClick={() => router.push('/main?tab=meet')}
-              >
-                <Users className="w-4 h-4 mr-1" />
-                {t('home.community.seeMore')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
     </>
   )
 }

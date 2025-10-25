@@ -113,8 +113,8 @@ export default function RootLayout({
       <head>
         <style dangerouslySetInnerHTML={{ __html: pretendard.style }} />
         {/* 파비콘 설정 */}
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/logos/apple-touch-icon.png" />
         <link rel="shortcut icon" href="/logos/amiko-logo.png" />
         {/* 폰트 preload로 초기 렌더링 최적화 */}
