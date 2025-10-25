@@ -142,57 +142,6 @@ export default function TestsPage() {
         
         let apiQuizzes = responseData.data || responseData || []
         
-        // 하드코딩된 테스트들 추가
-        const fortuneTest = {
-          id: 'fortune-test-' + Date.now(),
-          slug: 'fortune',
-          title: 'Test de Fortuna',
-          description: 'Descubre tu índice de fortuna y tu elemento de la suerte.',
-          category: 'fortune',
-          thumbnail_url: '/quizzes/fortune/cover/cover.png',
-          total_questions: 9,
-          is_active: true,
-          isCompleted: true,
-          participantCount: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-
-        const koreanLevelTest = {
-          id: 'korean-level-test-' + Date.now(),
-          slug: 'korean-level',
-          title: 'Test de Nivel de Coreano',
-          description: 'Prueba tu nivel de coreano desde básico hasta avanzado con preguntas variadas.',
-          category: 'language',
-          thumbnail_url: '/quizzes/korean-level/cover/cover.png',
-          total_questions: 10,
-          is_active: true,
-          isCompleted: true,
-          participantCount: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-
-        // 운세(띠) 테스트 하드코딩 추가
-        const zodiacTest = {
-          id: 'zodiac-test-' + Date.now(),
-          slug: 'zodiac',
-          title: 'Horóscopo Oriental',
-          description: 'Descubre tu signo del zodiaco oriental según tu fecha de nacimiento y conoce tu fortuna.',
-          category: 'fortune',
-          thumbnail_url: '/quizzes/zodiac/cover/cover.png',
-          total_questions: 1,
-          is_active: true,
-          isCompleted: true,
-          participantCount: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-
-        apiQuizzes.push(fortuneTest)
-        apiQuizzes.push(koreanLevelTest)
-        apiQuizzes.push(zodiacTest)
-        
         // 카테고리 필터링
         let filteredTests = apiQuizzes
         

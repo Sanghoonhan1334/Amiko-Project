@@ -50,8 +50,9 @@ export default function CommunityCard({
         md:bg-white md:dark:bg-gray-800
         md:border md:border-[#F3F4F6] md:dark:border-gray-700
         md:rounded-2xl
-        p-2 md:p-5
-        h-32 md:h-40
+        p-3 md:p-6
+        h-36 md:h-44
+        w-full
         transition-all duration-200 ease-out
         md:hover:scale-[1.03] md:hover:shadow-[0_8px_24px_rgba(139,92,246,0.16)]
         active:scale-[0.98]
@@ -77,7 +78,7 @@ export default function CommunityCard({
       )}
 
       {/* Icono with background container - Fixed height for alignment */}
-      <div className="mb-2 md:mb-3 flex items-center justify-center h-16 md:h-20">
+      <div className="mb-3 md:mb-4 flex items-center justify-center h-18 md:h-22">
         <div className="relative">
           {/* Background container - only on mobile */}
           <div className="md:hidden">
@@ -132,7 +133,7 @@ export default function CommunityCard({
       </div>
 
       {/* Título - Fixed height for alignment */}
-      <div className="h-10 md:h-12 flex items-center justify-center mb-0 md:mb-1">
+      <div className="h-12 md:h-14 flex items-center justify-center mb-0 md:mb-1">
         <h3 className="text-xs md:text-base font-semibold text-[#111827] dark:text-gray-100 text-center leading-tight">
           {item.title}
         </h3>

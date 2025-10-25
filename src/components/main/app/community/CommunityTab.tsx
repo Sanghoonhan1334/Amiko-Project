@@ -2199,33 +2199,38 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         
                {/* Grid 2×3 - Mobile first design */}
                <div className="w-full px-4 py-6 max-w-md md:max-w-xl mx-auto">
-                 <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:gap-6">
-                   {communityItems.map((item) => (
-                     <div key={item.id} className="relative">
-                       <CommunityCard
-                         item={item}
-                         isNavigating={isNavigating}
-                         onNavigate={handleNavigation}
-                         onToggleSubmenu={handleToggleSubmenu}
-                         showSubmenu={activeSubmenu === item.id}
-                         isFading={activeSubmenu !== null && activeSubmenu !== item.id}
-                       />
+                 <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:gap-8">
+                   {communityItems.map((item, index) => (
+                     <div 
+                       key={item.id} 
+                       className={`relative ${index === 4 ? 'col-start-1 col-end-3 flex justify-center' : ''}`}
+                     >
+                       <div className={index === 4 ? 'w-full max-w-[calc(50%-0.5rem)]' : 'w-full'}>
+                         <CommunityCard
+                           item={item}
+                           isNavigating={isNavigating}
+                           onNavigate={handleNavigation}
+                           onToggleSubmenu={handleToggleSubmenu}
+                           showSubmenu={activeSubmenu === item.id}
+                           isFading={activeSubmenu !== null && activeSubmenu !== item.id}
+                         />
+                       </div>
                        
                        {/* Tableros 바로 밑에 세로 일렬 서브메뉴 */}
                        {activeSubmenu === item.id && item.subItems && (
-                         <div className="absolute top-full left-0 right-0 mt-2 flex flex-col gap-2 z-10">
+                         <div className="absolute top-full left-0 right-0 mt-2 flex flex-col gap-2 z-10 px-2">
                            {item.subItems.map((subItem, index) => (
                              <button
                                key={subItem.id}
                                onClick={() => handleNavigation(subItem.route)}
-                               className="w-full flex items-center gap-2 p-2 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 bg-white dark:bg-gray-800 shadow-sm"
+                               className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 bg-white dark:bg-gray-800 shadow-sm"
                                style={{
                                  animationDelay: `${index * 0.1}s`,
                                  animation: 'slideInFromTop 0.3s ease-out forwards'
                                }}
                              >
-                               <div className="text-lg flex-shrink-0">{subItem.icon}</div>
-                               <div className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+                               <div className="text-xl flex-shrink-0">{subItem.icon}</div>
+                               <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                  {subItem.title}
                                </div>
                              </button>
