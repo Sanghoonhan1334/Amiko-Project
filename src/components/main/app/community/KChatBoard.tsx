@@ -1,0 +1,385 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
+import { Plus, Users, MessageSquare, Globe, Heart, Image as ImageIcon, X } from 'lucide-react'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+
+interface ChatRoom {
+  id: string
+  name: string
+  type: 'country' | 'fanclub'
+  country?: string
+  fanclub_name?: string
+  description?: string
+  participant_count: number
+  max_participants: number
+  thumbnail_url?: string
+  created_at: string
+}
+
+type TabType = 'country' | 'fanclub'
+
+export default function KChatBoard() {
+  const { user, token } = useAuth()
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState<TabType>('country')
+  const [rooms, setRooms] = useState<ChatRoom[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchRooms()
+  }, [activeTab])
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/chat/rooms?type=${activeTab}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setRooms(data.rooms || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch chat rooms:', error)
+      setRooms([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB')
+      return
+    }
+
+    setThumbnailFile(file)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setThumbnailPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const uploadThumbnail = async (file: File): Promise<string | null> => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      const data = await response.json()
+      return data.url || null
+    } catch (error) {
+      console.error('Failed to upload thumbnail:', error)
+      return null
+    }
+  }
+
+  const handleCreateRoom = async (formData: FormData) => {
+    try {
+      const name = formData.get('name') as string
+      const description = formData.get('description') as string
+      const country = formData.get('country') as string
+
+      let thumbnailUrl: string | null = null
+      if (thumbnailFile) {
+        thumbnailUrl = await uploadThumbnail(thumbnailFile)
+      }
+
+      const roomData: any = {
+        name,
+        description,
+        type: activeTab,
+        created_by: user?.id
+      }
+
+      if (activeTab === 'country' && country) {
+        roomData.country = country
+      }
+
+      if (thumbnailUrl) {
+        roomData.thumbnail_url = thumbnailUrl
+      }
+
+      const response = await fetch('/api/chat/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(roomData)
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        console.error('API Error Response:', data)
+        alert(`Error: ${data.error || 'Failed to create room'}`)
+        return
+      }
+      
+      if (data.success) {
+        setShowCreateModal(false)
+        setThumbnailFile(null)
+        setThumbnailPreview(null)
+        fetchRooms()
+      }
+    } catch (error) {
+      console.error('Failed to create room:', error)
+    }
+  }
+
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date()
+    const date = new Date(dateString)
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (diffInDays === 0) return 'Hoy'
+    if (diffInDays === 1) return 'Ayer'
+    if (diffInDays < 7) return `Hace ${diffInDays} días`
+    if (diffInDays < 30) return `Hace ${Math.floor(diffInDays / 7)} semanas`
+    return `Hace ${Math.floor(diffInDays / 30)} meses`
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">K-Chat Zone</h1>
+              <p className="text-sm mt-1 text-gray-600">
+                Únete a chats por país o fanclub para discutir K-cultura
+              </p>
+            </div>
+            {user && (
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Crear Sala
+              </Button>
+            )}
+          </div>
+
+          {/* Tabs */}
+          <div className="flex items-center gap-2 mt-4">
+            <Button
+              variant={activeTab === 'country' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab('country')}
+              className={`flex items-center gap-2 transition-all ${
+                activeTab === 'country' 
+                  ? 'bg-blue-500 text-white hover:bg-blue-600 scale-105 shadow-md' 
+                  : 'hover:bg-gray-100 active:scale-95'
+              }`}
+            >
+              <Globe className="w-4 h-4" />
+              Chat por País
+            </Button>
+            <Button
+              variant={activeTab === 'fanclub' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab('fanclub')}
+              className={`flex items-center gap-2 transition-all ${
+                activeTab === 'fanclub' 
+                  ? 'bg-blue-500 text-white hover:bg-blue-600 scale-105 shadow-md' 
+                  : 'hover:bg-gray-100 active:scale-95'
+              }`}
+            >
+              <Heart className="w-4 h-4" />
+              Chat de Fanclub
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="border rounded-lg p-4 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : rooms.length === 0 ? (
+          <div className="text-center py-12">
+            <MessageSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600 mb-4">Aún no hay salas de chat</p>
+            {user && (
+              <Button onClick={() => setShowCreateModal(true)}>
+                Crear la primera sala
+              </Button>
+            )}
+            {!user && (
+              <Link href="/sign-in">
+                <Button>Iniciar sesión para crear una sala</Button>
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {rooms.map(room => (
+              <Link key={room.id} href={`/community/k-chat/${room.id}`}>
+                <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                  {/* Thumbnail */}
+                  {room.thumbnail_url ? (
+                    <div className="relative w-full h-48">
+                      <Image
+                        src={room.thumbnail_url}
+                        alt={room.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                      <MessageSquare className="w-16 h-16 text-gray-400" />
+                    </div>
+                  )}
+                  
+                  {/* Content */}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-lg">{room.name}</h3>
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Users className="w-4 h-4" />
+                        <span>{room.participant_count}/{room.max_participants}</span>
+                      </div>
+                    </div>
+                    {room.description && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {room.description}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{getTimeAgo(room.created_at)}</span>
+                      <span>{room.type}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Create Room Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h2 className="text-xl font-bold mb-4">Crear Sala de Chat</h2>
+            <form action={handleCreateRoom}>
+              <div className="space-y-4">
+                {/* Thumbnail Upload */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Miniatura de la Sala</label>
+                  {thumbnailPreview ? (
+                    <div className="relative w-full h-48 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+                      <Image
+                        src={thumbnailPreview}
+                        alt="Thumbnail preview"
+                        fill
+                        className="object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setThumbnailFile(null)
+                          setThumbnailPreview(null)
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                      <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-600">Haz clic o arrastra para subir</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 5MB</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleThumbnailSelect}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nombre de la Sala</label>
+                  <input
+                    name="name"
+                    type="text"
+                    required
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder={activeTab === 'country' ? 'Ingresa el nombre de la sala' : 'Ej: Sala para Mark ~'}
+                  />
+                </div>
+                {activeTab === 'country' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">País</label>
+                    <input
+                      name="country"
+                      type="text"
+                      required
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="Ingresa el país"
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Descripción</label>
+                  <textarea
+                    name="description"
+                    className="w-full border rounded-lg px-3 py-2"
+                    rows={3}
+                    placeholder="Describe tu sala de chat"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowCreateModal(false)
+                    setThumbnailFile(null)
+                    setThumbnailPreview(null)
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" className="flex-1 bg-purple-500 text-white hover:bg-purple-600 border border-purple-500">
+                  Crear
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

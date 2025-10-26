@@ -86,7 +86,7 @@ export default function BiometricLogin({ userId, onSuccess, onError }: Biometric
         className="w-full border-green-300 text-green-700 hover:bg-green-50 flex items-center gap-2"
       >
         <Fingerprint className="w-4 h-4" />
-        <span>지문으로 빠른 로그인</span>
+        <span>{t('auth.biometricLogin')}</span>
       </Button>
     )
   }
@@ -112,7 +112,7 @@ export default function BiometricLogin({ userId, onSuccess, onError }: Biometric
           {t('auth.biometricLogin')}
         </CardTitle>
         <CardDescription className="text-sm text-green-700">
-          등록된 지문으로 빠르게 로그인하세요
+          {t('auth.biometricLoginDescription')}
         </CardDescription>
       </CardHeader>
       
@@ -141,12 +141,12 @@ export default function BiometricLogin({ userId, onSuccess, onError }: Biometric
           {isLoading ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>인증 중...</span>
+              <span>{t('auth.biometricAuthing')}</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <Fingerprint className="w-5 h-5" />
-              <span>지문으로 로그인</span>
+              <span>{t('auth.biometricLoginButton')}</span>
             </div>
           )}
         </Button>

@@ -138,6 +138,17 @@ link[rel="shortcut icon"] img {
   * {
     @apply border-gray-200 dark:border-gray-700;
   }
+  
+  /* 버튼 클릭 시 outline 제거 */
+  button,
+  button:focus,
+  button:active,
+  button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));

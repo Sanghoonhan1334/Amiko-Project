@@ -29,12 +29,12 @@ export default function CommunityCard({
   const hasSubItems = item.subItems && item.subItems.length > 0
 
   const handleClick = () => {
-    if (hasSubItems && onToggleSubmenu) {
+    // 직접 라우트가 있으면 우선 이동
+    if (item.route) {
+      onNavigate(item.route)
+    } else if (hasSubItems && onToggleSubmenu) {
       // 서브메뉴가 있는 경우 토글
       onToggleSubmenu(item.id)
-    } else if (item.route) {
-      // 직접 라우트가 있는 경우 이동
-      onNavigate(item.route)
     }
   }
 
@@ -48,15 +48,15 @@ export default function CommunityCard({
         group relative
         flex flex-col items-center justify-center
         md:bg-white md:dark:bg-gray-800
-        md:border md:border-[#F3F4F6] md:dark:border-gray-700
+        md:border-0
         md:rounded-2xl
         p-3 md:p-6
         h-36 md:h-44
         w-full
         transition-all duration-200 ease-out
         md:hover:scale-[1.03] md:hover:shadow-[0_8px_24px_rgba(139,92,246,0.16)]
-        active:scale-[0.98]
-        focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
+        focus:outline-none focus-visible:outline-none focus-visible:ring-0
+        focus:ring-0 focus:ring-offset-0
         ${isNavigating ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
         ${isFading ? 'main-item-fade' : ''}
         ${
@@ -83,7 +83,11 @@ export default function CommunityCard({
           {/* Background container - only on mobile */}
           <div className="md:hidden">
             <div 
-              className="w-16 h-16 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 transition-all duration-200 group-hover:border-gray-400 dark:group-hover:border-gray-400 group-hover:shadow-md group-hover:scale-110"
+              className={`w-16 h-16 rounded-xl flex items-center justify-center border-2 transition-all duration-200 group-hover:shadow-md ${
+                showSubmenu 
+                  ? 'border-purple-500 dark:border-purple-500 scale-110' 
+                  : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400 group-hover:scale-110'
+              }`}
             >
               {isImage ? (
                 <img

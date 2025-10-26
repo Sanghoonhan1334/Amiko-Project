@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
@@ -136,10 +137,28 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const router = useRouter()
   const [isNavigating, setIsNavigating] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
+  const submenuRef = useRef<HTMLDivElement>(null)
   
   // 서브메뉴 토글 핸들러
   const handleToggleSubmenu = useCallback((itemId: string) => {
     setActiveSubmenu(activeSubmenu === itemId ? null : itemId)
+  }, [activeSubmenu])
+  
+  // 외부 클릭 감지 - 서브메뉴 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (submenuRef.current && !submenuRef.current.contains(event.target as Node)) {
+        setActiveSubmenu(null)
+      }
+    }
+    
+    // activeSubmenu가 있을 때만 이벤트 리스너 추가
+    if (activeSubmenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
   }, [activeSubmenu])
   
   // CSS 애니메이션 스타일
@@ -160,6 +179,22 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
         opacity: 1; 
         transform: translateY(0); 
       }
+    }
+    @keyframes slideOutToTop {
+      from { 
+        opacity: 1; 
+        transform: translateY(0); 
+      }
+      to { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+      }
+    }
+    .submenu-enter {
+      animation: slideInFromTop 0.3s ease-out forwards;
+    }
+    .submenu-exit {
+      animation: slideOutToTop 0.3s ease-out forwards;
     }
   `
   
@@ -2198,18 +2233,34 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                </div>
         
                {/* Grid 2×3 - Mobile first design */}
-               <div className="w-full px-4 py-6 max-w-md md:max-w-xl mx-auto">
-                 <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:gap-8">
+               <div className="w-full px-4 py-6 max-w-md md:max-w-xl mx-auto relative">
+                 {/* 오버레이 - 서브메뉴가 열렸을 때 다른 카드 클릭 방지 */}
+                 <AnimatePresence>
+                   {activeSubmenu && (
+                     <motion.div 
+                       initial={{ opacity: 0 }}
+                       animate={{ opacity: 1 }}
+                       exit={{ opacity: 0 }}
+                       transition={{ duration: 0.3 }}
+                       className="absolute inset-0 bg-white z-40 rounded-xl pointer-events-auto"
+                       onClick={() => setActiveSubmenu(null)}
+                     />
+                   )}
+                 </AnimatePresence>
+                 <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:gap-8 overflow-visible relative">
                    {communityItems.map((item, index) => (
                      <div 
-                       key={item.id} 
-                       className={`relative ${index === 4 ? 'col-start-1 col-end-3 flex justify-center' : ''}`}
+                     key={item.id}
+                       ref={activeSubmenu === item.id ? submenuRef : null}
+                       className={`relative overflow-visible ${index === 4 ? 'col-start-1 col-end-3 flex justify-center' : ''} ${
+                         activeSubmenu === item.id ? 'z-50' : activeSubmenu ? 'z-30 opacity-0 pointer-events-none' : ''
+                       } transition-opacity duration-300 ease-out`}
                      >
-                       <div className={index === 4 ? 'w-full max-w-[calc(50%-0.5rem)]' : 'w-full'}>
+                       <div className={`${index === 4 ? 'w-full max-w-[calc(50%-0.5rem)]' : 'w-full'} overflow-visible`}>
                          <CommunityCard
-                           item={item}
-                           isNavigating={isNavigating}
-                           onNavigate={handleNavigation}
+                     item={item}
+                     isNavigating={isNavigating}
+                     onNavigate={handleNavigation}
                            onToggleSubmenu={handleToggleSubmenu}
                            showSubmenu={activeSubmenu === item.id}
                            isFading={activeSubmenu !== null && activeSubmenu !== item.id}
@@ -2217,26 +2268,89 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        </div>
                        
                        {/* Tableros 바로 밑에 세로 일렬 서브메뉴 */}
-                       {activeSubmenu === item.id && item.subItems && (
-                         <div className="absolute top-full left-0 right-0 mt-2 flex flex-col gap-2 z-10 px-2">
-                           {item.subItems.map((subItem, index) => (
-                             <button
-                               key={subItem.id}
-                               onClick={() => handleNavigation(subItem.route)}
-                               className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 bg-white dark:bg-gray-800 shadow-sm"
-                               style={{
-                                 animationDelay: `${index * 0.1}s`,
-                                 animation: 'slideInFromTop 0.3s ease-out forwards'
-                               }}
-                             >
-                               <div className="text-xl flex-shrink-0">{subItem.icon}</div>
-                               <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                 {subItem.title}
-                               </div>
-                             </button>
-                           ))}
-                         </div>
-                       )}
+                       <AnimatePresence mode="wait">
+                         {activeSubmenu === item.id && item.subItems && (
+                           <motion.div 
+                             initial={{ opacity: 0, y: -20 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             exit={{ opacity: 0, y: -20 }}
+                             transition={{ duration: 0.3, ease: 'easeOut' }}
+                             className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
+                           >
+                           {item.subItems.map((subItem, subIndex) => {
+                             // 제휴사 링크가 있는 경우 (partners)
+                             if (item.id === 'partners' && item.partnerLinks) {
+                               return (
+                                 <div
+                                   key={subItem.id}
+                                   className="w-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-500 rounded-lg p-3 shadow-md"
+                                   style={{
+                                     animationDelay: `${index * 0.1}s`,
+                                     animation: 'slideInFromTop 0.3s ease-out forwards'
+                                   }}
+                                 >
+                                   {/* 제휴사 정보 */}
+                                   <div className="flex items-center gap-2 mb-3">
+                                     <div className="text-xl flex-shrink-0">{subItem.icon}</div>
+                                     <div className="flex-1">
+                                       <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                         {subItem.title}
+                                       </div>
+                                       <div className="text-xs text-gray-500 dark:text-gray-400">
+                                         Colombia
+                                       </div>
+                                     </div>
+                                   </div>
+                                   {/* 제휴사 링크들 */}
+                                   <div className="flex flex-col gap-2">
+                                     {item.partnerLinks.map((link, linkIndex) => (
+                                       <a
+                                         key={linkIndex}
+                                         href={link.url}
+                                         target="_blank"
+                                         rel="noopener noreferrer"
+                                         className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                       >
+                                         <div className="text-lg flex-shrink-0">{link.icon}</div>
+                                         <div className="text-sm text-gray-700 dark:text-gray-300">
+                                           {link.platform}
+                                         </div>
+                                       </a>
+                                     ))}
+                                   </div>
+                                 </div>
+                               )
+                             }
+                             
+                             // 일반 서브메뉴 아이템
+                             return (
+                               <button
+                                 key={subItem.id}
+                                   onClick={() => handleNavigation(subItem.route)}
+                                   className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 bg-white dark:bg-gray-800 shadow-md focus:outline-none"
+                                   style={{
+                                     animationDelay: `${subIndex * 0.1}s`,
+                                     animation: 'slideInFromTop 0.3s ease-out forwards'
+                                   }}
+                                 >
+                                   {subItem.icon.startsWith('/') ? (
+                                     <img 
+                                       src={subItem.icon} 
+                                       alt={subItem.title}
+                                       className="w-6 h-6 flex-shrink-0 object-contain"
+                                     />
+                                   ) : (
+                                     <div className="text-xl flex-shrink-0">{subItem.icon}</div>
+                                   )}
+                                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                     {subItem.title}
+                                   </div>
+                                 </button>
+                               )
+                           })}
+                           </motion.div>
+                         )}
+                       </AnimatePresence>
                      </div>
                    ))}
                  </div>

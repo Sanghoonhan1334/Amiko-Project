@@ -34,3 +34,11 @@ export const createClient = () => {
   }
   return supabaseClient
 }
+
+// createServerSupabaseClient 함수 추가
+export const createServerSupabaseClient = () => {
+  if (!supabaseServer) {
+    throw new Error('Supabase 서버 클라이언트가 초기화되지 않았습니다.')
+  }
+  return supabaseServer
+}

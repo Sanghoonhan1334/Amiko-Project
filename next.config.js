@@ -6,7 +6,7 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: false, // PWA 항상 활성화
+  disable: process.env.NODE_ENV === 'development', // 개발 모드에서 PWA 비활성화
 })
 
 /** @type {import('next').NextConfig} */
@@ -48,6 +48,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'abrxigfmuebrnyzkfcyr.supabase.co',
       },
     ],
   },

@@ -8,11 +8,12 @@ export interface CommunityItem {
   microcopy?: string
   microcopyKey?: string // Translation key
   icon: string // Emoji or image path
-  route?: string // Optional for main categories with subItems
+  route?: string // Optional for main categories with subItems or direct links
   accentColor: string
   isNew?: boolean
   badge?: string
-  subItems?: CommunitySubItem[] // New: submenu items
+  subItems?: CommunitySubItem[] // Submenu items (boards, links, etc.)
+  partnerLinks?: PartnerLink[] // For partner section - external links
 }
 
 export interface CommunitySubItem {
@@ -24,13 +25,20 @@ export interface CommunitySubItem {
   accentColor?: string
 }
 
+export interface PartnerLink {
+  platform: string
+  url: string
+  icon: string
+}
+
 export const communityItems: CommunityItem[] = [
+  // 1. Story & Boards (스토리&게시판)
   {
-    id: 'tableros',
-    title: 'Tableros',
-    titleKey: 'community.tableros',
-    microcopy: '다양한 게시판',
-    microcopyKey: 'community.tablerosDesc',
+    id: 'story-boards',
+    title: 'Historia y Tableros',
+    titleKey: 'community.storyBoards',
+    microcopy: '게시판과 스토리',
+    microcopyKey: 'community.storyBoardsDesc',
     icon: '/icons/topic-board.png',
     accentColor: '#3B82F6', // Blue
     subItems: [
@@ -39,12 +47,41 @@ export const communityItems: CommunityItem[] = [
         title: 'Tablero por Temas',
         titleKey: 'community.freeBoard',
         route: '/community/freeboard',
-        icon: '💬',
+        icon: '/icons/topic-board.png',
         accentColor: '#3B82F6'
       },
       {
+        id: 'story',
+        title: 'Historia',
+        titleKey: 'community.story',
+        route: '/community/stories',
+        icon: '/icons/story.png',
+        accentColor: '#EC4899'
+      }
+    ]
+  },
+  
+  // 2. Zona de K-Cultura (K-Culture Zone)
+  {
+    id: 'k-culture',
+    title: 'Zona de K-Cultura',
+    titleKey: 'community.kCulture',
+    microcopy: 'K-컬처 콘텐츠',
+    microcopyKey: 'community.kCultureDesc',
+    icon: '/icons/k-magazine.png',
+    accentColor: '#8B5CF6', // Purple
+    subItems: [
+      {
+        id: 'k-chat',
+        title: 'K-Chat Zone',
+        titleKey: 'community.kChat',
+        route: '/community/k-chat',
+        icon: '💬',
+        accentColor: '#F59E0B'
+      },
+      {
         id: 'idol-memes',
-        title: 'Tablero de Memes de Ídolos',
+        title: 'Compartir Fotos de Ídolos',
         titleKey: 'community.idolMemes',
         route: '/community/idol-memes',
         icon: '😄',
@@ -65,48 +102,52 @@ export const communityItems: CommunityItem[] = [
         route: '/community/polls',
         icon: '🗳️',
         accentColor: '#10B981'
+      },
+      {
+        id: 'magazine',
+        title: 'K-Magazine',
+        titleKey: 'community.koreanNews',
+        route: '/community/news',
+        icon: '📖',
+        accentColor: '#8B5CF6'
       }
     ]
   },
-  {
-    id: 'magazine',
-    title: 'K-Magazine',
-    titleKey: 'community.koreanNews',
-    microcopy: 'Noticias del mundo K-Pop',
-    microcopyKey: 'community.magazineDesc',
-    icon: '/icons/k-magazine.png', // TODO: Replace with actual icon
-    route: '/community/news',
-    accentColor: '#8B5CF6', // Purple
-  },
-  {
-    id: 'qa',
-    title: 'Pregunta y Respuesta',
-    titleKey: 'community.qa',
-    microcopy: 'Resuelve tus dudas',
-    microcopyKey: 'community.qaDesc',
-    icon: '/icons/qa.png', // TODO: Replace with actual icon
-    route: '/community/qa',
-    accentColor: '#10B981', // Green
-  },
+  
+  // 3. Psychological Tests (심리테스트) - Direct link, no submenu
   {
     id: 'tests',
     title: 'Test Psicológico',
     titleKey: 'tests.title',
     microcopy: 'Descubre tu personalidad',
     microcopyKey: 'community.testsDesc',
-    icon: '/icons/psychology-test.png', // TODO: Replace with actual icon
+    icon: '/icons/psychology-test.png',
     route: '/community/tests',
     accentColor: '#F59E0B', // Amber
   },
+  
+  // 4. Partners (제휴사)
   {
-    id: 'story',
-    title: 'Historia',
-    titleKey: 'community.story',
-    microcopy: 'Comparte tu momento',
-    microcopyKey: 'community.storyDesc',
-    icon: '/icons/story.png', // TODO: Replace with actual icon
-    route: '/community/stories',
-    accentColor: '#EC4899', // Pink
-  },
+    id: 'partners',
+    title: 'Socios',
+    titleKey: 'community.partners',
+    microcopy: 'Nuestros socios',
+    microcopyKey: 'community.partnersDesc',
+    icon: '/icons/제휴.png',
+    route: '/community/partners',
+    accentColor: '#10B981', // Green
+    partnerLinks: [
+      {
+        platform: 'Instagram',
+        url: 'https://instagram.com/parapans',
+        icon: '📷'
+      },
+      {
+        platform: 'Website',
+        url: 'https://parapans.com',
+        icon: '🌐'
+      }
+    ]
+  }
 ]
 

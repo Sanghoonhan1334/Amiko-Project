@@ -297,6 +297,11 @@ export const translations = {
       selectNationality: '국적을 선택해주세요',
       nextStep: '다음 단계',
       checking: '확인 중...',
+      or: '또는',
+      biometricLogin: '지문으로 빠른 로그인',
+      biometricLoginDescription: '등록된 지문으로 빠르게 로그인하세요',
+      biometricAuthing: '인증 중...',
+      biometricLoginButton: '지문으로 로그인',
       countries: {
         KR: '대한민국',
         MX: '멕시코',
@@ -731,6 +736,8 @@ export const translations = {
       qa: 'Q&A',
       freeBoard: '주제별 게시판',
       koreanNews: 'K-매거진',
+      kChat: 'K-채팅존',
+      idolMemes: '아이돌 사진 공유',
       newsDetail: '뉴스 상세',
       freeBoardDescription: '',
       koreanNewsDescription: '',
@@ -1837,6 +1844,7 @@ export const translations = {
 
     // 마이탭 관련
     myTab: {
+      loading: '로딩 중...',
       fileSizeLimit: '파일 크기 제한 (5MB)',
       imageOnly: '이미지 파일만 업로드 가능',
       profileSaved: '프로필이 저장되었습니다',
@@ -2664,6 +2672,11 @@ export const translations = {
       selectNationality: 'Selecciona tu nacionalidad',
       nextStep: 'Siguiente paso',
       checking: 'Verificando...',
+      or: 'O',
+      biometricLogin: 'Inicio de sesión rápido con huella',
+      biometricLoginDescription: 'Inicia sesión rápidamente con tu huella registrada',
+      biometricAuthing: 'Autenticando...',
+      biometricLoginButton: 'Iniciar sesión con huella',
       countries: {
         KR: 'Corea del Sur',
         MX: 'México',
@@ -3095,10 +3108,18 @@ export const translations = {
 
     // 커뮤니티 섹션
     community: {
+      storyBoards: 'Historia y Tableros',
+      storyBoardsDesc: '게시판과 스토리',
+      kCulture: 'Zona de K-Cultura',
+      kCultureDesc: 'K-컬처 콘텐츠',
+      partners: 'Socios',
+      partnersDesc: 'Nuestros socios',
+      parapans: 'Parapans',
       story: 'Historia',
-      qa: 'Pregunta y Respuesta',
       freeBoard: 'Tablero por Temas',
       koreanNews: 'K-Magazine',
+      kChat: 'K-Chat Zone',
+      idolMemes: 'Compartir Fotos de Ídolos',
       newsDetail: 'Detalle de Noticias',
       freeBoardDescription: '',
       koreanNewsDescription: '',
@@ -4189,6 +4210,7 @@ export const translations = {
 
     // 마이탭 관련
     myTab: {
+      loading: 'Cargando...',
       fileSizeLimit: 'Límite de tamaño de archivo (5MB)',
       imageOnly: 'Solo archivos de imagen',
       profileSaved: 'Perfil guardado',
