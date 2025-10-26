@@ -174,7 +174,7 @@ export default function PollBoard() {
   return (
     <div className="min-h-screen pt-4 md:pt-32 max-w-4xl mx-auto pb-32">
       {/* Header */}
-      <div className="p-4 mb-6">
+      <div className="p-4 pt-8 md:pt-12 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
           <div>
             <h2 className="text-2xl font-bold">Tablero de Encuestas</h2>
