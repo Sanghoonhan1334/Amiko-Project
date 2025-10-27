@@ -249,12 +249,13 @@ export default function IdolMemesDetailPage() {
                 autoPlay
               />
             ) : (
-              <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+              <div className="relative w-full bg-black flex items-center justify-center" style={{ minHeight: '400px' }}>
                 <Image
                   src={post.media_url}
                   alt={post.title}
-                  fill
-                  className="object-contain"
+                  width={1200}
+                  height={1600}
+                  className="object-contain max-h-[80vh] w-auto"
                   priority
                 />
               </div>
