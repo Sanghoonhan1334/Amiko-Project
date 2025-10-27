@@ -83,6 +83,9 @@ export default function IdolMemesDetailPage() {
     try {
       const res = await fetch(`/api/idol-memes/${params.id}/like`, {
         method: isLiked ? 'DELETE' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       })
       
       if (res.ok) {
@@ -119,6 +122,7 @@ export default function IdolMemesDetailPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ content: commentText }),
       })
