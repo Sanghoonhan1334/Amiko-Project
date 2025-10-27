@@ -249,13 +249,12 @@ export default function IdolMemesDetailPage() {
                 autoPlay
               />
             ) : (
-              <div className="relative w-full bg-black flex items-center justify-center" style={{ minHeight: '400px' }}>
+              <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
                 <Image
                   src={post.media_url}
                   alt={post.title}
-                  width={1200}
-                  height={1600}
-                  className="object-contain max-h-[80vh] w-auto"
+                  fill
+                  className="object-contain"
                   priority
                 />
               </div>
@@ -273,7 +272,7 @@ export default function IdolMemesDetailPage() {
         {/* Actions */}
         <div className="border-t border-b border-gray-200 bg-white">
           <div className="max-w-4xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 transition-colors ${
@@ -294,11 +293,11 @@ export default function IdolMemesDetailPage() {
                 <span className="text-sm">{post.views}</span>
               </div>
 
-              <div className="flex-1" />
+              <div className="flex-1 min-w-[20px]" />
 
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 whitespace-nowrap"
               >
                 <Download className="w-4 h-4" />
                 <span className="text-sm">Descargar</span>
@@ -306,7 +305,7 @@ export default function IdolMemesDetailPage() {
 
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 whitespace-nowrap"
               >
                 <Share2 className="w-4 h-4" />
                 <span className="text-sm">Compartir</span>
