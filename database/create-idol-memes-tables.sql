@@ -1,6 +1,6 @@
 -- Idol Memes 게시판 테이블
 CREATE TABLE IF NOT EXISTS idol_memes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   content TEXT,
   media_url TEXT,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS idol_memes (
 
 -- 좋아요 테이블
 CREATE TABLE IF NOT EXISTS idol_memes_likes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID REFERENCES idol_memes(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS idol_memes_likes (
 
 -- 댓글 테이블
 CREATE TABLE IF NOT EXISTS idol_memes_comments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID REFERENCES idol_memes(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
