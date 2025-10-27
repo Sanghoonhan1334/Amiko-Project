@@ -30,6 +30,10 @@ export async function POST(
       })
 
     if (error) {
+      // 이미 좋아요를 눌렀으면 에러 무시
+      if (error.code === '23505') {
+        return NextResponse.json({ success: true, message: 'Already liked' })
+      }
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 

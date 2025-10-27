@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabaseServer'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -24,11 +25,13 @@ export async function GET(
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
-    // Update views count
-    await supabase
-      .from('idol_memes')
-      .update({ views: post.views + 1 })
-      .eq('id', id)
+    // Update views count using supabaseServer (권한 필요)
+    if (supabaseServer) {
+      await supabaseServer
+        .from('idol_memes')
+        .update({ views: post.views + 1 })
+        .eq('id', id)
+    }
 
     return NextResponse.json(post)
   } catch (error) {
