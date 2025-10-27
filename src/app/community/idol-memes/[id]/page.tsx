@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, MessageCircle, Eye, Share2 } from 'lucide-react'
+import { ArrowLeft, Heart, MessageCircle, Eye, Share2, Send } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/context/AuthContext'
 
 interface Post {
   id: string
@@ -22,16 +23,31 @@ interface Post {
   is_liked?: boolean
 }
 
+interface Comment {
+  id: string
+  content: string
+  created_at: string
+  user_profiles?: {
+    display_name?: string
+    avatar_url?: string
+  }
+}
+
 export default function IdolMemesDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const { user, token } = useAuth()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [commentText, setCommentText] = useState('')
+  const [sendingComment, setSendingComment] = useState(false)
 
   useEffect(() => {
     fetchPost()
+    fetchComments()
   }, [params.id])
 
   const fetchPost = async () => {
@@ -48,7 +64,22 @@ export default function IdolMemesDetailPage() {
     }
   }
 
+  const fetchComments = async () => {
+    try {
+      const res = await fetch(`/api/idol-memes/${params.id}/comments`)
+      const data = await res.json()
+      setComments(data || [])
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+    }
+  }
+
   const handleLike = async () => {
+    if (!user) {
+      router.push('/sign-in')
+      return
+    }
+
     try {
       const res = await fetch(`/api/idol-memes/${params.id}/like`, {
         method: isLiked ? 'DELETE' : 'POST',
@@ -71,6 +102,39 @@ export default function IdolMemesDetailPage() {
       })
     } catch (error) {
       console.log('Share failed:', error)
+    }
+  }
+
+  const handleCommentSubmit = async () => {
+    if (!user) {
+      router.push('/sign-in')
+      return
+    }
+
+    if (!commentText.trim()) return
+
+    setSendingComment(true)
+    try {
+      const res = await fetch(`/api/idol-memes/${params.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: commentText }),
+      })
+
+      if (res.ok) {
+        const newComment = await res.json()
+        setComments(prev => [newComment, ...prev])
+        setCommentText('')
+        if (post) {
+          setPost({ ...post, comments_count: post.comments_count + 1 })
+        }
+      }
+    } catch (error) {
+      console.error('Failed to post comment:', error)
+    } finally {
+      setSendingComment(false)
     }
   }
 
@@ -221,50 +285,90 @@ export default function IdolMemesDetailPage() {
 
         {/* Comments Section */}
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold mb-6">댓글</h2>
+          <h2 className="text-2xl font-bold mb-6">댓글 ({comments.length})</h2>
           
           {/* Comment List */}
-          <div className="space-y-4 mb-8">
-            <div className="border-b border-gray-200 pb-4">
-              <div className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-sm">미친 무력77 장개</span>
-                    <span className="text-xs text-gray-500">3일전</span>
+          {comments.length > 0 ? (
+            <div className="space-y-4 mb-8">
+              {comments.map((comment) => (
+                <div key={comment.id} className="border-b border-gray-200 pb-4">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 flex items-center justify-center">
+                      <span className="text-gray-600 text-sm font-semibold">
+                        {comment.user_profiles?.display_name?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-semibold text-sm">
+                          {comment.user_profiles?.display_name || 'Usuario'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {getTimeAgo(comment.created_at)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-700">그만해</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500 mb-8">
+              아직 댓글이 없습니다. 첫 댓글을 남겨보세요!
+            </div>
+          )}
+
+          {/* Comment Input */}
+          {user ? (
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-500 flex-shrink-0 flex items-center justify-center">
+                  <span className="text-white text-sm font-semibold">
+                    {user.email?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="댓글을 입력하세요..."
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                  />
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      onClick={handleCommentSubmit}
+                      disabled={!commentText.trim() || sendingComment}
+                      size="sm"
+                    >
+                      {sendingComment ? (
+                        <>보내는 중...</>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-1" />
+                          등록
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div className="border-b border-gray-200 pb-4">
-              <div className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-sm">호들갑 정치력63 강유</span>
-                    <span className="text-xs text-gray-500">3일전</span>
-                  </div>
-                  <div className="text-2xl">😭</div>
-                </div>
-              </div>
+          ) : (
+            <div className="border-t border-gray-200 pt-6 text-center">
+              <p className="text-sm text-gray-500 mb-4">로그인 후 댓글을 달 수 있습니다.</p>
+              <button
+                onClick={() => router.push('/sign-in')}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                로그인
+              </button>
             </div>
-          </div>
-
-          {/* Login to Comment */}
-          <div className="border-t border-gray-200 pt-6 text-center">
-            <p className="text-sm text-gray-500 mb-4">로그인 후 댓글을 달 수 있습니다.</p>
-            <button
-              onClick={() => router.push('/sign-in')}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              로그인
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Bottom Navigation */}

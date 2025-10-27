@@ -18,7 +18,7 @@ export default function IdolMemesUploadModal({
   onSuccess,
   theme,
 }: IdolMemesUploadModalProps) {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -67,6 +67,9 @@ export default function IdolMemesUploadModal({
 
       const uploadRes = await fetch('/api/upload/image', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: formData,
       })
 
@@ -90,6 +93,7 @@ export default function IdolMemesUploadModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(postData),
       })
