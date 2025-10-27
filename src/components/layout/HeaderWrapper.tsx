@@ -1,11 +1,21 @@
 'use client'
 
 import { Suspense } from 'react'
+import { usePathname } from 'next/navigation'
 import Header from './Header'
 import DarkModeToggle from '@/components/common/DarkModeToggle'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function HeaderWrapper() {
+  const pathname = usePathname()
+  
+  // 채팅방에서는 헤더 숨김
+  const isChatRoom = pathname?.includes('/community/k-chat/')
+  
+  if (isChatRoom) {
+    return null
+  }
+  
   return (
     <Suspense fallback={
       <div className="h-16 bg-gray-200 dark:bg-gray-700 animate-pulse">

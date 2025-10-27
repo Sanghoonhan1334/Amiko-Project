@@ -311,7 +311,10 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
         messagesWithProfiles.forEach(msg => addMessageSafely(msg))
       }
     } catch (error) {
-      console.error('❌ Error fetching new messages:', error)
+      // Polling 에러는 조용히 처리 (치명적이지 않음)
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Polling error (non-critical):', error)
+      }
     }
   }
 
@@ -652,21 +655,47 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
     try {
       const { data, error } = await authSupabase
         .from('chat_room_participants')
-        .select(`
-          user_id,
-          role,
-          users:user_id (
-            email,
-            user_metadata
-          )
-        `)
+        .select('user_id, role')
         .eq('room_id', roomId)
         .order('role', { ascending: false })
 
-      if (error) throw error
-      setParticipants(data || [])
+      if (error) {
+        console.error('Error fetching participants:', error)
+        throw error
+      }
+      
+      console.log('Participants data:', data)
+      
+      // user_id로 사용자 정보 가져오기
+      const participantsWithUserInfo = await Promise.all(
+        (data || []).map(async (participant) => {
+          try {
+            // user_profiles 테이블에서 닉네임 가져오기
+            const { data: profileData } = await authSupabase
+              .from('user_profiles')
+              .select('display_name, avatar_url')
+              .eq('user_id', participant.user_id)
+              .single()
+            
+            return {
+              ...participant,
+              user_profiles: profileData || null
+            }
+          } catch (error) {
+            console.error('Error fetching profile for participant:', participant.user_id, error)
+            return {
+              ...participant,
+              user_profiles: null
+            }
+          }
+        })
+      )
+      
+      console.log('Participants with info:', participantsWithUserInfo)
+      setParticipants(participantsWithUserInfo)
     } catch (error) {
       console.error('Error fetching participants:', error)
+      alert('Error al cargar participantes')
     }
   }
 
@@ -675,25 +704,55 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
     try {
       const { data, error } = await authSupabase
         .from('chat_reports')
-        .select(`
-          *,
-          reported_user:reported_user_id (
-            email,
-            user_metadata
-          ),
-          reporter:reporter_id (
-            email,
-            user_metadata
-          )
-        `)
+        .select('*')
         .eq('room_id', roomId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setReports(data || [])
+      if (error) {
+        console.error('Error fetching reports:', error)
+        throw error
+      }
+      
+      // 신고된 사용자와 신고한 사용자 정보 가져오기
+      const reportsWithUserInfo = await Promise.all(
+        (data || []).map(async (report) => {
+          try {
+            // 신고된 사용자 정보
+            const { data: reportedProfile } = await authSupabase
+              .from('user_profiles')
+              .select('display_name')
+              .eq('user_id', report.reported_user_id)
+              .single()
+            
+            // 신고한 사용자 정보
+            const { data: reporterProfile } = await authSupabase
+              .from('user_profiles')
+              .select('display_name')
+              .eq('user_id', report.reporter_id)
+              .single()
+            
+            return {
+              ...report,
+              reported_user_name: reportedProfile?.display_name || 'Usuario',
+              reporter_name: reporterProfile?.display_name || 'Usuario'
+            }
+          } catch (error) {
+            console.error('Error fetching report user info:', error)
+            return {
+              ...report,
+              reported_user_name: 'Usuario',
+              reporter_name: 'Usuario'
+            }
+          }
+        })
+      )
+      
+      console.log('Reports with info:', reportsWithUserInfo)
+      setReports(reportsWithUserInfo)
     } catch (error) {
       console.error('Error fetching reports:', error)
+      alert('Error al cargar denuncias')
     }
   }
 
@@ -759,18 +818,14 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
   }
 
   const getUserName = (message: Message) => {
-    // 디버깅: 메시지 데이터 확인
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Message data:', {
-        user_id: message.user_id,
-        user_profiles: message.user_profiles,
-        users: message.users
-      })
-    }
-    
     // 1순위: user_profiles의 display_name (닉네임)
     if (message.user_profiles?.display_name) {
-      return message.user_profiles.display_name
+      let name = message.user_profiles.display_name
+      // # 이후 부분 제거
+      if (name.includes('#')) {
+        name = name.split('#')[0]
+      }
+      return name
     }
     
     // 2순위: users의 user_metadata name
@@ -783,8 +838,8 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
       return message.users.email.split('@')[0]
     }
     
-    // 4순위: user_id 일부 (익명)
-    return message.user_id ? message.user_id.substring(0, 8) : 'Usuario'
+    // 4순위: 기본값
+    return 'Usuario'
   }
 
   const getTimeAgo = (dateString: string) => {
@@ -1090,9 +1145,18 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
               ) : (
                 <div className="space-y-2">
                   {participants.map((participant) => {
-                    const username = participant.users?.user_metadata?.nickname || 
-                                   participant.users?.email?.split('@')[0] || 
-                                   'Usuario'
+                    // 메시지에서 사용하는 getUserName 로직과 동일하게
+                    let username = 'Usuario'
+                    
+                    // 1순위: user_profiles의 display_name
+                    if (participant.user_profiles?.display_name) {
+                      username = participant.user_profiles.display_name
+                      // # 이후 부분 제거
+                      if (username.includes('#')) {
+                        username = username.split('#')[0]
+                      }
+                    }
+                    
                     const isCurrentUser = participant.user_id === user?.id
                     const canModify = userRole === 'owner' && !isCurrentUser
                     
@@ -1148,12 +1212,8 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
               ) : (
                 <div className="space-y-3">
                   {reports.map((report) => {
-                    const reportedName = report.reported_user?.user_metadata?.nickname || 
-                                        report.reported_user?.email?.split('@')[0] || 
-                                        'Usuario'
-                    const reporterName = report.reporter?.user_metadata?.nickname || 
-                                        report.reporter?.email?.split('@')[0] || 
-                                        'Usuario'
+                    const reportedName = report.reported_user_name || 'Usuario'
+                    const reporterName = report.reporter_name || 'Usuario'
                     
                     return (
                       <div key={report.id} className="border rounded-lg p-3">
