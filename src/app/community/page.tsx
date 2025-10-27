@@ -8,13 +8,10 @@ function CommunityRedirectContent() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const cTab = searchParams.get('tab') || 'galleries'
+    const cTab = searchParams.get('tab')
     
-    // 새로운 URL 구조로 리다이렉트
+    // 메인 커뮤니티 탭으로 리다이렉트
     switch (cTab) {
-      case 'galleries':
-        router.replace('/community/galleries')
-        break
       case 'popular':
         router.replace('/community/popular')
         break
@@ -23,7 +20,8 @@ function CommunityRedirectContent() {
         router.replace('/community/freeboard')
         break
       default:
-        router.replace('/community/galleries')
+        // 기본적으로 메인 커뮤니티 탭으로 이동
+        router.replace('/main?tab=community')
         break
     }
   }, [router, searchParams])

@@ -10,7 +10,6 @@
 ### **커뮤니티 시스템**
 ```
 /community/
-├── /galleries/              # 갤러리 목록
 ├── /gallery/[slug]/         # 갤러리별 게시물 목록
 ├── /post/[id]/              # 게시물 상세
 ├── /create/                 # 게시물 작성
@@ -18,10 +17,12 @@
 └── /freeboard/              # 자유게시판
 ```
 
+**참고**: `/community/galleries` 페이지는 2025년 1월에 제거되었습니다. 갤러리 목록은 `/main?tab=community`의 CommunityTab 내부 상태 관리로 처리됩니다.
+
 ### **기존 URL과의 매핑**
 | 기존 URL | 새 URL | 설명 |
 |---------|--------|------|
-| `/main?tab=community&cTab=home` | `/community/galleries` | 갤러리 목록 |
+| `/main?tab=community&cTab=home` | `/main?tab=community` | 커뮤니티 홈 (SPA 내부 상태 관리) |
 | `/main?tab=community&cTab=popular` | `/community/popular` | 인기 게시물 |
 | `/main?tab=community&cTab=lounge` | `/community/freeboard` | 자유게시판 |
 | `/community/post/[id]` | `/community/post/[id]` | 게시물 상세 (유지) |
@@ -29,7 +30,7 @@
 ## 🔄 **리다이렉트 로직**
 
 ### **기존 SPA 방식에서 새 URL로**
-- `/community?tab=galleries` → `/community/galleries`
+- `/community` → `/main?tab=community` (기본)
 - `/community?tab=popular` → `/community/popular`
 - `/community?tab=lounge` → `/community/freeboard`
 - `/community?tab=freeboard` → `/community/freeboard`
@@ -42,10 +43,10 @@
 
 ## 🎨 **페이지별 기능**
 
-### **1. `/community/galleries`**
-- **파일**: `src/app/community/galleries/page.tsx`
-- **컴포넌트**: `GalleryList`
-- **기능**: 갤러리 목록 표시, 갤러리 선택
+### **1. `/main?tab=community` (커뮤니티 홈)**
+- **파일**: `src/components/main/app/community/CommunityTab.tsx`
+- **컴포넌트**: `CommunityTab` (내부에서 상태 관리)
+- **기능**: 커뮤니티 홈 화면, story/qa/news/tests 네비게이션
 
 ### **2. `/community/gallery/[slug]`**
 - **파일**: `src/app/community/gallery/[slug]/page.tsx`
@@ -95,8 +96,8 @@
 
 ### **갤러리 탐색 플로우**
 ```
-1. /community/galleries (갤러리 목록)
-   ↓ 갤러리 선택
+1. /main?tab=community (커뮤니티 홈)
+   ↓ 갤러리 선택 (현재 사용되지 않음)
 2. /community/gallery/korean-food (한식 갤러리)
    ↓ 게시물 선택
 3. /community/post/123 (게시물 상세)
@@ -141,6 +142,13 @@
 - [ ] 서버 사이드 렌더링 (SSR) 적용
 - [ ] 메타데이터 최적화
 - [ ] 성능 모니터링
+
+## 🗑️ **변경 이력**
+
+### **2025년 1월**
+- `/community/galleries` 페이지 제거됨
+- 갤러리 기능은 SPA 방식으로 전환 (CommunityTab 내부 상태 관리)
+- `/community` 기본 리다이렉트를 `/main?tab=community`로 변경
 
 ---
 *이 문서는 2025년 1월 기준으로 작성되었으며, URL 구조 변경 시 업데이트가 필요합니다.*

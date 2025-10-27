@@ -67,14 +67,14 @@ export default function GalleryPostsPage() {
       setGallery(data.gallery)
     } catch (error) {
       console.error('갤러리 로딩 오류:', error)
-      router.push('/community/galleries')
+      router.push('/main?tab=community')
     } finally {
       setLoading(false)
     }
   }
 
   const handleBack = () => {
-    router.push('/community/galleries')
+    router.push('/main?tab=community')
   }
 
   const handleCreatePost = () => {
@@ -91,7 +91,7 @@ export default function GalleryPostsPage() {
   }
 
   const handleBackToGalleries = () => {
-    router.push('/community/galleries')
+    router.push('/main?tab=community')
   }
 
   if (loading) {

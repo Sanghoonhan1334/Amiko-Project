@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { Plus, Users, MessageSquare, Globe, Heart, Image as ImageIcon, X } from 'lucide-react'
+import { Plus, Users, MessageSquare, Globe, Heart, Image as ImageIcon, X, ArrowLeft, Star, Search } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 
 interface ChatRoom {
@@ -32,6 +33,16 @@ export default function KChatBoard() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [favoriteRooms, setFavoriteRooms] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // 즐겨찾기 로드
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('kchat_favorites')
+    if (savedFavorites) {
+      setFavoriteRooms(new Set(JSON.parse(savedFavorites)))
+    }
+  }, [])
 
   useEffect(() => {
     fetchRooms()
@@ -155,17 +166,64 @@ export default function KChatBoard() {
     return `Hace ${Math.floor(diffInDays / 30)} meses`
   }
 
+  // 즐겨찾기 토글
+  const toggleFavorite = (roomId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const newFavorites = new Set(favoriteRooms)
+    if (newFavorites.has(roomId)) {
+      newFavorites.delete(roomId)
+    } else {
+      newFavorites.add(roomId)
+    }
+    
+    setFavoriteRooms(newFavorites)
+    localStorage.setItem('kchat_favorites', JSON.stringify(Array.from(newFavorites)))
+  }
+
+  // 검색어로 필터링
+  const filteredRooms = rooms.filter(room => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    return room.name.toLowerCase().includes(query) || 
+           room.description?.toLowerCase().includes(query) ||
+           room.country?.toLowerCase().includes(query) ||
+           room.fanclub_name?.toLowerCase().includes(query)
+  })
+
+  // 즐겨찾기 순으로 정렬
+  const sortedRooms = [...filteredRooms].sort((a, b) => {
+    const aIsFavorite = favoriteRooms.has(a.id)
+    const bIsFavorite = favoriteRooms.has(b.id)
+    
+    if (aIsFavorite && !bIsFavorite) return -1
+    if (!aIsFavorite && bIsFavorite) return 1
+    return 0
+  })
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">K-Chat Zone</h1>
-              <p className="text-sm mt-1 text-gray-600">
-                Únete a chats por país o fanclub para discutir K-cultura
-              </p>
+            <div className="flex items-center gap-3">
+              {/* 뒤로가기 버튼 */}
+              <button
+                onClick={() => router.push('/main?tab=community')}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-colors"
+                title="Atrás"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="hidden sm:inline">Comunidad</span>
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold">K-Chat Zone</h1>
+                <p className="text-sm mt-1 text-gray-600">
+                  Únete a chats por país o fanclub para discutir K-cultura
+                </p>
+              </div>
             </div>
             {user && (
               <Button
@@ -210,6 +268,28 @@ export default function KChatBoard() {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            type="text"
+            placeholder="Buscar salas de chat..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         {loading ? (
@@ -238,47 +318,63 @@ export default function KChatBoard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rooms.map(room => (
-              <Link key={room.id} href={`/community/k-chat/${room.id}`}>
-                <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                  {/* Thumbnail */}
-                  {room.thumbnail_url ? (
-                    <div className="relative w-full h-48">
-                      <Image
-                        src={room.thumbnail_url}
-                        alt={room.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                      <MessageSquare className="w-16 h-16 text-gray-400" />
-                    </div>
-                  )}
-                  
-                  {/* Content */}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-lg">{room.name}</h3>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Users className="w-4 h-4" />
-                        <span>{room.participant_count}/{room.max_participants}</span>
+            {sortedRooms.map(room => {
+              const isFavorite = favoriteRooms.has(room.id)
+              return (
+                <Link key={room.id} href={`/community/k-chat/${room.id}`}>
+                  <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative">
+                    {/* 즐겨찾기 버튼 */}
+                    <button
+                      onClick={(e) => toggleFavorite(room.id, e)}
+                      className={`absolute top-2 right-2 z-10 p-2 rounded-full transition-all ${
+                        isFavorite 
+                          ? 'bg-yellow-400 text-yellow-900 shadow-md' 
+                          : 'bg-white/80 text-gray-400 hover:bg-white hover:text-yellow-500'
+                      }`}
+                      title={isFavorite ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
+                    >
+                      <Star className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+                    </button>
+
+                    {/* Thumbnail */}
+                    {room.thumbnail_url ? (
+                      <div className="relative w-full h-48">
+                        <Image
+                          src={room.thumbnail_url}
+                          alt={room.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                        <MessageSquare className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                    
+                    {/* Content */}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-lg">{room.name}</h3>
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <Users className="w-4 h-4" />
+                          <span>{room.participant_count}/{room.max_participants}</span>
+                        </div>
+                      </div>
+                      {room.description && (
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                          {room.description}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>{getTimeAgo(room.created_at)}</span>
+                        <span>{room.type}</span>
                       </div>
                     </div>
-                    {room.description && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {room.description}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>{getTimeAgo(room.created_at)}</span>
-                      <span>{room.type}</span>
-                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         )}
       </div>

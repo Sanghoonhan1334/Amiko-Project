@@ -586,7 +586,7 @@ export default function HomeTab() {
                             <span className="text-white/80 text-xs">{event.date}</span>
                           </div>
                         </div>
-                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                           <Calendar className="w-8 h-8 text-white" />
                         </div>
                       </div>
@@ -964,14 +964,14 @@ export default function HomeTab() {
                               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
                               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
                               
-                              <div className="flex-1 relative z-10">
+                              <div className="flex-1">
                                 <h3 className="text-white font-bold text-lg mb-3 leading-tight">{event.title}</h3>
                                 <p className="text-white/90 text-sm mb-4 max-w-2xl leading-relaxed">{event.description}</p>
                                 <div className="flex items-center gap-3">
                                   <span className="text-white/80 text-sm bg-transparent px-3 py-1 rounded-full">{event.date}</span>
                                 </div>
                               </div>
-                              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                                 <Calendar className="w-6 h-6 text-white" />
                               </div>
                             </div>

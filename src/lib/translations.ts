@@ -3109,9 +3109,9 @@ export const translations = {
     // 커뮤니티 섹션
     community: {
       storyBoards: 'Historia y Tableros',
-      storyBoardsDesc: '게시판과 스토리',
+      storyBoardsDesc: 'Tableros y Historias',
       kCulture: 'Zona de K-Cultura',
-      kCultureDesc: 'K-컬처 콘텐츠',
+      kCultureDesc: 'Contenido de K-Cultura',
       partners: 'Socios',
       partnersDesc: 'Nuestros socios',
       parapans: 'Parapans',

@@ -132,7 +132,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
             duration: 0.6, 
             ease: [0.25, 0.46, 0.45, 0.94]
           }}
-          className="text-center -mt-8 md:-mt-20"
+          className="text-center -mt-8 md:-mt-8 lg:-mt-20"
         >
           <h1 
             className="text-base md:text-lg lg:text-xl font-bold text-gray-700 dark:text-white tracking-wide"

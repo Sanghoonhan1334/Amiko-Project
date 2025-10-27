@@ -37,7 +37,7 @@ export const communityItems: CommunityItem[] = [
     id: 'story-boards',
     title: 'Historia y Tableros',
     titleKey: 'community.storyBoards',
-    microcopy: '게시판과 스토리',
+    microcopy: 'Tableros y Historias',
     microcopyKey: 'community.storyBoardsDesc',
     icon: '/icons/topic-board.png',
     accentColor: '#3B82F6', // Blue
@@ -66,7 +66,7 @@ export const communityItems: CommunityItem[] = [
     id: 'k-culture',
     title: 'Zona de K-Cultura',
     titleKey: 'community.kCulture',
-    microcopy: 'K-컬처 콘텐츠',
+    microcopy: 'Contenido de K-Cultura',
     microcopyKey: 'community.kCultureDesc',
     icon: '/icons/k-magazine.png',
     accentColor: '#8B5CF6', // Purple

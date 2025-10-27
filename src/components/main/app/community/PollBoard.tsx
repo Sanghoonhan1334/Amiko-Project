@@ -187,38 +187,41 @@ export default function PollBoard() {
                 Crear Encuesta
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white [&_>_*]:overflow-visible">
               <DialogHeader>
-                <DialogTitle>Crear Nueva Encuesta</DialogTitle>
+                <DialogTitle className="text-xl font-semibold">Crear Nueva Encuesta</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-              <div>
-                <Label>Título</Label>
+              <div className="space-y-6 pt-2">
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <Label className="text-sm font-medium mb-2 block">Título</Label>
                 <Input
                   value={newPoll.title}
                   onChange={(e) => setNewPoll({ ...newPoll, title: e.target.value })}
                   placeholder="¿Qué deberíamos comer hoy?"
+                  className="bg-white"
                 />
               </div>
-              <div>
-                <Label>Descripción (Opcional)</Label>
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <Label className="text-sm font-medium mb-2 block">Descripción (Opcional)</Label>
                 <Textarea
                   value={newPoll.description}
                   onChange={(e) => setNewPoll({ ...newPoll, description: e.target.value })}
                   placeholder="Información adicional sobre la encuesta"
                   rows={3}
+                  className="bg-white"
                 />
               </div>
-              <div>
-                <Label>Tipo de Encuesta</Label>
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <Label className="text-sm font-medium mb-2 block">Tipo de Encuesta</Label>
                 <Select
                   value={newPoll.poll_type}
                   onValueChange={(value: any) => setNewPoll({ ...newPoll, poll_type: value })}
+                  modal={false}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[100000]">
                     <SelectItem value="text">Texto</SelectItem>
                     <SelectItem value="date">Fecha</SelectItem>
                     <SelectItem value="image">Imagen</SelectItem>
@@ -226,23 +229,47 @@ export default function PollBoard() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Opciones</Label>
-                {newPoll.options.map((option, index) => (
-                  <Input
-                    key={index}
-                    value={option}
-                    onChange={(e) => updateOption(index, e.target.value)}
-                    placeholder={`Opción ${index + 1}`}
-                    className="mb-2"
-                  />
-                ))}
-                <Button type="button" variant="outline" onClick={addOption}>
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <Label className="text-sm font-medium mb-2 block">Opciones</Label>
+                <div className="space-y-2">
+                  {newPoll.options.map((option, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      {newPoll.poll_type === 'date' ? (
+                        <Input
+                          type="date"
+                          value={option}
+                          onChange={(e) => updateOption(index, e.target.value)}
+                          className="bg-white"
+                        />
+                      ) : newPoll.poll_type === 'image' ? (
+                        <div className="flex-1 flex gap-2">
+                          <Input
+                            type="url"
+                            value={option}
+                            onChange={(e) => updateOption(index, e.target.value)}
+                            placeholder="URL de imagen"
+                            className="bg-white flex-1"
+                          />
+                        </div>
+                      ) : (
+                        <Input
+                          type="text"
+                          value={option}
+                          onChange={(e) => updateOption(index, e.target.value)}
+                          placeholder={`Opción ${index + 1}`}
+                          className="bg-white"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" onClick={addOption} className="mt-3">
                   <Plus className="w-4 h-4 mr-2" />
                   Agregar Opción
                 </Button>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={newPoll.is_public}
@@ -265,6 +292,7 @@ export default function PollBoard() {
                 <Button variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
                   Cancelar
                 </Button>
+              </div>
               </div>
             </div>
           </DialogContent>

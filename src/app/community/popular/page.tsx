@@ -20,7 +20,7 @@ export default function PopularPostsPage() {
   const router = useRouter()
 
   const handleBack = () => {
-    router.push('/community/galleries')
+    router.push('/main?tab=community')
   }
 
   const handlePostSelect = (post: any) => {

@@ -43,8 +43,8 @@ function CreatePostContent() {
     if (gallerySlug) {
       fetchGallery()
     } else {
-      // 갤러리 정보가 없으면 갤러리 목록으로 리다이렉트
-      router.push('/community/galleries')
+      // 갤러리 정보가 없으면 메인 커뮤니티로 리다이렉트
+      router.push('/main?tab=community')
     }
   }, [gallerySlug, router])
 
@@ -61,7 +61,7 @@ function CreatePostContent() {
       setGallery(data.gallery)
     } catch (error) {
       console.error('갤러리 로딩 오류:', error)
-      router.push('/community/galleries')
+      router.push('/main?tab=community')
     } finally {
       setLoading(false)
     }
@@ -71,7 +71,7 @@ function CreatePostContent() {
     if (gallerySlug) {
       router.push(`/community/gallery/${gallerySlug}`)
     } else {
-      router.push('/community/galleries')
+      router.push('/main?tab=community')
     }
   }
 
@@ -79,7 +79,7 @@ function CreatePostContent() {
     if (gallerySlug) {
       router.push(`/community/gallery/${gallerySlug}`)
     } else {
-      router.push('/community/galleries')
+      router.push('/main?tab=community')
     }
   }
 
@@ -87,7 +87,7 @@ function CreatePostContent() {
     if (gallerySlug) {
       router.push(`/community/gallery/${gallerySlug}`)
     } else {
-      router.push('/community/galleries')
+      router.push('/main?tab=community')
     }
   }
 
