@@ -192,10 +192,10 @@ export default function IdolMemesBoard() {
       {user && (
         <Button
           size="lg"
-          className="fixed bottom-8 right-8 rounded-full shadow-lg h-14 w-14 p-0"
+          className="fixed bottom-8 right-8 rounded-full shadow-2xl h-16 w-16 p-0 bg-purple-600 hover:bg-purple-700 text-white z-50"
           onClick={() => setShowUploadModal(true)}
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-8 h-8" />
         </Button>
       )}
 
