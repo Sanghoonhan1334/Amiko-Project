@@ -100,7 +100,8 @@ export default function IdolMemesDetailPage() {
   const handleShare = async () => {
     try {
       await navigator.share({
-        title: post?.title,
+        title: `Fotos de Ídolos - ${post?.title}`,
+        text: `¡Mira esta foto de ${post?.title} en Fotos de Ídolos!`,
         url: window.location.href,
       })
     } catch (error) {
