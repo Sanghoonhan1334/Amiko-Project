@@ -156,7 +156,7 @@ export default function FanartBoard() {
       <div className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Tablero de Fan Art</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Fan Art</h1>
             {user && (
               <Button className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />

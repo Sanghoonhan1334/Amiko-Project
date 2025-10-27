@@ -177,7 +177,7 @@ export default function PollBoard() {
       <div className="p-4 pt-16 md:pt-20 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Tablero de Encuestas</h2>
+            <h2 className="text-2xl font-bold">Encuestas</h2>
             <p className="text-gray-600">Participa en votaciones y decisiones</p>
           </div>
           <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>

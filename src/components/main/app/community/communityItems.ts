@@ -89,7 +89,7 @@ export const communityItems: CommunityItem[] = [
       },
       {
         id: 'fanart',
-        title: 'Tablero de Fan Art',
+        title: 'Fan Art',
         titleKey: 'community.fanart',
         route: '/community/fanart',
         icon: '🎨',
@@ -97,7 +97,7 @@ export const communityItems: CommunityItem[] = [
       },
       {
         id: 'polls',
-        title: 'Tablero de Encuestas',
+        title: 'Encuestas',
         titleKey: 'community.polls',
         route: '/community/polls',
         icon: '🗳️',
