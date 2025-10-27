@@ -61,6 +61,23 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { title, content, media_url, media_type, category, tags } = body
 
+    // user_profiles에서 닉네임 가져오기
+    let authorName = user.email?.split('@')[0] || 'Usuario'
+    try {
+      const { data: profile } = await supabaseServer
+        .from('user_profiles')
+        .select('display_name')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (profile?.display_name) {
+        // # 이후 부분 제거
+        authorName = profile.display_name.split('#')[0]
+      }
+    } catch (error) {
+      console.log('프로필 조회 실패, 기본값 사용')
+    }
+
     const { data, error } = await supabaseServer
       .from('idol_memes')
       .insert({
@@ -69,7 +86,7 @@ export async function POST(request: Request) {
         media_url,
         media_type,
         author_id: user.id,
-        author_name: user.user_metadata?.name || user.email?.split('@')[0],
+        author_name: authorName,
         category,
         tags,
       })
