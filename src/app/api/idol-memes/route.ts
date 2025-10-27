@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabaseServer'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -37,17 +38,30 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    if (!supabaseServer) {
+      return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
+    }
 
-    if (!user) {
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    
+    // 토큰으로 사용자 인증
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+    if (authError || !user) {
+      console.error('[IDOL_MEMES] 인증 실패:', authError?.message)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { title, content, media_url, media_type, category, tags } = body
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from('idol_memes')
       .insert({
         title,
