@@ -81,7 +81,7 @@ export const communityItems: CommunityItem[] = [
       },
       {
         id: 'idol-memes',
-        title: 'Compartir Fotos de Ídolos',
+        title: 'Fotos de Ídolos',
         titleKey: 'community.idolMemes',
         route: '/community/idol-memes',
         icon: '😄',

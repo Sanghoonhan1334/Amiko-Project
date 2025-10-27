@@ -130,7 +130,7 @@ export default function IdolMemesUploadModal({
             <h2 className={`text-2xl font-bold ${
               isDark ? 'text-white' : 'text-gray-900'
             }`}>
-              Compartir Foto de Ídolo
+              Foto de Ídolo
             </h2>
             <button
               onClick={onClose}
