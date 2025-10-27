@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, MessageCircle, Eye, Share2, Send } from 'lucide-react'
+import { ArrowLeft, Heart, MessageCircle, Eye, Share2, Send, Download } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
@@ -108,6 +108,25 @@ export default function IdolMemesDetailPage() {
     }
   }
 
+  const handleDownload = async () => {
+    if (!post?.media_url) return
+    
+    try {
+      const response = await fetch(post.media_url)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = post.title || 'idol-photo'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Download failed:', error)
+    }
+  }
+
   const handleCommentSubmit = async () => {
     if (!user) {
       router.push('/sign-in')
@@ -171,21 +190,21 @@ export default function IdolMemesDetailPage() {
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-sm transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>이전글</span>
+              <span>Anterior</span>
             </button>
 
             <button
               onClick={() => router.push('/community/idol-memes')}
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-sm transition-colors"
             >
-              목록
+              Lista
             </button>
 
             <button
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-sm transition-colors opacity-50"
               disabled
             >
-              <span>다음글</span>
+              <span>Siguiente</span>
               <ArrowLeft className="w-4 h-4 rotate-180" />
             </button>
           </div>
@@ -205,7 +224,7 @@ export default function IdolMemesDetailPage() {
               <span>•</span>
               <span>{timeAgo}</span>
               <span>•</span>
-              <span>조회 {post.views}</span>
+              <span>Visitas {post.views}</span>
               {post.category && (
                 <>
                   <span>•</span>
@@ -277,11 +296,19 @@ export default function IdolMemesDetailPage() {
               <div className="flex-1" />
 
               <button
+                onClick={handleDownload}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              >
+                <Download className="w-4 h-4" />
+                <span className="text-sm">Descargar</span>
+              </button>
+
+              <button
                 onClick={handleShare}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
               >
                 <Share2 className="w-4 h-4" />
-                <span className="text-sm">공유</span>
+                <span className="text-sm">Compartir</span>
               </button>
             </div>
           </div>
@@ -289,7 +316,7 @@ export default function IdolMemesDetailPage() {
 
         {/* Comments Section */}
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold mb-6">댓글 ({comments.length})</h2>
+          <h2 className="text-2xl font-bold mb-6">Comentarios ({comments.length})</h2>
           
           {/* Comment List */}
           {comments.length > 0 ? (
@@ -319,7 +346,7 @@ export default function IdolMemesDetailPage() {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500 mb-8">
-              아직 댓글이 없습니다. 첫 댓글을 남겨보세요!
+              No hay comentarios aún. ¡Sé el primero en comentar!
             </div>
           )}
 
@@ -336,7 +363,7 @@ export default function IdolMemesDetailPage() {
                   <textarea
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="댓글을 입력하세요..."
+                    placeholder="Escribe un comentario..."
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                     rows={3}
                   />
@@ -347,11 +374,11 @@ export default function IdolMemesDetailPage() {
                       size="sm"
                     >
                       {sendingComment ? (
-                        <>보내는 중...</>
+                        <>Enviando...</>
                       ) : (
                         <>
                           <Send className="w-4 h-4 mr-1" />
-                          등록
+                          Publicar
                         </>
                       )}
                     </Button>
@@ -361,7 +388,7 @@ export default function IdolMemesDetailPage() {
             </div>
           ) : (
             <div className="border-t border-gray-200 pt-6 text-center">
-              <p className="text-sm text-gray-500 mb-4">로그인 후 댓글을 달 수 있습니다.</p>
+              <p className="text-sm text-gray-500 mb-4">Inicia sesión para comentar.</p>
               <button
                 onClick={() => router.push('/sign-in')}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-sm font-medium transition-colors"
@@ -369,7 +396,7 @@ export default function IdolMemesDetailPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                로그인
+                Iniciar sesión
               </button>
             </div>
           )}
@@ -382,7 +409,7 @@ export default function IdolMemesDetailPage() {
               onClick={() => router.push('/community/idol-memes')}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-sm transition-colors"
             >
-              목록
+              Lista
             </button>
           </div>
         </div>
