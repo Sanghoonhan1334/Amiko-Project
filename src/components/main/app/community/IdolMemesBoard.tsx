@@ -28,197 +28,6 @@ interface Post {
 type Theme = 'day' | 'night'
 type SortType = 'popular' | 'recent'
 
-// Mock data for testing
-const mockPosts: Post[] = [
-  {
-    id: '1',
-    title: '진이 너무 웃긴 순간 🤣',
-    content: '진의 표정이 너무 웃겨서 리액션 짤로 만들었어요',
-    media_url: '/misc/1.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'KpopLover123',
-    views: 1523,
-    likes_count: 89,
-    comments_count: 12,
-    category: 'BTS',
-    tags: ['BTS', '진', '웃김'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    is_liked: false,
-  },
-  {
-    id: '2',
-    title: '🎵 NewJeans의 귀여운 리액션',
-    content: '뉴진스 멤버들의 귀여운 리액션 모음입니다!',
-    media_url: '/misc/2.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'FanGirl99',
-    views: 3421,
-    likes_count: 234,
-    comments_count: 45,
-    category: 'NewJeans',
-    tags: ['NewJeans', '귀여움'],
-    is_pinned: true,
-    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    is_liked: true,
-  },
-  {
-    id: '3',
-    title: 'BLACKPINK 지수가 말하는 순간 😂',
-    content: '지수의 어록 모음입니다. 웃긴 부분만 추렸어요!',
-    media_url: '/covers/jisoo.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'BLink2024',
-    views: 5678,
-    likes_count: 445,
-    comments_count: 78,
-    category: 'BLACKPINK',
-    tags: ['BLACKPINK', '지수'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    is_liked: false,
-  },
-  {
-    id: '4',
-    title: '필독: 게시판 사용 가이드',
-    content: '밈을 올릴 때 주의사항을 확인해주세요!',
-    media_url: '',
-    media_type: undefined,
-    thumbnail_url: '',
-    author_name: '관리자',
-    views: 890,
-    likes_count: 45,
-    comments_count: 8,
-    category: undefined,
-    tags: undefined,
-    is_pinned: true,
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    is_liked: false,
-  },
-  {
-    id: '5',
-    title: '워너원의 추억 📸',
-    content: '옛날 그룹들의 명장면 모음!',
-    media_url: '/misc/3.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'OldSchoolKP',
-    views: 2345,
-    likes_count: 156,
-    comments_count: 34,
-    category: 'Wanna One',
-    tags: ['워너원'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    is_liked: false,
-  },
-  {
-    id: '6',
-    title: '아이즈원 꿈 💜',
-    content: '아이즈원 멤버들의 예쁜 순간들',
-    media_url: '/misc/1.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'IZoneFan',
-    views: 1234,
-    likes_count: 67,
-    comments_count: 23,
-    category: 'IZ*ONE',
-    tags: ['아이즈원'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    is_liked: true,
-  },
-  {
-    id: '7',
-    title: '레드벨벳 아버지의 코미디 🤪',
-    content: '아이린과 슬기의 재치있는 순간들',
-    media_url: '/misc/2.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'RVStan99',
-    views: 2890,
-    likes_count: 189,
-    comments_count: 32,
-    category: 'Red Velvet',
-    tags: ['레드벨벳'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    is_liked: false,
-  },
-  {
-    id: '8',
-    title: '트와이스 트릭 😄',
-    content: '츄가 너무 웃긴 리액션',
-    media_url: '/misc/3.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'TWICEfan',
-    views: 4456,
-    likes_count: 312,
-    comments_count: 56,
-    category: 'TWICE',
-    tags: ['트와이스'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    is_liked: true,
-  },
-  {
-    id: '9',
-    title: 'STRAY KIDS의 헐리우드 🎬',
-    content: '한의 리액션이 너무 웃겨요!',
-    media_url: '/misc/1.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'STAY_Life',
-    views: 6789,
-    likes_count: 521,
-    comments_count: 89,
-    category: 'Stray Kids',
-    tags: ['스트레이키즈'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    is_liked: false,
-  },
-  {
-    id: '10',
-    title: 'ITZY 예나의 모먼트 💫',
-    content: '예나의 귀여운 순간 모음',
-    media_url: '/misc/2.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'MIDZY4ever',
-    views: 3245,
-    likes_count: 234,
-    comments_count: 42,
-    category: 'ITZY',
-    tags: ['ITZY'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    is_liked: true,
-  },
-  {
-    id: '11',
-    title: '세븐틴 버논의 개그 🔥',
-    content: '버논이 너무 웃긴 순간!',
-    media_url: '/misc/3.png',
-    media_type: 'image',
-    thumbnail_url: '',
-    author_name: 'CARAT_Love',
-    views: 5123,
-    likes_count: 378,
-    comments_count: 67,
-    category: 'SEVENTEEN',
-    tags: ['세븐틴'],
-    is_pinned: false,
-    created_at: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString(),
-    is_liked: false,
-  },
-]
-
 export default function IdolMemesBoard() {
   const { user } = useAuth()
   const [theme, setTheme] = useState<Theme>('day')
@@ -241,13 +50,11 @@ export default function IdolMemesBoard() {
       })
       const res = await fetch(`/api/idol-memes?${params}`)
       const data = await res.json()
-      // API에서 데이터가 없으면 mockPosts 사용
-      const finalData = Array.isArray(data) && data.length > 0 ? data : mockPosts
-      setPosts(finalData)
+      // 실제 API 데이터만 사용
+      setPosts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Failed to fetch posts:', error)
-      // 에러 시 mockPosts 사용
-      setPosts(mockPosts)
+      setPosts([])
     } finally {
       setLoading(false)
     }
@@ -331,11 +138,40 @@ export default function IdolMemesBoard() {
             )}
 
             {/* Regular Posts */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {regularPosts.map(post => (
-                <IdolMemesPost key={post.id} post={post} theme={theme} />
-              ))}
-            </div>
+            {regularPosts.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {regularPosts.map(post => (
+                  <IdolMemesPost key={post.id} post={post} theme={theme} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                  isDark ? 'bg-gray-800' : 'bg-gray-100'
+                }`}>
+                  <span className="text-4xl">📸</span>
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  아직 게시물이 없습니다
+                </h3>
+                <p className={`text-sm mb-6 ${
+                  isDark ? 'text-gray-500' : 'text-gray-500'
+                }`}>
+                  첫 번째 밈을 올려보세요!
+                </p>
+                {user && (
+                  <Button
+                    onClick={() => setShowUploadModal(true)}
+                    className="px-6"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    올리기
+                  </Button>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>
