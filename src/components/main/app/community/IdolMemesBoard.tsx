@@ -29,7 +29,7 @@ type Theme = 'day' | 'night'
 type SortType = 'popular' | 'recent'
 
 export default function IdolMemesBoard() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [theme, setTheme] = useState<Theme>('day')
   const [sortBy, setSortBy] = useState<SortType>('popular')
   const [category, setCategory] = useState<string>('all')
@@ -92,7 +92,7 @@ export default function IdolMemesBoard() {
               className={isDark ? '' : ''}
             >
               <TrendingUp className="w-4 h-4 mr-1" />
-              인기
+              Popular
             </Button>
             <Button
               variant={sortBy === 'recent' ? 'default' : 'outline'}
@@ -100,7 +100,7 @@ export default function IdolMemesBoard() {
               onClick={() => setSortBy('recent')}
             >
               <Clock className="w-4 h-4 mr-1" />
-              최신
+              Reciente
             </Button>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function IdolMemesBoard() {
                 <div className={`px-4 py-2 mb-3 rounded-lg ${
                   isDark ? 'bg-purple-900/30' : 'bg-purple-100'
                 }`}>
-                  <h2 className="font-semibold text-sm">📌 필독</h2>
+                  <h2 className="font-semibold text-sm">📌 Importante</h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {pinnedPosts.map(post => (
@@ -154,12 +154,12 @@ export default function IdolMemesBoard() {
                 <h3 className={`text-xl font-semibold mb-2 ${
                   isDark ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  아직 게시물이 없습니다
+                  No hay publicaciones aún
                 </h3>
                 <p className={`text-sm mb-6 ${
                   isDark ? 'text-gray-500' : 'text-gray-500'
                 }`}>
-                  첫 번째 밈을 올려보세요!
+                  ¡Sube el primer meme!
                 </p>
                 {user && (
                   <Button
@@ -167,7 +167,7 @@ export default function IdolMemesBoard() {
                     className="px-6"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    올리기
+                    Subir
                   </Button>
                 )}
               </div>

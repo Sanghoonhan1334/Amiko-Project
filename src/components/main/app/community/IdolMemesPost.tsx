@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Heart, MessageCircle, Eye } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
 interface Post {
   id: string
@@ -28,15 +29,25 @@ interface IdolMemesPostProps {
 
 export default function IdolMemesPost({ post, theme }: IdolMemesPostProps) {
   const router = useRouter()
+  const { user, token } = useAuth()
   const [isLiked, setIsLiked] = useState(post.is_liked || false)
   const [likesCount, setLikesCount] = useState(post.likes_count)
   const [isPlaying, setIsPlaying] = useState(false)
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    
+    if (!user) {
+      router.push('/sign-in')
+      return
+    }
+
     try {
       const res = await fetch(`/api/idol-memes/${post.id}/like`, {
         method: isLiked ? 'DELETE' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       })
       
       if (res.ok) {
@@ -142,8 +153,8 @@ function getTimeAgo(dateString: string): string {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
   if (diffInSeconds < 60) return 'Ahora'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}분`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}시간`
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}일`
+  if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`
+  if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} h`
+  if (diffInSeconds < 604800) return `Hace ${Math.floor(diffInSeconds / 86400)} días`
   return date.toLocaleDateString('es-ES')
 }
