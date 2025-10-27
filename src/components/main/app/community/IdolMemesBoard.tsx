@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { Moon, Sun, Plus, TrendingUp, Clock } from 'lucide-react'
+import { Moon, Sun, Plus, TrendingUp, Clock, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import IdolMemesPost from './IdolMemesPost'
 import IdolMemesUploadModal from './IdolMemesUploadModal'
+import { useRouter } from 'next/navigation'
 
 interface Post {
   id: string
@@ -30,6 +31,7 @@ type SortType = 'popular' | 'recent'
 
 export default function IdolMemesBoard() {
   const { user, token } = useAuth()
+  const router = useRouter()
   const [theme, setTheme] = useState<Theme>('day')
   const [sortBy, setSortBy] = useState<SortType>('popular')
   const [category, setCategory] = useState<string>('all')
@@ -74,13 +76,23 @@ export default function IdolMemesBoard() {
         isDark ? 'border-gray-800 bg-black/95' : 'border-gray-200 bg-white/95'
       } backdrop-blur-sm`}>
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div>
-            <h1 className="text-2xl font-bold">Tablero de Memes de Ídolos</h1>
-            <p className={`text-sm mt-1 ${
-              isDark ? 'text-gray-400' : 'text-gray-600'
-            }`}>
-              Los memes más graciosos de tus ídolos favoritos
-            </p>
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => router.back()}
+              className={`p-2 rounded-lg transition-colors ${
+                isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+              }`}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold">Fotos de Ídolos</h1>
+              <p className={`text-sm mt-1 ${
+                isDark ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                Comparte y disfruta de las mejores fotos de tus ídolos favoritos
+              </p>
+            </div>
           </div>
 
           {/* Filters */}
