@@ -52,6 +52,19 @@ ALTER TABLE idol_memes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE idol_memes_likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE idol_memes_comments ENABLE ROW LEVEL SECURITY;
 
+-- 기존 정책 삭제 (있는 경우)
+DROP POLICY IF EXISTS "Anyone can view idol memes" ON idol_memes;
+DROP POLICY IF EXISTS "Authenticated users can create idol memes" ON idol_memes;
+DROP POLICY IF EXISTS "Users can update their own idol memes" ON idol_memes;
+DROP POLICY IF EXISTS "Users can delete their own idol memes" ON idol_memes;
+DROP POLICY IF EXISTS "Anyone can view likes" ON idol_memes_likes;
+DROP POLICY IF EXISTS "Authenticated users can like" ON idol_memes_likes;
+DROP POLICY IF EXISTS "Users can unlike their likes" ON idol_memes_likes;
+DROP POLICY IF EXISTS "Anyone can view comments" ON idol_memes_comments;
+DROP POLICY IF EXISTS "Authenticated users can comment" ON idol_memes_comments;
+DROP POLICY IF EXISTS "Users can update their comments" ON idol_memes_comments;
+DROP POLICY IF EXISTS "Users can delete their comments" ON idol_memes_comments;
+
 -- RLS 정책: 모든 사용자가 게시물 조회 가능
 CREATE POLICY "Anyone can view idol memes" ON idol_memes
   FOR SELECT USING (is_active = true);
@@ -99,6 +112,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_idol_memes_updated_at ON idol_memes;
 CREATE TRIGGER update_idol_memes_updated_at
   BEFORE UPDATE ON idol_memes
   FOR EACH ROW
@@ -119,6 +133,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_idol_memes_comments_count ON idol_memes_comments;
 CREATE TRIGGER update_idol_memes_comments_count
   AFTER INSERT OR DELETE ON idol_memes_comments
   FOR EACH ROW
@@ -139,6 +154,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_idol_memes_likes_count ON idol_memes_likes;
 CREATE TRIGGER update_idol_memes_likes_count
   AFTER INSERT OR DELETE ON idol_memes_likes
   FOR EACH ROW
