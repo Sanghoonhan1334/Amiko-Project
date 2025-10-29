@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,7 +30,7 @@ interface AvailableSlot {
   end_time: string
 }
 
-export default function CreateBookingPage() {
+function CreateBookingPageContent() {
   const { user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -485,6 +485,21 @@ export default function CreateBookingPage() {
         </div>
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function CreateBookingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 pt-20 md:py-12 pb-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    }>
+      <CreateBookingPageContent />
+    </Suspense>
   )
 }
 
