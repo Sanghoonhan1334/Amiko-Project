@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -8,6 +8,14 @@ import { Progress } from '@/components/ui/progress'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import { useLanguage } from '@/context/LanguageContext'
+
+function HeaderFallback() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16">
+      {/* Header skeleton */}
+    </header>
+  )
+}
 
 export default function IdolPositionQuestionsPage() {
   const router = useRouter()
@@ -40,7 +48,9 @@ export default function IdolPositionQuestionsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <Header />
+        <Suspense fallback={<HeaderFallback />}>
+          <Header />
+        </Suspense>
         <div className="pt-32 pb-8 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
@@ -54,7 +64,9 @@ export default function IdolPositionQuestionsPage() {
   if (!questions.length) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <Header />
+        <Suspense fallback={<HeaderFallback />}>
+          <Header />
+        </Suspense>
         <div className="pt-32 pb-8 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-gray-600">질문을 불러올 수 없습니다.</p>
@@ -164,7 +176,9 @@ export default function IdolPositionQuestionsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <Header />
+      <Suspense fallback={<HeaderFallback />}>
+        <Header />
+      </Suspense>
       
       {/* 테스트 진행 화면 */}
       <div className="pt-32 pb-8 px-2">
