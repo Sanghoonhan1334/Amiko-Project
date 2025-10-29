@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import FreeBoardList from '@/components/main/app/community/FreeBoardList'
 import PostCreate from '@/components/main/app/community/PostCreate'
 
-export default function FreeBoardPage() {
+function FreeBoardPageContent() {
   const router = useRouter()
   const [currentView, setCurrentView] = useState<'list' | 'create'>('list')
 
@@ -48,5 +48,20 @@ export default function FreeBoardPage() {
       {/* 모바일 하단 네비게이션 - 주제별 게시판에서는 숨김 */}
       {/* <BottomTabNavigation /> */}
     </div>
+  )
+}
+
+export default function FreeBoardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <FreeBoardPageContent />
+    </Suspense>
   )
 }
