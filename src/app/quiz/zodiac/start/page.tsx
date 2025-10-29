@@ -1,10 +1,26 @@
 'use client'
 
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
+
+function HeaderFallback() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16">
+      {/* Header skeleton */}
+    </header>
+  )
+}
+
+function BottomTabNavigationFallback() {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 border-t-2 border-blue-200 h-16 md:hidden">
+      {/* BottomTabNavigation skeleton */}
+    </div>
+  )
+}
 
 export default function ZodiacStartPage() {
   const router = useRouter()
@@ -16,7 +32,9 @@ export default function ZodiacStartPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-yellow-50 to-pink-100">
-      <Header />
+      <Suspense fallback={<HeaderFallback />}>
+        <Header />
+      </Suspense>
       
       <div className="flex flex-col items-center justify-center min-h-screen pt-20 pb-20">
         {/* 이미지 */}
@@ -48,7 +66,9 @@ export default function ZodiacStartPage() {
         </div>
       </div>
 
-      <BottomTabNavigation />
+      <Suspense fallback={<BottomTabNavigationFallback />}>
+        <BottomTabNavigation />
+      </Suspense>
     </div>
   )
 }
