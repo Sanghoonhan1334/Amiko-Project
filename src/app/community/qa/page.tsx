@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -16,7 +16,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 
-export default function QAPage() {
+function QAPageContent() {
   const router = useRouter()
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
@@ -819,5 +819,20 @@ export default function QAPage() {
       {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
       {/* <BottomTabNavigation /> */}
     </div>
+  )
+}
+
+export default function QAPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <QAPageContent />
+    </Suspense>
   )
 }
