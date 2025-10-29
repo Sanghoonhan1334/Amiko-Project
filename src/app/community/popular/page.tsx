@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
@@ -16,7 +16,7 @@ const PopularPosts = dynamic(() => import('@/components/main/app/community/Popul
   )
 })
 
-export default function PopularPostsPage() {
+function PopularPostsPageContent() {
   const router = useRouter()
 
   const handleBack = () => {
@@ -55,5 +55,20 @@ export default function PopularPostsPage() {
         <PopularPosts onPostSelect={handlePostSelect} />
       </div>
     </div>
+  )
+}
+
+export default function PopularPostsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <PopularPostsPageContent />
+    </Suspense>
   )
 }
