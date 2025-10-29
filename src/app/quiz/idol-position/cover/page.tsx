@@ -69,7 +69,7 @@ export default function IdolPositionCoverPage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">
             {language === 'es' ? 'Cargando test...' : '테스트 로딩 중...'}
           </p>
@@ -146,7 +146,7 @@ export default function IdolPositionCoverPage() {
                       {isStarting && (
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                           <div className="bg-white/90 rounded-lg p-4 flex items-center gap-3">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 dark:border-gray-400"></div>
                             <span className="text-gray-800 font-medium">
                               {language === 'es' ? 'Cargando test...' : '테스트 로딩 중...'}
                             </span>

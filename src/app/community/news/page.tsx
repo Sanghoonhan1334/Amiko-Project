@@ -996,7 +996,7 @@ function NewsPageContent() {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={1}
-                  className="mb-1 md:mb-3 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-xs md:text-sm"
+                  className="mb-1 md:mb-3 border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-xs md:text-sm"
                 />
                 <div className="flex justify-end">
                   <Button
@@ -1063,7 +1063,7 @@ function NewsPageContent() {
                           value={editContent}
                           onChange={(e) => setEditContent(e.target.value)}
                           rows={1}
-                          className="mb-1 md:mb-2 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-[10px] md:text-sm"
+                          className="mb-1 md:mb-2 border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-[10px] md:text-sm"
                         />
                         <div className="flex gap-0.5 md:gap-2">
                           <Button
@@ -1127,7 +1127,7 @@ function NewsPageContent() {
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
                           rows={1}
-                          className="mb-1 md:mb-2 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-[10px] md:text-sm"
+                          className="mb-1 md:mb-2 border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none text-[10px] md:text-sm"
                         />
                         <div className="flex gap-0.5 md:gap-2">
                           <Button
@@ -1727,13 +1727,13 @@ function NewsPageContent() {
                   placeholder="예: NewsWA, 서울En"
                   value={newsWriteForm.source}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
-                  className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                  className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 />
               </div>
               <div className="min-w-0 -ml-2">
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">작성자</Label>
                 <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
-                  <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 pr-6">
+                  <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 pr-6">
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1750,7 +1750,7 @@ function NewsPageContent() {
                   type="date"
                   value={newsWriteForm.date}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, date: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   style={{ 
                     colorScheme: 'light'
                   }}
@@ -1765,7 +1765,7 @@ function NewsPageContent() {
                 placeholder="제목을 입력하세요"
                 value={newsWriteForm.title}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
-                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
 
@@ -1800,7 +1800,7 @@ function NewsPageContent() {
                 value={newsWriteForm.content}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
                 rows={8}
-                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none"
               />
             </div>
 
@@ -1808,7 +1808,7 @@ function NewsPageContent() {
             <div>
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">썸네일 선택</Label>
               <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
-                <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400">
+                <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400">
                   <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1884,13 +1884,13 @@ function NewsPageContent() {
                   placeholder="예: NewsWA, 서울En"
                   value={newsWriteForm.source}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, source: e.target.value })}
-                  className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                  className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 />
               </div>
               <div className="min-w-0 -ml-2">
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">작성자</Label>
                 <Select value={newsWriteForm.author} onValueChange={(value) => setNewsWriteForm({ ...newsWriteForm, author: value })}>
-                  <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 pr-6">
+                  <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 w-full h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 pr-6">
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1907,7 +1907,7 @@ function NewsPageContent() {
                   type="date"
                   value={newsWriteForm.date}
                   onChange={(e) => setNewsWriteForm({ ...newsWriteForm, date: e.target.value })}
-                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 focus:outline-none h-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   style={{ 
                     colorScheme: 'light'
                   }}
@@ -1922,7 +1922,7 @@ function NewsPageContent() {
                 placeholder="제목을 입력하세요"
                 value={newsWriteForm.title}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, title: e.target.value })}
-                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
 
@@ -1957,7 +1957,7 @@ function NewsPageContent() {
                 value={newsWriteForm.content}
                 onChange={(e) => setNewsWriteForm({ ...newsWriteForm, content: e.target.value })}
                 rows={8}
-                className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 resize-none"
               />
             </div>
 
@@ -1965,7 +1965,7 @@ function NewsPageContent() {
             <div>
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">썸네일 선택</Label>
               <Select value={selectedThumbnail} onValueChange={setSelectedThumbnail}>
-                <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400">
+                <SelectTrigger className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-blue-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400">
                   <SelectValue placeholder="썸네일로 사용할 이미지를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2033,7 +2033,7 @@ export default function NewsPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>

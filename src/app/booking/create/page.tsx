@@ -13,7 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
-import { ArrowLeft, Calendar, Clock, User, AlertCircle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, User, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface Partner {
   id: string
@@ -30,6 +31,234 @@ interface AvailableSlot {
   end_time: string
 }
 
+// 예약 가능한 날짜 달력 컴포넌트
+function AvailableDatesCalendar({
+  availableDates,
+  selectedDate,
+  onDateSelect,
+  userLanguage = 'es', // 사용자 프로필 언어 (회원가입 시 선택한 국적 기반)
+  userTimezone = 'America/Lima' // 사용자 프로필 타임존
+}: {
+  availableDates: string[]
+  selectedDate: string
+  onDateSelect: (date: string) => void
+  userLanguage?: 'ko' | 'es' // 회원가입 시 선택한 국적 기반 언어
+  userTimezone?: string // 사용자 프로필 타임존
+}) {
+  // 사용자 프로필 타임존 사용 (브라우저 시스템 타임존이 아니라)
+  const browserTimezone = userTimezone
+  
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+  
+  const monthNames = {
+    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+    ko: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+  }
+  
+  const dayNames = {
+    es: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+    ko: ['일', '월', '화', '수', '목', '금', '토']
+  }
+  
+  // 사용자 프로필 언어 사용 (헤더 언어 변경과 무관)
+  const calendarLanguage = userLanguage || 'es'
+  const monthName = monthNames[calendarLanguage] || monthNames.es
+  const dayName = dayNames[calendarLanguage] || dayNames.es
+  
+  console.log('[AvailableDatesCalendar] 달력 언어 (프로필 기반):', calendarLanguage, 'monthName:', monthName, 'dayName:', dayName)
+  
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const year = currentMonth.getFullYear()
+  const month = currentMonth.getMonth()
+  
+  // 해당 월의 첫 날과 마지막 날
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+  const daysInMonth = lastDay.getDate()
+  const startingDayOfWeek = firstDay.getDay()
+  
+  // 이전/다음 월 이동
+  const prevMonth = () => {
+    setCurrentMonth(new Date(year, month - 1, 1))
+  }
+  
+  const nextMonth = () => {
+    setCurrentMonth(new Date(year, month + 1, 1))
+  }
+  
+  // 날짜를 사용자 타임존 기준으로 문자열 변환
+  // 주의: date가 브라우저 로컬 타임존으로 해석되므로, 사용자 타임존으로 명시적으로 변환해야 함
+  const formatDateInUserTimezone = (date: Date): string => {
+    // Date 객체의 연/월/일을 추출 (로컬 타임존 기준)
+    const localYear = date.getFullYear()
+    const localMonth = date.getMonth()
+    const localDay = date.getDate()
+    
+    // 이 날짜/시간을 사용자 타임존의 같은 날짜로 해석
+    // 예: 2025-11-07 00:00 (로컬) → 2025-11-07 00:00 (사용자 타임존)
+    // 사용자 타임존의 해당 날짜 00:00:00을 나타내는 UTC 시간 계산
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: browserTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+    
+    // Date 객체를 사용자 타임존으로 변환
+    // 하지만 Date 객체가 이미 로컬 타임존이므로, 이를 UTC로 변환한 후 사용자 타임존으로 다시 변환해야 함
+    // 더 정확한 방법: 로컬 날짜를 사용자 타임존의 같은 날짜로 해석
+    
+    // 방법: 로컬 타임존의 해당 날짜 00:00:00을 UTC로 변환 후, 사용자 타임존으로 변환
+    // 또는 더 간단하게: Intl.DateTimeFormat을 사용하여 로컬 Date 객체를 사용자 타임존으로 변환
+    return formatter.format(date)
+  }
+  
+  // 날짜가 예약 가능한지 확인
+  const isDateAvailable = (date: Date) => {
+    const dateStr = formatDateInUserTimezone(date)
+    return availableDates.includes(dateStr)
+  }
+  
+  // 날짜가 오늘 이후인지 확인
+  const isDateInFuture = (date: Date) => {
+    return date >= today
+  }
+  
+  // 날짜 클릭 핸들러
+  const handleDateClick = (day: number) => {
+    // 달력의 year/month/day를 직접 YYYY-MM-DD 형식으로 변환 (타임존 변환 없이)
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    
+    // availableDates 목록에 있는지 확인
+    if (availableDates.includes(dateStr)) {
+      const todayStr = formatDateInUserTimezone(today)
+      // 날짜가 오늘 이후인지 확인 (문자열 비교)
+      if (dateStr >= todayStr) {
+        onDateSelect(dateStr)
+      }
+    }
+  }
+  
+  // 날짜 렌더링
+  const renderCalendarDays = () => {
+    const days = []
+    
+    // 빈 칸 (월의 첫 날 전)
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(
+        <div key={`empty-${i}`} className="aspect-square"></div>
+      )
+    }
+    
+    // 실제 날짜들
+    for (let day = 1; day <= daysInMonth; day++) {
+      // 달력의 year/month/day를 사용자 타임존의 날짜 문자열로 직접 변환
+      // 방법: 사용자 타임존의 해당 날짜를 YYYY-MM-DD 형식으로 직접 생성
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      
+      // availableDates 목록에 직접 포함 여부 확인 (타임존 변환 없이)
+      const isInAvailableList = availableDates.includes(dateStr)
+      
+      // 날짜가 오늘 이후인지 확인 (사용자 타임존 기준 날짜 문자열 비교)
+      const todayStr = formatDateInUserTimezone(today)
+      const isFuture = dateStr >= todayStr
+      const isSelected = selectedDate === dateStr
+      
+      // 오늘 날짜 확인 (사용자 타임존 기준)
+      const isToday = dateStr === todayStr
+      
+      // 실제로 예약 가능한지: availableDates에 있고, 미래 날짜여야 함
+      const isAvailable = isInAvailableList && isFuture
+      
+      // 표시를 위한 Date 객체 생성 (로컬 타임존으로 해석, 표시용)
+      const date = new Date(year, month, day)
+      
+      const canClick = isAvailable
+      
+      days.push(
+        <button
+          key={day}
+          type="button"
+          onClick={() => handleDateClick(day)}
+          disabled={!canClick}
+          className={`
+            aspect-square rounded-lg text-sm font-medium transition-all
+            ${isSelected 
+              ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300' 
+              : canClick
+                ? 'bg-white hover:bg-purple-50 hover:border-purple-300 text-gray-900 border-2 border-gray-200 cursor-pointer'
+                : !isAvailable
+                  ? 'bg-gray-200 text-gray-600 border-2 border-gray-300 cursor-not-allowed' // No disponible: 중간 회색 배경, 진한 회색 텍스트 (우선순위 높임)
+                  : isToday
+                    ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                    : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
+            }
+            ${isToday && !isSelected ? 'ring-1 ring-gray-300' : ''}
+          `}
+          title={!isAvailable ? (calendarLanguage === 'es' ? 'No disponible' : '예약 불가') : (isInAvailableList && !isFuture ? (calendarLanguage === 'es' ? 'Ya pasó este día' : '이미 지난 날짜') : '')}
+        >
+          {day}
+        </button>
+      )
+    }
+    
+    return days
+  }
+  
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      {/* 달력 헤더 */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          type="button"
+          onClick={prevMonth}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5 text-gray-600" />
+        </button>
+        <h3 className="text-lg font-semibold text-gray-900">
+          {monthName[month]} {year}
+        </h3>
+        <button
+          type="button"
+          onClick={nextMonth}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ChevronRight className="w-5 h-5 text-gray-600" />
+        </button>
+      </div>
+      
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {dayName.map((day, index) => (
+          <div key={index} className="text-center text-xs font-semibold text-gray-600 py-1">
+            {day}
+          </div>
+        ))}
+      </div>
+      
+      {/* 날짜 그리드 */}
+      <div className="grid grid-cols-7 gap-1">
+        {renderCalendarDays()}
+      </div>
+      
+      {/* 범례 */}
+      <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-600">
+        <div className="flex items-center gap-1">
+          <div className="w-4 h-4 rounded border-2 border-gray-200 bg-white"></div>
+          <span className="text-gray-900">{calendarLanguage === 'es' ? 'Disponible' : '예약 가능'}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-4 h-4 rounded bg-gray-200 border-2 border-gray-300"></div>
+          <span className="text-gray-600">{calendarLanguage === 'es' ? 'No disponible' : '예약 불가'}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CreateBookingPageContent() {
   const { user } = useAuth()
   const router = useRouter()
@@ -40,8 +269,12 @@ function CreateBookingPageContent() {
   const [partners, setPartners] = useState<Partner[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingSlots, setLoadingSlots] = useState(false)
+  const [loadingDates, setLoadingDates] = useState(false)
   const [error, setError] = useState('')
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([])
+  const [availableDates, setAvailableDates] = useState<string[]>([]) // 예약 가능한 날짜 목록
+  const [userLanguage, setUserLanguage] = useState<'ko' | 'es'>('es') // 사용자 프로필 언어
+  const [userTimezone, setUserTimezone] = useState<string>('America/Lima') // 사용자 타임존 (기본값: 페루)
   
   const [formData, setFormData] = useState({
     partnerId: '',
@@ -51,12 +284,118 @@ function CreateBookingPageContent() {
     topic: '',
     description: ''
   })
+  
+  // 대화 주제 옵션 목록
+  const topicOptions = [
+    'Práctica de conversación en coreano',
+    'Preguntas sobre la cultura coreana',
+    'Aprender vocabulario coreano',
+    'Práctica de pronunciación',
+    'Discusión sobre K-POP',
+    'Hablemos sobre dramas coreanos',
+    'Gastronomía coreana',
+    'Viajes y turismo en Corea',
+    'Intercambio cultural',
+    'Preparación para TOPIK'
+  ]
+  
+  const CUSTOM_TOPIC_OPTION = 'custom'
+  
+  const [topicType, setTopicType] = useState<'select' | 'custom'>('select') // 선택 타입: 드롭다운 또는 직접 입력
+
+  // 사용자 프로필 언어 및 타임존 가져오기
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return
+      
+      try {
+        const response = await fetch(`/api/profile?userId=${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          
+          // 회원가입 시 입력한 국적 정보 사용 (user_metadata.country 우선)
+          // 주의: users.country는 다른 곳에서 변경될 수 있으므로 회원가입 시 입력한 값만 사용
+          const signupCountry = data.user?.user_metadata?.country
+          const profileLanguage = data.user?.language || data.profile?.language
+          
+          console.log('[CreateBookingPageContent] 프로필 데이터:', { 
+            signupCountry, // 회원가입 시 입력한 국적
+            language: profileLanguage, 
+            user_metadata: data.user?.user_metadata 
+          })
+          
+          // 회원가입 시 입력한 국적을 타임존으로 매핑
+          const countryToTimezone: Record<string, string> = {
+            'KR': 'Asia/Seoul',
+            '대한민국': 'Asia/Seoul',
+            'South Korea': 'Asia/Seoul',
+            'Korea': 'Asia/Seoul',
+            'KOR': 'Asia/Seoul',
+            'PE': 'America/Lima', // 페루
+            'CO': 'America/Bogota', // 콜롬비아
+            'MX': 'America/Mexico_City', // 멕시코
+            'CL': 'America/Santiago', // 칠레
+            'AR': 'America/Buenos_Aires', // 아르헨티나
+            'BR': 'America/Sao_Paulo', // 브라질
+            'US': 'America/New_York', // 미국
+            'ES': 'Europe/Madrid', // 스페인
+          }
+          
+          let determinedTimezone = 'America/Lima' // 기본값: 페루
+          let determinedLanguage: 'ko' | 'es' = 'es' // 기본값: 페루 등 현지인은 스페인어
+          
+          // 회원가입 시 입력한 국적이 있으면 그것을 기준으로 결정
+          if (signupCountry) {
+            // 타임존 결정
+            const mappedTimezone = countryToTimezone[signupCountry]
+            if (mappedTimezone) {
+              determinedTimezone = mappedTimezone
+              console.log('[CreateBookingPageContent] 회원가입 국적 기반 타임존 설정:', signupCountry, '→', determinedTimezone)
+            }
+            
+            // 언어 결정
+            if (signupCountry === 'KR' || signupCountry === '대한민국' || signupCountry === 'South Korea' || signupCountry === 'Korea' || signupCountry === 'KOR') {
+              determinedLanguage = 'ko'
+            } else {
+              determinedLanguage = 'es'
+            }
+            console.log('[CreateBookingPageContent] 회원가입 국적 기반 언어 설정:', signupCountry, '→', determinedLanguage)
+          } else if (profileLanguage) {
+            // 회원가입 국적이 없으면 language 필드로 판단
+            if (profileLanguage === 'ko') {
+              determinedTimezone = 'Asia/Seoul'
+              determinedLanguage = 'ko'
+            } else {
+              determinedTimezone = 'America/Lima'
+              determinedLanguage = 'es'
+            }
+            console.log('[CreateBookingPageContent] language 필드 기반 설정:', profileLanguage, '→', { timezone: determinedTimezone, language: determinedLanguage })
+          } else {
+            // 둘 다 없으면 기본값: 스페인어, 페루 타임존
+            console.log('[CreateBookingPageContent] 기본값 사용: es, America/Lima')
+          }
+          
+          setUserTimezone(determinedTimezone)
+          setUserLanguage(determinedLanguage)
+          console.log('[CreateBookingPageContent] 최종 설정:', { timezone: determinedTimezone, language: determinedLanguage })
+        }
+      } catch (error) {
+        console.error('[CreateBookingPageContent] 사용자 프로필 가져오기 실패:', error)
+        // 실패 시 기본값: 스페인어, 페루 타임존
+        setUserLanguage('es')
+        setUserTimezone('America/Lima')
+      }
+    }
+    
+    fetchUserProfile()
+  }, [user?.id])
 
   // URL에서 partnerId가 있으면 파트너 정보 로드
   useEffect(() => {
     if (partnerIdFromUrl) {
       fetchPartnerInfo(partnerIdFromUrl)
       setFormData(prev => ({ ...prev, partnerId: partnerIdFromUrl }))
+      fetchAvailableDates(partnerIdFromUrl)
     } else {
       fetchPartners()
     }
@@ -96,6 +435,98 @@ function CreateBookingPageContent() {
     }
   }
 
+  // 파트너의 예약 가능한 날짜 가져오기 (다음 30일)
+  const fetchAvailableDates = async (partnerId: string) => {
+    try {
+      setLoadingDates(true)
+      console.log('[예약 생성] 예약 가능 날짜 조회 시작, partnerId:', partnerId)
+      console.log('[예약 생성] 사용자 프로필 타임존:', userTimezone)
+      
+      // 사용자 프로필 타임존 사용 (브라우저 시스템 타임존이 아니라)
+      
+      // 사용자 타임존 기준으로 오늘 날짜 계산
+      const todayFormatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: userTimezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+      const todayStr = todayFormatter.format(new Date())
+      
+      // 다음 30일치 날짜 배열 생성 (사용자 타임존 기준)
+      const dateStrings: string[] = []
+      
+      // 첫 날짜를 Date 객체로 파싱 (로컬 타임존으로 해석)
+      const [startYear, startMonth, startDay] = todayStr.split('-').map(Number)
+      const startDate = new Date(startYear, startMonth - 1, startDay)
+      
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(startDate)
+        date.setDate(date.getDate() + i)
+        
+        // 사용자 타임존 기준 날짜 문자열 생성
+        const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+          timeZone: userTimezone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        })
+        const dateStr = dateFormatter.format(date)
+        dateStrings.push(dateStr)
+      }
+      
+      console.log('[예약 생성] 조회할 날짜 목록 (사용자 타임존 기준):', dateStrings.length, '개, 첫날짜:', dateStrings[0], '마지막날짜:', dateStrings[dateStrings.length - 1])
+      console.log('[예약 생성] 사용자 타임존:', userTimezone)
+      
+      // 병렬로 모든 날짜 조회
+      const datePromises = dateStrings.map(async (dateStr) => {
+        try {
+          const response = await fetch(`/api/partners/${partnerId}/available-slots?date=${dateStr}`, {
+            headers: {
+              'x-user-timezone': userTimezone
+            }
+          })
+          if (response.ok) {
+            const data = await response.json()
+            console.log(`[예약 생성] ${dateStr} 날짜 슬롯 수:`, data.slots?.length || 0)
+            if (data.slots && data.slots.length > 0) {
+              return dateStr
+            }
+          } else {
+            const errorData = await response.json().catch(() => ({}))
+            console.log(`[예약 생성] ${dateStr} 날짜 조회 실패:`, response.status, errorData)
+          }
+        } catch (err) {
+          console.error(`[예약 생성] ${dateStr} 날짜 조회 예외:`, err)
+        }
+        return null
+      })
+      
+      const results = await Promise.all(datePromises)
+      const available = results.filter((date): date is string => date !== null)
+      
+      // 과거 날짜 필터링 (오늘 이후 날짜만 포함)
+      // todayStr는 위에서 이미 계산됨
+      const futureAvailable = available.filter(dateStr => {
+        const isFuture = dateStr >= todayStr
+        if (!isFuture) {
+          console.log(`[예약 생성] 과거 날짜 제외: ${dateStr} (오늘: ${todayStr})`)
+        }
+        return isFuture
+      })
+      
+      console.log('[예약 생성] 예약 가능한 날짜:', futureAvailable.length, '개:', futureAvailable)
+      console.log('[예약 생성] 필터링 전:', available.length, '개, 필터링 후:', futureAvailable.length, '개')
+      console.log('[예약 생성] 오늘 날짜:', todayStr)
+      setAvailableDates(futureAvailable)
+    } catch (error) {
+      console.error('[예약 생성] 예약 가능 날짜 조회 실패:', error)
+      setAvailableDates([])
+    } finally {
+      setLoadingDates(false)
+    }
+  }
+
   // 파트너 선택 시
   const handlePartnerChange = (partnerId: string) => {
     const partner = partners.find(p => p.id === partnerId)
@@ -110,6 +541,9 @@ function CreateBookingPageContent() {
       time: ''
     }))
     setAvailableSlots([])
+    setAvailableDates([])
+    // 예약 가능한 날짜 가져오기
+    fetchAvailableDates(partnerId)
   }
 
   // 날짜 선택 시 가능 시간 조회
@@ -128,7 +562,14 @@ function CreateBookingPageContent() {
       try {
         const apiUrl = `/api/partners/${currentPartnerId}/available-slots?date=${date}`
         console.log('[예약 생성] 시간 슬롯 조회 시작:', apiUrl)
-        const response = await fetch(apiUrl)
+        
+        // 브라우저 타임존을 헤더에 포함
+        // 사용자 프로필 타임존 사용
+        const response = await fetch(apiUrl, {
+          headers: {
+            'x-user-timezone': userTimezone
+          }
+        })
         console.log('[예약 생성] API 응답 상태:', response.status)
         
         if (response.ok) {
@@ -173,8 +614,10 @@ function CreateBookingPageContent() {
     setLoading(true)
     setError('')
 
-    // 인증 체크
-    if (!checkAuthAndRedirect(user, router, 'Solicitud de reserva')) {
+    // 사용자 로그인 체크 (인증은 나중에 확인)
+    if (!user) {
+      setError('로그인이 필요합니다.')
+      router.push('/sign-in')
       setLoading(false)
       return
     }
@@ -215,6 +658,7 @@ function CreateBookingPageContent() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 쿠키 포함하여 세션 전달
         body: JSON.stringify(bookingData),
       })
 
@@ -235,7 +679,7 @@ function CreateBookingPageContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 pt-20 md:py-12 pb-8">
+      <div className="min-h-screen bg-gray-50 pt-20 md:pt-32 pb-8">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             {/* 뒤로가기 버튼 */}
@@ -327,22 +771,31 @@ function CreateBookingPageContent() {
                     </div>
                   )}
 
-                  {/* 날짜 선택 */}
+                  {/* 날짜 선택 - 달력 */}
                   <div className="space-y-2">
                     <Label htmlFor="date">Fecha *</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="date"
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => handleDateChange(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                        disabled={!formData.partnerId && !partnerIdFromUrl}
-                        className="pl-10"
-                      />
-                    </div>
+                    {!formData.partnerId && !partnerIdFromUrl ? (
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                        Por favor selecciona un amigo coreano primero.
+                      </div>
+                    ) : loadingDates ? (
+                      <div className="p-4 bg-gray-50 rounded-lg text-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-2"></div>
+                        <p className="text-sm text-gray-600">Cargando fechas disponibles...</p>
+                      </div>
+                    ) : availableDates.length === 0 ? (
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+                        No hay fechas disponibles para este amigo coreano en los próximos 30 días.
+                      </div>
+                    ) : (
+          <AvailableDatesCalendar
+            availableDates={availableDates}
+            selectedDate={formData.date}
+            onDateSelect={handleDateChange}
+            userLanguage={userLanguage}
+            userTimezone={userTimezone}
+          />
+                    )}
                   </div>
 
                   {/* 가능한 시간 슬롯 선택 */}
@@ -358,7 +811,7 @@ function CreateBookingPageContent() {
                       </div>
                     ) : loadingSlots ? (
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-2"></div>
                         <p className="text-sm text-gray-600">Cargando horarios disponibles...</p>
                       </div>
                     ) : availableSlots.length > 0 ? (
@@ -367,29 +820,63 @@ function CreateBookingPageContent() {
                           Horarios disponibles ({availableSlots.length}):
                         </p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {availableSlots.map((slot) => (
-                            <button
-                              key={slot.id}
-                              type="button"
-                              onClick={() => {
-                                console.log('[예약 생성] 시간 슬롯 선택:', slot)
-                                setFormData(prev => ({ ...prev, scheduleId: slot.id, time: slot.start_time }))
-                              }}
-                              className={`p-4 rounded-lg border-2 text-sm transition-all hover:scale-105 ${
-                                formData.scheduleId === slot.id
-                                  ? 'border-purple-500 bg-purple-50 text-purple-700 font-semibold shadow-md ring-2 ring-purple-200'
-                                  : 'border-gray-200 hover:border-purple-300 bg-white hover:bg-purple-50'
-                              }`}
-                            >
-                              <div className="flex flex-col items-center justify-center gap-1">
-                                <Clock className={`w-4 h-4 ${formData.scheduleId === slot.id ? 'text-purple-600' : 'text-gray-500'}`} />
-                                <span className="font-semibold text-base">{slot.start_time}</span>
-                                {slot.end_time && (
-                                  <p className="text-xs text-gray-500">~ {slot.end_time}</p>
-                                )}
-                              </div>
-                            </button>
-                          ))}
+                          {availableSlots.map((slot) => {
+                            // 현재 시간 기준으로 과거 시간대인지 확인
+                            const now = new Date()
+                            const slotDateTime = new Date(`${slot.date}T${slot.start_time}:00`)
+                            const isPast = slotDateTime.getTime() < now.getTime()
+                            const isTooSoon = slotDateTime.getTime() - now.getTime() < 30 * 60 * 1000 // 30분 미만
+                            const isUnavailable = isPast || isTooSoon
+                            
+                            return (
+                              <button
+                                key={slot.id}
+                                type="button"
+                                onClick={() => {
+                                  if (!isUnavailable) {
+                                    console.log('[예약 생성] 시간 슬롯 선택:', slot)
+                                    setFormData(prev => ({ ...prev, scheduleId: slot.id, time: slot.start_time }))
+                                  }
+                                }}
+                                disabled={isUnavailable}
+                                className={`p-4 rounded-lg border-2 text-sm transition-all ${
+                                  isUnavailable
+                                    ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed opacity-75' // No disponible 스타일
+                                    : formData.scheduleId === slot.id
+                                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-semibold shadow-md ring-2 ring-purple-200 hover:scale-105'
+                                      : 'border-gray-200 hover:border-purple-300 bg-white hover:bg-purple-50 hover:scale-105'
+                                }`}
+                                title={isUnavailable ? (userLanguage === 'es' ? 'No disponible' : '예약 불가') : ''}
+                              >
+                                <div className="flex flex-col items-center justify-center gap-1">
+                                  <Clock className={`w-4 h-4 ${
+                                    isUnavailable 
+                                      ? 'text-gray-400' 
+                                      : formData.scheduleId === slot.id 
+                                        ? 'text-purple-600' 
+                                        : 'text-gray-500'
+                                  }`} />
+                                  <span className={`font-semibold text-base ${
+                                    isUnavailable ? 'line-through' : ''
+                                  }`}>
+                                    {slot.start_time}
+                                  </span>
+                                  {slot.end_time && (
+                                    <p className={`text-xs ${
+                                      isUnavailable ? 'text-gray-400' : 'text-gray-500'
+                                    }`}>
+                                      ~ {slot.end_time}
+                                    </p>
+                                  )}
+                                  {isUnavailable && (
+                                    <span className="text-xs text-gray-500 mt-1">
+                                      {userLanguage === 'es' ? 'No disponible' : '예약 불가'}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            )
+                          })}
                         </div>
                         {formData.scheduleId && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -432,13 +919,45 @@ function CreateBookingPageContent() {
                   {/* 주제 */}
                   <div className="space-y-2">
                     <Label htmlFor="topic">Tema de Conversación *</Label>
-                    <Input
-                      id="topic"
-                      value={formData.topic}
-                      onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
-                      placeholder="Ej: Práctica de conversación en coreano, preguntas sobre la cultura coreana, etc."
-                      required
-                    />
+                    <Select
+                      value={topicType === 'custom' ? CUSTOM_TOPIC_OPTION : (formData.topic || '')}
+                      onValueChange={(value) => {
+                        if (value === CUSTOM_TOPIC_OPTION) {
+                          setTopicType('custom')
+                          setFormData(prev => ({ ...prev, topic: '' }))
+                        } else {
+                          setTopicType('select')
+                          setFormData(prev => ({ ...prev, topic: value }))
+                        }
+                      }}
+                    >
+                      <SelectTrigger id="topic">
+                        <SelectValue placeholder="Selecciona un tema o escribe uno personalizado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {topicOptions.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value={CUSTOM_TOPIC_OPTION}>
+                          Otro tema (escribir personalmente)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* 직접 입력 필드 (직접 입력 선택 시에만 표시) */}
+                    {topicType === 'custom' && (
+                      <div className="mt-2">
+                        <Input
+                          id="topic-custom"
+                          value={formData.topic}
+                          onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
+                          placeholder="Escribe tu tema de conversación personalizado"
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* 상세 설명 */}
@@ -493,7 +1012,7 @@ export default function CreateBookingPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 pt-20 md:py-12 pb-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando...</p>
         </div>
       </div>

@@ -87,7 +87,7 @@ function PaymentSuccessContent() {
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
             <p className="text-gray-600">결제를 처리하고 있습니다...</p>
             <p className="text-sm text-gray-500 mt-2">잠시만 기다려주세요</p>
           </div>

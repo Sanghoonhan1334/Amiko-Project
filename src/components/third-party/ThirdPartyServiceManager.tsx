@@ -204,11 +204,11 @@ export default function ThirdPartyServiceManager() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'essential':
-        return 'bg-blue-50 border-blue-200'
+        return 'bg-blue-50 border-gray-600 dark:border-gray-400'
       case 'functional':
         return 'bg-green-50 border-green-200'
       case 'analytics':
-        return 'bg-purple-50 border-purple-200'
+        return 'bg-purple-50 border-gray-600 dark:border-gray-400'
       case 'marketing':
         return 'bg-orange-50 border-orange-200'
       default:
@@ -254,7 +254,7 @@ export default function ThirdPartyServiceManager() {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">제3자 서비스 정보를 불러오는 중...</p>
         </div>
       </div>
@@ -270,7 +270,7 @@ export default function ThirdPartyServiceManager() {
       </div>
 
       {/* 중요 안내 */}
-      <Alert className="bg-blue-50 border-blue-200">
+      <Alert className="bg-blue-50 border-gray-600 dark:border-gray-400">
         <Info className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
           <strong>제3자 서비스 정책:</strong> 모든 제3자 서비스는 보안 및 개인정보보호 기준을 충족해야 하며, 

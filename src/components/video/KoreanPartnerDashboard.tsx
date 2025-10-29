@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Clock, User, CheckCircle, XCircle, Calendar, Plus, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, Settings, Video } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -134,7 +135,10 @@ export default function KoreanPartnerDashboard({
   const handleApprove = async (bookingId: string) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/bookings/${bookingId}/approve`, { method: 'POST' })
+      const response = await fetch(`/api/bookings/${bookingId}/approve`, { 
+        method: 'POST',
+        credentials: 'include'
+      })
       if (response.ok) {
         alert(language === 'es' 
           ? '✅ Reserva aprobada. El enlace de Google Meet se ha generado automáticamente.'
@@ -161,6 +165,7 @@ export default function KoreanPartnerDashboard({
     try {
       const response = await fetch(`/api/bookings/${bookingId}/reject`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rejection_reason: reason })
       })
@@ -660,15 +665,26 @@ export default function KoreanPartnerDashboard({
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4" />
-                          <span className="font-medium">{booking.users?.full_name || '익명'}</span>
+                        <div className="flex items-center gap-3 mb-2">
+                          <Avatar className="w-10 h-10 flex-shrink-0">
+                            {booking.users?.avatar_url ? (
+                              <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
+                            ) : null}
+                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
+                              {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {booking.date} {booking.start_time} - {booking.end_time}
                         </p>
-                        {booking.topic && <p className="text-sm mt-1">주제: {booking.topic}</p>}
+                        {booking.topic && <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">주제: {booking.topic}</p>}
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" onClick={() => handleApprove(booking.id)} disabled={loading} className="bg-green-500 hover:bg-green-600 text-white">
@@ -699,11 +715,22 @@ export default function KoreanPartnerDashboard({
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4" />
-                          <span className="font-medium">{booking.users?.full_name || '익명'}</span>
+                        <div className="flex items-center gap-3 mb-2">
+                          <Avatar className="w-10 h-10 flex-shrink-0">
+                            {booking.users?.avatar_url ? (
+                              <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
+                            ) : null}
+                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
+                              {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-600 flex items-center gap-1 mb-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-2">
                           <Clock className="w-3 h-3" />
                           {booking.date} {booking.start_time} - {booking.end_time}
                         </p>
@@ -739,16 +766,27 @@ export default function KoreanPartnerDashboard({
                 <Card key={booking.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4" />
-                          <span className="font-medium">{booking.users?.full_name || '익명'}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Avatar className="w-10 h-10 flex-shrink-0">
+                            {booking.users?.avatar_url ? (
+                              <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
+                            ) : null}
+                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
+                              {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {booking.date} {booking.start_time}
                         </p>
                         {booking.rejection_reason && (
-                          <p className="text-xs text-red-600 mt-1">사유: {booking.rejection_reason}</p>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">사유: {booking.rejection_reason}</p>
                         )}
                       </div>
                       <Badge className="bg-red-50 text-red-700">✗ {language === 'es' ? 'Rechazado' : '거절됨'}</Badge>

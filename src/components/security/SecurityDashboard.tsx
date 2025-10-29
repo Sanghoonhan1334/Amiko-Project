@@ -201,7 +201,7 @@ export default function SecurityDashboard() {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">보안 상태를 불러오는 중...</p>
         </div>
       </div>
@@ -459,7 +459,7 @@ export default function SecurityDashboard() {
       )}
 
       {/* 보안 알림 */}
-      <Alert className="bg-blue-50 border-blue-200">
+      <Alert className="bg-blue-50 border-gray-600 dark:border-gray-400">
         <Info className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
           <strong>보안 모니터링:</strong> 모든 보안 이벤트는 실시간으로 모니터링되며, 

@@ -239,7 +239,7 @@ export default function GalleryPostList({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">{t('buttons.loading')}</p>
         </div>
       </div>
@@ -348,7 +348,7 @@ export default function GalleryPostList({
         {posts.map((post) => (
           <Card 
             key={post.id}
-            className="cursor-pointer hover:shadow-md transition-all duration-200 border hover:border-blue-300"
+            className="cursor-pointer hover:shadow-md transition-all duration-200 border hover:border-gray-600 dark:border-gray-400"
             onClick={() => onPostSelect(post)}
           >
             <div className="p-6">

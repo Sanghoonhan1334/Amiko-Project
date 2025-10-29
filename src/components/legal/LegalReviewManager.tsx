@@ -285,7 +285,7 @@ export default function LegalReviewManager() {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">법무 검토 정보를 불러오는 중...</p>
         </div>
       </div>
@@ -301,7 +301,7 @@ export default function LegalReviewManager() {
       </div>
 
       {/* 중요 안내 */}
-      <Alert className="bg-blue-50 border-blue-200">
+      <Alert className="bg-blue-50 border-gray-600 dark:border-gray-400">
         <Scale className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
           <strong>법무 검토:</strong> 모든 정책은 법무팀의 검토를 거쳐 승인되어야 하며, 

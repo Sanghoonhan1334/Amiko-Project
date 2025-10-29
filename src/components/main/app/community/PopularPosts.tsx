@@ -151,7 +151,7 @@ export default function PopularPosts({ onPostSelect }: PopularPostsProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400"></div>
           <p className="text-gray-600 mt-2">인기글을 불러오는 중...</p>
         </div>
       </div>

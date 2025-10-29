@@ -20,6 +20,40 @@ import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { convertKSTToUserTimezone } from '@/lib/timezone-converter'
+
+// timezone의 UTC 오프셋 가져오기 (시간 단위)
+function getTimezoneOffset(timezone: string): number {
+  try {
+    const now = new Date()
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000)
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: '2-digit',
+      hour12: false,
+      timeZoneName: 'short'
+    })
+    
+    const parts = formatter.formatToParts(now)
+    const timezoneName = parts.find(p => p.type === 'timeZoneName')?.value || ''
+    
+    // "+05:00" 형식에서 숫자 추출
+    const match = timezoneName.match(/([+-]?)(\d{1,2}):?(\d{2})?/)
+    if (match) {
+      const sign = match[1] === '-' ? -1 : 1
+      const hours = parseInt(match[2] || '0', 10)
+      const minutes = parseInt(match[3] || '0', 10)
+      return sign * (hours + minutes / 60)
+    }
+    
+    // 대체 방법: 현재 시간을 해당 timezone으로 변환하여 UTC와의 차이 계산
+    const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }))
+    const tzDate = new Date(now.toLocaleString('en-US', { timeZone: timezone }))
+    return (tzDate.getTime() - utcDate.getTime()) / (1000 * 60 * 60)
+  } catch {
+    return 0
+  }
+}
 
 interface BookingRequest {
   id: string
@@ -36,6 +70,12 @@ interface BookingRequest {
   rejection_reason: string | null
   created_at: string
   approved_at: string | null
+  // 원본 KST 시간 (DB에 저장된 값)
+  kst_date?: string
+  kst_start_time?: string
+  kst_end_time?: string
+  // 사용자 timezone 정보
+  user_timezone?: string
   conversation_partners: {
     name: string
     avatar_url: string | null
@@ -54,16 +94,81 @@ export default function BookingDetailPage() {
   const [error, setError] = useState('')
   const [timeUntilBooking, setTimeUntilBooking] = useState<string>('')
   const [canJoinMeeting, setCanJoinMeeting] = useState(false)
+  const [userTimezone, setUserTimezone] = useState<string>('America/Lima') // 사용자 timezone
+
+  // 사용자 프로필 timezone 가져오기 (예약 생성 페이지와 동일한 로직)
+  useEffect(() => {
+    const fetchUserTimezone = async () => {
+      if (!user?.id) return
+      
+      try {
+        const response = await fetch(`/api/profile?userId=${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          
+          // 회원가입 시 입력한 국적 정보 사용
+          const signupCountry = data.user?.user_metadata?.country
+          
+          // 회원가입 시 입력한 국적을 타임존으로 매핑 (예약 생성 페이지와 동일)
+          const countryToTimezone: Record<string, string> = {
+            'KR': 'Asia/Seoul',
+            '대한민국': 'Asia/Seoul',
+            'South Korea': 'Asia/Seoul',
+            'Korea': 'Asia/Seoul',
+            'KOR': 'Asia/Seoul',
+            'PE': 'America/Lima',
+            'CO': 'America/Bogota',
+            'MX': 'America/Mexico_City',
+            'CL': 'America/Santiago',
+            'AR': 'America/Buenos_Aires',
+            'BR': 'America/Sao_Paulo',
+            'US': 'America/New_York',
+            'ES': 'Europe/Madrid',
+          }
+          
+          let determinedTimezone = 'America/Lima' // 기본값
+          
+          if (signupCountry) {
+            const mappedTimezone = countryToTimezone[signupCountry]
+            if (mappedTimezone) {
+              determinedTimezone = mappedTimezone
+            }
+          }
+          
+          setUserTimezone(determinedTimezone)
+          console.log('[BookingDetailPage] 사용자 timezone 설정:', determinedTimezone, 'signupCountry:', signupCountry)
+        }
+      } catch (error) {
+        console.error('[BookingDetailPage] timezone 가져오기 실패:', error)
+        // 기본값 유지
+      }
+    }
+    
+    fetchUserTimezone()
+  }, [user?.id])
 
   // 예약 상세 정보 조회
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const response = await fetch(`/api/bookings/my-requests/${bookingId}`)
+        const response = await fetch(`/api/bookings/my-requests/${bookingId}`, {
+          credentials: 'include' // 쿠키 포함
+        })
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('No autorizado. Por favor inicia sesión nuevamente.')
+          } else if (response.status === 404) {
+            throw new Error('No se encontró la reserva.')
+          }
           throw new Error('No se pudo cargar la información de la reserva.')
         }
         const data = await response.json()
+        
+        // API에서 받은 user_timezone이 있으면 사용
+        if (data.booking.user_timezone) {
+          setUserTimezone(data.booking.user_timezone)
+        }
+        
         setBooking(data.booking)
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido.')
@@ -82,7 +187,32 @@ export default function BookingDetailPage() {
     if (!booking || booking.status !== 'approved') return
 
     const updateTimeCheck = () => {
-      const bookingDate = new Date(`${booking.date}T${booking.start_time}:00`)
+      // KST 시간을 사용자 timezone으로 변환 (예약 생성 페이지와 동일한 로직)
+      const kstDate = booking.kst_date || booking.date
+      const kstTime = booking.kst_start_time || booking.start_time
+      const timezone = booking.user_timezone || userTimezone
+      
+      const userDateAndTime = convertKSTToUserTimezone(kstDate, kstTime, timezone)
+      
+      // 변환된 날짜/시간으로 Date 객체 생성
+      // 주의: 이 날짜/시간은 사용자 timezone 기준이므로, 해당 timezone으로 해석해야 함
+      const [year, month, day] = userDateAndTime.date.split('-').map(Number)
+      const [hour, minute] = userDateAndTime.time.split(':').map(Number)
+      
+      // 해당 timezone의 날짜/시간을 나타내는 UTC timestamp 계산
+      // 로컬 timezone으로 Date 객체 생성
+      const localDate = new Date(year, month - 1, day, hour, minute, 0)
+      
+      // 로컬 timezone 오프셋과 대상 timezone 오프셋 차이 계산
+      const localOffsetMs = localDate.getTimezoneOffset() * 60000
+      const targetOffset = getTimezoneOffset(timezone)
+      const targetOffsetMs = targetOffset * 3600000
+      
+      // UTC 시간 계산 후 대상 timezone으로 변환
+      const utcTime = localDate.getTime() - localOffsetMs
+      const targetTime = utcTime + targetOffsetMs
+      const bookingDate = new Date(targetTime)
+      
       const now = new Date()
       const diffMs = bookingDate.getTime() - now.getTime()
       const diffMinutes = Math.floor(diffMs / (1000 * 60))
@@ -129,13 +259,44 @@ export default function BookingDetailPage() {
     router.push(`/call/${bookingId}`)
   }
 
-  // 날짜 포맷팅
-  const formatBookingDate = (date: string, time: string) => {
+  // 날짜 포맷팅 (예약 생성 페이지와 동일한 로직 사용)
+  // KST 시간을 사용자 timezone으로 변환한 후 포맷팅
+  const formatBookingDate = (booking: BookingRequest | null) => {
+    if (!booking) return ''
+    
     try {
-      const dateTime = new Date(`${date}T${time}:00`)
-      return format(dateTime, "EEEE, d 'de' MMMM 'de' yyyy 'a las' HH:mm", { locale: es })
-    } catch {
-      return `${date} ${time}`
+      // API에서 받은 원본 KST 시간 사용 (예약 생성 시 저장된 값)
+      const kstDate = booking.kst_date || booking.date
+      const kstTime = booking.kst_start_time || booking.start_time
+      const timezone = booking.user_timezone || userTimezone
+      
+      console.log('[formatBookingDate] 변환 전:', { kstDate, kstTime, timezone })
+      
+      // 예약 생성 시와 동일한 변환 로직 사용
+      const userDateAndTime = convertKSTToUserTimezone(kstDate, kstTime, timezone)
+      
+      console.log('[formatBookingDate] 변환 후:', userDateAndTime)
+      
+      // 변환된 날짜/시간 파싱
+      const [year, month, day] = userDateAndTime.date.split('-').map(Number)
+      const [hour, minute] = userDateAndTime.time.split(':').map(Number)
+      
+      // 스페인어 월 이름
+      const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                     'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+      const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+      
+      // 요일 계산 (변환된 날짜 기준)
+      const dateObj = new Date(year, month - 1, day)
+      const weekday = weekdays[dateObj.getDay()]
+      
+      return `${weekday}, ${day} de ${months[month - 1]} de ${year} a las ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+    } catch (error) {
+      console.error('[formatBookingDate] 포맷팅 오류:', error)
+      // 오류 시 간단한 포맷 반환
+      const fallbackDate = booking.kst_date || booking.date
+      const fallbackTime = booking.kst_start_time || booking.start_time
+      return `${fallbackDate} ${fallbackTime}`
     }
   }
 
@@ -189,7 +350,7 @@ export default function BookingDetailPage() {
       <ProtectedRoute>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
             <h1 className="text-xl font-semibold mb-2">Cargando información de la reserva...</h1>
             <p className="text-gray-600">Por favor espera un momento.</p>
           </div>
@@ -221,7 +382,7 @@ export default function BookingDetailPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 pt-20 md:py-12 pb-8">
+      <div className="min-h-screen bg-gray-50 pt-20 md:pt-32 pb-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* 헤더 */}
@@ -284,7 +445,26 @@ export default function BookingDetailPage() {
                   <div className="space-y-2 pt-2 border-t">
                     <p className="text-sm font-medium text-gray-600">Fecha y hora</p>
                     <p className="font-medium">
-                      {formatBookingDate(booking.date, booking.start_time)}
+                      {(() => {
+                        // 디버깅: 직접 변환 실행
+                        if (booking.kst_date && booking.kst_start_time && (booking.user_timezone || userTimezone)) {
+                          const kstDate = booking.kst_date || booking.date
+                          const kstTime = booking.kst_start_time || booking.start_time
+                          const timezone = booking.user_timezone || userTimezone
+                          console.log('[렌더링] 변환 실행:', { kstDate, kstTime, timezone })
+                          const converted = convertKSTToUserTimezone(kstDate, kstTime, timezone)
+                          console.log('[렌더링] 변환 결과:', converted)
+                          const [year, month, day] = converted.date.split('-').map(Number)
+                          const [hour, minute] = converted.time.split(':').map(Number)
+                          const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                                         'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+                          const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+                          const dateObj = new Date(year, month - 1, day)
+                          const weekday = weekdays[dateObj.getDay()]
+                          return `${weekday}, ${day} de ${months[month - 1]} de ${year} a las ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+                        }
+                        return formatBookingDate(booking)
+                      })()}
                     </p>
                   </div>
 

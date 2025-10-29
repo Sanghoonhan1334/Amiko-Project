@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createSupabaseClient } from '@/lib/supabase'
 
 // 예약 거절
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const supabase = createClient()
+    const supabase = await createSupabaseClient()
+    const resolvedParams = 'then' in params ? await params : params
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -17,7 +18,7 @@ export async function POST(
       )
     }
 
-    const bookingId = params.id
+    const bookingId = resolvedParams.id
     const { rejection_reason } = await request.json()
 
     // 파트너 조회

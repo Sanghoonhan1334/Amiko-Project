@@ -53,7 +53,7 @@ export default function IdolPositionQuestionsPage() {
         </Suspense>
         <div className="pt-32 pb-8 px-4">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 dark:border-gray-400 mx-auto"></div>
             <p className="mt-4 text-gray-600">질문을 불러오는 중...</p>
           </div>
         </div>

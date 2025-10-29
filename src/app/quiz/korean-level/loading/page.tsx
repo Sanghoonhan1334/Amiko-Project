@@ -57,7 +57,7 @@ export default function KoreanLevelLoadingPage() {
         {/* 로딩 바 */}
         <div className="w-64 mx-auto mb-8">
           <div className="w-full bg-gray-200 rounded-full h-3">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full animate-pulse"></div>
+            <div className="bg-gray-600 h-3 rounded-full animate-pulse"></div>
           </div>
         </div>
 

@@ -327,32 +327,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     console.log('[AUTH] 로그아웃 시작')
     
-    // Supabase 로그아웃 먼저 실행
+    // 1. 서버 측 쿠키 삭제를 위해 로그아웃 API 호출
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      console.log('[AUTH] 서버 측 로그아웃 완료')
+    } catch (error) {
+      console.error('[AUTH] 서버 측 로그아웃 오류:', error)
+    }
+    
+    // 2. 클라이언트 측 Supabase 로그아웃
     if (supabase) {
       try {
         await supabase.auth.signOut()
-        console.log('[AUTH] Supabase 로그아웃 완료')
+        console.log('[AUTH] 클라이언트 측 Supabase 로그아웃 완료')
       } catch (error) {
-        console.error('[AUTH] Supabase 로그아웃 오류:', error)
+        console.error('[AUTH] 클라이언트 측 Supabase 로그아웃 오류:', error)
       }
     }
     
-    // 사용자 상태 초기화
+    // 3. 사용자 상태 초기화
     setUser(null)
     setSession(null)
     setLoading(false)
     
-    // 모든 스토리지 정리
+    // 4. 모든 스토리지 정리
     if (typeof window !== 'undefined') {
       localStorage.clear()
       sessionStorage.clear()
+      
+      // Supabase 관련 쿠키도 명시적으로 삭제 시도
+      document.cookie.split(";").forEach((c) => {
+        const cookieName = c.trim().split("=")[0]
+        if (cookieName.includes('supabase') || cookieName.includes('sb-')) {
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`
+        }
+      })
     }
     
     console.log('[AUTH] 로그아웃 완료, 상태 초기화됨')
     
-    // 페이지 새로고침으로 상태 완전 초기화
+    // 5. 로그인 페이지로 리다이렉트 (새로고침 대신)
     if (typeof window !== 'undefined') {
-      window.location.reload()
+      window.location.href = '/sign-in'
     }
   }
 

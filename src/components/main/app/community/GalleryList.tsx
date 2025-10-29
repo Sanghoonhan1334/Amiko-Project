@@ -66,7 +66,7 @@ export default function GalleryList({ onGallerySelect, onPopularPosts }: Gallery
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">{t('buttons.loading')}</p>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function GalleryList({ onGallerySelect, onPopularPosts }: Gallery
           .map((gallery) => (
             <Card 
               key={gallery.id}
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300 dark:border-gray-600 dark:hover:border-blue-400 bg-white dark:bg-gray-800 group"
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-gray-600 dark:border-gray-400 dark:border-gray-600 dark:hover:border-gray-600 dark:border-gray-400 bg-white dark:bg-gray-800 group"
               onClick={() => onGallerySelect(gallery)}
             >
               <div className="p-6">

@@ -30,7 +30,12 @@ import KoreanPartnerDashboard from './KoreanPartnerDashboard'
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
   ssr: false,
-  loading: () => <div className="flex items-center justify-center h-64">AI 화상 채팅 로딩 중...</div>
+  loading: () => (
+    <div className="flex flex-col items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 dark:border-gray-400 mb-4"></div>
+      <p className="text-gray-600 dark:text-gray-400">AI 화상 채팅 로딩 중...</p>
+    </div>
+  )
 })
 
 interface VideoCallStarterProps {
@@ -44,7 +49,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [isCallActive, setIsCallActive] = useState(false)
   const [channelName, setChannelName] = useState('')
   const [showStartDialog, setShowStartDialog] = useState(false)
-  const [showOnlyKoreans, setShowOnlyKoreans] = useState(true)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
@@ -209,70 +213,54 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
     }
 
     try {
-      // 인증 헤더 생성
-      const getHeaders = async (): Promise<HeadersInit> => {
-        const headers: HeadersInit = {
+      // 쿠키 기반 인증 사용 (credentials: 'include'로 쿠키 전송)
+      let response = await fetch('/api/bookings/my-bookings', {
+        method: 'GET',
+        credentials: 'include', // 쿠키 포함
+        headers: {
           'Content-Type': 'application/json'
         }
-        
-        let token: string | null = authToken || null
-        
-        if (!token && typeof window !== 'undefined') {
-          token = localStorage.getItem('amiko_token')
-        }
-        
-        if (!token && typeof window !== 'undefined') {
-          try {
-            const { createClient } = await import('@supabase/supabase-js')
-            const supabase = createClient(
-              process.env.NEXT_PUBLIC_SUPABASE_URL!,
-              process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-            )
-            const { data: { session } } = await supabase.auth.getSession()
-            if (session?.access_token) {
-              token = session.access_token
-              localStorage.setItem('amiko_token', token)
-            }
-          } catch (error) {
-            console.error('토큰 가져오기 실패:', error)
-          }
-        }
-        
-        if (token) {
-          headers['Authorization'] = `Bearer ${encodeURIComponent(token)}`
-        }
-        
-        return headers
-      }
-
-      let headers = await getHeaders()
-      let response = await fetch('/api/bookings/my-bookings', {
-        headers
       }).catch(() => null)
       
-      // 401 오류 발생 시 토큰 갱신 후 재시도
+      // 401 오류 발생 시 세션 갱신 후 재시도
       if (response?.status === 401) {
+        console.log('[fetchMyBookings] 401 오류 발생, 세션 갱신 시도...')
         const refreshed = await refreshSession()
         if (refreshed) {
-          headers = await getHeaders()
           response = await fetch('/api/bookings/my-bookings', {
-            headers
+            method: 'GET',
+            credentials: 'include', // 쿠키 포함
+            headers: {
+              'Content-Type': 'application/json'
+            }
           }).catch(() => null)
         }
       }
       
-      if (!response || response.status === 401) {
+      if (!response) {
+        console.error('[fetchMyBookings] 네트워크 오류')
         setBookings([])
         return
       }
       
-      if (response.ok) {
-        const data = await response.json()
-        setBookings(data.bookings || [])
-      } else {
+      if (response.status === 401) {
+        console.error('[fetchMyBookings] 인증 실패 (401)')
         setBookings([])
+        return
       }
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('[fetchMyBookings] API 오류:', response.status, errorData)
+        setBookings([])
+        return
+      }
+      
+      const data = await response.json()
+      console.log('[fetchMyBookings] 조회 성공:', data.bookings?.length || 0, '개')
+      setBookings(data.bookings || [])
     } catch (error) {
+      console.error('[fetchMyBookings] 예외 발생:', error)
       setBookings([])
     }
   }
@@ -422,10 +410,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
   // 필터링된 파트너 목록
   // 자기 자신은 목록에서 제외
-  const availablePartners = (showOnlyKoreans 
-    ? allPartners.filter(partner => partner.country === '대한민국')
-    : allPartners
-  ).filter(partner => partner.id !== user?.id)  // 자기 자신 제외
+  const availablePartners = allPartners.filter(partner => partner.id !== user?.id)  // 자기 자신 제외
 
   return (
     <>
@@ -535,22 +520,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100" data-tutorial="partner-title">{t('videoCall.partners')}</h3>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600 dark:text-gray-400">{t('videoCall.onlyKoreans')}</span>
-              <button
-                onClick={() => setShowOnlyKoreans(!showOnlyKoreans)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  showOnlyKoreans ? 'bg-purple-600' : 'bg-gray-200'
-                }`}
-                data-tutorial="korean-filter"
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    showOnlyKoreans ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
           </div>
           <div className="space-y-4">
             {availablePartners.length > 0 ? (
@@ -593,11 +562,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic">
                           "{partner.bio}"
                         </p>
-                        {!showOnlyKoreans && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
-                            {partner.country}
-                          </p>
-                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -687,11 +651,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                       <p className="text-xs text-gray-600 dark:text-gray-300 italic line-clamp-2">
                         "{partner.bio}"
                       </p>
-                      {!showOnlyKoreans && (
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
-                          {partner.country}
-                        </p>
-                      )}
                     </div>
 
                     {/* 하단: 버튼들 */}

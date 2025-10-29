@@ -395,7 +395,7 @@ function QAPageContent() {
               placeholder={t('community.qaSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="!pl-16 w-full bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 dark:placeholder:text-gray-400 border border-gray-400 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm h-8"
+              className="!pl-16 w-full bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-purple-200 placeholder:text-gray-600 dark:placeholder:text-gray-400 border border-gray-400 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm h-8"
             />
           </div>
           
@@ -581,7 +581,7 @@ function QAPageContent() {
                 placeholder={t('community.questionTitlePlaceholder')}
                 value={questionForm.title}
                 onChange={(e) => setQuestionForm({ ...questionForm, title: e.target.value })}
-                className="border-2 border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-purple-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
             
@@ -590,7 +590,7 @@ function QAPageContent() {
               <select
                 value={questionForm.category}
                 onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
-                className="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                className="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-purple-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="free">{t('community.categoryFree')}</option>
                 <option value="kpop">{t('community.categoryKpop')}</option>
@@ -633,7 +633,7 @@ function QAPageContent() {
                 value={questionForm.content}
                 onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
                 rows={6}
-                className="border-2 border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                className="border-2 border-gray-300 dark:border-gray-600 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-purple-200 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
               
               {/* 업로드된 이미지 미리보기 */}
@@ -689,7 +689,7 @@ function QAPageContent() {
           
           <div className="p-4 space-y-4 overflow-y-auto">
             {/* 질문 내용 */}
-            <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-purple-200">
+            <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-600 dark:border-gray-400">
               <p className="text-gray-700">{selectedQuestion?.content}</p>
               
               {/* 질문 이미지 표시 */}
@@ -751,7 +751,7 @@ function QAPageContent() {
                     className={`border-l-4 pl-4 py-3 rounded-r-lg ${
                       answer.is_accepted 
                         ? 'border-green-500 bg-green-50' 
-                        : 'border-purple-200 bg-white'
+                        : 'border-gray-600 dark:border-gray-400 bg-white'
                     }`}
                   >
                     {/* 채택 배지 */}
@@ -800,7 +800,7 @@ function QAPageContent() {
                   value={answerForm.content}
                   onChange={(e) => setAnswerForm({ content: e.target.value })}
                   rows={3}
-                  className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  className="border-2 border-gray-300 focus:border-gray-600 dark:border-gray-400 focus:ring-2 focus:ring-purple-200"
                 />
               </div>
               <div className="flex gap-3 justify-end">
@@ -827,7 +827,7 @@ export default function QAPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>

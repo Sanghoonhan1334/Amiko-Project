@@ -116,7 +116,7 @@ export default function ChatTestPage() {
                 {loading ? (
                   <div className="flex items-center justify-center p-8">
                     <div className="text-center">
-                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <div className="w-8 h-8 border-4 border-gray-600 dark:border-gray-400 animate-spin mx-auto mb-4"></div>
                       <p className="text-gray-600">멘토 목록을 불러오는 중...</p>
                     </div>
                   </div>

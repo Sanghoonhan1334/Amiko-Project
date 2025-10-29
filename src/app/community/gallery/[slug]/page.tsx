@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic'
 const GalleryPostList = dynamic(() => import('@/components/main/app/community/GalleryPostList'), {
   loading: () => (
     <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400"></div>
     </div>
   )
 })
@@ -19,7 +19,7 @@ const GalleryPostList = dynamic(() => import('@/components/main/app/community/Ga
 const PostCreate = dynamic(() => import('@/components/main/app/community/PostCreate'), {
   loading: () => (
     <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400"></div>
     </div>
   )
 })
@@ -100,7 +100,7 @@ export default function GalleryPostsPage() {
         <Header />
         <div className="flex items-center justify-center pt-24">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
             <p className="text-gray-600">갤러리를 불러오는 중...</p>
           </div>
         </div>

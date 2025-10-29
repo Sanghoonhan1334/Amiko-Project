@@ -375,6 +375,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // auth.users에서 user_metadata 가져오기 (회원가입 시 입력한 국적 정보가 여기 있음)
+    let userMetadata = null
+    try {
+      const { data: authUserData, error: authUserError } = await supabaseServer.auth.admin.getUserById(userId)
+      if (authUserData && !authUserError) {
+        userMetadata = authUserData.user.user_metadata
+        console.log('[PROFILE GET] auth.users에서 user_metadata 가져옴:', userMetadata)
+      } else {
+        console.log('[PROFILE GET] auth.users 조회 실패 또는 user_metadata 없음:', authUserError?.message)
+      }
+    } catch (error) {
+      console.error('[PROFILE GET] auth.users 조회 예외:', error)
+    }
+
     // 사용자 프로필은 users 테이블에 포함되어 있음
     const profile = null // users 테이블에서 이미 가져왔으므로 별도 조회 불필요
 
@@ -388,6 +402,9 @@ export async function GET(request: NextRequest) {
     // 모든 정보가 users 테이블에 통합되어 있으므로 별도 조회 불필요
     const userType = (user as any)?.user_type || 'student'
     
+    // 회원가입 시 입력한 국적 (user_metadata.country) 우선 사용
+    const signupCountry = userMetadata?.country
+    
     return NextResponse.json({
       user: {
         id: (user as any).id,
@@ -400,6 +417,7 @@ export async function GET(request: NextRequest) {
         one_line_intro: (user as any).one_line_intro,
         introduction: (user as any).introduction,
         language: (user as any).language,
+        country: signupCountry || (user as any).country, // 회원가입 시 입력한 국적 우선
         avatar_url: (user as any).avatar_url,
         profile_image: (user as any).profile_image,
         profile_images: (user as any).profile_images,
@@ -416,7 +434,8 @@ export async function GET(request: NextRequest) {
         is_admin: (user as any).is_admin,
         is_korean: !!(user as any).is_korean || (user as any).language === 'ko',
         created_at: (user as any).created_at,
-        updated_at: (user as any).updated_at
+        updated_at: (user as any).updated_at,
+        user_metadata: userMetadata // auth.users의 metadata (회원가입 시 입력한 국적 포함)
       },
       profile: {
         user_id: userId,
@@ -427,7 +446,7 @@ export async function GET(request: NextRequest) {
         bio: (user as any).one_line_intro,
         introduction: (user as any).introduction,
         avatar_url: (user as any).avatar_url,
-        country: 'KR',
+        country: (user as any).country || (user as any).user_metadata?.country || ((user as any).language === 'ko' ? 'KR' : null),
         native_language: (user as any).language,
         is_korean: !!(user as any).is_korean || (user as any).language === 'ko',
         user_type: (user as any).user_type || userType,

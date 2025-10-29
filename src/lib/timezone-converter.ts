@@ -22,7 +22,9 @@ export function convertKSTToUserTimezone(
     // KST 날짜와 시간을 UTC로 변환
     // KST는 UTC+9이므로 UTC로 변환하려면 9시간 빼야 함
     const [year, month, day] = kstDate.split('-').map(Number)
-    const [hour, minute] = kstTime.split(':').map(Number)
+    // 시간 파싱: "05:10:00" 또는 "05:10" 형식 모두 처리
+    const timeParts = kstTime.split(':')
+    const [hour, minute] = [parseInt(timeParts[0], 10), parseInt(timeParts[1], 10)]
     
     // KST 시간을 ISO 문자열로 생성 (KST는 UTC+9)
     const kstISOString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+09:00`
@@ -83,28 +85,88 @@ export function convertUserTimezoneToKST(
     const [year, month, day] = userDate.split('-').map(Number)
     const [hour, minute] = userTime.split(':').map(Number)
     
-    // 사용자 타임존의 시간을 로컬 Date 객체로 생성
-    const userDateObj = new Date(year, month - 1, day, hour, minute)
+    // 정확한 방법: 사용자 타임존의 날짜/시간을 나타내는 UTC timestamp 계산
+    // 핵심: 사용자가 지정한 날짜/시간을 사용자 타임존으로 해석하여 UTC 시간 찾기
     
-    // 사용자 타임존의 시간을 UTC로 변환
-    // 사용자 타임존에서 UTC로 변환하려면 타임존 offset을 빼야 함
-    const userOffsetMs = getTimezoneOffsetMs(userTimezone)
-    const utcTime = userDateObj.getTime() - userOffsetMs
+    const userFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: userTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    })
+    
+    // 사용자가 지정한 날짜/시간 문자열 생성
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
+    
+    // 반복적으로 조정하여 정확한 UTC 시간 찾기
+    // 먼저 사용자가 지정한 날짜/시간을 UTC로 대략 추정
+    let estimatedUTC = new Date(`${dateStr}T${timeStr}Z`).getTime()
+    
+    // 최대 5번 반복하여 정확한 UTC 시간 찾기
+    for (let iteration = 0; iteration < 5; iteration++) {
+      // 이 UTC 시간을 사용자 타임존으로 변환
+      const userParts = userFormatter.formatToParts(new Date(estimatedUTC))
+      const convertedYear = parseInt(userParts.find(p => p.type === 'year')?.value || '0', 10)
+      const convertedMonth = parseInt(userParts.find(p => p.type === 'month')?.value || '0', 10)
+      const convertedDay = parseInt(userParts.find(p => p.type === 'day')?.value || '0', 10)
+      const convertedHour = parseInt(userParts.find(p => p.type === 'hour')?.value || '0', 10)
+      const convertedMinute = parseInt(userParts.find(p => p.type === 'minute')?.value || '0', 10)
+      
+      // 목표 값과 비교
+      const yearDiff = year - convertedYear
+      const monthDiff = month - convertedMonth
+      const dayDiff = day - convertedDay
+      const hourDiff = hour - convertedHour
+      const minuteDiff = minute - convertedMinute
+      
+      // 모두 일치하면 종료
+      if (yearDiff === 0 && monthDiff === 0 && dayDiff === 0 && hourDiff === 0 && minuteDiff === 0) {
+        break
+      }
+      
+      // 차이를 UTC 시간에 반영
+      const totalDiffMs = (
+        yearDiff * 365.25 * 24 * 60 * 60 * 1000 +
+        monthDiff * 30.44 * 24 * 60 * 60 * 1000 +
+        dayDiff * 24 * 60 * 60 * 1000 +
+        hourDiff * 60 * 60 * 1000 +
+        minuteDiff * 60 * 1000
+      )
+      
+      estimatedUTC += totalDiffMs
+    }
     
     // UTC를 KST로 변환 (UTC+9)
-    const kstTime = utcTime + (9 * 60 * 60 * 1000)
-    const kstDateObj = new Date(kstTime)
+    const kstTime = estimatedUTC + (9 * 60 * 60 * 1000)
+    
+    // KST 시간을 문자열로 변환
+    const kstFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
+    
+    const kstParts = kstFormatter.formatToParts(new Date(kstTime))
+    const kstYear = kstParts.find(p => p.type === 'year')?.value || ''
+    const kstMonth = kstParts.find(p => p.type === 'month')?.value || ''
+    const kstDay = kstParts.find(p => p.type === 'day')?.value || ''
+    const kstHour = kstParts.find(p => p.type === 'hour')?.value || ''
+    const kstMinute = kstParts.find(p => p.type === 'minute')?.value || ''
 
-    // KST 시간을 추출 (로컬 시간으로 해석)
-    const kstYear = kstDateObj.getFullYear()
-    const kstMonth = String(kstDateObj.getMonth() + 1).padStart(2, '0')
-    const kstDay = String(kstDateObj.getDate()).padStart(2, '0')
-    const kstHour = String(kstDateObj.getHours()).padStart(2, '0')
-    const kstMinute = String(kstDateObj.getMinutes()).padStart(2, '0')
+    console.log(`[convertUserTimezoneToKST] ${userDate} ${userTime} (${userTimezone}) → KST ${kstYear}-${kstMonth}-${kstDay} ${kstHour}:${kstMinute}`)
 
     return {
       date: `${kstYear}-${kstMonth}-${kstDay}`,
-      time: `${kstHour}:${kstMinute}`
+      time: `${kstHour.padStart(2, '0')}:${kstMinute.padStart(2, '0')}`
     }
   } catch (error) {
     console.error('역변환 실패:', error)

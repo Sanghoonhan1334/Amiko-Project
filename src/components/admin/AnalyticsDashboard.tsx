@@ -169,7 +169,7 @@ export default function AnalyticsDashboard() {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto"></div>
           <p className="mt-2 text-gray-600">분석 데이터를 불러오는 중...</p>
         </div>
       </div>

@@ -48,7 +48,7 @@ export default function AuthGuard({ children, requiredLevel, fallback }: AuthGua
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-gray-600 dark:border-gray-400 animate-spin"></div>
       </div>
     )
   }

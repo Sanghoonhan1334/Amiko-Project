@@ -72,7 +72,7 @@ export default function GalleryNavigation({
     return (
       <Card className="p-4 mb-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 dark:border-gray-400"></div>
           <span className="ml-2 text-gray-600 dark:text-gray-300">갤러리 로딩 중...</span>
         </div>
       </Card>
@@ -108,7 +108,7 @@ export default function GalleryNavigation({
 
         {/* 현재 갤러리 표시 */}
         {currentGallery && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/40 rounded-lg border border-blue-200 dark:border-blue-600">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/40 rounded-lg border border-gray-600 dark:border-gray-400 dark:border-gray-600 dark:border-gray-400">
             <div className="flex items-center space-x-3">
               <div 
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
@@ -134,7 +134,7 @@ export default function GalleryNavigation({
               onClick={() => onGallerySelect(gallery)}
               className={`p-3 rounded-lg text-center transition-all duration-200 ${
                 currentGallery?.id === gallery.id
-                  ? 'bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-500'
+                  ? 'bg-blue-100 dark:bg-blue-900/50 border-2 border-gray-600 dark:border-gray-400 dark:border-gray-600 dark:border-gray-400'
                   : 'bg-gray-50 dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-200 dark:border-gray-500 hover:border-gray-300 dark:hover:border-gray-400'
               }`}
             >

@@ -466,7 +466,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       {/* 댓글 목록 */}
       {loading ? (
         <div className="text-center py-8 px-4">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400"></div>
           <p className="text-gray-600 mt-2">댓글을 불러오는 중...</p>
         </div>
       ) : sortedComments.length === 0 ? (

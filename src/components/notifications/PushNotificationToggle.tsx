@@ -249,7 +249,7 @@ export default function PushNotificationToggle() {
         {/* 로딩 상태 */}
         {isLoading && (
           <div className="flex items-center justify-center py-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600 dark:border-gray-400"></div>
             <span className="ml-2 text-sm text-gray-600">처리 중...</span>
           </div>
         )}

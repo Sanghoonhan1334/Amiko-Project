@@ -147,7 +147,7 @@ export default function VerificationGuard({
     return (
       <div className={`flex items-center justify-center p-2 ${className}`}>
         <div className="text-center">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-1"></div>
+          <div className="w-6 h-6 border-2 border-gray-600 dark:border-gray-400 animate-spin mx-auto mb-1"></div>
           <p className="text-gray-600 text-sm">{t('auth.checkingVerificationStatus')}</p>
         </div>
       </div>
