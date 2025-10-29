@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
@@ -93,7 +93,7 @@ const fortuneQuestions: Question[] = [
   }
 ]
 
-export default function FortuneQuestionsPage() {
+function FortuneQuestionsPageContent() {
   const router = useRouter()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<{[key: number]: string}>({})
@@ -226,5 +226,20 @@ export default function FortuneQuestionsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function FortuneQuestionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#FDF4E6] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F7A74B] mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <FortuneQuestionsPageContent />
+    </Suspense>
   )
 }
