@@ -150,7 +150,7 @@ link[rel="shortcut icon"] img {
   }
   
   body {
-    background-color: hsl(var(--background));
+    background-color: white !important;
     color: hsl(var(--foreground));
   }
   

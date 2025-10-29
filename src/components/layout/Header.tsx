@@ -419,7 +419,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 [isolation:isolate] bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 [isolation:isolate] bg-white dark:bg-gray-900 border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
           <div className="flex justify-between items-center h-16 sm:h-20 md:h-28 lg:h-28 xl:h-28 2xl:h-28 3xl:h-28 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}

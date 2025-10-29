@@ -47,7 +47,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-700 z-10">
+    <section className="relative overflow-hidden bg-white dark:bg-gray-800 z-10">
       {/* 배경 장식 요소들 - 텍스트 가림 방지를 위해 임시 제거 */}
       {/* <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-20 left-10 w-32 h-32 bg-blue-100/30 dark:bg-blue-900/20 rounded-full blur-xl"></div>
