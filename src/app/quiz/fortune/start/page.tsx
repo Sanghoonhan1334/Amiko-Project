@@ -1,10 +1,18 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/layout/Header'
+
+function HeaderFallback() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16">
+      {/* Header skeleton */}
+    </header>
+  )
+}
 
 export default function FortuneStartPage() {
   const router = useRouter()
@@ -22,7 +30,9 @@ export default function FortuneStartPage() {
 
   return (
     <div className="min-h-screen bg-[#FDF4E6]">
-      <Header />
+      <Suspense fallback={<HeaderFallback />}>
+        <Header />
+      </Suspense>
       
       <div className="pt-32 pb-8 px-4">
         <div className="max-w-md mx-auto">

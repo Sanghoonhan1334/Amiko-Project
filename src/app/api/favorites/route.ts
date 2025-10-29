@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 
 // 즐겨찾기 추가/제거
 export async function POST(request: NextRequest) {
