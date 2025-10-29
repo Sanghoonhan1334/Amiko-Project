@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 
-export default function FortuneLoadingPage() {
+function FortuneLoadingPageContent() {
   const router = useRouter()
   const [loadingText, setLoadingText] = useState('Analizando tu estado emocional...')
   
@@ -98,5 +98,20 @@ export default function FortuneLoadingPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function FortuneLoadingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#FDF4E6] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F7A74B] mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <FortuneLoadingPageContent />
+    </Suspense>
   )
 }
