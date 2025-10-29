@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,9 +30,23 @@ import {
   Plus,
   Shield,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Trophy,
+  Users,
+  Newspaper,
+  Clock,
+  CreditCard,
+  TrendingUp,
+  Copy,
+  Check,
+  Video,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
+import PointsRanking from '@/components/admin/PointsRanking'
+import EventManagement from '@/components/admin/EventManagement'
 import StorySettings from './StorySettings'
 import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
@@ -41,12 +55,36 @@ import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import ChargingTab from '../charging/ChargingTab'
 import PointsCard from './PointsCard'
 import ChargingHeader from './ChargingHeader'
+// 🚀 최적화: React Query hook 추가
+import { useEventPoints } from '@/hooks/useEventPoints'
 
 export default function MyTab() {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [isPartnerRegistered, setIsPartnerRegistered] = useState(false)
+  const [showPartnerForm, setShowPartnerForm] = useState(false)
+  const [dailyMissions, setDailyMissions] = useState<any>(null)
+  const [dailyEarnedPoints, setDailyEarnedPoints] = useState(0)
+  const [isMissionsExpanded, setIsMissionsExpanded] = useState(true)
+  
+  // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
+  const { 
+    data: eventData, 
+    isLoading: pointsLoading, 
+    error: queryError,
+    refetch 
+  } = useEventPoints()
+  
+  // React Query에서 가져온 데이터 분리
+  const rankingData = eventData?.rankingData || {
+    ranking: [],
+    userRank: null,
+    totalUsers: 0
+  }
 
   // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
   useEffect(() => {
@@ -54,6 +92,15 @@ export default function MyTab() {
       // 사용자 프로필 정보를 가져와서 인증 상태 확인
       const checkVerificationStatus = async () => {
         try {
+          // 먼저 운영자 확인
+          const adminCheck = await fetch(`/api/admin/check?userId=${user.id}`)
+          const adminResult = await adminCheck.json()
+          
+          if (adminResult.isAdmin) {
+            console.log('운영자 확인됨, 인증 체크 스킵')
+            return
+          }
+          
           const response = await fetch(`/api/profile?userId=${user.id}`)
           const result = await response.json()
           
@@ -102,6 +149,63 @@ export default function MyTab() {
       return () => clearTimeout(timeoutId)
     }
   }, [user, router])
+
+  // 추천인 코드 가져오기 (직접 DB 조회)
+  useEffect(() => {
+    const fetchReferralCode = async () => {
+      if (user) {
+        try {
+          const response = await fetch(`/api/referral/my-code?userId=${user.id}`)
+          if (response.ok) {
+            const data = await response.json()
+            setReferralCode(data.referral_code)
+          } else {
+            console.error('추천인 코드 조회 실패:', await response.json())
+          }
+        } catch (error) {
+          console.error('추천인 코드 가져오기 실패:', error)
+        }
+      }
+    }
+    fetchReferralCode()
+  }, [user])
+
+  // 일일 미션 데이터 가져오기
+  useEffect(() => {
+    if (user?.id) {
+      fetchDailyMissions()
+    }
+  }, [user?.id])
+
+  const fetchDailyMissions = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const response = await fetch(`/api/points/daily-activity?userId=${user?.id}&date=${today}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDailyMissions(data.missions)
+        setDailyEarnedPoints(data.earnedPoints)
+      }
+    } catch (error) {
+      console.error('일일 미션 데이터 가져오기 실패:', error)
+    }
+  }
+
+  // 체크마크 생성 헬퍼 함수
+  const renderCheckmarks = (count: number, max: number) => {
+    const completedCount = Math.min(count, max)
+    const checks = '✓'.repeat(completedCount)
+    const empties = '○'.repeat(max - completedCount)
+    const completedClass = completedCount === max ? 'text-green-500' : 'text-gray-400'
+    
+    return (
+      <>
+        <span className={completedClass}>{checks}</span>
+        {empties && <span className="text-gray-300">{empties}</span>}
+      </>
+    )
+  }
+
   const [editForm, setEditForm] = useState({
     full_name: '',
     korean_name: '',
@@ -122,6 +226,81 @@ export default function MyTab() {
     profile_images: [] as string[]
   })
   const [newInterest, setNewInterest] = useState('')
+
+  // 추천인 코드 복사 함수
+  const copyReferralCode = async () => {
+    if (referralCode) {
+      try {
+        await navigator.clipboard.writeText(referralCode)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (error) {
+        console.error('복사 실패:', error)
+      }
+    }
+  }
+
+  // 파트너 등록 여부 확인
+  useEffect(() => {
+    const checkPartnerStatus = async () => {
+      if (user) {
+        try {
+          const response = await fetch(`/api/conversation-partners/check?userId=${user.id}`)
+          if (response.ok) {
+            const data = await response.json()
+            setIsPartnerRegistered(data.isRegistered)
+          }
+        } catch (error) {
+          console.error('파트너 상태 확인 실패:', error)
+        }
+      }
+    }
+    checkPartnerStatus()
+  }, [user])
+
+  // 파트너 등록
+  const registerAsPartner = async () => {
+    if (!user || !profile) return
+
+    // 한국인인지 확인 (인증센터에서 확인된 정보)
+    const isKoreanUser = !!(profile.is_korean || profileUser?.is_korean)
+
+    if (!isKoreanUser) {
+      alert('한국인만 화상 채팅 파트너로 등록할 수 있습니다.')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/conversation-partners/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          name: profile.korean_name || profile.full_name || user.email.split('@')[0],
+          language_level: '중급', // 기본값
+          country: '대한민국',
+          status: 'online',
+          interests: profile.interests || [],
+          bio: profile.one_line_intro || profile.introduction || '',
+          avatar_url: profile.avatar_url,
+          is_korean: true // 인증센터에서 확인된 한국인
+        })
+      })
+
+      if (response.ok) {
+        setIsPartnerRegistered(true)
+        setShowPartnerForm(false)
+        alert('화상 채팅 파트너로 등록되었습니다!')
+      } else {
+        const result = await response.json()
+        alert(result.error || '파트너 등록에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('파트너 등록 실패:', error)
+      alert('파트너 등록에 실패했습니다.')
+    }
+  }
+
   const [showInterestSelector, setShowInterestSelector] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   
@@ -132,7 +311,12 @@ export default function MyTab() {
     '맛집', '독서', '댄스', '미술', '자연', '반려동물', '커피', '뷰티'
   ]
   const [profile, setProfile] = useState<any>(null)
+  const [profileUser, setProfileUser] = useState<any>(null)
+  
+  // 한국인 여부 확인 (인증센터에서 확인된 정보)
+  const isKorean = !!(profile?.is_korean || profileUser?.is_korean)
   const [loading, setLoading] = useState(true)
+  const [isUploadingImage, setIsUploadingImage] = useState(false) // 프로필 이미지 업로드 로딩
   const [authStatus, setAuthStatus] = useState({ loading: true, smsVerified: false })
   const [verificationStatus, setVerificationStatus] = useState<{
     isVerified: boolean
@@ -260,6 +444,8 @@ export default function MyTab() {
           return
         }
         
+    setIsUploadingImage(true)
+    
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -287,15 +473,17 @@ export default function MyTab() {
         // 프로필 다시 로드하여 업데이트된 이미지 반영
         await loadProfile()
         
-        alert('프로필 이미지가 성공적으로 업데이트되었습니다!')
+        alert(t('profile.imageUpdatedSuccessfully'))
       } else {
         const error = await response.json()
         console.error('프로필 이미지 업로드 실패:', error)
-        alert(`업로드 실패: ${error.error || '알 수 없는 오류'}`)
+        alert(`${t('profile.uploadFailed')}: ${error.error || t('profile.unknownError')}`)
       }
     } catch (error) {
       console.error('프로필 이미지 업로드 오류:', error)
-      alert('업로드 중 오류가 발생했습니다.')
+      alert(t('profile.uploadError'))
+    } finally {
+      setIsUploadingImage(false)
     }
   }
 
@@ -373,6 +561,7 @@ export default function MyTab() {
           if (response.ok) {
             const data = await response.json()
             setProfile(data.user || data.profile)
+            setProfileUser(data.user) // user 객체도 따로 저장
             initializeEditForm(data.user || data.profile)
             setLoading(false)
             return
@@ -481,16 +670,19 @@ export default function MyTab() {
     const diff = startX - endX
     const threshold = 50
 
+    // avatar_url과 profile_images를 모두 포함한 실제 전체 이미지 수
+    const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
+
     if (Math.abs(diff) > threshold) {
       if (diff > 0) {
         // 왼쪽으로 스와이프 (다음 사진)
         setCurrentImageIndex(prev => 
-          prev < (profile?.profile_images?.length || 1) - 1 ? prev + 1 : 0
+          prev < totalImages - 1 ? prev + 1 : 0
         )
       } else {
         // 오른쪽으로 스와이프 (이전 사진)
         setCurrentImageIndex(prev => 
-          prev > 0 ? prev - 1 : (profile?.profile_images?.length || 1) - 1
+          prev > 0 ? prev - 1 : totalImages - 1
         )
       }
     }
@@ -499,6 +691,16 @@ export default function MyTab() {
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    // 버튼이나 input 요소에서 발생한 이벤트는 무시
+    const target = e.target as HTMLElement
+    if (target.tagName === 'BUTTON' || 
+        target.tagName === 'INPUT' ||
+        target.closest('button') ||
+        target.closest('label')) {
+      return
+    }
+    
+    e.preventDefault()
     setStartX(e.clientX)
     setIsDragging(true)
   }
@@ -506,21 +708,29 @@ export default function MyTab() {
   const handleMouseUp = (e: React.MouseEvent) => {
     if (!isDragging) return
     
+    // 버튼이나 input 요소에서 발생한 이벤트는 무시
+    const target = e.target as HTMLElement
+    if (target.tagName === 'BUTTON' || 
+        target.tagName === 'INPUT' ||
+        target.closest('button') ||
+        target.closest('label')) {
+      return
+    }
+    
     const endX = e.clientX
     const diff = startX - endX
     const threshold = 50
 
+    // avatar_url과 profile_images를 모두 포함한 실제 전체 이미지 수
+    const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
+
     if (Math.abs(diff) > threshold) {
       if (diff > 0) {
-        // 왼쪽으로 드래그 (다음 사진)
-        setCurrentImageIndex(prev => 
-          prev < (profile?.profile_images?.length || 1) - 1 ? prev + 1 : 0
-        )
+        const newIndex = currentImageIndex < totalImages - 1 ? currentImageIndex + 1 : 0
+        setCurrentImageIndex(newIndex)
       } else {
-        // 오른쪽으로 드래그 (이전 사진)
-        setCurrentImageIndex(prev => 
-          prev > 0 ? prev - 1 : (profile?.profile_images?.length || 1) - 1
-        )
+        const newIndex = currentImageIndex > 0 ? currentImageIndex - 1 : totalImages - 1
+        setCurrentImageIndex(newIndex)
       }
     }
     
@@ -594,8 +804,165 @@ export default function MyTab() {
   if (isAdmin) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="w-full">
-          <AnalyticsDashboard />
+        <div className="w-full p-4 space-y-6">
+          {/* 운영자 대시보드 헤더 */}
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
+            <h1 className="text-2xl font-bold mb-2">운영진 대시보드</h1>
+            <p className="text-blue-100">서비스 현황과 사용자 활동을 한눈에 확인하세요</p>
+          </div>
+
+          {/* 아코디언 형식의 관리 섹션 */}
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {/* 포인트 랭킹 */}
+            <AccordionItem value="points" className="border-2 border-gray-200 rounded-xl overflow-hidden">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
+                    <Trophy className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">포인트 랭킹</h3>
+                    <p className="text-sm text-gray-600">누적 점수와 월별 점수 랭킹</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <PointsRanking />
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* 이벤트 관리 */}
+            <AccordionItem value="events" className="border-2 border-gray-200 rounded-xl overflow-hidden">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Gift className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">이벤트 관리</h3>
+                    <p className="text-sm text-gray-600">추천인 & 월별 포인트 이벤트</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <EventManagement />
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* 사용자 관리 */}
+            <AccordionItem value="users" className="border-2 border-gray-200 rounded-xl overflow-hidden">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">사용자 관리</h3>
+                    <p className="text-sm text-gray-600">전체 사용자 및 권한 관리</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="text-center py-8 text-gray-500">
+                  사용자 관리 기능은 별도 페이지로 이동합니다.
+                  <br />
+                  <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/admin/users'}>
+                    사용자 관리 페이지로 이동
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* 뉴스 관리 */}
+            <AccordionItem value="news" className="border-2 border-gray-200 rounded-xl overflow-hidden">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                    <Newspaper className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">뉴스 관리</h3>
+                    <p className="text-sm text-gray-600">뉴스 작성 및 수정</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="text-center py-8 text-gray-500">
+                  뉴스 관리 기능은 별도 페이지로 이동합니다.
+                  <br />
+                  <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/admin/news'}>
+                    뉴스 관리 페이지로 이동
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* 예약 관리 */}
+            <AccordionItem value="bookings" className="border-2 border-gray-200 rounded-xl overflow-hidden">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">예약 관리</h3>
+                    <p className="text-sm text-gray-600">예약 현황 및 관리</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="text-center py-8 text-gray-500">
+                  예약 관리 기능은 별도 페이지로 이동합니다.
+                  <br />
+                  <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/admin/bookings'}>
+                    예약 관리 페이지로 이동
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* 결제 관리 */}
+            <AccordionItem value="payments" className="border-2 border-gray-200 rounded-xl overflow-hidden">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">결제 관리</h3>
+                    <p className="text-sm text-gray-600">결제 내역 및 환불 관리</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="text-center py-8 text-gray-500">
+                  결제 관리 기능은 별도 페이지로 이동합니다.
+                  <br />
+                  <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/admin/payments'}>
+                    결제 관리 페이지로 이동
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* 분석 대시보드 */}
+            <AccordionItem value="analytics" className="border-2 border-blue-200 rounded-xl overflow-hidden bg-blue-50">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">서비스 분석</h3>
+                    <p className="text-sm text-gray-600">뉴스, 사용자, 트렌드 분석</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <AnalyticsDashboard />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
     )
@@ -664,13 +1031,15 @@ export default function MyTab() {
                   }}
                 >
                   {allImages.map((imageData, globalIndex) => (
-                    <div key={`${imageData.type}-${imageData.index}`} className="w-full h-full flex-shrink-0 relative group">
+                    <div 
+                      key={`${imageData.type}-${imageData.index}`} 
+                      className="w-full h-full flex-shrink-0 relative group"
+                    >
                       <img
                         src={imageData.src}
                         alt={`프로필 ${globalIndex + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover pointer-events-none"
                         draggable={false}
-                        onDragStart={(e) => e.preventDefault()}
                       />
                       {/* 사진 인디케이터 */}
                       <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
@@ -777,6 +1146,21 @@ export default function MyTab() {
               </div>
             ) : null
           })()}
+          
+          {/* 이미지 업로드 로딩 오버레이 */}
+          {isUploadingImage && (
+            <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-white font-semibold text-lg">
+                  {language === 'es' ? 'Subiendo foto...' : '사진 업로드 중...'}
+                </p>
+                <p className="text-white/80 text-sm mt-2">
+                  {language === 'es' ? 'Por favor espera' : '잠시만 기다려주세요'}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 프로필 정보 오버레이 제거 - 깔끔한 사진만 표시 */}
@@ -1467,6 +1851,293 @@ export default function MyTab() {
                     </span>
               </div>
                 </>
+              )}
+
+              {/* 구분선 */}
+              <div className="border-t border-gray-200"></div>
+
+              {/* 포인트 현황 & 오늘의 미션 */}
+              <div className="space-y-4 bg-white">
+                {/* 포인트 요약 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-4 text-white shadow-sm">
+                    <p className="text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.monthlyPoints')}</p>
+                    <p className="text-2xl font-bold">{rankingData.userRank?.monthly_points || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-4 text-white shadow-sm">
+                    <p className="text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.totalPoints')}</p>
+                    <p className="text-2xl font-bold">{rankingData.userRank?.total_points || 0}</p>
+                  </div>
+                </div>
+
+                {/* 오늘의 미션 */}
+                {dailyMissions && (
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-4 space-y-3">
+                    <button 
+                      onClick={() => setIsMissionsExpanded(!isMissionsExpanded)}
+                      className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+                    >
+                      <span className="text-2xl">🎯</span>
+                      <div className="flex-1 text-left">
+                        <h3 className="font-bold text-gray-800">{t('eventTab.pointSystem.dailyMission.title')}</h3>
+                        <p className="text-xs text-gray-600">{t('eventTab.pointSystem.dailyMission.subtitle')}</p>
+                      </div>
+                      {isMissionsExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-gray-600" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                      )}
+                    </button>
+
+                    {/* 오늘 획득 포인트 - 항상 보임 */}
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm text-gray-600">{t('eventTab.pointSystem.dailyMission.todayEarned')}</span>
+                        <span className="font-bold text-blue-600">{dailyEarnedPoints} / 75</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all" 
+                          style={{ width: `${Math.min((dailyEarnedPoints / 75) * 100, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 미션 목록 - 접으면 숨김 */}
+                    {isMissionsExpanded && (
+                      <div className="space-y-1 text-sm max-h-96 overflow-y-auto">
+                      {/* 출석체크 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.attendance.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.attendance.title')}
+                        </span>
+                        <span className="text-green-600 font-bold">+{dailyMissions.attendance.points}</span>
+                      </div>
+                      
+                      {/* 댓글 작성 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.comments.count, dailyMissions.comments.max)} {t('eventTab.pointSystem.dailyMission.missions.comments.title')} ({dailyMissions.comments.count}/{dailyMissions.comments.max})
+                        </span>
+                        <span className="text-blue-600 font-bold">+{dailyMissions.comments.points}</span>
+                      </div>
+                      
+                      {/* 좋아요 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.likes.count, dailyMissions.likes.max)} {t('eventTab.pointSystem.dailyMission.missions.likes.title')} ({dailyMissions.likes.count}/{dailyMissions.likes.max})
+                        </span>
+                        <span className="text-pink-600 font-bold">+{dailyMissions.likes.points}</span>
+                      </div>
+                      
+                      {/* 자유게시판 작성 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.freeboardPost.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.freeboardPost.title')}
+                        </span>
+                        <span className="text-indigo-600 font-bold">+{dailyMissions.freeboardPost.points}</span>
+                      </div>
+                      
+                      {/* 스토리 작성 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.storyPost.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.storyPost.title')}
+                        </span>
+                        <span className="text-purple-600 font-bold">+{dailyMissions.storyPost.points}</span>
+                      </div>
+                      
+                      {/* 팬아트 업로드 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.fanartUpload.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.fanartUpload.title')}
+                        </span>
+                        <span className="text-pink-600 font-bold">+{dailyMissions.fanartUpload.points}</span>
+                      </div>
+                      
+                      {/* 아이돌 사진 업로드 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.idolPhotoUpload.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.idolPhotoUpload.title')}
+                        </span>
+                        <span className="text-amber-600 font-bold">+{dailyMissions.idolPhotoUpload.points}</span>
+                      </div>
+                      
+                      {/* 팬아트 좋아요 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.fanartLikes.count, dailyMissions.fanartLikes.max)} {t('eventTab.pointSystem.dailyMission.missions.fanartLikes.title')} ({dailyMissions.fanartLikes.count}/{dailyMissions.fanartLikes.max})
+                        </span>
+                        <span className="text-pink-600 font-bold">+{dailyMissions.fanartLikes.points}</span>
+                      </div>
+                      
+                      {/* 아이돌 사진 좋아요 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.idolPhotoLikes.count, dailyMissions.idolPhotoLikes.max)} {t('eventTab.pointSystem.dailyMission.missions.idolPhotoLikes.title')} ({dailyMissions.idolPhotoLikes.count}/{dailyMissions.idolPhotoLikes.max})
+                        </span>
+                        <span className="text-amber-600 font-bold">+{dailyMissions.idolPhotoLikes.points}</span>
+                      </div>
+                      
+                      {/* 투표 참여 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.pollVote.count, dailyMissions.pollVote.max)} {t('eventTab.pointSystem.dailyMission.missions.pollVotes.title')} ({dailyMissions.pollVote.count}/{dailyMissions.pollVote.max})
+                        </span>
+                        <span className="text-cyan-600 font-bold">+{dailyMissions.pollVote.points}</span>
+                      </div>
+                      
+                      {/* 뉴스 댓글 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.newsComment.count, dailyMissions.newsComment.max)} {t('eventTab.pointSystem.dailyMission.missions.newsComments.title')} ({dailyMissions.newsComment.count}/{dailyMissions.newsComment.max})
+                        </span>
+                        <span className="text-blue-600 font-bold">+{dailyMissions.newsComment.points}</span>
+                      </div>
+                      
+                      {/* 공유 */}
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          {renderCheckmarks(dailyMissions.share.count, dailyMissions.share.max)} {t('eventTab.pointSystem.dailyMission.missions.share.title')} ({dailyMissions.share.count}/{dailyMissions.share.max})
+                        </span>
+                        <span className="text-orange-600 font-bold">+{dailyMissions.share.points}</span>
+                      </div>
+                    </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 구분선 */}
+              <div className="border-t border-gray-200"></div>
+
+              {/* 추천인 코드 - 눈에 띄게 */}
+              {referralCode && (
+                <>
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Gift className="w-5 h-5 text-purple-600" />
+                        <span className='text-gray-700 font-semibold'>{t('profile.myReferralCode')}</span>
+                      </div>
+                      <Button
+                        onClick={copyReferralCode}
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-4 h-4 text-green-600" />
+                            <span className="text-green-600 text-xs ml-1">{t('profile.copied')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            <span className="text-xs ml-1">{t('profile.copy')}</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="bg-white border-2 border-purple-300 rounded-lg p-3">
+                      <code className="text-2xl font-mono font-bold text-purple-700 tracking-wider">
+                        {referralCode}
+                      </code>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {t('profile.shareReferralMessage')}
+                    </p>
+                  </div>
+                  {/* 구분선 */}
+                  <div className="border-t border-gray-200"></div>
+                </>
+              )}
+
+              {/* 내 추천인 현황 */}
+              {referralCode && (
+                <>
+                  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-indigo-600" />
+                      <span className='text-gray-700 font-semibold'>{t('eventTab.attendanceCheck.specialEvents.referralEvents.myStatus.title')}</span>
+                    </div>
+
+                    {/* 총 추천인 수 */}
+                    <div className="flex items-center justify-between bg-white border border-indigo-200 rounded-lg p-3">
+                      <span className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.referralEvents.myStatus.description')}</span>
+                      <Badge className="bg-indigo-500 text-white">0명</Badge>
+                    </div>
+
+                    {/* 추천인 목록 */}
+                    <div className="text-center py-8 text-gray-500">
+                      <p className="text-sm">{t('eventTab.attendanceCheck.specialEvents.referralEvents.myStatus.noReferrals')}</p>
+                    </div>
+                  </div>
+                  
+                  {/* 구분선 */}
+                  <div className="border-t border-gray-200"></div>
+                </>
+              )}
+
+              {/* 화상 채팅 파트너 등록 (한국인만) */}
+              {isKorean && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Video className="w-5 h-5 text-blue-600" />
+                      <span className='text-gray-700 font-semibold'>화상 채팅 파트너</span>
+                    </div>
+                    {isPartnerRegistered ? (
+                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                        등록됨
+                      </span>
+                    ) : (
+                      <Button
+                        onClick={() => setShowPartnerForm(!showPartnerForm)}
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                      >
+                        {showPartnerForm ? (
+                          <>
+                            <X className="w-4 h-4 mr-1" />
+                            취소
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-1" />
+                            등록하기
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+
+                  {showPartnerForm && !isPartnerRegistered && (
+                    <div className="bg-white rounded-lg p-4 space-y-3 border border-blue-200">
+                      <p className="text-sm text-gray-600">
+                        화상 채팅 파트너로 등록하면 다른 사용자들과 언어교환을 할 수 있습니다.
+                      </p>
+                      <Button
+                        onClick={registerAsPartner}
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Check className="w-4 h-4 mr-2" />
+                        파트너로 등록하기
+                      </Button>
+                    </div>
+                  )}
+
+                  {isPartnerRegistered && (
+                    <div className="bg-white rounded-lg p-3 border border-green-200">
+                      <p className="text-sm text-green-700 font-medium">
+                        ✅ 화상 채팅 파트너로 등록되어 있습니다!
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        화상 채팅 페이지에서 다른 사용자들이 찾을 수 있습니다.
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* 구분선 */}

@@ -76,21 +76,38 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser()
       
       let isFavorited = false
+      let favoriteCount = 0
+
       if (user) {
-        const { data: favoriteData } = await supabase
-          .rpc('is_quiz_favorited_by_user', { 
-            quiz_uuid: quizId, 
-            user_uuid: user.id 
-          })
-        isFavorited = favoriteData || false
+        try {
+          const { data: favoriteData, error: favoriteError } = await supabase
+            .rpc('is_quiz_favorited_by_user', { 
+              quiz_uuid: quizId, 
+              user_uuid: user.id 
+            })
+          
+          if (!favoriteError) {
+            isFavorited = favoriteData || false
+          }
+        } catch (rpcError) {
+          console.log('[FAVORITES] RPC 함수 없음, 기본값 사용')
+        }
       }
 
-      const { data: countData } = await supabase
-        .rpc('get_quiz_favorite_count', { quiz_uuid: quizId })
+      try {
+        const { data: countData, error: countError } = await supabase
+          .rpc('get_quiz_favorite_count', { quiz_uuid: quizId })
+
+        if (!countError) {
+          favoriteCount = countData || 0
+        }
+      } catch (rpcError) {
+        console.log('[FAVORITES] RPC 함수 없음, 기본값 사용')
+      }
 
       return NextResponse.json({
         isFavorited,
-        favoriteCount: countData || 0
+        favoriteCount
       })
     }
 
@@ -114,8 +131,9 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('즐겨찾기 목록 조회 오류:', error)
-        return NextResponse.json({ error: 'Failed to get favorites' }, { status: 500 })
+        // 테이블이 없으면 빈 배열 반환
+        console.log('[FAVORITES] 테이블이나 데이터가 없음:', error.message)
+        return NextResponse.json({ favorites: [] })
       }
 
       return NextResponse.json({ favorites: favorites || [] })

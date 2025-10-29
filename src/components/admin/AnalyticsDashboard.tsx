@@ -85,41 +85,77 @@ export default function AnalyticsDashboard() {
     try {
       setLoading(true)
       
-      // 실제 API 호출 (현재는 목업 데이터)
-      const mockData: AnalyticsData = {
-        newsStats: {
-          totalNews: 25,
-          koreanNews: 15,
-          spanishNews: 10,
-          totalViews: 1250,
-          popularNews: [
-            { id: '1', title: '한국 문화 소개', views: 150, language: 'ko' },
-            { id: '2', title: 'Introducción a la cultura coreana', views: 120, language: 'es' },
-            { id: '3', title: '한국어 학습 팁', views: 95, language: 'ko' },
-            { id: '4', title: 'Consejos para aprender coreano', views: 88, language: 'es' },
-            { id: '5', title: '한국 음식 문화', views: 76, language: 'ko' }
-          ]
-        },
-        userStats: {
-          totalUsers: 150,
-          koreanUsers: 80,
-          latinUsers: 70,
-          activeUsers: 45
-        },
-        dailyTrends: [
-          { date: '2024-01-15', views: 120, users: 25 },
-          { date: '2024-01-16', views: 135, users: 28 },
-          { date: '2024-01-17', views: 98, users: 22 },
-          { date: '2024-01-18', views: 156, users: 32 },
-          { date: '2024-01-19', views: 142, users: 29 },
-          { date: '2024-01-20', views: 168, users: 35 },
-          { date: '2024-01-21', views: 145, users: 31 }
-        ]
+      // 실제 API 호출 (기존 엔드포인트 사용)
+      const [newsRes, usersRes] = await Promise.all([
+        fetch('/api/admin/news?limit=100'),
+        fetch('/api/admin/stats/users')
+      ])
+      
+      let newsData = { news: [] }
+      let usersData = { stats: {} }
+      
+      try {
+        if (newsRes.ok) {
+          newsData = await newsRes.json()
+        }
+      } catch (e) {
+        console.warn('뉴스 데이터 로드 실패:', e)
       }
       
-      setAnalyticsData(mockData)
+      try {
+        if (usersRes.ok) {
+          usersData = await usersRes.json()
+        }
+      } catch (e) {
+        console.warn('사용자 통계 로드 실패:', e)
+      }
+      
+      // 실제 데이터 매핑
+      const realData: AnalyticsData = {
+        newsStats: {
+          totalNews: newsData.news?.length || 0,
+          koreanNews: newsData.news?.filter((n: any) => n.language === 'ko').length || 0,
+          spanishNews: newsData.news?.filter((n: any) => n.language === 'es').length || 0,
+          totalViews: newsData.news?.reduce((sum: number, n: any) => sum + (n.view_count || 0), 0) || 0,
+          popularNews: newsData.news
+            ?.sort((a: any, b: any) => (b.view_count || 0) - (a.view_count || 0))
+            .slice(0, 5)
+            .map((n: any) => ({
+              id: n.id,
+              title: n.title,
+              views: n.view_count || 0,
+              language: n.language || 'ko'
+            })) || []
+        },
+        userStats: {
+          totalUsers: usersData.stats?.totalUsers || 0,
+          koreanUsers: usersData.stats?.koreanUsers || 0,
+          latinUsers: usersData.stats?.latinUsers || 0,
+          activeUsers: usersData.stats?.activeUsers || 0
+        },
+        dailyTrends: [] // 일별 트렌드는 추후 구현
+      }
+      
+      setAnalyticsData(realData)
     } catch (error) {
       console.error('분석 데이터 로드 실패:', error)
+      // 실패 시 빈 데이터
+      setAnalyticsData({
+        newsStats: {
+          totalNews: 0,
+          koreanNews: 0,
+          spanishNews: 0,
+          totalViews: 0,
+          popularNews: []
+        },
+        userStats: {
+          totalUsers: 0,
+          koreanUsers: 0,
+          latinUsers: 0,
+          activeUsers: 0
+        },
+        dailyTrends: []
+      })
     } finally {
       setLoading(false)
     }

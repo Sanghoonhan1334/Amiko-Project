@@ -84,6 +84,8 @@ module.exports = {
         'slide-in-left': 'slideInLeft 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'slide-in-right': 'slideInRight 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'fade-in-up': 'fadeInUp 0.6s ease-out',
+        'slide-in-top': 'slideInTop 0.3s ease-out',
+        'slide-in-bottom': 'slideInBottom 0.3s ease-out',
       },
       keyframes: {
         shimmer: {
@@ -113,6 +115,26 @@ module.exports = {
         fadeInUp: {
           '0%': { 
             transform: 'translateY(30px)',
+            opacity: '0'
+          },
+          '100%': { 
+            transform: 'translateY(0)',
+            opacity: '1'
+          },
+        },
+        slideInTop: {
+          '0%': { 
+            transform: 'translateY(-20px)',
+            opacity: '0'
+          },
+          '100%': { 
+            transform: 'translateY(0)',
+            opacity: '1'
+          },
+        },
+        slideInBottom: {
+          '0%': { 
+            transform: 'translateY(20px)',
             opacity: '0'
           },
           '100%': { 

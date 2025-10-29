@@ -89,7 +89,7 @@ export default function IdolMemesUploadModal({
         category: 'all',
       }
 
-      const postRes = await fetch('/api/idol-memes', {
+      const postRes = await fetch('/api/idol-photos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

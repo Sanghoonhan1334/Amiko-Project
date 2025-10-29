@@ -47,7 +47,7 @@ export const communityItems: CommunityItem[] = [
         title: 'Tablero por Temas',
         titleKey: 'community.freeBoard',
         route: '/community/freeboard',
-        icon: '/icons/topic-board.png',
+        icon: '/icons/Tablero por tema.png',
         accentColor: '#3B82F6'
       },
       {
@@ -68,7 +68,7 @@ export const communityItems: CommunityItem[] = [
     titleKey: 'community.kCulture',
     microcopy: 'Contenido de K-Cultura',
     microcopyKey: 'community.kCultureDesc',
-    icon: '/icons/k-magazine.png',
+    icon: '/icons/Zona de K-Cultura.png',
     accentColor: '#8B5CF6', // Purple
     subItems: [
       {
@@ -76,15 +76,15 @@ export const communityItems: CommunityItem[] = [
         title: 'K-Chat Zone',
         titleKey: 'community.kChat',
         route: '/community/k-chat',
-        icon: '💬',
+        icon: '/icons/Chat.png',
         accentColor: '#F59E0B'
       },
       {
         id: 'idol-memes',
         title: 'Fotos de Ídolos',
         titleKey: 'community.idolMemes',
-        route: '/community/idol-memes',
-        icon: '😄',
+        route: '/community/idol-photos',
+        icon: '/icons/Foto de idol.png',
         accentColor: '#F59E0B'
       },
       {
@@ -92,7 +92,7 @@ export const communityItems: CommunityItem[] = [
         title: 'Fan Art',
         titleKey: 'community.fanart',
         route: '/community/fanart',
-        icon: '🎨',
+        icon: '/icons/Fan art.png',
         accentColor: '#EC4899'
       },
       {
@@ -100,7 +100,7 @@ export const communityItems: CommunityItem[] = [
         title: 'Encuestas',
         titleKey: 'community.polls',
         route: '/community/polls',
-        icon: '🗳️',
+        icon: '/icons/Encuestas.png',
         accentColor: '#10B981'
       },
       {
@@ -108,7 +108,7 @@ export const communityItems: CommunityItem[] = [
         title: 'K-Magazine',
         titleKey: 'community.koreanNews',
         route: '/community/news',
-        icon: '📖',
+        icon: '/icons/k-magazine.png',
         accentColor: '#8B5CF6'
       }
     ]

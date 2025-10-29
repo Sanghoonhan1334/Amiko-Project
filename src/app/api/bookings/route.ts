@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('[BOOKING] 받은 데이터:', body)
     
-    const { userId, topic, startAt, endAt, price, description, consultantId, duration } = body
+    const { userId, topic, startAt, endAt, price, description, consultantId, duration, meetUrl } = body
 
     // 유효성 검사
     if (!userId || !topic || !startAt || !endAt || !price || !consultantId) {
@@ -88,20 +88,27 @@ export async function POST(request: Request) {
     const orderId = `order-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
     // Supabase에 예약 저장
+    const insertData: any = {
+      user_id: userId,
+      consultant_id: consultantId,
+      topic,
+      description: description || '',
+      start_at: startAt,
+      end_at: endAt,
+      duration: duration || 60,
+      price: price,
+      order_id: orderId,
+      status: 'pending'
+    }
+    
+    // Google Meet URL이 있으면 추가
+    if (meetUrl) {
+      insertData.meet_url = meetUrl
+    }
+    
     const { data: booking, error } = await supabase
       .from('bookings')
-      .insert({
-        user_id: userId,
-        consultant_id: consultantId,
-        topic,
-        description: description || '',
-        start_at: startAt,
-        end_at: endAt,
-        duration: duration || 60,
-        price: price,
-        order_id: orderId,
-        status: 'pending'
-      })
+      .insert(insertData)
       .select()
       .single()
 

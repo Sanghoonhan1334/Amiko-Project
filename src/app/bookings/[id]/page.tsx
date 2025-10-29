@@ -32,6 +32,7 @@ interface Booking {
   consultant_id: string
   order_id: string
   created_at: string
+  meet_url?: string
   consultants: Consultant
 }
 
@@ -380,8 +381,19 @@ export default function BookingDetailPage() {
                   )}
 
                   {booking.status === 'confirmed' && (
-                    <div className="text-green-600 font-medium">
-                      ✅ 결제가 완료되었습니다. 상담사가 연락드릴 예정입니다.
+                    <div className="w-full space-y-3">
+                      <div className="text-green-600 font-medium">
+                        ✅ 결제가 완료되었습니다. 상담사가 연락드릴 예정입니다.
+                      </div>
+                      {booking.meet_url && (
+                        <Button 
+                          onClick={() => router.push(`/call/${booking.id}`)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                          size="lg"
+                        >
+                          🎥 Google Meet 참여하기
+                        </Button>
+                      )}
                     </div>
                   )}
 

@@ -414,6 +414,7 @@ export async function GET(request: NextRequest) {
         interests: (user as any).interests,
         join_date: (user as any).join_date,
         is_admin: (user as any).is_admin,
+        is_korean: !!(user as any).is_korean || (user as any).language === 'ko',
         created_at: (user as any).created_at,
         updated_at: (user as any).updated_at
       },
@@ -428,7 +429,7 @@ export async function GET(request: NextRequest) {
         avatar_url: (user as any).avatar_url,
         country: 'KR',
         native_language: (user as any).language,
-        is_korean: (user as any).language === 'ko',
+        is_korean: !!(user as any).is_korean || (user as any).language === 'ko',
         user_type: (user as any).user_type || userType,
         university: (user as any).university,
         major: (user as any).major,

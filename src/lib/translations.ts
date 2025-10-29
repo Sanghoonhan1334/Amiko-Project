@@ -695,7 +695,21 @@ export const translations = {
       intermediate: '중급',
       advanced: '고급',
       noPartnersTitle: '파트너가 없습니다',
-      noPartnersDescription: '현재 등록된 파트너가 없습니다. 곧 새로운 파트너들이 추가될 예정입니다.'
+      noPartnersDescription: '현재 등록된 파트너가 없습니다. 곧 새로운 파트너들이 추가될 예정입니다.',
+      interests: {
+        '한국어': '한국어',
+        '한국문화': '한국문화',
+        '음식': '음식',
+        '여행': '여행',
+        '영화': '영화',
+        '음악': '음악',
+        '스포츠': '스포츠',
+        '패션': '패션',
+        '게임': '게임',
+        '기술': '기술',
+        '경제': '경제',
+        '언어교환': '언어교환'
+      }
     },
 
     // 커뮤니티 탭
@@ -982,9 +996,41 @@ export const translations = {
       attendanceCheck: {
         specialEvents: {
           title: '특별 이벤트',
+          referralEvents: {
+            title: '추천인 이벤트',
+            subtitle: '친구를 초대하고 특별한 선물을 받으세요!',
+            viewStatus: '내 추천인 현황 보기',
+            myStatus: {
+              title: '내 추천인 현황',
+              description: '내 코드로 가입한 친구들',
+              code: '내 추천인 코드',
+              noReferrals: '아직 추천한 친구가 없습니다',
+              totalCount: '총 {count}명',
+              joinedAt: '가입일'
+            },
+            grandLaunch: {
+              title: '그랜드 런칭 이벤트',
+              description: '추천인으로 등록되면 자동 참여',
+              howToParticipate: '참여 방법',
+              step1: '친구를 초대하여 추천인 코드를 등록하게 하세요',
+              step2: '친구가 가입 완료하면 자동으로 참여 완료!',
+              prize: '추첨 상품',
+              prizeDescription: '참여한 사람들 중 10명 추첨',
+              winnerCount: '10명'
+            },
+            acuPoint: {
+              title: '아큐 포인트 오픈 이벤트',
+              description: '가장 많이 추천한 분께 특별한 선물',
+              prize: '1등 상품',
+              prizeDescription: '화장품 마스크팩 + 화장품 세트',
+              winnerRule: '추천인 받은 수가 가장 많은 분이 당첨됩니다!'
+            }
+          },
           localEvent: {
             title: '로컬 이벤트',
             description: '한국 여행 상품권을 받아보세요!',
+            raffle: '추첨',
+            raffleDescription: '2026년 동안 3,500점 이상 획득한 사용자 중에서 추첨',
             firstPrize: '1등',
             flightTicket: '항공권',
             guideService: '가이드 서비스',
@@ -1005,34 +1051,121 @@ export const translations = {
       // 포인트 시스템
       pointSystem: {
         title: '포인트 시스템 안내',
+        dailyMission: {
+          title: '오늘의 미션',
+          subtitle: '오늘의 진행 상황을 확인하세요',
+          todayEarned: '오늘 획득',
+          missions: {
+            attendance: {
+              title: '출석체크',
+              points: '+10점'
+            },
+            comments: {
+              title: '댓글 작성',
+              points: '+5점'
+            },
+            likes: {
+              title: '좋아요 누르기',
+              points: '+5점'
+            },
+            freeboardPost: {
+              title: '자유게시판 작성',
+              points: '+2점'
+            },
+            storyPost: {
+              title: '스토리 작성',
+              points: '+3점'
+            },
+            fanartUpload: {
+              title: '팬아트 업로드',
+              points: '+5점'
+            },
+            idolPhotoUpload: {
+              title: '아이돌 사진 업로드',
+              points: '+5점'
+            },
+            fanartLikes: {
+              title: '팬아트 좋아요',
+              points: '+5점'
+            },
+            idolPhotoLikes: {
+              title: '아이돌 사진 좋아요',
+              points: '+5점'
+            },
+            pollVotes: {
+              title: '투표 참여',
+              points: '+3점'
+            },
+            newsComments: {
+              title: '뉴스 댓글',
+              points: '+10점'
+            },
+            share: {
+              title: '공유하기',
+              points: '+5점'
+            }
+          }
+        },
+        pointsSummary: {
+          monthlyPoints: '이번달 포인트',
+          totalPoints: '총 포인트',
+        },
         earningMethods: {
           title: '포인트 획득 방법',
-          subtitle: '커뮤니티 활동을 통해 포인트를 획득하세요! (하루 최대 +40점)',
-          points: '+5점',
-          questionWriting: {
-            title: '질문 작성',
-            description: '유의미한 질문을 올리면 포인트를 획득할 수 있어요',
-            limit: '하루 최대 3개까지만 포인트 지급'
+          subtitle: '커뮤니티 활동을 통해 포인트를 획득하세요! (하루 최대 +75점)',
+          attendanceCheck: {
+            title: '출석체크',
+            points: '+10점',
+            description: '매일 출석체크를 완료하면 포인트를 획득할 수 있어요',
+            limit: '하루 1회만 지급'
           },
-          answerWriting: {
-            title: '답변 작성',
-            description: '다른 사용자의 질문에 도움이 되는 답변을 작성하세요',
+          comments: {
+            title: '댓글 작성',
+            points: '+5점',
+            description: '댓글을 작성하면 포인트를 획득할 수 있어요',
             limit: '하루 최대 5개까지만 포인트 지급'
           },
-          storyUpload: {
-            title: '스토리 업로드',
-            description: '일상 스토리를 공유하고 포인트를 획득하세요',
-            limit: '하루 최대 2개까지만 포인트 지급'
+          likes: {
+            title: '좋아요 누르기',
+            points: '+5점',
+            description: '게시글에 좋아요를 누르면 포인트를 획득할 수 있어요',
+            limit: '하루 최대 10개까지만 포인트 지급'
           },
-          receiveLikes: {
-            title: '좋아요 받기',
-            description: '다른 사용자로부터 좋아요를 받으면 포인트를 획득!',
-            limit: '제한 없음'
+          share: {
+            title: '공유하기',
+            points: '+5점',
+            description: '게시글을 공유하면 포인트를 획득할 수 있어요',
+            limit: '하루 최대 5개까지만 포인트 지급'
+          },
+          fanartUpload: {
+            title: '팬아트 업로드',
+            points: '+5점',
+            description: '팬아트를 업로드하면 포인트를 획득할 수 있어요',
+            limit: '하루 1회만 지급'
+          },
+          idolPhotoUpload: {
+            title: '아이돌 사진 업로드',
+            points: '+5점',
+            description: '아이돌 사진을 업로드하면 포인트를 획득할 수 있어요',
+            limit: '하루 1회만 지급'
+          },
+          pollVotes: {
+            title: '투표 참여',
+            points: '+3점',
+            description: '투표에 참여하면 포인트를 획득할 수 있어요',
+            limit: '하루 최대 3개까지만 포인트 지급'
+          },
+          newsComments: {
+            title: '뉴스 댓글',
+            points: '+10점',
+            description: '뉴스에 댓글을 작성하면 포인트를 획득할 수 있어요',
+            limit: '하루 최대 5개까지만 포인트 지급'
           },
           warning: {
             title: '주의사항',
             message: '도배글, 스팸, 부적절한 내용은 오히려 계정 정지의 원인이 될 수 있습니다. 의미 있는 활동을 통해 포인트를 획득해주세요.'
-          }
+          },
+          viewMyPoints: '내 포인트 현황 보기'
         },
         usage: {
           title: '포인트 사용처',
@@ -1806,7 +1939,15 @@ export const translations = {
       experience: '경력',
       selfIntroduction: '자기소개',
       noExperience: '경력 없음',
+      myReferralCode: '내 추천인 코드',
+      copy: '복사',
+      copied: '복사됨',
+      shareReferralMessage: '친구에게 이 코드를 공유하고 이벤트에 참여하세요!',
       noSelfIntroduction: '자기소개 없음',
+      imageUpdatedSuccessfully: '프로필 이미지가 성공적으로 업데이트되었습니다!',
+      uploadFailed: '업로드 실패',
+      unknownError: '알 수 없는 오류',
+      uploadError: '업로드 중 오류가 발생했습니다.',
       nicknameFormat: '',
       student: '학생',
       worker: '직장인',
@@ -3071,7 +3212,21 @@ export const translations = {
       intermediate: 'Intermedio',
       advanced: 'Avanzado',
       noPartnersTitle: 'No hay compañeros',
-      noPartnersDescription: 'Actualmente no hay compañeros registrados. Pronto se agregarán nuevos compañeros.'
+      noPartnersDescription: 'Actualmente no hay compañeros registrados. Pronto se agregarán nuevos compañeros.',
+      interests: {
+        '한국어': 'Coreano',
+        '한국문화': 'Cultura Coreana',
+        '음식': 'Comida',
+        '여행': 'Viajes',
+        '영화': 'Películas',
+        '음악': 'Música',
+        '스포츠': 'Deportes',
+        '패션': 'Moda',
+        '게임': 'Juegos',
+        '기술': 'Tecnología',
+        '경제': 'Economía',
+        '언어교환': 'Intercambio de Idiomas'
+      }
     },
 
     // 커뮤니티 탭
@@ -3364,14 +3519,46 @@ export const translations = {
       attendanceCheck: {
         specialEvents: {
           title: 'Eventos Especiales',
+          referralEvents: {
+            title: 'Evento de Referidos',
+            subtitle: 'Invita a amigos y recibe regalos especiales',
+            viewStatus: 'Ver Mi Estado de Referidos',
+            myStatus: {
+              title: 'Mi Estado de Referidos',
+              description: 'Amigos que se registraron con mi código',
+              code: 'Mi Código de Referido',
+              noReferrals: 'Aún no has referido a ningún amigo',
+              totalCount: 'Total {count} personas',
+              joinedAt: 'Fecha de Registro'
+            },
+            grandLaunch: {
+              title: 'Evento de Gran Lanzamiento',
+              description: 'Participa automáticamente al registrarte como referido',
+              howToParticipate: 'Cómo participar',
+              step1: 'Invita a un amigo para que registre tu código de referido',
+              step2: 'Cuando tu amigo complete el registro, ¡participación automática!',
+              prize: 'Premio por Sorteo',
+              prizeDescription: '10 ganadores sorteados entre los participantes',
+              winnerCount: '10 personas'
+            },
+            acuPoint: {
+              title: 'Evento de Apertura de Acu Point',
+              description: 'Un regalo especial para quien recomiende más',
+              prize: 'Premio al 1er Lugar',
+              prizeDescription: 'Mascarilla facial + Kit de cosméticos',
+              winnerRule: '¡Gana la persona que haya recibido más referidos!'
+            }
+          },
           localEvent: {
             title: 'Evento Local',
             description: '¡Recibe un boleto de viaje a Corea!',
-            firstPrize: 'Primer Lugar',
+            raffle: 'Sorteo',
+            raffleDescription: 'Entre los usuarios que hayan obtenido 3,500 puntos o más durante el año 2026',
+            firstPrize: '1 Ganador',
             flightTicket: 'Boleto de Avión',
             guideService: 'Servicio de Guía',
             accommodation: 'Alojamiento',
-            period: 'Período'
+            period: 'Período: Enero - Diciembre 2026'
           },
           koreanEvent: {
             title: 'Evento de Coreano',
@@ -3387,34 +3574,158 @@ export const translations = {
       // 포인트 시스템
       pointSystem: {
         title: 'Guía del Sistema de Puntos',
+        dailyMission: {
+          title: 'Misiones de Hoy',
+          subtitle: 'Tu progreso de hoy',
+          todayEarned: 'Ganado Hoy',
+          earned: 'Ganado',
+          max: 'Máx',
+          points: 'puntos',
+          missions: {
+            attendance: {
+              title: 'Registro de Asistencia',
+              points: '+10 puntos'
+            },
+            comments: {
+              title: 'Comentarios',
+              points: '+1 punto',
+              limit: 'Máx 5 por día'
+            },
+          likes: {
+            title: 'Me Gusta',
+            points: '+1 punto',
+            limit: 'Máx 10 por día'
+          },
+          freeboardPost: {
+            title: 'Publicación en Tablero',
+            points: '+2 puntos'
+          },
+          storyPost: {
+            title: 'Historia Publicada',
+            points: '+3 puntos'
+          },
+          fanartUpload: {
+            title: 'Fan Art Subido',
+            points: '+5 puntos',
+            limit: '1 por día'
+          },
+          idolPhotoUpload: {
+            title: 'Fotos de Ídolos Subidas',
+            points: '+5 puntos',
+            limit: '1 por día'
+          },
+          fanartLikes: {
+            title: 'Me Gusta en Fan Art',
+            points: '+1 punto',
+            limit: 'Máx 10 por día'
+          },
+          idolPhotoLikes: {
+            title: 'Me Gusta en Fotos de Ídolos',
+            points: '+1 punto',
+            limit: 'Máx 10 por día'
+          },
+          pollVotes: {
+            title: 'Votos en Encuestas',
+            points: '+3 puntos',
+            limit: 'Máx 3 por día'
+          },
+          newsComments: {
+            title: 'Comentarios en K-Magazine',
+            points: '+2 puntos',
+            limit: 'Máx 5 por día'
+          },
+          share: {
+            title: 'Compartir',
+            points: '+3 puntos',
+            limit: 'Máx 5 por día'
+          }
+          }
+        },
+        pointsSummary: {
+          monthlyPoints: 'Puntos de este mes',
+          totalPoints: 'Puntos totales',
+        },
         earningMethods: {
           title: 'Métodos para Obtener Puntos',
-          subtitle: '¡Obtén puntos a través de actividades comunitarias! (Máximo +40 puntos por día)',
+          subtitle: '¡Obtén puntos a través de actividades comunitarias! (Máximo +75 puntos por día)',
           points: '+5 puntos',
-          questionWriting: {
-            title: 'Escribir Pregunta',
-            description: 'Puedes obtener puntos publicando preguntas significativas',
-            limit: 'Máximo 3 por día para obtener puntos'
+          attendanceCheck: {
+            title: 'Registro de Asistencia',
+            points: '+10 puntos',
+            description: 'Verifica tu asistencia diaria',
+            limit: 'Una vez por día'
           },
-          answerWriting: {
-            title: 'Escribir Respuesta',
-            description: 'Escribe respuestas útiles a las preguntas de otros usuarios',
-            limit: 'Máximo 5 por día para obtener puntos'
+          comments: {
+            title: 'Escribir Comentarios',
+            points: '+1 punto',
+            description: 'Comenta en publicaciones de otros usuarios',
+            limit: 'Máximo 5 por día'
           },
-          storyUpload: {
-            title: 'Subir Historia',
-            description: 'Comparte historias diarias y obtén puntos',
-            limit: 'Máximo 2 por día para obtener puntos'
+          likes: {
+            title: 'Dar Me Gusta',
+            points: '+1 punto',
+            description: 'Dale me gusta a publicaciones que te gusten',
+            limit: 'Máximo 10 por día'
           },
-          receiveLikes: {
-            title: 'Recibir Me Gusta',
-            description: '¡Obtén puntos cuando recibas me gusta de otros usuarios!',
+          fanartUpload: {
+            title: 'Subir Fan Art',
+            points: '+5 puntos',
+            description: 'Comparte tu arte de K-Pop',
+            limit: 'Una vez por día'
+          },
+          idolPhotoUpload: {
+            title: 'Subir Fotos de Ídolos',
+            points: '+5 puntos',
+            description: 'Comparte fotos de tus ídolos favoritos',
+            limit: 'Una vez por día'
+          },
+          fanartLikes: {
+            title: 'Me Gusta en Fan Art',
+            points: '+1 punto',
+            description: 'Apoya el arte de otros usuarios',
+            limit: 'Máximo 10 por día'
+          },
+          idolPhotoLikes: {
+            title: 'Me Gusta en Fotos de Ídolos',
+            points: '+1 punto',
+            description: 'Dale me gusta a fotos de ídolos',
+            limit: 'Máximo 10 por día'
+          },
+          pollVotes: {
+            title: 'Participar en Encuestas',
+            points: '+3 puntos',
+            description: 'Participa en encuestas de la comunidad',
+            limit: 'Máximo 3 por día'
+          },
+          newsComments: {
+            title: 'Comentar en K-Magazine',
+            points: '+2 puntos',
+            description: 'Comenta en noticias de K-Magazine',
+            limit: 'Máximo 5 por día'
+          },
+          freeboardPost: {
+            title: 'Publicar en Tablero',
+            points: '+2 puntos',
+            description: 'Escribe en el tablero por temas',
             limit: 'Sin límite'
+          },
+          storyPost: {
+            title: 'Publicar Historia',
+            points: '+3 puntos',
+            description: 'Comparte historias diarias',
+            limit: 'Máximo 2 por día'
+          },
+          share: {
+            title: 'Compartir Contenido',
+            points: '+3 puntos',
+            description: 'Comparte contenido en redes sociales',
+            limit: 'Máximo 5 por día'
           },
           warning: {
             title: 'Advertencia',
             message: 'Publicaciones spam, spam o contenido inapropiado pueden resultar en suspensión de cuenta. Por favor, obtén puntos a través de actividades significativas.'
-          }
+          },
+          viewMyPoints: 'Ver Mi Estado de Puntos'
         },
         usage: {
           title: 'Uso de Puntos',
@@ -4171,7 +4482,15 @@ export const translations = {
       experience: 'Experiencia',
       selfIntroduction: 'Autopresentación',
       noExperience: 'Sin experiencia',
+      myReferralCode: 'Mi código de referencia',
+      copy: 'Copiar',
+      copied: 'Copiado',
+      shareReferralMessage: '¡Comparte este código con amigos y participa en el evento!',
       noSelfIntroduction: 'Sin autopresentación',
+      imageUpdatedSuccessfully: '¡La imagen de perfil se ha actualizado correctamente!',
+      uploadFailed: 'Error al subir',
+      unknownError: 'Error desconocido',
+      uploadError: 'Ocurrió un error al subir la imagen.',
       nicknameFormat: '',
       student: 'Estudiante',
       worker: 'Trabajador',

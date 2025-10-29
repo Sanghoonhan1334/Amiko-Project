@@ -10,22 +10,20 @@ import { useLanguage } from '@/context/LanguageContext'
 
 interface Notification {
   id: string
-  type: 'comment' | 'like' | 'answer_accepted' | 'story_comment' | 'story_like'
+  type: 'booking_request' | 'booking_approved' | 'booking_rejected' | 'schedule_confirmed' | 'comment' | 'like' | 'answer_accepted' | 'story_comment' | 'story_like'
   title: string
   message: string
-  data?: any
+  related_id?: string | null
   is_read: boolean
   created_at: string
 }
 
 interface NotificationResponse {
   notifications: Notification[]
-  unreadCount: number
-  hasMore: boolean
 }
 
 export default function NotificationBell() {
-  const { token } = useAuth()
+  const { user } = useAuth()
   const { t } = useLanguage()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -34,48 +32,18 @@ export default function NotificationBell() {
 
   // 알림 목록 조회
   const fetchNotifications = async () => {
-    if (!token) {
-      console.log('토큰이 없어서 알림 조회 건너뜀')
+    if (!user) {
+      console.log('사용자 정보가 없어서 알림 조회 건너뜀')
       return
     }
 
     try {
       setLoading(true)
-      console.log('알림 API 호출 시작:', { token: !!token })
+      const response = await fetch('/api/notifications')
       
-      // 타임아웃 설정으로 무한 대기 방지
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5초 타임아웃
-      
-      const response = await fetch('/api/notifications?limit=10', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        signal: controller.signal
-      })
-      
-      clearTimeout(timeoutId)
-
-      console.log('알림 API 응답:', { 
-        status: response.status, 
-        statusText: response.statusText,
-        ok: response.ok 
-      })
+      console.log('알림 API 응답:', { status: response.status })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('알림 API 에러 응답:', errorData)
-        
-        // 데이터베이스 연결 문제인 경우 빈 알림으로 처리
-        if (response.status === 500 && errorData.error?.includes('데이터베이스')) {
-          console.warn('데이터베이스 연결 문제로 인해 빈 알림 목록을 반환합니다.')
-          setNotifications([])
-          setUnreadCount(0)
-          return
-        }
-        
-        // 다른 에러의 경우에도 빈 알림으로 처리하여 앱이 정상 작동하도록 함
         console.warn('알림 API 에러로 인해 빈 알림 목록을 반환합니다.')
         setNotifications([])
         setUnreadCount(0)
@@ -83,45 +51,41 @@ export default function NotificationBell() {
       }
 
       const data: NotificationResponse = await response.json()
-      console.log('알림 데이터 수신:', { 
-        notificationsCount: data.notifications?.length || 0,
-        unreadCount: data.unreadCount 
-      })
       
-      setNotifications(data.notifications)
-      setUnreadCount(data.unreadCount)
+      const unread = data.notifications?.filter(n => !n.is_read).length || 0
+      setNotifications(data.notifications || [])
+      setUnreadCount(unread)
     } catch (error) {
       console.error('알림 조회 실패:', error)
-      
-      // AbortError인 경우 타임아웃으로 처리
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log('알림 로딩 타임아웃, 빈 배열 사용')
-      }
-      
-      // 모든 에러에 대해 빈 알림으로 설정하여 앱이 정상 작동하도록 함
-      console.warn('알림 로드 실패로 인해 빈 알림 목록을 반환합니다.')
       setNotifications([])
       setUnreadCount(0)
-      
-      // 네트워크 에러인 경우 더 자세한 정보 출력
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        console.error('네트워크 에러 - 서버 연결을 확인해주세요')
-      }
     } finally {
       setLoading(false)
     }
   }
 
-  // 알림 읽음 처리
-  const markAsRead = async (notificationId: string) => {
-    if (!token) return
+  // 읽지 않은 알림 개수만 조회
+  const fetchUnreadCount = async () => {
+    if (!user) return
 
     try {
-      const response = await fetch(`/api/notifications/${notificationId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch('/api/notifications/unread-count')
+      if (response.ok) {
+        const data = await response.json()
+        setUnreadCount(data.count || 0)
+      }
+    } catch (error) {
+      console.error('알림 개수 조회 실패:', error)
+    }
+  }
+
+  // 알림 읽음 처리
+  const markAsRead = async (notificationId: string) => {
+    if (!user) return
+
+    try {
+      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'POST'
       })
 
       if (response.ok) {
@@ -139,34 +103,19 @@ export default function NotificationBell() {
     }
   }
 
-  // 알림 삭제
-  const deleteNotification = async (notificationId: string) => {
-    if (!token) return
+  // 모든 알림 읽음 처리
+  const markAllAsRead = async () => {
+    if (!user) return
 
     try {
-      const response = await fetch(`/api/notifications/${notificationId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch('/api/notifications/unread-count/read', {
+        method: 'PUT'
       })
 
       if (response.ok) {
-        setNotifications(prev => prev.filter(n => n.id !== notificationId))
-        setUnreadCount(prev => Math.max(0, prev - 1))
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+        setUnreadCount(0)
       }
-    } catch (error) {
-      console.error('알림 삭제 실패:', error)
-    }
-  }
-
-  // 모든 알림 읽음 처리
-  const markAllAsRead = async () => {
-    if (!token) return
-
-    try {
-      const unreadNotifications = notifications.filter(n => !n.is_read)
-      await Promise.all(unreadNotifications.map(n => markAsRead(n.id)))
     } catch (error) {
       console.error('모든 알림 읽음 처리 실패:', error)
     }
@@ -175,6 +124,14 @@ export default function NotificationBell() {
   // 알림 타입별 아이콘
   const getNotificationIcon = (type: string) => {
     switch (type) {
+      case 'booking_request':
+        return '📅'
+      case 'booking_approved':
+        return '✅'
+      case 'booking_rejected':
+        return '❌'
+      case 'schedule_confirmed':
+        return '⏰'
       case 'comment':
       case 'story_comment':
         return '💬'
@@ -191,6 +148,14 @@ export default function NotificationBell() {
   // 알림 타입별 색상
   const getNotificationColor = (type: string) => {
     switch (type) {
+      case 'booking_request':
+        return 'text-purple-600'
+      case 'booking_approved':
+        return 'text-green-600'
+      case 'booking_rejected':
+        return 'text-red-600'
+      case 'schedule_confirmed':
+        return 'text-blue-600'
       case 'comment':
       case 'story_comment':
         return 'text-blue-600'
@@ -224,19 +189,15 @@ export default function NotificationBell() {
 
   // 컴포넌트 마운트 시 알림 조회
   useEffect(() => {
-    if (token) {
-      // 임시로 알림 기능 비활성화 (디버깅용)
-      console.log('알림 기능이 임시로 비활성화되었습니다.')
-      setNotifications([])
-      setUnreadCount(0)
+    if (user) {
+      fetchNotifications()
+      fetchUnreadCount()
       
-      // fetchNotifications() // 주석 처리
-      
-      // 30초마다 알림 새로고침
-      // const interval = setInterval(fetchNotifications, 30000) // 주석 처리
-      // return () => clearInterval(interval) // 주석 처리
+      // 60초마다 알림 개수만 업데이트 (2배 감소)
+      const interval = setInterval(fetchUnreadCount, 60000)
+      return () => clearInterval(interval)
     }
-  }, [token])
+  }, [user])
 
   return (
     <div className="relative">
@@ -317,33 +278,23 @@ export default function NotificationBell() {
                           <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 mb-2">
                         {notification.message}
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           {formatTime(notification.created_at)}
                         </span>
-                        <div className="flex items-center gap-1">
-                          {!notification.is_read && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => markAsRead(notification.id)}
-                              className="p-1 h-6 w-6 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-                            >
-                              <Check className="w-3 h-3" />
-                            </Button>
-                          )}
+                        {!notification.is_read && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteNotification(notification.id)}
-                            className="p-1 h-6 w-6 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400"
+                            onClick={() => markAsRead(notification.id)}
+                            className="p-1 h-6 w-6 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Check className="w-3 h-3" />
                           </Button>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>

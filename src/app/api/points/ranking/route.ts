@@ -19,41 +19,42 @@ export async function GET(request: NextRequest) {
       throw rankingError
     }
 
-    // 현재 사용자의 랭킹 찾기
-    let userRank = null
-    if (userId) {
-      const { data: userRanking, error: userRankingError } = await supabase
-        .from('user_points')
-        .select(`
-          user_id,
-          total_points,
-          available_points,
-          users!inner(
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('user_id', userId)
-        .single()
-
-      if (!userRankingError && userRanking) {
-        // 전체 랭킹에서 사용자 위치 찾기
-        const { data: allRanking, error: allRankingError } = await supabase
+      // 현재 사용자의 랭킹 찾기
+      let userRank = null
+      if (userId) {
+        const { data: userRanking, error: userRankingError } = await supabase
           .from('user_points')
-          .select('user_id, total_points')
-          .order('total_points', { ascending: false })
+          .select(`
+            user_id,
+            total_points,
+            monthly_points,
+            available_points,
+            users!inner(
+              id,
+              full_name,
+              avatar_url
+            )
+          `)
+          .eq('user_id', userId)
+          .single()
 
-        if (!allRankingError) {
-          const userPosition = allRanking.findIndex((user: any) => user.user_id === userId) + 1
-          userRank = {
-            ...userRanking,
-            position: userPosition,
-            totalUsers: allRanking.length
+        if (!userRankingError && userRanking) {
+          // 전체 랭킹에서 사용자 위치 찾기
+          const { data: allRanking, error: allRankingError } = await supabase
+            .from('user_points')
+            .select('user_id, total_points')
+            .order('total_points', { ascending: false })
+
+          if (!allRankingError) {
+            const userPosition = allRanking.findIndex((user: any) => user.user_id === userId) + 1
+            userRank = {
+              ...userRanking,
+              position: userPosition,
+              totalUsers: allRanking.length
+            }
           }
         }
       }
-    }
 
     // 랭킹 데이터 포맷팅
     const formattedRanking = ranking.map((item: any, index: number) => ({

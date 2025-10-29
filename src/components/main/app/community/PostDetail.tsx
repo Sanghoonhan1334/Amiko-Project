@@ -4,13 +4,14 @@ import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Languages } from 'lucide-react'
+import { ArrowLeft, Languages, Share2 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { TranslationService } from '@/lib/translation'
 import { useRouter } from 'next/navigation'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import CommentSection from './CommentSection'
+import { shareCommunityPost } from '@/lib/share-utils'
 
 interface Post {
   id: string
@@ -269,6 +270,16 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
   }
 
+  const handleShare = async () => {
+    if (!post) return
+    
+    try {
+      await shareCommunityPost(post.id, post.title, post.content)
+    } catch (error) {
+      console.error('Share failed:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -474,6 +485,15 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                 로그인 후 투표 가능
               </span>
             )}
+            
+            {/* 공유 버튼 */}
+            <button
+              onClick={handleShare}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all cursor-pointer"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="font-medium">공유</span>
+            </button>
           </div>
         </div>
       </div>

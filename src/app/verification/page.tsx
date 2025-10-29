@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Video } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { ArrowLeft, CheckCircle, AlertCircle, Settings } from 'lucide-react'
@@ -54,7 +56,10 @@ export default function VerificationPage() {
     // 언어 수준
     korean_level: 'native', // 한국인은 기본적으로 모국어
     english_level: 'none',
-    spanish_level: 'beginner' // 스페인어 학습자들을 위해 초급으로 기본 설정
+    spanish_level: 'beginner', // 스페인어 학습자들을 위해 초급으로 기본 설정
+    
+    // 화상 채팅 파트너 등록
+    register_as_partner: false
   })
 
   // 운영자 체크 로직
@@ -269,6 +274,36 @@ export default function VerificationPage() {
         console.log('[VERIFICATION] 프로필 생성 완료:', result)
         
         console.log('[VERIFICATION] 프로필 생성 완료 - 인증 상태는 자동으로 업데이트됩니다')
+        
+        // 화상 채팅 파트너 등록이 체크되어 있으면 등록
+        if (formData.register_as_partner && user?.id) {
+          try {
+            console.log('[VERIFICATION] 화상 채팅 파트너 등록 시도')
+            const partnerResponse = await fetch('/api/conversation-partners/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: user.id,
+                name: formData.full_name,
+                language_level: '중급',
+                country: '대한민국',
+                status: 'online',
+                interests: formData.interests,
+                bio: formData.one_line_intro,
+                avatar_url: null,
+                is_korean: true
+              })
+            })
+            
+            if (partnerResponse.ok) {
+              console.log('[VERIFICATION] 화상 채팅 파트너 등록 완료')
+            } else {
+              console.log('[VERIFICATION] 화상 채팅 파트너 등록 실패:', await partnerResponse.json())
+            }
+          } catch (error) {
+            console.error('[VERIFICATION] 파트너 등록 오류:', error)
+          }
+        }
         
         // 성공 메시지 표시 후 메인 페이지로 이동
         alert('인증이 완료되었습니다!')
@@ -548,6 +583,24 @@ export default function VerificationPage() {
                     rows={4}
                     className="border-2 border-blue-200 focus:border-blue-500 rounded-lg"
                   />
+                </div>
+
+                {/* 화상 채팅 파트너 등록 */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id="register_as_partner"
+                      checked={formData.register_as_partner}
+                      onCheckedChange={(checked) => handleInputChange('register_as_partner', checked)}
+                    />
+                    <Label htmlFor="register_as_partner" className="flex items-center gap-2 cursor-pointer">
+                      <Video className="w-5 h-5 text-blue-600" />
+                      <span className="font-semibold text-gray-800">화상 채팅 파트너로 등록하기</span>
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2 ml-8">
+                    체크하시면 다른 사용자들과 화상 채팅을 할 수 있는 파트너로 등록됩니다 (선택사항)
+                  </p>
                 </div>
               </div>
             )}

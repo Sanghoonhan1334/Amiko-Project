@@ -24,6 +24,9 @@ import {
 import { diagnoseMediaDevices } from '@/lib/media-devices'
 import { useLanguage } from '@/context/LanguageContext'
 
+// Feature Flag: Agora 비활성화 (MVP 테스트 중 Google Meet 사용)
+const ENABLE_AGORA_VIDEO_CALL = false
+
 interface VideoCallProps {
   channelName: string
   onEndCall: () => void
@@ -31,6 +34,24 @@ interface VideoCallProps {
 
 export default function VideoCall({ channelName, onEndCall }: VideoCallProps) {
   const { t } = useLanguage()
+  
+  // Agora 비활성화된 경우 안내 메시지 표시
+  if (!ENABLE_AGORA_VIDEO_CALL) {
+    return (
+      <Card className="p-6 text-center">
+        <VideoOff className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold mb-2">화상 통화 기능 비활성화</h3>
+        <p className="text-gray-600 mb-4">
+          현재 MVP 테스트를 위해 Google Meet 연동이 진행 중입니다.
+          <br />
+          예약된 상담은 예약된 시간에 Google Meet로 연결됩니다.
+        </p>
+        <Button onClick={onEndCall}>
+          나가기
+        </Button>
+      </Card>
+    )
+  }
   const [isJoined, setIsJoined] = useState(false)
   const [isVideoOn, setIsVideoOn] = useState(true)
   const [isAudioOn, setIsAudioOn] = useState(true)

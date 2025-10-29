@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import TranslatedInterests from '@/components/common/TranslatedInterests'
 import UserProfileModal from '@/components/common/UserProfileModal'
+import KoreanPartnerDashboard from './KoreanPartnerDashboard'
 
 // Agora 관련 컴포넌트를 동적 임포트로 처리 (SSR 방지)
 const VideoCall = dynamic(() => import('./VideoCall'), {
@@ -39,7 +40,7 @@ interface VideoCallStarterProps {
 export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps) {
   const { t } = useLanguage()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, token: authToken, refreshSession } = useAuth()
   const [isCallActive, setIsCallActive] = useState(false)
   const [channelName, setChannelName] = useState('')
   const [showStartDialog, setShowStartDialog] = useState(false)
@@ -47,6 +48,11 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
+  const [allPartners, setAllPartners] = useState<any[]>([])
+  const [isKoreanPartner, setIsKoreanPartner] = useState(false)
+  const [bookings, setBookings] = useState<any[]>([])
+  const [mySchedules, setMySchedules] = useState<any[]>([])
+  const [showAddSchedule, setShowAddSchedule] = useState(false)
   
   // 헤더와 동일한 인증 상태 확인
   useEffect(() => {
@@ -150,64 +156,276 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   }
 
 
-  // 목업 파트너 데이터
-  const allPartners: any[] = [
-    {
-      id: '1',
-      name: '김민수',
-      language: '스페인어 중급',
-      country: '대한민국',
-      status: 'online',
-        interests: ['영화', '음악', '여행', '요리', '댄스'],
-      bio: '안녕하세요! 한국어를 가르치고 싶은 김민수입니다. 다양한 문화에 관심이 많아요!',
-      avatar: '/quizzes/mbti-with-kpop-stars/celebs/jin.webp'
-    },
-    {
-      id: '2',
-      name: '이지은',
-      language: '스페인어 초급',
-      country: '대한민국',
-      status: 'online',
-        interests: ['K-POP', '드라마', '패션', '맛집', '애니메이션'],
-      bio: 'K-POP과 한국 드라마를 좋아하는 이지은이에요. 함께 한국 문화를 나눠요!',
-      avatar: '/quizzes/mbti-with-kpop-stars/celebs/rm.jpg'
-    },
-    {
-      id: '3',
-      name: '박준호',
-      language: '스페인어 고급',
-      country: '대한민국',
-      status: 'offline',
-        interests: ['스포츠', '게임', '기술', '독서', '사진'],
-      bio: '스포츠와 게임을 좋아하는 박준호입니다. 활발한 대화를 좋아해요!',
-      avatar: '/quizzes/mbti-with-kpop-stars/celebs/suga.jpg'
-    },
-    {
-      id: '4',
-      name: 'Carlos Rodriguez',
-      language: '한국어 중급',
-      country: '멕시코',
-      status: 'online',
-      interests: ['한국어', 'K-POP', '요리', '여행', '커피'],
-      bio: '한국어를 배우고 있는 카를로스입니다. 한국 문화에 매료되었어요!',
-      avatar: null
-    },
-    {
-      id: '5',
-      name: 'Ana Martinez',
-      language: '한국어 초급',
-      country: '스페인',
-      status: 'online',
-      interests: ['한국 드라마', 'K-POP', '패션', '언어교환', '뷰티'],
-      bio: '한국 드라마를 사랑하는 아나입니다. 언어교환을 통해 소통하고 싶어요!',
-      avatar: null
+  // 내가 한국인 파트너인지 확인
+  useEffect(() => {
+    const checkIfPartner = async () => {
+      if (!user?.id) {
+        console.log('[checkIfPartner] 사용자 ID 없음')
+        setIsKoreanPartner(false)
+        return
+      }
+
+      console.log('[checkIfPartner] 파트너 확인 시작:', user.id)
+      try {
+        const response = await fetch(`/api/conversation-partners/check?userId=${user.id}`)
+        console.log('[checkIfPartner] API 응답:', response.status, response.statusText)
+        
+        if (response.ok) {
+          const data = await response.json()
+          console.log('[checkIfPartner] API 데이터:', data)
+          const isPartner = data.isPartner || data.isRegistered || false
+          console.log('[checkIfPartner] 파트너 여부:', isPartner)
+          setIsKoreanPartner(isPartner)
+          
+          // 파트너가 확실한 경우에만 예약 목록과 스케줄 가져오기
+          if (isPartner && user?.id) {
+            console.log('[checkIfPartner] 파트너 확인됨, 상태 업데이트 후 스케줄 조회 예정')
+            // 상태는 useEffect에서 자동으로 반응하여 스케줄을 가져올 것입니다
+          } else {
+            console.log('[checkIfPartner] 파트너가 아님 또는 사용자 ID 없음')
+          }
+        } else {
+          const errorText = await response.text().catch(() => '')
+          console.error('[checkIfPartner] API 실패:', response.status, errorText)
+          setIsKoreanPartner(false)
+        }
+      } catch (error) {
+        console.error('[checkIfPartner] 파트너 확인 실패:', error)
+        setIsKoreanPartner(false)
+      }
     }
-  ]
+    checkIfPartner()
+  }, [user?.id])
+
+  // 예약 목록 가져오기
+  const fetchMyBookings = async (skipCheck = false) => {
+    if (!skipCheck && (!user?.id || !isKoreanPartner)) {
+      setBookings([])
+      return
+    }
+    if (!user?.id) {
+      setBookings([])
+      return
+    }
+
+    try {
+      // 인증 헤더 생성
+      const getHeaders = async (): Promise<HeadersInit> => {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json'
+        }
+        
+        let token: string | null = authToken || null
+        
+        if (!token && typeof window !== 'undefined') {
+          token = localStorage.getItem('amiko_token')
+        }
+        
+        if (!token && typeof window !== 'undefined') {
+          try {
+            const { createClient } = await import('@supabase/supabase-js')
+            const supabase = createClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL!,
+              process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+            )
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session?.access_token) {
+              token = session.access_token
+              localStorage.setItem('amiko_token', token)
+            }
+          } catch (error) {
+            console.error('토큰 가져오기 실패:', error)
+          }
+        }
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${encodeURIComponent(token)}`
+        }
+        
+        return headers
+      }
+
+      let headers = await getHeaders()
+      let response = await fetch('/api/bookings/my-bookings', {
+        headers
+      }).catch(() => null)
+      
+      // 401 오류 발생 시 토큰 갱신 후 재시도
+      if (response?.status === 401) {
+        const refreshed = await refreshSession()
+        if (refreshed) {
+          headers = await getHeaders()
+          response = await fetch('/api/bookings/my-bookings', {
+            headers
+          }).catch(() => null)
+        }
+      }
+      
+      if (!response || response.status === 401) {
+        setBookings([])
+        return
+      }
+      
+      if (response.ok) {
+        const data = await response.json()
+        setBookings(data.bookings || [])
+      } else {
+        setBookings([])
+      }
+    } catch (error) {
+      setBookings([])
+    }
+  }
+
+  // 내 가능 시간 목록 가져오기
+  const fetchMySchedules = async (skipCheck = false) => {
+    if (!skipCheck && (!user?.id || !isKoreanPartner)) {
+      console.log('[fetchMySchedules] 스킵: 사용자 없음 또는 파트너 아님', { userId: user?.id, isKoreanPartner })
+      setMySchedules([])
+      return
+    }
+    if (!user?.id) {
+      console.log('[fetchMySchedules] 스킵: 사용자 ID 없음')
+      setMySchedules([])
+      return
+    }
+
+    console.log('[fetchMySchedules] 시작:', user.id)
+
+    try {
+      // 인증 헤더 생성
+      const getHeaders = async (): Promise<HeadersInit> => {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json'
+        }
+        
+        // 토큰 가져오기 (여러 소스에서 시도)
+        let token: string | null = authToken || null
+        
+        // AuthContext에서 토큰이 없으면 localStorage 확인
+        if (!token && typeof window !== 'undefined') {
+          token = localStorage.getItem('amiko_token')
+        }
+        
+        // 여전히 토큰이 없으면 Supabase 세션에서 가져오기 시도
+        if (!token && typeof window !== 'undefined') {
+          try {
+            const { createClient } = await import('@supabase/supabase-js')
+            const supabase = createClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL!,
+              process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+            )
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session?.access_token) {
+              token = session.access_token
+              localStorage.setItem('amiko_token', token)
+            }
+          } catch (error) {
+            console.error('토큰 가져오기 실패:', error)
+          }
+        }
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${encodeURIComponent(token)}`
+        }
+        
+        return headers
+      }
+
+      let headers = await getHeaders()
+      let response = await fetch('/api/partners/schedules', {
+        headers
+      }).catch(() => null)
+      
+      // 401 오류 발생 시 토큰 갱신 후 재시도
+      if (response?.status === 401) {
+        console.log('401 오류 발생, 토큰 갱신 시도...')
+        const refreshed = await refreshSession()
+        if (refreshed) {
+          // 갱신 후 새 헤더로 재시도
+          headers = await getHeaders()
+          response = await fetch('/api/partners/schedules', {
+            headers
+          }).catch(() => null)
+        }
+      }
+      
+      if (!response) {
+        console.error('스케줄 조회 실패: 네트워크 오류')
+        setMySchedules([])
+        return
+      }
+      
+      if (response.status === 401) {
+        console.error('스케줄 조회 실패: 인증 오류 (토큰이 없거나 만료됨)')
+        setMySchedules([])
+        return
+      }
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('[fetchMySchedules] 스케줄 조회 성공:', data.schedules?.length || 0, '개')
+        if (data.schedules && data.schedules.length > 0) {
+          console.log('[fetchMySchedules] 조회된 스케줄 상세:', data.schedules)
+        } else {
+          console.warn('[fetchMySchedules] 조회된 스케줄이 없습니다. 빈 배열이 반환되었습니다.')
+        }
+        setMySchedules(data.schedules || [])
+      } else {
+        const errorText = await response.text().catch(() => '')
+        console.error('[fetchMySchedules] 스케줄 조회 실패:', response.status, response.statusText, errorText)
+        setMySchedules([])
+      }
+    } catch (error) {
+      setMySchedules([])
+    }
+  }
+
+  // 목업 파트너 데이터
+  // 파트너 목록 가져오기
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const response = await fetch('/api/conversation-partners')
+        if (response.ok) {
+          const data = await response.json()
+          const partners = data.partners?.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            language: `${p.country === '대한민국' ? '스페인어' : '한국어'} ${p.language_level}`,
+            country: p.country,
+            status: p.status,
+            interests: p.interests || [],
+            bio: p.bio,
+            avatar: p.avatar_url
+          })) || []
+          setAllPartners(partners)
+        }
+      } catch (error) {
+        console.error('파트너 목록 가져오기 실패:', error)
+      }
+    }
+    
+    // 파트너가 아닌 경우에만 파트너 목록 가져오기
+    if (!isKoreanPartner) {
+      fetchPartners()
+    } else if (isKoreanPartner && user?.id) {
+      // 파트너로 확인되면 예약과 스케줄 가져오기
+      console.log('[useEffect isKoreanPartner] 파트너 확인됨, 스케줄 조회 시작')
+      // 약간의 지연을 주어 상태 업데이트가 완전히 완료되도록 함
+      setTimeout(() => {
+        fetchMyBookings(true)  // skipCheck=true로 호출
+        fetchMySchedules(true)  // skipCheck=true로 호출
+      }, 200)
+    }
+  }, [isKoreanPartner, user?.id])
 
   // 필터링된 파트너 목록
-  const availablePartners = showOnlyKoreans 
+  // 자기 자신은 목록에서 제외
+  const availablePartners = (showOnlyKoreans 
     ? allPartners.filter(partner => partner.country === '대한민국')
     : allPartners
+  ).filter(partner => partner.id !== user?.id)  // 자기 자신 제외
 
   return (
     <>
@@ -220,6 +438,15 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       )}
 
       {/* 메인 화면 */}
+      {/* 한국인 파트너인 경우 대시보드 표시 */}
+      {isKoreanPartner ? (
+        <KoreanPartnerDashboard 
+          bookings={bookings}
+          mySchedules={mySchedules}
+          onRefresh={fetchMyBookings}
+          onScheduleRefresh={fetchMySchedules}
+        />
+      ) : (
       <div className="space-y-4 md:space-y-6 px-1 md:px-0">
         {/* 빠른 시작 */}
         <div className="w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-blue-100 dark:border-gray-600 p-3 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-700" data-tutorial="quick-start">
@@ -339,7 +566,10 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                       <div className="relative">
                         <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                           {partner.avatar ? (
-                            <AvatarImage src={partner.avatar} alt={partner.name} />
+                            <AvatarImage 
+                              src={`${partner.avatar}?t=${Date.now()}`} 
+                              alt={partner.name}
+                            />
                           ) : null}
                           <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium">
                             {partner.name.charAt(0)}
@@ -394,14 +624,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                               return
                             }
                             
-                            // 인증 체크 - 화상채팅 참여는 인증이 필요
-                            if (!checkAuthAndRedirect(user, router, '화상채팅 참여')) {
-                              return
-                            }
-                            
-                            // 인증된 사용자는 화상채팅 시작
-                            setChannelName(`partner-${partner.id}`)
-                            setShowStartDialog(true)
+                            // 예약 페이지로 이동
+                            router.push(`/booking/create?partnerId=${partner.id}`)
                           }
                         }}
                         className={partner.status === 'online' 
@@ -422,7 +646,10 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                       <div className="relative">
                         <Avatar className="w-10 h-10 border-2 border-white shadow-md">
                           {partner.avatar ? (
-                            <AvatarImage src={partner.avatar} alt={partner.name} />
+                            <AvatarImage 
+                              src={`${partner.avatar}?t=${Date.now()}`} 
+                              alt={partner.name}
+                            />
                           ) : null}
                           <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 font-medium text-sm">
                             {partner.name.charAt(0)}
@@ -492,14 +719,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                               return
                             }
                             
-                            // 인증 체크 - 화상채팅 참여는 인증이 필요
-                            if (!checkAuthAndRedirect(user, router, '화상채팅 참여')) {
-                              return
-                            }
-                            
-                            // 인증된 사용자는 화상채팅 시작
-                            setChannelName(`partner-${partner.id}`)
-                            setShowStartDialog(true)
+                            // 예약 페이지로 이동 (partnerId 포함)
+                            router.push(`/booking/create?partnerId=${partner.id}`)
                           }
                         }}
                         className={`flex-1 text-xs py-2 ${
@@ -528,6 +749,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         </div>
 
       </div>
+      )}
 
       {/* 채팅 시작 다이얼로그 */}
       <Dialog open={showStartDialog} onOpenChange={setShowStartDialog}>
@@ -588,7 +810,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           }}
         />
       </div>
-
     </>
   )
 }

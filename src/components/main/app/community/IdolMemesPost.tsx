@@ -43,7 +43,7 @@ export default function IdolMemesPost({ post, theme }: IdolMemesPostProps) {
     }
 
     try {
-      const res = await fetch(`/api/idol-memes/${post.id}/like`, {
+      const res = await fetch(`/api/idol-photos/${post.id}/like`, {
         method: isLiked ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -60,7 +60,7 @@ export default function IdolMemesPost({ post, theme }: IdolMemesPostProps) {
   }
 
   const handleClick = () => {
-    router.push(`/community/idol-memes/${post.id}`)
+    router.push(`/community/idol-photos/${post.id}`)
   }
 
   const isDark = theme === 'night'

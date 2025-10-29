@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Share2, Heart, MessageCircle, Edit, Trash2, Pin, PinOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { shareContent } from '@/lib/share-utils'
 
 interface NewsDetailProps {
   news: {
@@ -124,17 +125,17 @@ export default function NewsDetail({
     }
   }
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: news.title,
-        text: news.content.substring(0, 100) + '...',
-        url: window.location.href
-      })
-    } else {
-      navigator.clipboard.writeText(window.location.href)
-      alert('링크가 클립보드에 복사되었습니다!')
-    }
+  const handleShare = async () => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const webUrl = `${baseUrl}/community/news/${news.id}`
+    const deepLink = `amiko://community/news/${news.id}`
+    
+    await shareContent({
+      title: news.title,
+      text: news.content.substring(0, 100) + '...',
+      url: webUrl,
+      deepLink
+    })
   }
 
   return (

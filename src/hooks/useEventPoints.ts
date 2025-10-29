@@ -72,8 +72,9 @@ export function useEventPoints() {
       return { pointsData, rankingData }
     },
     enabled: !!user?.id,
-    staleTime: 2 * 60 * 1000, // 2분간 캐시 유지
-    refetchInterval: 30 * 1000, // 30초마다 백그라운드에서 업데이트
+    staleTime: 3 * 60 * 1000, // 3분간 캐시 유지
+    refetchInterval: 90 * 1000, // 90초마다 업데이트 (3배 감소)
+    refetchIntervalInBackground: false, // 백그라운드에서는 폴링 안 함
     retry: 2,
   })
 }

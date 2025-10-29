@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
       isKorean,
       emailVerified = false,
       phoneVerified = false,
-      biometricEnabled = false
+      biometricEnabled = false,
+      referralCode = ''
     } = await request.json()
 
     // 필수 필드 검증
@@ -162,6 +163,53 @@ export async function POST(request: NextRequest) {
               phone_verified: false, // 전화번호 인증은 별도로 진행
               created_at: new Date().toISOString()
             })
+
+          // 본인의 추천인 코드 생성
+          try {
+            const { data: myCodeData, error: codeGenError } = await supabaseServer
+              .rpc('generate_referral_code')
+
+            if (codeGenError) {
+              console.error('[SIGNUP] 추천인 코드 생성 실패:', codeGenError)
+            } else {
+              const myReferralCode = myCodeData
+              console.log('[SIGNUP] 본인 추천인 코드 생성:', myReferralCode)
+              
+              // 추천인 찾기
+              let referredBy = null
+              if (referralCode && referralCode.trim() !== '') {
+                const { data: referrer, error: findError } = await supabaseServer
+                  .from('referrals')
+                  .select('user_id')
+                  .eq('referral_code', referralCode.toUpperCase())
+                  .single()
+
+                if (!findError && referrer) {
+                  referredBy = referrer.user_id
+                  console.log('[SIGNUP] 추천인 찾음:', referredBy)
+                } else {
+                  console.log('[SIGNUP] 추천인을 찾을 수 없음:', referralCode)
+                }
+              }
+
+              // 추천인 정보 저장
+              const { error: referralError } = await supabaseServer
+                .from('referrals')
+                .insert({
+                  user_id: userId,
+                  referral_code: myReferralCode,
+                  referred_by: referredBy
+                })
+
+              if (referralError) {
+                console.error('[SIGNUP] 추천인 코드 저장 실패:', referralError)
+              } else {
+                console.log('[SIGNUP] 추천인 코드 저장 성공')
+              }
+            }
+          } catch (error) {
+            console.error('[SIGNUP] 추천인 코드 처리 중 오류:', error)
+          }
 
           if (userError) {
             console.error('[SIGNUP] users 테이블 저장 실패:', userError)

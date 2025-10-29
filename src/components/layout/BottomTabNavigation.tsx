@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { 
@@ -17,21 +17,31 @@ import {
 export default function BottomTabNavigation() {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('home')
 
-  // 현재 경로에 따라 활성 탭 설정
+  // 현재 경로 및 URL 파라미터에 따라 활성 탭 설정
   useEffect(() => {
     if (pathname === '/main') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const tab = urlParams.get('tab') || 'home'
+      const tab = searchParams.get('tab') || 'home'
       setActiveTab(tab)
     } else if (pathname.startsWith('/community')) {
       // 커뮤니티 서브페이지에서는 커뮤니티 탭을 활성화
       setActiveTab('community')
     }
-  }, [pathname])
+  }, [pathname, searchParams])
+
+  // 메인 페이지에서 발생하는 탭 변경 이벤트 감지
+  useEffect(() => {
+    const handleMainTabChanged = (event: CustomEvent) => {
+      setActiveTab(event.detail.tab)
+    }
+
+    window.addEventListener('mainTabChanged', handleMainTabChanged as EventListener)
+    return () => window.removeEventListener('mainTabChanged', handleMainTabChanged as EventListener)
+  }, [])
 
   const tabs = [
     {

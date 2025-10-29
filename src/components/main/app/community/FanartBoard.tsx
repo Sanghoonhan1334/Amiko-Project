@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { Plus, TrendingUp, Clock, Grid3x3, List as ListIcon } from 'lucide-react'
+import { Plus, TrendingUp, Clock, Grid3x3, List as ListIcon, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import FanartUploadModal from './FanartUploadModal'
 
 interface FanartPost {
   id: string
@@ -14,123 +16,52 @@ interface FanartPost {
   likes_count: number
   comments_count: number
   views: number
-  thumbnail_url: string
+  image_url: string
   category: string
   is_pinned?: boolean
+  is_liked?: boolean
   created_at: string
 }
 
 type ViewMode = 'grid' | 'list'
 type SortType = 'popular' | 'recent'
 
-// Mock data for fan art
-const mockFanarts: FanartPost[] = [
-  {
-    id: '1',
-    title: 'BTS Jimin Portrait',
-    author_name: 'ArtLover99',
-    likes_count: 245,
-    comments_count: 12,
-    views: 1234,
-    thumbnail_url: '/covers/jisoo.png',
-    category: 'Portrait',
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    title: 'NewJeans Fan Art',
-    author_name: 'DrawMaster',
-    likes_count: 567,
-    comments_count: 45,
-    views: 3421,
-    thumbnail_url: '/misc/1.png',
-    category: 'Group',
-    is_pinned: true,
-    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '3',
-    title: 'BLACKPINK Chibi Style',
-    author_name: 'ChibiArtist',
-    likes_count: 890,
-    comments_count: 78,
-    views: 5678,
-    thumbnail_url: '/misc/2.png',
-    category: 'Chibi',
-    created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '4',
-    title: 'Aespa Karina Digital Art',
-    author_name: 'DigitalArts',
-    likes_count: 432,
-    comments_count: 23,
-    views: 2345,
-    thumbnail_url: '/misc/3.png',
-    category: 'Digital',
-    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '5',
-    title: 'Stray Kids Fan Art',
-    author_name: 'SKZ_Fan',
-    likes_count: 321,
-    comments_count: 34,
-    views: 1890,
-    thumbnail_url: '/misc/1.png',
-    category: 'Group',
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '6',
-    title: 'IU Watercolor Painting',
-    author_name: 'WatercolorPro',
-    likes_count: 654,
-    comments_count: 56,
-    views: 4123,
-    thumbnail_url: '/misc/2.png',
-    category: 'Traditional',
-    created_at: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
-  },
-]
-
-const categories = ['All', 'Portrait', 'Group', 'Chibi', 'Digital', 'Traditional']
+const categories = ['All', 'Portrait', 'Group', 'Chibi', 'Digital', 'Traditional', 'Other']
 
 export default function FanartBoard() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [sortBy, setSortBy] = useState<SortType>('popular')
   const [activeCategory, setActiveCategory] = useState('All')
   const [posts, setPosts] = useState<FanartPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [showUploadModal, setShowUploadModal] = useState(false)
 
   useEffect(() => {
     fetchFanarts()
-  }, [sortBy, activeCategory])
+  }, [sortBy, activeCategory, token])
 
   const fetchFanarts = async () => {
     setLoading(true)
     try {
-      // API call would go here
-      // For now, use mock data
-      let data = [...mockFanarts]
+      const params = new URLSearchParams({
+        sort: sortBy,
+        category: activeCategory,
+      })
       
-      // Sort
-      if (sortBy === 'popular') {
-        data.sort((a, b) => b.likes_count - a.likes_count)
-      } else {
-        data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
       }
       
-      // Filter by category
-      if (activeCategory !== 'All') {
-        data = data.filter(post => post.category === activeCategory)
-      }
+      const res = await fetch(`/api/fanart?${params}`, { headers })
+      const data = await res.json()
       
-      setPosts(data)
+      setPosts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Failed to fetch fan arts:', error)
-      setPosts(mockFanarts)
+      setPosts([])
     } finally {
       setLoading(false)
     }
@@ -155,14 +86,14 @@ export default function FanartBoard() {
       {/* Header */}
       <div className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => router.push('/main?tab=community')}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <h1 className="text-2xl font-bold text-gray-900">Fan Art</h1>
-            {user && (
-              <Button className="flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Subir Fan Art
-              </Button>
-            )}
           </div>
 
           {/* Categories */}
@@ -247,7 +178,7 @@ export default function FanartBoard() {
                     <Link key={post.id} href={`/community/fanart/${post.id}`}>
                       <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer">
                         <Image
-                          src={post.thumbnail_url}
+                          src={post.image_url}
                           alt={post.title}
                           fill
                           className="object-cover"
@@ -267,58 +198,102 @@ export default function FanartBoard() {
             )}
 
             {/* Regular Posts */}
-            {viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {regularPosts.map(post => (
-                  <Link key={post.id} href={`/community/fanart/${post.id}`}>
-                    <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer">
-                      <Image
-                        src={post.thumbnail_url}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-3 flex flex-col justify-end">
-                        <p className="text-white text-sm font-semibold truncate">{post.title}</p>
-                        <div className="flex items-center gap-3 mt-1 text-white text-xs">
-                          <span>♥ {post.likes_count}</span>
-                          <span>💬 {post.comments_count}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {regularPosts.map(post => (
-                  <Link key={post.id} href={`/community/fanart/${post.id}`}>
-                    <div className="flex gap-4 p-3 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+            {regularPosts.length > 0 ? (
+              viewMode === 'grid' ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {regularPosts.map(post => (
+                    <Link key={post.id} href={`/community/fanart/${post.id}`}>
+                      <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer">
                         <Image
-                          src={post.thumbnail_url}
+                          src={post.image_url}
                           alt={post.title}
                           fill
                           className="object-cover"
                         />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">{post.title}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{post.author_name}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                          <span>♥ {post.likes_count}</span>
-                          <span>💬 {post.comments_count}</span>
-                          <span>{getTimeAgo(post.created_at)}</span>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-3 flex flex-col justify-end">
+                          <p className="text-white text-sm font-semibold truncate">{post.title}</p>
+                          <div className="flex items-center gap-3 mt-1 text-white text-xs">
+                            <span>♥ {post.likes_count}</span>
+                            <span>💬 {post.comments_count}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {regularPosts.map(post => (
+                    <Link key={post.id} href={`/community/fanart/${post.id}`}>
+                      <div className="flex gap-4 p-3 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                          <Image
+                            src={post.image_url}
+                            alt={post.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">{post.title}</h3>
+                          <p className="text-sm text-gray-500 mt-1">{post.author_name}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                            <span>♥ {post.likes_count}</span>
+                            <span>💬 {post.comments_count}</span>
+                            <span>{getTimeAgo(post.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )
+            ) : (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-100">
+                  <span className="text-4xl">🎨</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-700">
+                  No hay fan art aún
+                </h3>
+                <p className="text-sm mb-6 text-gray-500">
+                  ¡Sube el primer fan art!
+                </p>
+                {user && (
+                  <Button
+                    onClick={() => setShowUploadModal(true)}
+                    className="px-6"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Subir
+                  </Button>
+                )}
               </div>
             )}
           </>
         )}
       </div>
+
+      {/* Upload Button */}
+      {user && (
+        <Button
+          size="lg"
+          className="fixed bottom-8 right-8 rounded-full shadow-2xl h-16 w-16 p-0 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white z-50 transition-all duration-300 hover:scale-110"
+          onClick={() => setShowUploadModal(true)}
+        >
+          <Plus className="w-10 h-10 drop-shadow-lg stroke-[3]" />
+        </Button>
+      )}
+
+      {/* Upload Modal */}
+      <FanartUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onSuccess={() => {
+          setShowUploadModal(false)
+          fetchFanarts()
+        }}
+      />
     </div>
   )
 }

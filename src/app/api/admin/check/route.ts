@@ -8,10 +8,13 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get('email')
 
     if (!userId && !email) {
-      return NextResponse.json(
-        { error: '사용자 ID 또는 이메일이 필요합니다.' },
-        { status: 400 }
-      )
+      // 에러 대신 기본값 반환
+      return NextResponse.json({
+        success: true,
+        isAdmin: false,
+        adminInfo: null,
+        message: '일반 사용자입니다.'
+      })
     }
 
     // 운영진 여부 확인

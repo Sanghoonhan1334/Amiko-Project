@@ -27,6 +27,8 @@ interface Event {
   title: string
   description: string
   image: string
+  bannerMobile?: string
+  bannerDesktop?: string
   date: string
   participants: number
 }
@@ -178,6 +180,8 @@ export default function HomeTab() {
           title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Evento de Sorteo de Boletos de Avión a Corea',
           description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : '¡Participa en la comunidad y gana boletos de avión a Corea!',
           image: '/misc/event-title.png',
+          bannerMobile: '/banners/evento-apartura-mobile.png',
+          bannerDesktop: '/banners/evento-apartura-desktop.png',
           date: language === 'ko' ? '2026년 말' : 'Fin de año de 2026',
           participants: 324
         },
@@ -186,6 +190,8 @@ export default function HomeTab() {
           title: language === 'ko' ? 'ACU-POINT 화장품 이벤트' : 'Evento de Cosméticos ACU-POINT',
           description: language === 'ko' ? '가장 많이 사용한 사람에게 매월 선크림 + 마스크팩 세트를 공짜로 드립니다!' : '¡La persona que más use la comunidad recibe un set mensual de protector solar + mascarilla GRATIS!',
           image: '/misc/event-title.png',
+          bannerMobile: '/banners/gran-lanzamiento-mobile.png',
+          bannerDesktop: '/banners/gran-lanzamiento-desktop.png',
           date: language === 'ko' ? '1월부터 매달 진행' : 'Mensual desde enero - ¡GRATIS!',
           participants: 156
         }
@@ -578,18 +584,19 @@ export default function HomeTab() {
                       className="w-full flex-shrink-0 cursor-pointer"
                       onClick={() => router.push('/main?tab=event')}
                     >
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-between p-4 md:p-4 hover:shadow-lg transition-shadow rounded-lg">
-                        <div className="flex-1">
-                          <h3 className="text-white font-bold text-base md:text-lg mb-2 md:mb-1">{event.title}</h3>
-                          <p className="text-white/90 text-xs md:text-sm mb-3 md:mb-2">{event.description}</p>
-                          <div className="flex items-center gap-4">
-                            <span className="text-white/80 text-xs">{event.date}</span>
-                          </div>
-                        </div>
-                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Calendar className="w-8 h-8 text-white" />
-                        </div>
-                      </div>
+                      {/* 모바일 배너 */}
+                      <img 
+                        src={event.bannerMobile || event.image} 
+                        alt={event.title}
+                        className="w-full h-full object-cover block min-[430px]:hidden"
+                      />
+                      
+                      {/* 데스크톱 배너 (430px 이상) */}
+                      <img 
+                        src={event.bannerDesktop || event.image} 
+                        alt={event.title}
+                        className="w-full h-full object-cover hidden min-[430px]:block"
+                      />
                     </div>
                   ))}
                 </div>
@@ -861,11 +868,9 @@ export default function HomeTab() {
       )}
     </div>
 
-        {/* 데스크톱 버전 - 적당한 크기로 조정 */}
-        <div className="hidden md:block max-w-6xl mx-auto p-6 pt-20 pb-4">
-          <div className="grid grid-cols-12 gap-6">
-            {/* 왼쪽 컬럼 (8/12) */}
-            <div className="col-span-8 space-y-4">
+        {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
+        <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
+          <div className="space-y-4">
             
             {/* 공지사항 - 데스크톱 버전 */}
             {notices.length > 0 && (
@@ -959,22 +964,17 @@ export default function HomeTab() {
                             className="w-full flex-shrink-0 cursor-pointer"
                             onClick={() => router.push('/main?tab=event')}
                           >
-                            <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-between p-6 relative overflow-hidden hover:shadow-xl transition-all duration-300 rounded-lg">
-                              {/* 배경 장식 */}
-                              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-                              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
-                              
-                              <div className="flex-1">
-                                <h3 className="text-white font-bold text-lg mb-3 leading-tight">{event.title}</h3>
-                                <p className="text-white/90 text-sm mb-4 max-w-2xl leading-relaxed">{event.description}</p>
-                                <div className="flex items-center gap-3">
-                                  <span className="text-white/80 text-sm bg-transparent px-3 py-1 rounded-full">{event.date}</span>
-                                </div>
-                              </div>
-                              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Calendar className="w-6 h-6 text-white" />
-                              </div>
-                            </div>
+                            {/* 배너 이미지 (430px 기준으로 변경) */}
+                            <img 
+                              src={event.bannerDesktop || event.image} 
+                              alt={event.title}
+                              className="w-full h-full object-cover rounded-lg hidden min-[430px]:block"
+                            />
+                            <img 
+                              src={event.bannerMobile || event.image} 
+                              alt={event.title}
+                              className="w-full h-full object-cover rounded-lg block min-[430px]:hidden"
+                            />
                           </div>
                         ))}
                       </div>
@@ -1088,11 +1088,8 @@ export default function HomeTab() {
                 </Card>
               )}
             </div>
-          </div>
 
-            {/* 오른쪽 컬럼 (4/12) */}
-            <div className="col-span-4 space-y-4">
-            {/* 인기 심리테스트 - 데스크톱 전용 사이드바 (위로 이동) */}
+            {/* 인기 심리테스트 */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -1205,7 +1202,6 @@ export default function HomeTab() {
             )}
           </div>
         </div>
-      </div>
 
 
     </>

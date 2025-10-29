@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import NotificationBell from '@/components/notifications/NotificationBell'
 export default function Header() {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { language, t, toggleLanguage } = useLanguage()
   const { user, signOut } = useAuth()
   const [activeMainTab, setActiveMainTab] = useState('home')
@@ -39,8 +40,30 @@ export default function Header() {
   const [localTime, setLocalTime] = useState('')
   const [showTimeDetails, setShowTimeDetails] = useState(false)
   
+  // 두 번째 시간대 관리 (기본값: 멕시코)
+  const [secondaryTimezone, setSecondaryTimezone] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('secondary-timezone')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch {
+          return { code: 'MEX', flag: '🇲🇽', name: 'México', timezone: 'America/Mexico_City' }
+        }
+      }
+    }
+    return { code: 'MEX', flag: '🇲🇽', name: 'México', timezone: 'America/Mexico_City' }
+  })
+  
   // 언어 드롭다운 상태 관리
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
+  
+  // 사용 가능한 시간대 목록
+  const timezoneOptions = [
+    { code: 'MEX', flag: '🇲🇽', name: language === 'ko' ? '멕시코' : 'México', timezone: 'America/Mexico_City', color: 'blue' },
+    { code: 'PER', flag: '🇵🇪', name: language === 'ko' ? '페루' : 'Perú', timezone: 'America/Lima', color: 'green' },
+    { code: 'COL', flag: '🇨🇴', name: language === 'ko' ? '콜롬비아' : 'Colombia', timezone: 'America/Bogota', color: 'purple' },
+  ]
 
   // 시계 업데이트 함수
   const updateClock = () => {
@@ -54,16 +77,24 @@ export default function Header() {
       hour12: false
     })
     
-    // 멕시코 시간
-    const mexicoTimeStr = now.toLocaleString('ko-KR', {
-      timeZone: 'America/Mexico_City',
+    // 선택된 두 번째 시간대
+    const secondaryTimeStr = now.toLocaleString('ko-KR', {
+      timeZone: secondaryTimezone.timezone,
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
     })
     
     setKoreanTime(koreanTimeStr)
-    setLocalTime(mexicoTimeStr)
+    setLocalTime(secondaryTimeStr)
+  }
+  
+  // 두 번째 시간대 변경 함수
+  const handleTimezoneChange = (timezoneInfo: any) => {
+    setSecondaryTimezone(timezoneInfo)
+    localStorage.setItem('secondary-timezone', JSON.stringify(timezoneInfo))
+    // 즉시 시간 업데이트
+    updateClock()
   }
 
   // 포인트 로딩 함수 - 실제 데이터베이스 연결
@@ -131,13 +162,29 @@ export default function Header() {
     }
   }, [user?.id, user?.email])
 
+  // 언어 변경 시 secondaryTimezone 이름 업데이트
+  useEffect(() => {
+    const nameMap: { [key: string]: { ko: string, es: string } } = {
+      'MEX': { ko: '멕시코', es: 'México' },
+      'PER': { ko: '페루', es: 'Perú' },
+      'COL': { ko: '콜롬비아', es: 'Colombia' },
+    }
+    
+    if (nameMap[secondaryTimezone.code]) {
+      setSecondaryTimezone(prev => ({
+        ...prev,
+        name: nameMap[prev.code][language as 'ko' | 'es']
+      }))
+    }
+  }, [language])
+  
   // 시계 초기화 및 주기적 업데이트
   useEffect(() => {
     updateClock() // 즉시 업데이트
     const timer = setInterval(updateClock, 1000) // 1초마다 업데이트
     
     return () => clearInterval(timer)
-  }, [])
+  }, [secondaryTimezone])
 
   // 시계 및 언어 드롭다운 외부 클릭으로 닫기
   useEffect(() => {
@@ -202,11 +249,20 @@ export default function Header() {
   // URL 파라미터에 따라 상단 네비게이션 활성 탭 설정
   useEffect(() => {
     if (pathname === '/main') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const tab = urlParams.get('tab') || 'home'
+      const tab = searchParams.get('tab') || 'home'
       setActiveMainTab(tab)
     }
-  }, [pathname])
+  }, [pathname, searchParams])
+
+  // 메인 페이지에서 발생하는 탭 변경 이벤트 감지
+  useEffect(() => {
+    const handleMainTabChanged = (event: CustomEvent) => {
+      setActiveMainTab(event.detail.tab)
+    }
+
+    window.addEventListener('mainTabChanged', handleMainTabChanged as EventListener)
+    return () => window.removeEventListener('mainTabChanged', handleMainTabChanged as EventListener)
+  }, [])
 
   // 인증 상태 및 포인트 확인
   useEffect(() => {
@@ -350,6 +406,17 @@ export default function Header() {
     }
   }
 
+  // 상세 페이지 체크 (전체 헤더 숨김)
+  const isDetailPage = pathname.includes('/community/fanart/') || 
+                       pathname.includes('/community/idol-photos/') ||
+                       pathname.includes('/community/polls/') ||
+                       pathname.includes('/community/news/')
+
+  // 상세 페이지에서는 헤더 전체 숨김
+  if (isDetailPage) {
+    return null
+  }
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 [isolation:isolate] bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
@@ -451,7 +518,7 @@ export default function Header() {
                         mixBlendMode: 'normal' as any
                       }}
                     >
-                      🇲🇽 {localTime}
+                      {secondaryTimezone.flag} {localTime}
                     </span>
                   </div>
                 </div>
@@ -508,7 +575,10 @@ export default function Header() {
                         </div>
                         
                         {/* 멕시코 */}
-                        <div className="relative overflow-hidden bg-blue-50 dark:bg-gray-700 rounded-xl p-3 border border-blue-100 dark:border-gray-600 transition-all duration-300">
+                        <button
+                          onClick={() => handleTimezoneChange({ code: 'MEX', flag: '🇲🇽', name: language === 'ko' ? '멕시코' : 'México', timezone: 'America/Mexico_City' })}
+                          className="w-full relative overflow-hidden bg-blue-50 dark:bg-gray-700 rounded-xl p-3 border border-blue-100 dark:border-gray-600 transition-all duration-300 hover:bg-blue-100 dark:hover:bg-gray-600"
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 dark:from-blue-500 dark:to-cyan-600 rounded-full flex items-center justify-center shadow-sm">
@@ -538,10 +608,13 @@ export default function Header() {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </button>
                         
                         {/* 페루 */}
-                        <div className="relative overflow-hidden bg-green-50 dark:bg-gray-700 rounded-xl p-3 border border-green-100 dark:border-gray-600 transition-all duration-300">
+                        <button
+                          onClick={() => handleTimezoneChange({ code: 'PER', flag: '🇵🇪', name: language === 'ko' ? '페루' : 'Perú', timezone: 'America/Lima' })}
+                          className="w-full relative overflow-hidden bg-green-50 dark:bg-gray-700 rounded-xl p-3 border border-green-100 dark:border-gray-600 transition-all duration-300 hover:bg-green-100 dark:hover:bg-gray-600"
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 dark:from-green-500 dark:to-emerald-600 rounded-full flex items-center justify-center shadow-sm">
@@ -571,10 +644,13 @@ export default function Header() {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </button>
                         
                         {/* 콜롬비아 */}
-                        <div className="relative overflow-hidden bg-purple-50 dark:bg-gray-700 rounded-xl p-3 border border-purple-100 dark:border-gray-600 transition-all duration-300">
+                        <button
+                          onClick={() => handleTimezoneChange({ code: 'COL', flag: '🇨🇴', name: language === 'ko' ? '콜롬비아' : 'Colombia', timezone: 'America/Bogota' })}
+                          className="w-full relative overflow-hidden bg-purple-50 dark:bg-gray-700 rounded-xl p-3 border border-purple-100 dark:border-gray-600 transition-all duration-300 hover:bg-purple-100 dark:hover:bg-gray-600"
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-violet-500 dark:from-purple-500 dark:to-violet-600 rounded-full flex items-center justify-center shadow-sm">
@@ -604,7 +680,7 @@ export default function Header() {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </button>
                       </div>
                     </div>
                     
@@ -663,8 +739,8 @@ export default function Header() {
 
               {/* 네비게이션 */}
               <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 md:-mt-8 relative z-[100] ml-[12px]">
-                {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') ? (
-                  // 랜딩페이지에서는 네비게이션 제거 - 아코디언으로 모든 정보 제공
+                {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership' || isDetailPage) ? (
+                  // 랜딩페이지 및 상세 페이지에서는 네비게이션 제거
                   <></>
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)

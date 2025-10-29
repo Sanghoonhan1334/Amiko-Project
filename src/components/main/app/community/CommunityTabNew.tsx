@@ -187,35 +187,30 @@ export default function CommunityTabNew() {
             }
           ])
           
-          setPopularTests([
-            {
-              id: '1',
-              title: '내가 가장 잘 맞는 K-POP 아이돌은?',
-              description: '성격으로 알아보는 나의 아이돌',
-              participants: 1250,
-              image: '/quizzes/mbti-with-kpop-stars/cover/cover.png',
-              category: 'meme',
-              rating: 4.8
-            },
-            {
-              id: '2',
-              title: '한국어 실력 테스트',
-              description: '나의 한국어 수준은?',
-              participants: 890,
-              image: '/quizzes/mbti-with-kpop-stars/celebs/jennie.png',
-              category: 'culture',
-              rating: 4.6
-            },
-            {
-              id: '3',
-              title: '내 성격은 어떤 한국 드라마 주인공?',
-              description: '성격으로 알아보는 드라마 캐릭터',
-              participants: 634,
-              image: '/quizzes/mbti-with-kpop-stars/celebs/iu.png',
-              category: 'personality',
-              rating: 4.7
-            }
-          ])
+          // 실제 퀴즈 API 호출
+          const quizzesResponse = await fetch('/api/quizzes')
+          if (quizzesResponse.ok) {
+            const quizzesData = await quizzesResponse.json()
+            const quizzes = quizzesData.data || []
+            
+            // 참여 수가 많은 순으로 정렬하고 상위 4개만 선택
+            const sortedQuizzes = quizzes
+              .sort((a: any, b: any) => (b.total_participants || 0) - (a.total_participants || 0))
+              .slice(0, 4)
+            
+            setPopularTests(sortedQuizzes.map((quiz: any) => ({
+              id: quiz.id,
+              title: quiz.title,
+              description: quiz.description,
+              participants: quiz.total_participants || 0,
+              image: quiz.thumbnail_url || '/default-quiz.png',
+              category: quiz.category || 'other',
+              rating: 4.5
+            })))
+          } else {
+            // API 실패 시 빈 배열
+            setPopularTests([])
+          }
           
           setKoreanNews([
             {
@@ -709,7 +704,7 @@ export default function CommunityTabNew() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     <Users className="w-3 h-3 text-gray-500" />
-                    <span className="text-xs text-gray-500">{formatNumber(test.participants)}</span>
+                    <span className="text-xs text-gray-500">▷ {formatNumber(test.participants)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Star className="w-3 h-3 text-yellow-500 fill-current" />

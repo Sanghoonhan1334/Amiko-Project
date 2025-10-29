@@ -137,18 +137,139 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const router = useRouter()
   const [isNavigating, setIsNavigating] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
+  const [closingSubmenu, setClosingSubmenu] = useState<string | null>(null)
+  const [showOverlay, setShowOverlay] = useState(false)
   const submenuRef = useRef<HTMLDivElement>(null)
+  
+  // 드래그 앤 드롭 관련 state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [isDraggingMode, setIsDraggingMode] = useState(false)
+  
+  // 서브아이템 순서 저장 state
+  const [subItemOrders, setSubItemOrders] = useState<Record<string, number[]>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('subitem-orders')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch {}
+      }
+    }
+    return {}
+  })
+  
+  // 서브메뉴 위치 조정 state (각 메뉴별로 독립적으로 관리)
+  const [submenuPositions, setSubmenuPositions] = useState<Record<string, { x: number; y: number }>>(() => {
+    // localStorage에서 복원
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('submenu-positions')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch {
+          // 파싱 실패 시 기본값
+        }
+      }
+    }
+    // 기본값: 385px 화면 기준 rem 단위 (1rem = 16px)
+    // -147px = -9.1875rem, -143px = -8.9375rem
+    return {
+      'story-boards': { x: -147, y: -143 },
+      'k-culture': { x: -147, y: -143 }
+    }
+  })
+  
+  // px를 rem으로 변환하는 함수 (브라우저 기본 폰트 크기 16px 기준)
+  const pxToRem = (px: number) => px / 16
+  
+  // 드래그 관련 state
+  const [isDraggingSubmenu, setIsDraggingSubmenu] = useState(false)
+  const [currentDraggingMenu, setCurrentDraggingMenu] = useState<string | null>(null)
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
+  
+  // 서브메뉴 위치 드래그 핸들러
+  const handleSubmenuMouseDown = useCallback((e: React.MouseEvent, menuId: string) => {
+    if (e.button !== 0) return // 왼쪽 버튼만
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingSubmenu(true)
+    setCurrentDraggingMenu(menuId)
+    setDragStartPos({ x: e.clientX, y: e.clientY })
+  }, [])
+  
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingSubmenu && currentDraggingMenu) {
+        const deltaX = e.clientX - dragStartPos.x
+        const deltaY = e.clientY - dragStartPos.y
+        setSubmenuPositions(prev => ({
+          ...prev,
+          [currentDraggingMenu]: {
+            x: (prev[currentDraggingMenu]?.x || 0) + deltaX,
+            y: (prev[currentDraggingMenu]?.y || 0) + deltaY
+          }
+        }))
+        setDragStartPos({ x: e.clientX, y: e.clientY })
+      }
+    }
+    
+    const handleMouseUp = () => {
+      if (isDraggingSubmenu && currentDraggingMenu) {
+        // localStorage에 저장
+        if (typeof window !== 'undefined') {
+          const updated = submenuPositions
+          localStorage.setItem('submenu-positions', JSON.stringify(updated))
+          console.log(`✅ ${currentDraggingMenu} 서브메뉴 위치 저장됨:`, updated[currentDraggingMenu])
+        }
+        setIsDraggingSubmenu(false)
+        setCurrentDraggingMenu(null)
+      }
+    }
+    
+    if (isDraggingSubmenu) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDraggingSubmenu, currentDraggingMenu, dragStartPos, submenuPositions])
   
   // 서브메뉴 토글 핸들러
   const handleToggleSubmenu = useCallback((itemId: string) => {
-    setActiveSubmenu(activeSubmenu === itemId ? null : itemId)
+    if (activeSubmenu === itemId) {
+      // 닫기 애니메이션 시작
+      setClosingSubmenu(itemId)
+      setShowOverlay(false)
+      
+      // 애니메이션 완료 후 상태 업데이트
+      setTimeout(() => {
+        setActiveSubmenu(null)
+        setClosingSubmenu(null)
+      }, 500) // 0.3s 애니메이션 + 최대 0.2s 딜레이
+    } else {
+      // 열기
+      setActiveSubmenu(itemId)
+      setShowOverlay(true)
+    }
   }, [activeSubmenu])
   
   // 외부 클릭 감지 - 서브메뉴 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (submenuRef.current && !submenuRef.current.contains(event.target as Node)) {
-        setActiveSubmenu(null)
+        // 닫기 애니메이션 시작
+        if (activeSubmenu) {
+          setClosingSubmenu(activeSubmenu)
+          setShowOverlay(false)
+          
+          setTimeout(() => {
+            setActiveSubmenu(null)
+            setClosingSubmenu(null)
+          }, 500)
+        }
       }
     }
     
@@ -196,6 +317,20 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     .submenu-exit {
       animation: slideOutToTop 0.3s ease-out forwards;
     }
+    @keyframes overlayFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes overlayFadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    .overlay-fade-in {
+      animation: overlayFadeIn 0.3s ease-out forwards;
+    }
+    .overlay-fade-out {
+      animation: overlayFadeOut 0.3s ease-out forwards;
+    }
   `
   
   // 네비게이션 핸들러 - 즉시 스켈레톤 표시
@@ -213,6 +348,70 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     
     // 로딩 상태는 페이지 전환 후 자동으로 해제됨
   }, [router, isNavigating, onViewChange])
+  
+  // 드래그 앤 드롭 핸들러
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    setIsDraggingMode(true)
+    e.dataTransfer.effectAllowed = 'move'
+  }, [])
+  
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }, [])
+  
+  const handleDragEnd = useCallback(() => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+    // 드래그 종료 후 약간의 지연을 두고 isDraggingMode 해제
+    setTimeout(() => setIsDraggingMode(false), 100)
+  }, [])
+  
+  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number, itemId: string) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null)
+      setDragOverIndex(null)
+      return
+    }
+    
+    // 현재 순서 가져오기 (없으면 원래 순서)
+    const item = communityItems.find(i => i.id === itemId)
+    if (!item || !item.subItems) return
+    
+    const currentOrder = subItemOrders[itemId] || item.subItems.map((_, i) => i)
+    const newOrder = [...currentOrder]
+    
+    // 드래그된 아이템의 원래 인덱스 찾기
+    const draggedOriginalIndex = currentOrder[draggedIndex]
+    // 드롭 위치의 원래 인덱스 찾기  
+    const dropOriginalIndex = currentOrder[dropIndex]
+    
+    // 순서 업데이트
+    const draggedIndexInOrder = newOrder.indexOf(draggedOriginalIndex)
+    newOrder.splice(draggedIndexInOrder, 1)
+    const dropIndexInOrder = newOrder.indexOf(dropOriginalIndex)
+    newOrder.splice(dropIndexInOrder, 0, draggedOriginalIndex)
+    
+    // 새 순서 저장
+    setSubItemOrders(prev => {
+      const updated = { ...prev, [itemId]: newOrder }
+      // localStorage에 저장
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('subitem-orders', JSON.stringify(updated))
+        console.log(`✅ ${itemId} 서브아이템 순서 저장됨:`, newOrder, '→', newOrder.map(idx => item.subItems![idx].title))
+      }
+      return updated
+    })
+    
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }, [draggedIndex, subItemOrders])
+  
+  // 서브메뉴 위치 드래그 핸들러 - 비활성화됨 (위치 고정)
+  /* 드래그 기능은 제거되었고, 저장된 위치만 사용합니다 */
   
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
@@ -2235,18 +2434,18 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                {/* Grid 2×3 - Mobile first design */}
                <div className="w-full px-4 py-6 max-w-md md:max-w-xl mx-auto relative">
                  {/* 오버레이 - 서브메뉴가 열렸을 때 다른 카드 클릭 방지 */}
-                 <AnimatePresence>
-                   {activeSubmenu && (
-                     <motion.div 
-                       initial={{ opacity: 0 }}
-                       animate={{ opacity: 1 }}
-                       exit={{ opacity: 0 }}
-                       transition={{ duration: 0.3 }}
-                       className="absolute inset-0 bg-white z-40 rounded-xl pointer-events-auto"
-                       onClick={() => setActiveSubmenu(null)}
-                     />
-                   )}
-                 </AnimatePresence>
+                 {(activeSubmenu || closingSubmenu) && (
+                   <div 
+                     className={`absolute inset-0 bg-white z-40 rounded-xl pointer-events-auto ${
+                       closingSubmenu ? 'overlay-fade-out' : 'overlay-fade-in'
+                     }`}
+                     onClick={() => {
+                       if (activeSubmenu) {
+                         handleToggleSubmenu(activeSubmenu)
+                       }
+                     }}
+                   />
+                 )}
                  <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:gap-8 overflow-visible relative">
                    {communityItems.map((item, index) => (
                      <div 
@@ -2254,7 +2453,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        ref={activeSubmenu === item.id ? submenuRef : null}
                        className={`relative overflow-visible ${index === 4 ? 'col-start-1 col-end-3 flex justify-center' : ''} ${
                          activeSubmenu === item.id ? 'z-50' : activeSubmenu ? 'z-30 opacity-0 pointer-events-none' : ''
-                       } transition-opacity duration-300 ease-out`}
+                       }`}
                      >
                        <div className={`${index === 4 ? 'w-full max-w-[calc(50%-0.5rem)]' : 'w-full'} overflow-visible`}>
                          <CommunityCard
@@ -2268,16 +2467,39 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        </div>
                        
                        {/* Tableros 바로 밑에 세로 일렬 서브메뉴 */}
-                       <AnimatePresence mode="wait">
-                         {activeSubmenu === item.id && item.subItems && (
-                           <motion.div 
-                             initial={{ opacity: 0, y: -20 }}
-                             animate={{ opacity: 1, y: 0 }}
-                             exit={{ opacity: 0, y: -20 }}
-                             transition={{ duration: 0.3, ease: 'easeOut' }}
-                             className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
-                           >
-                           {item.subItems.map((subItem, subIndex) => {
+                       {(activeSubmenu === item.id || closingSubmenu === item.id) && item.subItems && (
+                          <div className="relative">
+                            <div 
+                              onMouseDown={(e) => {
+                                if (!(e.target as HTMLElement).closest('button')) {
+                                  e.preventDefault()
+                                  handleSubmenuMouseDown(e, item.id)
+                                }
+                              }}
+                              style={{ 
+                                transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)` 
+                              }}
+                              className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max group cursor-move ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
+                            >
+                              {/* 드래그 핸들 표시 */}
+                              <div className="absolute top-0 left-0 right-0 h-2 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-purple-100 dark:bg-purple-900/30 rounded-t-lg pointer-events-none">
+                                <div className="flex gap-1">
+                                  <div className="w-1 h-1 rounded-full bg-purple-500"></div>
+                                  <div className="w-1 h-1 rounded-full bg-purple-500"></div>
+                                  <div className="w-1 h-1 rounded-full bg-purple-500"></div>
+                                </div>
+                              </div>
+                           {(() => {
+                             // 저장된 순서 사용
+                             const order = subItemOrders[item.id] || item.subItems!.map((_, i) => i)
+                             const sortedSubItems = order.map(idx => ({ subItem: item.subItems![idx], originalIndex: idx }))
+                             
+                             return sortedSubItems.map(({ subItem, originalIndex: subItemIdx }, subIndex) => {
+                               const isClosing = closingSubmenu === item.id
+                               const itemDelay = isClosing 
+                                 ? `${(item.subItems!.length - 1 - subIndex) * 0.05}s` 
+                                 : `${subIndex * 0.05}s`
+                               const animationType = isClosing ? 'slideOutToTop' : 'slideInFromTop'
                              // 제휴사 링크가 있는 경우 (partners)
                              if (item.id === 'partners' && item.partnerLinks) {
                                return (
@@ -2285,8 +2507,14 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                    key={subItem.id}
                                    className="w-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-500 rounded-lg p-3 shadow-md"
                                    style={{
-                                     animationDelay: `${index * 0.1}s`,
-                                     animation: 'slideInFromTop 0.3s ease-out forwards'
+                                     opacity: isClosing ? 1 : 0,
+                                     transform: isClosing ? 'translateY(0)' : 'translateY(-20px)',
+                                     animationName: animationType,
+                                     animationDuration: '0.3s',
+                                     animationTimingFunction: 'ease-out',
+                                     animationFillMode: 'forwards',
+                                     animationDelay: itemDelay,
+                                     transition: 'none'
                                    }}
                                  >
                                    {/* 제휴사 정보 */}
@@ -2323,34 +2551,73 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                              }
                              
                              // 일반 서브메뉴 아이템
+                             const isDragEnabled = item.id === 'story-boards' && !isClosing
+                             const isDragging = draggedIndex === subIndex
+                             const isDragOver = dragOverIndex === subIndex
+                             
                              return (
                                <button
                                  key={subItem.id}
-                                   onClick={() => handleNavigation(subItem.route)}
-                                   className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 bg-white dark:bg-gray-800 shadow-md focus:outline-none"
+                                   onClick={(e) => {
+                                     if (!isDraggingMode) {
+                                       e.stopPropagation()
+                                       handleNavigation(subItem.route)
+                                     }
+                                   }}
+                                   draggable={isDragEnabled}
+                                   onDragStart={(e) => {
+                                     e.stopPropagation()
+                                     if (isDragEnabled) handleDragStart(e, subIndex)
+                                   }}
+                                   onDragOver={(e) => isDragEnabled && handleDragOver(e, subIndex)}
+                                   onDragEnd={() => isDragEnabled && handleDragEnd()}
+                                   onDrop={(e) => {
+                                     e.stopPropagation()
+                                     if (isDragEnabled) handleDrop(e, subIndex, item.id)
+                                   }}
+                                   onMouseDown={(e) => e.stopPropagation()}
+                                   data-original-index={subItemIdx}
+                                   className={`flex items-center gap-3 p-3 rounded-lg border-2 focus:outline-none relative group ${
+                                     isDragging 
+                                       ? 'cursor-grabbing' 
+                                       : isDragOver 
+                                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                                       : 'border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md'
+                                   }`}
                                    style={{
-                                     animationDelay: `${subIndex * 0.1}s`,
-                                     animation: 'slideInFromTop 0.3s ease-out forwards'
+                                     opacity: isClosing ? 1 : isDragging ? 0.5 : 0,
+                                     transform: isClosing ? 'translateY(0)' : 'translateY(-20px)',
+                                     animationName: animationType,
+                                     animationDuration: '0.3s',
+                                     animationTimingFunction: 'ease-out',
+                                     animationFillMode: 'forwards',
+                                     animationDelay: itemDelay,
+                                     transition: 'none',
+                                     cursor: isDragEnabled ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+                                     position: 'relative',
+                                     zIndex: 10
                                    }}
                                  >
                                    {subItem.icon.startsWith('/') ? (
                                      <img 
                                        src={subItem.icon} 
                                        alt={subItem.title}
-                                       className="w-6 h-6 flex-shrink-0 object-contain"
+                                       className="w-8 h-8 flex-shrink-0 object-contain select-none pointer-events-none"
+                                       draggable={false}
                                      />
                                    ) : (
-                                     <div className="text-xl flex-shrink-0">{subItem.icon}</div>
+                                     <div className="text-2xl flex-shrink-0 select-none pointer-events-none">{subItem.icon}</div>
                                    )}
-                                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap select-none pointer-events-none">
                                      {subItem.title}
                                    </div>
                                  </button>
-                               )
-                           })}
-                           </motion.div>
-                         )}
-                       </AnimatePresence>
+                              )
+                             })
+                           })()}
+                            </div>
+                          </div>
+                        )}
                      </div>
                    ))}
                  </div>

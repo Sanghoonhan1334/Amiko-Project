@@ -139,7 +139,16 @@ export default function CommunityCard({
       {/* Título - Fixed height for alignment */}
       <div className="h-12 md:h-14 flex items-center justify-center mb-0 md:mb-1">
         <h3 className="text-xs md:text-base font-semibold text-[#111827] dark:text-gray-100 text-center leading-tight">
-          {item.title}
+          {item.id === 'story-boards' ? (
+            <>
+              <span className="md:hidden">
+                Historia y<br />Tableros
+              </span>
+              <span className="hidden md:inline">{item.title}</span>
+            </>
+          ) : (
+            item.title
+          )}
         </h3>
       </div>
 

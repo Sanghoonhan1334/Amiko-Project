@@ -88,11 +88,25 @@ export async function POST(request: NextRequest) {
     
     console.log('[PROFILE_UPLOAD] 공개 URL 생성:', publicUrl)
 
-    // 사용자 테이블의 avatar_url 업데이트
+    // 기존 profile_images 배열 가져오기
+    const { data: currentUser } = await supabaseServer
+      .from('users')
+      .select('profile_images')
+      .eq('id', userId)
+      .single()
+    
+    const existingImages = currentUser?.profile_images || []
+    // 새 이미지를 배열 맨 앞에 추가 (가장 최근 이미지가 첫 번째)
+    const updatedImages = [publicUrl, ...existingImages]
+    
+    // 사용자 테이블의 avatar_url과 profile_images 업데이트
     console.log('[PROFILE_UPLOAD] 사용자 테이블 업데이트 시작')
     const { data: updateData, error: updateError } = await supabaseServer
       .from('users')
-      .update({ avatar_url: publicUrl })
+      .update({ 
+        avatar_url: publicUrl,
+        profile_images: updatedImages
+      })
       .eq('id', userId)
       .select()
 

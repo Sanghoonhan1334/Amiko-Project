@@ -41,7 +41,7 @@ export default function IdolMemesBoard() {
 
   useEffect(() => {
     fetchPosts()
-  }, [sortBy, category])
+  }, [sortBy, category, token])
 
   const fetchPosts = async () => {
     setLoading(true)
@@ -50,7 +50,15 @@ export default function IdolMemesBoard() {
         sort: sortBy,
         category: category,
       })
-      const res = await fetch(`/api/idol-memes?${params}`)
+      
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const res = await fetch(`/api/idol-photos?${params}`, {
+        headers
+      })
       const data = await res.json()
       // 실제 API 데이터만 사용
       setPosts(Array.isArray(data) ? data : [])
@@ -78,7 +86,7 @@ export default function IdolMemesBoard() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-3">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push('/main?tab=community')}
               className={`p-2 rounded-lg transition-colors ${
                 isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
               }`}

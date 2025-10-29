@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Trophy, Users, Gift, TrendingUp, Video } from 'lucide-react';
 
 interface DashboardStats {
   totalPayments: number;
@@ -135,6 +137,51 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 포인트 랭킹 & 이벤트 관리 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 포인트 랭킹 링크 */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/admin/points'}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <Trophy className="w-6 h-6 text-yellow-500" />
+              포인트 랭킹
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">사용자 포인트 순위 및 통계 확인</p>
+            <Button variant="outline" className="w-full">랭킹 확인하기</Button>
+          </CardContent>
+        </Card>
+
+        {/* 이벤트 관리 링크 */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/admin/events'}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <Gift className="w-6 h-6 text-purple-500" />
+              이벤트 관리
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">추천인 이벤트 및 월별 포인트 이벤트 관리</p>
+            <Button variant="outline" className="w-full">이벤트 관리하기</Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 화상 채팅 관리 추가 */}
+      <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/admin/conversation-partners'}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <Video className="w-6 h-6 text-blue-500" />
+            화상 채팅 파트너 관리
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 mb-4">AI 화상 채팅 대화상대 등록 및 관리</p>
+          <Button variant="outline" className="w-full">파트너 관리하기</Button>
+        </CardContent>
+      </Card>
 
       {/* 최근 결제 및 예약 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

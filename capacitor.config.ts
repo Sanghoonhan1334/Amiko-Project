@@ -8,6 +8,20 @@ const config: CapacitorConfig = {
     // Production: Vercel 서버
     url: 'https://www.helloamiko.com',
     cleartext: false
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#ffffff',
+      showSpinner: false
+    }
+  },
+  // Deep linking 설정
+  app: {
+    // Android Intent URI scheme
+    customUrlScheme: 'amiko',
+    // iOS Universal Links
+    // universalLinks: ['https://www.helloamiko.com']
   }
 };
 
