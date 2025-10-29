@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -33,7 +33,7 @@ interface Story {
   }
 }
 
-export default function StoriesPage() {
+function StoriesPageContent() {
   const router = useRouter()
   const { t } = useLanguage()
   const { user, token, session } = useAuth()
@@ -1918,5 +1918,20 @@ export default function StoriesPage() {
       )}
 
     </div>
+  )
+}
+
+export default function StoriesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <StoriesPageContent />
+    </Suspense>
   )
 }
