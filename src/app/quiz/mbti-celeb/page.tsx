@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -9,6 +9,14 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { toast } from 'sonner'
 import { useLanguage } from '@/context/LanguageContext'
+
+function HeaderFallback() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16">
+      {/* Header skeleton */}
+    </header>
+  )
+}
 
 // MBTI 테스트 질문 데이터
 
@@ -147,7 +155,9 @@ export default function MBTICelebTestPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
-      <Header />
+      <Suspense fallback={<HeaderFallback />}>
+        <Header />
+      </Suspense>
       
       {/* 테스트 진행 화면 */}
       <div className="pt-32 pb-8 px-2">
@@ -254,7 +264,9 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
   const [selectedCeleb, setSelectedCeleb] = useState<any>(null)
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
-      <Header />
+      <Suspense fallback={<HeaderFallback />}>
+        <Header />
+      </Suspense>
       
       <div className="pt-32 pb-8 px-2">
         <div className="max-w-4xl mx-auto px-2">
