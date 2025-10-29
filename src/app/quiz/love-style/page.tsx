@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -9,6 +9,14 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { toast } from 'sonner'
 import { useLanguage } from '@/context/LanguageContext'
+
+function HeaderFallback() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16">
+      {/* Header skeleton */}
+    </header>
+  )
+}
 
 // 연애 스타일 테스트 질문 데이터
 interface LoveStyleResult {
@@ -384,7 +392,9 @@ export default function LoveStyleTestPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <Header />
+      <Suspense fallback={<HeaderFallback />}>
+        <Header />
+      </Suspense>
       
       <div className="max-w-2xl mx-auto px-4 py-8 pt-24">
         {/* 헤더 */}
@@ -482,7 +492,9 @@ function LoveStyleResultComponent({
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <Header />
+      <Suspense fallback={<HeaderFallback />}>
+        <Header />
+      </Suspense>
       
       <div className="max-w-4xl mx-auto px-4 py-8 pt-24">
         {/* 결과 카드 */}
