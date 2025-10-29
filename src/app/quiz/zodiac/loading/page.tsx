@@ -14,6 +14,14 @@ function HeaderFallback() {
   )
 }
 
+function BottomTabNavigationFallback() {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 border-t-2 border-blue-200 h-16 md:hidden">
+      {/* BottomTabNavigation skeleton */}
+    </div>
+  )
+}
+
 export default function ZodiacLoadingPage() {
   const router = useRouter()
   const { language } = useLanguage()
@@ -74,7 +82,9 @@ export default function ZodiacLoadingPage() {
         </div>
       </div>
 
-      <BottomTabNavigation />
+      <Suspense fallback={<BottomTabNavigationFallback />}>
+        <BottomTabNavigation />
+      </Suspense>
     </div>
   )
 }
