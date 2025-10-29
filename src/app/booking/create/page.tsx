@@ -821,12 +821,61 @@ function CreateBookingPageContent() {
                         </p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           {availableSlots.map((slot) => {
-                            // 현재 시간 기준으로 과거 시간대인지 확인
+                            // 사용자 timezone 기준으로 과거 시간대인지 확인
+                            // slot.date와 slot.start_time은 이미 사용자 timezone으로 변환된 값
+                            // 사용자 timezone의 현재 날짜/시간과 직접 비교
+                            
                             const now = new Date()
-                            const slotDateTime = new Date(`${slot.date}T${slot.start_time}:00`)
-                            const isPast = slotDateTime.getTime() < now.getTime()
-                            const isTooSoon = slotDateTime.getTime() - now.getTime() < 30 * 60 * 1000 // 30분 미만
+                            const formatter = new Intl.DateTimeFormat('en-CA', {
+                              timeZone: userTimezone,
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })
+                            
+                            // 현재 시간을 사용자 timezone으로 포맷팅
+                            const nowParts = formatter.formatToParts(now)
+                            const nowYear = nowParts.find(p => p.type === 'year')?.value || '0'
+                            const nowMonth = nowParts.find(p => p.type === 'month')?.value || '0'
+                            const nowDay = nowParts.find(p => p.type === 'day')?.value || '0'
+                            const nowHour = nowParts.find(p => p.type === 'hour')?.value || '0'
+                            const nowMinute = nowParts.find(p => p.type === 'minute')?.value || '0'
+                            
+                            const nowDateStr = `${nowYear}-${nowMonth}-${nowDay}`
+                            const nowTimeStr = `${nowHour.padStart(2, '0')}:${nowMinute.padStart(2, '0')}`
+                            
+                            // 날짜 비교
+                            const isPastDate = slot.date < nowDateStr
+                            // 같은 날짜인 경우 시간 비교
+                            const isPastTime = slot.date === nowDateStr && slot.start_time < nowTimeStr
+                            const isPast = isPastDate || isPastTime
+                            
+                            // 30분 미만인지 확인 (같은 날짜이고 과거가 아닌 경우만)
+                            let isTooSoon = false
+                            if (slot.date === nowDateStr && !isPast) {
+                              const [slotHour, slotMinute] = slot.start_time.split(':').map(Number)
+                              const [currentHour, currentMinute] = nowTimeStr.split(':').map(Number)
+                              const slotTotalMinutes = slotHour * 60 + slotMinute
+                              const currentTotalMinutes = currentHour * 60 + currentMinute
+                              const diffMinutes = slotTotalMinutes - currentTotalMinutes
+                              isTooSoon = diffMinutes < 30
+                            }
+                            
                             const isUnavailable = isPast || isTooSoon
+                            
+                            if (isPast || isTooSoon) {
+                              console.log('[예약 생성] 시간 슬롯 체크:', {
+                                slot: `${slot.date} ${slot.start_time}`,
+                                userTimezone,
+                                nowInUserTimezone: `${nowDateStr} ${nowTimeStr}`,
+                                isPast,
+                                isTooSoon,
+                                isUnavailable
+                              })
+                            }
                             
                             return (
                               <button

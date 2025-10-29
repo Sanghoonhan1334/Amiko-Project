@@ -465,7 +465,7 @@ export default function KoreanPartnerDashboard({
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <Clock className="w-3 h-3" />
-                            <span>{booking.start_time} - {booking.end_time}</span>
+                            <span>{booking.start_time} - {booking.end_time} {language === 'es' ? '(KST)' : '(한국 시간)'}</span>
                           </div>
                           {booking.topic && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{booking.topic}</p>
@@ -682,7 +682,7 @@ export default function KoreanPartnerDashboard({
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {booking.date} {booking.start_time} - {booking.end_time}
+                          {booking.date} {booking.start_time} - {booking.end_time} {language === 'es' ? '(KST)' : '(한국 시간)'}
                         </p>
                         {booking.topic && <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">주제: {booking.topic}</p>}
                       </div>
@@ -732,7 +732,7 @@ export default function KoreanPartnerDashboard({
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-2">
                           <Clock className="w-3 h-3" />
-                          {booking.date} {booking.start_time} - {booking.end_time}
+                          {booking.date} {booking.start_time} - {booking.end_time} {language === 'es' ? '(KST)' : '(한국 시간)'}
                         </p>
                         {booking.meet_url && (
                           <div className="mt-2">

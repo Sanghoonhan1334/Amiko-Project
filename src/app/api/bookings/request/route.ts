@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseClient } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabaseServer'
 import { convertUserTimezoneToKST } from '@/lib/timezone-converter'
 
 // 현지인이 한국인 친구에게 예약 요청
@@ -9,10 +10,47 @@ export async function POST(request: NextRequest) {
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
+      // 사용자 언어는 아직 확인 전이므로 일단 기본 메시지 (다음에 getErrorMessage로 대체)
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
+        { error: 'Se requiere autenticación.' },
         { status: 401 }
       )
+    }
+
+    // 사용자 언어 결정 (signup 시 선택한 country 기반)
+    let userLanguage = 'es' // 기본값: 스페인어
+    try {
+      const supabaseServer = createServerSupabaseClient()
+      const { data: { user: authUser }, error: adminError } = await supabaseServer.auth.admin.getUserById(user.id)
+      
+      if (adminError) {
+        console.error('[booking-request] admin.getUserById 오류:', adminError)
+      } else {
+        const signupCountry = authUser?.user_metadata?.country
+        if (signupCountry === 'KR') {
+          userLanguage = 'ko'
+        } else {
+          userLanguage = 'es'
+        }
+        console.log('[booking-request] 사용자 언어 결정:', { signupCountry, userLanguage })
+      }
+    } catch (error) {
+      console.error('[booking-request] 사용자 언어 확인 실패, 기본값 사용:', error)
+    }
+
+    // 에러 메시지 번역 함수
+    const getErrorMessage = (key: 'auth_required' | 'missing_info' | 'too_soon' | 'schedule_not_found' | 'slot_unavailable' | 'request_failed' | 'error_occurred' | 'invalid_recurring_format') => {
+      const messages: Record<string, { ko: string; es: string }> = {
+        auth_required: { ko: '인증이 필요합니다.', es: 'Se requiere autenticación.' },
+        missing_info: { ko: '필수 정보가 누락되었습니다.', es: 'Falta información requerida.' },
+        too_soon: { ko: '예약은 최소 30분 전에 신청해야 합니다.', es: 'La reserva debe solicitarse al menos 30 minutos antes.' },
+        schedule_not_found: { ko: '해당 반복 스케줄을 찾을 수 없습니다.', es: 'No se pudo encontrar el horario recurrente correspondiente.' },
+        slot_unavailable: { ko: '해당 시간에 예약할 수 없습니다.', es: 'No se puede reservar en este horario.' },
+        request_failed: { ko: '예약 요청 생성 실패', es: 'Error al crear la solicitud de reserva.' },
+        error_occurred: { ko: '예약 요청 생성 중 오류 발생', es: 'Ocurrió un error al crear la solicitud de reserva.' },
+        invalid_recurring_format: { ko: '반복 스케줄 ID 형식이 올바르지 않습니다.', es: 'El formato del ID del horario recurrente no es válido.' }
+      }
+      return messages[key]?.[userLanguage] || messages[key]?.es || 'Error desconocido.'
     }
 
     const body = await request.json()
@@ -22,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     if (!partner_id || !date || !start_time || !end_time) {
       return NextResponse.json(
-        { error: '필수 정보가 누락되었습니다.' },
+        { error: getErrorMessage('missing_info') },
         { status: 400 }
       )
     }
@@ -43,16 +81,44 @@ export async function POST(request: NextRequest) {
       console.log('[booking-request] user_id로 직접 사용:', actualPartnerId)
     }
 
-    // 사용자 타임존 조회
-    let userTimezone = 'Asia/Seoul'
-    const { data: preferences } = await supabase
-      .from('user_preferences')
-      .select('timezone')
-      .eq('user_id', user.id)
-      .single()
-
-    if (preferences?.timezone) {
-      userTimezone = preferences.timezone
+    // 사용자 타임존 조회 (signup 시 선택한 country 기반)
+    let userTimezone = 'America/Lima' // 기본값: 페루
+    try {
+      const supabaseServer = createServerSupabaseClient()
+      const { data: { user: authUser }, error: adminError } = await supabaseServer.auth.admin.getUserById(user.id)
+      
+      if (adminError) {
+        console.error('[booking-request] admin.getUserById 오류 (timezone):', adminError)
+      } else {
+        const signupCountry = authUser?.user_metadata?.country
+        
+        // country 코드에 따른 timezone 매핑
+        const countryTimezoneMap: Record<string, string> = {
+          'KR': 'Asia/Seoul',
+          'PE': 'America/Lima',
+          'CO': 'America/Bogota',
+          'MX': 'America/Mexico_City',
+          'CL': 'America/Santiago',
+          'AR': 'America/Buenos_Aires',
+          'BR': 'America/Sao_Paulo'
+        }
+        
+        if (signupCountry && countryTimezoneMap[signupCountry]) {
+          userTimezone = countryTimezoneMap[signupCountry]
+        } else {
+          // fallback: user_preferences에서 확인
+          const { data: preferences } = await supabase
+            .from('user_preferences')
+            .select('timezone')
+            .eq('user_id', user.id)
+            .single()
+          if (preferences?.timezone) {
+            userTimezone = preferences.timezone
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[booking-request] 사용자 타임존 확인 실패, 기본값 사용:', error)
     }
 
     // 사용자가 선택한 시간은 사용자 타임존 기준이므로, KST로 변환
@@ -61,14 +127,47 @@ export async function POST(request: NextRequest) {
     const kstStartTime = schedule_id ? undefined : kstDateAndTime.time
     const kstEndTime = end_time ? convertUserTimezoneToKST(date, end_time, userTimezone).time : undefined
 
-    // 30분 이내 시간 체크 (사용자 타임존 기준)
+    // 30분 이내 시간 체크 (사용자 타임존 기준으로 정확하게)
     const now = new Date()
-    const slotDateTime = new Date(`${date}T${start_time}`)
-    const minutesUntilSlot = (slotDateTime.getTime() - now.getTime()) / (1000 * 60)
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: userTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
     
-    if (minutesUntilSlot < 30) {
+    const nowParts = formatter.formatToParts(now)
+    const nowYear = nowParts.find(p => p.type === 'year')?.value || '0'
+    const nowMonth = nowParts.find(p => p.type === 'month')?.value || '0'
+    const nowDay = nowParts.find(p => p.type === 'day')?.value || '0'
+    const nowHour = nowParts.find(p => p.type === 'hour')?.value || '0'
+    const nowMinute = nowParts.find(p => p.type === 'minute')?.value || '0'
+    
+    const nowDateStr = `${nowYear}-${nowMonth}-${nowDay}`
+    const nowTimeStr = `${nowHour.padStart(2, '0')}:${nowMinute.padStart(2, '0')}`
+    
+    // 사용자 timezone의 현재 날짜/시간과 비교
+    const isPastDate = date < nowDateStr
+    const isPastTime = date === nowDateStr && start_time < nowTimeStr
+    const isPast = isPastDate || isPastTime
+    
+    // 30분 미만인지 확인 (같은 날짜이고 과거가 아닌 경우만)
+    let isTooSoon = false
+    if (date === nowDateStr && !isPast) {
+      const [slotHour, slotMinute] = start_time.split(':').map(Number)
+      const [currentHour, currentMinute] = nowTimeStr.split(':').map(Number)
+      const slotTotalMinutes = slotHour * 60 + slotMinute
+      const currentTotalMinutes = currentHour * 60 + currentMinute
+      const diffMinutes = slotTotalMinutes - currentTotalMinutes
+      isTooSoon = diffMinutes < 30
+    }
+    
+    if (isPast || isTooSoon) {
       return NextResponse.json(
-        { error: '예약은 최소 30분 전에 신청해야 합니다.' },
+        { error: getErrorMessage('too_soon') },
         { status: 400 }
       )
     }
@@ -82,12 +181,12 @@ export async function POST(request: NextRequest) {
         .select('*')
         .eq('id', schedule_id)
         .eq('partner_id', actualPartnerId)
-        .eq('status', 'available')
-        .single()
+      .eq('status', 'available')
+      .single()
       
       if (!slot) {
         return NextResponse.json(
-          { error: '해당 시간에 예약할 수 없습니다.' },
+          { error: getErrorMessage('slot_unavailable') },
           { status: 400 }
         )
       }
@@ -111,7 +210,7 @@ export async function POST(request: NextRequest) {
       if (!timePattern.test(lastPart)) {
         console.error('[booking-request] 반복 스케줄 ID 파싱 실패:', schedule_id, '마지막 부분:', lastPart)
         return NextResponse.json(
-          { error: '반복 스케줄 ID 형식이 올바르지 않습니다.' },
+          { error: getErrorMessage('invalid_recurring_format') },
           { status: 400 }
         )
       }
@@ -147,7 +246,7 @@ export async function POST(request: NextRequest) {
         console.log('[booking-request] 해당 partner_id의 모든 반복 스케줄:', allRecurring)
         
         return NextResponse.json(
-          { error: '해당 반복 스케줄을 찾을 수 없습니다.' },
+          { error: getErrorMessage('schedule_not_found') },
           { status: 400 }
         )
       }
@@ -183,12 +282,12 @@ export async function POST(request: NextRequest) {
         .eq('partner_id', actualPartnerId)
         .eq('date', kstDate!)
         .eq('start_time', kstStartTime!)
-        .eq('status', 'available')
-        .single()
+      .eq('status', 'available')
+      .single()
 
       if (!slot) {
         return NextResponse.json(
-          { error: '해당 시간에 예약할 수 없습니다.' },
+          { error: getErrorMessage('slot_unavailable') },
           { status: 400 }
         )
       }
@@ -229,7 +328,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('예약 요청 생성 오류:', error)
       return NextResponse.json(
-        { error: '예약 요청 생성 실패' },
+        { error: getErrorMessage('request_failed') },
         { status: 500 }
       )
     }
@@ -270,8 +369,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('예약 요청 생성 예외:', error)
+    // catch 블록에서는 언어를 확인할 수 없을 수 있으므로 스페인어 기본값 사용
     return NextResponse.json(
-      { error: '예약 요청 생성 중 오류 발생' },
+      { error: 'Ocurrió un error al crear la solicitud de reserva.' },
       { status: 500 }
     )
   }
