@@ -203,24 +203,35 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
   // 예약 목록 가져오기
   const fetchMyBookings = async (skipCheck = false) => {
+    console.log('[fetchMyBookings] ⚠️ 함수 호출됨!', { skipCheck, userId: user?.id, isKoreanPartner })
+    
     if (!skipCheck && (!user?.id || !isKoreanPartner)) {
+      console.log('[fetchMyBookings] ⚠️ 스킵 (skipCheck=false이고 조건 불만족)')
       setBookings([])
       return
     }
     if (!user?.id) {
+      console.log('[fetchMyBookings] ⚠️ 스킵 (userId 없음)')
       setBookings([])
       return
     }
 
+    console.log('[fetchMyBookings] ⚠️ API 호출 시작...')
     try {
       // 쿠키 기반 인증 사용 (credentials: 'include'로 쿠키 전송)
+      console.log('[fetchMyBookings] ⚠️ fetch 요청 전송 중...')
       let response = await fetch('/api/bookings/my-bookings', {
         method: 'GET',
         credentials: 'include', // 쿠키 포함
         headers: {
           'Content-Type': 'application/json'
         }
-      }).catch(() => null)
+      }).catch((error) => {
+        console.error('[fetchMyBookings] ⚠️ fetch 실패:', error)
+        return null
+      })
+      
+      console.log('[fetchMyBookings] ⚠️ fetch 응답 받음:', response?.status, response?.ok)
       
       // 401 오류 발생 시 세션 갱신 후 재시도
       if (response?.status === 401) {
@@ -257,7 +268,30 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       }
       
       const data = await response.json()
-      console.log('[fetchMyBookings] 조회 성공:', data.bookings?.length || 0, '개')
+      const bookingsCount = data.bookings?.length || 0
+      console.log('[fetchMyBookings] 조회 성공:', bookingsCount, '개')
+      
+      // DB에 저장된 실제 값 확인 (클라이언트 로깅) - 항상 출력
+      console.log('[fetchMyBookings] 전체 응답 데이터:', JSON.stringify(data, null, 2))
+      
+      if (data.bookings && data.bookings.length > 0) {
+        console.log('[fetchMyBookings] ⚠️ DB에서 받은 예약 데이터 (KST) - 원본값:')
+        data.bookings.forEach((b: any, index: number) => {
+          console.log(`[fetchMyBookings] 예약 #${index + 1}:`, {
+            id: b.id,
+            date: b.date,
+            start_time: b.start_time,
+            end_time: b.end_time,
+            status: b.status,
+            topic: b.topic,
+            user_id: b.user_id,
+            partner_id: b.partner_id
+          })
+        })
+      } else {
+        console.log('[fetchMyBookings] ⚠️ 예약 데이터가 없습니다.')
+      }
+      
       setBookings(data.bookings || [])
     } catch (error) {
       console.error('[fetchMyBookings] 예외 발생:', error)
@@ -402,6 +436,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       console.log('[useEffect isKoreanPartner] 파트너 확인됨, 스케줄 조회 시작')
       // 약간의 지연을 주어 상태 업데이트가 완전히 완료되도록 함
       setTimeout(() => {
+        console.log('[useEffect isKoreanPartner] setTimeout 내부 - fetchMyBookings 호출')
         fetchMyBookings(true)  // skipCheck=true로 호출
         fetchMySchedules(true)  // skipCheck=true로 호출
       }, 200)

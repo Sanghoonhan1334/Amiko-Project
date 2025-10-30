@@ -290,22 +290,22 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
     <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
-          <div className="text-2xl">🎈</div>
-          <CardTitle className="text-lg md:text-xl text-purple-700 dark:text-purple-300">
+          <div className="text-xl sm:text-2xl">🎈</div>
+          <CardTitle className="text-sm sm:text-base md:text-lg text-purple-700 dark:text-purple-300">
             Reunión con Operadores de ZEP
           </CardTitle>
-          <Badge className="ml-auto bg-purple-500 text-white">
+          <Badge className="ml-auto bg-purple-500 text-white text-xs">
             En vivo
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* ZEP 이미지 */}
-        <div className="relative w-full h-32 md:h-40 rounded-lg overflow-hidden">
+        <div className="relative w-full rounded-lg overflow-hidden">
           <img 
             src="/misc/zep.jpg" 
             alt="Reunión con Operadores de ZEP"
-            className="w-full h-full object-cover"
+            className="w-full aspect-video object-cover max-h-64 sm:max-h-80 md:max-h-96"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>
@@ -406,7 +406,7 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
             {TIMEZONES.map((tz) => {
               const { dateStr, timeStr } = getDateTimeForTimezone(tz.timezone)
               return (
-                <div key={tz.code} className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <div key={tz.code} className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                   {tz.flag} {tz.code === 'KST' ? 'Corea' : tz.name}: {dateStr}, {timeStr}
                 </div>
               )
@@ -414,8 +414,8 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
           </div>
           
           <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-            <Users className="w-4 h-4 text-purple-600" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
+            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Máximo 30 participantes
             </span>
           </div>

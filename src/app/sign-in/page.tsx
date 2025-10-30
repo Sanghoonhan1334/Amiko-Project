@@ -69,17 +69,12 @@ export default function SignInPage() {
 
       console.log('로그인 성공:', result)
       
-      // AuthContext의 signIn 함수 사용하여 세션 업데이트
-      const { error: signInError } = await signIn(formData.identifier, formData.password)
-      
-      if (signInError) {
-        // 구체적인 오류 메시지 표시
-        if (signInError.message.includes('Invalid login credentials')) {
-          throw new Error('이메일 또는 비밀번호가 올바르지 않습니다. 회원가입을 먼저 진행해주세요.')
-        } else {
-          throw new Error(t('auth.sessionUpdateFailed'))
-        }
-      }
+      // API가 실제 인증을 수행하므로, 클라이언트에서 추가 인증 시도 필요 없음
+      // 세션은 서버에서 쿠키로 설정되었으므로, 클라이언트 세션도 업데이트하기 위해 signIn 호출 (에러 무시)
+      await signIn(formData.identifier, formData.password).catch(err => {
+        // 이미 서버에서 인증되었으므로, 클라이언트 인증 실패는 무시
+        console.log('[SIGNIN] 클라이언트 세션 업데이트 시도 (이미 서버에서 인증됨)')
+      })
       
       // 로그인 성공 후 메인 앱으로 이동
       router.push('/main')

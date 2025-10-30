@@ -111,6 +111,17 @@ export async function GET(request: NextRequest) {
             userData
           })
 
+          // 누적 포인트 조회(레벨 계산용)
+          let totalPoints: number | null = null
+          try {
+            const { data: pointsRow } = await supabase
+              .from('user_points')
+              .select('total_points')
+              .eq('user_id', booking.user_id)
+              .single()
+            totalPoints = (pointsRow as any)?.total_points ?? null
+          } catch {}
+
           // 한국 파트너용: DB에 저장된 KST 값 그대로 반환
           // date, start_time, end_time은 이미 KST로 저장되어 있음
           console.log(`[my-bookings] 예약 데이터 (KST):`, {
@@ -128,7 +139,8 @@ export async function GET(request: NextRequest) {
               nickname: userData?.nickname,
               avatar_url: avatarUrl,
               spanish_name: userData?.spanish_name,
-              korean_name: userData?.korean_name
+              korean_name: userData?.korean_name,
+              total_points: totalPoints
             }
           }
         } catch (err) {

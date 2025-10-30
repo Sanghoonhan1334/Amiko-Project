@@ -17,6 +17,7 @@ import { ko, es } from 'date-fns/locale'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { Swiper, SwiperSlide } from 'swiper/react'
+import UserBadge from '@/components/common/UserBadge'
 import { Navigation, Pagination } from 'swiper/modules'
 import 'react-day-picker/dist/style.css'
 import 'swiper/css'
@@ -81,6 +82,20 @@ export default function KoreanPartnerDashboard({
   const [selectedMonth, setSelectedMonth] = useState(new Date())
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | undefined>(undefined)
   const [swiperInstance, setSwiperInstance] = useState<any>(null)
+  
+  // 거절 모달 상태
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [rejectingBookingId, setRejectingBookingId] = useState<string | null>(null)
+  const [rejectionReason, setRejectionReason] = useState<string>('')
+  
+  // 거절 사유 옵션 (한국어 원본 - DB에 저장될 값)
+  const rejectionReasons = [
+    { value: '일정이 맞지 않습니다', labelKo: '일정이 맞지 않습니다', labelEs: 'El horario no coincide' },
+    { value: '개인 사정이 있습니다', labelKo: '개인 사정이 있습니다', labelEs: 'Tengo asuntos personales' },
+    { value: '예약 시간이 부적절합니다', labelKo: '예약 시간이 부적절합니다', labelEs: 'La hora de la reserva no es apropiada' },
+    { value: '급한 일이 생겼습니다', labelKo: '급한 일이 생겼습니다', labelEs: 'Ha surgido algo urgente' },
+    { value: '기타', labelKo: '기타', labelEs: 'Otro' }
+  ]
 
   // 인증 헤더 생성
   const getAuthHeaders = async () => {
@@ -160,18 +175,42 @@ export default function KoreanPartnerDashboard({
     }
   }
 
-  const handleReject = async (bookingId: string, reason: string) => {
+  const handleRejectClick = (bookingId: string) => {
+    setRejectingBookingId(bookingId)
+    setRejectionReason('')
+    setShowRejectModal(true)
+  }
+
+  const handleRejectConfirm = async () => {
+    if (!rejectingBookingId || !rejectionReason) {
+      alert(language === 'es' ? 'Por favor selecciona un motivo de rechazo' : '거절 사유를 선택해주세요.')
+      return
+    }
+    
     setLoading(true)
     try {
-      const response = await fetch(`/api/bookings/${bookingId}/reject`, {
+      const response = await fetch(`/api/bookings/${rejectingBookingId}/reject`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rejection_reason: reason })
+        body: JSON.stringify({ rejection_reason: rejectionReason })
       })
-      if (response.ok) onRefresh()
+      if (response.ok) {
+        setShowRejectModal(false)
+        setRejectingBookingId(null)
+        setRejectionReason('')
+        onRefresh()
+      } else {
+        const error = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
+        alert(language === 'es' 
+          ? `Error: ${error.error || 'Error al rechazar la reserva'}`
+          : `오류: ${error.error || '예약 거절 실패'}`)
+      }
     } catch (error) {
       console.error('예약 거절 실패:', error)
+      alert(language === 'es' 
+        ? 'Error al rechazar la reserva'
+        : '예약 거절 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -237,6 +276,28 @@ export default function KoreanPartnerDashboard({
   useEffect(() => {
     console.log('[KoreanPartnerDashboard] mySchedules 변경:', mySchedules?.length || 0, '개', mySchedules)
   }, [mySchedules])
+
+  // bookings 변경 추적 및 DB 값 확인 (디버깅용)
+  useEffect(() => {
+    console.log('[KoreanPartnerDashboard] ⚠️ bookings prop 변경됨:', bookings?.length || 0, '개')
+    
+    if (bookings && bookings.length > 0) {
+      console.log('[KoreanPartnerDashboard] ⚠️ 예약 데이터 확인 (DB에서 받은 원본 값):')
+      bookings.forEach((b: any, index: number) => {
+        console.log(`[KoreanPartnerDashboard] 예약 #${index + 1}:`, {
+          id: b.id,
+          date: b.date,
+          start_time: b.start_time,
+          end_time: b.end_time,
+          status: b.status,
+          user_name: b.users?.full_name || b.users?.nickname || '알 수 없음',
+          topic: b.topic
+        })
+      })
+    } else {
+      console.log('[KoreanPartnerDashboard] ⚠️ 예약 데이터가 없습니다.')
+    }
+  }, [bookings])
 
   // 달력 뷰 컴포넌트
   const CalendarView = ({ 
@@ -465,7 +526,7 @@ export default function KoreanPartnerDashboard({
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <Clock className="w-3 h-3" />
-                            <span>{booking.start_time} - {booking.end_time} {language === 'es' ? '(KST)' : '(한국 시간)'}</span>
+                            <span>{booking.start_time} - {booking.end_time}</span>
                           </div>
                           {booking.topic && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{booking.topic}</p>
@@ -648,9 +709,83 @@ export default function KoreanPartnerDashboard({
   const pendingBookings = bookings.filter(b => b.status === 'pending')
   const approvedBookings = bookings.filter(b => b.status === 'approved')
   const rejectedBookings = bookings.filter(b => b.status === 'rejected')
+  
+  // 디버깅: 필터링 결과 확인
+  useEffect(() => {
+    console.log('[KoreanPartnerDashboard] ⚠️ 필터링 결과:', {
+      총_예약수: bookings.length,
+      pending: pendingBookings.length,
+      approved: approvedBookings.length,
+      rejected: rejectedBookings.length,
+      pendingList: pendingBookings.map(b => ({ id: b.id, status: b.status })),
+      approvedList: approvedBookings.map(b => ({ id: b.id, status: b.status }))
+    })
+  }, [bookings, pendingBookings.length, approvedBookings.length, rejectedBookings.length])
 
   return (
-    <div className="space-y-4 px-1 md:px-0">
+    <>
+      {/* 거절 모달 */}
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+        <DialogContent className="bg-white dark:bg-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">
+              {language === 'es' ? 'Motivo de rechazo' : '거절 사유'}
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              {language === 'es' 
+                ? 'Por favor selecciona el motivo por el cual rechazas esta reserva.'
+                : '거절 사유를 선택해주세요.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label className="text-gray-900 dark:text-gray-100 font-semibold mb-2 block">
+                {language === 'es' ? 'Motivo' : '사유 선택'}
+              </Label>
+              <Select 
+                value={rejectionReason} 
+                onValueChange={setRejectionReason}
+              >
+                <SelectTrigger className="w-full text-gray-900 dark:text-gray-100">
+                  <SelectValue placeholder={language === 'es' ? 'Selecciona un motivo' : '사유를 선택하세요'} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] z-[100000]">
+                  {rejectionReasons.map((reason) => (
+                    <SelectItem key={reason.value} value={reason.value}>
+                      {language === 'es' ? reason.labelEs : reason.labelKo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowRejectModal(false)
+                  setRejectionReason('')
+                  setRejectingBookingId(null)
+                }}
+                disabled={loading}
+              >
+                {language === 'es' ? 'Cancelar' : '취소'}
+              </Button>
+              <Button
+                onClick={handleRejectConfirm}
+                disabled={loading || !rejectionReason}
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
+                {loading 
+                  ? (language === 'es' ? 'Procesando...' : '처리 중...')
+                  : (language === 'es' ? 'Rechazar' : '거절하기')
+                }
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="space-y-4 px-1 md:px-0">
       {/* 예약 관리 */}
       <div className="w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl border p-3 md:p-6">
         <h2 className="text-xl font-bold mb-4">{language === 'es' ? '📅 Gestión de Reservas' : '📅 예약 관리'}</h2>
@@ -663,8 +798,8 @@ export default function KoreanPartnerDashboard({
               {pendingBookings.map((booking) => (
                 <Card key={booking.id}>
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-2">
                           <Avatar className="w-10 h-10 flex-shrink-0">
                             {booking.users?.avatar_url ? (
@@ -674,27 +809,35 @@ export default function KoreanPartnerDashboard({
                               {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                          <div className="min-w-0">
+                            <span className="font-medium text-gray-900 dark:text-gray-100 inline-flex items-center gap-1">
                               {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
+                              <UserBadge totalPoints={booking.users?.total_points ?? 0} className="ml-1" />
                             </span>
                           </div>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {booking.date} {booking.start_time} - {booking.end_time} {language === 'es' ? '(KST)' : '(한국 시간)'}
+                          {booking.date} {booking.start_time} - {booking.end_time}
                         </p>
                         {booking.topic && <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">주제: {booking.topic}</p>}
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleApprove(booking.id)} disabled={loading} className="bg-green-500 hover:bg-green-600 text-white">
-                          <CheckCircle className="w-4 h-4 mr-1" /> 승인
+                      <div className="flex gap-2 flex-shrink-0 w-full md:w-auto">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleApprove(booking.id)} 
+                          disabled={loading} 
+                          className="bg-green-500 hover:bg-green-600 text-white whitespace-nowrap flex-1 md:flex-initial"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" /> {language === 'es' ? 'Aprobar' : '승인'}
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => {
-                          const reason = prompt(language === 'es' ? 'Razón de rechazo:' : '거절 사유:')
-                          if (reason) handleReject(booking.id, reason)
-                        }} disabled={loading}>
-                          <XCircle className="w-4 h-4 mr-1" /> 거절
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleRejectClick(booking.id)} 
+                          disabled={loading} 
+                          className="bg-red-500 hover:bg-red-600 text-white whitespace-nowrap flex-1 md:flex-initial"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" /> {language === 'es' ? 'Rechazar' : '거절'}
                         </Button>
                       </div>
                     </div>
@@ -732,7 +875,7 @@ export default function KoreanPartnerDashboard({
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-2">
                           <Clock className="w-3 h-3" />
-                          {booking.date} {booking.start_time} - {booking.end_time} {language === 'es' ? '(KST)' : '(한국 시간)'}
+                          {booking.date} {booking.start_time} - {booking.end_time}
                         </p>
                         {booking.meet_url && (
                           <div className="mt-2">
@@ -1142,7 +1285,8 @@ export default function KoreanPartnerDashboard({
           </SwiperSlide>
         </Swiper>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

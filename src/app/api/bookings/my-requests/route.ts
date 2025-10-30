@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseClient } from '@/lib/supabase'
-import { convertKSTToUserTimezone } from '@/lib/timezone-converter'
+import { convertKSTToUserTimezone, getTimezoneFromPhoneNumber } from '@/lib/timezone-converter'
 import { supabaseServer } from '@/lib/supabaseServer'
 
 // 현지인이 신청한 예약 목록 조회
@@ -24,35 +24,14 @@ export async function GET(request: NextRequest) {
         console.error('[my-requests] 사용자 메타데이터 조회 실패:', metadataError)
       }
       
+      const signupPhone = userMetadata?.user?.user_metadata?.phone
       const signupCountry = userMetadata?.user?.user_metadata?.country
-      console.log('[my-requests] 사용자 회원가입 국적:', signupCountry, 'user_id:', user.id)
+      console.log('[my-requests] 사용자 회원가입 전화번호:', signupPhone, '국적:', signupCountry, 'user_id:', user.id)
       
-      if (signupCountry) {
-        // 국적에 따른 timezone 매핑 (회원가입 시 선택한 country 코드 기준)
-        const countryCode = signupCountry.toUpperCase()
-        if (countryCode === 'KR' || countryCode === 'KOREA' || countryCode === 'KO') {
-          userTimezone = 'Asia/Seoul'
-        } else if (countryCode === 'PE' || countryCode === 'PERU') {
-          userTimezone = 'America/Lima'
-        } else if (countryCode === 'CO' || countryCode === 'COLOMBIA') {
-          userTimezone = 'America/Bogota'
-        } else if (countryCode === 'MX' || countryCode === 'MEXICO') {
-          userTimezone = 'America/Mexico_City'
-        } else if (countryCode === 'CL' || countryCode === 'CHILE') {
-          userTimezone = 'America/Santiago'
-        } else if (countryCode === 'AR' || countryCode === 'ARGENTINA') {
-          userTimezone = 'America/Buenos_Aires'
-        } else if (countryCode === 'BR' || countryCode === 'BRAZIL') {
-          userTimezone = 'America/Sao_Paulo'
-        } else {
-          // 기본값은 페루 시간 (대부분의 라틴 아메리카 국가)
-          userTimezone = 'America/Lima'
-        }
-      } else {
-        console.warn('[my-requests] 회원가입 국적 정보가 없습니다. 기본값(PET) 사용')
-      }
-      
-      console.log('[my-requests] 결정된 사용자 timezone:', userTimezone)
+      // 회원가입 시 입력한 전화번호의 국가번호 기준으로 타임존 결정
+      // 전화번호에 국가번호가 없으면 country를 fallback으로 사용
+      userTimezone = getTimezoneFromPhoneNumber(signupPhone, signupCountry)
+      console.log('[my-requests] 전화번호 기준 타임존:', { phone: signupPhone, country: signupCountry, timezone: userTimezone })
     } catch (error) {
       console.error('[my-requests] 사용자 timezone 조회 예외:', error)
       // 기본값 사용

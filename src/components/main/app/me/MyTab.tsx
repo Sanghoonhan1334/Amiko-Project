@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { extractCountryCodeFromPhone } from '@/lib/timezone-converter'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -57,14 +58,16 @@ import PointsCard from './PointsCard'
 import ChargingHeader from './ChargingHeader'
 // 🚀 최적화: React Query hook 추가
 import { useEventPoints } from '@/hooks/useEventPoints'
+import UserBadge from '@/components/common/UserBadge'
+import { getUserLevel } from '@/lib/user-level'
 
 export default function MyTab() {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
-  const [referralCode, setReferralCode] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  // 추천인 기능 비활성화: 코드/복사 상태 제거
+  const referralCode: string | null = null
   const [isPartnerRegistered, setIsPartnerRegistered] = useState(false)
   const [showPartnerForm, setShowPartnerForm] = useState(false)
   const [dailyMissions, setDailyMissions] = useState<any>(null)
@@ -150,25 +153,7 @@ export default function MyTab() {
     }
   }, [user, router])
 
-  // 추천인 코드 가져오기 (직접 DB 조회)
-  useEffect(() => {
-    const fetchReferralCode = async () => {
-      if (user) {
-        try {
-          const response = await fetch(`/api/referral/my-code?userId=${user.id}`)
-          if (response.ok) {
-            const data = await response.json()
-            setReferralCode(data.referral_code)
-          } else {
-            console.error('추천인 코드 조회 실패:', await response.json())
-          }
-        } catch (error) {
-          console.error('추천인 코드 가져오기 실패:', error)
-        }
-      }
-    }
-    fetchReferralCode()
-  }, [user])
+  // 추천인 코드 조회 비활성화
 
   // 일일 미션 데이터 가져오기
   useEffect(() => {
@@ -315,6 +300,8 @@ export default function MyTab() {
   
   // 한국인 여부 확인 (인증센터에서 확인된 정보)
   const isKorean = !!(profile?.is_korean || profileUser?.is_korean)
+
+  // NOTE: showPartnerSection은 verificationStatus 선언 이후에 계산해야 하므로 아래에서 설정합니다.
   const [loading, setLoading] = useState(true)
   const [isUploadingImage, setIsUploadingImage] = useState(false) // 프로필 이미지 업로드 로딩
   const [authStatus, setAuthStatus] = useState({ loading: true, smsVerified: false })
@@ -332,6 +319,22 @@ export default function MyTab() {
     email: false,
     marketing: false
   })
+
+  // 파트너 섹션 노출 여부 계산 및 디버깅 로그 (verificationStatus 선언 이후)
+  // 국가 코드 우선: users.phone_country → 없으면 전화번호에서 추론
+  const phoneCountryField = (profile as any)?.phone_country || (profileUser as any)?.phone_country || null
+  const phoneFromAny = profile?.phone || profileUser?.phone || user?.user_metadata?.phone || null
+  const parsedCountryCode = extractCountryCodeFromPhone(phoneFromAny)
+  const effectiveCountryCode = phoneCountryField || parsedCountryCode || null
+  const isByKoreanPhone = effectiveCountryCode === '82'
+  const adminOverride = Boolean((profile as any)?.admin_partner_override)
+
+  // 최종 표시 조건(국가코드 기반): (+82 전화) OR (관리자 오버라이드)
+  const showPartnerSection = Boolean(
+    isByKoreanPhone || adminOverride
+  )
+
+  // 디버그 로그/표시는 비활성화 (안정화 완료)
 
   // 프로필 사진 스와이프 관련 상태
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -777,7 +780,7 @@ export default function MyTab() {
           {/* 편집 버튼 (모바일) */}
           <div className="px-4 py-2 bg-white md:hidden">
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-semibold text-gray-800">{t('profile.myProfile')}</h1>
+              <h1 className="text-base sm:text-lg font-semibold text-gray-800">{t('profile.myProfile')}</h1>
               <button
                 onClick={() => setIsEditing(true)}
                 className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-sm text-white"
@@ -1168,7 +1171,7 @@ export default function MyTab() {
         {/* 편집 버튼 (모바일) */}
         <div className="px-4 py-2 bg-white md:hidden">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-gray-800">{t('profile.myProfile')}</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-gray-800">{t('profile.myProfile')}</h1>
             <div className="flex items-center gap-2">
               {isEditing ? (
                   <>
@@ -1206,8 +1209,8 @@ export default function MyTab() {
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Heart className="w-4 h-4 text-pink-500" />
-              <h2 className="font-semibold text-gray-800">{t('profile.interests')}</h2>
+              <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500" />
+              <h2 className="text-sm sm:text-base font-semibold text-gray-800">{t('profile.interests')}</h2>
             </div>
             
             {/* 프로필 편집 버튼 (인증 완료시만) - 데스크톱에서만 표시 */}
@@ -1261,7 +1264,7 @@ export default function MyTab() {
                 {editForm.interests.map((interest: string, index: number) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm border border-gray-200 flex items-center gap-1 max-w-full truncate"
+                    className="px-2 py-1 sm:px-3 bg-white text-gray-700 rounded-full text-xs sm:text-sm border border-gray-200 flex items-center gap-1 max-w-full truncate"
                   >
                     {(() => {
                       // 임시 하드코딩 번역 (디버깅용)
@@ -1757,8 +1760,8 @@ export default function MyTab() {
         {/* 기본 정보 섹션 */}
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center gap-2 mb-3">
-            <User className="w-4 h-4 text-blue-500" />
-            <h2 className="font-semibold text-gray-800">{t('profile.academicCareerInfo')}</h2>
+            <User className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+            <h2 className="text-sm sm:text-base font-semibold text-gray-800">{t('profile.academicCareerInfo')}</h2>
           </div>
 
                 {isEditing ? (
@@ -1766,7 +1769,7 @@ export default function MyTab() {
               {/* 기본 정보 입력 필드들 */}
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">{t('profile.koreanName')}</label>
+                  <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.koreanName')}</label>
                   <Input
                     value={editForm.korean_name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, korean_name: e.target.value }))}
@@ -1776,7 +1779,7 @@ export default function MyTab() {
               </div>
               
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">{t('profile.nickname')}</label>
+                  <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.nickname')}</label>
                   <Input
                     value={editForm.nickname}
                     onChange={(e) => setEditForm(prev => ({ ...prev, nickname: e.target.value }))}
@@ -1791,7 +1794,7 @@ export default function MyTab() {
               </div>
 
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">{t('profile.spanishName')}</label>
+                  <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.spanishName')}</label>
                     <Input
                     value={editForm.spanish_name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, spanish_name: e.target.value }))}
@@ -1817,7 +1820,7 @@ export default function MyTab() {
                 {editForm.user_type === 'student' ? (
                 <>
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">대학교</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">대학교</label>
                       <Input
                         value={editForm.university}
                         onChange={(e) => setEditForm(prev => ({ ...prev, university: e.target.value }))}
@@ -1827,7 +1830,7 @@ export default function MyTab() {
                   </div>
                   
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">전공</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">전공</label>
                       <Input
                         value={editForm.major}
                         onChange={(e) => setEditForm(prev => ({ ...prev, major: e.target.value }))}
@@ -1837,7 +1840,7 @@ export default function MyTab() {
                   </div>
                     
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">학년</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">학년</label>
                       <Input
                         value={editForm.grade}
                         onChange={(e) => setEditForm(prev => ({ ...prev, grade: e.target.value }))}
@@ -1849,7 +1852,7 @@ export default function MyTab() {
                 ) : (
                   <>
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">{t('profile.occupation')}</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.occupation')}</label>
                       <Input
                         value={editForm.occupation}
                         onChange={(e) => setEditForm(prev => ({ ...prev, occupation: e.target.value }))}
@@ -1859,7 +1862,7 @@ export default function MyTab() {
                   </div>
                   
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">{t('profile.company')}</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.company')}</label>
                       <Input
                         value={editForm.company}
                         onChange={(e) => setEditForm(prev => ({ ...prev, company: e.target.value }))}
@@ -1869,7 +1872,7 @@ export default function MyTab() {
                   </div>
                     
                     <div>
-                      <label className="text-gray-600 text-sm block mb-1">{t('profile.experience')}</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.experience')}</label>
                     <Input
                         value={editForm.career}
                         onChange={(e) => setEditForm(prev => ({ ...prev, career: e.target.value }))}
@@ -1895,8 +1898,8 @@ export default function MyTab() {
             <div className="space-y-3">
               {/* 한국이름 */}
               <div className="flex items-center justify-between">
-                <span className='text-gray-600 text-sm'>{t('profile.koreanName')}</span>
-                <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.koreanName')}</span>
+                <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
                   {profile?.korean_name || t('profile.koreanName') + ' 없음'}
                 </span>
             </div>
@@ -1906,8 +1909,8 @@ export default function MyTab() {
 
               {/* 닉네임 */}
               <div className="flex items-center justify-between">
-                <span className='text-gray-600 text-sm'>{t('profile.nickname')}</span>
-                <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.nickname')}</span>
+                <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
                   {profile?.nickname || t('profile.nickname') + ' 미설정'}
                 </span>
                 </div>
@@ -1917,8 +1920,8 @@ export default function MyTab() {
 
               {/* 스페인어 이름 */}
               <div className="flex items-center justify-between">
-                <span className='text-gray-600 text-sm'>{t('profile.spanishName')}</span>
-                <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.spanishName')}</span>
+                <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
                   {profile?.spanish_name || t('profile.spanishName') + ' 없음'}
                 </span>
           </div>
@@ -1931,8 +1934,8 @@ export default function MyTab() {
                 <>
                   {/* 학력 정보 (대학생인 경우) */}
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-sm">대학교</span>
-                    <span className="text-gray-800 text-sm font-medium">
+                    <span className="text-gray-600 text-xs sm:text-sm">대학교</span>
+                    <span className="text-gray-800 text-xs sm:text-sm font-medium">
                       {profile?.university || '대학교 없음'}
                     </span>
       </div>
@@ -1941,8 +1944,8 @@ export default function MyTab() {
                   <div className="border-t border-gray-200"></div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-sm">전공</span>
-                    <span className="text-gray-800 text-sm font-medium">
+                    <span className="text-gray-600 text-xs sm:text-sm">전공</span>
+                    <span className="text-gray-800 text-xs sm:text-sm font-medium">
                       {profile?.major || '전공 없음'}
                     </span>
                   </div>
@@ -1951,8 +1954,8 @@ export default function MyTab() {
                   <div className="border-t border-gray-200"></div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-sm">학년</span>
-                    <span className="text-gray-800 text-sm font-medium">
+                    <span className="text-gray-600 text-xs sm:text-sm">학년</span>
+                    <span className="text-gray-800 text-xs sm:text-sm font-medium">
                       {profile?.grade || '학년 없음'}
                     </span>
               </div>
@@ -1961,8 +1964,8 @@ export default function MyTab() {
                 <>
                   {/* 직업 정보 (직장인인 경우) */}
                   <div className="flex items-center justify-between">
-                    <span className='text-gray-600 text-sm'>{t('profile.occupation')}</span>
-                    <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                    <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.occupation')}</span>
+                    <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
                       {profile?.occupation || t('profile.occupation') + ' 없음'}
                     </span>
             </div>
@@ -1971,8 +1974,8 @@ export default function MyTab() {
                   <div className="border-t border-gray-200"></div>
 
                   <div className="flex items-center justify-between">
-                    <span className='text-gray-600 text-sm'>{t('profile.company')}</span>
-                    <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                    <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.company')}</span>
+                    <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
                       {profile?.company || t('profile.company') + ' 없음'}
                     </span>
           </div>
@@ -1981,8 +1984,8 @@ export default function MyTab() {
                   <div className="border-t border-gray-200"></div>
 
                   <div className="flex items-center justify-between">
-                    <span className='text-gray-600 text-sm'>{t('profile.experience')}</span>
-                    <span className="text-gray-800 text-sm font-medium truncate max-w-[60%] text-right">
+                    <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.experience')}</span>
+                    <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
                       {profile?.career || t('profile.noExperience')}
                     </span>
               </div>
@@ -1996,40 +1999,55 @@ export default function MyTab() {
               <div className="space-y-4 bg-white">
                 {/* 포인트 요약 */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-4 text-white shadow-sm">
-                    <p className="text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.monthlyPoints')}</p>
-                    <p className="text-2xl font-bold">{rankingData.userRank?.monthly_points || 0}</p>
+                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-3 sm:p-4 text-white shadow-sm">
+                    <p className="text-xs sm:text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.monthlyPoints')}</p>
+                    <p className="text-xl sm:text-2xl font-bold">{rankingData.userRank?.monthly_points || 0}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-4 text-white shadow-sm">
-                    <p className="text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.totalPoints')}</p>
-                    <p className="text-2xl font-bold">{rankingData.userRank?.total_points || 0}</p>
+                  <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-3 sm:p-4 text-white shadow-sm">
+                    <p className="text-xs sm:text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.totalPoints')}</p>
+                    <p className="text-xl sm:text-2xl font-bold">{rankingData.userRank?.total_points || 0}</p>
+                  </div>
+                </div>
+
+                {/* 내 등급 카드 - 총 포인트 아래 */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <span className="text-xs sm:text-sm font-medium text-purple-800 dark:text-purple-300">{t('myTab.myLevel')}</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-purple-600">
+                    {pointsLoading ? (
+                      <div className="text-base sm:text-lg font-bold text-purple-600 dark:text-purple-400 animate-pulse">...</div>
+                    ) : (
+                      <UserBadge totalPoints={rankingData.userRank?.total_points || 0} size="lg" />
+                    )}
                   </div>
                 </div>
 
                 {/* 오늘의 미션 */}
                 {dailyMissions && (
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-4 space-y-3">
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
                     <button 
                       onClick={() => setIsMissionsExpanded(!isMissionsExpanded)}
                       className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
                     >
-                      <span className="text-2xl">🎯</span>
+                      <span className="text-lg">🎯</span>
                       <div className="flex-1 text-left">
-                        <h3 className="font-bold text-gray-800">{t('eventTab.pointSystem.dailyMission.title')}</h3>
+                        <h3 className="text-sm font-bold text-gray-800">{t('eventTab.pointSystem.dailyMission.title')}</h3>
                         <p className="text-xs text-gray-600">{t('eventTab.pointSystem.dailyMission.subtitle')}</p>
                       </div>
-                      {isMissionsExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600" />
-                      )}
+                      <div className={`transition-transform duration-300 ${isMissionsExpanded ? 'rotate-180' : ''}`}>
+                        <ChevronDown className="w-4 h-4 text-gray-600" />
+                      </div>
                     </button>
 
                     {/* 오늘 획득 포인트 - 항상 보임 */}
-                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200">
                       <div className="flex justify-between mb-2">
-                        <span className="text-sm text-gray-600">{t('eventTab.pointSystem.dailyMission.todayEarned')}</span>
-                        <span className="font-bold text-blue-600">{dailyEarnedPoints} / 75</span>
+                        <span className="text-xs sm:text-sm text-gray-600">{t('eventTab.pointSystem.dailyMission.todayEarned')}</span>
+                        <span className="text-xs sm:text-sm font-bold text-blue-600">{dailyEarnedPoints} / 75</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
@@ -2040,14 +2058,14 @@ export default function MyTab() {
                     </div>
 
                     {/* 미션 목록 - 접으면 숨김 */}
-                    {isMissionsExpanded && (
-                      <div className="space-y-1 text-sm max-h-96 overflow-y-auto">
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isMissionsExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                      <div className="space-y-1 text-xs sm:text-sm">
                       {/* 출석체크 */}
                       <div className="flex justify-between items-center py-1">
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.attendance.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.attendance.title')}
                         </span>
-                        <span className="text-green-600 font-bold">+{dailyMissions.attendance.points}</span>
+                        <span className="text-xs text-green-600 font-bold">+{dailyMissions.attendance.points}</span>
                       </div>
                       
                       {/* 댓글 작성 */}
@@ -2055,7 +2073,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.comments.count, dailyMissions.comments.max)} {t('eventTab.pointSystem.dailyMission.missions.comments.title')} ({dailyMissions.comments.count}/{dailyMissions.comments.max})
                         </span>
-                        <span className="text-blue-600 font-bold">+{dailyMissions.comments.points}</span>
+                        <span className="text-xs text-blue-600 font-bold">+{dailyMissions.comments.points}</span>
                       </div>
                       
                       {/* 좋아요 */}
@@ -2063,7 +2081,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.likes.count, dailyMissions.likes.max)} {t('eventTab.pointSystem.dailyMission.missions.likes.title')} ({dailyMissions.likes.count}/{dailyMissions.likes.max})
                         </span>
-                        <span className="text-pink-600 font-bold">+{dailyMissions.likes.points}</span>
+                        <span className="text-xs text-pink-600 font-bold">+{dailyMissions.likes.points}</span>
                       </div>
                       
                       {/* 자유게시판 작성 */}
@@ -2071,7 +2089,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.freeboardPost.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.freeboardPost.title')}
                         </span>
-                        <span className="text-indigo-600 font-bold">+{dailyMissions.freeboardPost.points}</span>
+                        <span className="text-xs text-indigo-600 font-bold">+{dailyMissions.freeboardPost.points}</span>
                       </div>
                       
                       {/* 스토리 작성 */}
@@ -2079,7 +2097,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.storyPost.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.storyPost.title')}
                         </span>
-                        <span className="text-purple-600 font-bold">+{dailyMissions.storyPost.points}</span>
+                        <span className="text-xs text-purple-600 font-bold">+{dailyMissions.storyPost.points}</span>
                       </div>
                       
                       {/* 팬아트 업로드 */}
@@ -2087,7 +2105,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.fanartUpload.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.fanartUpload.title')}
                         </span>
-                        <span className="text-pink-600 font-bold">+{dailyMissions.fanartUpload.points}</span>
+                        <span className="text-xs text-pink-600 font-bold">+{dailyMissions.fanartUpload.points}</span>
                       </div>
                       
                       {/* 아이돌 사진 업로드 */}
@@ -2095,7 +2113,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.idolPhotoUpload.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.idolPhotoUpload.title')}
                         </span>
-                        <span className="text-amber-600 font-bold">+{dailyMissions.idolPhotoUpload.points}</span>
+                        <span className="text-xs text-amber-600 font-bold">+{dailyMissions.idolPhotoUpload.points}</span>
                       </div>
                       
                       {/* 팬아트 좋아요 */}
@@ -2103,7 +2121,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.fanartLikes.count, dailyMissions.fanartLikes.max)} {t('eventTab.pointSystem.dailyMission.missions.fanartLikes.title')} ({dailyMissions.fanartLikes.count}/{dailyMissions.fanartLikes.max})
                         </span>
-                        <span className="text-pink-600 font-bold">+{dailyMissions.fanartLikes.points}</span>
+                        <span className="text-xs text-pink-600 font-bold">+{dailyMissions.fanartLikes.points}</span>
                       </div>
                       
                       {/* 아이돌 사진 좋아요 */}
@@ -2111,7 +2129,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.idolPhotoLikes.count, dailyMissions.idolPhotoLikes.max)} {t('eventTab.pointSystem.dailyMission.missions.idolPhotoLikes.title')} ({dailyMissions.idolPhotoLikes.count}/{dailyMissions.idolPhotoLikes.max})
                         </span>
-                        <span className="text-amber-600 font-bold">+{dailyMissions.idolPhotoLikes.points}</span>
+                        <span className="text-xs text-amber-600 font-bold">+{dailyMissions.idolPhotoLikes.points}</span>
                       </div>
                       
                       {/* 투표 참여 */}
@@ -2119,7 +2137,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.pollVote.count, dailyMissions.pollVote.max)} {t('eventTab.pointSystem.dailyMission.missions.pollVotes.title')} ({dailyMissions.pollVote.count}/{dailyMissions.pollVote.max})
                         </span>
-                        <span className="text-cyan-600 font-bold">+{dailyMissions.pollVote.points}</span>
+                        <span className="text-xs text-cyan-600 font-bold">+{dailyMissions.pollVote.points}</span>
                       </div>
                       
                       {/* 뉴스 댓글 */}
@@ -2127,7 +2145,7 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.newsComment.count, dailyMissions.newsComment.max)} {t('eventTab.pointSystem.dailyMission.missions.newsComments.title')} ({dailyMissions.newsComment.count}/{dailyMissions.newsComment.max})
                         </span>
-                        <span className="text-blue-600 font-bold">+{dailyMissions.newsComment.points}</span>
+                        <span className="text-xs text-blue-600 font-bold">+{dailyMissions.newsComment.points}</span>
                       </div>
                       
                       {/* 공유 */}
@@ -2135,10 +2153,10 @@ export default function MyTab() {
                         <span className="text-gray-700 flex items-center gap-2">
                           {renderCheckmarks(dailyMissions.share.count, dailyMissions.share.max)} {t('eventTab.pointSystem.dailyMission.missions.share.title')} ({dailyMissions.share.count}/{dailyMissions.share.max})
                         </span>
-                        <span className="text-orange-600 font-bold">+{dailyMissions.share.points}</span>
+                        <span className="text-xs text-orange-600 font-bold">+{dailyMissions.share.points}</span>
                       </div>
                     </div>
-                    )}
+                  </div>
                   </div>
                 )}
               </div>
@@ -2214,16 +2232,29 @@ export default function MyTab() {
                 </>
               )}
 
-              {/* 화상 채팅 파트너 등록 (한국인만) */}
-              {isKorean && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 space-y-3">
+              {/* 접근 조건을 만족하지 못하는 경우 안내 배너 */}
+              {!showPartnerSection && (
+                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                  라틴아메리카에 거주하는 한국이시면 국적 인증이 필요합니다.
+                  <div className="mt-2 flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>전화번호 수정</Button>
+                    <Button size="sm" onClick={() => router.push('/verification')}>국적 인증하기</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 화상 채팅 파트너 등록 (한국인만, 인증 완료 또는 KR 국가)
+                  추가 안전장치: 국가 코드가 KR인 경우만 허용
+                  디버깅 로그는 컴포넌트 상단 useEffect에서 출력 */}
+              {showPartnerSection && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Video className="w-5 h-5 text-blue-600" />
-                      <span className='text-gray-700 font-semibold'>화상 채팅 파트너</span>
+                      <Video className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                      <span className='text-sm sm:text-base text-gray-700 font-semibold'>화상 채팅 파트너</span>
                     </div>
                     {isPartnerRegistered ? (
-                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                      <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-medium">
                         등록됨
                       </span>
                     ) : (
@@ -2249,8 +2280,8 @@ export default function MyTab() {
                   </div>
 
                   {showPartnerForm && !isPartnerRegistered && (
-                    <div className="bg-white rounded-lg p-4 space-y-3 border border-blue-200">
-                      <p className="text-sm text-gray-600">
+                    <div className="bg-white rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3 border border-blue-200">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         화상 채팅 파트너로 등록하면 다른 사용자들과 언어교환을 할 수 있습니다.
                       </p>
                       <Button
@@ -2264,8 +2295,8 @@ export default function MyTab() {
                   )}
 
                   {isPartnerRegistered && (
-                    <div className="bg-white rounded-lg p-3 border border-green-200">
-                      <p className="text-sm text-green-700 font-medium">
+                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-green-200">
+                      <p className="text-xs sm:text-sm text-green-700 font-medium">
                         ✅ 화상 채팅 파트너로 등록되어 있습니다!
                       </p>
                       <p className="text-xs text-gray-600 mt-1">

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { UserBadge } from '@/components/UserBadge'
 
 interface Post {
   id: string
@@ -25,6 +26,9 @@ interface Post {
     id: string
     full_name: string
     avatar_url?: string
+    nickname?: string
+    total_points?: number
+    is_vip?: boolean
   }
   gallery: {
     id: string
@@ -268,7 +272,10 @@ export default function PopularPosts({ onPostSelect }: PopularPostsProps) {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{post.user.nickname || post.user.full_name || '익명'}</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {post.user.nickname || post.user.full_name || '익명'}
+                      <UserBadge totalPoints={post.user.total_points || 0} isVip={post.user.is_vip || false} small />
+                    </p>
                     <p className="text-xs text-gray-500">{formatDate(post.created_at)}</p>
                   </div>
                 </div>

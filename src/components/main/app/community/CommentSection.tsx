@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { TranslationService } from '@/lib/translation'
+import { UserBadge } from '@/components/UserBadge'
 
 interface Comment {
   id: string
@@ -22,6 +23,9 @@ interface Comment {
     id: string
     full_name: string
     profile_image?: string
+    nickname?: string
+    total_points?: number
+    is_vip?: boolean
   }
   user?: {
     id: string
@@ -487,6 +491,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="font-medium text-gray-800">
                         {comment.author?.nickname || comment.author?.full_name || '익명'}
+                        <UserBadge totalPoints={comment.author?.total_points || 0} isVip={comment.author?.is_vip || false} small />
                       </span>
                       <span className="text-xs text-gray-500">
                         {formatTime(comment.created_at)}
@@ -601,6 +606,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                             <div className="flex items-center space-x-2 mb-2">
                               <span className="font-medium text-gray-800">
                                 {reply.author?.nickname || reply.author?.full_name || '익명'}
+                                <UserBadge totalPoints={reply.author?.total_points || 0} isVip={reply.author?.is_vip || false} small />
                               </span>
                               <span className="text-xs text-gray-500">
                                 {formatTime(reply.created_at)}

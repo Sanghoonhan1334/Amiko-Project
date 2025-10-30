@@ -55,6 +55,18 @@ function getTimezoneOffset(timezone: string): number {
   }
 }
 
+// 거절 사유 번역 함수 (한국어 → 스페인어)
+function translateRejectionReason(reason: string): string {
+  const translations: Record<string, string> = {
+    '일정이 맞지 않습니다': 'El horario no coincide',
+    '개인 사정이 있습니다': 'Tengo asuntos personales',
+    '예약 시간이 부적절합니다': 'La hora de la reserva no es apropiada',
+    '급한 일이 생겼습니다': 'Ha surgido algo urgente',
+    '기타': 'Otro'
+  }
+  return translations[reason] || reason
+}
+
 interface BookingRequest {
   id: string
   partner_id: string
@@ -606,7 +618,7 @@ export default function BookingDetailPage() {
                     </div>
                     {booking.rejection_reason && (
                       <p className="text-sm text-red-800 mb-2">
-                        Razón: {booking.rejection_reason}
+                        Razón: {translateRejectionReason(booking.rejection_reason)}
                       </p>
                     )}
                     <p className="text-sm text-red-700">

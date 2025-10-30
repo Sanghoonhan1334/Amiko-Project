@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,8 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 // 🚀 최적화: React Query hook 추가
-import { useEventPoints } from '@/hooks/useEventPoints'
+import { useUser } from '@/context/UserContext'
+import { getUserLevel } from '@/lib/user-level'
 import ZepEventCard from './ZepEventCard'
 
 interface AttendanceRecord {
@@ -28,48 +29,67 @@ interface AttendanceRecord {
   stamps: number
 }
 
+// getRewards 함수에서 language를 파라미터로 받도록 변경
+const getRewards = (language: string) => {
+    const consecutiveDaysText = (days: number) => {
+      if (language === 'es') {
+        return `${days} días consecutivos`
+      } else {
+        return `${days}일 연속`
+      }
+    }
+
+    return {
+      3: { points: 20, label: consecutiveDaysText(3) },
+      7: { points: 30, label: consecutiveDaysText(7) },
+      10: { points: 40, label: consecutiveDaysText(10) },
+      15: { points: 60, label: consecutiveDaysText(15) },
+      22: { points: 70, label: consecutiveDaysText(22) },
+      25: { points: 80, label: consecutiveDaysText(25) },
+      30: { points: 100, label: consecutiveDaysText(30) }
+    }
+  }
+
 export default function EventTab() {
   const router = useRouter()
-  const { user, token } = useAuth()
+  const { user, loading, refreshUser } = useUser()
   const { t, language } = useLanguage()
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
   const [currentStreak, setCurrentStreak] = useState(0)
-  const [totalPoints, setTotalPoints] = useState(0)
+  // 핵심: 항상 중앙 context의 user?.points를 신뢰하게!
+  const totalPoints = user?.points
   const [isStampAnimating, setIsStampAnimating] = useState(false)
   const [stampSize, setStampSize] = useState(1)
   const [clickedDay, setClickedDay] = useState<number | null>(null)
   const [userType, setUserType] = useState<'local' | 'korean'>('local') // 기본값: 현지인
-  
-  // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
-  const { 
-    data: eventData, 
-    isLoading: loading, 
-    error: queryError,
-    refetch 
-  } = useEventPoints()
-  
-  // React Query에서 가져온 데이터 분리
-  const pointsData = eventData?.pointsData || {
-    total: 0,
-    available: 0,
-    community: 0,
-    videoCall: 0
-  }
-  
-  const rankingData = eventData?.rankingData || {
-    ranking: [],
-    userRank: null,
-    totalUsers: 0
-  }
-  
-  const error = queryError?.message || null
-
-  // 🚀 최적화: 복잡한 API 호출 로직 제거 (React Query에서 처리)
-  
-  // 포인트 데이터가 변경될 때 totalPoints 업데이트
+  const refreshAttempted = useRef(false);
+  const [refreshTryCount, setRefreshTryCount] = useState(0);
+  const [showError, setShowError] = useState(false);
   useEffect(() => {
-    setTotalPoints(pointsData.total)
-  }, [pointsData.total])
+    if (loading || !user || !user.id) {
+      const t = setTimeout(() => setShowError(true), 5000);
+      return () => clearTimeout(t);
+    } else {
+      setShowError(false);
+    }
+  }, [loading, user]);
+  // guard 없이 항상 컨텐츠 표시. user/points 없을 때 fallback.
+  const safePoints = typeof user?.points === 'number' ? user.points : 0;
+  const levelResult = getUserLevel(safePoints);
+  const currentLevel = levelResult.label || '확인불가';
+  const levelIcon = levelResult.level === 'sprout' ? '🌱' : levelResult.level === 'rose' ? '🌹' : '🌿';
+  const rewards = getRewards(language);
+  const getNextReward = () => {
+    const milestones = Object.keys(rewards).map(Number).sort((a, b) => a - b)
+    return milestones.find(milestone => milestone > currentStreak) || null
+  }
+  // points가 확정적으로 없거나 0일 때 자동 갱신 (최대 한 번만 시도)
+  useEffect(() => {
+    if (!refreshAttempted.current && (!loading && (totalPoints === undefined || totalPoints === 0)) && user?.id) {
+      refreshUser()
+      refreshAttempted.current = true;
+    }
+  }, [totalPoints, loading, user?.id, refreshUser]);
 
   // 언어에 따른 요일 배열
   const daysOfWeek = language === 'es' 
@@ -91,39 +111,26 @@ export default function EventTab() {
   const currentDay = today.getDate()
 
   // 출석체크 보상 시스템 (연속 출석 기준)
-  const getRewards = () => {
-    const consecutiveDaysText = (days: number) => {
-      if (language === 'es') {
-        return `${days} días consecutivos`
-      } else {
-        return `${days}일 연속`
-      }
-    }
+  // const getRewards = () => {
+  //   const consecutiveDaysText = (days: number) => {
+  //     if (language === 'es') {
+  //       return `${days} días consecutivos`
+  //     } else {
+  //       return `${days}일 연속`
+  //     }
+  //   }
 
-    return {
-      3: { points: 20, label: consecutiveDaysText(3) },
-      7: { points: 30, label: consecutiveDaysText(7) },
-      10: { points: 40, label: consecutiveDaysText(10) },
-      15: { points: 60, label: consecutiveDaysText(15) },
-      22: { points: 70, label: consecutiveDaysText(22) },
-      25: { points: 80, label: consecutiveDaysText(25) },
-      30: { points: 100, label: consecutiveDaysText(30) }
-    }
-  }
+  //   return {
+  //     3: { points: 20, label: consecutiveDaysText(3) },
+  //     7: { points: 30, label: consecutiveDaysText(7) },
+  //     10: { points: 40, label: consecutiveDaysText(10) },
+  //     15: { points: 60, label: consecutiveDaysText(15) },
+  //     22: { points: 70, label: consecutiveDaysText(22) },
+  //     25: { points: 80, label: consecutiveDaysText(25) },
+  //     30: { points: 100, label: consecutiveDaysText(30) }
+  //   }
+  // }
   
-  const rewards = getRewards()
-
-  useEffect(() => {
-    loadAttendanceData()
-    // 🚀 최적화: loadPointsData 제거됨 (React Query로 대체)
-    // 사용자가 로그인된 경우에만 쿠폰 지급 확인
-    if (user?.id) {
-      checkFirstTimeUser()
-    }
-  }, [user?.id])
-
-  // 🚀 최적화: 포인트 데이터 로드 함수 제거 (React Query에서 처리)
-
   // 최초 가입자 확인 및 쿠폰 지급 (로그인된 사용자만)
   const checkFirstTimeUser = () => {
     // 로그인된 사용자만 쿠폰 지급
@@ -141,11 +148,10 @@ export default function EventTab() {
       // 포인트도 추가
       const currentPoints = parseInt(localStorage.getItem('totalPoints') || '0')
       const newPoints = currentPoints + 50 // 가입 축하 포인트
-      setTotalPoints(newPoints)
+      // setTotalPoints(newPoints) // 이제 중앙 context에서 관리
       localStorage.setItem('totalPoints', newPoints.toString())
     }
   }
-
 
   const loadAttendanceData = () => {
     // localStorage에서 실제 출석체크 기록 불러오기
@@ -170,11 +176,22 @@ export default function EventTab() {
     }
     
     if (savedPoints) {
-      setTotalPoints(parseInt(savedPoints))
+      // setTotalPoints(parseInt(savedPoints)) // 이제 중앙 context에서 관리
     } else {
-      setTotalPoints(0)
+      // setTotalPoints(0) // 이제 중앙 context에서 관리
     }
   }
+
+  useEffect(() => {
+    loadAttendanceData()
+    // 🚀 최적화: loadPointsData 제거됨 (React Query로 대체)
+    // 사용자가 로그인된 경우에만 쿠폰 지급 확인
+    if (user?.id) {
+      checkFirstTimeUser()
+    }
+  }, [user?.id])
+
+  // 🚀 최적화: 포인트 데이터 로드 함수 제거 (React Query에서 처리)
 
   const handleDayClick = async (dayNumber: number) => {
     if (isStampAnimating) return
@@ -261,8 +278,8 @@ export default function EventTab() {
       const reward = rewards[streak as keyof typeof rewards]
       
       // 보상 지급 로직 (연속 출석 보상만)
-      setTotalPoints(prev => prev + reward.points)
-      localStorage.setItem('totalPoints', (totalPoints + reward.points).toString())
+      // setTotalPoints(prev => prev + reward.points) // 이제 중앙 context에서 관리
+      // localStorage.setItem('totalPoints', (totalPoints + reward.points).toString()) // 이제 중앙 context에서 관리
       
       // 보상 알림
       let rewardMessage = `🎉 ${t('eventTab.rewardAchieved')} ${reward.label}!\n`
@@ -271,11 +288,6 @@ export default function EventTab() {
       alert(rewardMessage)
       console.log(`${t('eventTab.rewardObtained')} ${reward.label}: ${t('eventTab.points')} ${reward.points}${t('eventTab.points')}`)
     }
-  }
-
-  const getNextReward = () => {
-    const milestones = Object.keys(rewards).map(Number).sort((a, b) => a - b)
-    return milestones.find(milestone => milestone > currentStreak) || null
   }
 
   // 각 날짜별 보상 아이템 생성
@@ -314,117 +326,30 @@ export default function EventTab() {
     return rewardPatterns[(dayNumber - 1) % rewardPatterns.length] || ['⭐']
   }
 
-  const nextReward = getNextReward()
-
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto px-0 md:px-8 py-0 sm:py-2 md:py-6 -mt-8" data-tutorial="event-section">
+      {/* 배지/참여 기준 안내 카드 */}
+      <div className="p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+        <div className="text-xs sm:text-sm text-emerald-900 dark:text-emerald-100">
+          <div className="font-bold text-base sm:text-lg md:text-xl mb-2">{t('eventTab.badgeGuide.title')}</div>
+          <div className="space-y-0.5">
+            <div>{t('eventTab.badgeGuide.sprout')}</div>
+            <div>{t('eventTab.badgeGuide.levels')}</div>
+            <div>{t('eventTab.badgeGuide.rose')}</div>
+            <div>{t('eventTab.badgeGuide.vip')}</div>
+            <div className="mt-1">{t('eventTab.badgeGuide.requirement')}</div>
+          </div>
+        </div>
+      </div>
       {/* 특별 이벤트 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
         <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100">{t('eventTab.attendanceCheck.specialEvents.title')}</h2>
       </div>
 
-      {/* 추천인 이벤트 */}
-      <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-800 border border-purple-200 dark:border-gray-700 rounded-xl p-4 sm:p-6 mb-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-2xl">🎁</span>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-purple-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.referralEvents.title')}</h3>
-            <p className="text-sm text-purple-600 dark:text-purple-400">{t('eventTab.attendanceCheck.specialEvents.referralEvents.subtitle')}</p>
-          </div>
-        </div>
+      {/* 추천인 이벤트 비활성화 */}
 
-        {/* 데스크톱 */}
-        <div className="hidden md:grid grid-cols-2 gap-4">
-          {/* 그랜드 런칭 */}
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-gray-700">
-            <h4 className="font-bold text-gray-800 dark:text-gray-200 mb-2">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.title')}</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.description')}</p>
-            
-            <div className="bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg mb-3">
-              <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.howToParticipate')}</p>
-              <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• {t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.step1')}</li>
-                <li>• {t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.step2')}</li>
-              </ul>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Badge className="bg-pink-500 text-white">🎁 {t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.prize')}</Badge>
-              <span className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.winnerCount')}</span>
-            </div>
-          </div>
-
-          {/* 아큐 포인트 */}
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-gray-700">
-            <h4 className="font-bold text-gray-800 dark:text-gray-200 mb-2">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.title')}</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.description')}</p>
-            
-            <div className="bg-pink-50 dark:bg-pink-900/30 p-3 rounded-lg mb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className="bg-purple-500 text-white">🏆 {t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.prize')}</Badge>
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.prizeDescription')}</p>
-            </div>
-
-            <p className="text-xs font-semibold text-pink-600 dark:text-pink-400">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.winnerRule')}</p>
-          </div>
-        </div>
-
-        {/* 모바일 */}
-        <div className="block md:hidden space-y-3">
-          {/* 그랜드 런칭 */}
-          <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-gray-700">
-            <h4 className="font-bold text-gray-800 dark:text-gray-200 text-sm mb-1">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.title')}</h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.description')}</p>
-            
-            <div className="bg-purple-50 dark:bg-purple-900/30 p-2 rounded-lg mb-2">
-              <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.howToParticipate')}</p>
-              <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
-                <li>• {t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.step1')}</li>
-                <li>• {t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.step2')}</li>
-              </ul>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Badge className="bg-pink-500 text-white text-xs">🎁 {t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.prize')}</Badge>
-              <span className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.referralEvents.grandLaunch.winnerCount')}</span>
-            </div>
-          </div>
-
-          {/* 아큐 포인트 */}
-          <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-gray-700">
-            <h4 className="font-bold text-gray-800 dark:text-gray-200 text-sm mb-1">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.title')}</h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.description')}</p>
-            
-            <div className="bg-pink-50 dark:bg-pink-900/30 p-2 rounded-lg mb-2">
-              <div className="flex items-center gap-1 mb-1">
-                <Badge className="bg-purple-500 text-white text-xs">🏆 {t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.prize')}</Badge>
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.prizeDescription')}</p>
-            </div>
-
-            <p className="text-xs font-semibold text-pink-600 dark:text-pink-400">{t('eventTab.attendanceCheck.specialEvents.referralEvents.acuPoint.winnerRule')}</p>
-          </div>
-        </div>
-
-        {/* 내 추천인 현황 보기 버튼 */}
-        <div className="mt-4 flex justify-center">
-          <Button
-            onClick={() => router.push('/main?tab=me')}
-            className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white"
-          >
-            <Users className="w-4 h-4 mr-2" />
-            {t('eventTab.attendanceCheck.specialEvents.referralEvents.viewStatus')}
-          </Button>
-        </div>
-      </div>
-
-      {/* 구분선 */}
-      <div className="border-t-2 border-gray-300 mb-6"></div>
+      {/* 구분선 제거 (추천인 섹션 비활성화에 따라) */}
 
         {/* 데스크톱: 카드 스타일 */}
         <div className="hidden md:grid grid-cols-2 gap-4 sm:gap-6" data-tutorial="event-participation">
@@ -439,7 +364,7 @@ export default function EventTab() {
                 />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold text-blue-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-blue-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.title')}</h3>
                 <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">{t('eventTab.attendanceCheck.specialEvents.localEvent.description')}</p>
               </div>
             </div>
@@ -448,7 +373,7 @@ export default function EventTab() {
               <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-blue-600 dark:text-blue-400 font-bold">{t('eventTab.attendanceCheck.specialEvents.localEvent.raffle')}</span>
+                    <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold">{t('eventTab.attendanceCheck.specialEvents.localEvent.raffle')}</span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.localEvent.raffleDescription')}</p>
                 </div>
@@ -456,9 +381,9 @@ export default function EventTab() {
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">✈</span>
                   </div>
-                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
+                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
                 </div>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.flightTicket')}</div>
                   <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.guideService')}</div>
                   <div>• {t('eventTab.attendanceCheck.specialEvents.localEvent.accommodation')}</div>
@@ -466,8 +391,8 @@ export default function EventTab() {
               </div>
             </div>
             
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg">
-              <p className="text-sm text-gray-700 dark:text-gray-200 font-medium">
+            <div className="mt-4 p-2 sm:p-3 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg">
+              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 font-medium">
                 🏆 {t('eventTab.attendanceCheck.specialEvents.localEvent.period')}
               </p>
             </div>
@@ -533,7 +458,7 @@ export default function EventTab() {
           <div className="p-2 sm:p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-700 dark:to-gray-700 border border-green-200 dark:border-gray-600 rounded-xl shadow-sm" data-tutorial="point-system">
             <div className="flex items-center gap-2 mb-3 px-2 sm:px-0">
               <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg">🎯</span>
+                <span className="text-white text-base">🎯</span>
               </div>
               <div>
                 <h3 className="text-sm font-bold text-green-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.title')}</h3>
@@ -698,3 +623,4 @@ export default function EventTab() {
     </div>
   )
 }
+

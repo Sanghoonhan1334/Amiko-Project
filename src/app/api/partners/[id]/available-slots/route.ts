@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { convertKSTToUserTimezone, convertUserTimezoneToKST } from '@/lib/timezone-converter'
+import { convertKSTToUserTimezone, convertUserTimezoneToKST, getTimezoneFromPhoneNumber } from '@/lib/timezone-converter'
 
 // 특정 파트너의 가능한 시간 조회
 export async function GET(
@@ -66,52 +66,12 @@ export async function GET(
         userTimezone = preferences.timezone
         console.log(`[available-slots] DB user_preferences 타임존: ${userTimezone}`)
       } else {
-        // user_preferences에 타임존이 없으면 회원가입 시 입력한 국적(user_metadata.country) 기반으로 추정
-        // 주의: users.country는 다른 곳에서 변경될 수 있으므로 회원가입 시 입력한 값만 사용
+        // user_preferences에 타임존이 없으면 회원가입 시 입력한 정보 기반으로 추정
+        // 회원가입 시 입력한 전화번호와 국가코드 기준으로 타임존 결정
+        const signupPhone = user.user_metadata?.phone
         const signupCountry = user.user_metadata?.country
-        
-        const { data: userData } = await supabase
-          .from('users')
-          .select('language')
-          .eq('id', user.id)
-          .single()
-
-        // 회원가입 시 입력한 국적이 있으면 그것을 기준으로 타임존 결정
-        if (signupCountry) {
-          // 회원가입 시 입력한 국적 코드를 타임존으로 매핑
-          const countryToTimezone: Record<string, string> = {
-            'KR': 'Asia/Seoul',
-            '대한민국': 'Asia/Seoul',
-            'South Korea': 'Asia/Seoul',
-            'Korea': 'Asia/Seoul',
-            'KOR': 'Asia/Seoul',
-            'PE': 'America/Lima', // 페루
-            'CO': 'America/Bogota', // 콜롬비아
-            'MX': 'America/Mexico_City', // 멕시코
-            'CL': 'America/Santiago', // 칠레
-            'AR': 'America/Buenos_Aires', // 아르헨티나
-            'BR': 'America/Sao_Paulo', // 브라질
-            'US': 'America/New_York', // 미국
-            'ES': 'Europe/Madrid', // 스페인
-          }
-          
-          const countryTimezone = countryToTimezone[signupCountry]
-          if (countryTimezone) {
-            userTimezone = countryTimezone
-            console.log(`[available-slots] 회원가입 국적 기반 타임존 설정: ${signupCountry} → ${userTimezone}`)
-          } else if (userData?.language === 'es') {
-            // 매핑되지 않지만 스페인어권이면 페루로 가정
-            userTimezone = 'America/Lima'
-            console.log(`[available-slots] language 기반 타임존 설정: es → ${userTimezone}`)
-          }
-        } else if (userData?.language === 'es') {
-          // 회원가입 국적이 없고 language만 있으면 language로 판단
-          userTimezone = 'America/Lima'
-          console.log(`[available-slots] language만으로 타임존 설정: es → ${userTimezone}`)
-        } else if (userData?.language === 'ko') {
-          userTimezone = 'Asia/Seoul'
-          console.log(`[available-slots] language만으로 타임존 설정: ko → ${userTimezone}`)
-        }
+        userTimezone = getTimezoneFromPhoneNumber(signupPhone, signupCountry)
+        console.log(`[available-slots] 전화번호 기준 타임존: ${signupPhone} (국가번호 없을 시 fallback: ${signupCountry}) → ${userTimezone}`)
       }
     }
 
@@ -125,23 +85,38 @@ export async function GET(
 
     // 해당 날짜의 가능한 시간 조회 (available 상태만)
     // 주의: DB에 저장된 날짜는 KST 기준이므로, 사용자가 선택한 날짜를 KST로 변환해서 조회해야 함
-    // 하지만 먼저 모든 KST 날짜의 스케줄을 가져온 다음, 각각을 사용자 타임존으로 변환하여 필터링하는 방식으로 처리
     
-    // 일단 해당 날짜 근처의 모든 가능한 시간 조회 (KST 기준)
-    // 날짜 범위를 넓게 잡아서 조회 (타임존 차이로 인해 다른 날짜로 변환될 수 있음)
-    const searchDate = new Date(date + 'T00:00:00')
-    const dayBefore = new Date(searchDate)
-    dayBefore.setDate(dayBefore.getDate() - 1)
-    const dayAfter = new Date(searchDate)
-    dayAfter.setDate(dayAfter.getDate() + 1)
+    // 먼저 사용자가 선택한 날짜(사용자 타임존 기준)를 KST 날짜로 변환
+    const userDateConversion = convertUserTimezoneToKST(date, '12:00', userTimezone)
+    const kstDateStr = userDateConversion.date
+    const kstTimeStr = userDateConversion.time
+    console.log(`[available-slots] 사용자 날짜 ${date} 12:00 (${userTimezone}) → KST 날짜 ${kstDateStr} ${kstTimeStr}`)
+    
+    // 변환 검증: KST 날짜를 다시 사용자 타임존으로 변환하여 일치 확인
+    const verificationConversion = convertKSTToUserTimezone(kstDateStr, kstTimeStr, userTimezone)
+    if (verificationConversion.date !== date) {
+      console.warn(`[available-slots] ⚠️ 날짜 변환 검증 실패:`, {
+        원본_사용자_날짜: date,
+        변환된_KST_날짜: kstDateStr,
+        역변환된_사용자_날짜: verificationConversion.date,
+        불일치: true
+      })
+    }
 
-    // 1. 특정 날짜에 등록된 스케줄 조회
+    // 1. 특정 날짜에 등록된 스케줄 조회 (KST 날짜 기준)
+    const kstDayBefore = new Date(new Date(`${kstDateStr}T00:00:00+09:00`).getTime() - 24 * 60 * 60 * 1000)
+    const kstDayAfter = new Date(new Date(`${kstDateStr}T00:00:00+09:00`).getTime() + 24 * 60 * 60 * 1000)
+    const kstDayBeforeStr = kstDayBefore.toISOString().split('T')[0]
+    const kstDayAfterStr = kstDayAfter.toISOString().split('T')[0]
+    
+    console.log(`[available-slots] ⚠️ 특정 날짜 스케줄 조회 범위: ${kstDayBeforeStr} ~ ${kstDayAfterStr} (KST 기준)`)
+    
     const { data: availableSlots, error } = await supabase
       .from('available_schedules')
       .select('*')
       .eq('partner_id', partnerUserId)
-      .gte('date', dayBefore.toISOString().split('T')[0])
-      .lte('date', dayAfter.toISOString().split('T')[0])
+      .gte('date', kstDayBeforeStr)
+      .lte('date', kstDayAfterStr)
       .eq('status', 'available')
       .order('date', { ascending: true })
       .order('start_time', { ascending: true })
@@ -159,37 +134,203 @@ export async function GET(
     // 그 KST 날짜의 요일로 반복 스케줄을 조회해야 함
     // 예: 페루 일요일 → KST 월요일 → day_of_week = 1로 조회
     
-    // 사용자가 선택한 날짜(사용자 타임존 기준)를 KST 날짜로 변환
-    const userDateConversion = convertUserTimezoneToKST(date, '12:00', userTimezone)
-    const kstDateStr = userDateConversion.date
-    
     // KST 날짜의 요일 계산 (KST 타임존으로 명시적으로 계산)
-    // 주의: new Date()는 서버의 로컬 타임존으로 해석하므로, KST 타임존으로 명시적으로 계산해야 함
-    const kstFormatter = new Intl.DateTimeFormat('en-US', {
+    // 중요: kstDateStr은 이미 KST 기준 날짜 문자열 (예: "2025-10-30")
+    // 이 날짜의 요일을 정확히 계산해야 함
+    // day_of_week: 0=일요일, 1=월요일, 2=화요일, 3=수요일, 4=목요일, 5=금요일, 6=토요일
+    
+    // 방법: KST 날짜의 정오(12:00)를 나타내는 UTC timestamp를 계산한 후
+    // 그 UTC timestamp를 KST 타임존으로 포맷팅하여 요일을 얻음
+    
+    // 1. KST 날짜의 정오(12:00 KST)를 나타내는 Date 객체 생성
+    // 가장 정확한 방법: ISO 문자열 형식으로 KST 타임존 명시
+    const [kstYear, kstMonth, kstDay] = kstDateStr.split('-').map(Number)
+    
+    // KST 날짜의 정오(12:00 KST)를 ISO 문자열로 생성
+    // KST는 UTC+9이므로 "2025-10-30T12:00:00+09:00" 형식
+    const kstISOString = `${String(kstYear).padStart(4, '0')}-${String(kstMonth).padStart(2, '0')}-${String(kstDay).padStart(2, '0')}T12:00:00+09:00`
+    const kstDateObj = new Date(kstISOString)
+    
+    console.log(`[available-slots] ⚠️ KST 날짜 파싱: ${kstDateStr} → ISO: ${kstISOString} → Date 객체: ${kstDateObj.toISOString()}`)
+    
+    // 날짜 검증: 포맷팅된 날짜가 원본과 일치하는지 확인
+    const kstFormatted = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(kstDateObj)
+    
+    if (kstFormatted !== kstDateStr) {
+      console.warn(`[available-slots] ⚠️ 날짜 불일치! 원본: ${kstDateStr}, 포맷팅: ${kstFormatted}`)
+    }
+    
+    // 2. 이 UTC timestamp를 KST 타임존으로 포맷팅하여 요일 얻기
+    // Intl.DateTimeFormat은 UTC timestamp를 KST 타임존의 날짜/시간으로 변환
+    const kstWeekdayShort = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Seoul',
       weekday: 'short'
-    })
-    const kstDateObj = new Date(`${kstDateStr}T12:00:00+09:00`) // KST로 명시적으로 설정
-    const kstDayOfWeek = kstDateObj.getUTCDay() // UTC 기준으로 요일 계산 (더 안정적)
+    }).format(kstDateObj)
     
-    // KST 요일 이름 확인 (디버깅용)
-    const kstWeekday = kstFormatter.format(kstDateObj)
-    console.log(`[available-slots] 사용자 날짜 ${date} (${userTimezone}) → KST 날짜 ${kstDateStr}, KST 요일: ${kstDayOfWeek} (${kstWeekday})`)
+    // 요일 문자열을 숫자로 매핑
+    const weekdayShortMap: Record<string, number> = {
+      'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
+    }
+    const kstDayOfWeek = weekdayShortMap[kstWeekdayShort] ?? 0
+    
+    // Alternative method: long format으로도 검증
+    const kstWeekdayLong = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      weekday: 'long'
+    }).format(kstDateObj)
+    const weekdayLongMap: Record<string, number> = {
+      'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6
+    }
+    const kstDayOfWeekAlt = weekdayLongMap[kstWeekdayLong] ?? kstDayOfWeek
+    
+    // 추가 검증: UTC 기반 요일 계산 (Zeller's congruence 대신 간단한 방법)
+    // kstDateStr의 날짜가 KST 타임존에서 어떤 요일인지 계산
+    // KST는 UTC+9이므로, KST 날짜의 00:00 KST는 UTC 날짜의 15:00 (전날) 또는 16:00 (전날)입니다
+    // 더 정확하게는, KST 날짜의 정오(12:00 KST)를 UTC로 변환하면 (예: 2025-10-30 12:00 KST = 2025-10-30 03:00 UTC)
+    // 이 UTC 시간을 기반으로 요일을 계산하는 것이 더 정확합니다
+    
+    // 방법: KST 날짜의 정오를 UTC로 변환한 후, 그 UTC 시간을 Date 객체로 생성
+    // 그런 다음 Intl.DateTimeFormat으로 KST 타임존의 요일을 얻습니다 (이미 위에서 했지만)
+    
+    // 대안: UTC Date 객체 생성 시 KST 오프셋 고려
+    // KST는 UTC+9이므로, UTC timestamp = KST timestamp - 9 hours
+    // KST 날짜의 정오(12:00) = UTC 날짜의 03:00 (같은 날)
+    // 하지만 Date 객체는 UTC 기준이므로, KST 12:00를 나타내는 UTC Date 객체 생성
+    const utcDateForKstNoon = new Date(Date.UTC(kstYear, kstMonth - 1, kstDay, 3, 0, 0)) // KST 12:00 = UTC 03:00 (대략)
+    const utcBasedWeekday = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      weekday: 'short'
+    }).format(utcDateForKstNoon)
+    const utcBasedDayOfWeek = weekdayShortMap[utcBasedWeekday] ?? kstDayOfWeek
+    
+    console.log(`[available-slots] UTC 기반 요일 계산: ${utcDateForKstNoon.toISOString()} → ${utcBasedWeekday} (${utcBasedDayOfWeek})`)
+    
+    // 최종 결정: 일관성을 위해 주 방법(kstDayOfWeek) 우선 사용
+    // 하지만 모든 방법이 일치하는지 확인
+    if (kstDayOfWeek !== utcBasedDayOfWeek || kstDayOfWeekAlt !== utcBasedDayOfWeek) {
+      console.warn(`[available-slots] ⚠️ 요일 계산 방법 간 불일치:`, {
+        주방법: `${kstDayOfWeek} (${kstWeekdayShort})`,
+        대안방법: `${kstDayOfWeekAlt} (${kstWeekdayLong})`,
+        UTC방법: `${utcBasedDayOfWeek} (${utcBasedWeekday})`
+      })
+    }
+    
+    console.log(`[available-slots] ⚠️ KST 날짜 ${kstDateStr} → KST 요일 계산 상세:`, {
+      kstYear,
+      kstMonth,
+      kstDay,
+      kstISOString,
+      weekdayShort: kstWeekdayShort,
+      weekdayLong: kstWeekdayLong,
+      kstDayOfWeek: kstDayOfWeek,
+      kstDayOfWeekAlt: kstDayOfWeekAlt,
+      formattedDate: kstFormatted,
+      dateMatches: kstFormatted === kstDateStr,
+      dateObjISO: kstDateObj.toISOString(),
+      dateObjUTC: kstDateObj.toUTCString(),
+      dateObjTimestamp: kstDateObj.getTime()
+    })
+    console.log(`[available-slots] 사용자 날짜 ${date} (${userTimezone}) → KST 날짜 ${kstDateStr}, KST 요일: ${kstDayOfWeek} (${kstWeekdayShort})`)
+    
+    // 최종적으로 사용할 요일 결정
+    // 주 방법(kstDayOfWeek)이 유효하면 사용, 아니면 alternative method 사용
+    const finalKstDayOfWeek = (kstDayOfWeek !== undefined && kstDayOfWeek !== null) ? kstDayOfWeek : kstDayOfWeekAlt
+    console.log(`[available-slots] ⚠️ 반복 스케줄 조회 조건: partner_id=${partnerUserId}, day_of_week=${finalKstDayOfWeek}, is_active=true`)
+    
+    // 먼저 해당 partner_id의 모든 반복 스케줄 조회 (디버깅용)
+    const { data: allRecurringSchedules } = await supabase
+      .from('partner_recurring_schedules')
+      .select('*')
+      .eq('partner_id', partnerUserId)
+      .eq('is_active', true)
+    
+    const allDayOfWeeks = allRecurringSchedules?.map(s => s.day_of_week) || []
+    const uniqueDayOfWeeks = [...new Set(allDayOfWeeks)].sort()
+    
+    // 더 상세한 디버깅: 각 스케줄의 day_of_week와 실제 요일 매핑 확인
+    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+    const dayNamesShort = ['일', '월', '화', '수', '목', '금', '토']
+    
+    console.log(`[available-slots] ⚠️ 해당 파트너의 모든 반복 스케줄 (활성):`, {
+      totalCount: allRecurringSchedules?.length || 0,
+      dayOfWeeksInDB: uniqueDayOfWeeks,
+      dayOfWeeksInDBNames: uniqueDayOfWeeks.map(d => `${d}(${dayNamesShort[d]})`),
+      queryingForDayOfWeek: finalKstDayOfWeek,
+      queryingForDayOfWeekName: dayNamesShort[finalKstDayOfWeek],
+      queryingForDayOfWeekOriginal: kstDayOfWeek,
+      queryingForDayOfWeekOriginalName: dayNamesShort[kstDayOfWeek],
+      matches: allDayOfWeeks.includes(finalKstDayOfWeek),
+      kstDateStr,
+      userSelectedDate: date,
+      userTimezone,
+      schedules: allRecurringSchedules?.map(s => ({
+        id: s.id,
+        day_of_week: s.day_of_week,
+        day_name: dayNamesShort[s.day_of_week],
+        day_name_full: dayNames[s.day_of_week],
+        start_time: s.start_time,
+        end_time: s.end_time,
+        is_active: s.is_active,
+        partner_id: s.partner_id
+      })) || []
+    })
+    
+    // 만약 매칭되는 스케줄이 없고, 다른 day_of_week가 있다면 상세 경고
+    if (!allDayOfWeeks.includes(finalKstDayOfWeek) && allRecurringSchedules && allRecurringSchedules.length > 0) {
+      console.warn(`[available-slots] ⚠️⚠️⚠️ 매칭 실패 상세:`, {
+        계산된_KST_요일: `${finalKstDayOfWeek} (${dayNamesShort[finalKstDayOfWeek]})`,
+        DB에_있는_요일들: uniqueDayOfWeeks.map(d => `${d} (${dayNamesShort[d]})`).join(', '),
+        KST_날짜: kstDateStr,
+        사용자_선택_날짜: date,
+        사용자_타임존: userTimezone,
+        계산_방법: {
+          kstYear,
+          kstMonth,
+          kstDay,
+          kstISOString,
+          kstWeekdayShort,
+          kstWeekdayLong,
+          kstDayOfWeek,
+          kstDayOfWeekAlt,
+          finalKstDayOfWeek
+        }
+      })
+    }
     
     const { data: recurringSchedules, error: recurringError } = await supabase
       .from('partner_recurring_schedules')
       .select('*')
       .eq('partner_id', partnerUserId)
-      .eq('day_of_week', kstDayOfWeek) // KST 요일로 조회
+      .eq('day_of_week', finalKstDayOfWeek) // KST 요일로 조회 (최종 결정된 값 사용)
       .eq('is_active', true)
       .order('start_time', { ascending: true })
+    
+    console.log(`[available-slots] ⚠️ 반복 스케줄 조회 결과 (필터링 후):`, {
+      error: recurringError?.message || null,
+      count: recurringSchedules?.length || 0,
+      schedules: recurringSchedules?.map(s => ({
+        day_of_week: s.day_of_week,
+        start_time: s.start_time,
+        end_time: s.end_time
+      })) || []
+    })
 
     if (recurringError) {
       console.error('반복 스케줄 조회 오류:', recurringError)
       // 반복 스케줄 조회 실패해도 계속 진행 (특정 날짜 스케줄만 사용)
     }
 
-    console.log(`[available-slots] 사용자 날짜: ${date}, KST 날짜: ${kstDateStr}, KST 요일: ${kstDayOfWeek}, 반복 스케줄 수: ${recurringSchedules?.length || 0}`)
+    console.log(`[available-slots] 사용자 날짜: ${date}, KST 날짜: ${kstDateStr}, KST 요일: ${finalKstDayOfWeek} (원본: ${kstDayOfWeek}), 반복 스케줄 수: ${recurringSchedules?.length || 0}`)
+    console.log(`[available-slots] ⚠️ 조회된 반복 스케줄 상세:`, JSON.stringify(recurringSchedules, null, 2))
+    console.log(`[available-slots] ⚠️ 조회된 특정 날짜 스케줄 수: ${availableSlots?.length || 0}`)
+    if (availableSlots && availableSlots.length > 0) {
+      console.log(`[available-slots] ⚠️ 특정 날짜 스케줄 상세:`, JSON.stringify(availableSlots.slice(0, 3), null, 2))
+    }
 
     // 3. 특정 날짜 스케줄 처리 (KST 기준 시간을 사용자 타임존으로 변환)
     const convertedSlots = (availableSlots || [])
@@ -291,22 +432,48 @@ export async function GET(
     console.log(`[available-slots] 필터링 전: convertedSlots ${convertedSlots.length}개, convertedRecurringSlots ${convertedRecurringSlots.length}개`)
     
     // 변환된 날짜와 사용자 선택 날짜 비교
-    // 중요: 변환된 날짜가 정확히 사용자가 선택한 날짜와 일치해야만 포함
-    // 타임존 변환 과정에서 날짜가 변경될 수 있지만, 최종적으로 사용자 타임존 기준 날짜가 일치해야 함
+    // 중요: 타임존 변환으로 인해 날짜가 하루 차이날 수 있으므로,
+    // 원본 KST 날짜가 사용자가 선택한 날짜를 KST로 변환한 결과와 일치하면 포함
+    // 예: 사용자가 2025-11-25 (Lima) 선택 → KST 2025-11-25로 변환
+    //     KST 2025-11-25 10:10 → Lima 2025-11-24 20:10 (날짜는 바뀌지만 원본 KST 날짜는 일치)
     
-    const matchingRecurring = convertedRecurringSlots.filter(slot => {
-      // 변환된 날짜가 사용자가 선택한 날짜와 정확히 일치해야 함
-      const exactMatch = slot.date === date
-      
-      if (exactMatch) {
-        console.log(`[available-slots] 반복 스케줄 날짜 일치: ${slot.date} === ${date}`)
-        return true
-      } else {
-        console.log(`[available-slots] 반복 스케줄 날짜 불일치 제외: 변환된 날짜 ${slot.date} !== 사용자 선택 날짜 ${date}, 원본 KST: ${slot.original_date}`)
-        // 날짜가 정확히 일치하지 않으면 제외
-        return false
-      }
-    })
+    const matchingRecurring = convertedRecurringSlots
+      .filter(slot => {
+        // 원본 KST 날짜가 사용자가 선택한 날짜를 KST로 변환한 결과와 일치하는지 확인
+        const kstDateMatch = slot.original_date === kstDateStr
+        
+        // 추가 검증: 변환된 날짜가 사용자 선택 날짜와 일치하는 경우도 포함
+        const convertedDateMatch = slot.date === date
+        
+        // 둘 중 하나라도 일치하면 포함
+        const shouldInclude = kstDateMatch || convertedDateMatch
+        
+        if (shouldInclude) {
+          if (kstDateMatch && convertedDateMatch) {
+            console.log(`[available-slots] 반복 스케줄 날짜 일치: KST ${slot.original_date} === ${kstDateStr}, 변환 ${slot.date} === ${date}`)
+          } else if (kstDateMatch) {
+            console.log(`[available-slots] 반복 스케줄 날짜 일치 (KST 기준): KST ${slot.original_date} === ${kstDateStr}, 변환된 날짜: ${slot.date}`)
+          } else {
+            console.log(`[available-slots] 반복 스케줄 날짜 일치 (변환 기준): 변환 ${slot.date} === ${date}`)
+          }
+          return true
+        } else {
+          console.log(`[available-slots] 반복 스케줄 날짜 불일치 제외: KST ${slot.original_date} !== ${kstDateStr} AND 변환 ${slot.date} !== ${date}`)
+          return false
+        }
+      })
+      .map(slot => {
+        // KST 날짜가 일치하지만 변환된 날짜가 다를 경우, 사용자가 선택한 날짜로 덮어쓰기
+        // 예: 사용자가 2025-11-25 선택 → KST 2025-11-25 → 변환 시 2025-11-24가 되었더라도
+        //     사용자가 선택한 날짜(2025-11-25)로 표시해야 함
+        if (slot.original_date === kstDateStr && slot.date !== date) {
+          return {
+            ...slot,
+            date: date // 사용자가 선택한 날짜로 강제 설정
+          }
+        }
+        return slot
+      })
     
     console.log(`[available-slots] 날짜 일치하는 반복 스케줄: ${matchingRecurring.length}개 (전체: ${convertedRecurringSlots.length}개)`)
     
@@ -375,13 +542,27 @@ export async function GET(
       console.log(`[available-slots] 최종 슬롯 목록:`, filteredSlots.map(s => `${s.date} ${s.start_time}`))
     } else {
       console.warn(`[available-slots] ⚠️ 최종 슬롯이 0개입니다! 사용자 날짜: ${date}, 타임존: ${userTimezone}`)
-      console.warn(`[available-slots] 변환된 KST 날짜: ${kstDateStr}, KST 요일: ${kstDayOfWeek}`)
+      console.warn(`[available-slots] 변환된 KST 날짜: ${kstDateStr}, KST 요일: ${finalKstDayOfWeek} (원본: ${kstDayOfWeek})`)
       console.warn(`[available-slots] 조회된 반복 스케줄 수: ${recurringSchedules?.length || 0}개`)
     }
 
     return NextResponse.json({ 
       slots: filteredSlots,
-      userTimezone // 사용자가 어떤 타임존으로 조회했는지 반환
+      userTimezone, // 사용자가 어떤 타임존으로 조회했는지 반환
+      debug: {
+        partnerUserId,
+        kstDateStr,
+        kstDayOfWeek: finalKstDayOfWeek,
+        userSelectedDate: date,
+        allRecurringSchedulesCount: allRecurringSchedules?.length || 0,
+        matchingRecurringSchedulesCount: recurringSchedules?.length || 0,
+        convertedRecurringSlotsCount: convertedRecurringSlots.length,
+        matchingRecurringCount: matchingRecurring.length,
+        specificSlotsCount: availableSlots?.length || 0,
+        convertedSpecificSlotsCount: convertedSlots.length,
+        uniqueSlotsCount: uniqueSlots.length,
+        finalSlotsCount: filteredSlots.length
+      }
     })
 
   } catch (error) {

@@ -7,6 +7,7 @@ import { ArrowLeft, Send, Users, Image as ImageIcon, X, RotateCw, Shield, Ban, U
 import { Button } from '@/components/ui/button'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
+import UserBadge from '@/components/common/UserBadge'
 
 interface Message {
   id: string
@@ -18,6 +19,7 @@ interface Message {
   user_profiles?: {
     display_name?: string
     avatar_url?: string
+    total_points?: number
   }
   users?: {
     email?: string
@@ -224,13 +226,24 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
           try {
             const { data: profile } = await authSupabase
               .from('user_profiles')
-              .select('display_name, avatar_url')
+              .select('display_name, avatar_url, total_points')
               .eq('user_id', msg.user_id)
               .single()
+            // total_points 폴백: user_points 테이블에서 조회
+            let totalPoints = profile?.total_points ?? 0
+            if (!totalPoints) {
+              const { data: pointsRow } = await authSupabase
+                .from('user_points')
+                .select('total_points')
+                .eq('user_id', msg.user_id)
+                .single()
+              totalPoints = pointsRow?.total_points ?? 0
+            }
+            msg.user_profiles = { ...(msg.user_profiles || {}), display_name: profile?.display_name, avatar_url: profile?.avatar_url, total_points: totalPoints }
             
             return {
               ...msg,
-              user_profiles: profile || null
+              user_profiles: msg.user_profiles
             }
           } catch {
             return msg
@@ -293,13 +306,24 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
             try {
               const { data: profile } = await authSupabase
                 .from('user_profiles')
-                .select('display_name, avatar_url')
+                .select('display_name, avatar_url, total_points')
                 .eq('user_id', msg.user_id)
                 .single()
+              // total_points 폴백
+              let totalPoints2 = profile?.total_points ?? 0
+              if (!totalPoints2) {
+                const { data: pointsRow2 } = await authSupabase
+                  .from('user_points')
+                  .select('total_points')
+                  .eq('user_id', msg.user_id)
+                  .single()
+                totalPoints2 = pointsRow2?.total_points ?? 0
+              }
+              msg.user_profiles = { ...(msg.user_profiles || {}), display_name: profile?.display_name, avatar_url: profile?.avatar_url, total_points: totalPoints2 }
               
               return {
                 ...msg,
-                user_profiles: profile || null
+                user_profiles: msg.user_profiles
               }
             } catch {
               return msg
@@ -673,13 +697,22 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
             // user_profiles 테이블에서 닉네임 가져오기
             const { data: profileData } = await authSupabase
               .from('user_profiles')
-              .select('display_name, avatar_url')
+              .select('display_name, avatar_url, total_points')
               .eq('user_id', participant.user_id)
               .single()
+            let totalPoints3 = profileData?.total_points ?? 0
+            if (!totalPoints3) {
+              const { data: pointsRow3 } = await authSupabase
+                .from('user_points')
+                .select('total_points')
+                .eq('user_id', participant.user_id)
+                .single()
+              totalPoints3 = pointsRow3?.total_points ?? 0
+            }
             
             return {
               ...participant,
-              user_profiles: profileData || null
+              user_profiles: { ...(profileData || {}), display_name: profileData?.display_name, avatar_url: profileData?.avatar_url, total_points: totalPoints3 }
             }
           } catch (error) {
             console.error('Error fetching profile for participant:', participant.user_id, error)
@@ -966,6 +999,7 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
                     <div className="flex items-center gap-2 mb-1 px-1">
                       <span className="text-xs text-gray-600">
                         {getUserName(message)}
+                        <UserBadge totalPoints={message.user_profiles?.total_points || 0} isVip={false} size="sm" />
                       </span>
                       {/* 추방 버튼 (관리자만, 자신 제외) */}
                       {isAdmin() && !isOwn && (

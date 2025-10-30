@@ -125,7 +125,7 @@ export default function PointsCard() {
           <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
             <div className="w-6 h-6 bg-orange-500 dark:bg-orange-400 rounded-full flex items-center justify-center shadow-md">
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M5 16L3 8l5.5 5L12 4l3.5 9L21 8l-2 8H5zm2.7-2h8.6l.9-4.4L12 9l-5.2 4.6L7.7 14z"/>
+                <path d="M5 16L3 8l5.5 5L12 4l3.5 9L21 8l-2 8H5zm2.7-2h8.6l.9-4.4L12 9l-5.2 4.6L7.7 14z" />
               </svg>
             </div>
           </div>

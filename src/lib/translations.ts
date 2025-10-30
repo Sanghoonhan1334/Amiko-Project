@@ -911,7 +911,9 @@ export const translations = {
         loginRequired: '로그인이 필요합니다',
         loginRequiredDescription: '이 서비스를 이용하려면 먼저 로그인해주세요.',
         loginButton: '로그인하기'
-      }
+      },
+      partners: '제휴사',
+      partnersDesc: '우리와 함께하는 파트너들을 만나보세요'
     },
 
     // 주제별 게시판 섹션
@@ -993,6 +995,14 @@ export const translations = {
     eventTab: {
       title: '이벤트',
       subtitle: '다양한 이벤트와 혜택을 확인하세요',
+      badgeGuide: {
+        title: '등급 배지 안내',
+        sprout: '🌱 새싹: 75점 미만',
+        levels: '🌿 Lv1 75+ / 🌿 Lv2 150+ / 🌿 Lv3 300+ / 🌿 Lv4 600+ / 🌿 Lv5 1200+',
+        rose: '🌹 분홍 장미: 3500+ (항공권 추첨 대상)',
+        vip: '👑 VIP 왕관: VIP 구매 시',
+        requirement: '✅ 모든 이벤트 추첨은 Lv1 이상부터 참여 가능'
+      },
       attendanceCheck: {
         specialEvents: {
           title: '특별 이벤트',
@@ -2044,6 +2054,23 @@ export const translations = {
       emailDescription: '이메일을 통한 알림을 받습니다',
       marketingNotification: '마케팅 알림',
       marketingDescription: '마케팅 정보 및 이벤트 알림을 받습니다',
+      myLevel: '내 등급',
+      levelLabels: {
+        sprout: '새싹',
+        lv1: 'Lv1',
+        lv2: 'Lv2',
+        lv3: 'Lv3',
+        lv4: 'Lv4',
+        lv5: 'Lv5',
+        rose: '분홍 장미'
+      },
+      levelTooltip: {
+        totalPoints: '누적 {points}점',
+        roseSpecial: '🌹 비행기 티켓 추첨 대상 (Rose)',
+        vipSpecial: '👑 VIP 멤버십: 전용 혜택 제공',
+        levelUp: '활동할수록 레벨이 올라가요!',
+        rosePoints: '장미(3500+)'
+      }
     },
 
     // 알림 관련
@@ -3434,7 +3461,9 @@ export const translations = {
         loginRequired: 'Se requiere iniciar sesión',
         loginRequiredDescription: 'Para usar este servicio, primero debe iniciar sesión.',
         loginButton: 'Iniciar sesión'
-      }
+      },
+      partners: 'Socios',
+      partnersDesc: 'Conoce a nuestros socios'
     },
 
     // 주제별 게시판 섹션
@@ -3516,6 +3545,14 @@ export const translations = {
     eventTab: {
       title: 'Eventos',
       subtitle: 'Descubre diversos eventos y beneficios',
+      badgeGuide: {
+        title: 'Guía de Insignias de Nivel',
+        sprout: '🌱 Brote: menos de 75 puntos',
+        levels: '🌿 Nv1 75+ / 🌿 Nv2 150+ / 🌿 Nv3 300+ / 🌿 Nv4 600+ / 🌿 Nv5 1200+',
+        rose: '🌹 Rosa Rosa: 3500+ (elegible para sorteo de billetes)',
+        vip: '👑 Corona VIP: al comprar VIP',
+        requirement: '✅ Todos los sorteos de eventos están abiertos desde el Nivel 1'
+      },
       attendanceCheck: {
         specialEvents: {
           title: 'Eventos Especiales',
@@ -4588,6 +4625,23 @@ export const translations = {
       emailDescription: 'Recibe notificaciones por email',
       marketingNotification: 'Notificaciones de Marketing',
       marketingDescription: 'Recibe información de marketing y notificaciones de eventos',
+      myLevel: 'Mi Nivel',
+      levelLabels: {
+        sprout: 'Brote',
+        lv1: 'Nv1',
+        lv2: 'Nv2',
+        lv3: 'Nv3',
+        lv4: 'Nv4',
+        lv5: 'Nv5',
+        rose: 'Rosa Rosa'
+      },
+      levelTooltip: {
+        totalPoints: 'Acumulado {points} puntos',
+        roseSpecial: '🌹 Elegible para sorteo de billetes de avión (Rosa)',
+        vipSpecial: '👑 Membresía VIP: Beneficios exclusivos',
+        levelUp: '¡El nivel sube mientras más activo seas!',
+        rosePoints: 'Rosa (3500+)'
+      }
     },
 
     // Notifications

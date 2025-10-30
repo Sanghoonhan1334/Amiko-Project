@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createSupabaseClient } from '@/lib/supabase'
 import { supabaseServer } from '@/lib/supabaseServer'
 
 // 로그인 처리
@@ -14,39 +15,115 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 임시로 로그인 성공 처리 (테스트용)
-    const mockUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    console.log('\n' + '='.repeat(60))
-    console.log('🔐 로그인 처리 (개발 환경)')
-    console.log('='.repeat(60))
-    console.log(`로그인 ID: ${identifier}`)
-    console.log(`비밀번호: ${password}`)
-    console.log(`사용자 ID: ${mockUserId}`)
-    console.log('='.repeat(60) + '\n')
+    // Supabase 클라이언트 생성 (쿠키 기반)
+    const supabase = await createSupabaseClient()
 
-    return NextResponse.json({
+    // 이메일 또는 전화번호로 로그인 시도
+    // identifier가 이메일인지 전화번호인지 확인
+    const isEmail = identifier.includes('@')
+    
+    let authResult
+    if (isEmail) {
+      // 이메일로 로그인
+      authResult = await supabase.auth.signInWithPassword({
+        email: identifier,
+        password,
+      })
+    } else {
+      // 전화번호로 로그인 (전화번호는 users 테이블에서 조회 필요)
+      // 먼저 전화번호로 사용자 찾기
+      if (!supabaseServer) {
+        return NextResponse.json(
+          { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+          { status: 500 }
+        )
+      }
+
+      // 전화번호로 사용자 찾기
+      const { data: userData, error: userError } = await supabaseServer
+        .from('users')
+        .select('email')
+        .eq('phone', identifier)
+        .single()
+
+      if (userError || !userData?.email) {
+        return NextResponse.json(
+          { error: '이메일 또는 비밀번호가 올바르지 않습니다.' },
+          { status: 401 }
+        )
+      }
+
+      // 찾은 이메일로 로그인
+      authResult = await supabase.auth.signInWithPassword({
+        email: userData.email,
+        password,
+      })
+    }
+
+    if (authResult.error) {
+      console.error('[SIGNIN] 로그인 실패:', authResult.error)
+      return NextResponse.json(
+        { error: '이메일 또는 비밀번호가 올바르지 않습니다.' },
+        { status: 401 }
+      )
+    }
+
+    if (!authResult.data.session || !authResult.data.user) {
+      return NextResponse.json(
+        { error: '로그인에 실패했습니다.' },
+        { status: 401 }
+      )
+    }
+
+    // 사용자 정보 조회
+    const { data: userInfo, error: userInfoError } = await supabaseServer!
+      .from('users')
+      .select('*')
+      .eq('id', authResult.data.user.id)
+      .single()
+
+    if (userInfoError) {
+      console.error('[SIGNIN] 사용자 정보 조회 실패:', userInfoError)
+    }
+
+    // 사용자 인증 상태 조회
+    const { data: authStatus } = await supabaseServer!
+      .from('user_auth_status')
+      .select('*')
+      .eq('user_id', authResult.data.user.id)
+      .single()
+
+    console.log('[SIGNIN] 로그인 성공:', {
+      userId: authResult.data.user.id,
+      email: authResult.data.user.email
+    })
+
+    // 응답 생성
+    const response = NextResponse.json({
       success: true,
       message: '로그인이 완료되었습니다.',
       data: {
         user: {
-          id: mockUserId,
-          email: identifier.includes('@') ? identifier : 'test@example.com',
-          name: '테스트 사용자',
-          phone: identifier.includes('@') ? '010-1234-5678' : identifier,
-          country: 'KR',
-          isKorean: true,
-          emailVerified: true,
-          phoneVerified: false,
-          biometricEnabled: false
+          id: authResult.data.user.id,
+          email: authResult.data.user.email,
+          name: userInfo?.name || '',
+          phone: userInfo?.phone || '',
+          country: userInfo?.country || '',
+          isKorean: userInfo?.is_korean || false,
+          emailVerified: authStatus?.email_verified || false,
+          phoneVerified: authStatus?.phone_verified || false,
+          biometricEnabled: authStatus?.biometric_enabled || false
         },
         session: {
-          access_token: `mock_token_${Date.now()}`,
-          refresh_token: `mock_refresh_${Date.now()}`,
-          expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24시간
+          access_token: authResult.data.session.access_token,
+          refresh_token: authResult.data.session.refresh_token,
+          expires_at: authResult.data.session.expires_at
         }
       }
     })
+
+    // 세션 쿠키는 createSupabaseClient가 자동으로 설정함
+    return response
 
   } catch (error) {
     console.error('[SIGNIN] 오류:', error)

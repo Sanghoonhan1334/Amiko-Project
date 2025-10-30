@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { countries, getCountryByCode } from '@/constants/countries'
 
 // 개발 환경용 전역 변수 기반 중복 검증
 declare global {
@@ -121,6 +122,33 @@ export async function POST(request: NextRequest) {
     // 실제 사용자 데이터를 Supabase에 저장
     let userId: string
     
+    // 전화번호에 국가번호 추가 (회원가입 시 선택한 country 기준)
+    // 이렇게 하면 나중에 타임존 결정 시 국가번호를 정확히 찾을 수 있음
+    let formattedPhone = phone
+    const selectedCountry = getCountryByCode(country)
+    if (selectedCountry && selectedCountry.phoneCode) {
+      // 전화번호에서 숫자만 추출
+      const phoneDigits = phone.replace(/\D/g, '')
+      
+      // 이미 국가번호로 시작하는지 확인
+      const phoneCodeDigits = selectedCountry.phoneCode.replace(/\D/g, '')
+      if (!phoneDigits.startsWith(phoneCodeDigits)) {
+        // 국가번호가 없으면 추가
+        // 한국 번호의 경우 010-1234-5678 형식에서 0 제거
+        if (country === 'KR' && phoneDigits.startsWith('010')) {
+          formattedPhone = `${selectedCountry.phoneCode}${phoneDigits.substring(1)}`
+        } else {
+          formattedPhone = `${selectedCountry.phoneCode}${phoneDigits}`
+        }
+        console.log(`[SIGNUP] 전화번호 포맷팅: ${phone} → ${formattedPhone} (국가: ${country}, phoneCode: ${selectedCountry.phoneCode})`)
+      } else {
+        // 이미 국가번호가 포함되어 있으면 +만 추가
+        if (!phone.startsWith('+')) {
+          formattedPhone = `+${phoneDigits}`
+        }
+      }
+    }
+    
     // 이메일을 전역 변수에 저장 (중복 검증용)
     global.registeredEmails!.add(email)
     
@@ -128,6 +156,29 @@ export async function POST(request: NextRequest) {
     if (supabaseServer) {
       try {
         console.log(`[SIGNUP] Supabase Auth를 사용하여 사용자 생성 시도`)
+        const selectedCountry = getCountryByCode(country)
+        if (selectedCountry && selectedCountry.phoneCode) {
+          // 전화번호에서 숫자만 추출
+          const phoneDigits = phone.replace(/\D/g, '')
+          
+          // 이미 국가번호로 시작하는지 확인
+          const phoneCodeDigits = selectedCountry.phoneCode.replace(/\D/g, '')
+          if (!phoneDigits.startsWith(phoneCodeDigits)) {
+            // 국가번호가 없으면 추가
+            // 한국 번호의 경우 010-1234-5678 형식에서 0 제거
+            if (country === 'KR' && phoneDigits.startsWith('010')) {
+              formattedPhone = `${selectedCountry.phoneCode}${phoneDigits.substring(1)}`
+            } else {
+              formattedPhone = `${selectedCountry.phoneCode}${phoneDigits}`
+            }
+            console.log(`[SIGNUP] 전화번호 포맷팅: ${phone} → ${formattedPhone} (국가: ${country}, phoneCode: ${selectedCountry.phoneCode})`)
+          } else {
+            // 이미 국가번호가 포함되어 있으면 +만 추가
+            if (!phone.startsWith('+')) {
+              formattedPhone = `+${phoneDigits}`
+            }
+          }
+        }
         
         // Supabase Auth로 사용자 생성
         const { data: authData, error: authError } = await supabaseServer.auth.admin.createUser({
@@ -135,7 +186,7 @@ export async function POST(request: NextRequest) {
           password: password,
           user_metadata: {
             name: name,
-            phone: phone,
+            phone: formattedPhone, // 국가번호 포함된 전화번호 저장
             country: country
           },
           email_confirm: true // 이메일 인증 완료로 설정
@@ -150,6 +201,7 @@ export async function POST(request: NextRequest) {
           console.log(`[SIGNUP] Supabase Auth 사용자 생성 성공: ${userId}`)
           
           // users 테이블에도 추가
+          const phoneCountryDigits = (selectedCountry?.phoneCode || '').replace(/\D/g, '') || null
           const { error: userError } = await supabaseServer
             .from('users')
             .insert({
@@ -158,6 +210,7 @@ export async function POST(request: NextRequest) {
               full_name: name,
               nickname: nickname.toLowerCase(), // 소문자로 저장
               phone: phone,
+              phone_country: phoneCountryDigits,
               language: country === 'KR' ? 'ko' : 'es', // 한국이 아니면 스페인어로 설정
               email_verified: false, // 이메일 인증은 별도로 진행
               phone_verified: false, // 전화번호 인증은 별도로 진행
@@ -233,7 +286,7 @@ export async function POST(request: NextRequest) {
     console.log(`사용자 ID: ${userId}`)
     console.log(`이메일: ${email}`)
     console.log(`이름: ${name}`)
-    console.log(`전화번호: ${phone || '없음'}`)
+    console.log(`전화번호: ${phone || '없음'} → ${typeof formattedPhone !== 'undefined' ? formattedPhone : phone || '없음'}`)
     console.log(`국가: ${country || '없음'}`)
     console.log(`한국인 여부: ${isKorean}`)
     console.log(`이메일 인증: ${emailVerified}`)

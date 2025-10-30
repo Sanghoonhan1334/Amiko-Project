@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseClient } from '@/lib/supabase'
-import { convertKSTToUserTimezone } from '@/lib/timezone-converter'
+import { convertKSTToUserTimezone, getTimezoneFromPhoneNumber } from '@/lib/timezone-converter'
 import { supabaseServer } from '@/lib/supabaseServer'
 
 // 현지인이 신청한 개별 예약 요청 조회
@@ -60,24 +60,17 @@ export async function GET(
                        partner?.name || 
                        null
 
-    // 사용자의 signup country를 기반으로 timezone 결정
+    // 사용자의 signup phone을 기반으로 timezone 결정
     let userTimezone = 'America/Lima' // 기본값
     try {
       const { data: userMetadata } = await supabaseServer.auth.admin.getUserById(user.id)
+      const signupPhone = userMetadata?.user?.user_metadata?.phone
       const signupCountry = userMetadata?.user?.user_metadata?.country
       
-      if (signupCountry) {
-        const countryCode = signupCountry.toUpperCase()
-        if (countryCode === 'KR' || countryCode === 'KOREA' || countryCode === 'KO') {
-          userTimezone = 'Asia/Seoul'
-        } else if (countryCode === 'PE' || countryCode === 'PERU') {
-          userTimezone = 'America/Lima'
-        } else if (countryCode === 'CO' || countryCode === 'COLOMBIA') {
-          userTimezone = 'America/Bogota'
-        } else if (countryCode === 'MX' || countryCode === 'MEXICO') {
-          userTimezone = 'America/Mexico_City'
-        }
-      }
+      // 회원가입 시 입력한 전화번호의 국가번호 기준으로 타임존 결정
+      // 전화번호에 국가번호가 없으면 country를 fallback으로 사용
+      userTimezone = getTimezoneFromPhoneNumber(signupPhone, signupCountry)
+      console.log('[my-requests/[id]] 전화번호 기준 타임존:', { phone: signupPhone, country: signupCountry, timezone: userTimezone })
     } catch (error) {
       console.error('[my-requests/[id]] timezone 조회 실패:', error)
     }

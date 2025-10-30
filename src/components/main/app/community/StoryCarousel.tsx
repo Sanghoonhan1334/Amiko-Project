@@ -28,6 +28,7 @@ import {
 import { Story, StoryForm } from '@/types/story'
 import UserProfileModal from '@/components/common/UserProfileModal'
 import { StoryCarouselSkeleton } from '@/components/ui/skeleton'
+import UserBadge from '@/components/common/UserBadge'
 
 // 댓글 타입 정의
 interface Comment {
@@ -1413,6 +1414,7 @@ export default function StoryCarousel() {
                                   className="text-xs font-medium text-gray-800 hover:text-blue-600 hover:underline transition-colors"
                                 >
                                   {story.userName}
+                                  <UserBadge totalPoints={0} isVip={false} small />
                                 </button>
                               </div>
                               

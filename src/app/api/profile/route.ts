@@ -288,6 +288,9 @@ export async function GET(request: NextRequest) {
     // 임시 ID인 경우 처리 (개발 환경)
     if (userId.startsWith('user_') || userId.startsWith('temp_')) {
       return NextResponse.json({
+        current_points: 0,
+        available_ako: 0,
+        total_points: 0,
         user: {
           id: userId,
           email: 'temp@example.com',
@@ -392,10 +395,24 @@ export async function GET(request: NextRequest) {
     // 사용자 프로필은 users 테이블에 포함되어 있음
     const profile = null // users 테이블에서 이미 가져왔으므로 별도 조회 불필요
 
-    // 포인트 정보는 기본값으로 설정 (나중에 포인트 시스템 구현 시 추가)
-    const points = {
+    // 포인트 정보 조회
+    const { data: userPoints, error: pointsError } = await supabaseServer
+      .from('user_points')
+      .select('available_points, total_points')
+      .eq('user_id', userId)
+      .single()
+    
+    const points = pointsError ? {
       total_points: 0,
       daily_points: 0,
+      current_points: 0,
+      available_ako: 0,
+      last_reset_date: new Date().toISOString().split('T')[0]
+    } : {
+      total_points: userPoints?.total_points || 0,
+      daily_points: 0,
+      current_points: userPoints?.total_points || 0,
+      available_ako: userPoints?.available_points || 0,
       last_reset_date: new Date().toISOString().split('T')[0]
     }
 
@@ -406,6 +423,9 @@ export async function GET(request: NextRequest) {
     const signupCountry = userMetadata?.country
     
     return NextResponse.json({
+      current_points: points.current_points,
+      available_ako: points.available_ako,
+      total_points: points.total_points,
       user: {
         id: (user as any).id,
         email: (user as any).email,
@@ -439,7 +459,7 @@ export async function GET(request: NextRequest) {
       },
       profile: {
         user_id: userId,
-        display_name: (user as any).full_name,
+        display_name: (user as any).nickname || (user as any).full_name,
         korean_name: (user as any).korean_name,
         nickname: (user as any).nickname,
         spanish_name: (user as any).spanish_name,

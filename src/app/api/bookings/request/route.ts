@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseClient } from '@/lib/supabase'
 import { createServerSupabaseClient } from '@/lib/supabaseServer'
-import { convertUserTimezoneToKST } from '@/lib/timezone-converter'
+import { convertUserTimezoneToKST, getTimezoneFromPhoneNumber } from '@/lib/timezone-converter'
 
 // 현지인이 한국인 친구에게 예약 요청
 export async function POST(request: NextRequest) {
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       console.log('[booking-request] user_id로 직접 사용:', actualPartnerId)
     }
 
-    // 사용자 타임존 조회 (signup 시 선택한 country 기반)
+    // 사용자 타임존 조회 (회원가입 시 입력한 전화번호의 국가번호 기준)
     let userTimezone = 'America/Lima' // 기본값: 페루
     try {
       const supabaseServer = createServerSupabaseClient()
@@ -90,32 +90,10 @@ export async function POST(request: NextRequest) {
       if (adminError) {
         console.error('[booking-request] admin.getUserById 오류 (timezone):', adminError)
       } else {
+        const signupPhone = authUser?.user_metadata?.phone
         const signupCountry = authUser?.user_metadata?.country
-        
-        // country 코드에 따른 timezone 매핑
-        const countryTimezoneMap: Record<string, string> = {
-          'KR': 'Asia/Seoul',
-          'PE': 'America/Lima',
-          'CO': 'America/Bogota',
-          'MX': 'America/Mexico_City',
-          'CL': 'America/Santiago',
-          'AR': 'America/Buenos_Aires',
-          'BR': 'America/Sao_Paulo'
-        }
-        
-        if (signupCountry && countryTimezoneMap[signupCountry]) {
-          userTimezone = countryTimezoneMap[signupCountry]
-        } else {
-          // fallback: user_preferences에서 확인
-          const { data: preferences } = await supabase
-            .from('user_preferences')
-            .select('timezone')
-            .eq('user_id', user.id)
-            .single()
-          if (preferences?.timezone) {
-            userTimezone = preferences.timezone
-          }
-        }
+        userTimezone = getTimezoneFromPhoneNumber(signupPhone, signupCountry)
+        console.log('[booking-request] 전화번호 기준 타임존:', { phone: signupPhone, country: signupCountry, timezone: userTimezone })
       }
     } catch (error) {
       console.error('[booking-request] 사용자 타임존 확인 실패, 기본값 사용:', error)

@@ -15,6 +15,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { ArrowLeft, Calendar, Clock, User, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { getTimezoneFromPhoneNumber } from '@/lib/timezone-converter'
 
 interface Partner {
   id: string
@@ -313,47 +314,26 @@ function CreateBookingPageContent() {
         if (response.ok) {
           const data = await response.json()
           
-          // 회원가입 시 입력한 국적 정보 사용 (user_metadata.country 우선)
-          // 주의: users.country는 다른 곳에서 변경될 수 있으므로 회원가입 시 입력한 값만 사용
-          const signupCountry = data.user?.user_metadata?.country
+          // 회원가입 시 입력한 전화번호를 기준으로 타임존 결정
+          const signupPhone = data.user?.user_metadata?.phone
+          const signupCountry = data.user?.user_metadata?.country // fallback 및 언어 결정용
           const profileLanguage = data.user?.language || data.profile?.language
           
           console.log('[CreateBookingPageContent] 프로필 데이터:', { 
-            signupCountry, // 회원가입 시 입력한 국적
+            signupPhone, // 회원가입 시 입력한 전화번호
+            signupCountry, // 회원가입 시 입력한 국적 (fallback 및 언어 결정용)
             language: profileLanguage, 
             user_metadata: data.user?.user_metadata 
           })
           
-          // 회원가입 시 입력한 국적을 타임존으로 매핑
-          const countryToTimezone: Record<string, string> = {
-            'KR': 'Asia/Seoul',
-            '대한민국': 'Asia/Seoul',
-            'South Korea': 'Asia/Seoul',
-            'Korea': 'Asia/Seoul',
-            'KOR': 'Asia/Seoul',
-            'PE': 'America/Lima', // 페루
-            'CO': 'America/Bogota', // 콜롬비아
-            'MX': 'America/Mexico_City', // 멕시코
-            'CL': 'America/Santiago', // 칠레
-            'AR': 'America/Buenos_Aires', // 아르헨티나
-            'BR': 'America/Sao_Paulo', // 브라질
-            'US': 'America/New_York', // 미국
-            'ES': 'Europe/Madrid', // 스페인
-          }
+          // 전화번호 기준으로 타임존 결정 (전화번호에 국가번호가 없으면 country를 fallback으로 사용)
+          const determinedTimezone = getTimezoneFromPhoneNumber(signupPhone, signupCountry)
+          console.log('[CreateBookingPageContent] 전화번호 기준 타임존 설정:', signupPhone, '(fallback:', signupCountry, ')', '→', determinedTimezone)
           
-          let determinedTimezone = 'America/Lima' // 기본값: 페루
           let determinedLanguage: 'ko' | 'es' = 'es' // 기본값: 페루 등 현지인은 스페인어
           
-          // 회원가입 시 입력한 국적이 있으면 그것을 기준으로 결정
+          // 언어 결정 (국적 기준으로 유지, 전화번호로는 언어를 확정하기 어려움)
           if (signupCountry) {
-            // 타임존 결정
-            const mappedTimezone = countryToTimezone[signupCountry]
-            if (mappedTimezone) {
-              determinedTimezone = mappedTimezone
-              console.log('[CreateBookingPageContent] 회원가입 국적 기반 타임존 설정:', signupCountry, '→', determinedTimezone)
-            }
-            
-            // 언어 결정
             if (signupCountry === 'KR' || signupCountry === '대한민국' || signupCountry === 'South Korea' || signupCountry === 'Korea' || signupCountry === 'KOR') {
               determinedLanguage = 'ko'
             } else {
@@ -391,15 +371,19 @@ function CreateBookingPageContent() {
   }, [user?.id])
 
   // URL에서 partnerId가 있으면 파트너 정보 로드
+  // userTimezone이 설정된 후에만 fetchAvailableDates 호출
   useEffect(() => {
     if (partnerIdFromUrl) {
       fetchPartnerInfo(partnerIdFromUrl)
       setFormData(prev => ({ ...prev, partnerId: partnerIdFromUrl }))
-      fetchAvailableDates(partnerIdFromUrl)
+      // userTimezone이 준비되면 예약 가능 날짜 조회
+      if (userTimezone) {
+        fetchAvailableDates(partnerIdFromUrl)
+      }
     } else {
       fetchPartners()
     }
-  }, [partnerIdFromUrl])
+  }, [partnerIdFromUrl, userTimezone])
 
   // 파트너 정보 조회 (개별)
   const fetchPartnerInfo = async (partnerId: string) => {
@@ -484,17 +468,39 @@ function CreateBookingPageContent() {
           const response = await fetch(`/api/partners/${partnerId}/available-slots?date=${dateStr}`, {
             headers: {
               'x-user-timezone': userTimezone
-            }
+            },
+            credentials: 'include' // 쿠키 포함 (RLS를 위한 세션)
           })
           if (response.ok) {
             const data = await response.json()
-            console.log(`[예약 생성] ${dateStr} 날짜 슬롯 수:`, data.slots?.length || 0)
+            console.log(`[예약 생성] ${dateStr} 날짜 API 응답:`, {
+              slotsCount: data.slots?.length || 0,
+              userTimezone: data.userTimezone,
+              firstSlot: data.slots?.[0] || null,
+              debug: data.debug || null
+            })
+            
+            // 디버깅: 슬롯이 0개인 경우 상세 정보 출력
+            if (data.slots?.length === 0 && data.debug) {
+              console.warn(`[예약 생성] ⚠️ ${dateStr} 날짜 슬롯 0개 - 디버깅 정보:`, {
+                partnerUserId: data.debug.partnerUserId,
+                userSelectedDate: data.debug.userSelectedDate,
+                kstDate: data.debug.kstDateStr,
+                kstDayOfWeek: data.debug.kstDayOfWeek,
+                allRecurringSchedules: data.debug.allRecurringSchedulesCount,
+                matchingRecurringSchedules: data.debug.matchingRecurringSchedulesCount,
+                convertedRecurringSlots: data.debug.convertedRecurringSlotsCount,
+                matchingRecurring: data.debug.matchingRecurringCount,
+                specificSlots: data.debug.specificSlotsCount,
+                convertedSpecificSlots: data.debug.convertedSpecificSlotsCount
+              })
+            }
             if (data.slots && data.slots.length > 0) {
               return dateStr
             }
           } else {
             const errorData = await response.json().catch(() => ({}))
-            console.log(`[예약 생성] ${dateStr} 날짜 조회 실패:`, response.status, errorData)
+            console.error(`[예약 생성] ⚠️ ${dateStr} 날짜 조회 실패:`, response.status, errorData)
           }
         } catch (err) {
           console.error(`[예약 생성] ${dateStr} 날짜 조회 예외:`, err)
@@ -542,8 +548,10 @@ function CreateBookingPageContent() {
     }))
     setAvailableSlots([])
     setAvailableDates([])
-    // 예약 가능한 날짜 가져오기
-    fetchAvailableDates(partnerId)
+    // 예약 가능한 날짜 가져오기 (userTimezone이 준비된 상태에서만)
+    if (userTimezone) {
+      fetchAvailableDates(partnerId)
+    }
   }
 
   // 날짜 선택 시 가능 시간 조회
@@ -635,10 +643,18 @@ function CreateBookingPageContent() {
       }
 
       // 종료 시간 계산: 시작 시간 + 20분
+      // 주의: 날짜 경계를 넘어가면 다음날 00:00으로 처리 (24:00은 유효하지 않음)
       const [startHour, startMinute] = selectedSlot.start_time.split(':').map(Number)
-      const endMinutes = startMinute + 20
-      const endHour = startHour + Math.floor(endMinutes / 60)
-      const finalEndMinute = endMinutes % 60
+      const endTotalMinutes = startMinute + 20
+      let endHour = startHour + Math.floor(endTotalMinutes / 60)
+      const finalEndMinute = endTotalMinutes % 60
+      
+      // 24:00 이상이면 다음날 00:00으로 처리
+      if (endHour >= 24) {
+        endHour = endHour % 24
+        // 날짜는 API에서 처리하므로 여기서는 00:00만 반환
+      }
+      
       const calculatedEndTime = `${String(endHour).padStart(2, '0')}:${String(finalEndMinute).padStart(2, '0')}`
 
       const bookingData: any = {

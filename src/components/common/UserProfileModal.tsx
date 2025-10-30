@@ -527,14 +527,16 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 color: 'rgb(17 24 39) !important'
               }}>
                 {profile.full_name}
+                {/* 배지 */}
+                <UserBadge totalPoints={profile.total_points || 0} isVip={profile.is_vip || false} />
               </h2>
-              
               {/* 닉네임 표시 */}
               {profile.nickname && (
                 <p className="text-sm md:text-base text-gray-600 mb-2" style={{ 
                   color: 'rgb(75 85 99) !important'
                 }}>
                   @{profile.nickname}
+                  <UserBadge totalPoints={profile.total_points || 0} isVip={profile.is_vip || false} small />
                 </p>
               )}
               

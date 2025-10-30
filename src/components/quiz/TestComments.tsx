@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply } from 'lucide-react'
+import UserBadge from '@/components/UserBadge' // Added import for UserBadge
 
 interface Comment {
   id: string
@@ -371,6 +372,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-gray-900 text-sm md:text-base">
                         {comment.user_name}
+                        <UserBadge totalPoints={0} isVip={false} small />
                       </span>
                       <span className="text-xs md:text-sm text-gray-500">
                         {formatTime(comment.created_at)}
