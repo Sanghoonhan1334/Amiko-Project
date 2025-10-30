@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { UserBadge } from '@/components/UserBadge'
+import UserBadge from '@/components/common/UserBadge'
 
 interface Post {
   id: string

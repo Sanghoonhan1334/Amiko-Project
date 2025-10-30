@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply } from 'lucide-react'
-import UserBadge from '@/components/UserBadge' // Added import for UserBadge
+import UserBadge from '@/components/common/UserBadge' // Added import for UserBadge
 
 interface Comment {
   id: string

@@ -10,7 +10,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { TranslationService } from '@/lib/translation'
-import { UserBadge } from '@/components/UserBadge'
+import UserBadge from '@/components/common/UserBadge'
 
 interface Comment {
   id: string
