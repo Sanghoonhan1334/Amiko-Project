@@ -133,21 +133,56 @@ export async function GET(request: NextRequest) {
 
           console.log(`[STORIES_LIST] user_profiles 조회 결과:`, { profileData, profileError })
 
-          if (!profileError && profileData && profileData.display_name) {
-            console.log(`[STORIES_LIST] user_profiles에서 데이터 발견:`, profileData)
-            return {
-              ...story,
-              text: story.text_content,
-              likes: story.like_count || 0,
-              comment_count: story.comment_count || 0,
-              user_name: profileData.display_name,
-              user_email: null,
-              user_profile_image: profileData.avatar_url
+          // user_profiles에 데이터가 있고 display_name이 있으면 우선 사용
+          let userName = null
+          let avatarUrl = null
+          
+          if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
+            console.log(`[STORIES_LIST] user_profiles에서 display_name 발견:`, profileData.display_name)
+            // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
+            userName = profileData.display_name.includes('#') 
+              ? profileData.display_name.split('#')[0] 
+              : profileData.display_name
+            
+            // avatar_url 처리
+            avatarUrl = profileData.avatar_url
+            console.log(`[STORIES_LIST] user_profiles avatar_url 원본 값:`, { 
+              avatar_url: avatarUrl, 
+              type: typeof avatarUrl,
+              isNull: avatarUrl === null,
+              isEmpty: avatarUrl === '',
+              isUndefined: avatarUrl === undefined
+            })
+            
+            if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+              console.log(`[STORIES_LIST] avatar_url을 공개 URL로 변환:`, avatarUrl)
+              const { data: { publicUrl } } = supabaseServer.storage
+                .from('profile-images')
+                .getPublicUrl(avatarUrl)
+              avatarUrl = publicUrl
+              console.log(`[STORIES_LIST] 변환된 URL:`, avatarUrl)
+            } else if (!avatarUrl || avatarUrl.trim() === '') {
+              console.log(`[STORIES_LIST] avatar_url이 없거나 빈 문자열, users 테이블 확인 필요`)
+              avatarUrl = null
+            }
+            
+            // avatar_url이 있으면 여기서 반환
+            if (avatarUrl) {
+              console.log(`[STORIES_LIST] user_profiles에서 avatar_url 발견, 반환`)
+              return {
+                ...story,
+                text: story.text_content,
+                likes: story.like_count || 0,
+                comment_count: story.comment_count || 0,
+                user_name: userName,
+                user_email: null,
+                user_profile_image: avatarUrl
+              }
             }
           }
 
-          // user_profiles에 없으면 users 테이블에서 조회 (RLS 우회)
-          console.log(`[STORIES_LIST] user_profiles에 데이터 없음, users 테이블 조회 시작`)
+          // user_profiles에 display_name은 있지만 avatar_url이 없거나, user_profiles 데이터가 없으면 users 테이블 조회
+          console.log(`[STORIES_LIST] users 테이블 조회 시작 (user_profiles에 avatar_url이 없거나 display_name이 없음)`)
           const { data: userData, error: userError } = await supabaseServer
             .from('users')
             .select('id, full_name, email, avatar_url')
@@ -163,20 +198,54 @@ export async function GET(request: NextRequest) {
               text: story.text_content,
               likes: 0,
               comment_count: 0,
-              user_name: '익명',
+              user_name: userName || '익명',
               user_email: null,
               user_profile_image: null
             }
           }
 
+          // users 테이블에서 avatar_url 확인
+          let finalAvatarUrl = userData?.avatar_url || null
+          console.log(`[STORIES_LIST] users avatar_url 원본 값:`, { 
+            avatar_url: finalAvatarUrl, 
+            type: typeof finalAvatarUrl,
+            isNull: finalAvatarUrl === null,
+            isEmpty: finalAvatarUrl === '',
+            isUndefined: finalAvatarUrl === undefined
+          })
+          
+          if (finalAvatarUrl && finalAvatarUrl.trim() !== '' && !finalAvatarUrl.startsWith('http')) {
+            console.log(`[STORIES_LIST] avatar_url을 공개 URL로 변환 (users):`, finalAvatarUrl)
+            const { data: { publicUrl } } = supabaseServer.storage
+              .from('profile-images')
+              .getPublicUrl(finalAvatarUrl)
+            finalAvatarUrl = publicUrl
+            console.log(`[STORIES_LIST] 변환된 URL (users):`, finalAvatarUrl)
+          } else if (!finalAvatarUrl || finalAvatarUrl.trim() === '') {
+            console.log(`[STORIES_LIST] avatar_url이 없거나 빈 문자열 (users), null로 설정`)
+            finalAvatarUrl = null
+          }
+          
+          // user_name 결정: user_profiles의 display_name 우선, 없으면 users의 full_name 또는 email
+          // display_name에 #이 포함된 경우 # 이후 부분 제거
+          let finalUserName = userName 
+            || (userData?.full_name && userData.full_name.trim() !== '' ? userData.full_name : null)
+            || (userData?.email ? userData.email.split('@')[0] : null)
+            || '익명'
+          
+          // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
+          if (finalUserName && finalUserName.includes('#')) {
+            finalUserName = finalUserName.split('#')[0]
+          }
+          
           const result = {
             ...story,
             text: story.text_content, // API 응답에 text 필드 추가
             likes: story.like_count || 0,
             comment_count: story.comment_count || 0,
-            user_name: userData?.full_name || userData?.email?.split('@')[0] || '익명',
+            user_name: finalUserName,
             user_email: userData?.email || null,
-            user_profile_image: userData?.avatar_url || null // 실제 사용자 프로필 이미지 사용
+            user_profile_image: finalAvatarUrl
           }
           
           console.log(`[STORIES_LIST] 최종 결과:`, result)
@@ -242,9 +311,9 @@ export async function POST(request: NextRequest) {
     console.log('[STORIES_CREATE] 요청 데이터:', { imageUrl, text, isPublic, userId })
 
     // 입력 검증
-    if (!imageUrl || !text) {
+    if (!imageUrl) {
       return NextResponse.json(
-        { error: '이미지와 텍스트를 모두 입력해주세요.' },
+        { error: '이미지를 선택해주세요.' },
         { status: 400 }
       )
     }

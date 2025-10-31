@@ -40,30 +40,27 @@ export async function GET(
       )
     }
 
-    // 사용자 정보 조회 (임시로 더 나은 기본값 사용)
+    // 사용자 정보 조회 (실제 데이터베이스에서 가져오기)
     const userIds = [...new Set(comments?.map(c => c.user_id).filter(Boolean))]
     let usersMap: { [key: string]: any } = {}
     
     if (userIds.length > 0) {
-      // 각 사용자 ID에 대해 더 나은 기본 정보 생성
-      userIds.forEach(userId => {
-        // 특정 사용자 ID에 대해 실제 정보 매핑
-        let displayName = `사용자${userId.slice(-4)}`
-        let profileImage = null
-        
-        // 테스트용으로 특정 사용자 ID에 실제 정보 매핑
-        if (userId === '5f83ab21-fd61-4666-94b5-087d73477476') {
-          displayName = 'han133334'
-          profileImage = null // 실제 프로필 이미지 URL이 있다면 여기에
-        }
-        
-        usersMap[userId] = {
-          id: userId,
-          full_name: displayName,
-          profile_image: profileImage,
-          avatar_url: profileImage
-        }
-      })
+      const { data: users, error: usersError } = await supabaseServer
+        .from('users')
+        .select('id, full_name, avatar_url, profile_image')
+        .in('id', userIds)
+
+      if (!usersError && users) {
+        usersMap = users.reduce((acc, user) => {
+          acc[user.id] = {
+            id: user.id,
+            full_name: user.full_name || `사용자${user.id.slice(-4)}`,
+            profile_image: user.profile_image || user.avatar_url,
+            avatar_url: user.avatar_url || user.profile_image
+          }
+          return acc
+        }, {} as { [key: string]: any })
+      }
     }
 
     // 댓글 좋아요 수 조회 (임시로 0으로 설정)
@@ -226,20 +223,21 @@ export async function POST(
       console.log('[STORY_COMMENTS_POST] 댓글 수 증가 성공:', storyId)
     }
 
-    // 댓글 작성자의 사용자 정보 설정
-    let authorInfo = {
+    // 댓글 작성자의 사용자 정보 조회
+    const { data: userInfo, error: userInfoError } = await supabaseServer
+      .from('users')
+      .select('id, full_name, avatar_url, profile_image')
+      .eq('id', authUser.id)
+      .single()
+
+    const authorInfo = userInfo ? {
+      id: userInfo.id,
+      full_name: userInfo.full_name || `사용자${authUser.id.slice(-4)}`,
+      profile_image: userInfo.profile_image || userInfo.avatar_url
+    } : {
       id: authUser.id,
       full_name: `사용자${authUser.id.slice(-4)}`,
       profile_image: null
-    }
-    
-    // 특정 사용자 ID에 대해 실제 정보 매핑
-    if (authUser.id === '5f83ab21-fd61-4666-94b5-087d73477476') {
-      authorInfo = {
-        id: authUser.id,
-        full_name: 'han133334',
-        profile_image: null // 실제 프로필 이미지 URL이 있다면 여기에
-      }
     }
 
     const transformedComment = {

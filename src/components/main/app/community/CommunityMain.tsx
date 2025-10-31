@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import GalleryList from './GalleryList'
 import GalleryPostList from './GalleryPostList'
 import PostDetail from './PostDetail'
@@ -49,6 +50,7 @@ type ViewMode = 'galleries' | 'posts' | 'post-detail' | 'post-create' | 'popular
 // CommunityMain.tsx - 갤러리 시스템 메인 컴포넌트 (주제별 게시판)
 export default function CommunityMain() {
   const { user, token } = useAuth()
+  const { t } = useLanguage()
   const [viewMode, setViewMode] = useState<ViewMode>('galleries')
   const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
@@ -110,13 +112,13 @@ export default function CommunityMain() {
   const handlePostDelete = async () => {
     if (!selectedPost) return
     
-    if (confirm('정말로 이 게시물을 삭제하시겠습니까?\n삭제된 게시물은 복구할 수 없습니다.')) {
+    if (confirm(`${t('freeboard.deleteConfirm')}\n${t('freeboard.deleteConfirmDescription')}`)) {
       try {
         console.log('게시물 삭제 시도:', selectedPost.id)
         
         // 토큰 확인
         if (!token) {
-          alert('로그인이 필요합니다.')
+          alert(t('auth.loginRequired'))
           return
         }
 
@@ -131,18 +133,18 @@ export default function CommunityMain() {
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || '삭제에 실패했습니다.')
+          throw new Error(errorData.error || t('freeboard.deleteFailed'))
         }
 
         const result = await response.json()
         console.log('삭제 성공:', result)
         
-        alert('게시물이 삭제되었습니다.')
+        alert(t('freeboard.deleteSuccess'))
         handleBackToPosts() // 성공 시에만 뒤로가기
         
       } catch (error) {
         console.error('게시물 삭제 오류:', error)
-        alert(error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.')
+        alert(error instanceof Error ? error.message : t('freeboard.deleteError'))
       }
     }
   }

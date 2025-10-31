@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Share2, Heart, MessageCircle, Edit, Trash2, Pin, PinOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { shareContent } from '@/lib/share-utils'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface NewsDetailProps {
   news: {
@@ -42,13 +43,15 @@ export default function NewsDetail({
   onDelete, 
   onPin 
 }: NewsDetailProps) {
+  const { t } = useLanguage()
+  
   // news 객체가 undefined인 경우 처리
   if (!news) {
     return (
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-6">
-          <Button onClick={onBack} variant="outline" size="sm">
-            목록으로 돌아가기
+          <Button onClick={onBack} variant="outline" size="sm" className="text-xs md:text-sm px-2 md:px-4 py-1 md:py-2">
+            {t('freeboard.backToList')}
           </Button>
         </div>
         <Card className="p-8 text-center">

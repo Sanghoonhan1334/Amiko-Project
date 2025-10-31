@@ -65,18 +65,72 @@ export async function GET(
     // 사용자 정보 조회
     let author = null
     if (post.user_id) {
-      const { data: userData } = await supabaseServer
-        .from('users')
-        .select('id, full_name, nickname, profile_image, avatar_url')
-        .eq('id', post.user_id)
+      console.log('[POST_GET] 사용자 정보 조회 시작:', post.user_id)
+      
+      // 먼저 user_profiles 테이블에서 조회
+      const { data: profileData, error: profileError } = await supabaseServer
+        .from('user_profiles')
+        .select('display_name, avatar_url')
+        .eq('user_id', post.user_id)
         .single()
       
-      if (userData) {
+      console.log('[POST_GET] user_profiles 조회 결과:', { profileData, profileError })
+      
+      let userName = null
+      let avatarUrl = null
+      
+      // user_profiles에 데이터가 있고 display_name이 있으면 우선 사용
+      if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
+        // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
+        userName = profileData.display_name.includes('#') 
+          ? profileData.display_name.split('#')[0] 
+          : profileData.display_name
+        
+        console.log('[POST_GET] user_profiles에서 userName 추출:', userName)
+        
+        avatarUrl = profileData.avatar_url
+        
+        // avatar_url을 공개 URL로 변환
+        if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+          const { data: { publicUrl } } = supabaseServer.storage
+            .from('profile-images')
+            .getPublicUrl(avatarUrl)
+          avatarUrl = publicUrl
+        }
+        
         author = {
-          id: userData.id,
-          full_name: userData.full_name || '익명',
-          nickname: userData.nickname,
-          profile_image: userData.profile_image || userData.avatar_url
+          id: post.user_id,
+          full_name: userName,
+          nickname: userName,
+          profile_image: avatarUrl
+        }
+        console.log('[POST_GET] user_profiles에서 author 설정:', author)
+      }
+      
+      // user_profiles에 데이터가 없거나 display_name이 없으면 users 테이블 조회
+      if (!author) {
+        console.log('[POST_GET] user_profiles에서 author를 찾지 못함, users 테이블 조회')
+        const { data: userData } = await supabaseServer
+          .from('users')
+          .select('id, full_name, nickname, profile_image, avatar_url')
+          .eq('id', post.user_id)
+          .single()
+        
+        console.log('[POST_GET] users 조회 결과:', userData)
+        
+        if (userData) {
+          // full_name이 비어있으면 email의 '@' 앞 부분 사용
+          const finalName = userData.full_name || (userData.email ? userData.email.split('@')[0] : '익명')
+          
+          console.log('[POST_GET] users에서 finalName 추출:', finalName)
+          
+          author = {
+            id: userData.id,
+            full_name: finalName,
+            nickname: userData.nickname || finalName,
+            profile_image: userData.profile_image || userData.avatar_url
+          }
+          console.log('[POST_GET] users에서 author 설정:', author)
         }
       }
     }

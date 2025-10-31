@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Clock, Video, CheckCircle } from 'lucide-react'
+import { Clock, Video, CheckCircle, DoorClosed, DoorOpen, Bell } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 
@@ -28,6 +28,8 @@ export default function CallMeetingPage() {
   const [loading, setLoading] = useState(true)
   const [timeRemaining, setTimeRemaining] = useState(20 * 60) // 20분 = 1200초
   const [hasJoined, setHasJoined] = useState(false)
+  const [waitSeconds, setWaitSeconds] = useState(0)
+  const [notificationSent, setNotificationSent] = useState(false)
   
   // 예약 정보 조회
   useEffect(() => {
@@ -37,12 +39,6 @@ export default function CallMeetingPage() {
         if (response.ok) {
           const data = await response.json()
           setMeeting(data.booking)
-          
-          // 예약 시간 계산
-          const startTime = new Date(data.booking.start_at)
-          const now = new Date()
-          const diffSeconds = Math.max(0, (startTime.getTime() - now.getTime()) / 1000)
-          
           setTimeRemaining(data.booking.duration * 60)
         } else {
           alert('예약 정보를 불러올 수 없습니다.')
@@ -63,8 +59,54 @@ export default function CallMeetingPage() {
       router.push('/login')
     }
   }, [meetingId, user, router])
-  
-  // 20분 타이머
+
+  // 실시간 카운트다운 (대기 중일 때)
+  useEffect(() => {
+    if (!meeting || hasJoined) return
+    
+    const timer = setInterval(() => {
+      const now = new Date()
+      const startTime = meeting.date && meeting.start_time 
+        ? new Date(`${meeting.date}T${meeting.start_time}`)
+        : new Date(meeting.start_time || meeting.start_at)
+      const diff = Math.ceil((startTime.getTime() - now.getTime()) / 1000)
+      setWaitSeconds(Math.max(0, diff))
+
+      // 10분 전 알림 (600초 = 10분)
+      if (diff <= 600 && diff > 599 && !notificationSent && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification('화상 상담 시작 알림', {
+          body: '10분 후 화상 상담이 시작됩니다! 준비해주세요.',
+          icon: '/favicon.png'
+        })
+        setNotificationSent(true)
+      }
+
+      // 페이지가 보이지 않을 때도 브라우저 알림 (Notification API)
+      if (diff <= 600 && diff > 599 && !notificationSent) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('화상 상담 시작 알림', {
+            body: '10분 후 화상 상담이 시작됩니다! 준비해주세요.',
+            icon: '/favicon.png'
+          })
+          setNotificationSent(true)
+        } else if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification('화상 상담 시작 알림', {
+                body: '10분 후 화상 상담이 시작됩니다! 준비해주세요.',
+                icon: '/favicon.png'
+              })
+              setNotificationSent(true)
+            }
+          })
+        }
+      }
+    }, 1000)
+    
+    return () => clearInterval(timer)
+  }, [meeting, hasJoined, notificationSent])
+
+  // 20분 타이머 (참여 후)
   useEffect(() => {
     if (!hasJoined || !meeting) return
     
@@ -72,7 +114,6 @@ export default function CallMeetingPage() {
       setTimeRemaining((prev) => {
         if (prev <= 0) {
           clearInterval(timer)
-          // 20분 후 피드백 페이지로 이동
           router.push(`/feedback/${meetingId}`)
           return 0
         }
@@ -90,7 +131,6 @@ export default function CallMeetingPage() {
     }
     
     setHasJoined(true)
-    // 새 탭에서 Google Meet 링크 열기
     window.open(meeting.meet_url, '_blank')
   }
   
@@ -98,6 +138,10 @@ export default function CallMeetingPage() {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const formatMinutes = (seconds: number) => {
+    return Math.ceil(seconds / 60)
   }
   
   if (loading) {
@@ -127,7 +171,9 @@ export default function CallMeetingPage() {
   }
   
   // 예약 시간 체크
-  const startTime = new Date(meeting.start_time || meeting.start_at)
+  const startTime = meeting.date && meeting.start_time 
+    ? new Date(`${meeting.date}T${meeting.start_time}`)
+    : new Date(meeting.start_time || meeting.start_at)
   const now = new Date()
   const canJoin = now >= startTime
   const isPast = now > new Date(startTime.getTime() + meeting.duration * 60 * 1000)
@@ -164,45 +210,117 @@ export default function CallMeetingPage() {
       </div>
     )
   }
+
+  // 카운트다운 표시 로직
+  const minutesRemaining = formatMinutes(waitSeconds)
+  const showCountdown = waitSeconds <= 600 && waitSeconds > 0 // 10분 이하일 때만
+  const showDoorClosed = !canJoin // 문이 닫혀있음
+  const showDoorOpen = canJoin && !hasJoined // 문이 열려있음
   
   if (!canJoin) {
-    const waitSeconds = Math.ceil((startTime.getTime() - now.getTime()) / 1000)
-    
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Card className="max-w-md w-full">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <Card className="max-w-md w-full shadow-2xl border-2 border-purple-200">
           <CardHeader>
-            <CardTitle className="text-center">예약 시간까지 대기 중</CardTitle>
+            <CardTitle className="text-center text-2xl font-bold text-gray-800">
+              상담 대기 중
+            </CardTitle>
           </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <Clock className="w-16 h-16 mx-auto text-blue-500" />
-            <div>
-              <p className="text-3xl font-bold text-blue-600">
-                {formatTime(waitSeconds)}
+          <CardContent className="text-center space-y-6">
+            {/* 닫힌 문 아이콘 */}
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className={`transform transition-all duration-500 ${showCountdown ? 'scale-110' : 'scale-100'}`}>
+                  <DoorClosed className={`w-32 h-32 ${showCountdown ? 'text-orange-500 animate-pulse' : 'text-gray-400'}`} />
+                </div>
+                {showCountdown && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Bell className="w-12 h-12 text-orange-500 animate-bounce" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 10분 이하일 때 카운트다운 */}
+            {showCountdown ? (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-orange-100 to-red-100 border-2 border-orange-300 rounded-xl p-6">
+                  <p className="text-sm text-orange-700 font-semibold mb-2">⚠️ 곧 시작합니다!</p>
+                  <p className="text-5xl font-bold text-orange-600">
+                    {minutesRemaining}분 남음
+                  </p>
+                </div>
+                {waitSeconds <= 120 && (
+                  <p className="text-sm text-red-600 font-semibold animate-pulse">
+                    🎯 거의 다 왔어요! 준비하세요!
+                  </p>
+                )}
+                {waitSeconds <= 60 && waitSeconds > 30 && (
+                  <p className="text-lg text-red-600 font-bold animate-bounce">
+                    🔥 1분 남았습니다!
+                  </p>
+                )}
+                {waitSeconds <= 30 && (
+                  <p className="text-2xl text-red-600 font-extrabold animate-bounce">
+                    🚀 문이 곧 열립니다!
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-100 rounded-xl p-6">
+                <Clock className="w-16 h-16 mx-auto text-gray-500 mb-4" />
+                <p className="text-sm text-gray-600 mb-2">잠시만 기다려주세요</p>
+                <p className="text-3xl font-bold text-gray-700">
+                  {formatTime(waitSeconds)}
+                </p>
+              </div>
+            )}
+
+            {/* 상세 정보 */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">예약된 시간</p>
+              <p className="font-semibold text-gray-900">
+                {startTime.toLocaleString('ko-KR')}
               </p>
-              <p className="text-sm text-gray-600 mt-2">
-                예약된 시간: {startTime.toLocaleString('ko-KR')}
+              <p className="text-xs text-gray-500 mt-2">
+                상담 주제: {meeting.topic || '상담'}
               </p>
             </div>
-            <p className="text-gray-600">
-              시간이 되면 참여하기 버튼이 활성화됩니다.
-            </p>
+
+            {!showCountdown && (
+              <p className="text-sm text-gray-500">
+                ⏰ 10분 전부터 카운트다운이 시작됩니다
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
     )
   }
   
+  // 참여 가능한 상태 (문이 열린 상태)
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <Card className="max-w-md w-full">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+      <Card className="max-w-md w-full shadow-2xl border-2 border-green-300">
         <CardHeader>
-          <CardTitle className="text-center">화상 상담</CardTitle>
+          <CardTitle className="text-center text-2xl font-bold text-gray-800">
+            상담 참여
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="text-center space-y-6">
+          {/* 열린 문 아이콘 */}
+          <div className="flex justify-center">
+            <div className="relative">
+              <DoorOpen className="w-32 h-32 text-green-500 animate-pulse" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <CheckCircle className="w-16 h-16 text-green-600" />
+              </div>
+            </div>
+          </div>
+
           {/* 상담 정보 */}
           <div className="space-y-2">
-            <p className="font-semibold">상담 주제</p>
+            <p className="font-semibold text-lg">상담 주제</p>
             <p className="text-gray-600">{meeting.topic || '상담'}</p>
           </div>
           
@@ -211,25 +329,25 @@ export default function CallMeetingPage() {
             <div className="space-y-4">
               <Button 
                 onClick={handleJoinMeet}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
                 size="lg"
               >
-                <Video className="w-5 h-5 mr-2" />
-                Google Meet 참여하기
+                <Video className="w-6 h-6 mr-2" />
+                <span className="text-lg font-bold">Google Meet 참여하기</span>
               </Button>
-              <p className="text-sm text-gray-500 text-center">
-                버튼을 클릭하면 Google Meet가 새 창에서 열립니다.
+              <p className="text-sm text-gray-600">
+                ✨ 문이 열렸습니다! 버튼을 클릭하여 참여하세요
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
                 <CheckCircle className="w-12 h-12 mx-auto text-green-600 mb-2" />
-                <p className="font-semibold text-green-700">상담 진행 중</p>
+                <p className="font-semibold text-green-700 text-lg">상담 진행 중</p>
               </div>
               
               {/* 타이머 */}
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Clock className="w-5 h-5 text-gray-600" />
                   <span className="text-sm text-gray-600">남은 시간</span>
@@ -242,7 +360,7 @@ export default function CallMeetingPage() {
               <Button 
                 onClick={() => router.push(`/feedback/${meetingId}`)}
                 variant="outline"
-                className="w-full"
+                className="w-full border-2"
               >
                 상담 종료 및 피드백 작성
               </Button>
@@ -253,4 +371,3 @@ export default function CallMeetingPage() {
     </div>
   )
 }
-

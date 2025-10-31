@@ -9,7 +9,6 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { TranslationService } from '@/lib/translation'
 import { useRouter } from 'next/navigation'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import CommentSection from './CommentSection'
 import { shareCommunityPost } from '@/lib/share-utils'
 
@@ -98,14 +97,14 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       const response = await fetch(`/api/posts/${postId}`)
       
       if (!response.ok) {
-        throw new Error('게시물을 불러오는데 실패했습니다')
+        throw new Error(t('freeboard.loadingPosts'))
       }
       
       const data = await response.json()
       setPost(data.post)
     } catch (err) {
       console.error('게시물 로드 오류:', err)
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다')
+      setError(err instanceof Error ? err.message : t('community.postDetail.errors.unknownError'))
     } finally {
       setLoading(false)
     }
@@ -151,7 +150,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       )
     } catch (error) {
       console.error('번역 실패:', error)
-      setError('번역에 실패했습니다. 다시 시도해주세요.')
+      setError(t('freeboard.translatedFailed'))
     } finally {
       setTranslating(false)
     }
@@ -159,12 +158,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   const handleVote = async (voteType: 'like' | 'dislike') => {
     if (!user || !token) {
-      setError('로그인이 필요합니다')
-      return
-    }
-
-    // 인증 체크 - 좋아요/싫어요는 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '좋아요/싫어요')) {
+      setError(t('community.postDetail.loginRequired'))
       return
     }
 
@@ -259,7 +253,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleString('ko-KR')
+    const locale = language === 'es' ? 'es-ES' : 'ko-KR'
+    return date.toLocaleString(locale)
   }
 
   const formatContent = (content: string) => {
@@ -285,7 +280,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
-          <p className="text-gray-600">게시물을 불러오는 중...</p>
+          <p className="text-gray-600">{t('freeboard.loadingPosts')}</p>
         </div>
       </div>
     )
@@ -296,9 +291,9 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">{error || '게시물을 찾을 수 없습니다'}</p>
+          <p className="text-red-600 mb-4">{error || t('freeboard.postNotFound')}</p>
           <Button onClick={onBack} variant="outline">
-            ← 목록으로 돌아가기
+            ← {t('freeboard.backToList')}
           </Button>
         </div>
       </div>
@@ -319,50 +314,41 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   })
 
   return (
-    <div className="pt-8 md:pt-12">
+    <div>
       <Card className="bg-white shadow-lg border border-gray-200 rounded-xl overflow-hidden">
       {/* 게시물 상세 */}
       <div className="p-4 md:p-6">
         {/* 게시물 헤더 */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-3 md:mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-xl font-bold text-gray-800">
+              <h1 className="text-lg md:text-xl font-bold text-gray-800">
                 {post.translatedTitle || post.title}
               </h1>
               {post.translatedTitle && (
-                <span className="text-xs text-blue-500">(번역됨)</span>
+                <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
               )}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
-                onClick={() => handleTranslatePost('title')}
-                disabled={translating}
-              >
-                <Languages className="h-3 w-3" />
-              </Button>
             </div>
-            <p className="text-sm text-gray-500">{post.author?.full_name || '익명'} / {formatDate(post.created_at)}</p>
+            <p className="text-xs md:text-sm text-gray-500">{post.author?.full_name || t('freeboard.anonymous')} / {formatDate(post.created_at)}</p>
           </div>
 
           {/* 상태 배지 및 액션 버튼 */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 md:space-x-2">
             {post.is_pinned && (
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
-                📌 고정
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs">
+                {t('freeboard.pinned')}
               </Badge>
             )}
             {post.is_hot && (
-              <Badge variant="secondary" className="bg-red-100 text-red-700">
-                🔥 핫글
+              <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs">
+                {t('freeboard.hot')}
               </Badge>
             )}
             
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col space-y-1 md:space-y-2">
               {/* 수정/삭제 버튼 */}
               {canManage && (
-                <div className="flex space-x-2">
+                <div className="flex space-x-1">
                   {(post.is_notice ? isAdmin : isAuthor) && (
                     <Button size="sm" variant="outline" onClick={() => {
                       console.log('수정 버튼 클릭됨, onEdit 함수:', onEdit)
@@ -371,8 +357,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                       } else {
                         console.error('onEdit 함수가 정의되지 않음')
                       }
-                    }}>
-                      {post.is_notice ? '📝 공지사항 수정' : '수정'}
+                    }} className="text-xs px-2 py-1">
+                      {post.is_notice ? t('freeboard.editNotice') : t('freeboard.edit')}
                     </Button>
                   )}
                   {(post.is_notice ? isAdmin : (isAuthor || isAdmin)) && (
@@ -387,9 +373,9 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                           console.error('onDelete 함수가 정의되지 않음')
                         }
                       }}
-                      className={post.is_notice ? 'text-red-600 border-red-600 hover:bg-red-50' : (isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : '')}
+                      className={`text-xs px-2 py-1 ${post.is_notice ? 'text-red-600 border-red-600 hover:bg-red-50' : (isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : '')}`}
                     >
-                      {post.is_notice ? '🗑️ 공지사항 삭제' : (isAdmin && !isAuthor ? '🗑️ 운영자 삭제' : '삭제')}
+                      {post.is_notice ? t('freeboard.deleteNotice') : (isAdmin && !isAuthor ? t('freeboard.deleteAsAdmin') : t('freeboard.delete'))}
                     </Button>
                   )}
                 </div>
@@ -399,38 +385,29 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         </div>
 
         {/* 게시물 내용 */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-lg font-semibold text-gray-800">내용</h3>
+        <div className="mb-3 md:mb-6">
+          <div className="flex items-center gap-2 mb-2 md:mb-3">
+            <h3 className="text-base md:text-lg font-semibold text-gray-800">{t('freeboard.content')}</h3>
             {post.translatedContent && (
-              <span className="text-xs text-blue-500">(번역됨)</span>
+              <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
             )}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
-              onClick={() => handleTranslatePost('content')}
-              disabled={translating}
-            >
-              <Languages className="h-3 w-3" />
-            </Button>
           </div>
           <div 
-            className="prose max-w-none"
+            className="prose max-w-none prose-sm md:prose-base"
             dangerouslySetInnerHTML={{ __html: formatContent(post.translatedContent || post.content) }}
           />
         </div>
 
         {/* 이미지 갤러리 */}
         {post.images && post.images.length > 0 && (
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="mb-3 md:mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
               {post.images.map((image, index) => (
                 <div key={index} className="relative group">
                   <img 
                     src={image} 
                     alt={`첨부 이미지 ${index + 1}`}
-                    className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => window.open(image, '_blank')}
                   />
                 </div>
@@ -440,8 +417,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         )}
 
         {/* 통계 및 액션 */}
-        <div className="flex items-center justify-between pt-6 border-t">
-          <div className="flex items-center space-x-6 text-sm text-gray-500">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0 pt-3 md:pt-6 border-t">
+          <div className="flex items-center space-x-4 md:space-x-6 text-xs md:text-sm text-gray-500">
             <div className="flex items-center">
               <span className="mr-1">👁️</span>
               <span>{post.view_count}</span>
@@ -453,46 +430,46 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
           </div>
 
           {/* 추천/비추천 버튼 */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 md:space-x-3">
             <button
               onClick={() => handleVote('like')}
               disabled={!user}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+              className={`flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1 md:py-2 rounded-lg transition-all text-xs md:text-sm ${
                 userVote === 'like'
                   ? 'bg-green-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-600'
               } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              <span className="text-lg">👍</span>
+              <span className="text-base md:text-lg">👍</span>
               <span className="font-medium">{post.like_count}</span>
             </button>
             
             <button
               onClick={() => handleVote('dislike')}
               disabled={!user}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+              className={`flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1 md:py-2 rounded-lg transition-all text-xs md:text-sm ${
                 userVote === 'dislike'
                   ? 'bg-red-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
               } ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              <span className="text-lg">👎</span>
+              <span className="text-base md:text-lg">👎</span>
               <span className="font-medium">{post.dislike_count}</span>
             </button>
             
             {!user && (
-              <span className="text-xs text-gray-500 ml-2">
-                로그인 후 투표 가능
+              <span className="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2">
+                {t('freeboard.loginToVote')}
               </span>
             )}
             
             {/* 공유 버튼 */}
             <button
               onClick={handleShare}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all cursor-pointer"
+              className="flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-1 md:py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all cursor-pointer text-xs md:text-sm"
             >
-              <Share2 className="w-4 h-4" />
-              <span className="font-medium">공유</span>
+              <Share2 className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="font-medium">{t('freeboard.share')}</span>
             </button>
           </div>
         </div>

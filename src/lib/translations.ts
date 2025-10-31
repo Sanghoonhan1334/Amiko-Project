@@ -161,7 +161,13 @@ export const translations = {
         newVideoChatFeature: '새로운 화상채팅 기능이 추가되었습니다',
         betterVideoCallExperience: '더 나은 화상 통화 경험을 제공합니다.',
         systemMaintenanceNotice: '시스템 점검 안내',
-        maintenanceSchedule: '1월 20일 오전 2시-4시 점검이 예정되어 있습니다.'
+        maintenanceSchedule: '1월 20일 오전 2시-4시 점검이 예정되어 있습니다.',
+        // 아코디언 공지사항
+        title: '공지사항',
+        missionAnnouncement: {
+          title: 'AMIKO의 시작',
+          description: '저희는 중남미 분들을 지식 공유와 교육 콘텐츠로 지원하고, K-POP을 통해 삶의 힘을 찾고 연결되는 여정을 돕기 위해 시작했습니다.'
+        }
       },
       // 샘플 콘텐츠
       sampleContent: {
@@ -228,6 +234,7 @@ export const translations = {
 
     // 인증 관련
     auth: {
+      loginRequired: '로그인이 필요합니다.',
       forgotPassword: {
         title: '비밀번호 찾기',
         description: '가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.',
@@ -741,7 +748,20 @@ export const translations = {
         travel: '여행',
         culture: '문화',
         free: '자유'
-      }
+      },
+      comment: '댓글',
+      writeComment: '댓글 달기...',
+      noComments: '아직 댓글이 없습니다',
+      publicStory: '공개 스토리',
+      privateStory: '비공개 스토리',
+      autoDelete: '24시간 후 자동 삭제',
+      storyText: '스토리 내용',
+      firstComment: '첫 댓글을 작성해보세요!',
+      reply: '답글',
+      replyWriting: '답글 작성 중',
+      cancelReply: "답글을 취소하려면 '취소' 버튼을 누르세요",
+      posting: '게시 중...',
+      post: '게시'
     },
 
     // 커뮤니티 섹션
@@ -786,6 +806,7 @@ export const translations = {
       postTitlePlaceholder: '제목을 입력하세요',
       postContent: '내용',
       postContentPlaceholder: '내용을 입력하세요',
+      selectBoardPlaceholder: '게시판을 선택해주세요',
       attachImage: '이미지 첨부',
       selectImage: '이미지 선택',
       imageRestrictions: 'JPG, PNG, GIF (최대 5MB, 최대 5개)',
@@ -813,7 +834,9 @@ export const translations = {
         kdrama: 'K-Drama',
         beauty: '뷰티',
         korean: '한국어',
-        spanish: '스페인어'
+        koreanStudy: '한국어공부',
+        spanish: '스페인어',
+        spanishStudy: '스페인어공부'
       },
       tabs: {
         recommended: '추천',
@@ -913,7 +936,20 @@ export const translations = {
         loginButton: '로그인하기'
       },
       partners: '제휴사',
-      partnersDesc: '우리와 함께하는 파트너들을 만나보세요'
+      partnersDesc: '우리와 함께하는 파트너들을 만나보세요',
+      postDetail: {
+        noComments: '아직 댓글이 없습니다',
+        timeAgo: {
+          now: '방금 전',
+          minutes: '{count}분 전',
+          hours: '{count}시간 전',
+          yesterday: '어제',
+          days: '{count}일 전'
+        },
+        errors: {
+          unknownError: '알 수 없는 오류가 발생했습니다'
+        }
+      }
     },
 
     // 주제별 게시판 섹션
@@ -943,7 +979,54 @@ export const translations = {
       noPosts: '게시글이 없습니다',
       author: '작성자',
       createdAt: '작성일',
-      views: '조회수'
+      views: '조회수',
+      board: '게시판',
+      title: '제목',
+      writer: '글쓴이',
+      recommend: '추천',
+      anonymous: '익명',
+      admin: '운영자',
+      backToList: '목록으로 돌아가기',
+      postNotFound: '게시물을 찾을 수 없습니다',
+      content: '내용',
+      translated: '(번역됨)',
+      pinned: '📌 고정',
+      hot: '🔥 핫글',
+      edit: '수정',
+      editPost: '게시글 수정',
+      editNotice: '📝 공지사항 수정',
+      editing: '수정 중...',
+      editButton: '수정하기',
+      editError: '제목과 내용을 모두 입력해주세요.',
+      editSuccess: '게시글이 성공적으로 수정되었습니다.',
+      editFailed: '게시글 수정에 실패했습니다.',
+      contentPlaceholder: '내용을 입력하세요',
+      delete: '삭제',
+      deleteNotice: '🗑️ 공지사항 삭제',
+      deleteAsAdmin: '🗑️ 운영자 삭제',
+      deleteConfirm: '정말로 이 게시물을 삭제하시겠습니까?',
+      deleteConfirmDescription: '삭제된 게시물은 복구할 수 없습니다.',
+      deleteSuccess: '게시물이 삭제되었습니다.',
+      deleteFailed: '게시글 삭제에 실패했습니다.',
+      deleteError: '게시글 삭제 중 오류가 발생했습니다.',
+      share: '공유',
+      loginToVote: '로그인 후 투표 가능',
+      translatedFailed: '번역에 실패했습니다. 다시 시도해주세요.',
+      commentHeader: '댓글',
+      commentSort: {
+        latest: '최신순',
+        oldest: '등록순',
+        replies: '답글순'
+      },
+      commentPlaceholder: '댓글을 입력하세요...',
+      commentWrite: '댓글 작성',
+      commentWriting: '작성 중...',
+      commentLoginRequired: '댓글을 작성하려면 로그인이 필요합니다.',
+      replyButton: '답글',
+      replyPlaceholder: '{name}님에게 답글...',
+      replyWrite: '답글 작성',
+      replyWriting: '답글 작성 중',
+      replyCancel: '취소'
     },
 
     // 충전소 탭
@@ -1001,7 +1084,8 @@ export const translations = {
         levels: '🌿 Lv1 75+ / 🌿 Lv2 150+ / 🌿 Lv3 300+ / 🌿 Lv4 600+ / 🌿 Lv5 1200+',
         rose: '🌹 분홍 장미: 3500+ (항공권 추첨 대상)',
         vip: '👑 VIP 왕관: VIP 구매 시',
-        requirement: '✅ 모든 이벤트 추첨은 Lv1 이상부터 참여 가능'
+        requirement: '✅ 모든 이벤트 추첨은 Lv1 이상부터 참여 가능',
+        viewMyLevel: '내 레벨보기'
       },
       attendanceCheck: {
         specialEvents: {
@@ -1281,7 +1365,7 @@ export const translations = {
       lastUpdated: '최종 수정일',
       lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com',
+      supportEmail: 'info@amiko.com',
       sections: {
         purpose: {
           title: '1. 개인정보의 처리 목적',
@@ -1325,7 +1409,7 @@ export const translations = {
           content: '개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.',
           items: [
             '개인정보 보호책임자: privacy@amiko.com',
-            '고객지원: support@amiko.com',
+            '고객지원: info@amiko.com',
             '운영시간: 월-금 09:00-18:00 (KST)'
           ]
         }
@@ -1338,7 +1422,7 @@ export const translations = {
       lastUpdated: '최종 수정일',
       lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'legal@amiko.com',
-      supportEmail: 'support@amiko.com',
+      supportEmail: 'info@amiko.com',
       sections: {
         introduction: {
           title: '1. 서비스 소개',
@@ -1412,7 +1496,7 @@ export const translations = {
       lastUpdated: '최종 수정일',
       lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com',
+      supportEmail: 'info@amiko.com',
       sections: {
         definition: {
           title: '1. 쿠키의 정의',
@@ -1618,6 +1702,42 @@ export const translations = {
           title: '매출 증대',
           description: '제휴를 통한 새로운 수익 창출 기회를 제공합니다'
         }
+      },
+      businessFields: {
+        tech: { label: '기술/IT', description: '소프트웨어, 하드웨어, AI, 블록체인 등' },
+        finance: { label: '금융/핀테크', description: '은행, 보험, 투자, 결제 서비스 등' },
+        ecommerce: { label: '이커머스/소매', description: '온라인 쇼핑몰, 마켓플레이스 등' },
+        education: { label: '교육/에듀테크', description: '온라인 교육, 학습 플랫폼 등' },
+        healthcare: { label: '헬스케어/의료', description: '의료 서비스, 건강 관리 등' },
+        media: { label: '미디어/엔터테인먼트', description: '콘텐츠 제작, 스트리밍 등' },
+        logistics: { label: '물류/배송', description: '택배, 물류 관리 등' },
+        food: { label: '푸드/배달', description: '음식점, 배달 서비스 등' },
+        travel: { label: '여행/관광', description: '여행 예약, 관광 서비스 등' },
+        other: { label: '기타', description: '위 카테고리에 해당하지 않는 분야' }
+      },
+      companySizes: {
+        startup: { label: '스타트업 (1-10명)', description: '초기 단계 스타트업' },
+        small: { label: '소규모 (11-50명)', description: '소규모 기업' },
+        medium: { label: '중규모 (51-200명)', description: '중규모 기업' },
+        large: { label: '대규모 (200명 이상)', description: '대기업' },
+        enterprise: { label: '대기업 (1000명 이상)', description: '대기업' }
+      },
+      partnershipTypes: {
+        advertising: { label: '광고 협업', description: '상호 광고, 마케팅 협업' },
+        investment: { label: '투자/펀딩', description: '투자 유치, 펀딩 제안' },
+        technology: { label: '기술 협업', description: '기술 파트너십, API 연동' },
+        distribution: { label: '유통/판매', description: '제품 유통, 판매 협업' },
+        content: { label: '콘텐츠 협업', description: '콘텐츠 제작, 공동 마케팅' },
+        event: { label: '이벤트 협업', description: '공동 이벤트, 세미나' },
+        other: { label: '기타', description: '위 카테고리에 해당하지 않는 협업' }
+      },
+      budgetRanges: {
+        'under-1m': { label: '100만원 미만', description: '소규모 협업' },
+        '1m-5m': { label: '100만원 - 500만원', description: '중소규모 협업' },
+        '5m-10m': { label: '500만원 - 1,000만원', description: '중규모 협업' },
+        '10m-50m': { label: '1,000만원 - 5,000만원', description: '대규모 협업' },
+        'over-50m': { label: '5,000만원 이상', description: '대형 협업' },
+        discuss: { label: '협의 후 결정', description: '예산 협의 필요' }
       }
     },
 
@@ -1824,11 +1944,19 @@ export const translations = {
       uploadFirstStory: '첫 번째 스토리를 올리고\n다른 사람들과 일상을 공유해보세요!',
       newStory: '새 스토리 작성',
       photoUpload: '사진 업로드',
+      photoRequired: '사진을 선택해주세요.',
       storyContent: '스토리 내용',
       storyPlaceholder: '오늘의 이야기를 공유해보세요...',
       createStory: '스토리작성',
       upload: '업로드',
-      uploading: '업로드 중...'
+      uploading: '업로드 중...',
+      selectFromGallery: '📱 갤러리에서 선택',
+      selectOtherPhoto: '다른 사진 선택',
+      takeWithCamera: '📸 카메라로 촬영',
+      pasteInstruction: '💡 이미지를 복사한 후 이 영역에 붙여넣기(Ctrl+V)도 가능합니다',
+      orImageUrl: '또는 이미지 URL 직접 입력',
+      imageUrlPlaceholder: 'https://example.com/image.jpg',
+      loadingComments: '댓글을 불러오는 중...'
     },
 
     // 시간대 설정
@@ -2704,7 +2832,13 @@ export const translations = {
         newVideoChatFeature: 'Se ha agregado una nueva función de videollamada',
         betterVideoCallExperience: 'Proporciona una mejor experiencia de videollamada.',
         systemMaintenanceNotice: 'Aviso de mantenimiento del sistema',
-        maintenanceSchedule: 'El mantenimiento está programado para el 20 de enero de 2:00 AM a 4:00 AM.'
+        maintenanceSchedule: 'El mantenimiento está programado para el 20 de enero de 2:00 AM a 4:00 AM.',
+        // 아코디언 공지사항
+        title: 'Avisos',
+        missionAnnouncement: {
+          title: 'El Inicio de AMIKO',
+          description: 'Comenzamos para apoyar a las personas de América Latina a través del intercambio de conocimientos y contenido educativo, ayudándoles a encontrar fuerza y conexión en sus vidas a través de K-POP.'
+        }
       },
       // 샘플 콘텐츠
       sampleContent: {
@@ -2771,6 +2905,7 @@ export const translations = {
 
     // 인증 관련
     auth: {
+      loginRequired: 'Debes iniciar sesión.',
       forgotPassword: {
         title: 'Recuperar contraseña',
         description: 'Ingresa tu dirección de correo electrónico registrada y te enviaremos un enlace para restablecer tu contraseña.',
@@ -3097,7 +3232,7 @@ export const translations = {
           about: {
             title: 'Acerca de',
             description: 'AMI(America) KO(Korea) para conectar.',
-            bridgeDescription: 'Un puente que conecta AMérica y KOrea a través de I',
+            bridgeDescription: 'Un puente(I) que conecta AMérica y KOrea',
             connectDescription: 'A mí(para mí) Korea más cerca'
           },
           contact: {
@@ -3285,7 +3420,20 @@ export const translations = {
         travel: 'Viajes',
         culture: 'Cultura',
         free: 'Libre'
-      }
+      },
+      comment: 'Comentarios',
+      writeComment: 'Añadir comentario...',
+      noComments: 'No hay comentarios',
+      publicStory: 'Historia Pública',
+      privateStory: 'Historia Privada',
+      autoDelete: 'Se elimina automáticamente después de 24 horas',
+      storyText: 'Contenido de la Historia',
+      firstComment: '¡Escribe el primer comentario!',
+      reply: 'Responder',
+      replyWriting: 'Escribir respuesta',
+      cancelReply: 'Presiona el botón "Cancelar" para cancelar la respuesta',
+      posting: 'Publicando...',
+      post: 'Publicar'
     },
 
     // 커뮤니티 섹션
@@ -3336,6 +3484,7 @@ export const translations = {
       postTitlePlaceholder: 'Ingresa el título',
       postContent: 'Contenido',
       postContentPlaceholder: 'Ingresa el contenido',
+      selectBoardPlaceholder: 'Selecciona un tablero',
       attachImage: 'Adjuntar Imagen',
       selectImage: 'Seleccionar Imagen',
       imageRestrictions: 'JPG, PNG, GIF (máx 5MB, máx 5 archivos)',
@@ -3361,9 +3510,11 @@ export const translations = {
         free: 'Foro Libre',
         kpop: 'Foro K-POP',
         kdrama: 'Foro K-Drama',
-        beauty: 'Belleza',
+        beauty: 'Foro de Belleza',
         korean: 'Coreano',
-        spanish: 'Español'
+        koreanStudy: 'Foro de Coreano',
+        spanish: 'Español',
+        spanishStudy: 'Foro de Español'
       },
         tabs: {
           recommended: 'Recomendado',
@@ -3463,7 +3614,20 @@ export const translations = {
         loginButton: 'Iniciar sesión'
       },
       partners: 'Socios',
-      partnersDesc: 'Conoce a nuestros socios'
+      partnersDesc: 'Conoce a nuestros socios',
+      postDetail: {
+        noComments: 'Aún no hay comentarios',
+        timeAgo: {
+          now: 'Ahora',
+          minutes: 'Hace {count} minutos',
+          hours: 'Hace {count} horas',
+          yesterday: 'Ayer',
+          days: 'Hace {count} días'
+        },
+        errors: {
+          unknownError: 'Ocurrió un error desconocido'
+        }
+      }
     },
 
     // 주제별 게시판 섹션
@@ -3493,7 +3657,54 @@ export const translations = {
       noPosts: 'No hay publicaciones',
       author: 'Autor',
       createdAt: 'Fecha de Creación',
-      views: 'Vistas'
+      views: 'Vistas',
+      board: 'Tablero',
+      title: 'Título',
+      writer: 'Autor',
+      recommend: 'Recomendaciones',
+      anonymous: 'Anónimo',
+      admin: 'Administrador',
+      backToList: 'Volver a la lista',
+      postNotFound: 'No se pudo encontrar la publicación',
+      content: 'Contenido',
+      translated: '(Traducido)',
+      pinned: '📌 Fijado',
+      hot: '🔥 Popular',
+      edit: 'Editar',
+      editPost: 'Editar Publicación',
+      editNotice: '📝 Editar Aviso',
+      editing: 'Editando...',
+      editButton: 'Editar',
+      editError: 'Por favor ingresa el título y el contenido.',
+      editSuccess: 'La publicación se editó exitosamente.',
+      editFailed: 'Error al editar la publicación.',
+      contentPlaceholder: 'Ingresa el contenido',
+      delete: 'Eliminar',
+      deleteNotice: '🗑️ Eliminar Aviso',
+      deleteAsAdmin: '🗑️ Eliminar como Admin',
+      deleteConfirm: '¿Realmente quieres eliminar esta publicación?',
+      deleteConfirmDescription: 'Las publicaciones eliminadas no se pueden recuperar.',
+      deleteSuccess: 'La publicación se eliminó exitosamente.',
+      deleteFailed: 'Error al eliminar la publicación.',
+      deleteError: 'Ocurrió un error al eliminar la publicación.',
+      share: 'Compartir',
+      loginToVote: 'Inicia sesión para votar',
+      translatedFailed: 'Error al traducir. Inténtalo de nuevo.',
+      commentHeader: 'Comentarios',
+      commentSort: {
+        latest: 'Más Recientes',
+        oldest: 'Por Fecha',
+        replies: 'Por Respuestas'
+      },
+      commentPlaceholder: 'Escribe un comentario...',
+      commentWrite: 'Comentar',
+      commentWriting: 'Publicando...',
+      commentLoginRequired: 'Debes iniciar sesión para comentar.',
+      replyButton: 'Responder',
+      replyPlaceholder: 'Responder a {name}...',
+      replyWrite: 'Responder',
+      replyWriting: 'Enviando respuesta...',
+      replyCancel: 'Cancelar'
     },
 
     // 충전소 탭
@@ -3551,7 +3762,8 @@ export const translations = {
         levels: '🌿 Nv1 75+ / 🌿 Nv2 150+ / 🌿 Nv3 300+ / 🌿 Nv4 600+ / 🌿 Nv5 1200+',
         rose: '🌹 Rosa Rosa: 3500+ (elegible para sorteo de billetes)',
         vip: '👑 Corona VIP: al comprar VIP',
-        requirement: '✅ Todos los sorteos de eventos están abiertos desde el Nivel 1'
+        requirement: '✅ Todos los sorteos de eventos están abiertos desde el Nivel 1',
+        viewMyLevel: 'Ver Mi Nivel'
       },
       attendanceCheck: {
         specialEvents: {
@@ -3866,7 +4078,7 @@ export const translations = {
     privacy: {
       lastUpdated: 'Última actualización',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com',
+      supportEmail: 'info@amiko.com',
       title: 'Política de Privacidad',
       lastUpdatedDate: '19 de enero de 2025',
       sections: {
@@ -3916,7 +4128,7 @@ export const translations = {
           content: 'Para consultas sobre información personal, contacte:',
           items: [
             'Correo electrónico: privacy@amiko.com',
-            'Soporte al cliente: support@amiko.com',
+            'Soporte al cliente: info@amiko.com',
             'Horario de atención: Lunes a Viernes, 9:00 - 18:00 (KST)'
           ]
         }
@@ -3927,7 +4139,7 @@ export const translations = {
     terms: {
       lastUpdated: 'Última actualización',
       contactEmail: 'legal@amiko.com',
-      supportEmail: 'support@amiko.com',
+      supportEmail: 'info@amiko.com',
       title: 'Términos de Servicio',
       lastUpdatedDate: '19 de enero de 2025',
       sections: {
@@ -3993,7 +4205,7 @@ export const translations = {
     cookies: {
       lastUpdated: 'Última actualización',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'support@amiko.com',
+      supportEmail: 'info@amiko.com',
       title: 'Política de Cookies',
       lastUpdatedDate: '19 de enero de 2025',
       sections: {
@@ -4295,6 +4507,42 @@ export const translations = {
           title: 'Aumento de Ingresos',
           description: 'Ofrece nuevas oportunidades de generación de ingresos a través de la asociación'
         }
+      },
+      businessFields: {
+        tech: { label: 'Tecnología/IT', description: 'Software, Hardware, AI, Blockchain, etc.' },
+        finance: { label: 'Finanzas/Fintech', description: 'Bancos, Seguros, Inversiones, Servicios de Pago, etc.' },
+        ecommerce: { label: 'E-commerce/Retail', description: 'Tiendas en línea, Marketplaces, etc.' },
+        education: { label: 'Educación/Edutech', description: 'Educación en línea, Plataformas de Aprendizaje, etc.' },
+        healthcare: { label: 'Salud/Biomedicina', description: 'Servicios Médicos, Gestión de Salud, etc.' },
+        media: { label: 'Medios/Entretenimiento', description: 'Creación de Contenidos, Streaming, etc.' },
+        logistics: { label: 'Logística/Delivery', description: 'Paquetería, Gestión Logística, etc.' },
+        food: { label: 'Restaurantes/Delivery', description: 'Restaurantes, Servicios de Delivery, etc.' },
+        travel: { label: 'Viajes/Turismo', description: 'Reservas de Viajes, Servicios Turísticos, etc.' },
+        other: { label: 'Otro', description: 'Áreas que no pertenecen a las categorías anteriores' }
+      },
+      companySizes: {
+        startup: { label: 'Startup (1-10 personas)', description: 'Startup en etapa inicial' },
+        small: { label: 'Pequeña (11-50 personas)', description: 'Empresa pequeña' },
+        medium: { label: 'Mediana (51-200 personas)', description: 'Empresa mediana' },
+        large: { label: 'Grande (200+ personas)', description: 'Corporación' },
+        enterprise: { label: 'Corporativa (1000+ personas)', description: 'Gran corporación' }
+      },
+      partnershipTypes: {
+        advertising: { label: 'Colaboración Publicitaria', description: 'Publicidad mutua, Colaboración de Marketing' },
+        investment: { label: 'Inversión/Fondeo', description: 'Captación de Inversión, Propuestas de Fondeo' },
+        technology: { label: 'Colaboración Tecnológica', description: 'Alianzas Tecnológicas, Integración de API' },
+        distribution: { label: 'Distribución/Ventas', description: 'Distribución de Productos, Colaboración de Ventas' },
+        content: { label: 'Colaboración de Contenido', description: 'Creación de Contenidos, Marketing Conjunto' },
+        event: { label: 'Colaboración de Eventos', description: 'Eventos Conjuntos, Seminarios' },
+        other: { label: 'Otro', description: 'Colaboraciones que no pertenecen a las categorías anteriores' }
+      },
+      budgetRanges: {
+        'under-1m': { label: 'Menos de $1M COP', description: 'Colaboración pequeña' },
+        '1m-5m': { label: '$1M - $5M COP', description: 'Colaboración pequeña-media' },
+        '5m-10m': { label: '$5M - $10M COP', description: 'Colaboración mediana' },
+        '10m-50m': { label: '$10M - $50M COP', description: 'Colaboración grande' },
+        'over-50m': { label: 'Más de $50M COP', description: 'Colaboración de gran escala' },
+        discuss: { label: 'Discutir y decidir', description: 'Necesita discusión de presupuesto' }
       }
     },
 
@@ -5056,11 +5304,19 @@ export const translations = {
       uploadFirstStory: '¡Sube tu primera historia y\ncomparte tu vida diaria con otros!',
       newStory: 'Nueva Historia',
       photoUpload: 'Subir Foto',
+      photoRequired: 'Por favor, selecciona una foto.',
       storyContent: 'Contenido de la Historia',
       storyPlaceholder: 'Comparte la historia de hoy...',
       createStory: 'Crear Historia',
       upload: 'Subir',
-      uploading: 'Subiendo...'
+      uploading: 'Subiendo...',
+      selectFromGallery: '📱 Seleccionar de la galería',
+      selectOtherPhoto: 'Seleccionar otra foto',
+      takeWithCamera: '📸 Tomar con cámara',
+      pasteInstruction: '💡 También puedes copiar una imagen y pegarla aquí (Ctrl+V)',
+      orImageUrl: 'O ingresar URL de imagen',
+      imageUrlPlaceholder: 'https://example.com/image.jpg',
+      loadingComments: 'Cargando comentarios...'
     },
 
     // 시간대 설정

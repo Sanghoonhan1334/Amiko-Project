@@ -5,6 +5,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { 
   Calendar, 
   Users, 
@@ -87,6 +89,14 @@ export default function HomeTab() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
   const [dragStartY, setDragStartY] = useState(0)
+  
+  // 스토리 뷰어 상태
+  const [showStoryViewer, setShowStoryViewer] = useState(false)
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0)
+  const [viewerStories, setViewerStories] = useState<RecentStory[]>([])
+  
+  // 아코디언 공지사항 상태
+  const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false)
 
   // 이벤트 자동 슬라이드
   useEffect(() => {
@@ -176,16 +186,6 @@ export default function HomeTab() {
       // 임시 하드코딩된 이벤트 데이터
       const mockEvents = [
         {
-          id: 'event-1',
-          title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Evento de Sorteo de Boletos de Avión a Corea',
-          description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : '¡Participa en la comunidad y gana boletos de avión a Corea!',
-          image: '/misc/event-title.png',
-          bannerMobile: '/banners/evento-apartura-mobile.png',
-          bannerDesktop: '/banners/evento-apartura-desktop.png',
-          date: language === 'ko' ? '2026년 말' : 'Fin de año de 2026',
-          participants: 324
-        },
-        {
           id: 'event-2',
           title: language === 'ko' ? 'ACU-POINT 화장품 이벤트' : 'Evento de Cosméticos ACU-POINT',
           description: language === 'ko' ? '가장 많이 사용한 사람에게 매월 선크림 + 마스크팩 세트를 공짜로 드립니다!' : '¡La persona que más use la comunidad recibe un set mensual de protector solar + mascarilla GRATIS!',
@@ -194,6 +194,16 @@ export default function HomeTab() {
           bannerDesktop: '/banners/gran-lanzamiento-desktop.png',
           date: language === 'ko' ? '1월부터 매달 진행' : 'Mensual desde enero - ¡GRATIS!',
           participants: 156
+        },
+        {
+          id: 'event-1',
+          title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Evento de Sorteo de Boletos de Avión a Corea',
+          description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : '¡Participa en la comunidad y gana boletos de avión a Corea!',
+          image: '/misc/event-title.png',
+          bannerMobile: '/banners/evento-apartura-mobile.png',
+          bannerDesktop: '/banners/evento-apartura-desktop.png',
+          date: language === 'ko' ? '2026년 말' : 'Fin de año de 2026',
+          participants: 324
         }
       ]
       
@@ -299,30 +309,22 @@ export default function HomeTab() {
 
   const loadOnlineUsers = async () => {
     try {
-      // 온라인 사용자 API가 없으므로 임시 데이터
-      // 실제로는 사용자 상태 API가 필요함
-      const mockUsers = [
-        {
-          id: '1',
-          name: '김민수',
-          profileImage: '/quizzes/mbti-with-kpop-stars/celebs/jimin.png',
-          isOnline: true
-        },
-        {
-          id: '2',
-          name: '이지은',
-          profileImage: '/quizzes/mbti-with-kpop-stars/celebs/iu.png',
-          isOnline: true
-        },
-        {
-          id: '3',
-          name: '박서준',
-          profileImage: '/quizzes/mbti-with-kpop-stars/celebs/jungkook.png',
-          isOnline: true
-        }
-      ]
+      // 온라인 사용자 API 호출
+      const response = await fetch('/api/users/online')
       
-      setOnlineUsers(mockUsers)
+      if (!response.ok) {
+        console.error('온라인 사용자 API 응답 오류:', response.status)
+        setOnlineUsers([])
+        return
+      }
+
+      const data = await response.json()
+      const users = data.users || []
+
+      // API에서 받은 실제 데이터 사용
+      setOnlineUsers(users)
+      
+      console.log('온라인 사용자 로딩 완료:', users)
     } catch (error) {
       console.error('온라인 사용자 로딩 실패:', error)
       setOnlineUsers([])
@@ -340,12 +342,10 @@ export default function HomeTab() {
       }
       
       const data = await response.json()
-      console.log('Stories data:', data)
       
       if (data.stories && data.stories.length > 0) {
         setRecentStories(data.stories)
       } else {
-        console.log('No stories found')
         setRecentStories([])
       }
       
@@ -582,20 +582,28 @@ export default function HomeTab() {
                     <div
                       key={event.id}
                       className="w-full flex-shrink-0 cursor-pointer"
-                      onClick={() => router.push('/main?tab=event')}
+                      onClick={() => {
+                        if (event.id === 'event-2') {
+                          router.push('/main?tab=event&show=acu-point-sunscreen')
+                        } else {
+                          router.push('/main?tab=event')
+                        }
+                      }}
                     >
                       {/* 모바일 배너 */}
                       <img 
                         src={event.bannerMobile || event.image} 
                         alt={event.title}
-                        className="w-full h-full object-cover block min-[430px]:hidden"
+                        className="w-full h-full object-cover block min-[430px]:hidden pointer-events-none"
+                        draggable={false}
                       />
                       
                       {/* 데스크톱 배너 (430px 이상) */}
                       <img 
                         src={event.bannerDesktop || event.image} 
                         alt={event.title}
-                        className="w-full h-full object-cover hidden min-[430px]:block"
+                        className="w-full h-full object-cover hidden min-[430px]:block pointer-events-none"
+                        draggable={false}
                       />
                     </div>
                   ))}
@@ -631,6 +639,56 @@ export default function HomeTab() {
         )}
       </div>
 
+      {/* 아코디언 공지사항 */}
+      <div className="space-y-3">
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
+            <button
+              onClick={() => setIsAnnouncementOpen(!isAnnouncementOpen)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📢</span>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {t('home.announcements.title')}
+                </h2>
+              </div>
+              <svg
+                className={`w-5 h-5 transform transition-transform duration-300 text-gray-600 dark:text-gray-400 ${
+                  isAnnouncementOpen ? 'rotate-180' : ''
+                }`}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isAnnouncementOpen ? 'max-h-[500px] mt-4' : 'max-h-0'
+              }`}
+            >
+              <div className="space-y-4">
+                {/* 공지사항 1: AMIKO의 시작 */}
+                <div className="border-l-4 border-purple-500 pl-4 pb-4">
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">
+                    {t('home.announcements.missionAnnouncement.title')}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    {t('home.announcements.missionAnnouncement.description')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* 최근 스토리 */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -649,21 +707,62 @@ export default function HomeTab() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3 overflow-x-auto">
               {recentStories.length > 0 ? (
-                recentStories.map((story) => (
-                  <div key={story.id} className="flex flex-col items-center min-w-16">
-                    <div className="relative">
-                      <img
-                        src={story.user_profile_image || '/icons/default-avatar.png'}
-                        alt={story.user_name}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
-                      />
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-500 rounded-full border-2 border-white"></div>
+                recentStories.map((story, idx) => {
+                  const getInitial = (name: string) => {
+                    if (!name) return 'U'
+                    const firstChar = name.charAt(0).toUpperCase()
+                    return /[A-Za-z가-힣]/.test(firstChar) ? firstChar : 'U'
+                  }
+
+                  // user_profile_image가 null이거나 빈 문자열인지 확인
+                  const hasProfileImage = story.user_profile_image && story.user_profile_image.trim() !== ''
+
+                  return (
+                    <div 
+                      key={story.id} 
+                      className="flex flex-col items-center min-w-16 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => {
+                        // 해당 사용자의 모든 스토리를 가져와서 뷰어 열기
+                        const userStories = recentStories.filter(s => s.user_name === story.user_name)
+                        if (userStories.length > 0) {
+                          setViewerStories(userStories)
+                          setSelectedStoryIndex(userStories.findIndex(s => s.id === story.id))
+                          setShowStoryViewer(true)
+                        }
+                      }}
+                    >
+                      <div className="relative">
+                        {hasProfileImage ? (
+                          <img
+                            src={story.user_profile_image!}
+                            alt={story.user_name}
+                            className="w-12 h-12 rounded-full object-contain border-2 border-purple-200 bg-white"
+                            onError={(e) => {
+                              console.error('[HomeTab] Image load error for:', story.user_name, story.user_profile_image)
+                              // 이미지 로드 실패 시 img를 숨기고 placeholder 표시
+                              const target = e.target as HTMLImageElement
+                              target.style.display = 'none'
+                              const placeholder = target.nextElementSibling as HTMLElement
+                              if (placeholder && placeholder.classList.contains('avatar-placeholder')) {
+                                placeholder.style.display = 'flex'
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className={`avatar-placeholder w-12 h-12 rounded-full border-2 border-purple-200 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm ${hasProfileImage ? 'hidden' : ''}`}
+                          style={{ display: hasProfileImage ? 'none' : 'flex' }}
+                        >
+                          {getInitial(story.user_name)}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-500 rounded-full border-2 border-white"></div>
+                      </div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center max-w-16 truncate">
+                        {story.user_name}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center max-w-16 truncate">
-                      {story.user_name}
-                    </span>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <div className="flex flex-col items-center justify-center w-full py-8">
                   <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2">
@@ -820,52 +919,57 @@ export default function HomeTab() {
       </div>
 
       {/* 화상채팅 온라인 인원 - 모바일 버전 */}
-      {onlineUsers.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-green-600" />
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                {t('home.sections.videoChatOnline')}
-              </h2>
-            </div>
-            <Badge variant="outline" className="text-green-600 border-green-600">
-              {onlineUsers.length}명
-            </Badge>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-green-600" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              {t('home.sections.videoChatOnline')}
+            </h2>
           </div>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3 overflow-x-auto">
-                {onlineUsers.map((user) => (
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            {onlineUsers.length}명
+          </Badge>
+        </div>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 overflow-x-auto">
+              {onlineUsers.length > 0 ? (
+                onlineUsers.map((user) => (
                   <div key={user.id} className="flex flex-col items-center min-w-16">
                     <div className="relative">
-                      <img
-                        src={user.profileImage}
-                        alt={user.name}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={user.profileImage} alt={user.name} />
+                        <AvatarFallback className="bg-gradient-to-br from-green-500 to-teal-600 text-white text-xs font-semibold">
+                          {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <span className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">
                       {user.name}
                     </span>
                   </div>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="ml-2"
-                  onClick={() => router.push('/main?tab=meet')}
-                >
-                  <Users className="w-4 h-4 mr-1" />
-                  {t('home.community.seeMore')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                ))
+              ) : (
+                <div className="flex items-center justify-center w-full py-4 text-sm text-gray-400">
+                  {language === 'ko' ? '현재 온라인 사용자가 없습니다' : 'No hay usuarios en línea'}
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-2"
+                onClick={() => router.push('/main?tab=meet')}
+              >
+                <Users className="w-4 h-4 mr-1" />
+                {t('home.community.seeMore')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
 
         {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
@@ -962,18 +1066,26 @@ export default function HomeTab() {
                           <div
                             key={event.id}
                             className="w-full flex-shrink-0 cursor-pointer"
-                            onClick={() => router.push('/main?tab=event')}
+                            onClick={() => {
+                              if (event.id === 'event-2') {
+                                router.push('/main?tab=event&show=acu-point-sunscreen')
+                              } else {
+                                router.push('/main?tab=event')
+                              }
+                            }}
                           >
                             {/* 배너 이미지 (430px 기준으로 변경) */}
                             <img 
                               src={event.bannerDesktop || event.image} 
                               alt={event.title}
-                              className="w-full h-full object-cover rounded-lg hidden min-[430px]:block"
+                              className="w-full h-full object-cover rounded-lg hidden min-[430px]:block pointer-events-none"
+                              draggable={false}
                             />
                             <img 
                               src={event.bannerMobile || event.image} 
                               alt={event.title}
-                              className="w-full h-full object-cover rounded-lg block min-[430px]:hidden"
+                              className="w-full h-full object-cover rounded-lg block min-[430px]:hidden pointer-events-none"
+                              draggable={false}
                             />
                           </div>
                         ))}
@@ -1004,6 +1116,56 @@ export default function HomeTab() {
                       </div>
                     )}
                     
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 아코디언 공지사항 - 데스크톱 버전 */}
+            <div className="space-y-4">
+              <Card className="overflow-hidden">
+                <CardContent className="p-4">
+                  <button
+                    onClick={() => setIsAnnouncementOpen(!isAnnouncementOpen)}
+                    className="w-full flex items-center justify-between text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📢</span>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                        {t('home.announcements.title')}
+                      </h2>
+                    </div>
+                    <svg
+                      className={`w-5 h-5 transform transition-transform duration-300 text-gray-600 dark:text-gray-400 ${
+                        isAnnouncementOpen ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+                  
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      isAnnouncementOpen ? 'max-h-[500px] mt-4' : 'max-h-0'
+                    }`}
+                  >
+                    <div className="space-y-4">
+                      {/* 공지사항 1: AMIKO의 시작 */}
+                      <div className="border-l-4 border-purple-500 pl-4 pb-4">
+                        <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">
+                          {t('home.announcements.missionAnnouncement.title')}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {t('home.announcements.missionAnnouncement.description')}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1152,28 +1314,29 @@ export default function HomeTab() {
             </div>
 
             {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 */}
-            {onlineUsers.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {t('home.sections.videoChatOnline')}
-                  </h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
-                
-                <Card className="shadow-2xl">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      {onlineUsers.map((user) => (
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {t('home.sections.videoChatOnline')}
+                </h2>
+              </div>
+              
+              <Card className="shadow-2xl">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {onlineUsers.length > 0 ? (
+                      onlineUsers.map((user) => (
                         <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
                           <div className="relative">
-                            <img
-                              src={user.profileImage}
-                              alt={user.name}
-                              className="w-12 h-12 rounded-full object-cover shadow-md border-2 border-white dark:border-gray-800 group-hover:scale-105 transition-transform"
-                            />
+                            <Avatar className="w-12 h-12 shadow-md border-2 border-white dark:border-gray-800 group-hover:scale-105 transition-transform">
+                              <AvatarImage src={user.profileImage} alt={user.name} />
+                              <AvatarFallback className="bg-gradient-to-br from-green-500 to-teal-600 text-white text-sm font-semibold">
+                                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 shadow-md">
                               <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>
                             </div>
@@ -1182,28 +1345,135 @@ export default function HomeTab() {
                             <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                               {user.name}
                             </h3>
-                            <p className="text-sm text-green-600 dark:text-green-400 font-medium">온라인</p>
+                            <p className="text-sm text-green-600 dark:text-green-400 font-medium">{t('home.community.online')}</p>
                           </div>
                           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                         </div>
-                      ))}
-                      <Button
-                        variant="outline"
-                        className="w-full h-10 border-green-200 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
-                        onClick={() => router.push('/main?tab=meet')}
-                      >
-                        <Users className="w-4 h-4 mr-2 text-green-600" />
-                        <span className="text-green-600 font-medium text-sm">{t('home.community.seeMore')}</span>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                      ))
+                    ) : (
+                      <div className="flex items-center justify-center py-4 text-sm text-gray-400">
+                        {language === 'ko' ? '현재 온라인 사용자가 없습니다' : 'No hay usuarios en línea'}
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="w-full h-10 border-green-200 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
+                      onClick={() => router.push('/main?tab=meet')}
+                    >
+                      <Users className="w-4 h-4 mr-2 text-green-600" />
+                      <span className="text-green-600 font-medium text-sm">{t('home.community.seeMore')}</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
 
+        {/* 스토리 뷰어 모달 */}
+        <Dialog open={showStoryViewer} onOpenChange={setShowStoryViewer}>
+          <DialogContent className="max-w-sm w-[320px] max-h-[500px] bg-black border-none p-0 rounded-2xl overflow-hidden">
+            <DialogTitle className="sr-only">Story Viewer</DialogTitle>
+            <DialogDescription className="sr-only">
+              Viewing story from {viewerStories[selectedStoryIndex]?.user_name || 'User'}
+            </DialogDescription>
+            {viewerStories.length > 0 && (
+              <>
+                {/* 진행 바 */}
+                <div className="absolute top-0 left-0 right-0 z-[10005] p-3 flex gap-1">
+                  {viewerStories.map((_, index) => (
+                    <div
+                      key={index}
+                      className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
+                    >
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          index < selectedStoryIndex
+                            ? 'bg-white'
+                            : index === selectedStoryIndex
+                            ? 'bg-white animate-pulse'
+                            : 'bg-white/30'
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
 
+                {/* 스토리 이미지 */}
+                {viewerStories[selectedStoryIndex] && (
+                  <div className="relative w-full flex items-center justify-center" style={{ aspectRatio: '9/16', minHeight: '320px' }}>
+                    <img
+                      src={viewerStories[selectedStoryIndex].image_url || '/icons/default-avatar.png'}
+                      alt={viewerStories[selectedStoryIndex].user_name}
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* 사용자 정보 */}
+                    <div className="absolute top-12 left-3 flex items-center gap-2 text-white">
+                      <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
+                        {viewerStories[selectedStoryIndex].user_profile_image ? (
+                          <img
+                            src={viewerStories[selectedStoryIndex].user_profile_image}
+                            alt={viewerStories[selectedStoryIndex].user_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              {viewerStories[selectedStoryIndex].user_name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm">{viewerStories[selectedStoryIndex].user_name}</p>
+                      </div>
+                    </div>
+                    
+                    {/* 텍스트 컨텐츠 */}
+                    {viewerStories[selectedStoryIndex].text_content && (
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                        <p className="text-white text-sm">{viewerStories[selectedStoryIndex].text_content}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 닫기 버튼 */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 text-white hover:bg-white/20 z-[10006]"
+                  onClick={() => setShowStoryViewer(false)}
+                >
+                  <span className="text-2xl">×</span>
+                </Button>
+
+                {/* 좌우 네비게이션 */}
+                {selectedStoryIndex > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-[10006] w-10 h-10"
+                    onClick={() => setSelectedStoryIndex(selectedStoryIndex - 1)}
+                  >
+                    ‹
+                  </Button>
+                )}
+                {selectedStoryIndex < viewerStories.length - 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-[10006] w-10 h-10"
+                    onClick={() => setSelectedStoryIndex(selectedStoryIndex + 1)}
+                  >
+                    ›
+                  </Button>
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
     </>
   )
 }

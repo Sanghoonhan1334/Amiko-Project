@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
 
 interface Gallery {
   id: string
@@ -164,10 +163,6 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
       return
     }
 
-    // 인증 체크 - 게시물 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '게시물 작성')) {
-      return
-    }
 
     if (!title.trim()) {
       setError(t('community.galleryList.writePost') + ' - ' + t('community.galleryList.title') + ' ' + t('buttons.required'))

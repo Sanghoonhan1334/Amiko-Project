@@ -28,7 +28,6 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { TranslationService } from '@/lib/translation'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { useRouter } from 'next/navigation'
 import PostDetail from './PostDetail'
 import PostEditModal from './PostEditModal'
@@ -363,10 +362,6 @@ export default function FreeBoard() {
       return
     }
 
-    // 인증 체크 - 게시물 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '게시물 작성')) {
-      return
-    }
 
     if (!writeTitle.trim() || !writeContent.trim()) {
       setError('제목과 내용을 입력해주세요.')
@@ -577,11 +572,6 @@ export default function FreeBoard() {
   const handleReaction = async (postId: string, reactionType: 'like' | 'dislike') => {
     if (!user) {
       setError('로그인이 필요합니다.')
-      return
-    }
-
-    // 인증 체크 - 좋아요/싫어요는 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '좋아요/싫어요')) {
       return
     }
 
@@ -1280,10 +1270,10 @@ export default function FreeBoard() {
             <Button
               variant="outline"
               onClick={() => setShowPostDetail(false)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"
             >
-              <ArrowLeft className="w-4 h-4" />
-              목록으로
+              <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" />
+              {t('freeboard.backToList')}
             </Button>
           </div>
           
@@ -1295,7 +1285,7 @@ export default function FreeBoard() {
               handleEditPost(selectedPost)
             }}
             onDelete={async () => {
-              if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+              if (confirm(`${t('freeboard.deleteConfirm')}\n${t('freeboard.deleteConfirmDescription')}`)) {
                 try {
                   const response = await fetch(`/api/posts/${selectedPost.id}`, {
                     method: 'DELETE',
@@ -1305,15 +1295,15 @@ export default function FreeBoard() {
                   })
                   
                   if (response.ok) {
-                    alert('게시글이 삭제되었습니다.')
+                    alert(t('freeboard.deleteSuccess'))
                     setShowPostDetail(false)
                     fetchPosts() // 목록 새로고침
                   } else {
-                    alert('게시글 삭제에 실패했습니다.')
+                    alert(t('freeboard.deleteFailed'))
                   }
                 } catch (error) {
                   console.error('삭제 오류:', error)
-                  alert('게시글 삭제 중 오류가 발생했습니다.')
+                  alert(t('freeboard.deleteError'))
                 }
               }
             }}

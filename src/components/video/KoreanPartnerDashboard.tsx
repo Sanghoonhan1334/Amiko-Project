@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Clock, User, CheckCircle, XCircle, Calendar, Plus, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, Settings, Video } from 'lucide-react'
+import { Clock, User, CheckCircle, XCircle, Calendar, Plus, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, Settings, Video, DoorClosed, DoorOpen } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,6 +40,7 @@ export default function KoreanPartnerDashboard({
 }: KoreanPartnerDashboardProps) {
   const { language, t } = useLanguage()
   const { token } = useAuth()
+  const router = useRouter()
   
   // 스케줄 상태 번역 함수
   const translateStatus = (status: string) => {
@@ -853,49 +855,99 @@ export default function KoreanPartnerDashboard({
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3 text-green-600">{language === 'es' ? '✓ Confirmado' : '✓ 승인된 예약'}</h3>
             <div className="space-y-3">
-              {approvedBookings.map((booking) => (
-                <Card key={booking.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Avatar className="w-10 h-10 flex-shrink-0">
-                            {booking.users?.avatar_url ? (
-                              <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
-                            ) : null}
-                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
-                              {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
-                            </span>
+              {approvedBookings.map((booking) => {
+                // 예약 시간 체크
+                const bookingDateTime = new Date(`${booking.date}T${booking.start_time}`)
+                const now = new Date()
+                const waitSeconds = Math.ceil((bookingDateTime.getTime() - now.getTime()) / 1000)
+                const canJoin = now >= bookingDateTime
+                const minutesRemaining = Math.ceil(waitSeconds / 60)
+                const showCountdown = waitSeconds <= 600 && waitSeconds > 0
+
+                return (
+                  <Card key={booking.id}>
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Avatar className="w-10 h-10 flex-shrink-0">
+                                {booking.users?.avatar_url ? (
+                                  <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
+                                ) : null}
+                                <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
+                                  {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                  {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-2">
+                              <Clock className="w-3 h-3" />
+                              {booking.date} {booking.start_time} - {booking.end_time}
+                            </p>
+                            {booking.meet_url && (
+                              <div className="mt-2">
+                                <a
+                                  href={booking.meet_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                                >
+                                  <Video className="w-3 h-3" />
+                                  {language === 'es' ? 'Enlace de Google Meet' : 'Google Meet 링크'}
+                                </a>
+                              </div>
+                            )}
                           </div>
+                          <Badge className="bg-green-50 text-green-700">✓ {language === 'es' ? 'Confirmado' : '승인됨'}</Badge>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-2">
-                          <Clock className="w-3 h-3" />
-                          {booking.date} {booking.start_time} - {booking.end_time}
-                        </p>
-                        {booking.meet_url && (
-                          <div className="mt-2">
-                            <a
-                              href={booking.meet_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+
+                        {/* 참여하기 버튼 */}
+                        <div className="pt-2 border-t">
+                          {canJoin ? (
+                            <Button
+                              onClick={() => router.push(`/call/${booking.id}`)}
+                              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
                             >
-                              <Video className="w-3 h-3" />
-                              {language === 'es' ? 'Enlace de Google Meet' : 'Google Meet 링크'}
-                            </a>
-                          </div>
-                        )}
+                              <DoorOpen className="w-4 h-4 mr-2" />
+                              {language === 'es' ? 'Participar Ahora' : '지금 참여하기'}
+                            </Button>
+                          ) : showCountdown ? (
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                              <div className="flex items-center justify-center gap-2 mb-1">
+                                <DoorClosed className={`w-5 h-5 ${waitSeconds <= 60 ? 'text-red-500 animate-pulse' : 'text-orange-500'}`} />
+                                <span className="text-sm font-semibold text-orange-700">
+                                  {minutesRemaining}분 남음
+                                </span>
+                              </div>
+                              <Button
+                                onClick={() => router.push(`/call/${booking.id}`)}
+                                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                                size="sm"
+                              >
+                                {language === 'es' ? 'Ver Estado' : '대기 중 보기'}
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              onClick={() => router.push(`/call/${booking.id}`)}
+                              className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                              disabled
+                            >
+                              <DoorClosed className="w-4 h-4 mr-2" />
+                              {language === 'es' ? 'Próximamente' : '곧 시작'}
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <Badge className="bg-green-50 text-green-700">✓ {language === 'es' ? 'Confirmado' : '승인됨'}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
         )}

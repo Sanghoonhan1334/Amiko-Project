@@ -11,6 +11,9 @@ import { LanguageProvider } from '@/context/LanguageContext'
 import { UserProvider } from '@/context/UserContext'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import QueryProvider from '@/providers/QueryProvider'
+import { GA_MEASUREMENT_ID } from '@/lib/gtag'
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
+import GTM from '@/components/analytics/GTM'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -111,6 +114,25 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
+        {/* Google Analytics */}
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
         <style dangerouslySetInnerHTML={{ __html: pretendard.style }} />
         {/* 파비콘 설정 */}
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -135,6 +157,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`} suppressHydrationWarning>
+        <GTM />
         <QueryProvider>
           <ThemeProvider
             attribute="class"
@@ -145,6 +168,7 @@ export default function RootLayout({
             <AuthProvider>
               <LanguageProvider>
                 <UserProvider>
+                  {GA_MEASUREMENT_ID && <GoogleAnalytics />}
                   <CustomBanner />
                   <HeaderWrapper />
                   <main>{children}</main>

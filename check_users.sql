@@ -1,0 +1,1 @@
+SELECT COUNT(*) as total_users FROM users; SELECT COUNT(*) as total_profiles FROM user_profiles; SELECT COUNT(*) as recent_participants FROM chat_room_participants WHERE joined_at > NOW() - INTERVAL '15 minutes';

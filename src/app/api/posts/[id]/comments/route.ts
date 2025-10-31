@@ -39,25 +39,66 @@ export async function GET(
     // 사용자 ID 목록 추출
     const userIds = [...new Set(comments?.map(c => c.user_id).filter(Boolean))]
     
-    // 사용자 정보 조회
-    let usersMap: { [key: string]: any } = {}
+    // 사용자 정보 조회 (user_profiles 우선, users fallback)
+    const usersMap: { [key: string]: any } = {}
+    
     if (userIds.length > 0) {
-      const { data: users, error: usersError } = await supabaseServer
-        .from('users')
-        .select('id, full_name, avatar_url, profile_image')
-        .in('id', userIds)
-
-      if (!usersError && users) {
-        usersMap = users.reduce((acc, user) => {
-          acc[user.id] = user
-          return acc
-        }, {} as { [key: string]: any })
-      }
+      await Promise.all(userIds.map(async (userId) => {
+        let userName = null
+        let avatarUrl = null
+        
+        // 먼저 user_profiles 테이블에서 조회
+        const { data: profileData, error: profileError } = await supabaseServer
+          .from('user_profiles')
+          .select('display_name, avatar_url')
+          .eq('user_id', userId)
+          .single()
+        
+        // user_profiles에 데이터가 있고 display_name이 있으면 우선 사용
+        if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
+          // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
+          userName = profileData.display_name.includes('#') 
+            ? profileData.display_name.split('#')[0] 
+            : profileData.display_name
+          
+          avatarUrl = profileData.avatar_url
+          
+          // avatar_url을 공개 URL로 변환
+          if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+            const { data: { publicUrl } } = supabaseServer.storage
+              .from('profile-images')
+              .getPublicUrl(avatarUrl)
+            avatarUrl = publicUrl
+          }
+        }
+        
+        // user_profiles에 데이터가 없거나 display_name이 없으면 users 테이블 조회
+        if (!userName) {
+          const { data: userData, error: usersError } = await supabaseServer
+            .from('users')
+            .select('id, full_name, avatar_url, profile_image')
+            .eq('id', userId)
+            .single()
+          
+          if (!usersError && userData) {
+            // full_name이 비어있으면 email의 '@' 앞 부분 사용
+            userName = userData.full_name || '익명'
+            avatarUrl = userData.profile_image || userData.avatar_url
+          }
+        }
+        
+        usersMap[userId] = {
+          id: userId,
+          full_name: userName || '익명',
+          nickname: userName || '익명',
+          profile_image: avatarUrl
+        }
+      }))
     }
 
     // 댓글 데이터 변환
     const transformedComments = comments?.map(comment => {
-      const user = usersMap[comment.user_id] || { id: comment.user_id, full_name: '알 수 없음', avatar_url: null, profile_image: null }
+      const user = usersMap[comment.user_id] || { id: comment.user_id, full_name: '익명', avatar_url: null, profile_image: null }
       return {
         id: comment.id,
         content: comment.content,
@@ -111,34 +152,20 @@ export async function POST(
     const authHeader = request.headers.get('Authorization')
     let authUser = null
 
-    if (authHeader) {
-      const token = authHeader.split(' ')[1]
-      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
-
-      if (authError || !user) {
-        console.error('[COMMENTS_POST] 인증 실패:', authError?.message)
-        return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
-      }
-      authUser = user
-    } else {
-      // 개발 환경에서는 기본 사용자로 인증 우회
-      console.log('[COMMENTS_POST] 토큰 없음 - 개발 환경 인증 우회')
-      const defaultUserId = '5f83ab21-fd61-4666-94b5-087d73477476'
-      const { data: defaultUser, error: defaultUserError } = await supabaseServer
-        .from('users')
-        .select('id, email, full_name, nickname')
-        .eq('id', defaultUserId)
-        .single()
-
-      if (defaultUserError || !defaultUser) {
-        console.error('[COMMENTS_POST] 기본 사용자 조회 실패:', defaultUserError)
-        return NextResponse.json(
-          { error: '기본 사용자 인증에 실패했습니다.' },
-          { status: 401 }
-        )
-      }
-      authUser = defaultUser
+    if (!authHeader) {
+      console.error('[COMMENTS_POST] Authorization 헤더 없음')
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
+
+    const token = authHeader.split(' ')[1]
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+    if (authError || !user) {
+      console.error('[COMMENTS_POST] 인증 실패:', authError?.message)
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+
+    authUser = user
 
     if (!authUser) {
       return NextResponse.json({ error: '인증된 사용자를 찾을 수 없습니다.' }, { status: 401 })
@@ -179,12 +206,49 @@ export async function POST(
 
     console.log('[COMMENTS_POST] 댓글 작성 성공:', newComment)
 
-    // 사용자 정보 조회
-    const { data: user } = await supabaseServer
-      .from('users')
-      .select('id, full_name, avatar_url, profile_image')
-      .eq('id', newComment.user_id)
+    // 사용자 정보 조회 (user_profiles 우선, users fallback)
+    let userName = null
+    let avatarUrl = null
+    
+    // 먼저 user_profiles 테이블에서 조회
+    const { data: profileData, error: profileError } = await supabaseServer
+      .from('user_profiles')
+      .select('display_name, avatar_url')
+      .eq('user_id', newComment.user_id)
       .single()
+    
+    // user_profiles에 데이터가 있고 display_name이 있으면 우선 사용
+    if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
+      // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
+      userName = profileData.display_name.includes('#') 
+        ? profileData.display_name.split('#')[0] 
+        : profileData.display_name
+      
+      avatarUrl = profileData.avatar_url
+      
+      // avatar_url을 공개 URL로 변환
+      if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+        const { data: { publicUrl } } = supabaseServer.storage
+          .from('profile-images')
+          .getPublicUrl(avatarUrl)
+        avatarUrl = publicUrl
+      }
+    }
+    
+    // user_profiles에 데이터가 없거나 display_name이 없으면 users 테이블 조회
+    if (!userName) {
+      const { data: userData, error: usersError } = await supabaseServer
+        .from('users')
+        .select('id, full_name, avatar_url, profile_image')
+        .eq('id', newComment.user_id)
+        .single()
+      
+      if (!usersError && userData) {
+        // full_name이 비어있으면 email의 '@' 앞 부분 사용
+        userName = userData.full_name || '익명'
+        avatarUrl = userData.profile_image || userData.avatar_url
+      }
+    }
 
     // 게시글의 댓글 수 업데이트
     const { error: updateError } = await supabaseServer.rpc('increment_comment_count', {
@@ -206,9 +270,10 @@ export async function POST(
       updated_at: newComment.updated_at,
       parent_comment_id: newComment.parent_comment_id,
       author: {
-        id: user?.id || newComment.user_id,
-        full_name: user?.full_name || '알 수 없음',
-        profile_image: user?.profile_image || user?.avatar_url || null
+        id: newComment.user_id,
+        full_name: userName || '익명',
+        nickname: userName || '익명',
+        profile_image: avatarUrl
       }
     }
 

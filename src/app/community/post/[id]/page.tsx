@@ -102,7 +102,7 @@ export default function PostDetailPage() {
         <div className="flex items-center justify-center pt-24">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
-            <p className="text-gray-600">게시글을 불러오는 중...</p>
+            <p className="text-gray-600">{t('freeboard.loadingPosts')}</p>
           </div>
         </div>
       </div>
@@ -118,11 +118,11 @@ export default function PostDetailPage() {
         <div className="flex items-center justify-center pt-24">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h1 className="text-xl font-bold text-gray-800 mb-2">게시글을 찾을 수 없습니다</h1>
+            <h1 className="text-xl font-bold text-gray-800 mb-2">{t('freeboard.postNotFound')}</h1>
             <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={handleBack} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              돌아가기
+            <Button onClick={handleBack} variant="outline" className="text-xs md:text-sm px-2 md:px-4 py-1 md:py-2">
+              <ArrowLeft className="w-3 h-3 md:w-4 md:h-4 mr-2" />
+              {t('freeboard.backToList')}
             </Button>
           </div>
         </div>
@@ -135,16 +135,16 @@ export default function PostDetailPage() {
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
       
-      <div className="max-w-4xl mx-auto px-0 pt-16 pb-20 md:px-4 md:pt-24 md:pb-6">
+      <div className="max-w-4xl mx-auto px-0 pt-20 pb-8 md:px-4 md:pt-32 md:pb-6">
         {/* 뒤로가기 버튼 */}
-        <div className="mb-6">
+        <div className="mb-2 md:mb-4 px-4 md:px-0">
           <Button
             variant="outline"
             onClick={handleBack}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"
           >
-            <ArrowLeft className="w-4 h-4" />
-            목록으로 돌아가기
+            <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" />
+            {t('freeboard.backToList')}
           </Button>
         </div>
 
@@ -157,14 +157,14 @@ export default function PostDetailPage() {
             setShowEditModal(true)
           }}
           onDelete={async () => {
-            if (confirm('정말로 이 게시물을 삭제하시겠습니까?\n삭제된 게시물은 복구할 수 없습니다.')) {
+            if (confirm(`${t('freeboard.deleteConfirm')}\n${t('freeboard.deleteConfirmDescription')}`)) {
               try {
                 console.log('게시물 삭제 시도:', post.id)
                 
                 // 토큰 가져오기
                 const token = localStorage.getItem('amiko_token')
                 if (!token) {
-                  alert('로그인이 필요합니다.')
+                  alert(t('auth.loginRequired'))
                   return
                 }
 
@@ -179,18 +179,18 @@ export default function PostDetailPage() {
 
                 if (!response.ok) {
                   const errorData = await response.json()
-                  throw new Error(errorData.error || '삭제에 실패했습니다.')
+                  throw new Error(errorData.error || t('freeboard.deleteFailed'))
                 }
 
                 const result = await response.json()
                 console.log('삭제 성공:', result)
                 
-                alert('게시물이 삭제되었습니다.')
+                alert(t('freeboard.deleteSuccess'))
                 handleBack() // 성공 시에만 뒤로가기
                 
               } catch (error) {
                 console.error('게시물 삭제 오류:', error)
-                alert(error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.')
+                alert(error instanceof Error ? error.message : t('freeboard.deleteError'))
               }
             }
           }}

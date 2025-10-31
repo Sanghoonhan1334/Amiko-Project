@@ -212,6 +212,7 @@ export async function POST(request: NextRequest) {
               phone: phone,
               phone_country: phoneCountryDigits,
               language: country === 'KR' ? 'ko' : 'es', // 한국이 아니면 스페인어로 설정
+              is_korean: isKorean || false, // 한국인 여부 추가
               email_verified: false, // 이메일 인증은 별도로 진행
               phone_verified: false, // 전화번호 인증은 별도로 진행
               created_at: new Date().toISOString()

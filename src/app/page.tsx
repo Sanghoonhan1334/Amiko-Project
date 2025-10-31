@@ -178,7 +178,7 @@ export default function HomePage() {
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       {language === 'es' ? (
                         <>
-                          Un puente que conecta <span className="text-red-500">AM</span>érica y <span className="text-blue-500">KO</span>rea a través de I
+                          Un puente(<span className="text-red-500">I</span>) que conecta <span className="text-red-500">AM</span>érica y <span className="text-blue-500">KO</span>rea
                         </>
                       ) : (
                         <>
@@ -267,7 +267,7 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
                     <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">{t('heroSlides.slide3.infoSection.contact.email')}</h3>
-                    <p className="text-blue-700 dark:text-blue-300 text-sm">support@amiko.com</p>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm">info@amiko.com</p>
                   </div>
                   <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
                     <h3 className="font-semibold text-green-800 dark:text-green-300 mb-2">{t('heroSlides.slide3.infoSection.contact.operatingHours')}</h3>

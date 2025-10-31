@@ -73,6 +73,7 @@ export default function MyTab() {
   const [dailyMissions, setDailyMissions] = useState<any>(null)
   const [dailyEarnedPoints, setDailyEarnedPoints] = useState(0)
   const [isMissionsExpanded, setIsMissionsExpanded] = useState(true)
+  const [copied, setCopied] = useState(false)
   
   // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
   const { 
@@ -152,6 +153,47 @@ export default function MyTab() {
       return () => clearTimeout(timeoutId)
     }
   }, [user, router])
+
+  // URL 해시로 레벨 또는 포인트 섹션으로 스크롤
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    const checkHashAndScroll = () => {
+      const hash = window.location.hash
+      if (hash === '#my-level' || hash === '#my-points') {
+        const targetId = hash.substring(1) // # 제거
+        
+        const scrollToTarget = () => {
+          const element = document.getElementById(targetId)
+          if (element) {
+            // 요소 위치 계산
+            const elementTop = element.offsetTop
+            const offset = 80 // 헤더 높이 고려
+            
+            // scrollIntoView와 window.scrollTo 모두 시도
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            window.scrollTo({ top: elementTop - offset, behavior: 'smooth' })
+            return true
+          }
+          return false
+        }
+        
+        // 모바일에서는 더 긴 딜레이 필요
+        const isMobile = window.innerWidth < 768
+        const delays = isMobile ? [500, 1000, 1500, 2000] : [300, 600, 1000, 1500]
+        
+        delays.forEach((delay) => {
+          setTimeout(() => {
+            scrollToTarget()
+          }, delay)
+        })
+      }
+    }
+    
+    // 초기 체크 (마운트 시에만)
+    // hashchange 이벤트는 헤더에서 직접 마이페이지 클릭 시 발생하지 않으므로 제거
+    checkHashAndScroll()
+  }, [])
 
   // 추천인 코드 조회 비활성화
 
@@ -1995,10 +2037,21 @@ export default function MyTab() {
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
 
+              {/* 자기소개 */}
+              <div className="flex items-start justify-between">
+                <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.selfIntroduction')}</span>
+                <span className="text-gray-800 text-xs sm:text-sm font-medium text-right max-w-[60%]">
+                  {profile?.introduction || t('profile.noSelfIntroduction')}
+                </span>
+          </div>
+
+              {/* 구분선 */}
+              <div className="border-t border-gray-200"></div>
+
               {/* 포인트 현황 & 오늘의 미션 */}
               <div className="space-y-4 bg-white">
                 {/* 포인트 요약 */}
-                <div className="grid grid-cols-2 gap-3">
+                <div id="my-points" className="grid grid-cols-2 gap-3 scroll-mt-20">
                   <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-3 sm:p-4 text-white shadow-sm">
                     <p className="text-xs sm:text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.monthlyPoints')}</p>
                     <p className="text-xl sm:text-2xl font-bold">{rankingData.userRank?.monthly_points || 0}</p>
@@ -2010,7 +2063,7 @@ export default function MyTab() {
                 </div>
 
                 {/* 내 등급 카드 - 총 포인트 아래 */}
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4">
+                <div id="my-level" className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4 scroll-mt-20">
                   <div className="flex items-center gap-2 mb-2 sm:mb-3">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -2306,19 +2359,8 @@ export default function MyTab() {
                   )}
                 </div>
               )}
-
-              {/* 구분선 */}
-              <div className="border-t border-gray-200"></div>
-
-              {/* 자기소개 */}
-              <div className="flex items-start justify-between">
-                <span className='text-gray-600 text-sm'>{t('profile.selfIntroduction')}</span>
-                <span className="text-gray-800 text-sm font-medium text-right max-w-[60%]">
-                  {profile?.introduction || t('profile.noSelfIntroduction')}
-                </span>
-          </div>
-        </div>
-      )}
+            </div>
+          )}
                   </div>
 
         {/* 스토리 설정 섹션 */}

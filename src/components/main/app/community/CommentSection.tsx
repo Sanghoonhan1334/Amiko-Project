@@ -8,7 +8,6 @@ import { Languages } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { TranslationService } from '@/lib/translation'
 import UserBadge from '@/components/common/UserBadge'
 
@@ -57,10 +56,47 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const [replyContent, setReplyContent] = useState('')
   const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'replies'>('latest')
   const [translatingComments, setTranslatingComments] = useState<Set<string>>(new Set())
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ name: string; avatar: string | null } | null>(null)
   
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
   const translationService = new TranslationService()
+
+  // 현재 사용자 프로필 정보 로드
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user?.id || !token) {
+        setCurrentUserProfile(null)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const profile = data.user || data.profile
+          const displayName = profile?.display_name || profile?.full_name || profile?.nickname || user.email?.split('@')[0] || 'U'
+          const avatarUrl = profile?.profile_image || profile?.avatar_url || null
+          
+          setCurrentUserProfile({
+            name: displayName,
+            avatar: avatarUrl
+          })
+        }
+      } catch (error) {
+        console.error('프로필 로드 실패:', error)
+        setCurrentUserProfile(null)
+      }
+    }
+
+    loadUserProfile()
+  }, [user, token])
 
   // 댓글 로딩
   const loadComments = async () => {
@@ -119,11 +155,6 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const handleSubmitComment = async () => {
     if (!commentContent.trim() || submitting) return
 
-    // 인증 체크 - 댓글 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '댓글 작성')) {
-      return
-    }
-
     try {
       setSubmitting(true)
       const response = await fetch(`/api/posts/${postId}/comments`, {
@@ -152,11 +183,6 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   // 답글 작성
   const handleSubmitReply = async (parentId: string) => {
     if (!replyContent.trim() || submitting) return
-
-    // 인증 체크 - 답글 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '답글 작성')) {
-      return
-    }
 
     try {
       setSubmitting(true)
@@ -367,10 +393,11 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
     const now = new Date()
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
     
-    if (diffInMinutes < 1) return '방금 전'
-    if (diffInMinutes < 60) return `${diffInMinutes}분 전`
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}시간 전`
-    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+    if (diffInMinutes < 1) return t('community.postDetail.timeAgo.now')
+    if (diffInMinutes < 60) return t('community.postDetail.timeAgo.minutes').replace('{count}', String(diffInMinutes))
+    if (diffInMinutes < 1440) return t('community.postDetail.timeAgo.hours').replace('{count}', String(Math.floor(diffInMinutes / 60)))
+    const locale = language === 'es' ? 'es-ES' : 'ko-KR'
+    return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
   }
 
   // 댓글 정렬
@@ -393,76 +420,86 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   return (
     <div className="space-y-4">
       {/* 댓글 헤더 */}
-      <div className="flex items-center justify-between px-4 pt-4">
-        <h3 className="text-lg font-semibold text-gray-800">
-          댓글 {comments.length}
-        </h3>
+      <div className="px-4 pt-3 md:pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm md:text-lg font-semibold text-gray-800">
+            {t('freeboard.commentHeader')} {comments.length}
+          </h3>
+        </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 md:space-x-2">
           <button
             onClick={() => setSortBy('latest')}
-            className={`text-sm px-2 py-1 rounded ${
+            className={`text-[10px] md:text-sm px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
               sortBy === 'latest' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'
             }`}
           >
-            최신순
+            {t('freeboard.commentSort.latest')}
           </button>
           <button
             onClick={() => setSortBy('oldest')}
-            className={`text-sm px-2 py-1 rounded ${
+            className={`text-[10px] md:text-sm px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
               sortBy === 'oldest' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'
             }`}
           >
-            등록순
+            {t('freeboard.commentSort.oldest')}
           </button>
           <button
             onClick={() => setSortBy('replies')}
-            className={`text-sm px-2 py-1 rounded ${
+            className={`text-[10px] md:text-sm px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
               sortBy === 'replies' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'
             }`}
           >
-            답글순
+            {t('freeboard.commentSort.replies')}
           </button>
         </div>
       </div>
 
       {/* 댓글 작성 폼 */}
       {user ? (
-        <div className="px-4 py-4 border-t border-gray-200">
+        <div className="px-4 py-3 md:py-4 border-t border-gray-200">
           <div className="flex space-x-3">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-              {user.user_metadata?.full_name?.charAt(0) || 'U'}
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium overflow-hidden">
+              {currentUserProfile?.avatar ? (
+                <img 
+                  src={currentUserProfile.avatar} 
+                  alt="프로필"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{(currentUserProfile?.name || user.user_metadata?.full_name || user.email?.charAt(0) || 'U').charAt(0).toUpperCase()}</span>
+              )}
             </div>
             <div className="flex-1">
               <textarea
                 ref={textareaRef}
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
-                placeholder="댓글을 입력하세요..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                placeholder={t('freeboard.commentPlaceholder')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
                 rows={3}
                 maxLength={1000}
               />
               <div className="flex justify-between items-center mt-2">
-                <span className="text-xs text-gray-500">
+                <span className="text-[10px] md:text-xs text-gray-500">
                   {commentContent.length}/1000
                 </span>
                 <Button
                   onClick={handleSubmitComment}
                   disabled={submitting || !commentContent.trim()}
                   size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 py-1.5 md:px-4 md:py-2"
                 >
-                  {submitting ? '작성 중...' : '댓글 작성'}
+                  {submitting ? t('freeboard.commentWriting') : t('freeboard.commentWrite')}
                 </Button>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="px-4 py-4 border-t border-gray-200">
-          <p className="text-center text-gray-600">
-            댓글을 작성하려면 로그인이 필요합니다.
+        <div className="px-4 py-3 md:py-4 border-t border-gray-200">
+          <p className="text-center text-xs md:text-sm text-gray-600">
+            {t('freeboard.commentLoginRequired')}
           </p>
         </div>
       )}
@@ -471,11 +508,11 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       {loading ? (
         <div className="text-center py-8 px-4">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400"></div>
-          <p className="text-gray-600 mt-2">댓글을 불러오는 중...</p>
+          <p className="text-gray-600 mt-2">{t('stories.loadingComments')}</p>
         </div>
       ) : sortedComments.length === 0 ? (
         <div className="px-4 py-8 text-center">
-          <p className="text-gray-600">아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</p>
+          <p className="text-gray-600">{t('community.postDetail.noComments')}</p>
         </div>
       ) : (
         <div>
@@ -489,28 +526,28 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="font-medium text-gray-800">
-                        {comment.author?.nickname || comment.author?.full_name || '익명'}
+                      <span className="font-medium text-xs md:text-sm text-gray-800">
+                        {comment.author?.nickname || comment.author?.full_name || t('freeboard.anonymous')}
                         <UserBadge totalPoints={comment.author?.total_points || 0} isVip={comment.author?.is_vip || false} small />
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-[10px] md:text-xs text-gray-500">
                         {formatTime(comment.created_at)}
                       </span>
                     </div>
                     
-                    <div className="mb-3">
-                      <p className="text-gray-700 whitespace-pre-wrap">
+                    <div className="mb-2 md:mb-3">
+                      <p className="text-xs md:text-sm text-gray-700 whitespace-pre-wrap">
                         {comment.translatedContent || comment.content}
                       </p>
                       {comment.translatedContent && (
-                        <span className="text-xs text-blue-500">(번역됨)</span>
+                        <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
                       )}
                     </div>
                     
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 md:space-x-4">
                       <button
                         onClick={() => handleVote(comment.id, 'like')}
-                        className={`flex items-center space-x-1 text-sm ${
+                        className={`flex items-center space-x-1 text-xs md:text-sm ${
                           comment.user_vote === 'like' 
                             ? 'text-blue-500' 
                             : 'text-gray-500 hover:text-blue-500'
@@ -522,7 +559,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                       
                       <button
                         onClick={() => handleVote(comment.id, 'dislike')}
-                        className={`flex items-center space-x-1 text-sm ${
+                        className={`flex items-center space-x-1 text-xs md:text-sm ${
                           comment.user_vote === 'dislike' 
                             ? 'text-red-500' 
                             : 'text-gray-500 hover:text-red-500'
@@ -532,22 +569,12 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                         <span>{comment.dislike_count}</span>
                       </button>
                       
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
-                        onClick={() => handleTranslateComment(comment.id, false)}
-                        disabled={translatingComments.has(comment.id)}
-                      >
-                        <Languages className="h-3 w-3" />
-                      </Button>
-                      
                       {user && (
                         <button
                           onClick={() => setReplyingTo(comment.id)}
-                          className="text-sm text-gray-500 hover:text-blue-500"
+                          className="text-xs md:text-sm text-gray-500 hover:text-blue-500"
                         >
-                          답글
+                          {t('freeboard.replyButton')}
                         </button>
                       )}
                     </div>
@@ -556,18 +583,26 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
 
                 {/* 답글 입력창 */}
                 {replyingTo === comment.id && user && (
-                  <div className="ml-11 mt-3 p-4 bg-blue-50">
+                  <div className="ml-11 mt-3 p-3 md:p-4 bg-blue-50">
                     <div className="flex space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                        {user.user_metadata?.full_name?.charAt(0) || 'U'}
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium overflow-hidden">
+                        {currentUserProfile?.avatar ? (
+                          <img 
+                            src={currentUserProfile.avatar} 
+                            alt="프로필"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{(currentUserProfile?.name || user.user_metadata?.full_name || user.email?.charAt(0) || 'U').charAt(0).toUpperCase()}</span>
+                        )}
                       </div>
                       <div className="flex-1">
                         <textarea
                           ref={replyTextareaRef}
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
-                          placeholder={`${comment.author?.full_name || '사용자'}님에게 답글...`}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          placeholder={t('freeboard.replyPlaceholder').replace('{name}', comment.author?.full_name || t('freeboard.anonymous'))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
                           rows={2}
                           maxLength={1000}
                         />
@@ -576,16 +611,17 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                             onClick={() => setReplyingTo(null)}
                             variant="outline"
                             size="sm"
+                            className="text-xs md:text-sm px-2 py-1 md:px-4 md:py-2"
                           >
-                            취소
+                            {t('freeboard.replyCancel')}
                           </Button>
                           <Button
                             onClick={() => handleSubmitReply(comment.id)}
                             disabled={submitting || !replyContent.trim()}
                             size="sm"
-                            className="bg-blue-500 hover:bg-blue-600"
+                            className="bg-blue-500 hover:bg-blue-600 text-xs md:text-sm px-2 py-1 md:px-4 md:py-2"
                           >
-                            {submitting ? '작성 중...' : '답글 작성'}
+                            {submitting ? t('freeboard.replyWriting') : t('freeboard.replyWrite')}
                           </Button>
                         </div>
                       </div>
@@ -597,28 +633,28 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                 {comment.replies && comment.replies.length > 0 && (
                   <div className="ml-11 mt-3 space-y-3">
                     {comment.replies.map((reply) => (
-                      <div key={reply.id} className="p-4 bg-gray-50">
+                      <div key={reply.id} className="p-3 md:p-4 bg-gray-50">
                         <div className="flex space-x-3">
                           <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-medium">
                             {(reply.author?.nickname || reply.author?.full_name)?.charAt(0) || 'U'}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
-                              <span className="font-medium text-gray-800">
-                                {reply.author?.nickname || reply.author?.full_name || '익명'}
+                              <span className="font-medium text-xs md:text-sm text-gray-800">
+                                {reply.author?.nickname || reply.author?.full_name || t('freeboard.anonymous')}
                                 <UserBadge totalPoints={reply.author?.total_points || 0} isVip={reply.author?.is_vip || false} small />
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-[10px] md:text-xs text-gray-500">
                                 {formatTime(reply.created_at)}
                               </span>
                             </div>
                             
-                            <div className="mb-3">
-                              <p className="text-gray-700 whitespace-pre-wrap">
+                            <div className="mb-2 md:mb-3">
+                              <p className="text-xs md:text-sm text-gray-700 whitespace-pre-wrap">
                                 {reply.translatedContent || reply.content}
                               </p>
                               {reply.translatedContent && (
-                                <span className="text-xs text-blue-500">(번역됨)</span>
+                                <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
                               )}
                             </div>
                             
@@ -647,15 +683,6 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                                 <span>{reply.dislike_count}</span>
                               </button>
                               
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
-                                onClick={() => handleTranslateComment(reply.id, true)}
-                                disabled={translatingComments.has(reply.id)}
-                              >
-                                <Languages className="h-3 w-3" />
-                              </Button>
                             </div>
                           </div>
                         </div>

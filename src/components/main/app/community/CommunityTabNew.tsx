@@ -847,7 +847,7 @@ export default function CommunityTabNew() {
               {isLoadingComments ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-                  <span className="ml-2 text-gray-500">댓글을 불러오는 중...</span>
+                  <span className="ml-2 text-gray-500">{t('stories.loadingComments')}</span>
                 </div>
               ) : storyComments[selectedStoryForComment.id]?.length > 0 ? (
                 storyComments[selectedStoryForComment.id].map((comment) => (

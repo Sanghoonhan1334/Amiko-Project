@@ -1008,7 +1008,7 @@ function StoriesPageContent() {
                     <div className="flex flex-col items-center gap-2">
                       <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
                       <span className="text-sm text-gray-600">
-                        {imagePreview ? '다른 사진 선택' : '📱 갤러리에서 선택'}
+                        {imagePreview ? t('stories.selectOtherPhoto') : t('stories.selectFromGallery')}
                       </span>
                     </div>
                   </label>
@@ -1033,7 +1033,7 @@ function StoriesPageContent() {
                     <div className="flex flex-col items-center gap-2">
                       <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
                       <span className="text-sm text-gray-600">
-                        📷 카메라로 촬영
+                        {t('stories.takeWithCamera')}
                       </span>
                     </div>
                   </label>
@@ -1554,7 +1554,7 @@ function StoriesPageContent() {
               >
                 <X className="w-6 h-6" />
               </button>
-              <h3 className="text-lg font-semibold">댓글</h3>
+              <h3 className="text-lg font-semibold">{t('communityTab.comment')}</h3>
               <div className="w-6 h-6"></div> {/* 공간 맞추기 */}
             </div>
 
@@ -1563,7 +1563,7 @@ function StoriesPageContent() {
               {isLoadingComments ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-                  <span className="ml-2 text-gray-500">댓글을 불러오는 중...</span>
+                  <span className="ml-2 text-gray-500">{t('stories.loadingComments')}</span>
                 </div>
               ) : storyComments[selectedStory.id]?.length > 0 ? (
                 storyComments[selectedStory.id].map((comment) => (
@@ -1585,7 +1585,7 @@ function StoriesPageContent() {
                       <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold text-sm">
-                            {comment.author?.full_name || '익명'}
+                            {comment.author?.full_name || t('freeboard.anonymous')}
                           </span>
                         </div>
                         <p className="text-sm text-gray-800 leading-relaxed break-words">
@@ -1594,7 +1594,7 @@ function StoriesPageContent() {
                       </div>
                       <div className="flex items-center gap-3 mt-1 ml-3">
                         <span className="text-xs text-gray-500">
-                          {new Date(comment.created_at).toLocaleDateString('ko-KR')}
+                          {new Date(comment.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'ko-KR')}
                         </span>
                         <button 
                           onClick={() => toggleCommentLike(comment.id)}
@@ -1609,7 +1609,7 @@ function StoriesPageContent() {
                           onClick={() => startReply(comment.id, comment.author.full_name)}
                           className="text-xs text-gray-500 hover:text-gray-700"
                         >
-                          답글
+                          {t('communityTab.reply')}
                         </button>
                       </div>
                     </div>
@@ -1620,8 +1620,8 @@ function StoriesPageContent() {
                   <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                     <MessageSquare className="w-8 h-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-500 font-medium">아직 댓글이 없습니다</p>
-                  <p className="text-gray-400 text-sm mt-1">첫 댓글을 작성해보세요!</p>
+                  <p className="text-gray-500 font-medium">{t('communityTab.noComments')}</p>
+                  <p className="text-gray-400 text-sm mt-1">{t('communityTab.firstComment')}</p>
                 </div>
               )}
             </div>
@@ -1630,12 +1630,12 @@ function StoriesPageContent() {
             {replyToComment && (
               <div className="p-4 border-t bg-blue-50">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-blue-600 font-medium">답글 작성 중</span>
+                  <span className="text-sm text-blue-600 font-medium">{t('communityTab.replyWriting')}</span>
                   <button
                     onClick={cancelReply}
                     className="text-blue-500 hover:text-blue-700 text-sm"
                   >
-                    취소
+                    {t('buttons.cancel')}
                   </button>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1657,7 +1657,7 @@ function StoriesPageContent() {
                       type="text"
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="답글 달기..."
+                      placeholder={t('communityTab.writeComment')}
                       className="w-full px-3 py-2 border border-gray-600 dark:border-gray-400 rounded-full focus:outline-none focus:border-gray-600 dark:border-gray-400 text-sm bg-white"
                       maxLength={500}
                       onKeyPress={(e) => {
@@ -1674,7 +1674,7 @@ function StoriesPageContent() {
                           disabled={!replyText.trim() || isCommenting}
                           className="text-blue-500 font-semibold text-sm hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isCommenting ? '게시 중...' : '게시'}
+                          {isCommenting ? t('communityTab.posting') : t('communityTab.post')}
                         </button>
                       </div>
                     )}
@@ -1704,7 +1704,7 @@ function StoriesPageContent() {
                     type="text"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    placeholder={replyToComment ? "답글을 취소하려면 '취소' 버튼을 누르세요" : "댓글 달기..."}
+                    placeholder={replyToComment ? t('communityTab.cancelReply') : t('communityTab.writeComment')}
                     disabled={!!replyToComment}
                     className="w-full px-3 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-gray-400 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                     maxLength={500}
@@ -1722,7 +1722,7 @@ function StoriesPageContent() {
                         disabled={!commentText.trim() || isCommenting}
                         className="text-blue-500 font-semibold text-sm hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isCommenting ? '게시 중...' : '게시'}
+                        {isCommenting ? t('communityTab.posting') : t('communityTab.post')}
                       </button>
                     </div>
                   )}

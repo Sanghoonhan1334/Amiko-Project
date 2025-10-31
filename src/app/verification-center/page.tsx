@@ -23,7 +23,7 @@ export default function VerificationCenterPage() {
   const [step, setStep] = useState(1)
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminCheckComplete, setAdminCheckComplete] = useState(false)
-  const [isKorean, setIsKorean] = useState(true) // 기본값: 한국인
+  const [isKorean, setIsKorean] = useState<boolean | null>(null) // 기본값: null (미검증)
   const [isKoreanDetermined, setIsKoreanDetermined] = useState(false) // 한국인 여부가 결정되었는지
   const [previousPage, setPreviousPage] = useState<string | null>(null)
   
@@ -38,7 +38,7 @@ export default function VerificationCenterPage() {
     
     // 사용자 유형
     user_type: 'student', // 'student' | 'general'
-    is_korean: true,
+    is_korean: undefined as boolean | undefined,
     
     // 대학생 정보 (student일 때만)
     university: '',
@@ -54,12 +54,12 @@ export default function VerificationCenterPage() {
     interests: [] as string[],
     custom_interests: '',
     matching_preferences: [] as string[], // 'instant' | 'selective'
-    language: 'ko',
+    language: undefined as string | undefined,
     
     // 언어 수준 (사용자 타입에 따라 동적으로 설정됨)
-    korean_level: 'native', // 한국인은 기본적으로 모국어
+    korean_level: undefined as string | undefined,
     english_level: 'none',
-    spanish_level: 'beginner' // 기본값, 사용자 타입에 따라 변경됨
+    spanish_level: undefined as string | undefined
   })
 
   // 이전 페이지 저장
@@ -162,39 +162,16 @@ export default function VerificationCenterPage() {
                 return
               }
               
-              // 한국인 여부 확인 (국적이 'KR'이거나 언어가 'ko'이거나 is_korean이 true인 경우)
-              const isKoreanUser = userProfile?.nationality === 'KR' ||
-                                  userProfile?.country === 'KR' ||
-                                  userProfile?.language === 'ko' || 
-                                  userProfile?.is_korean === true
-              
-              // 페루, 멕시코 등 스페인어권 국가는 현지인으로 처리
-              const isLocalUser = userProfile?.nationality === 'PE' || // 페루
-                                 userProfile?.nationality === 'MX' || // 멕시코
-                                 userProfile?.nationality === 'CO' || // 콜롬비아
-                                 userProfile?.nationality === 'AR' || // 아르헨티나
-                                 userProfile?.nationality === 'CL' || // 칠레
-                                 userProfile?.nationality === 'ES' || // 스페인
-                                 userProfile?.country === 'PE' || // 페루
-                                 userProfile?.country === 'MX' || // 멕시코
-                                 userProfile?.country === 'CO' || // 콜롬비아
-                                 userProfile?.country === 'AR' || // 아르헨티나
-                                 userProfile?.country === 'CL' || // 칠레
-                                 userProfile?.country === 'ES'    // 스페인
-              
-              // 최종 판단: 한국인 사용자는 항상 한국인으로 처리 (국가와 관계없이)
-              const finalIsKorean = isKoreanUser
+              // 한국인 여부 확인 - 전화번호 국가 코드로 판별 (+82만 한국인으로 인정)
+              const userPhone = userProfile?.phone || ''
+              const phoneCountryDigits = userPhone.replace(/\D/g, '')
+              const finalIsKorean = phoneCountryDigits.startsWith('82')
               
               console.log('[VERIFICATION] 사용자 타입 확인:', { 
-                isKorean: finalIsKorean, 
-                isKoreanUser,
-                isLocalUser,
-                nationality: userProfile?.nationality,
-                country: userProfile?.country,
-                language: userProfile?.language,
-                is_korean: userProfile?.is_korean,
-                email: user?.email,
-                profileData: userProfile
+                isKorean: finalIsKorean,
+                phone: userProfile?.phone,
+                phoneCountryDigits: phoneCountryDigits,
+                email: user?.email
               })
               
               // 디버깅: isKorean 상태 변경 추적
@@ -211,46 +188,30 @@ export default function VerificationCenterPage() {
                 setIsKoreanDetermined(true)
               }
             } else if (profileResponse.status === 404) {
-              // 프로필이 설정되지 않은 경우 - 기본값(한국인) 사용
+              // 프로필이 설정되지 않은 경우 - 기본값(NULL, 미검증)으로 설정 안함
               const errorData = await profileResponse.json()
               if (errorData.needsVerification) {
-                console.log('[VERIFICATION] 프로필 미설정, 기본값(한국인) 사용:', { 
+                console.log('[VERIFICATION] 프로필 미설정, 기본값 설정 안함:', { 
                   email: user?.email,
-                  reason: '프로필 미설정 - 기본값 사용'
+                  reason: '프로필 미설정 - 사용자가 직접 선택해야 함'
                 })
                 
-                // 디버깅: isKorean 상태 변경 추적
-                console.log('[VERIFICATION] isKorean 상태 변경:', {
-                  from: '기존값',
-                  to: true,
-                  reason: '프로필 미설정 - 기본값 사용',
-                  alreadyDetermined: isKoreanDetermined
-                })
-                
-                // 이미 결정되지 않은 경우에만 설정
+                // 이미 결정되지 않은 경우에만 설정 안함 (기본값 유지)
                 if (!isKoreanDetermined) {
-                  setIsKorean(true) // 기본값: 한국인
-                  setIsKoreanDetermined(true)
+                  // 아무것도 설정하지 않음 - formData의 기본값 유지
+                  setIsKoreanDetermined(false)
                 }
               }
             }
           }
         } catch (profileError) {
-          console.log('[VERIFICATION] 프로필 확인 실패, 기본값 사용:', profileError)
-          // 프로필 확인 실패 시 기본값 사용 (한국인으로 가정)
+          console.log('[VERIFICATION] 프로필 확인 실패, 기본값 설정 안함:', profileError)
+          // 프로필 확인 실패 시 기본값 설정 안함 (사용자가 직접 선택해야 함)
           
-          // 디버깅: isKorean 상태 변경 추적
-          console.log('[VERIFICATION] isKorean 상태 변경:', {
-            from: '기존값',
-            to: true,
-            reason: '프로필 확인 실패 - 기본값 사용',
-            alreadyDetermined: isKoreanDetermined
-          })
-          
-          // 이미 결정되지 않은 경우에만 설정
+          // 이미 결정되지 않은 경우에만 설정 안함 (기본값 유지)
           if (!isKoreanDetermined) {
-            setIsKorean(true)
-            setIsKoreanDetermined(true)
+            // 아무것도 설정하지 않음 - formData의 기본값 유지
+            setIsKoreanDetermined(false)
           }
         }
       } catch (error) {
@@ -368,8 +329,8 @@ export default function VerificationCenterPage() {
     try {
       const dataToSubmit = {
         ...formData,
-        is_korean: isKorean, // 실제 한국인 여부 사용
-        language: isKorean ? 'ko' : 'es', // 한국인이면 한국어, 아니면 스페인어
+        is_korean: isKorean, // 실제 한국인 여부 사용 (null일 수 있음)
+        language: isKorean === true ? 'ko' : isKorean === false ? 'es' : undefined, // null이면 undefined
         is_verified: true, // 인증 완료 상태
         verification_completed: true // 인증 완료 플래그
       }
@@ -529,6 +490,61 @@ export default function VerificationCenterPage() {
             {step === 1 ? (
               // 1단계: 기본 정보
               <div className="space-y-4">
+                {/* 사용자 타입 선택 */}
+                {isKorean === null && !isKoreanDetermined && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 space-y-4">
+                    <div className="flex items-center gap-2 text-yellow-800">
+                      <AlertCircle className="w-5 h-5" />
+                      <h3 className="font-semibold">사용자 타입 선택</h3>
+                    </div>
+                    <p className="text-sm text-yellow-700">
+                      해당하는 사용자 타입을 선택해주세요.
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => {
+                          setIsKorean(true)
+                          setIsKoreanDetermined(true)
+                          setFormData(prev => ({
+                            ...prev,
+                            korean_level: 'native',
+                            spanish_level: 'beginner'
+                          }))
+                        }}
+                        className="p-4 border-2 border-yellow-300 hover:border-blue-500 rounded-lg bg-white text-left transition-all"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-2xl">🇰🇷</span>
+                          <span className="font-semibold">한국인</span>
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          한국어가 모국어인 사용자
+                        </p>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsKorean(false)
+                          setIsKoreanDetermined(true)
+                          setFormData(prev => ({
+                            ...prev,
+                            korean_level: 'beginner',
+                            spanish_level: 'native'
+                          }))
+                        }}
+                        className="p-4 border-2 border-yellow-300 hover:border-blue-500 rounded-lg bg-white text-left transition-all"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-2xl">🌎</span>
+                          <span className="font-semibold">현지인</span>
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          스페인어권 국가 사용자
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* 한국인인 경우에만 한국이름 필드 표시 */}
                 {isKorean && (
                   <div>
@@ -912,13 +928,14 @@ export default function VerificationCenterPage() {
             <Button 
               onClick={nextStep}
               disabled={
+                isKorean === null ||
                 !formData.nickname || 
                 (isKorean && !formData.korean_name) ||
                 (!isKorean && !formData.spanish_name)
               }
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isKorean ? '다음 →' : 'Siguiente →'}
+              {isKorean === null ? '사용자 타입 선택 필요' : (isKorean ? '다음 →' : 'Siguiente →')}
             </Button>
           )}
         </div>

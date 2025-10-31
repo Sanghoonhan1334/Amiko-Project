@@ -859,11 +859,22 @@ export default function Header() {
                         handleMainNavClick('me')
                       }}
                       className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 cursor-pointer ${
-                        activeMainTab === 'me' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''
+                        activeMainTab === 'me' ? 'dark:bg-purple-900/30' : ''
                       }`}
-                      style={{ pointerEvents: 'auto' }}
+                      style={{ 
+                        pointerEvents: 'auto',
+                        ...(activeMainTab === 'me' ? { 
+                          backgroundColor: '#f5f0ff' 
+                        } : {})
+                      }}
                     >
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-300 flex-shrink-0" />
+                      <Users className={`flex-shrink-0 transition-all duration-300 ${
+                        activeMainTab === 'me' 
+                          ? 'text-purple-700 dark:text-purple-400 w-5 h-5 sm:w-6 sm:h-6' 
+                          : 'text-gray-600 dark:text-gray-300 w-4 h-4 sm:w-5 sm:h-5'
+                      }`} style={{
+                        ...(activeMainTab === 'me' ? { strokeWidth: 2.5 } : { strokeWidth: 2 })
+                      }} />
                     </Button>
                   </div>
                   

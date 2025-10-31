@@ -156,24 +156,53 @@ export async function GET(request: NextRequest) {
       created_at: p.created_at
     })))
 
-    // 사용자 정보 조회
-    let userMap = new Map()
-    if (posts && posts.length > 0) {
-      const userIds = [...new Set(posts.map(p => p.user_id).filter(Boolean))]
+    // 사용자 정보 조회 (user_profiles 우선, users fallback)
+    const transformedPosts = posts ? await Promise.all(posts.map(async (post) => {
+      let userName = null
+      let avatarUrl = null
       
-      if (userIds.length > 0) {
-        const { data: users } = await supabaseServer
-          .from('users')
-          .select('id, full_name, nickname, avatar_url')
-          .in('id', userIds)
+      if (post.user_id) {
+        // 먼저 user_profiles 테이블에서 조회
+        const { data: profileData, error: profileError } = await supabaseServer
+          .from('user_profiles')
+          .select('display_name, avatar_url')
+          .eq('user_id', post.user_id)
+          .single()
         
-        userMap = new Map(users?.map(u => [u.id, u]) || [])
+        // user_profiles에 데이터가 있고 display_name이 있으면 우선 사용
+        if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
+          // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
+          userName = profileData.display_name.includes('#') 
+            ? profileData.display_name.split('#')[0] 
+            : profileData.display_name
+          
+          avatarUrl = profileData.avatar_url
+          
+          // avatar_url을 공개 URL로 변환
+          if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+            const { data: { publicUrl } } = supabaseServer.storage
+              .from('profile-images')
+              .getPublicUrl(avatarUrl)
+            avatarUrl = publicUrl
+          }
+        }
+        
+        // user_profiles에 데이터가 없거나 display_name이 없으면 users 테이블 조회
+        if (!userName) {
+          const { data: userData } = await supabaseServer
+            .from('users')
+            .select('id, full_name, nickname, profile_image, avatar_url')
+            .eq('id', post.user_id)
+            .single()
+          
+          if (userData) {
+            // full_name이 비어있으면 email의 '@' 앞 부분 사용
+            userName = userData.full_name || (userData.email ? userData.email.split('@')[0] : '익명')
+            avatarUrl = userData.profile_image || userData.avatar_url
+          }
+        }
       }
-    }
-
-    // FreeBoard 형식으로 변환
-    const transformedPosts = posts?.map(post => {
-      const user = userMap.get(post.user_id)
+      
       return {
         id: post.id,
         title: post.title,
@@ -189,14 +218,14 @@ export async function GET(request: NextRequest) {
         comment_count: post.comment_count,
         created_at: post.created_at,
         updated_at: post.updated_at,
-        user: {
+        author: {
           id: post.user_id,
-          full_name: user?.full_name || '익명',
-          nickname: user?.nickname,
-          avatar_url: user?.avatar_url
+          full_name: userName || '익명',
+          nickname: userName || '익명',
+          avatar_url: avatarUrl
         }
       }
-    }) || []
+    })) : []
 
     console.log(`[POSTS_GET] 조회 완료: ${transformedPosts.length}개 게시물`)
 

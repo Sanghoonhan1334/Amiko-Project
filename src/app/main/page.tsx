@@ -183,6 +183,51 @@ function AppPageContent() {
       setCommunityView('home')
     }
   }, [activeTab])
+
+  // 레벨 또는 포인트 섹션으로 스크롤 처리
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (activeTab !== 'me') return
+
+    const hash = window.location.hash
+    
+    if (hash === '#my-level' || hash === '#my-points') {
+      const targetId = hash.substring(1) // # 제거
+      
+      // 탭이 변경되고 컴포넌트가 렌더링된 후 스크롤
+      const scrollToTarget = () => {
+        const element = document.getElementById(targetId)
+        if (element) {
+          // 요소 위치 계산
+          const elementTop = element.offsetTop
+          const offset = 80 // 헤더 높이 고려
+          
+          // scrollIntoView와 window.scrollTo 모두 시도
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          // iOS Safari를 위한 추가 스크롤 시도
+          if (window.innerWidth < 768) {
+            setTimeout(() => {
+              window.scrollTo({ top: elementTop - offset, behavior: 'smooth' })
+            }, 100)
+          } else {
+            window.scrollTo({ top: elementTop - offset, behavior: 'smooth' })
+          }
+          return true
+        }
+        return false
+      }
+
+      // 모바일에서는 더 긴 딜레이와 더 많은 시도
+      const isMobile = window.innerWidth < 768
+      const delays = isMobile ? [1200, 1800, 2500, 3000, 3500] : [800, 1200, 1600, 2000]
+      
+      delays.forEach((delay) => {
+        setTimeout(() => {
+          scrollToTarget()
+        }, delay)
+      })
+    }
+  }, [activeTab])
   
   return (
     <div className="min-h-screen body-gradient dark:bg-gray-900 pb-20 md:pb-0">

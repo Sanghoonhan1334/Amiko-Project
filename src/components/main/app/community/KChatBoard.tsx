@@ -219,16 +219,16 @@ export default function KChatBoard() {
                 <span className="hidden sm:inline">Comunidad</span>
               </button>
               <div>
-                <h1 className="text-2xl font-bold">K-Chat Zone</h1>
-                <p className="text-sm mt-1 text-gray-600">
+                <h1 className="text-xl sm:text-2xl font-bold">K-Chat Zone</h1>
+                <p className="text-xs sm:text-sm mt-1 text-gray-600">
                   Únete a chats por país o fanclub para discutir K-cultura
                 </p>
               </div>
             </div>
-            {user && (
+            {user && activeTab === 'fanclub' && (
               <Button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2"
+                className="hidden sm:flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Crear Sala
@@ -262,8 +262,16 @@ export default function KChatBoard() {
               }`}
             >
               <Heart className="w-4 h-4" />
-              Chat de Fanclub
+              FanChat · Libre
             </Button>
+          </div>
+          {/* Tab helper description */}
+          <div className="mt-2 text-xs sm:text-sm text-gray-600">
+            {activeTab === 'country' ? (
+              <span>Salas oficiales por país. Solo administradores crean las salas.</span>
+            ) : (
+              <span>Crea o únete a chats libres con quien quieras. Es un espacio abierto para conversar.</span>
+            )}
           </div>
         </div>
       </div>
@@ -271,13 +279,13 @@ export default function KChatBoard() {
       {/* Search Bar */}
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <Input
             type="text"
             placeholder="Buscar salas de chat..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="pl-14 pr-4 py-2 w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           {searchQuery && (
             <button
@@ -305,7 +313,7 @@ export default function KChatBoard() {
           <div className="text-center py-12">
             <MessageSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-600 mb-4">Aún no hay salas de chat</p>
-            {user && (
+            {user && activeTab === 'fanclub' && (
               <Button onClick={() => setShowCreateModal(true)}>
                 Crear la primera sala
               </Button>
@@ -355,14 +363,14 @@ export default function KChatBoard() {
                     {/* Content */}
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-lg">{room.name}</h3>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <h3 className="font-semibold text-base sm:text-lg">{room.name}</h3>
+                        <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
                           <Users className="w-4 h-4" />
                           <span>{room.participant_count}/{room.max_participants}</span>
                         </div>
                       </div>
                       {room.description && (
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">
                           {room.description}
                         </p>
                       )}
@@ -382,15 +390,15 @@ export default function KChatBoard() {
       {/* Create Room Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-bold mb-4">Crear Sala de Chat</h2>
+          <div className="bg-white rounded-lg max-w-md w-full p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Crear Sala de Chat</h2>
             <form action={handleCreateRoom}>
               <div className="space-y-4">
                 {/* Thumbnail Upload */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Miniatura de la Sala</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-2">Miniatura de la Sala</label>
                   {thumbnailPreview ? (
-                    <div className="relative w-full h-48 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+                    <div className="relative w-full h-40 sm:h-48 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
                       <Image
                         src={thumbnailPreview}
                         alt="Thumbnail preview"
@@ -409,9 +417,9 @@ export default function KChatBoard() {
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
-                      <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-600">Haz clic o arrastra para subir</p>
+                    <label className="flex flex-col items-center justify-center w-full h-40 sm:h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                      <ImageIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mb-2" />
+                      <p className="text-xs sm:text-sm text-gray-600">Haz clic o arrastra para subir</p>
                       <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 5MB</p>
                       <input
                         type="file"
@@ -424,38 +432,38 @@ export default function KChatBoard() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Nombre de la Sala</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-1">Nombre de la Sala</label>
                   <input
                     name="name"
                     type="text"
                     required
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border rounded-lg px-3 py-2 text-sm"
                     placeholder={activeTab === 'country' ? 'Ingresa el nombre de la sala' : 'Ej: Sala para Mark ~'}
                   />
                 </div>
                 {activeTab === 'country' && (
                   <div>
-                    <label className="block text-sm font-medium mb-1">País</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1">País</label>
                     <input
                       name="country"
                       type="text"
                       required
-                      className="w-full border rounded-lg px-3 py-2"
+                      className="w-full border rounded-lg px-3 py-2 text-sm"
                       placeholder="Ingresa el país"
                     />
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium mb-1">Descripción</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-1">Descripción</label>
                   <textarea
                     name="description"
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border rounded-lg px-3 py-2 text-sm"
                     rows={3}
                     placeholder="Describe tu sala de chat"
                   />
                 </div>
               </div>
-              <div className="flex gap-2 mt-6">
+              <div className="flex gap-2 mt-4 sm:mt-6">
                 <Button
                   type="button"
                   variant="outline"
@@ -464,17 +472,28 @@ export default function KChatBoard() {
                     setThumbnailFile(null)
                     setThumbnailPreview(null)
                   }}
-                  className="flex-1"
+                  className="flex-1 text-sm"
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="flex-1 bg-purple-500 text-white hover:bg-purple-600 border border-purple-500">
+                <Button type="submit" className="flex-1 text-sm bg-purple-500 text-white hover:bg-purple-600 border border-purple-500">
                   Crear
                 </Button>
               </div>
             </form>
           </div>
         </div>
+      )}
+
+      {/* Floating Action Button (mobile only) */}
+      {user && activeTab === 'fanclub' && (
+        <button
+          aria-label="Crear Sala"
+          onClick={() => setShowCreateModal(true)}
+          className="sm:hidden fixed bottom-6 right-4 z-50 rounded-full bg-blue-600 text-white shadow-lg w-12 h-12 flex items-center justify-center active:scale-95"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
       )}
     </div>
   )

@@ -51,7 +51,7 @@ export default function CommunityCard({
         md:border-0
         md:rounded-2xl
         p-3 md:p-6
-        h-36 md:h-44
+        h-32 md:h-40
         w-full
         transition-all duration-200 ease-out
         md:hover:scale-[1.03] md:hover:shadow-[0_8px_24px_rgba(139,92,246,0.16)]
@@ -78,12 +78,12 @@ export default function CommunityCard({
       )}
 
       {/* Icono with background container - Fixed height for alignment */}
-      <div className="mb-3 md:mb-4 flex items-center justify-center h-18 md:h-22">
+      <div className="mb-2 md:mb-3 flex items-center justify-center h-16 md:h-20">
         <div className="relative">
           {/* Background container - only on mobile */}
           <div className="md:hidden">
             <div 
-              className={`w-16 h-16 rounded-xl flex items-center justify-center border-2 transition-all duration-200 group-hover:shadow-md ${
+              className={`w-14 h-14 rounded-xl flex items-center justify-center border-2 transition-all duration-200 group-hover:shadow-md ${
                 showSubmenu 
                   ? 'border-purple-500 dark:border-purple-500 scale-110' 
                   : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400 group-hover:scale-110'
@@ -93,12 +93,12 @@ export default function CommunityCard({
                 <img
                   src={item.icon}
                   alt={item.title}
-                  className="w-12 h-12 object-contain"
+                  className="w-10 h-10 object-contain"
                   loading="eager"
                   decoding="async"
                 />
               ) : (
-                <div className="text-4xl">{item.icon}</div>
+                <div className="text-3xl">{item.icon}</div>
               )}
             {/* 서브메뉴 화살표 */}
             {hasSubItems && (
@@ -117,12 +117,12 @@ export default function CommunityCard({
               <img
                 src={item.icon}
                 alt={item.title}
-                className="w-14 h-14 object-contain"
+                className="w-12 h-12 object-contain"
                 loading="eager"
                 decoding="async"
               />
             ) : (
-              <div className="text-5xl">{item.icon}</div>
+              <div className="text-4xl">{item.icon}</div>
             )}
             {/* 서브메뉴 화살표 - Desktop */}
             {hasSubItems && (
@@ -137,7 +137,7 @@ export default function CommunityCard({
       </div>
 
       {/* Título - Fixed height for alignment */}
-      <div className="h-12 md:h-14 flex items-center justify-center mb-0 md:mb-1">
+      <div className="h-10 md:h-12 flex items-center justify-center mb-0 md:mb-1">
         <h3 className="text-xs md:text-base font-semibold text-[#111827] dark:text-gray-100 text-center leading-tight">
           {item.id === 'story-boards' ? (
             <>

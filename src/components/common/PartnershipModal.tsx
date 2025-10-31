@@ -35,44 +35,29 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  const businessFields = [
-    { value: 'tech', label: '기술/IT', description: '소프트웨어, 하드웨어, AI 등' },
-    { value: 'finance', label: '금융/핀테크', description: '은행, 보험, 투자 등' },
-    { value: 'ecommerce', label: '이커머스/소매', description: '온라인 쇼핑몰, 오프라인 매장' },
-    { value: 'education', label: '교육/에듀테크', description: '온라인 교육, 학습 플랫폼' },
-    { value: 'healthcare', label: '헬스케어/바이오', description: '의료, 제약, 건강 관리' },
-    { value: 'media', label: '미디어/엔터테인먼트', description: '콘텐츠 제작, 스트리밍' },
-    { value: 'travel', label: '여행/관광', description: '항공, 호텔, 여행 서비스' },
-    { value: 'food', label: '푸드/배달', description: '음식점, 배달 서비스' },
-    { value: 'other', label: '기타', description: '위 카테고리에 해당하지 않는 분야' }
-  ]
+  const businessFields = Object.entries(t('partnership.businessFields')).map(([value, data]) => ({
+    value,
+    label: data.label,
+    description: data.description
+  }))
 
-  const companySizes = [
-    { value: 'startup', label: '스타트업 (1-10명)', description: '초기 단계 스타트업' },
-    { value: 'small', label: '소규모 (11-50명)', description: '소규모 기업' },
-    { value: 'medium', label: '중규모 (51-200명)', description: '중규모 기업' },
-    { value: 'large', label: '대규모 (200명 이상)', description: '대기업' },
-    { value: 'enterprise', label: '대기업 (1000명 이상)', description: '대기업' }
-  ]
+  const companySizes = Object.entries(t('partnership.companySizes')).map(([value, data]) => ({
+    value,
+    label: data.label,
+    description: data.description
+  }))
 
-  const partnershipTypes = [
-    { value: 'advertising', label: '광고 협업', description: '상호 광고, 마케팅 협업' },
-    { value: 'investment', label: '투자/펀딩', description: '투자 유치, 펀딩 제안' },
-    { value: 'technology', label: '기술 협업', description: '기술 파트너십, API 연동' },
-    { value: 'distribution', label: '유통/판매', description: '제품 유통, 판매 협업' },
-    { value: 'content', label: '콘텐츠 협업', description: '콘텐츠 제작, 공동 마케팅' },
-    { value: 'event', label: '이벤트 협업', description: '공동 이벤트, 세미나' },
-    { value: 'other', label: '기타', description: '위 카테고리에 해당하지 않는 협업' }
-  ]
+  const partnershipTypes = Object.entries(t('partnership.partnershipTypes')).map(([value, data]) => ({
+    value,
+    label: data.label,
+    description: data.description
+  }))
 
-  const budgetRanges = [
-    { value: 'under-1m', label: '100만원 미만', description: '소규모 협업' },
-    { value: '1m-5m', label: '100만원 - 500만원', description: '중소규모 협업' },
-    { value: '5m-10m', label: '500만원 - 1,000만원', description: '중규모 협업' },
-    { value: '10m-50m', label: '1,000만원 - 5,000만원', description: '대규모 협업' },
-    { value: 'over-50m', label: '5,000만원 이상', description: '대형 협업' },
-    { value: 'discuss', label: '협의 후 결정', description: '예산 협의 필요' }
-  ]
+  const budgetRanges = Object.entries(t('partnership.budgetRanges')).map(([value, data]) => ({
+    value,
+    label: data.label,
+    description: data.description
+  }))
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({

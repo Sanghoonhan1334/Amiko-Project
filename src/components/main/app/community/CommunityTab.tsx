@@ -43,7 +43,6 @@ import CommunityCard from './CommunityCard'
 import { communityItems } from './communityItems'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
@@ -141,11 +140,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const [showOverlay, setShowOverlay] = useState(false)
   const submenuRef = useRef<HTMLDivElement>(null)
   
-  // 드래그 앤 드롭 관련 state
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [isDraggingMode, setIsDraggingMode] = useState(false)
-  
   // 서브아이템 순서 저장 state
   const [subItemOrders, setSubItemOrders] = useState<Record<string, number[]>>(() => {
     if (typeof window !== 'undefined') {
@@ -159,11 +153,13 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     return {}
   })
   
-  // 서브메뉴 위치 조정 state (각 메뉴별로 독립적으로 관리)
+  // 서브메뉴 위치 조정 state (모바일/데스크톱 별도 관리)
   const [submenuPositions, setSubmenuPositions] = useState<Record<string, { x: number; y: number }>>(() => {
     // localStorage에서 복원
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('submenu-positions')
+      const isMobileDevice = window.innerWidth < 768
+      const storageKey = isMobileDevice ? 'submenu-positions-mobile' : 'submenu-positions-desktop'
+      const saved = localStorage.getItem(storageKey)
       if (saved) {
         try {
           return JSON.parse(saved)
@@ -182,60 +178,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // px를 rem으로 변환하는 함수 (브라우저 기본 폰트 크기 16px 기준)
   const pxToRem = (px: number) => px / 16
-  
-  // 드래그 관련 state
-  const [isDraggingSubmenu, setIsDraggingSubmenu] = useState(false)
-  const [currentDraggingMenu, setCurrentDraggingMenu] = useState<string | null>(null)
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
-  
-  // 서브메뉴 위치 드래그 핸들러
-  const handleSubmenuMouseDown = useCallback((e: React.MouseEvent, menuId: string) => {
-    if (e.button !== 0) return // 왼쪽 버튼만
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDraggingSubmenu(true)
-    setCurrentDraggingMenu(menuId)
-    setDragStartPos({ x: e.clientX, y: e.clientY })
-  }, [])
-  
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDraggingSubmenu && currentDraggingMenu) {
-        const deltaX = e.clientX - dragStartPos.x
-        const deltaY = e.clientY - dragStartPos.y
-        setSubmenuPositions(prev => ({
-          ...prev,
-          [currentDraggingMenu]: {
-            x: (prev[currentDraggingMenu]?.x || 0) + deltaX,
-            y: (prev[currentDraggingMenu]?.y || 0) + deltaY
-          }
-        }))
-        setDragStartPos({ x: e.clientX, y: e.clientY })
-      }
-    }
-    
-    const handleMouseUp = () => {
-      if (isDraggingSubmenu && currentDraggingMenu) {
-        // localStorage에 저장
-        if (typeof window !== 'undefined') {
-          const updated = submenuPositions
-          localStorage.setItem('submenu-positions', JSON.stringify(updated))
-          console.log(`✅ ${currentDraggingMenu} 서브메뉴 위치 저장됨:`, updated[currentDraggingMenu])
-        }
-        setIsDraggingSubmenu(false)
-        setCurrentDraggingMenu(null)
-      }
-    }
-    
-    if (isDraggingSubmenu) {
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
-      }
-    }
-  }, [isDraggingSubmenu, currentDraggingMenu, dragStartPos, submenuPositions])
   
   // 서브메뉴 토글 핸들러
   const handleToggleSubmenu = useCallback((itemId: string) => {
@@ -349,66 +291,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     // 로딩 상태는 페이지 전환 후 자동으로 해제됨
   }, [router, isNavigating, onViewChange])
   
-  // 드래그 앤 드롭 핸들러
-  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
-    setDraggedIndex(index)
-    setIsDraggingMode(true)
-    e.dataTransfer.effectAllowed = 'move'
-  }, [])
-  
-  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    setDragOverIndex(index)
-  }, [])
-  
-  const handleDragEnd = useCallback(() => {
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-    // 드래그 종료 후 약간의 지연을 두고 isDraggingMode 해제
-    setTimeout(() => setIsDraggingMode(false), 100)
-  }, [])
-  
-  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number, itemId: string) => {
-    e.preventDefault()
-    if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null)
-      setDragOverIndex(null)
-      return
-    }
-    
-    // 현재 순서 가져오기 (없으면 원래 순서)
-    const item = communityItems.find(i => i.id === itemId)
-    if (!item || !item.subItems) return
-    
-    const currentOrder = subItemOrders[itemId] || item.subItems.map((_, i) => i)
-    const newOrder = [...currentOrder]
-    
-    // 드래그된 아이템의 원래 인덱스 찾기
-    const draggedOriginalIndex = currentOrder[draggedIndex]
-    // 드롭 위치의 원래 인덱스 찾기  
-    const dropOriginalIndex = currentOrder[dropIndex]
-    
-    // 순서 업데이트
-    const draggedIndexInOrder = newOrder.indexOf(draggedOriginalIndex)
-    newOrder.splice(draggedIndexInOrder, 1)
-    const dropIndexInOrder = newOrder.indexOf(dropOriginalIndex)
-    newOrder.splice(dropIndexInOrder, 0, draggedOriginalIndex)
-    
-    // 새 순서 저장
-    setSubItemOrders(prev => {
-      const updated = { ...prev, [itemId]: newOrder }
-      // localStorage에 저장
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('subitem-orders', JSON.stringify(updated))
-        console.log(`✅ ${itemId} 서브아이템 순서 저장됨:`, newOrder, '→', newOrder.map(idx => item.subItems![idx].title))
-      }
-      return updated
-    })
-    
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }, [draggedIndex, subItemOrders])
+  // 드래그 앤 드롭 핸들러 제거: 순서 고정
   
   // 서브메뉴 위치 드래그 핸들러 - 비활성화됨 (위치 고정)
   /* 드래그 기능은 제거되었고, 저장된 위치만 사용합니다 */
@@ -493,9 +376,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     router.push('/main')
   }
   
-  // 운영진 상태 관리
-  const [isAdmin, setIsAdmin] = useState(false)
-  
   // 테스트 작성 모달 상태
   const [showTestWriteModal, setShowTestWriteModal] = useState(false)
   const [testFormData, setTestFormData] = useState({
@@ -504,48 +384,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     category: 'fun',
     thumbnail_url: ''
   })
-  
-  // 운영자 권한 확인 함수
-  const checkAdminStatus = () => {
-    if (!user) {
-      setIsAdmin(false)
-      return
-    }
-    
-    // 운영자 이메일 목록 (실제 운영자 이메일로 변경 필요)
-    const adminEmails = [
-      'admin@amiko.com',
-      'info@helloamiko.com', // 현재 운영자 이메일
-      'sanghoonhan1334@naver.com',
-      'editor@amiko.com',
-      'manager@amiko.com'
-    ]
-    
-    // 운영자 ID 목록 (실제 운영자 ID로 변경 필요)
-    const adminIds = [
-      '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
-    ]
-    
-    // 이메일 또는 ID로 운영자 확인
-    const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
-    
-    // 추가로 user_metadata의 role도 확인
-    const isAdminByRole = user?.user_metadata?.role === 'admin'
-    
-    setIsAdmin(isAdminUser || isAdminByRole)
-    
-    console.log('운영자 상태 확인:', {
-      email: user.email,
-      id: user.id,
-      role: user?.user_metadata?.role,
-      isAdmin: isAdminUser || isAdminByRole
-    })
-  }
-
-  // 운영진 상태 확인
-  useEffect(() => {
-    checkAdminStatus()
-  }, [user])
   const searchParams = useSearchParams()
   
   // 탭 상태 관리
@@ -741,10 +579,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
 
   // 글쓰기 함수
   const handleWritePost = async () => {
-    // 인증 체크 - 게시물 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '게시물 작성')) {
-      return
-    }
     
     if (!writeTitle.trim() || !writeContent.trim()) {
       alert('제목과 내용을 입력해주세요.')
@@ -856,7 +690,22 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // 화면 크기 체크
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768)
+      const wasMobile = isMobile
+      const nowMobile = window.innerWidth < 768
+      setIsMobile(nowMobile)
+      
+      // 화면 크기가 변경되면 해당 디바이스의 저장된 위치로 전환
+      if (wasMobile !== nowMobile && typeof window !== 'undefined') {
+        const storageKey = nowMobile ? 'submenu-positions-mobile' : 'submenu-positions-desktop'
+        const saved = localStorage.getItem(storageKey)
+        if (saved) {
+          try {
+            setSubmenuPositions(JSON.parse(saved))
+          } catch (e) {
+            console.error('위치 복원 실패:', e)
+          }
+        }
+      }
     }
     
     const timer = setTimeout(() => {
@@ -868,7 +717,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       clearTimeout(timer)
       window.removeEventListener('resize', checkScreenSize)
     }
-  }, [])
+  }, [isMobile])
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [storyText, setStoryText] = useState('')
@@ -1294,11 +1143,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // 인증 체크 - 답변 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '답변 작성')) {
-      return
-    }
-    
     if (!user || !selectedQuestion) return
     
     // 🚀 최적화: 로딩 상태 제거 (불필요한 상태 관리 방지)
@@ -1463,10 +1307,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 질문 작성 처리
   const handleSubmitQuestion = async () => {
-    // 인증 체크 - 질문 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '질문 작성')) {
-      return
-    }
     
     if (!questionForm.title.trim() || !questionForm.content.trim()) {
       alert('제목과 내용을 모두 입력해주세요.')
@@ -2099,10 +1939,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 댓글 작성
   const handleCommentSubmit = () => {
-    // 인증 체크 - 댓글 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '댓글 작성')) {
-      return
-    }
     
     if (!commentText.trim()) return
     
@@ -2299,10 +2135,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
   // 뉴스 작성 함수
   const handleNewsWrite = async () => {
-    // 인증 체크 - 뉴스 작성은 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '뉴스 작성')) {
-      return
-    }
     
     if (!newsWriteForm.title.trim()) {
       toast.error('제목을 입력해주세요.')
@@ -2469,26 +2301,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        {/* Tableros 바로 밑에 세로 일렬 서브메뉴 */}
                        {(activeSubmenu === item.id || closingSubmenu === item.id) && item.subItems && (
                           <div className="relative">
-                            <div 
-                              onMouseDown={(e) => {
-                                if (!(e.target as HTMLElement).closest('button')) {
-                                  e.preventDefault()
-                                  handleSubmenuMouseDown(e, item.id)
-                                }
-                              }}
+                           <div 
                               style={{ 
-                                transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)` 
+                                transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)`
                               }}
-                              className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max group cursor-move ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
+                              className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
                             >
-                              {/* 드래그 핸들 표시 */}
-                              <div className="absolute top-0 left-0 right-0 h-2 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-purple-100 dark:bg-purple-900/30 rounded-t-lg pointer-events-none">
-                                <div className="flex gap-1">
-                                  <div className="w-1 h-1 rounded-full bg-purple-500"></div>
-                                  <div className="w-1 h-1 rounded-full bg-purple-500"></div>
-                                  <div className="w-1 h-1 rounded-full bg-purple-500"></div>
-                                </div>
-                              </div>
                            {(() => {
                              // 저장된 순서 사용
                              const order = subItemOrders[item.id] || item.subItems!.map((_, i) => i)
@@ -2505,7 +2323,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                return (
                                  <div
                                    key={subItem.id}
-                                   className="w-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-500 rounded-lg p-3 shadow-md"
+                                   className="w-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-500 rounded-lg p-2 md:p-3 shadow-md"
                                    style={{
                                      opacity: isClosing ? 1 : 0,
                                      transform: isClosing ? 'translateY(0)' : 'translateY(-20px)',
@@ -2518,13 +2336,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                    }}
                                  >
                                    {/* 제휴사 정보 */}
-                                   <div className="flex items-center gap-2 mb-3">
-                                     <div className="text-xl flex-shrink-0">{subItem.icon}</div>
+                                   <div className="flex items-center gap-2 md:gap-3 mb-2">
+                                     <div className="text-lg md:text-xl flex-shrink-0">{subItem.icon}</div>
                                      <div className="flex-1">
-                                       <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                       <div className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                                          {subItem.title}
                                        </div>
-                                       <div className="text-xs text-gray-500 dark:text-gray-400">
+                                       <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">
                                          Colombia
                                        </div>
                                      </div>
@@ -2537,10 +2355,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                          href={link.url}
                                          target="_blank"
                                          rel="noopener noreferrer"
-                                         className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                         className="flex items-center gap-2 p-1.5 md:p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                        >
-                                         <div className="text-lg flex-shrink-0">{link.icon}</div>
-                                         <div className="text-sm text-gray-700 dark:text-gray-300">
+                                         <div className="text-base md:text-lg flex-shrink-0">{link.icon}</div>
+                                         <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300">
                                            {link.platform}
                                          </div>
                                        </a>
@@ -2551,41 +2369,18 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                              }
                              
                              // 일반 서브메뉴 아이템
-                             const isDragEnabled = item.id === 'story-boards' && !isClosing
-                             const isDragging = draggedIndex === subIndex
-                             const isDragOver = dragOverIndex === subIndex
-                             
                              return (
                                <button
                                  key={subItem.id}
                                    onClick={(e) => {
-                                     if (!isDraggingMode) {
-                                       e.stopPropagation()
-                                       handleNavigation(subItem.route)
-                                     }
-                                   }}
-                                   draggable={isDragEnabled}
-                                   onDragStart={(e) => {
                                      e.stopPropagation()
-                                     if (isDragEnabled) handleDragStart(e, subIndex)
+                                     handleNavigation(subItem.route)
                                    }}
-                                   onDragOver={(e) => isDragEnabled && handleDragOver(e, subIndex)}
-                                   onDragEnd={() => isDragEnabled && handleDragEnd()}
-                                   onDrop={(e) => {
-                                     e.stopPropagation()
-                                     if (isDragEnabled) handleDrop(e, subIndex, item.id)
-                                   }}
-                                   onMouseDown={(e) => e.stopPropagation()}
+                                   
                                    data-original-index={subItemIdx}
-                                   className={`flex items-center gap-3 p-3 rounded-lg border-2 focus:outline-none relative group ${
-                                     isDragging 
-                                       ? 'cursor-grabbing' 
-                                       : isDragOver 
-                                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
-                                       : 'border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md'
-                                   }`}
+                                   className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border-2 focus:outline-none relative group border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md`}
                                    style={{
-                                     opacity: isClosing ? 1 : isDragging ? 0.5 : 0,
+                                     opacity: isClosing ? 1 : 0,
                                      transform: isClosing ? 'translateY(0)' : 'translateY(-20px)',
                                      animationName: animationType,
                                      animationDuration: '0.3s',
@@ -2593,7 +2388,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                      animationFillMode: 'forwards',
                                      animationDelay: itemDelay,
                                      transition: 'none',
-                                     cursor: isDragEnabled ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+                                     cursor: 'default',
                                      position: 'relative',
                                      zIndex: 10
                                    }}
@@ -2602,13 +2397,13 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                      <img 
                                        src={subItem.icon} 
                                        alt={subItem.title}
-                                       className="w-8 h-8 flex-shrink-0 object-contain select-none pointer-events-none"
+                                       className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 object-contain select-none pointer-events-none"
                                        draggable={false}
                                      />
                                    ) : (
-                                     <div className="text-2xl flex-shrink-0 select-none pointer-events-none">{subItem.icon}</div>
+                                     <div className="text-xl md:text-2xl flex-shrink-0 select-none pointer-events-none">{subItem.icon}</div>
                                    )}
-                                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap select-none pointer-events-none">
+                                   <div className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap select-none pointer-events-none">
                                      {subItem.title}
                                    </div>
                                  </button>
@@ -2959,12 +2754,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     setSelectedNews(null)
                     onViewChange?.('news')
                   }}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 text-xs md:text-sm"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
-                  <span className="font-medium">목록으로 돌아가기</span>
+                  <span className="font-medium">{t('freeboard.backToList')}</span>
                 </button>
               </div>
             <NewsDetail 
@@ -3420,7 +3215,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     <div className="flex flex-col items-center gap-2">
                       <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
                       <span className="text-sm text-gray-600">
-                        {imagePreview ? '다른 사진 선택' : '📱 갤러리에서 선택'}
+                        {imagePreview ? t('stories.selectOtherPhoto') : t('stories.selectFromGallery')}
                       </span>
                     </div>
                   </button>
@@ -3451,7 +3246,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     <div className="flex flex-col items-center gap-2">
                       <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
                       <span className="text-sm text-gray-600">
-                        📷 카메라로 촬영
+                        {t('stories.takeWithCamera')}
                       </span>
                     </div>
                   </button>
@@ -3461,10 +3256,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
             
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                스토리 내용
+                {t('communityTab.storyText')}
               </Label>
               <Textarea
-                placeholder="오늘의 이야기를 공유해보세요..."
+                placeholder={t('stories.storyPlaceholder')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={4}
                 value={storyText}

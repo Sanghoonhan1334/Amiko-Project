@@ -44,7 +44,6 @@ import { useAuth } from '@/context/AuthContext'
 import { useUser } from '@/context/UserContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
 import { TranslationService } from '@/lib/translation'
 import VerificationGuard from '@/components/common/VerificationGuard'
 
@@ -829,23 +828,19 @@ export default function StoryCarousel() {
   }
        
        // 스토리 업로드 처리
-       const handleStoryUpload = async () => {
-         if (!storyForm.imageUrl.trim() || !storyForm.text.trim()) {
-           alert('사진과 텍스트를 모두 입력해주세요.')
-           return
-         }
+      const handleStoryUpload = async () => {
+        if (!storyForm.imageUrl.trim()) {
+          alert(t('communityTab.photoRequired') || '사진을 선택해주세요.')
+          return
+        }
 
-         // 사용자 정보 확인 (user 또는 authUser 중 하나라도 있으면 OK)
-         const currentUser = user || authUser
-         if (!currentUser) {
-           alert('로그인이 필요합니다.')
-           return
-         }
+        // 사용자 정보 확인 (user 또는 authUser 중 하나라도 있으면 OK)
+        const currentUser = user || authUser
+        if (!currentUser) {
+          alert('로그인이 필요합니다.')
+          return
+        }
 
-         // 인증 체크 - 스토리 작성은 인증이 필요
-         if (!checkAuthAndRedirect(currentUser, router, '스토리 작성')) {
-           return
-         }
 
          // 토큰 검증 제거 (임시)
          // if (!token) {
@@ -1076,7 +1071,7 @@ export default function StoryCarousel() {
                         <div className="flex flex-col items-center gap-2">
                           <ImageIcon className="w-6 h-6 text-gray-400" />
                           <span className="text-sm text-gray-600">
-                            {imagePreview ? '다른 사진 선택' : '📱 갤러리에서 선택'}
+                            {imagePreview ? t('stories.selectOtherPhoto') : t('stories.selectFromGallery')}
                           </span>
                         </div>
                       </label>
@@ -1099,7 +1094,7 @@ export default function StoryCarousel() {
                         <div className="flex flex-col items-center gap-2">
                           <span className="text-2xl">📷</span>
                           <span className="text-sm text-blue-600">
-                            📸 카메라로 촬영
+                            {t('stories.takeWithCamera')}
                           </span>
                         </div>
                       </label>
@@ -1109,17 +1104,17 @@ export default function StoryCarousel() {
                   
                   {/* 붙여넣기 안내 */}
                   <p className="text-xs text-gray-500 mt-2">
-                    💡 이미지를 복사한 후 이 영역에 붙여넣기(Ctrl+V)도 가능합니다
+                    {t('stories.pasteInstruction')}
                   </p>
                   
                   {/* URL 입력 (고급 사용자용) */}
                   <div className="mt-3">
                     <Label htmlFor="imageUrl" className="text-xs text-gray-500 mb-1 block">
-                      또는 이미지 URL 직접 입력
+                      {t('stories.orImageUrl')}
                     </Label>
                     <Input
                       id="imageUrl"
-                      placeholder="https://example.com/image.jpg"
+                      placeholder={t('stories.imageUrlPlaceholder')}
                       value={storyForm.imageUrl.startsWith('data:') ? '' : storyForm.imageUrl}
                       onChange={(e) => setStoryForm({ ...storyForm, imageUrl: e.target.value })}
                       className="border border-gray-300 focus:border-brand-500 text-sm"
@@ -1175,7 +1170,7 @@ export default function StoryCarousel() {
                   </Button>
                   <Button 
                     onClick={handleStoryUpload}
-                    disabled={isUploading || !storyForm.imageUrl.trim() || !storyForm.text.trim()}
+                    disabled={isUploading || !storyForm.imageUrl.trim()}
                     className="bg-brand-500 hover:bg-brand-600"
                   >
                     {isUploading ? t('buttons.uploading') : t('communityTab.uploadStory')}
@@ -1564,7 +1559,7 @@ export default function StoryCarousel() {
                           <span className="font-medium text-sm">{comment.author}</span>
                         )}
                         <span className="text-xs text-gray-500">
-                          {comment.createdAt.toLocaleTimeString('ko-KR', { 
+                          {comment.createdAt.toLocaleTimeString(language === 'es' ? 'es-ES' : 'ko-KR', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
                           })}

@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // is_korean 필드 추가
-    if (is_korean !== undefined) {
+    if (is_korean !== undefined && is_korean !== null) {
       userData.is_korean = is_korean
     }
 
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       }
 
       // is_korean 필드 추가
-      if (is_korean !== undefined) {
+      if (is_korean !== undefined && is_korean !== null) {
         retryUserData.is_korean = is_korean
       }
 

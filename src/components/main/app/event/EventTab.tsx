@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -52,6 +52,7 @@ const getRewards = (language: string) => {
 
 export default function EventTab() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading, refreshUser } = useUser()
   const { t, language } = useLanguage()
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
@@ -90,6 +91,27 @@ export default function EventTab() {
       refreshAttempted.current = true;
     }
   }, [totalPoints, loading, user?.id, refreshUser]);
+
+  // URL 쿼리 파라미터로 ACU-POINT 섹션으로 스크롤
+  useEffect(() => {
+    const showParam = searchParams?.get('show')
+    if (showParam === 'acu-point-sunscreen') {
+      // 섹션으로 스크롤
+      setTimeout(() => {
+        const element = document.getElementById('acu-point-event')
+        if (element) {
+          const headerOffset = 100
+          const elementPosition = element.getBoundingClientRect().top
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          })
+        }
+      }, 100)
+    }
+  }, [searchParams]);
 
   // 언어에 따른 요일 배열
   const daysOfWeek = language === 'es' 
@@ -338,6 +360,22 @@ export default function EventTab() {
             <div>{t('eventTab.badgeGuide.rose')}</div>
             <div>{t('eventTab.badgeGuide.vip')}</div>
             <div className="mt-1">{t('eventTab.badgeGuide.requirement')}</div>
+          </div>
+          {/* 내 레벨보기 버튼 */}
+          <div className="mt-3 sm:mt-4">
+            <Button
+              onClick={() => {
+                // 헤더 네비게이션에 탭 변경 알림
+                window.dispatchEvent(new CustomEvent('mainTabChanged', { 
+                  detail: { tab: 'me' } 
+                }))
+                router.push('/main?tab=me#my-level')
+              }}
+              className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-700 hover:via-emerald-600 hover:to-emerald-700 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              {t('eventTab.badgeGuide.viewMyLevel')}
+            </Button>
           </div>
         </div>
       </div>
@@ -605,7 +643,13 @@ export default function EventTab() {
             {/* 내 포인트 현황 보기 버튼 */}
             <div className="mt-4 flex justify-center px-2 sm:px-0">
               <Button
-                onClick={() => router.push('/main?tab=me')}
+                onClick={() => {
+                  // 헤더 네비게이션에 탭 변경 알림
+                  window.dispatchEvent(new CustomEvent('mainTabChanged', { 
+                    detail: { tab: 'me' } 
+                  }))
+                  router.push('/main?tab=me#my-points')
+                }}
                 className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white"
               >
                 <Trophy className="w-4 h-4 mr-2" />
@@ -616,10 +660,68 @@ export default function EventTab() {
 
       {/* 구분선 */}
       <div className="border-t-2 border-gray-300 my-8"></div>
+
+      {/* ACU-POINT 선크림 이벤트 */}
+      <div id="acu-point-event" className="scroll-mt-20">
+        <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-2">
+              <div className="text-xl sm:text-2xl">☀️</div>
+              <CardTitle className="text-sm sm:text-base md:text-lg text-emerald-700 dark:text-emerald-300">
+                {language === 'ko' ? 'ACU-POINT 선크림 오픈 이벤트' : 'Evento de Apertura ACU-POINT'}
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 이미지 */}
+            <div className="relative w-full rounded-lg overflow-hidden max-w-2xl mx-auto">
+              <img 
+                src="/images/acu-point-sunscreen-detail.jpg"
+                alt="ACU-POINT Sunscreen"
+                className="w-full h-auto object-contain"
+                draggable={false}
+              />
+            </div>
+
+            {/* 이벤트 설명 */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">🎁</span>
+                <div className="flex-1">
+                  <h3 className="font-bold text-emerald-800 dark:text-emerald-200 mb-1">
+                    {language === 'ko' ? '추첨 상품' : 'Premio del Sorteo'}
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {language === 'ko' 
+                      ? '10명의 당첨자에게 ACU-POINT 선크림 (약 $45 상당) 무료 증정!' 
+                      : '¡10 ganadores recibirán gratis bloqueador solar ACU-POINT (equivalente a $45)!'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">🎯</span>
+                <div className="flex-1">
+                  <h3 className="font-bold text-emerald-800 dark:text-emerald-200 mb-1">
+                    {language === 'ko' ? '참여 조건' : 'Condiciones de Participación'}
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {language === 'ko' 
+                      ? '레벨 1 달성한 모든 사용자 (누적 포인트 75점 이상)' 
+                      : 'Todos los usuarios que han alcanzado el Nivel 1 (75 puntos acumulados o más)'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 구분선 */}
+      <div className="border-t-2 border-gray-300 my-8"></div>
       
       {/* ZEP 운영자 미팅 카드 */}
       <ZepEventCard user={user} />
-
     </div>
   )
 }
