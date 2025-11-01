@@ -241,16 +241,15 @@ function TestsPageContent() {
 
   // 퀴즈 클릭 처리
   const handleQuizClick = (quiz: Quiz) => {
-    console.log('퀴즈 클릭 - 전체 데이터:', quiz)
-    console.log('퀴즈 클릭 - title:', quiz.title)
-    console.log('퀴즈 클릭 - slug:', quiz.slug)
-    console.log('퀴즈 클릭 - id:', quiz.id)
+    console.log('🔍 [퀴즈 클릭] 전체 데이터:', quiz)
+    console.log('🔍 [퀴즈 클릭] title:', quiz.title)
+    console.log('🔍 [퀴즈 클릭] slug:', quiz.slug)
+    console.log('🔍 [퀴즈 클릭] id:', quiz.id)
+    console.log('🔍 [퀴즈 클릭] isCompleted:', quiz.isCompleted)
     
-    // 미완성 테스트 체크
-    const isCompleted = quiz?.isCompleted !== undefined ? quiz.isCompleted : 
-      (quiz?.title?.includes('MBTI'))
-    
-    if (!isCompleted) {
+    // 미완성 테스트 체크 - 명시적으로 false인 경우만 차단
+    if (quiz?.isCompleted === false) {
+      console.log('🔍 [퀴즈 클릭] 미완성 테스트, 차단됨')
       toast.info(
         'Este test aún está en preparación. ¡Por favor espera un poco! 🚧',
         {
@@ -262,7 +261,7 @@ function TestsPageContent() {
     
     // slug 우선 라우팅
     const href = quiz?.slug ? `/quiz/${quiz.slug}` : `/quiz/${quiz.id}`;
-    console.log('라우팅할 경로:', href);
+    console.log('🔍 [퀴즈 클릭] 라우팅할 경로:', href);
     router.push(href);
   }
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Send, Users, Image as ImageIcon, X, RotateCw, Shield, Ban, UserMinus, Settings } from 'lucide-react'
+import { ArrowLeft, Send, Users, Image as ImageIcon, X, RotateCw, Shield, Ban, UserMinus, Settings, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
@@ -674,6 +674,41 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
     return userRole === 'owner' || userRole === 'admin' || userRole === 'moderator'
   }
 
+  // 메시지 삭제 (작성자 본인 또는 관리자)
+  const deleteMessage = async (messageId: string, messageUserId: string) => {
+    // 권한 확인: 본인 또는 관리자/운영자
+    const canDelete = user?.id === messageUserId || user?.is_admin || isAdmin()
+    
+    if (!canDelete) {
+      alert('메시지를 삭제할 권한이 없습니다.')
+      return
+    }
+
+    if (!confirm('이 메시지를 삭제하시겠습니까?')) {
+      return
+    }
+
+    try {
+      const { error } = await authSupabase
+        .from('chat_messages')
+        .delete()
+        .eq('id', messageId)
+
+      if (error) {
+        console.error('메시지 삭제 오류:', error)
+        alert('메시지 삭제에 실패했습니다.')
+        return
+      }
+
+      // UI에서 즉시 제거
+      setMessages(prev => prev.filter(m => m.id !== messageId))
+      console.log('✅ 메시지 삭제 완료:', messageId)
+    } catch (error) {
+      console.error('메시지 삭제 중 오류:', error)
+      alert('메시지 삭제 중 오류가 발생했습니다.')
+    }
+  }
+
   // 참여자 목록 가져오기
   const fetchParticipants = async () => {
     try {
@@ -1001,6 +1036,16 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
                         {getUserName(message)}
                         <UserBadge totalPoints={message.user_profiles?.total_points || 0} isVip={false} size="sm" />
                       </span>
+                      {/* 메시지 삭제 버튼 (본인 또는 관리자/운영자) */}
+                      {(isOwn || user?.is_admin || isAdmin()) && (
+                        <button
+                          onClick={() => deleteMessage(message.id, message.user_id)}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                          title="메시지 삭제"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
                       {/* 추방 버튼 (관리자만, 자신 제외) */}
                       {isAdmin() && !isOwn && (
                         <button

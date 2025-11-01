@@ -719,7 +719,23 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         }))
 
         console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
-        setPosts(transformedPosts)
+        
+        // 공지사항을 맨 위에 고정하여 정렬
+        const sortedPosts = transformedPosts.sort((a: any, b: any) => {
+          // 공지글은 항상 맨 위에
+          if (a.is_notice && !b.is_notice) return -1
+          if (!a.is_notice && b.is_notice) return 1
+          
+          // 공지글끼리는 생성일 기준 내림차순
+          if (a.is_notice && b.is_notice) {
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          }
+          
+          // 일반 게시글은 원래 순서 유지
+          return 0
+        })
+        
+        setPosts(sortedPosts)
         
         // 페이지네이션 정보 업데이트
         const total = data.total || transformedPosts.length

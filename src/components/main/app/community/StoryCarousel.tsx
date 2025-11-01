@@ -39,6 +39,8 @@ interface Comment {
   content: string
   createdAt: Date
   likes: number
+  parent_comment_id?: string | null
+  replies?: Comment[]
 }
 import { useAuth } from '@/context/AuthContext'
 import { useUser } from '@/context/UserContext'
@@ -175,6 +177,8 @@ export default function StoryCarousel() {
   const [showCommentModal, setShowCommentModal] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
   const [storyComments, setStoryComments] = useState<Record<string, Comment[]>>({})
+  const [replyingTo, setReplyingTo] = useState<string | null>(null) // 답글 작성 중인 댓글 ID
+  const [replyText, setReplyText] = useState('') // 답글 내용
   
   // 번역 관련 상태
   const [translatingStories, setTranslatingStories] = useState<Set<string>>(new Set())
@@ -631,7 +635,6 @@ export default function StoryCarousel() {
         // 댓글 목록 새로고침
         await loadStoryComments(storyId)
         setCommentText('')
-        setShowCommentModal(null)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('스토리 댓글 작성 실패:', errorData)
@@ -640,6 +643,44 @@ export default function StoryCarousel() {
     } catch (error) {
       console.error('스토리 댓글 작성 오류:', error)
       alert('댓글 작성 중 오류가 발생했습니다.')
+    }
+  }
+
+  // 답글 추가
+  const handleAddReply = async (storyId: string, parentCommentId: string) => {
+    if (!replyText.trim()) return
+
+    try {
+      console.log('스토리 답글 작성 시도:', { storyId, parentCommentId, content: replyText.trim() })
+      
+      const response = await fetch(`/api/stories/${storyId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || session?.access_token}`
+        },
+        body: JSON.stringify({
+          content: replyText.trim(),
+          parent_comment_id: parentCommentId
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('스토리 답글 작성 성공:', data)
+        
+        // 댓글 목록 새로고침
+        await loadStoryComments(storyId)
+        setReplyText('')
+        setReplyingTo(null)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('스토리 답글 작성 실패:', errorData)
+        alert(errorData.error || '답글 작성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('스토리 답글 작성 오류:', error)
+      alert('답글 작성 중 오류가 발생했습니다.')
     }
   }
 
@@ -655,7 +696,7 @@ export default function StoryCarousel() {
         const data = await response.json()
         console.log('스토리 댓글 로드 성공:', data.comments?.length || 0, '개')
         
-        // API 응답을 로컬 상태 형식으로 변환
+        // API 응답을 로컬 상태 형식으로 변환 (replies 포함)
         const transformedComments = data.comments?.map((comment: any) => ({
           id: comment.id,
           storyId: storyId,
@@ -663,7 +704,18 @@ export default function StoryCarousel() {
           authorId: comment.author?.id,
           content: comment.content,
           createdAt: new Date(comment.created_at),
-          likes: 0 // API에 좋아요 기능이 없으므로 0으로 설정
+          likes: 0, // API에 좋아요 기능이 없으므로 0으로 설정
+          parent_comment_id: comment.parent_comment_id,
+          replies: comment.replies?.map((reply: any) => ({
+            id: reply.id,
+            storyId: storyId,
+            author: reply.author?.full_name || '익명',
+            authorId: reply.author?.id,
+            content: reply.content,
+            createdAt: new Date(reply.created_at),
+            likes: 0,
+            parent_comment_id: reply.parent_comment_id
+          })) || []
         })) || []
         
         setStoryComments(prev => ({
@@ -1544,19 +1596,25 @@ export default function StoryCarousel() {
             {/* 댓글 목록 */}
             <div className="max-h-60 overflow-y-auto space-y-3">
               {showCommentModal && storyComments[showCommentModal]?.map(comment => (
-                <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-start justify-between">
+                <div key={comment.id} className="border-b border-gray-200 pb-4">
+                  {/* 원본 댓글 */}
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 flex items-center justify-center">
+                      <span className="text-gray-600 text-sm font-semibold">
+                        {comment.author?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         {comment.authorId ? (
                           <button
                             onClick={() => handleViewProfile(comment.authorId!)}
-                            className="font-medium text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                            className="font-semibold text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                           >
                             {comment.author}
                           </button>
                         ) : (
-                          <span className="font-medium text-sm">{comment.author}</span>
+                          <span className="font-semibold text-sm">{comment.author}</span>
                         )}
                         <span className="text-xs text-gray-500">
                           {comment.createdAt.toLocaleTimeString(language === 'es' ? 'es-ES' : 'ko-KR', { 
@@ -1565,18 +1623,108 @@ export default function StoryCarousel() {
                           })}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700">{comment.content}</p>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{comment.content}</p>
+                      
+                      {/* 답글 버튼 */}
+                      <VerificationGuard requiredLevel="sms">
+                        <button
+                          onClick={() => {
+                            setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                            setReplyText('')
+                          }}
+                          className="text-xs text-purple-600 hover:text-purple-800 font-medium"
+                        >
+                          {replyingTo === comment.id ? 'Cancelar' : 'Responder'}
+                        </button>
+                      </VerificationGuard>
                     </div>
-                    <VerificationGuard requiredLevel="sms">
-                      <button
-                        onClick={() => handleCommentLike(showCommentModal, comment.id)}
-                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500"
-                      >
-                        <Heart className="w-3 h-3" />
-                        <span>{comment.likes}</span>
-                      </button>
-                    </VerificationGuard>
                   </div>
+
+                  {/* 답글 목록 */}
+                  {comment.replies && comment.replies.length > 0 && (
+                    <div className="ml-12 mt-3 space-y-3">
+                      {comment.replies.map(reply => (
+                        <div key={reply.id} className="flex gap-3">
+                          <div className="w-8 h-8 rounded-full bg-purple-200 flex-shrink-0 flex items-center justify-center">
+                            <span className="text-purple-700 text-xs font-semibold">
+                              {reply.author?.charAt(0).toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              {reply.authorId ? (
+                                <button
+                                  onClick={() => handleViewProfile(reply.authorId!)}
+                                  className="font-semibold text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                >
+                                  {reply.author}
+                                </button>
+                              ) : (
+                                <span className="font-semibold text-sm">{reply.author}</span>
+                              )}
+                              <span className="text-xs text-gray-500">
+                                {reply.createdAt.toLocaleTimeString(language === 'es' ? 'es-ES' : 'ko-KR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{reply.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 답글 작성 폼 */}
+                  {replyingTo === comment.id && (
+                    <div className="ml-12 mt-3">
+                      <VerificationGuard requiredLevel="sms">
+                        <div className="flex gap-3">
+                          <div className="w-8 h-8 rounded-full bg-purple-500 flex-shrink-0 flex items-center justify-center">
+                            <span className="text-white text-xs font-semibold">
+                              {user?.email?.charAt(0).toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <Textarea
+                              placeholder="Escribe una respuesta..."
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault()
+                                  handleAddReply(showCommentModal!, comment.id)
+                                }
+                              }}
+                              className="w-full text-sm resize-none"
+                              rows={2}
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                              <button
+                                onClick={() => {
+                                  setReplyingTo(null)
+                                  setReplyText('')
+                                }}
+                                className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800"
+                              >
+                                Cancelar
+                              </button>
+                              <Button 
+                                onClick={() => handleAddReply(showCommentModal!, comment.id)}
+                                disabled={!replyText.trim()}
+                                size="sm"
+                                className="text-xs"
+                              >
+                                <Send className="w-3 h-3 mr-1" />
+                                Responder
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </VerificationGuard>
+                    </div>
+                  )}
                 </div>
               ))}
               

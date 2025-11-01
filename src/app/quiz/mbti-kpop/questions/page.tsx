@@ -15,8 +15,9 @@ function HeaderFallback() {
   )
 }
 
-// MBTI 질문 데이터 (임시)
+// MBTI 질문 데이터 (12문제)
 const mbtiQuestions = [
+  // E vs I (외향/내향) - 3문제
   {
     id: 1,
     question: "En una fiesta, ¿qué haces?",
@@ -27,14 +28,48 @@ const mbtiQuestions = [
   },
   {
     id: 2,
-    question: "Cuando comienzas un nuevo proyecto, ¿qué haces?",
+    question: "Después de un largo día, ¿qué prefieres?",
     options: [
-      { text: "Primero visualizo el panorama general", type: "N", weight: 1 },
-      { text: "Hago un plan paso a paso específico", type: "S", weight: 1 }
+      { text: "Salir y divertirme con amigos", type: "E", weight: 1 },
+      { text: "Descansar solo en casa", type: "I", weight: 1 }
     ]
   },
   {
     id: 3,
+    question: "Cuando conoces gente nueva, ¿cómo te sientes?",
+    options: [
+      { text: "Me emociono y me acerco activamente", type: "E", weight: 1 },
+      { text: "Primero observo desde atrás", type: "I", weight: 1 }
+    ]
+  },
+  // S vs N (감각/직관) - 3문제
+  {
+    id: 4,
+    question: "Cuando comienzas un nuevo proyecto, ¿qué haces?",
+    options: [
+      { text: "Hago un plan paso a paso específico", type: "S", weight: 1 },
+      { text: "Primero visualizo el panorama general", type: "N", weight: 1 }
+    ]
+  },
+  {
+    id: 5,
+    question: "Al leer un libro, ¿qué prefieres?",
+    options: [
+      { text: "Historias basadas en hechos reales", type: "S", weight: 1 },
+      { text: "Historias de fantasía e imaginación", type: "N", weight: 1 }
+    ]
+  },
+  {
+    id: 6,
+    question: "¿En qué te enfocas más?",
+    options: [
+      { text: "En lo que está sucediendo ahora", type: "S", weight: 1 },
+      { text: "En las posibilidades futuras", type: "N", weight: 1 }
+    ]
+  },
+  // T vs F (사고/감정) - 3문제
+  {
+    id: 7,
     question: "Al tomar decisiones importantes, ¿qué haces?",
     options: [
       { text: "Valoro el análisis lógico y los hechos objetivos", type: "T", weight: 1 },
@@ -42,11 +77,44 @@ const mbtiQuestions = [
     ]
   },
   {
-    id: 4,
+    id: 8,
+    question: "Cuando un amigo tiene un problema, ¿qué haces?",
+    options: [
+      { text: "Le doy soluciones prácticas", type: "T", weight: 1 },
+      { text: "Primero escucho y empatizo", type: "F", weight: 1 }
+    ]
+  },
+  {
+    id: 9,
+    question: "¿Qué es más importante?",
+    options: [
+      { text: "La justicia y la equidad", type: "T", weight: 1 },
+      { text: "La armonía y las relaciones", type: "F", weight: 1 }
+    ]
+  },
+  // J vs P (판단/인식) - 3문제
+  {
+    id: 10,
     question: "En tu vida cotidiana, ¿cómo eres?",
     options: [
       { text: "Hago planes y vivo de manera sistemática", type: "J", weight: 1 },
       { text: "Actúo de manera flexible según la situación", type: "P", weight: 1 }
+    ]
+  },
+  {
+    id: 11,
+    question: "Cuando viajas, ¿cómo prefieres hacerlo?",
+    options: [
+      { text: "Planeo todo el itinerario con anticipación", type: "J", weight: 1 },
+      { text: "Decido espontáneamente en el momento", type: "P", weight: 1 }
+    ]
+  },
+  {
+    id: 12,
+    question: "¿Cómo te sientes con los plazos?",
+    options: [
+      { text: "Me gusta terminar antes de tiempo", type: "J", weight: 1 },
+      { text: "Trabajo mejor bajo presión cerca del plazo", type: "P", weight: 1 }
     ]
   }
 ]

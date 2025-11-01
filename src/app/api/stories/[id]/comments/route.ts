@@ -18,14 +18,15 @@ export async function GET(
 
     console.log('[STORY_COMMENTS_GET] 댓글 조회:', storyId)
 
-    // 스토리 댓글 조회
-    const { data: comments, error } = await supabaseServer
+    // 스토리 댓글 조회 (모든 댓글)
+    const { data: allComments, error } = await supabaseServer
       .from('story_comments')
       .select(`
         id,
         story_id,
         user_id,
         content,
+        parent_comment_id,
         created_at,
         updated_at
       `)
@@ -40,8 +41,16 @@ export async function GET(
       )
     }
 
-    // 사용자 정보 조회 (실제 데이터베이스에서 가져오기)
-    const userIds = [...new Set(comments?.map(c => c.user_id).filter(Boolean))]
+    // 댓글이 없으면 빈 배열 반환
+    if (!allComments || allComments.length === 0) {
+      return NextResponse.json({
+        success: true,
+        comments: []
+      })
+    }
+
+    // 사용자 정보 조회
+    const userIds = [...new Set(allComments?.map(c => c.user_id).filter(Boolean))]
     let usersMap: { [key: string]: any } = {}
     
     if (userIds.length > 0) {
@@ -64,7 +73,7 @@ export async function GET(
     }
 
     // 댓글 좋아요 수 조회 (임시로 0으로 설정)
-    const commentIds = comments?.map(c => c.id) || []
+    const commentIds = allComments?.map(c => c.id) || []
     let commentLikesMap: { [key: string]: number } = {}
     let userLikesMap: { [key: string]: boolean } = {}
     
@@ -75,7 +84,7 @@ export async function GET(
     })
 
     // 댓글 데이터 변환
-    const transformedComments = comments?.map(comment => {
+    const commentsWithUser = allComments?.map(comment => {
       const user = usersMap[comment.user_id] || { 
         id: comment.user_id, 
         full_name: '사용자', 
@@ -86,6 +95,7 @@ export async function GET(
         id: comment.id,
         story_id: comment.story_id,
         content: comment.content,
+        parent_comment_id: comment.parent_comment_id,
         created_at: comment.created_at,
         updated_at: comment.updated_at,
         likes_count: commentLikesMap[comment.id] || 0,
@@ -98,7 +108,36 @@ export async function GET(
       }
     }) || []
 
-    console.log('[STORY_COMMENTS_GET] 댓글 조회 성공:', transformedComments.length)
+    // parent_comment_id가 없는 경우 (마이그레이션 전) - 기존 방식
+    if (commentsWithUser.length === 0 || !('parent_comment_id' in commentsWithUser[0])) {
+      console.log('[STORY_COMMENTS_GET] 댓글 조회 성공 (레거시):', commentsWithUser.length)
+      return NextResponse.json({
+        success: true,
+        comments: commentsWithUser
+      })
+    }
+
+    // parent_comment_id가 있는 경우 - 답글 기능 지원
+    const topLevelComments = commentsWithUser.filter(comment => !comment.parent_comment_id)
+    const repliesMap = new Map<string, any[]>()
+
+    // 답글들을 그룹화
+    commentsWithUser.forEach(comment => {
+      if (comment.parent_comment_id) {
+        if (!repliesMap.has(comment.parent_comment_id)) {
+          repliesMap.set(comment.parent_comment_id, [])
+        }
+        repliesMap.get(comment.parent_comment_id)!.push(comment)
+      }
+    })
+
+    // 최상위 댓글에 답글 추가
+    const transformedComments = topLevelComments.map(comment => ({
+      ...comment,
+      replies: repliesMap.get(comment.id) || []
+    }))
+
+    console.log('[STORY_COMMENTS_GET] 댓글 조회 성공 (답글 포함):', transformedComments.length)
 
     return NextResponse.json({
       success: true,
@@ -129,9 +168,9 @@ export async function POST(
 
     const { id: storyId } = params
     const body = await request.json()
-    const { content } = body
+    const { content, parent_comment_id } = body
 
-    console.log('[STORY_COMMENTS_POST] 댓글 작성:', { storyId, content: content?.substring(0, 50) })
+    console.log('[STORY_COMMENTS_POST] 댓글 작성:', { storyId, content: content?.substring(0, 50), parent_comment_id })
 
     // 입력 검증
     if (!content || content.trim().length === 0) {
@@ -183,19 +222,45 @@ export async function POST(
       )
     }
 
+    // 삽입할 데이터 준비
+    const insertData: any = {
+      story_id: storyId,
+      user_id: authUser.id,
+      content: content.trim()
+    }
+
+    // parent_comment_id가 제공된 경우 검증 후 추가
+    if (parent_comment_id) {
+      const { data: parentComment, error: parentError } = await supabaseServer
+        .from('story_comments')
+        .select('id, parent_comment_id')
+        .eq('id', parent_comment_id)
+        .single()
+
+      if (parentError || !parentComment) {
+        return NextResponse.json({ error: 'Parent comment not found' }, { status: 404 })
+      }
+
+      // 답글의 답글은 허용하지 않음 (1단계만 허용)
+      if (parentComment.parent_comment_id) {
+        return NextResponse.json({ 
+          error: 'Cannot reply to a reply. Please reply to the original comment.' 
+        }, { status: 400 })
+      }
+
+      insertData.parent_comment_id = parent_comment_id
+    }
+
     // 댓글 생성
     const { data: comment, error: commentError } = await supabaseServer
       .from('story_comments')
-      .insert({
-        story_id: storyId,
-        user_id: authUser.id,
-        content: content.trim()
-      })
+      .insert(insertData)
       .select(`
         id,
         story_id,
         user_id,
         content,
+        parent_comment_id,
         created_at,
         updated_at
       `)

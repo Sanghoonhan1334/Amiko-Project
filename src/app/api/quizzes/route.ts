@@ -48,9 +48,38 @@ export async function GET(request: NextRequest) {
 
     console.log('[QUIZZES] 퀴즈 조회 성공, 개수:', quizzes?.length || 0);
 
+    // 각 퀴즈의 완성 여부 확인 (질문이 있으면 완성된 것으로 간주)
+    const quizzesWithCompletionStatus = await Promise.all(
+      (quizzes || []).map(async (quiz) => {
+        // 특별 구현된 퀴즈들 (별도 페이지로 구현됨, DB 질문 불필요)
+        const specialQuizzes = ['korean-level', 'zodiac', 'fortune', 'mbti-kpop', 'idol-position']
+        
+        if (specialQuizzes.includes(quiz.slug || '')) {
+          return {
+            ...quiz,
+            isCompleted: true,
+            participantCount: quiz.total_participants || 0
+          }
+        }
+        
+        // 일반 퀴즈는 DB에 질문이 있어야 완성됨
+        const { data: questions } = await supabase
+          .from('quiz_questions')
+          .select('id')
+          .eq('quiz_id', quiz.id)
+          .limit(1)
+        
+        return {
+          ...quiz,
+          isCompleted: (questions && questions.length > 0),
+          participantCount: quiz.total_participants || 0
+        }
+      })
+    )
+
     return NextResponse.json({
       success: true,
-      data: quizzes || []
+      data: quizzesWithCompletionStatus
     });
 
   } catch (error) {

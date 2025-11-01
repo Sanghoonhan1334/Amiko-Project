@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, MessageCircle, Eye } from 'lucide-react'
+import { Heart, MessageCircle, Eye, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -25,9 +25,10 @@ interface Post {
 interface IdolMemesPostProps {
   post: Post
   theme: 'day' | 'night'
+  onDelete?: () => void
 }
 
-export default function IdolMemesPost({ post, theme }: IdolMemesPostProps) {
+export default function IdolMemesPost({ post, theme, onDelete }: IdolMemesPostProps) {
   const router = useRouter()
   const { user, token } = useAuth()
   const [isLiked, setIsLiked] = useState(post.is_liked || false)
@@ -59,6 +60,39 @@ export default function IdolMemesPost({ post, theme }: IdolMemesPostProps) {
     }
   }
 
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (!user?.is_admin) {
+      alert('관리자만 게시물을 삭제할 수 있습니다.')
+      return
+    }
+
+    if (!confirm('정말 이 게시물을 삭제하시겠습니까?')) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/idol-photos/${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (res.ok) {
+        alert('게시물이 삭제되었습니다.')
+        onDelete?.() // 부모 컴포넌트에 삭제 완료 알림
+      } else {
+        const data = await res.json()
+        alert(data.error || '게시물 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Failed to delete post:', error)
+      alert('게시물 삭제 중 오류가 발생했습니다.')
+    }
+  }
+
   const handleClick = () => {
     router.push(`/community/idol-photos/${post.id}`)
   }
@@ -73,6 +107,17 @@ export default function IdolMemesPost({ post, theme }: IdolMemesPostProps) {
         isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'
       } hover:shadow-lg transition-all cursor-pointer`}
     >
+      {/* 삭제 버튼 (관리자 전용) */}
+      {user?.is_admin && (
+        <button
+          onClick={handleDelete}
+          className="absolute top-2 left-2 z-10 p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 shadow-md transition-all"
+          title="게시물 삭제 (관리자)"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
+
       {/* Media - Thumbnail */}
       {post.media_url && (
         <div className="relative aspect-square w-full bg-gray-100">

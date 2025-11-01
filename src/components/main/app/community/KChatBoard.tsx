@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { Plus, Users, MessageSquare, Globe, Heart, Image as ImageIcon, X, ArrowLeft, Star, Search } from 'lucide-react'
+import { Plus, Users, MessageSquare, Globe, Heart, Image as ImageIcon, X, ArrowLeft, Star, Search, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,6 +47,26 @@ export default function KChatBoard() {
   useEffect(() => {
     fetchRooms()
   }, [activeTab])
+
+  // 관리자 권한 확인 (디버그용)
+  useEffect(() => {
+    console.log('🔍 [KChatBoard] useEffect 실행됨', {
+      user가_존재하나: !!user,
+      user_객체: user
+    })
+    
+    if (user) {
+      console.log('🔍 [KChatBoard] 사용자 정보:', {
+        id: user.id,
+        email: user.email,
+        is_admin: user.is_admin,
+        is_admin_타입: typeof user.is_admin,
+        전체_user_객체: user
+      })
+    } else {
+      console.log('🔍 [KChatBoard] ⚠️ user 객체가 없습니다!')
+    }
+  }, [user])
 
   const fetchRooms = async () => {
     try {
@@ -180,6 +200,42 @@ export default function KChatBoard() {
     
     setFavoriteRooms(newFavorites)
     localStorage.setItem('kchat_favorites', JSON.stringify(Array.from(newFavorites)))
+  }
+
+  // 채팅방 삭제 (관리자 전용)
+  const deleteRoom = async (roomId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!user?.is_admin) {
+      alert('관리자만 채팅방을 삭제할 수 있습니다.')
+      return
+    }
+
+    if (!confirm('정말 이 채팅방을 삭제하시겠습니까?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/chat/rooms?roomId=${roomId}&userId=${user.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        alert('채팅방이 삭제되었습니다.')
+        fetchRooms() // 목록 새로고침
+      } else {
+        alert(data.error || '채팅방 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('채팅방 삭제 오류:', error)
+      alert('채팅방 삭제 중 오류가 발생했습니다.')
+    }
   }
 
   // 검색어로 필터링
@@ -343,6 +399,17 @@ export default function KChatBoard() {
                     >
                       <Star className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
                     </button>
+
+                    {/* 삭제 버튼 (관리자 전용) */}
+                    {user?.is_admin && (
+                      <button
+                        onClick={(e) => deleteRoom(room.id, e)}
+                        className="absolute top-2 left-2 z-10 p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 shadow-md transition-all"
+                        title="채팅방 삭제 (관리자)"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
 
                     {/* Thumbnail */}
                     {room.thumbnail_url ? (

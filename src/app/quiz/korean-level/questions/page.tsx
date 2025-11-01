@@ -129,34 +129,34 @@ export default function KoreanLevelQuestionsPage() {
   const progress = ((currentQuestionIndex + 1) / koreanQuestions.length) * 100
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 pt-28 sm:pt-32 md:pt-40">
       {/* 헤더 */}
       <div className="bg-white/80 backdrop-blur-sm shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-2xl">📚</span>
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-lg sm:text-2xl">📚</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">
+                <h1 className="text-sm sm:text-xl font-bold text-gray-800">
                   {language === 'ko' ? '한국어 레벨 테스트' : 'Prueba de Nivel de Coreano'}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   {language === 'ko' ? '질문' : 'Pregunta'} {currentQuestionIndex + 1} / {koreanQuestions.length}
                 </p>
               </div>
             </div>
             
             {/* 진행률 표시 */}
-            <div className="flex-1 max-w-xs ml-8">
-              <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+            <div className="flex-1 max-w-[120px] sm:max-w-xs ml-2 sm:ml-8">
+              <div className="flex items-center justify-between text-[10px] sm:text-sm text-gray-600 mb-1">
                 <span>{language === 'ko' ? '진행률' : 'Progreso'}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
                 <div 
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 sm:h-2 rounded-full transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -166,17 +166,17 @@ export default function KoreanLevelQuestionsPage() {
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="max-w-2xl mx-auto">
           {/* 질문 카드 */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 mb-4 sm:mb-8">
             {/* 난이도 표시 */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-600">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">
                   {language === 'ko' ? '난이도' : 'Dificultad'}:
                 </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
                   currentQuestion.difficulty === 'Fácil' 
                     ? 'bg-green-100 text-green-700' 
                     : 'bg-yellow-100 text-yellow-700'
@@ -184,40 +184,40 @@ export default function KoreanLevelQuestionsPage() {
                   {currentQuestion.difficulty}
                 </span>
               </div>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs sm:text-sm text-gray-500">
                 {currentQuestion.id} / {koreanQuestions.length}
               </span>
             </div>
 
             {/* 질문 */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 leading-relaxed">
+            <div className="mb-4 sm:mb-8">
+              <h2 className="text-base sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-4 leading-relaxed">
                 {language === 'ko' ? currentQuestion.questionKo : currentQuestion.question}
               </h2>
             </div>
 
             {/* 선택지 */}
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4">
               {currentQuestion.options.map((option, index) => (
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(index)}
                   disabled={selectedAnswer !== null}
-                  className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-300 ${
+                  className={`w-full p-3 sm:p-4 text-left rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${
                     selectedAnswer === index
                       ? 'border-purple-500 bg-purple-50 text-purple-700'
                       : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 text-gray-700'
                   } ${selectedAnswer !== null ? 'cursor-not-allowed' : 'cursor-pointer hover:shadow-md'}`}
                 >
                   <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 font-bold ${
+                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mr-3 sm:mr-4 font-bold text-xs sm:text-base ${
                       selectedAnswer === index
                         ? 'bg-purple-500 text-white'
                         : 'bg-gray-200 text-gray-600'
                     }`}>
                       {String.fromCharCode(65 + index)}
                     </div>
-                    <span className="text-lg">{option}</span>
+                    <span className="text-sm sm:text-lg">{option}</span>
                   </div>
                 </button>
               ))}
@@ -226,7 +226,7 @@ export default function KoreanLevelQuestionsPage() {
 
           {/* 하단 정보 */}
           <div className="text-center">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-xs sm:text-sm">
               {language === 'ko' 
                 ? '답을 선택하면 자동으로 다음 질문으로 넘어갑니다'
                 : 'Selecciona una respuesta para continuar automáticamente'

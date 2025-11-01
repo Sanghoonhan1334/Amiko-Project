@@ -720,7 +720,7 @@ export default function PollBoard() {
                     {poll.description && <p className="text-gray-600 text-sm mt-1">{poll.description}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    {user && poll.created_by === user.id && (
+                    {user && (user.is_admin || poll.created_by === user.id) && (
                       <button
                         onClick={(e) => handleDelete(poll.id, e)}
                         className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-500 hover:text-red-600"

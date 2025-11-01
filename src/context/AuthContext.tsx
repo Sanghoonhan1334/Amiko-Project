@@ -4,8 +4,14 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
+interface ExtendedUser extends User {
+  is_admin?: boolean
+  is_korean?: boolean
+  full_name?: string
+}
+
 interface AuthContextType {
-  user: User | null
+  user: ExtendedUser | null
   session: Session | null
   token: string | null
   loading: boolean
@@ -18,11 +24,40 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<ExtendedUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null)
+  
+  // 사용자 프로필 정보 (is_admin 포함) 가져오기
+  const fetchUserProfile = async (baseUser: User): Promise<ExtendedUser> => {
+    try {
+      console.log('[AUTH] 사용자 프로필 정보 가져오기:', baseUser.email)
+      const response = await fetch(`/api/profile?userId=${baseUser.id}`)
+      const result = await response.json()
+      
+      if (response.ok && result.user) {
+        console.log('[AUTH] 프로필 정보:', {
+          is_admin: result.user.is_admin,
+          is_korean: result.user.is_korean,
+          full_name: result.user.full_name
+        })
+        
+        return {
+          ...baseUser,
+          is_admin: result.user.is_admin || false,
+          is_korean: result.user.is_korean || false,
+          full_name: result.user.full_name || baseUser.user_metadata?.name
+        }
+      }
+    } catch (error) {
+      console.error('[AUTH] 프로필 정보 가져오기 실패:', error)
+    }
+    
+    // 실패 시 기본 user 반환
+    return baseUser as ExtendedUser
+  }
   
   // 사용자 프로필 언어 가져오기
   const fetchUserLanguage = async (userId: string) => {
@@ -94,7 +129,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             if (sessionData.expires_at > now) {
               console.log('[AUTH] 로컬 세션으로 인증 상태 복구:', sessionData.user.email)
-              setUser(sessionData.user)
+              
+              // 프로필 정보 포함하여 user 설정
+              const extendedUser = await fetchUserProfile(sessionData.user)
+              setUser(extendedUser)
               setSession({
                 user: sessionData.user,
                 expires_at: sessionData.expires_at
@@ -118,7 +156,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   if (session) {
                     console.log('[AUTH] Supabase 세션 확인됨, 상태 동기화')
                     setSession(session)
-                    setUser(session.user)
+                    
+                    // 프로필 정보 포함하여 user 설정
+                    const extendedUser = await fetchUserProfile(session.user)
+                    setUser(extendedUser)
                     
                     // 로컬 스토리지 업데이트
                     const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
@@ -155,7 +196,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session && !error) {
           console.log('[AUTH] Supabase 세션으로 인증 상태 설정')
           setSession(session)
-          setUser(session.user)
+          
+          // 프로필 정보 포함하여 user 설정
+          const extendedUser = await fetchUserProfile(session.user)
+          setUser(extendedUser)
           
           // 사용자 프로필 언어 가져오기
           await fetchUserLanguage(session.user.id)
@@ -215,7 +259,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session) {
           // 세션 설정
           setSession(session)
-          setUser(session.user)
+          
+          // 프로필 정보 포함하여 user 설정
+          const extendedUser = await fetchUserProfile(session.user)
+          setUser(extendedUser)
           
           // 로컬 스토리지 업데이트 (간소화)
           const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
@@ -274,7 +321,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // 세션 설정
         setSession(data.session);
-        setUser(data.user);
+        
+        // 프로필 정보 포함하여 user 설정
+        const extendedUser = await fetchUserProfile(data.user);
+        setUser(extendedUser);
         
         // 로컬 스토리지에 세션 저장 (30일 연장)
         const extendedExpiry = data.session.expires_at + (30 * 24 * 60 * 60); // 30일 추가

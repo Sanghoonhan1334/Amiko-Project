@@ -23,9 +23,32 @@ export async function POST(
       )
     }
 
-    // 기본 사용자 ID 사용 (개발용)
-    const defaultUserId = '5f83ab21-fd61-4666-94b5-087d73477476'
-    console.log('[NEWS_VOTE] userId:', defaultUserId)
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('Authorization')
+    let userId: string | null = null
+
+    if (authHeader) {
+      const token = authHeader.split(' ')[1]
+      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+      if (authError || !user) {
+        console.error('[NEWS_VOTE] 인증 실패:', authError)
+        return NextResponse.json(
+          { error: '로그인이 필요합니다.' },
+          { status: 401 }
+        )
+      }
+
+      userId = user.id
+    } else {
+      console.error('[NEWS_VOTE] Authorization 헤더 없음')
+      return NextResponse.json(
+        { error: '로그인이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+
+    console.log('[NEWS_VOTE] userId:', userId)
 
     if (!vote_type || !['like', 'dislike'].includes(vote_type)) {
       console.error('[NEWS_VOTE] 잘못된 투표 타입:', vote_type)
@@ -37,7 +60,7 @@ export async function POST(
       .from('reactions')
       .select('type')
       .eq('post_id', newsId)
-      .eq('user_id', defaultUserId)
+      .eq('user_id', userId)
       .maybeSingle()
 
     if (existingVoteError) {
@@ -91,7 +114,7 @@ export async function POST(
         .from('reactions')
         .delete()
         .eq('post_id', newsId)
-        .eq('user_id', defaultUserId)
+        .eq('user_id', userId)
 
       if (deleteError) {
         console.error('[NEWS_VOTE] 투표 삭제 오류:', deleteError)
@@ -107,7 +130,7 @@ export async function POST(
         .from('reactions')
         .upsert({
           post_id: newsId,
-          user_id: defaultUserId,
+          user_id: userId,
           type: newVoteType
         }, {
           onConflict: 'user_id,post_id'
@@ -202,15 +225,33 @@ export async function GET(
       )
     }
 
-    // 기본 사용자 ID 사용 (개발용)
-    const defaultUserId = '5f83ab21-fd61-4666-94b5-087d73477476'
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('Authorization')
+    let userId: string | null = null
+
+    if (authHeader) {
+      const token = authHeader.split(' ')[1]
+      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+      if (!authError && user) {
+        userId = user.id
+      }
+    }
+
+    // 로그인하지 않은 경우
+    if (!userId) {
+      return NextResponse.json({
+        success: true,
+        vote_type: null
+      })
+    }
 
     // 사용자의 투표 정보 조회
     const { data: vote, error: voteError } = await supabaseServer
       .from('reactions')
       .select('type')
       .eq('post_id', newsId)
-      .eq('user_id', defaultUserId)
+      .eq('user_id', userId)
       .single()
 
     if (voteError && voteError.code !== 'PGRST116') {

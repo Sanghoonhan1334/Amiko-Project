@@ -151,7 +151,7 @@ export default function IdolMemesBoard() {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {pinnedPosts.map(post => (
-                    <IdolMemesPost key={post.id} post={post} theme={theme} />
+                    <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} />
                   ))}
                 </div>
               </div>
@@ -161,7 +161,7 @@ export default function IdolMemesBoard() {
             {regularPosts.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {regularPosts.map(post => (
-                  <IdolMemesPost key={post.id} post={post} theme={theme} />
+                  <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} />
                 ))}
               </div>
             ) : (

@@ -461,18 +461,18 @@ function NewsPageContent() {
         console.log('뉴스 댓글 작성 성공:', data)
         
         setNewComment('')
-        toast.success('댓글이 작성되었습니다!')
+        toast.success(language === 'ko' ? '댓글이 작성되었습니다!' : '¡Comentario publicado!')
         
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('뉴스 댓글 작성 실패:', errorData)
-        toast.error(errorData.error || '댓글 작성에 실패했습니다.')
+        toast.error(errorData.error || (language === 'ko' ? '댓글 작성에 실패했습니다.' : 'Error al publicar comentario.'))
       }
     } catch (error) {
       console.error('댓글 작성 오류:', error)
-      toast.error('댓글 작성 중 오류가 발생했습니다.')
+      toast.error(language === 'ko' ? '댓글 작성 중 오류가 발생했습니다.' : 'Error al publicar comentario.')
     }
   }
 
@@ -502,18 +502,18 @@ function NewsPageContent() {
         
         setReplyContent('')
         setReplyingTo(null)
-        toast.success('답글이 작성되었습니다!')
+        toast.success(language === 'ko' ? '답글이 작성되었습니다!' : '¡Respuesta publicada!')
         
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('뉴스 대댓글 작성 실패:', errorData)
-        toast.error(errorData.error || '답글 작성에 실패했습니다.')
+        toast.error(errorData.error || (language === 'ko' ? '답글 작성에 실패했습니다.' : 'Error al publicar respuesta.'))
       }
     } catch (error) {
       console.error('답글 작성 오류:', error)
-      toast.error('답글 작성 중 오류가 발생했습니다.')
+      toast.error(language === 'ko' ? '답글 작성 중 오류가 발생했습니다.' : 'Error al publicar respuesta.')
     }
   }
 
@@ -542,23 +542,23 @@ function NewsPageContent() {
         
         setEditContent('')
         setEditingComment(null)
-        toast.success('댓글이 수정되었습니다!')
+        toast.success(language === 'ko' ? '댓글이 수정되었습니다!' : '¡Comentario actualizado!')
         
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('뉴스 댓글 수정 실패:', errorData)
-        toast.error(errorData.error || '댓글 수정에 실패했습니다.')
+        toast.error(errorData.error || (language === 'ko' ? '댓글 수정에 실패했습니다.' : 'Error al actualizar comentario.'))
       }
     } catch (error) {
       console.error('댓글 수정 오류:', error)
-      toast.error('댓글 수정 중 오류가 발생했습니다.')
+      toast.error(language === 'ko' ? '댓글 수정 중 오류가 발생했습니다.' : 'Error al actualizar comentario.')
     }
   }
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('댓글을 삭제하시겠습니까?')) return
+    if (!confirm(language === 'ko' ? '댓글을 삭제하시겠습니까?' : '¿Eliminar este comentario?')) return
     if (!selectedNews?.id) return
 
     try {
@@ -577,24 +577,33 @@ function NewsPageContent() {
         const data = await response.json()
         console.log('뉴스 댓글 삭제 성공:', data)
         
-        toast.success('댓글이 삭제되었습니다!')
+        toast.success(language === 'ko' ? '댓글이 삭제되었습니다!' : '¡Comentario eliminado!')
         
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('뉴스 댓글 삭제 실패:', errorData)
-        toast.error(errorData.error || '댓글 삭제에 실패했습니다.')
+        toast.error(errorData.error || (language === 'ko' ? '댓글 삭제에 실패했습니다.' : 'Error al eliminar comentario.'))
       }
     } catch (error) {
       console.error('댓글 삭제 오류:', error)
-      toast.error('댓글 삭제 중 오류가 발생했습니다.')
+      toast.error(language === 'ko' ? '댓글 삭제 중 오류가 발생했습니다.' : 'Error al eliminar comentario.')
     }
   }
 
   // 뉴스 좋아요/싫어요 처리
   const handleNewsVote = async (type: 'like' | 'dislike') => {
     if (!selectedNews?.id) return
+
+    // 로그인 확인
+    if (!user || !token) {
+      toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+      router.push('/sign-in')
+      return
+    }
+
+    console.log('뉴스 투표 시작:', { newsId: selectedNews.id, type, hasToken: !!token, userId: user.id })
 
     try {
       const response = await fetch(`/api/news/${selectedNews.id}/vote`, {
@@ -605,6 +614,8 @@ function NewsPageContent() {
         },
         body: JSON.stringify({ vote_type: type })
       })
+
+      console.log('뉴스 투표 응답:', response.status, response.ok)
 
       if (response.ok) {
         const data = await response.json()
@@ -626,18 +637,31 @@ function NewsPageContent() {
           dislikes: data.dislike_count
         }))
         
-        toast.success(type === 'like' ? '좋아요를 눌렀습니다!' : '싫어요를 눌렀습니다!')
+        if (type === 'like') {
+          toast.success(language === 'ko' ? '좋아요를 눌렀습니다!' : '¡Me gusta!')
+        } else {
+          toast.success(language === 'ko' ? '싫어요를 눌렀습니다!' : '¡No me gusta!')
+        }
       } else {
-        toast.error('투표에 실패했습니다.')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('뉴스 투표 실패:', errorData)
+        toast.error(errorData.error || (language === 'ko' ? '투표에 실패했습니다.' : 'Error al votar.'))
       }
     } catch (error) {
       console.error('뉴스 투표 오류:', error)
-      toast.error('투표 중 오류가 발생했습니다.')
+      toast.error(language === 'ko' ? '투표 중 오류가 발생했습니다.' : 'Error al votar.')
     }
   }
 
   const handleCommentVote = async (commentId: string, type: 'like' | 'dislike') => {
     if (!selectedNews?.id) return
+
+    // 로그인 확인
+    if (!user || !token) {
+      toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+      router.push('/sign-in')
+      return
+    }
 
     try {
       console.log('뉴스 댓글 투표 시도:', { commentId, type, newsId: selectedNews.id })
@@ -694,15 +718,19 @@ function NewsPageContent() {
           })
         )
         
-        toast.success(type === 'like' ? '좋아요를 눌렀습니다!' : '싫어요를 눌렀습니다!')
+        if (type === 'like') {
+          toast.success(language === 'ko' ? '좋아요를 눌렀습니다!' : '¡Me gusta!')
+        } else {
+          toast.success(language === 'ko' ? '싫어요를 눌렀습니다!' : '¡No me gusta!')
+        }
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('뉴스 댓글 투표 실패:', errorData)
-        toast.error('투표에 실패했습니다.')
+        toast.error(language === 'ko' ? '투표에 실패했습니다.' : 'Error al votar.')
       }
     } catch (error) {
       console.error('댓글 투표 오류:', error)
-      toast.error('투표 중 오류가 발생했습니다.')
+      toast.error(language === 'ko' ? '투표 중 오류가 발생했습니다.' : 'Error al votar.')
     }
   }
 
@@ -986,13 +1014,15 @@ function NewsPageContent() {
 
           {/* 댓글 섹션 */}
           <Card className="mt-2 md:mt-6 p-2 md:p-6 bg-white shadow-lg border border-gray-200 rounded-xl">
-            <h2 className="text-xs md:text-lg font-bold text-gray-800 mb-1 md:mb-4">댓글 ({comments.length})</h2>
+            <h2 className="text-xs md:text-lg font-bold text-gray-800 mb-1 md:mb-4">
+              {language === 'ko' ? '댓글' : 'Comentarios'} ({comments.length})
+            </h2>
             
             {/* 댓글 작성 폼 */}
             {user ? (
               <div className="mb-2 md:mb-6">
                 <Textarea
-                  placeholder="댓글을 작성해주세요..."
+                  placeholder={language === 'ko' ? '댓글을 작성해주세요...' : 'Escribe un comentario...'}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={1}
@@ -1004,15 +1034,17 @@ function NewsPageContent() {
                     disabled={!newComment.trim()}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] md:text-sm px-2 py-1 md:px-4 md:py-2"
                   >
-                    댓글 작성
+                    {language === 'ko' ? '댓글 작성' : 'Publicar'}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
-                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">댓글을 작성하려면 로그인이 필요합니다.</p>
+                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">
+                  {language === 'ko' ? '댓글을 작성하려면 로그인이 필요합니다.' : 'Necesitas iniciar sesión para comentar.'}
+                </p>
                 <Button onClick={() => router.push('/sign-in')} variant="outline" className="text-[10px] md:text-sm">
-                  로그인하기
+                  {language === 'ko' ? '로그인하기' : 'Iniciar Sesión'}
                 </Button>
               </div>
             )}
@@ -1022,14 +1054,18 @@ function NewsPageContent() {
               {comments.length === 0 ? (
                 <div className="text-center py-2 md:py-8 text-gray-500">
                   <MessageCircle className="w-6 h-6 md:w-12 md:h-12 mx-auto mb-1 md:mb-2 text-gray-300" />
-                  <p className="text-[10px] md:text-sm">첫 번째 댓글을 작성해보세요!</p>
+                  <p className="text-[10px] md:text-sm">
+                    {language === 'ko' ? '첫 번째 댓글을 작성해보세요!' : '¡Sé el primero en comentar!'}
+                  </p>
                 </div>
               ) : (
                 comments.map((comment) => (
                   <div key={comment.id} className="border-b border-gray-100 pb-1 md:pb-4 last:border-b-0">
                     <div className="flex items-start justify-between mb-1 md:mb-2">
                       <div className="flex items-center gap-1 md:gap-2">
-                        <span className="font-semibold text-[10px] md:text-sm text-gray-800">{comment.users?.nickname || comment.users?.full_name || '익명'}</span>
+                        <span className="font-semibold text-[10px] md:text-sm text-gray-800">
+                          {comment.users?.nickname || comment.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                        </span>
                         <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
                       </div>
                       {user?.id === comment.author_id && (
@@ -1043,7 +1079,7 @@ function NewsPageContent() {
                             }}
                             className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
                           >
-                            수정
+                            {language === 'ko' ? '수정' : 'Editar'}
                           </Button>
                           <Button
                             variant="ghost"
@@ -1051,7 +1087,7 @@ function NewsPageContent() {
                             onClick={() => handleDeleteComment(comment.id)}
                             className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs text-red-600 hover:text-red-800"
                           >
-                            삭제
+                            {language === 'ko' ? '삭제' : 'Eliminar'}
                           </Button>
                         </div>
                       )}
@@ -1071,7 +1107,7 @@ function NewsPageContent() {
                             onClick={() => handleEditComment(comment.id)}
                             className="bg-blue-600 hover:bg-blue-700 text-white text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
                           >
-                            저장
+                            {language === 'ko' ? '저장' : 'Guardar'}
                           </Button>
                           <Button
                             variant="outline"
@@ -1082,7 +1118,7 @@ function NewsPageContent() {
                             }}
                             className="text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
                           >
-                            취소
+                            {language === 'ko' ? '취소' : 'Cancelar'}
                           </Button>
                         </div>
                       </div>
@@ -1115,7 +1151,7 @@ function NewsPageContent() {
                         onClick={() => setReplyingTo(comment.id)}
                         className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
                       >
-                        답글
+                        {language === 'ko' ? '답글' : 'Responder'}
                       </Button>
                     </div>
 
@@ -1123,7 +1159,7 @@ function NewsPageContent() {
                     {replyingTo === comment.id && (
                       <div className="mt-1 md:mt-3 ml-1 md:ml-4 p-1 md:p-3 bg-gray-50 rounded-lg">
                         <Textarea
-                          placeholder="답글을 작성해주세요..."
+                          placeholder={language === 'ko' ? '답글을 작성해주세요...' : 'Escribe una respuesta...'}
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
                           rows={1}
@@ -1136,7 +1172,7 @@ function NewsPageContent() {
                             disabled={!replyContent.trim()}
                             className="bg-blue-600 hover:bg-blue-700 text-white text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
                           >
-                            답글 작성
+                            {language === 'ko' ? '답글 작성' : 'Responder'}
                           </Button>
                           <Button
                             variant="outline"
@@ -1147,7 +1183,7 @@ function NewsPageContent() {
                             }}
                             className="text-[9px] md:text-xs px-1 md:px-3 py-0.5 md:py-1"
                           >
-                            취소
+                            {language === 'ko' ? '취소' : 'Cancelar'}
                           </Button>
                         </div>
                       </div>
@@ -1160,7 +1196,9 @@ function NewsPageContent() {
                           <div key={reply.id} className="p-1 md:p-3 bg-gray-50 rounded-lg">
                             <div className="flex items-start justify-between mb-1 md:mb-2">
                               <div className="flex items-center gap-0.5 md:gap-2">
-                                <span className="font-semibold text-[9px] md:text-xs text-gray-800">{reply.users?.nickname || reply.users?.full_name || '익명'}</span>
+                                <span className="font-semibold text-[9px] md:text-xs text-gray-800">
+                                  {reply.users?.nickname || reply.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                                </span>
                                 <span className="text-[8px] md:text-xs text-gray-500">{new Date(reply.created_at).toLocaleDateString()}</span>
                               </div>
                               {user?.id === reply.author_id && (
@@ -1170,7 +1208,7 @@ function NewsPageContent() {
                                   onClick={() => handleDeleteComment(reply.id)}
                                   className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-red-600 hover:text-red-800"
                                 >
-                                  삭제
+                                  {language === 'ko' ? '삭제' : 'Eliminar'}
                                 </Button>
                               )}
                             </div>

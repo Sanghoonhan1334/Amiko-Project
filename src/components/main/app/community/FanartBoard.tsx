@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { Plus, TrendingUp, Clock, Grid3x3, List as ListIcon, ArrowLeft } from 'lucide-react'
+import { Plus, TrendingUp, Clock, Grid3x3, List as ListIcon, ArrowLeft, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -64,6 +64,40 @@ export default function FanartBoard() {
       setPosts([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDelete = async (postId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!user?.is_admin) {
+      alert('관리자만 게시물을 삭제할 수 있습니다.')
+      return
+    }
+
+    if (!confirm('정말 이 게시물을 삭제하시겠습니까?')) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/fanart/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (res.ok) {
+        alert('게시물이 삭제되었습니다.')
+        fetchFanarts() // 목록 새로고침
+      } else {
+        const data = await res.json()
+        alert(data.error || '게시물 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Failed to delete post:', error)
+      alert('게시물 삭제 중 오류가 발생했습니다.')
     }
   }
 
@@ -177,6 +211,16 @@ export default function FanartBoard() {
                   {pinnedPosts.map(post => (
                     <Link key={post.id} href={`/community/fanart/${post.id}`}>
                       <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer">
+                        {/* 삭제 버튼 (관리자 전용) */}
+                        {user?.is_admin && (
+                          <button
+                            onClick={(e) => handleDelete(post.id, e)}
+                            className="absolute top-2 left-2 z-10 p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 shadow-md transition-all"
+                            title="게시물 삭제 (관리자)"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                         <Image
                           src={post.image_url}
                           alt={post.title}
@@ -204,6 +248,16 @@ export default function FanartBoard() {
                   {regularPosts.map(post => (
                     <Link key={post.id} href={`/community/fanart/${post.id}`}>
                       <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer">
+                        {/* 삭제 버튼 (관리자 전용) */}
+                        {user?.is_admin && (
+                          <button
+                            onClick={(e) => handleDelete(post.id, e)}
+                            className="absolute top-2 left-2 z-10 p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 shadow-md transition-all"
+                            title="게시물 삭제 (관리자)"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                         <Image
                           src={post.image_url}
                           alt={post.title}
@@ -225,7 +279,17 @@ export default function FanartBoard() {
                 <div className="space-y-3">
                   {regularPosts.map(post => (
                     <Link key={post.id} href={`/community/fanart/${post.id}`}>
-                      <div className="flex gap-4 p-3 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="relative flex gap-4 p-3 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+                        {/* 삭제 버튼 (관리자 전용) */}
+                        {user?.is_admin && (
+                          <button
+                            onClick={(e) => handleDelete(post.id, e)}
+                            className="absolute top-2 left-2 z-10 p-1.5 rounded-full bg-red-500/80 text-white hover:bg-red-600 shadow-md transition-all"
+                            title="게시물 삭제 (관리자)"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                           <Image
                             src={post.image_url}

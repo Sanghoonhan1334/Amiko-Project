@@ -17,9 +17,11 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'latest'
     const searchQuery = searchParams.get('searchQuery') || ''
     const gallerySlug = searchParams.get('gallery') // 갤러리 슬러그 파라미터 (전체 선택 시 null)
+    const category = searchParams.get('category') // 카테고리 필터 (예: "공지사항")
+    const isNotice = searchParams.get('is_notice') // 공지사항 필터 (true/false)
     const offset = (page - 1) * limit
 
-    console.log('[POSTS_GET] 게시물 목록 조회:', { page, limit, sortBy, searchQuery, gallerySlug })
+    console.log('[POSTS_GET] 게시물 목록 조회:', { page, limit, sortBy, searchQuery, gallerySlug, category, isNotice })
 
     // 기본 쿼리 구성 (자유게시판 갤러리)
     let query = supabaseServer
@@ -62,7 +64,9 @@ export async function GET(request: NextRequest) {
       
       if (galleryData) {
         console.log('[POSTS_GET] 갤러리 ID로 필터링:', galleryData.id)
-        query = query.eq('gallery_id', galleryData.id)
+        // 공지사항(is_notice = true)은 모든 갤러리에 표시되므로
+        // gallery_id = galleryData.id OR is_notice = true 조건 적용
+        query = query.or(`gallery_id.eq.${galleryData.id},is_notice.eq.true`)
       } else {
         console.log('[POSTS_GET] 갤러리를 찾을 수 없음 - 모든 게시글 조회')
         // 갤러리가 없으면 모든 게시글 조회 (필터링 없음)
@@ -70,6 +74,18 @@ export async function GET(request: NextRequest) {
     } else {
       console.log('[POSTS_GET] 전체 게시글 조회 (갤러리 필터링 없음)')
       // gallery 파라미터가 없으면 모든 게시글 조회
+    }
+
+    // 카테고리 필터 적용
+    if (category) {
+      console.log('[POSTS_GET] 카테고리 필터 적용:', category)
+      query = query.eq('category', category)
+    }
+
+    // 공지사항 필터 적용
+    if (isNotice === 'true') {
+      console.log('[POSTS_GET] 공지사항 필터 적용: is_notice = true')
+      query = query.eq('is_notice', true)
     }
 
     // 검색 쿼리 적용

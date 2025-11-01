@@ -260,8 +260,8 @@ export default function HomeTab() {
     try {
       console.log('Loading hot posts from database...')
       
-      // 실제 데이터베이스에서 조회수가 높은 게시물 가져오기
-      const response = await fetch('/api/galleries/freeboard/posts?sort=views&limit=5')
+      // 실제 데이터베이스에서 인기글(is_hot = true 또는 좋아요 많은 글) 가져오기
+      const response = await fetch('/api/posts/popular?filter=hot&limit=5')
       
       console.log('Response status:', response.status)
       
@@ -272,25 +272,49 @@ export default function HomeTab() {
       const data = await response.json()
       console.log('API Response:', data)
       
-      if (data.success && data.posts) {
+      console.log('[loadHotPosts] 🔍 API 응답 데이터 분석:', {
+        hasPosts: !!data.posts,
+        isArray: Array.isArray(data.posts),
+        postsCount: data.posts?.length || 0,
+        firstPost: data.posts?.[0]
+      })
+
+      if (data.posts && Array.isArray(data.posts)) {
         // 데이터 포맷팅
-        const formattedPosts = data.posts.map((post: any) => ({
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          author: '익명', // 임시로 익명 처리
-          likes: post.like_count || 0,
-          comments: post.comment_count || 0,
-          views: post.view_count || 0,
-          createdAt: formatTimeAgo(post.created_at),
-          category: data.gallery?.name_ko || (language === 'ko' ? '자유게시판' : 'Libre')
-        }))
+        const formattedPosts = data.posts.map((post: any) => {
+          console.log('[loadHotPosts] 📝 포스트 처리:', {
+            id: post.id,
+            title: post.title,
+            is_notice: post.is_notice,
+            category: post.category
+          })
+          
+          // 공지사항인 경우 카테고리를 "공지"/"Anuncio"로 표시
+          let categoryName = post.category || (language === 'ko' ? '자유' : 'Libre')
+          if (post.is_notice) {
+            categoryName = language === 'ko' ? '공지' : 'Anuncio'
+          }
+          
+          return {
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            author: post.user?.nickname || post.user?.full_name || '익명',
+            likes: post.like_count || 0,
+            comments: post.comment_count || 0,
+            views: post.view_count || 0,
+            createdAt: formatTimeAgo(post.created_at),
+            category: categoryName
+          }
+        })
         
-        console.log('Setting hot posts:', formattedPosts)
+        console.log('[loadHotPosts] ✅ 포맷팅 완료:', formattedPosts.length, '개')
+        console.log('[loadHotPosts] 📋 첫 번째 포스트:', formattedPosts[0])
+        
         // 5개로 제한
         setHotPosts(formattedPosts.slice(0, 5))
       } else {
-        console.log('No posts found or API failed')
+        console.log('[loadHotPosts] ❌ posts 배열 없음 또는 빈 배열')
         setHotPosts([])
       }
       
@@ -386,8 +410,8 @@ export default function HomeTab() {
     try {
       console.log('🔍 공지사항 로딩 시작...')
       
-      // 모든 갤러리에서 카테고리가 "공지사항"인 게시글 가져오기
-      const response = await fetch('/api/posts?category=공지사항&limit=10&sort=created_at')
+      // 모든 갤러리에서 is_notice = true인 게시글 가져오기 (카테고리 무관)
+      const response = await fetch('/api/posts?is_notice=true&limit=10&sort=created_at')
       
       if (!response.ok) {
         console.error('❌ 공지사항 API 실패:', response.status)
@@ -806,7 +830,7 @@ export default function HomeTab() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/main?tab=community')}
+            onClick={() => router.push('/community/freeboard')}
           >
             {language === 'ko' ? '더 보기' : 'Ver Más'}
           </Button>
@@ -1120,7 +1144,7 @@ export default function HomeTab() {
               </h2>
             </div>
             <button 
-              onClick={() => router.push('/main?tab=community&view=k-chat')}
+              onClick={() => router.push('/community/k-chat')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
               <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -1136,7 +1160,7 @@ export default function HomeTab() {
                     <div 
                       key={room.id}
                       className="cursor-pointer group"
-                      onClick={() => router.push(`/community/k-chat`)}
+                      onClick={() => router.push(`/community/k-chat/${room.id}`)}
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                         <img
@@ -1185,7 +1209,7 @@ export default function HomeTab() {
               </h2>
             </div>
             <button 
-              onClick={() => router.push('/main?tab=community&view=polls')}
+              onClick={() => router.push('/community/polls')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
               <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -1686,7 +1710,7 @@ export default function HomeTab() {
                   variant="ghost"
                   size="lg"
                   className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  onClick={() => router.push('/main?tab=community')}
+                  onClick={() => router.push('/community/freeboard')}
                 >
                   <TrendingUp className="w-5 h-5 mr-2" />
                   {language === 'ko' ? '더 보기' : 'Ver Más'}
@@ -1748,13 +1772,24 @@ export default function HomeTab() {
 
             {/* 인기 심리테스트 */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.popularTests')}
+                  </h2>
                 </div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {t('home.sections.popularTests')}
-                </h2>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  onClick={() => router.push('/community/tests')}
+                >
+                  <Brain className="w-5 h-5 mr-2" />
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
               </div>
               
               {popularTests.length > 0 ? (
@@ -1784,16 +1819,6 @@ export default function HomeTab() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                  
-                  <div className="mt-4 text-center">
-                    <Button
-                      variant="ghost"
-                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                      onClick={() => router.push('/community/tests')}
-                    >
-                      {language === 'ko' ? '더 보기' : 'Ver Más'}
-                    </Button>
                   </div>
                 </>
               ) : (
@@ -1943,13 +1968,24 @@ export default function HomeTab() {
 
             {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.videoChatOnline')}
+                  </h2>
                 </div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {t('home.sections.videoChatOnline')}
-                </h2>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                  onClick={() => router.push('/main?tab=meet')}
+                >
+                  <Users className="w-5 h-5 mr-2" />
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
               </div>
               
               <Card className="shadow-2xl">
@@ -1983,14 +2019,6 @@ export default function HomeTab() {
                         {language === 'ko' ? '현재 온라인 사용자가 없습니다' : 'No hay usuarios en línea'}
                       </div>
                     )}
-                    <Button
-                      variant="outline"
-                      className="w-full h-10 border-green-200 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
-                      onClick={() => router.push('/main?tab=meet')}
-                    >
-                      <Users className="w-4 h-4 mr-2 text-green-600" />
-                      <span className="text-green-600 font-medium text-sm">{t('home.community.seeMore')}</span>
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -2008,7 +2036,7 @@ export default function HomeTab() {
                     </h2>
                   </div>
                   <button 
-                    onClick={() => router.push('/main?tab=community&view=k-chat')}
+                    onClick={() => router.push('/community/k-chat')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
                     <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -2024,7 +2052,7 @@ export default function HomeTab() {
                           <div 
                             key={room.id}
                             className="cursor-pointer group"
-                            onClick={() => router.push(`/main?tab=community&room=${room.id}`)}
+                            onClick={() => router.push(`/community/k-chat/${room.id}`)}
                           >
                             <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                               <img
@@ -2065,7 +2093,7 @@ export default function HomeTab() {
                     </h2>
                   </div>
                   <button 
-                    onClick={() => router.push('/main?tab=community&view=polls')}
+                    onClick={() => router.push('/community/polls')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
                     <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -2111,6 +2139,297 @@ export default function HomeTab() {
                   </CardContent>
                 </Card>
               </div>
+            </div>
+
+            {/* 오늘의 K-Noticia - 데스크톱 */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img 
+                    src="/icons/k-magazine.png" 
+                    alt="K-Noticia" 
+                    className="w-5 h-5 object-contain"
+                  />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.kNoticia')}
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => router.push('/community/news')}
+                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <Card>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {kNoticiaNews.length > 0 ? (
+                      kNoticiaNews.map((news) => (
+                        <div 
+                          key={news.id}
+                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
+                          onClick={() => router.push(`/community/news/${news.id}`)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Badge className="bg-purple-100 text-purple-700 border-0 px-2 py-0.5 font-medium text-xs whitespace-nowrap">
+                              {t('home.sections.news')}
+                            </Badge>
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
+                              {news.title}
+                            </h3>
+                            <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center gap-1">
+                                <Heart className="w-4 h-4 text-red-500" />
+                                <span>{news.likes}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MessageSquare className="w-4 h-4 text-blue-500" />
+                                <span>{news.comments}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Eye className="w-4 h-4" />
+                                <span>{formatNumber(news.views)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <img 
+                          src="/icons/k-magazine.png" 
+                          alt="K-Noticia" 
+                          className="w-12 h-12 mx-auto mb-3 opacity-40"
+                        />
+                        <p className="text-gray-500 text-sm">
+                          {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 최근 스토리 - 데스크톱 */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img 
+                    src="/icons/story.png" 
+                    alt="Stories" 
+                    className="w-5 h-5 object-contain"
+                  />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.recentStories')}
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => router.push('/community/stories')}
+                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <Card>
+                <CardContent className="p-3">
+                  {recentStories.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {recentStories.slice(0, 3).map((story) => (
+                        <div 
+                          key={story.id}
+                          className="cursor-pointer group"
+                          onClick={() => {
+                            const userStories = recentStories.filter(s => s.user_name === story.user_name)
+                            if (userStories.length > 0) {
+                              setViewerStories(userStories)
+                              setSelectedStoryIndex(userStories.findIndex(s => s.id === story.id))
+                              setShowStoryViewer(true)
+                            }
+                          }}
+                        >
+                          <div className="relative aspect-square overflow-hidden rounded-lg mb-2">
+                            {story.image_url ? (
+                              <img
+                                src={story.image_url}
+                                alt={story.user_name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                                <span className="text-white font-bold text-2xl">
+                                  {story.user_name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-1 line-clamp-1 font-medium">
+                            {story.user_name}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <Heart className="w-3 h-3 text-red-500" />
+                            <span>{story.likes || 0}</span>
+                            <span className="text-gray-400">·</span>
+                            <span>{formatTimeAgo(story.created_at)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <img 
+                        src="/icons/story.png" 
+                        alt="Stories" 
+                        className="w-12 h-12 mx-auto mb-3 opacity-40"
+                      />
+                      <p className="text-gray-500 text-sm">
+                        {language === 'ko' ? '스토리가 없습니다' : 'No hay historias'}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* AMIKO 최근 영상 - 데스크톱 */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Play className="w-5 h-5 text-red-600" />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.recentVideos')}
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => router.push('/about')}
+                  className="flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <Card>
+                <CardContent className="p-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* 첫 번째 비디오 */}
+                    <div 
+                      className="cursor-pointer group"
+                      onClick={() => router.push('/about')}
+                    >
+                      <div className="relative aspect-video overflow-hidden rounded-lg mb-2">
+                        <img
+                          src="https://img.youtube.com/vi/do4aDyGZmgM/maxresdefault.jpg"
+                          alt="AMIKO Introduction"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-3">
+                          <div className="text-white text-sm font-bold line-clamp-2">
+                            {language === 'ko' ? 'AMIKO는 어떤 플랫폼인가요?' : 'QUÉ TIPO DE PLATAFORMA ES AMIKO?'}
+                          </div>
+                        </div>
+                        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          3:29
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 두 번째 비디오 */}
+                    <div 
+                      className="cursor-pointer group"
+                      onClick={() => router.push('/about')}
+                    >
+                      <div className="relative aspect-video overflow-hidden rounded-lg mb-2">
+                        <img
+                          src="https://img.youtube.com/vi/do4aDyGZmgM/maxresdefault.jpg"
+                          alt="AMIKO Introduction"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-3">
+                          <div className="text-white text-sm font-bold line-clamp-2">
+                            {language === 'ko' ? 'AMIKO는 어떤 플랫폼인가요?' : 'QUÉ TIPO DE PLATAFORMA ES AMIKO?'}
+                          </div>
+                        </div>
+                        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          3:29
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Socios de AMIKO - 데스크톱 */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {language === 'ko' ? 'AMIKO 파트너' : 'Socios de AMIKO'}
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => router.push('/community/partners')}
+                  className="flex items-center gap-1 text-blue-500 hover:text-blue-600 text-sm"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <Card>
+                <CardContent className="p-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div 
+                      className="cursor-pointer group"
+                      onClick={() => router.push('/community/partners')}
+                    >
+                      <div className="relative aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+                        <img
+                          src="/logos/para-fans-logo.jpg"
+                          alt="Para Fans"
+                          className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
+                          draggable={false}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="cursor-pointer group"
+                      onClick={() => router.push('/community/partners')}
+                    >
+                      <div className="relative aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+                        <img
+                          src="/logos/acu-point-logo.jpg"
+                          alt="Acu-Point"
+                          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
+                          draggable={false}
+                        />
+                      </div>
+                    </div>
+
+                    <div 
+                      className="cursor-pointer group"
+                      onClick={() => router.push('/community/partners')}
+                    >
+                      <div className="relative aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+                        <img
+                          src="/logos/socios-placeholder.jpg"
+                          alt="Partner"
+                          className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
+                          draggable={false}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

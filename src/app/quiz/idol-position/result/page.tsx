@@ -4,6 +4,7 @@ import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 import ShareBar from '@/components/quiz/ShareBar'
 
 // 이미지 경로 매핑 헬퍼 함수
@@ -242,14 +243,22 @@ function IdolPositionResultContent() {
         )}
 
             {/* 하단 링크들 */}
-            <div className="mt-8 text-center mx-4">
+            <div className="mt-8 text-center mx-4 space-y-4">
               <button
-                className="text-white/80 hover:text-white underline underline-offset-4 transition"
+                className="text-white/80 hover:text-white underline underline-offset-4 transition block mx-auto"
                 onClick={() => {
                   router.push('/quiz/idol-position/result/all');
                 }}
               >
                 Ver todos los tipos →
+              </button>
+              
+              <button
+                onClick={() => router.push('/community/tests')}
+                className="text-white/90 hover:text-white font-medium flex items-center justify-center mx-auto gap-1 transition-colors"
+              >
+                Ver Otros Tests
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 

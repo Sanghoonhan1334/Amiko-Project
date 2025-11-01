@@ -66,3 +66,52 @@ export async function GET(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+
+    // Check authentication and admin status
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader || !supabaseServer) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if user is admin
+    const { data: userData } = await supabaseServer
+      .from('users')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+
+    if (!userData?.is_admin) {
+      return NextResponse.json({ error: '관리자만 게시물을 삭제할 수 있습니다.' }, { status: 403 })
+    }
+
+    // Delete the post
+    const { error: deleteError } = await supabaseServer
+      .from('idol_memes')
+      .delete()
+      .eq('id', id)
+
+    if (deleteError) {
+      console.error('Failed to delete post:', deleteError)
+      return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, message: '게시물이 삭제되었습니다.' })
+  } catch (error) {
+    console.error('Error in DELETE /api/idol-photos/[id]:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

@@ -448,12 +448,12 @@ function StoriesPageContent() {
 
       const result = await response.json()
 
-      // 댓글 목록에 추가
+      // 댓글 목록에 추가 (replies 배열 초기화)
       setStoryComments(prev => ({
         ...prev,
         [selectedStory.id]: [
           ...(prev[selectedStory.id] || []),
-          result.comment
+          { ...result.comment, replies: [] }
         ]
       }))
 
@@ -523,7 +523,7 @@ function StoriesPageContent() {
   // 답글 작성 시작
   const startReply = (commentId: string, authorName: string) => {
     setReplyToComment(commentId)
-    setReplyText(`@${authorName} `)
+    setReplyText('') // @ 멘션 제거, 빈 텍스트로 시작
   }
 
   // 답글 작성 취소
@@ -559,19 +559,24 @@ function StoriesPageContent() {
 
       const result = await response.json()
 
-      // 댓글 목록에 추가
+      // 답글을 부모 댓글의 replies 배열에 추가
       setStoryComments(prev => ({
         ...prev,
-        [selectedStory.id]: [
-          ...(prev[selectedStory.id] || []),
-          result.comment
-        ]
+        [selectedStory.id]: prev[selectedStory.id]?.map(comment => {
+          if (comment.id === replyToComment) {
+            return {
+              ...comment,
+              replies: [...(comment.replies || []), result.comment]
+            }
+          }
+          return comment
+        }) || []
       }))
 
       // 댓글 수 증가
       setStories(prev => prev.map(story => 
         story.id === selectedStory.id 
-          ? { ...story, comments: [...(story.comments || []), result.comment] }
+          ? { ...story, comment_count: (story.comment_count || 0) + 1 }
           : story
       ))
 
@@ -1558,8 +1563,8 @@ function StoriesPageContent() {
               <div className="w-6 h-6"></div> {/* 공간 맞추기 */}
             </div>
 
-            {/* 댓글 목록 - Instagram 스타일 */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* 댓글 목록 - 간단한 스타일 */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {isLoadingComments ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
@@ -1567,52 +1572,60 @@ function StoriesPageContent() {
                 </div>
               ) : storyComments[selectedStory.id]?.length > 0 ? (
                 storyComments[selectedStory.id].map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden">
-                      {comment.author?.profile_image ? (
-                        <img
-                          src={comment.author.profile_image}
-                          alt={comment.author.full_name}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xs font-medium text-gray-600">
-                          {comment.author?.full_name?.[0] || '?'}
+                  <div key={comment.id} className="border-b border-gray-200 pb-4">
+                    {/* 원본 댓글 */}
+                    <div className="flex gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 flex items-center justify-center">
+                        <span className="text-gray-600 text-sm font-semibold">
+                          {comment.author?.full_name?.charAt(0).toUpperCase() || 'U'}
                         </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block">
-                        <div className="flex items-center gap-2 mb-1">
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
                           <span className="font-semibold text-sm">
                             {comment.author?.full_name || t('freeboard.anonymous')}
                           </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(comment.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'ko-KR')}
+                          </span>
                         </div>
-                        <p className="text-sm text-gray-800 leading-relaxed break-words">
-                          {comment.content}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 ml-3">
-                        <span className="text-xs text-gray-500">
-                          {new Date(comment.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'ko-KR')}
-                        </span>
-                        <button 
-                          onClick={() => toggleCommentLike(comment.id)}
-                          className={`text-xs hover:text-gray-700 flex items-center gap-1 ${
-                            comment.is_liked ? 'text-red-500' : 'text-gray-500'
-                          }`}
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{comment.content}</p>
+                        
+                        {/* 답글 버튼 */}
+                        <button
+                          onClick={() => startReply(comment.id, comment.author?.full_name || 'User')}
+                          className="text-xs text-purple-600 hover:text-purple-800 font-medium"
                         >
-                          <Heart className={`w-3 h-3 ${comment.is_liked ? 'fill-current' : ''}`} />
-                          {comment.likes_count > 0 && comment.likes_count}
-                        </button>
-                        <button 
-                          onClick={() => startReply(comment.id, comment.author.full_name)}
-                          className="text-xs text-gray-500 hover:text-gray-700"
-                        >
-                          {t('communityTab.reply')}
+                          Responder
                         </button>
                       </div>
                     </div>
+
+                    {/* 답글 목록 (계단식) */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="ml-12 mt-3 space-y-3">
+                        {comment.replies.map((reply: any) => (
+                          <div key={reply.id} className="flex gap-3">
+                            <div className="w-8 h-8 rounded-full bg-purple-200 flex-shrink-0 flex items-center justify-center">
+                              <span className="text-purple-700 text-xs font-semibold">
+                                {reply.author?.full_name?.charAt(0).toUpperCase() || 'U'}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-xs">
+                                  {reply.author?.full_name || t('freeboard.anonymous')}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(reply.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'ko-KR')}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-700 whitespace-pre-wrap">{reply.content}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (
@@ -1628,56 +1641,52 @@ function StoriesPageContent() {
 
             {/* 답글 작성 중 표시 */}
             {replyToComment && (
-              <div className="p-4 border-t bg-blue-50">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-blue-600 font-medium">{t('communityTab.replyWriting')}</span>
+              <div className="p-4 border-t bg-white">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-purple-600 font-medium">Escribir respuesta</span>
                   <button
                     onClick={cancelReply}
-                    className="text-blue-500 hover:text-blue-700 text-sm"
+                    className="text-gray-500 hover:text-gray-700 text-sm"
                   >
-                    {t('buttons.cancel')}
+                    Cancelar
                   </button>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden">
-                    {user?.user_metadata?.avatar_url ? (
-                      <img
-                        src={user.user_metadata.avatar_url}
-                        alt="내 프로필"
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs font-medium text-gray-600">
-                        {user?.user_metadata?.full_name?.[0] || '?'}
-                      </span>
-                    )}
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 bg-purple-500 rounded-full flex-shrink-0 flex items-center justify-center">
+                    <span className="text-white text-xs font-semibold">
+                      {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    </span>
                   </div>
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
+                  <div className="flex-1">
+                    <Textarea
+                      placeholder="Escribe una respuesta..."
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
-                      placeholder={t('communityTab.writeComment')}
-                      className="w-full px-3 py-2 border border-gray-600 dark:border-gray-400 rounded-full focus:outline-none focus:border-gray-600 dark:border-gray-400 text-sm bg-white"
-                      maxLength={500}
                       onKeyPress={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault()
                           handleSubmitReply()
                         }
                       }}
+                      className="w-full text-sm resize-none"
+                      rows={2}
                     />
-                    {replyText.length > 0 && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <button
-                          onClick={handleSubmitReply}
-                          disabled={!replyText.trim() || isCommenting}
-                          className="text-blue-500 font-semibold text-sm hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isCommenting ? t('communityTab.posting') : t('communityTab.post')}
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex justify-end gap-2 mt-2">
+                      <button
+                        onClick={cancelReply}
+                        className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800"
+                      >
+                        Cancelar
+                      </button>
+                      <Button 
+                        onClick={handleSubmitReply}
+                        disabled={!replyText.trim() || isCommenting}
+                        size="sm"
+                        className="text-xs"
+                      >
+                        {isCommenting ? t('communityTab.posting') : 'Responder'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

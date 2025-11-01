@@ -22,7 +22,7 @@ export async function DELETE(
 
     const { id: pollId } = await params
 
-    // 먼저 투표가 존재하고, 사용자가 작성자인지 확인
+    // 먼저 투표가 존재하는지 확인
     const { data: poll, error: pollError } = await supabase
       .from('polls')
       .select('id, created_by')
@@ -33,7 +33,17 @@ export async function DELETE(
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
     }
 
-    if (poll.created_by !== user.id) {
+    // 관리자 여부 확인
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+
+    const isAdmin = userData?.is_admin || false
+
+    // 작성자이거나 관리자인 경우에만 삭제 가능
+    if (poll.created_by !== user.id && !isAdmin) {
       return NextResponse.json({ error: 'Unauthorized to delete this poll' }, { status: 403 })
     }
 
