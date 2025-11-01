@@ -2351,44 +2351,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                               }}
                               className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
                             >
-                              {/* 드래그 핸들 - 박스 전체 이동용 */}
-                              <div
-                                className="bg-purple-100 dark:bg-purple-900 border-2 border-purple-300 dark:border-purple-700 rounded-lg p-2 mb-2 cursor-move flex items-center justify-center gap-2 select-none"
-                                onMouseDown={(e) => {
-                                  e.preventDefault()
-                                  const startX = e.clientX
-                                  const startY = e.clientY
-                                  const currentPos = submenuPositions[item.id] || { x: -147, y: -143 }
-                                  
-                                  const handleMouseMove = (moveEvent: MouseEvent) => {
-                                    const deltaX = moveEvent.clientX - startX
-                                    const deltaY = moveEvent.clientY - startY
-                                    const newPos = {
-                                      x: currentPos.x + deltaX,
-                                      y: currentPos.y + deltaY
-                                    }
-                                    setSubmenuPositions(prev => ({ ...prev, [item.id]: newPos }))
-                                  }
-                                  
-                                  const handleMouseUp = () => {
-                                    document.removeEventListener('mousemove', handleMouseMove)
-                                    document.removeEventListener('mouseup', handleMouseUp)
-                                    
-                                    // localStorage에 저장
-                                    const updatedPositions = submenuPositions
-                                    localStorage.setItem('submenu-positions', JSON.stringify(updatedPositions))
-                                    console.log('✅ 소주제 박스 위치 저장:', { itemId: item.id, position: submenuPositions[item.id] })
-                                  }
-                                  
-                                  document.addEventListener('mousemove', handleMouseMove)
-                                  document.addEventListener('mouseup', handleMouseUp)
-                                }}
-                              >
-                                <svg className="w-5 h-5 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-                                </svg>
-                                <span className="text-xs font-semibold text-purple-700 dark:text-purple-200">드래그하여 이동</span>
-                              </div>
                            {(() => {
                              // 저장된 순서 사용
                              const order = subItemOrders[item.id] || item.subItems!.map((_, i) => i)
