@@ -152,6 +152,9 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     }
     return {}
   })
+
+  // 드래그 중인 아이템 추적
+  const [draggingItem, setDraggingItem] = useState<{ itemId: string; subIndex: number } | null>(null)
   
   // 서브메뉴 위치 조정 state (모바일/데스크톱 별도 관리)
   const [submenuPositions, setSubmenuPositions] = useState<Record<string, { x: number; y: number }>>(() => {
@@ -291,10 +294,51 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     // 로딩 상태는 페이지 전환 후 자동으로 해제됨
   }, [router, isNavigating, onViewChange])
   
-  // 드래그 앤 드롭 핸들러 제거: 순서 고정
-  
-  // 서브메뉴 위치 드래그 핸들러 - 비활성화됨 (위치 고정)
-  /* 드래그 기능은 제거되었고, 저장된 위치만 사용합니다 */
+  // 드래그 앤 드롭 핸들러 - 소주제 순서 변경
+  const handleDragStart = (e: React.DragEvent, itemId: string, subItemIndex: number) => {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', JSON.stringify({ itemId, subItemIndex }))
+    setDraggingItem({ itemId, subIndex: subItemIndex })
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e: React.DragEvent, targetItemId: string, targetSubItemIndex: number) => {
+    e.preventDefault()
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'))
+    const { itemId: sourceItemId, subItemIndex: sourceSubItemIndex } = data
+
+    setDraggingItem(null)
+
+    // 같은 섹션 내에서만 이동 가능
+    if (sourceItemId !== targetItemId) return
+    if (sourceSubItemIndex === targetSubItemIndex) return
+
+    // 현재 순서 가져오기
+    const currentOrder = subItemOrders[sourceItemId] || 
+      communityItems.find(item => item.id === sourceItemId)?.subItems?.map((_, i) => i) || []
+    
+    const newOrder = [...currentOrder]
+    const [movedItem] = newOrder.splice(sourceSubItemIndex, 1)
+    newOrder.splice(targetSubItemIndex, 0, movedItem)
+
+    // 순서 업데이트
+    const updatedOrders = { ...subItemOrders, [sourceItemId]: newOrder }
+    setSubItemOrders(updatedOrders)
+
+    // localStorage에 저장
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('subitem-orders', JSON.stringify(updatedOrders))
+      console.log('✅ 소주제 순서 저장됨:', updatedOrders)
+    }
+  }
+
+  const handleDragEnd = () => {
+    setDraggingItem(null)
+  }
   
   // 🚀 최적화: 인증 상태는 Header에서 관리하므로 중복 제거
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
@@ -2301,12 +2345,50 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        {/* Tableros 바로 밑에 세로 일렬 서브메뉴 */}
                        {(activeSubmenu === item.id || closingSubmenu === item.id) && item.subItems && (
                           <div className="relative">
-                           <div 
+                            <div
                               style={{ 
                                 transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)`
                               }}
                               className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
                             >
+                              {/* 드래그 핸들 - 박스 전체 이동용 */}
+                              <div
+                                className="bg-purple-100 dark:bg-purple-900 border-2 border-purple-300 dark:border-purple-700 rounded-lg p-2 mb-2 cursor-move flex items-center justify-center gap-2 select-none"
+                                onMouseDown={(e) => {
+                                  e.preventDefault()
+                                  const startX = e.clientX
+                                  const startY = e.clientY
+                                  const currentPos = submenuPositions[item.id] || { x: -147, y: -143 }
+                                  
+                                  const handleMouseMove = (moveEvent: MouseEvent) => {
+                                    const deltaX = moveEvent.clientX - startX
+                                    const deltaY = moveEvent.clientY - startY
+                                    const newPos = {
+                                      x: currentPos.x + deltaX,
+                                      y: currentPos.y + deltaY
+                                    }
+                                    setSubmenuPositions(prev => ({ ...prev, [item.id]: newPos }))
+                                  }
+                                  
+                                  const handleMouseUp = () => {
+                                    document.removeEventListener('mousemove', handleMouseMove)
+                                    document.removeEventListener('mouseup', handleMouseUp)
+                                    
+                                    // localStorage에 저장
+                                    const updatedPositions = submenuPositions
+                                    localStorage.setItem('submenu-positions', JSON.stringify(updatedPositions))
+                                    console.log('✅ 소주제 박스 위치 저장:', { itemId: item.id, position: submenuPositions[item.id] })
+                                  }
+                                  
+                                  document.addEventListener('mousemove', handleMouseMove)
+                                  document.addEventListener('mouseup', handleMouseUp)
+                                }}
+                              >
+                                <svg className="w-5 h-5 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                                </svg>
+                                <span className="text-xs font-semibold text-purple-700 dark:text-purple-200">드래그하여 이동</span>
+                              </div>
                            {(() => {
                              // 저장된 순서 사용
                              const order = subItemOrders[item.id] || item.subItems!.map((_, i) => i)
@@ -2368,17 +2450,27 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                )
                              }
                              
-                             // 일반 서브메뉴 아이템
-                             return (
-                               <button
-                                 key={subItem.id}
-                                   onClick={(e) => {
-                                     e.stopPropagation()
-                                     handleNavigation(subItem.route)
-                                   }}
-                                   
-                                   data-original-index={subItemIdx}
-                                   className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border-2 focus:outline-none relative group border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md`}
+                            // 일반 서브메뉴 아이템
+                            return (
+                              <button
+                                key={subItem.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleNavigation(subItem.route)
+                                  }}
+                                  
+                                  draggable={true}
+                                  onDragStart={(e) => handleDragStart(e, item.id, subIndex)}
+                                  onDragOver={(e) => handleDragOver(e)}
+                                  onDrop={(e) => handleDrop(e, item.id, subIndex)}
+                                  onDragEnd={handleDragEnd}
+                                  
+                                  data-original-index={subItemIdx}
+                                  className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border-2 focus:outline-none relative group ${
+                                    draggingItem?.itemId === item.id && draggingItem?.subIndex === subIndex
+                                      ? 'opacity-50 border-purple-500 ring-2 ring-purple-300'
+                                      : 'border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500'
+                                  } bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md cursor-grab active:cursor-grabbing`}
                                    style={{
                                      opacity: isClosing ? 1 : 0,
                                      transform: isClosing ? 'translateY(0)' : 'translateY(-20px)',

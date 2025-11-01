@@ -54,6 +54,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
   const [allPartners, setAllPartners] = useState<any[]>([])
   const [isKoreanPartner, setIsKoreanPartner] = useState(false)
+  const [isCheckingPartner, setIsCheckingPartner] = useState(true)
   const [bookings, setBookings] = useState<any[]>([])
   const [mySchedules, setMySchedules] = useState<any[]>([])
   const [showAddSchedule, setShowAddSchedule] = useState(false)
@@ -196,6 +197,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       } catch (error) {
         console.error('[checkIfPartner] 파트너 확인 실패:', error)
         setIsKoreanPartner(false)
+      } finally {
+        setIsCheckingPartner(false)
       }
     }
     checkIfPartner()
@@ -458,8 +461,15 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       )}
 
       {/* 메인 화면 */}
-      {/* 한국인 파트너인 경우 대시보드 표시 */}
-      {isKoreanPartner ? (
+      {/* 파트너 확인 중일 때 로딩 표시 */}
+      {isCheckingPartner ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">로딩 중...</p>
+          </div>
+        </div>
+      ) : isKoreanPartner ? (
         <KoreanPartnerDashboard 
           bookings={bookings}
           mySchedules={mySchedules}

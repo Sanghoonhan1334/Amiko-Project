@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Clock, User, CheckCircle, XCircle, Calendar, Plus, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, Settings, Video, DoorClosed, DoorOpen } from 'lucide-react'
+import { Clock, User, CheckCircle, XCircle, Calendar, Plus, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, ChevronDown, Settings, Video, DoorClosed, DoorOpen } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,7 +20,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import UserBadge from '@/components/common/UserBadge'
 import { Navigation, Pagination } from 'swiper/modules'
-import 'react-day-picker/dist/style.css'
+import 'react-day-picker/src/style.css'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -69,6 +69,7 @@ export default function KoreanPartnerDashboard({
   const [showAddSchedule, setShowAddSchedule] = useState(false)
   const [showAddRecurringSchedule, setShowAddRecurringSchedule] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [recurringSchedules, setRecurringSchedules] = useState<any[]>([])
   const [scheduleForm, setScheduleForm] = useState({
     date: '',
@@ -84,6 +85,11 @@ export default function KoreanPartnerDashboard({
   const [selectedMonth, setSelectedMonth] = useState(new Date())
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | undefined>(undefined)
   const [swiperInstance, setSwiperInstance] = useState<any>(null)
+  
+  // 아코디언 상태
+  const [isPendingExpanded, setIsPendingExpanded] = useState(true)
+  const [isApprovedExpanded, setIsApprovedExpanded] = useState(true)
+  const [isRejectedExpanded, setIsRejectedExpanded] = useState(false)
   
   // 거절 모달 상태
   const [showRejectModal, setShowRejectModal] = useState(false)
@@ -421,58 +427,82 @@ export default function KoreanPartnerDashboard({
     return (
       <div className="space-y-4">
         {/* 달력 */}
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-          <DayPicker
-            mode="single"
-            selected={selectedDate}
-            onSelect={onDateSelect}
-            month={selectedMonth}
-            onMonthChange={onMonthChange}
-            locale={language === 'es' ? es : ko}
-            modifiers={{
-              hasSchedule: (date) => dateHasSchedule(date),
-              hasOneTime: (date) => {
-                const type = getScheduleType(date)
-                return (type === 'onetime' || type === 'both') && !dateHasApprovedBooking(date)
-              },
-              hasRecurring: (date) => {
-                const type = getScheduleType(date)
-                return (type === 'recurring' || type === 'both') && !dateHasApprovedBooking(date)
-              },
-              hasApprovedBooking: (date) => dateHasApprovedBooking(date),
-            }}
-            modifiersClassNames={{
-              hasSchedule: 'font-semibold',
-              hasOneTime: 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300',
-              hasRecurring: 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300',
-              hasApprovedBooking: 'bg-green-500 dark:bg-green-600 text-white font-bold ring-2 ring-green-600 dark:ring-green-400 ring-offset-2',
-            }}
-            className="mx-auto"
-            components={{
-              IconLeft: () => <ChevronLeft className="w-4 h-4" />,
-              IconRight: () => <ChevronRight className="w-4 h-4" />,
-            }}
-            classNames={{
-              months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
-              month: 'space-y-4',
-              caption: 'flex justify-center pt-1 relative items-center',
-              caption_label: 'text-sm font-medium',
-              nav: 'space-x-1 flex items-center',
-              nav_button: 'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border border-input hover:bg-accent hover:text-accent-foreground',
-              table: 'w-full border-collapse space-y-1',
-              head_row: 'flex',
-              head_cell: 'text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]',
-              row: 'flex w-full mt-2',
-              cell: 'h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 [&:has(.day.modifier-has-onetime.modifier-has-recurring)]:bg-gradient-to-br [&:has(.day.modifier-has-onetime.modifier-has-recurring)]:from-purple-100 [&:has(.day.modifier-has-onetime.modifier-has-recurring)]:to-blue-100 [&:has(.day.modifier-has-onetime.modifier-has-recurring)]:dark:from-purple-900 [&:has(.day.modifier-has-onetime.modifier-has-recurring)]:dark:to-blue-900',
-              day: 'h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md',
-              day_selected: 'bg-purple-500 text-white hover:bg-purple-600 focus:bg-purple-600 text-white focus:text-white',
-              day_today: 'bg-accent text-accent-foreground font-semibold',
-              day_outside: 'text-muted-foreground opacity-50',
-              day_disabled: 'text-muted-foreground opacity-50',
-              day_range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground',
-              day_hidden: 'invisible',
-            }}
-          />
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 md:p-4 overflow-hidden">
+          {/* 커스텀 월 네비게이션 */}
+          <div className="flex items-center justify-between mb-2 md:mb-4">
+            <button 
+              onClick={() => {
+                const prevMonth = new Date(selectedMonth)
+                prevMonth.setMonth(prevMonth.getMonth() - 1)
+                onMonthChange(prevMonth)
+              }}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h3 className="text-lg font-bold">
+              {selectedMonth.getFullYear()}년 {selectedMonth.getMonth() + 1}월
+            </h3>
+            <button 
+              onClick={() => {
+                const nextMonth = new Date(selectedMonth)
+                nextMonth.setMonth(nextMonth.getMonth() + 1)
+                onMonthChange(nextMonth)
+              }}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="w-full flex justify-center px-2">
+            <div className="w-[245px] min-[350px]:w-[280px]">
+              {/* 요일 헤더 - 반응형 */}
+              <div className="flex mb-1 w-[245px] min-[350px]:w-[280px]">
+                {(language === 'es' 
+                  ? ['D', 'L', 'M', 'X', 'J', 'V', 'S']
+                  : ['일', '월', '화', '수', '목', '금', '토']
+                ).map((day, index) => (
+                  <div 
+                    key={index} 
+                    className="w-[35px] min-[350px]:w-[40px] text-center text-gray-600 dark:text-gray-400 text-[10px] min-[350px]:text-[11px] md:text-xs font-semibold py-1"
+                  >
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+                {/* DayPicker - 헤더 없이 */}
+                <DayPicker
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={onDateSelect}
+                  month={selectedMonth}
+                  onMonthChange={onMonthChange}
+                  locale={language === 'es' ? es : ko}
+                  showOutsideDays
+                  modifiers={{
+                    hasSchedule: (date) => dateHasSchedule(date),
+                    hasOneTime: (date) => {
+                      const type = getScheduleType(date)
+                      return (type === 'onetime' || type === 'both') && !dateHasApprovedBooking(date)
+                    },
+                    hasRecurring: (date) => {
+                      const type = getScheduleType(date)
+                      return (type === 'recurring' || type === 'both') && !dateHasApprovedBooking(date)
+                    },
+                    hasApprovedBooking: (date) => dateHasApprovedBooking(date),
+                  }}
+                  modifiersClassNames={{
+                    hasSchedule: 'font-semibold',
+                    hasOneTime: 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300',
+                    hasRecurring: 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300',
+                    hasApprovedBooking: 'bg-green-500 dark:bg-green-600 text-white font-bold ring-2 ring-green-600',
+                  }}
+                  className="w-full"
+                />
+            </div>
+          </div>
           
           {/* 범례 */}
           <div className="mt-4 flex items-center justify-center gap-3 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
@@ -624,6 +654,8 @@ export default function KoreanPartnerDashboard({
       }
     } catch (error) {
       console.error('반복 스케줄 조회 실패:', error)
+    } finally {
+      setIsInitialLoading(false)
     }
   }
 
@@ -790,56 +822,62 @@ export default function KoreanPartnerDashboard({
       <div className="space-y-4 px-1 md:px-0">
       {/* 예약 관리 */}
       <div className="w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl border p-3 md:p-6">
-        <h2 className="text-xl font-bold mb-4">{language === 'es' ? '📅 Gestión de Reservas' : '📅 예약 관리'}</h2>
+        <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">{language === 'es' ? '📅 Gestión de Reservas' : '📅 예약 관리'}</h2>
 
         {/* 대기 중 */}
         {pendingBookings.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-yellow-600">{language === 'es' ? '⏳ Esperando confirmación' : '⏳ 대기 중'}</h3>
-            <div className="space-y-3">
+            <button
+              onClick={() => setIsPendingExpanded(!isPendingExpanded)}
+              className="w-full flex items-center justify-between text-base md:text-lg font-semibold mb-2 md:mb-3 text-yellow-600 hover:text-yellow-700 transition-colors"
+            >
+              <span>{language === 'es' ? '⏳ Esperando confirmación' : '⏳ 대기 중'} ({pendingBookings.length})</span>
+              <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-transform ${isPendingExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`space-y-2 overflow-hidden transition-all duration-300 ${isPendingExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
               {pendingBookings.map((booking) => (
                 <Card key={booking.id}>
-                  <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                  <CardContent className="p-2.5 md:p-3">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Avatar className="w-10 h-10 flex-shrink-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Avatar className="w-8 h-8 flex-shrink-0">
                             {booking.users?.avatar_url ? (
                               <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
                             ) : null}
-                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
+                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 text-xs">
                               {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <span className="font-medium text-gray-900 dark:text-gray-100 inline-flex items-center gap-1">
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 inline-flex items-center gap-1">
                               {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
-                              <UserBadge totalPoints={booking.users?.total_points ?? 0} className="ml-1" />
+                              <UserBadge totalPoints={booking.users?.total_points ?? 0} className="ml-0.5 scale-90" />
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                        <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" />
                           {booking.date} {booking.start_time} - {booking.end_time}
                         </p>
-                        {booking.topic && <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">주제: {booking.topic}</p>}
+                        {booking.topic && <p className="text-xs mt-1 text-gray-700 dark:text-gray-300">주제: {booking.topic}</p>}
                       </div>
-                      <div className="flex gap-2 flex-shrink-0 w-full md:w-auto">
+                      <div className="flex gap-1.5 flex-shrink-0 w-full md:w-auto">
                         <Button 
                           size="sm" 
                           onClick={() => handleApprove(booking.id)} 
                           disabled={loading} 
-                          className="bg-green-500 hover:bg-green-600 text-white whitespace-nowrap flex-1 md:flex-initial"
+                          className="bg-green-500 hover:bg-green-600 text-white whitespace-nowrap flex-1 md:flex-initial text-xs py-1 h-7"
                         >
-                          <CheckCircle className="w-4 h-4 mr-1" /> {language === 'es' ? 'Aprobar' : '승인'}
+                          <CheckCircle className="w-3 h-3 mr-1" /> {language === 'es' ? 'Aprobar' : '승인'}
                         </Button>
                         <Button 
                           size="sm" 
                           onClick={() => handleRejectClick(booking.id)} 
                           disabled={loading} 
-                          className="bg-red-500 hover:bg-red-600 text-white whitespace-nowrap flex-1 md:flex-initial"
+                          className="bg-red-500 hover:bg-red-600 text-white whitespace-nowrap flex-1 md:flex-initial text-xs py-1 h-7"
                         >
-                          <XCircle className="w-4 h-4 mr-1" /> {language === 'es' ? 'Rechazar' : '거절'}
+                          <XCircle className="w-3 h-3 mr-1" /> {language === 'es' ? 'Rechazar' : '거절'}
                         </Button>
                       </div>
                     </div>
@@ -853,62 +891,83 @@ export default function KoreanPartnerDashboard({
         {/* 승인된 예약 */}
         {approvedBookings.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-green-600">{language === 'es' ? '✓ Confirmado' : '✓ 승인된 예약'}</h3>
-            <div className="space-y-3">
+            <button
+              onClick={() => setIsApprovedExpanded(!isApprovedExpanded)}
+              className="w-full flex items-center justify-between text-base md:text-lg font-semibold mb-2 md:mb-3 text-green-600 hover:text-green-700 transition-colors"
+            >
+              <span>{language === 'es' ? '✓ Confirmado' : '✓ 승인된 예약'} ({approvedBookings.length})</span>
+              <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-transform ${isApprovedExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`space-y-2 overflow-hidden transition-all duration-300 ${isApprovedExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
               {approvedBookings.map((booking) => {
                 // 예약 시간 체크
                 const bookingDateTime = new Date(`${booking.date}T${booking.start_time}`)
+                const bookingEndTime = new Date(`${booking.date}T${booking.end_time}`)
                 const now = new Date()
                 const waitSeconds = Math.ceil((bookingDateTime.getTime() - now.getTime()) / 1000)
-                const canJoin = now >= bookingDateTime
+                // 3분 전부터 입장 가능
+                const canJoin = now >= new Date(bookingDateTime.getTime() - 3 * 60 * 1000) && now < bookingEndTime
+                const isPast = now >= bookingEndTime
                 const minutesRemaining = Math.ceil(waitSeconds / 60)
                 const showCountdown = waitSeconds <= 600 && waitSeconds > 0
 
                 return (
                   <Card key={booking.id}>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
+                    <CardContent className="p-2.5 md:p-3">
+                      <div className="space-y-2">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <Avatar className="w-10 h-10 flex-shrink-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <Avatar className="w-8 h-8 flex-shrink-0">
                                 {booking.users?.avatar_url ? (
                                   <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
                                 ) : null}
-                                <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
+                                <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 text-xs">
                                   {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                   {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
                                 </span>
                               </div>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-2">
-                              <Clock className="w-3 h-3" />
+                            <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-1">
+                              <Clock className="w-2.5 h-2.5" />
                               {booking.date} {booking.start_time} - {booking.end_time}
                             </p>
                             {booking.meet_url && (
-                              <div className="mt-2">
+                              <div className="mt-1">
                                 <a
                                   href={booking.meet_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                                  className="text-[10px] text-blue-600 hover:text-blue-800 underline flex items-center gap-0.5"
                                 >
-                                  <Video className="w-3 h-3" />
+                                  <Video className="w-2.5 h-2.5" />
                                   {language === 'es' ? 'Enlace de Google Meet' : 'Google Meet 링크'}
                                 </a>
                               </div>
                             )}
                           </div>
-                          <Badge className="bg-green-50 text-green-700">✓ {language === 'es' ? 'Confirmado' : '승인됨'}</Badge>
+                          <Badge className="bg-green-50 text-green-700 text-[10px] px-1.5 py-0 h-5">✓ {language === 'es' ? 'Confirmado' : '승인됨'}</Badge>
                         </div>
 
                         {/* 참여하기 버튼 */}
                         <div className="pt-2 border-t">
-                          {canJoin ? (
+                          {isPast ? (
+                            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3 text-center">
+                              <div className="flex items-center justify-center gap-2 mb-1">
+                                <CheckCircle className="w-5 h-5 text-gray-500" />
+                                <span className="text-sm font-semibold text-gray-700">
+                                  {language === 'es' ? 'Consulta Completada' : '상담 종료됨'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-600">
+                                {language === 'es' ? 'La hora de reserva ha pasado' : '예약 시간이 지났습니다'}
+                              </p>
+                            </div>
+                          ) : canJoin ? (
                             <Button
                               onClick={() => router.push(`/call/${booking.id}`)}
                               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
@@ -919,9 +978,15 @@ export default function KoreanPartnerDashboard({
                           ) : showCountdown ? (
                             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                               <div className="flex items-center justify-center gap-2 mb-1">
-                                <DoorClosed className={`w-5 h-5 ${waitSeconds <= 60 ? 'text-red-500 animate-pulse' : 'text-orange-500'}`} />
+                                <DoorClosed className={`w-5 h-5 ${waitSeconds <= 180 ? 'text-green-500 animate-pulse' : waitSeconds <= 60 ? 'text-red-500 animate-pulse' : 'text-orange-500'}`} />
                                 <span className="text-sm font-semibold text-orange-700">
-                                  {minutesRemaining}분 남음
+                                  {waitSeconds <= 180 ? (
+                                    <span className="text-green-700">
+                                      {minutesRemaining}분 후 입장 가능! ✅
+                                    </span>
+                                  ) : (
+                                    `${minutesRemaining}분 남음`
+                                  )}
                                 </span>
                               </div>
                               <Button
@@ -955,36 +1020,42 @@ export default function KoreanPartnerDashboard({
         {/* 거절된 예약 */}
         {rejectedBookings.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold mb-3 text-red-600">{language === 'es' ? '✗ Rechazado' : '✗ 거절된 예약'}</h3>
-            <div className="space-y-3">
+            <button
+              onClick={() => setIsRejectedExpanded(!isRejectedExpanded)}
+              className="w-full flex items-center justify-between text-base md:text-lg font-semibold mb-2 md:mb-3 text-red-600 hover:text-red-700 transition-colors"
+            >
+              <span>{language === 'es' ? '✗ Rechazado' : '✗ 거절된 예약'} ({rejectedBookings.length})</span>
+              <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-transform ${isRejectedExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`space-y-2 overflow-hidden transition-all duration-300 ${isRejectedExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
               {rejectedBookings.map((booking) => (
                 <Card key={booking.id}>
-                  <CardContent className="p-4">
+                  <CardContent className="p-2.5 md:p-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Avatar className="w-10 h-10 flex-shrink-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Avatar className="w-8 h-8 flex-shrink-0">
                             {booking.users?.avatar_url ? (
                               <AvatarImage src={booking.users.avatar_url} alt={booking.users?.full_name || ''} />
                             ) : null}
-                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700">
+                            <AvatarFallback className="bg-gradient-to-br from-purple-100 to-blue-100 text-gray-700 text-xs">
                               {booking.users?.full_name ? booking.users.full_name.charAt(0).toUpperCase() : '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                               {booking.users?.full_name || booking.users?.nickname || booking.users?.spanish_name || booking.users?.korean_name || (language === 'es' ? 'Usuario' : '사용자')}
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
                           {booking.date} {booking.start_time}
                         </p>
                         {booking.rejection_reason && (
-                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">사유: {booking.rejection_reason}</p>
+                          <p className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">사유: {booking.rejection_reason}</p>
                         )}
                       </div>
-                      <Badge className="bg-red-50 text-red-700">✗ {language === 'es' ? 'Rechazado' : '거절됨'}</Badge>
+                      <Badge className="bg-red-50 text-red-700 text-[10px] px-1.5 py-0 h-5">✗ {language === 'es' ? 'Rechazado' : '거절됨'}</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -1063,12 +1134,12 @@ export default function KoreanPartnerDashboard({
             <div className="p-3 md:p-6 space-y-6 w-full">
               {/* 정기 가능 시간 설정 */}
               <div className="w-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold">{language === 'es' ? '📅 Horarios Recurrentes' : '📅 정기 가능 시간 설정'}</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base md:text-lg font-bold">{language === 'es' ? '📅 Horarios Recurrentes' : '📅 정기 가능 시간'}</h2>
                   <Dialog open={showAddRecurringSchedule} onOpenChange={setShowAddRecurringSchedule}>
                     <DialogTrigger asChild>
-                      <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
-                        <Plus className="w-4 h-4 mr-1" /> {language === 'es' ? 'Agregar recurrente' : '정기 시간 추가'}
+                      <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white text-[10px] md:text-xs h-6 md:h-7 px-2 md:px-3">
+                        <Plus className="w-2.5 h-2.5 md:w-3 md:h-3 mr-0.5 md:mr-1" /> {language === 'es' ? 'Agregar recurrente' : '정기 시간 추가'}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-white dark:bg-gray-800">
@@ -1185,27 +1256,36 @@ export default function KoreanPartnerDashboard({
                     </Button>
                   </div>
                 )}
-                <div className="space-y-2">
+                <div className="space-y-0.5">
                   {recurringSchedules.length > 0 ? (
                     recurringSchedules.map((schedule) => {
                       const dayInfo = DAYS_OF_WEEK.find(d => d.value === schedule.day_of_week)
                       return (
-                        <Card key={schedule.id}>
-                          <CardContent className="p-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              <span className="text-sm font-semibold">{dayInfo?.full}</span>
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {schedule.start_time} - {schedule.end_time}
-                              </span>
-                            </div>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteRecurringSchedule(schedule.id)} disabled={loading}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </CardContent>
-                        </Card>
+                        <div key={schedule.id} className="flex items-center justify-between px-2 py-0.5 md:py-1 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-1 md:gap-1.5">
+                            <Calendar className="w-2.5 h-2.5 md:w-3 md:h-3 text-gray-400 flex-shrink-0" />
+                            <span className="text-[11px] md:text-xs font-semibold leading-tight">{dayInfo?.full}</span>
+                            <span className="text-[11px] md:text-xs text-gray-600 leading-tight">
+                              {schedule.start_time} - {schedule.end_time}
+                            </span>
+                          </div>
+                          <button 
+                            onClick={() => handleDeleteRecurringSchedule(schedule.id)} 
+                            disabled={loading}
+                            className="h-4 w-4 md:h-5 md:w-5 flex items-center justify-center hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-2.5 h-2.5 md:w-3 md:h-3 text-gray-400 hover:text-red-500" />
+                          </button>
+                        </div>
                       )
                     })
+                  ) : isInitialLoading ? (
+                    <div className="text-center py-4">
+                      <div className="inline-flex items-center gap-2 text-gray-500">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                        <span>{language === 'es' ? 'Cargando...' : '로딩 중...'}</span>
+                      </div>
+                    </div>
                   ) : (
                     <p className="text-center text-gray-500 py-4">{language === 'es' ? 'No hay horarios recurrentes aún.' : '아직 등록된 정기 시간이 없습니다.'}</p>
                   )}
@@ -1214,36 +1294,36 @@ export default function KoreanPartnerDashboard({
 
               {/* 일회성 가능 시간 설정 */}
               <div className="w-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold">{language === 'es' ? '⏰ Horarios Disponibles' : '⏰ 가능 시간 설정'}</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base md:text-lg font-bold">{language === 'es' ? '⏰ Horarios Únicos' : '⏰ 일회성 가능 시간'}</h2>
                   <Dialog open={showAddSchedule} onOpenChange={setShowAddSchedule}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white">
-                  <Plus className="w-4 h-4 mr-1" /> {language === 'es' ? 'Agregar horario' : '예약 가능 시간 추가'}
+                <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white text-[10px] md:text-xs h-6 md:h-7 px-2 md:px-3">
+                  <Plus className="w-2.5 h-2.5 md:w-3 md:h-3 mr-0.5 md:mr-1" /> {language === 'es' ? 'Agregar horario único' : '일회성 시간 추가'}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white dark:bg-gray-800">
+              <DialogContent className="bg-white dark:bg-gray-800 max-w-md mx-2">
                 <DialogHeader>
-                  <DialogTitle className="text-gray-900 dark:text-gray-100">{language === 'es' ? 'Agregar horario disponible' : '예약 가능 시간 추가'}</DialogTitle>
-                  <DialogDescription className="text-gray-600 dark:text-gray-400">
+                  <DialogTitle className="text-gray-900 dark:text-gray-100 text-base md:text-lg">{language === 'es' ? 'Agregar horario único' : '일회성 시간 추가'}</DialogTitle>
+                  <DialogDescription className="text-gray-600 dark:text-gray-400 text-xs md:text-sm">
                     {language === 'es' ? 'Agrega un horario específico para una fecha determinada' : '특정 날짜에 대한 구체적인 시간을 추가합니다'}
                   </DialogDescription>
                 </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div>
-                  <Label className="text-gray-900 dark:text-gray-100 font-semibold">{language === 'es' ? 'Fecha' : '날짜'}</Label>
-                  <Input type="date" value={scheduleForm.date} onChange={(e) => setScheduleForm({ ...scheduleForm, date: e.target.value })} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400" />
+                  <Label className="text-gray-900 dark:text-gray-100 font-semibold text-xs md:text-sm">{language === 'es' ? 'Fecha' : '날짜'}</Label>
+                  <Input type="date" value={scheduleForm.date} onChange={(e) => setScheduleForm({ ...scheduleForm, date: e.target.value })} className="text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 h-9 md:h-10 text-sm" />
                 </div>
                 <div>
-                  <Label className="text-gray-900 dark:text-gray-100 font-semibold mb-2 block">{language === 'es' ? 'Hora de inicio' : '시작 시간'}</Label>
+                  <Label className="text-gray-900 dark:text-gray-100 font-semibold mb-1.5 md:mb-2 block text-xs md:text-sm">{language === 'es' ? 'Hora de inicio' : '시작 시간'}</Label>
                   <Select 
                     value={scheduleForm.start_time} 
                     onValueChange={(value) => setScheduleForm({ ...scheduleForm, start_time: value })}
                   >
-                    <SelectTrigger className="text-gray-900 dark:text-gray-100">
+                    <SelectTrigger className="text-gray-900 dark:text-gray-100 h-9 md:h-10 text-sm">
                       <SelectValue placeholder={language === 'es' ? 'Seleccionar hora' : '시간 선택 (10분 단위)'} />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-[100000]">
+                    <SelectContent className="max-h-[300px] z-[100000] text-sm">
                       {Array.from({ length: 24 }, (_, i) => i).map(hour => {
                         return ['00', '10', '20', '30', '40', '50'].map(minute => {
                           const timeValue = `${String(hour).padStart(2, '0')}:${minute}`
@@ -1258,15 +1338,15 @@ export default function KoreanPartnerDashboard({
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-gray-900 dark:text-gray-100 font-semibold mb-2 block">{language === 'es' ? 'Hora de fin' : '종료 시간'}</Label>
+                  <Label className="text-gray-900 dark:text-gray-100 font-semibold mb-1.5 md:mb-2 block text-xs md:text-sm">{language === 'es' ? 'Hora de fin' : '종료 시간'}</Label>
                   <Select 
                     value={scheduleForm.end_time} 
                     onValueChange={(value) => setScheduleForm({ ...scheduleForm, end_time: value })}
                   >
-                    <SelectTrigger className="text-gray-900 dark:text-gray-100">
+                    <SelectTrigger className="text-gray-900 dark:text-gray-100 h-9 md:h-10 text-sm">
                       <SelectValue placeholder={language === 'es' ? 'Seleccionar hora' : '시간 선택 (10분 단위)'} />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-[100000]">
+                    <SelectContent className="max-h-[300px] z-[100000] text-sm">
                       {Array.from({ length: 24 }, (_, i) => i).map(hour => {
                         return ['00', '10', '20', '30', '40', '50'].map(minute => {
                           const timeValue = `${String(hour).padStart(2, '0')}:${minute}`
@@ -1280,7 +1360,7 @@ export default function KoreanPartnerDashboard({
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleAddSchedule} disabled={loading} className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+                <Button onClick={handleAddSchedule} disabled={loading} className="w-full bg-purple-500 hover:bg-purple-600 text-white h-9 md:h-10 text-sm md:text-base">
                   {language === 'es' ? 'Agregar' : '추가하기'}
                 </Button>
               </div>
@@ -1289,26 +1369,35 @@ export default function KoreanPartnerDashboard({
                 </div>
 
                 {/* 일회성 스케줄 목록 */}
-                <div className="space-y-2 mt-4">
+                <div className="space-y-0.5 mt-4">
                   {mySchedules && mySchedules.length > 0 ? (
                     mySchedules.map((schedule) => (
-                      <Card key={schedule.id}>
-                        <CardContent className="p-3 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            <span className="text-sm">{schedule.date} {schedule.start_time} - {schedule.end_time}</span>
-                            {schedule.status !== 'available' && (
-                              <Badge>{translateStatus(schedule.status)}</Badge>
-                            )}
-                          </div>
-                          {schedule.status === 'available' && (
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteSchedule(schedule.id)} disabled={loading}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                      <div key={schedule.id} className="flex items-center justify-between px-2 py-0.5 md:py-1 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-1 md:gap-1.5">
+                          <Calendar className="w-2.5 h-2.5 md:w-3 md:h-3 text-gray-400 flex-shrink-0" />
+                          <span className="text-[11px] md:text-xs leading-tight">{schedule.date} {schedule.start_time} - {schedule.end_time}</span>
+                          {schedule.status !== 'available' && (
+                            <span className="text-[9px] md:text-[10px] py-0 px-1 bg-gray-100 rounded leading-tight">{translateStatus(schedule.status)}</span>
                           )}
-                        </CardContent>
-                      </Card>
+                        </div>
+                        {schedule.status === 'available' && (
+                          <button 
+                            onClick={() => handleDeleteSchedule(schedule.id)} 
+                            disabled={loading}
+                            className="h-4 w-4 md:h-5 md:w-5 flex items-center justify-center hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-2.5 h-2.5 md:w-3 md:h-3 text-gray-400 hover:text-red-500" />
+                          </button>
+                        )}
+                      </div>
                     ))
+                  ) : isInitialLoading ? (
+                    <div className="text-center py-4">
+                      <div className="inline-flex items-center gap-2 text-gray-500">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                        <span>{language === 'es' ? 'Cargando...' : '로딩 중...'}</span>
+                      </div>
+                    </div>
                   ) : (
                     <p className="text-center text-gray-500 py-4">{language === 'es' ? 'No hay horarios disponibles aún.' : '아직 등록된 가능 시간이 없습니다.'}</p>
                   )}

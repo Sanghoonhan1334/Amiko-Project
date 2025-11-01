@@ -72,28 +72,22 @@ export default function CallMeetingPage() {
       const diff = Math.ceil((startTime.getTime() - now.getTime()) / 1000)
       setWaitSeconds(Math.max(0, diff))
 
-      // 10분 전 알림 (600초 = 10분)
-      if (diff <= 600 && diff > 599 && !notificationSent && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification('화상 상담 시작 알림', {
-          body: '10분 후 화상 상담이 시작됩니다! 준비해주세요.',
+      // 3분 전 알림 (180초 = 3분) - 입장 가능 시점
+      if (diff <= 180 && diff > 179 && !notificationSent && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification('화상 상담 입장 가능!', {
+          body: '이제 입장할 수 있습니다! 미리 들어가서 준비하세요.',
           icon: '/favicon.png'
         })
         setNotificationSent(true)
       }
 
-      // 페이지가 보이지 않을 때도 브라우저 알림 (Notification API)
-      if (diff <= 600 && diff > 599 && !notificationSent) {
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('화상 상담 시작 알림', {
-            body: '10분 후 화상 상담이 시작됩니다! 준비해주세요.',
-            icon: '/favicon.png'
-          })
-          setNotificationSent(true)
-        } else if ('Notification' in window && Notification.permission === 'default') {
+      // 알림 권한 요청 (3분 전 시점에)
+      if (diff <= 180 && diff > 179 && !notificationSent) {
+        if ('Notification' in window && Notification.permission === 'default') {
           Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
-              new Notification('화상 상담 시작 알림', {
-                body: '10분 후 화상 상담이 시작됩니다! 준비해주세요.',
+              new Notification('화상 상담 입장 가능!', {
+                body: '이제 입장할 수 있습니다! 미리 들어가서 준비하세요.',
                 icon: '/favicon.png'
               })
               setNotificationSent(true)
@@ -175,7 +169,8 @@ export default function CallMeetingPage() {
     ? new Date(`${meeting.date}T${meeting.start_time}`)
     : new Date(meeting.start_time || meeting.start_at)
   const now = new Date()
-  const canJoin = now >= startTime
+  // 3분 전부터 입장 가능 (180초)
+  const canJoin = now >= new Date(startTime.getTime() - 3 * 60 * 1000)
   const isPast = now > new Date(startTime.getTime() + meeting.duration * 60 * 1000)
   
   if (isPast) {
@@ -260,9 +255,14 @@ export default function CallMeetingPage() {
                     🔥 1분 남았습니다!
                   </p>
                 )}
+                {waitSeconds <= 180 && waitSeconds > 30 && (
+                  <p className="text-xl text-green-600 font-bold animate-pulse">
+                    ✅ 3분 전! 이제 입장 가능합니다!
+                  </p>
+                )}
                 {waitSeconds <= 30 && (
-                  <p className="text-2xl text-red-600 font-extrabold animate-bounce">
-                    🚀 문이 곧 열립니다!
+                  <p className="text-2xl text-green-600 font-extrabold animate-bounce">
+                    🚀 곧 시작합니다! 지금 참여하세요!
                   </p>
                 )}
               </div>
@@ -289,7 +289,7 @@ export default function CallMeetingPage() {
 
             {!showCountdown && (
               <p className="text-sm text-gray-500">
-                ⏰ 10분 전부터 카운트다운이 시작됩니다
+                ⏰ 10분 전부터 카운트다운이 시작되며, 3분 전부터 입장 가능합니다
               </p>
             )}
           </CardContent>
@@ -335,8 +335,8 @@ export default function CallMeetingPage() {
                 <Video className="w-6 h-6 mr-2" />
                 <span className="text-lg font-bold">Google Meet 참여하기</span>
               </Button>
-              <p className="text-sm text-gray-600">
-                ✨ 문이 열렸습니다! 버튼을 클릭하여 참여하세요
+              <p className="text-sm text-green-700 font-semibold">
+                ✨ 입장 가능! 3분 전부터 미리 들어가서 준비할 수 있습니다
               </p>
             </div>
           ) : (

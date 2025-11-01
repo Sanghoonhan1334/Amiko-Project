@@ -120,7 +120,20 @@ export const translations = {
         videoChatOnline: '화상채팅 온라인',
         hotPosts: '지금 핫한 글',
         popularTests: '인기 심리테스트',
-        onlineUsers: '명 온라인'
+        onlineUsers: '명 온라인',
+        announcements: '공지',
+        announcement: '공지',
+        hotChatRooms: '지금 핫 한 채팅방!',
+        currentPolls: '지금 투표!',
+        kNoticia: '오늘의 K-Noticia',
+        recentStories: '최근 스토리',
+        recentVideos: 'AMIKO 최근 영상',
+        partners: 'AMIKO 제휴사',
+        freeBoard: '자유',
+        news: '뉴스',
+        fanArt: '팬아트',
+        idolPhotos: '아이돌 사진',
+        nickname: '닉네임'
       },
       // 커뮤니티 탭 섹션
       community: {
@@ -2791,7 +2804,20 @@ export const translations = {
         videoChatOnline: 'Videollamada En Línea',
         hotPosts: 'Posts Populares',
         popularTests: 'Tests Populares',
-        onlineUsers: ' en línea'
+        onlineUsers: ' en línea',
+        announcements: 'Avisos',
+        announcement: 'Aviso',
+        hotChatRooms: '¡Chats Calientes!',
+        currentPolls: '¡Vota Ahora!',
+        kNoticia: 'K-Noticia del Día',
+        recentStories: 'Historias Recientes',
+        recentVideos: 'Videos Recientes de AMIKO',
+        partners: 'Socios de AMIKO',
+        freeBoard: 'Libre',
+        news: 'Noticias',
+        fanArt: 'Fan Art',
+        idolPhotos: 'Fotos de Ídolos',
+        nickname: 'Nickname'
       },
       // 커뮤니티 탭 섹션
       community: {

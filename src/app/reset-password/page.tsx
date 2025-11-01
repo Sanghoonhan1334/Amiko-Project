@@ -30,11 +30,44 @@ function ResetPasswordForm() {
   // Supabase 클라이언트 생성
   const supabase = createSupabaseBrowserClient()
 
-  // Supabase 비밀번호 재설정은 자동으로 세션을 설정하므로 별도 처리 불필요
+  // Supabase 비밀번호 재설정 세션 처리
   useEffect(() => {
-    // Supabase는 비밀번호 재설정 링크를 통해 자동으로 세션을 설정합니다
-    // 별도의 토큰 처리나 세션 설정이 필요하지 않습니다
-    console.log('비밀번호 재설정 페이지 로드됨')
+    const handlePasswordReset = async () => {
+      // URL 해시 파라미터 확인
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      const accessToken = hashParams.get('access_token')
+      const type = hashParams.get('type')
+      
+      console.log('🔍 URL 해시 파라미터:', {
+        hasHash: !!window.location.hash,
+        hash: window.location.hash,
+        accessToken: accessToken ? '있음' : '없음',
+        type
+      })
+
+      // 세션 확인
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('📝 현재 세션:', {
+        hasSession: !!session,
+        sessionError: sessionError?.message
+      })
+
+      if (!session && accessToken && type === 'recovery') {
+        console.log('🔄 세션 설정 시도 중...')
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: hashParams.get('refresh_token') || ''
+        })
+        
+        if (error) {
+          console.error('❌ 세션 설정 실패:', error)
+        } else {
+          console.log('✅ 세션 설정 성공')
+        }
+      }
+    }
+    
+    handlePasswordReset()
   }, [])
 
   const validatePassword = (password: string) => {
@@ -64,27 +97,16 @@ function ResetPasswordForm() {
         return
       }
 
-      // URL에서 토큰 가져오기
-      const urlParams = new URLSearchParams(window.location.search)
-      const token = urlParams.get('token')
-
-      if (!token) {
-        throw new Error('비밀번호 재설정 토큰이 없습니다.')
-      }
-
-      // 커스텀 API로 비밀번호 재설정
-      const response = await fetch('/api/auth/reset-password/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password })
+      // Supabase는 자동으로 세션을 설정하므로 직접 updateUser 호출
+      const { data, error } = await supabase.auth.updateUser({
+        password: password
       })
 
-      const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.error || t('auth.resetPassword.resetFailed'))
+      if (error) {
+        throw new Error(error.message || t('auth.resetPassword.resetFailed'))
       }
 
+      console.log('✅ 비밀번호 재설정 성공:', data)
       setIsSuccess(true)
       
       // 성공 후 2초 뒤에 로그인 페이지로 자동 이동

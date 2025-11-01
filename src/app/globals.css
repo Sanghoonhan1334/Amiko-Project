@@ -1131,3 +1131,139 @@ img[alt="스토리"] {
                 0 0 32px rgba(139,92,246,0.16);
   }
 }
+
+/* react-day-picker v9 달력 그리드 레이아웃 강제 */
+.rdp-root {
+  --rdp-accent-color: rgb(168, 85, 247);
+  --rdp-day-height: 24px;
+  --rdp-day-width: 24px;
+}
+
+@media (min-width: 350px) {
+  .rdp-root {
+    --rdp-day-height: 28px;
+    --rdp-day-width: 28px;
+  }
+}
+
+@media (min-width: 768px) {
+  .rdp-root {
+    --rdp-day-height: 40px;
+    --rdp-day-width: 40px;
+  }
+}
+
+.rdp-months {
+  width: 100% !important;
+}
+
+.rdp-month {
+  width: 100% !important;
+}
+
+.rdp-month_grid {
+  width: 245px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+@media (min-width: 350px) {
+  .rdp-month_grid {
+    width: 280px !important;
+  }
+}
+
+.rdp-weekdays {
+  display: none !important;
+}
+
+.rdp-week {
+  display: flex !important;
+  width: 245px !important;
+}
+
+@media (min-width: 350px) {
+  .rdp-week {
+    width: 280px !important;
+  }
+}
+
+.rdp-day {
+  width: 35px !important;
+  min-width: 35px !important;
+  max-width: 35px !important;
+  text-align: center !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 28px !important;
+}
+
+@media (min-width: 350px) {
+  .rdp-day {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 32px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .rdp-day {
+    height: 44px !important;
+  }
+}
+
+.rdp-day_button {
+  height: 24px !important;
+  width: 24px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0.25rem !important;
+  cursor: pointer !important;
+  font-size: 0.65rem !important;
+}
+
+@media (min-width: 350px) {
+  .rdp-day_button {
+    height: 28px !important;
+    width: 28px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .rdp-day_button {
+    height: 40px !important;
+    width: 40px !important;
+    font-size: 1rem !important;
+    border-radius: 0.375rem !important;
+  }
+}
+
+.rdp-day_button:hover {
+  background-color: rgb(229, 231, 235) !important;
+}
+
+.rdp-selected .rdp-day_button {
+  background-color: rgb(168, 85, 247) !important;
+  color: white !important;
+}
+
+.rdp-today .rdp-day_button {
+  background-color: rgb(229, 231, 235) !important;
+  font-weight: bold !important;
+}
+
+.rdp-outside {
+  color: rgb(156, 163, 175) !important;
+  opacity: 0.5 !important;
+}
+
+.rdp-month_caption,
+.rdp-nav {
+  display: none !important;
+}
