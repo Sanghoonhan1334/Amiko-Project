@@ -653,8 +653,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         '뷰티': 'beauty',
         'Foro de Belleza': 'beauty',
         '한국어': 'korean',
+        '한국어공부': 'korean',
         'Foro de Coreano': 'korean',
         '스페인어': 'spanish',
+        '스페인어공부': 'spanish',
         'Foro de Español': 'spanish'
       }
       

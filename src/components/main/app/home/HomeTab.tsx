@@ -384,48 +384,44 @@ export default function HomeTab() {
 
   const loadNotices = async () => {
     try {
-      console.log('Loading notices from topic board...')
+      console.log('🔍 공지사항 로딩 시작...')
       
-      // 주제별게시판에서 공지사항 가져오기 (공지사항은 보통 제목에 [공지] 또는 특별한 카테고리로 구분)
-      const response = await fetch('/api/galleries/freeboard/posts?sort=created_at&limit=10')
+      // 모든 갤러리에서 카테고리가 "공지사항"인 게시글 가져오기
+      const response = await fetch('/api/posts?category=공지사항&limit=10&sort=created_at')
       
       if (!response.ok) {
-        throw new Error('Failed to fetch notices')
+        console.error('❌ 공지사항 API 실패:', response.status)
+        setNotices([])
+        return
       }
       
       const data = await response.json()
+      console.log('📡 공지사항 API 응답:', data)
       
-      if (data.success && data.posts) {
-        // 공지사항 필터링 (제목에 [공지] 포함된 것들)
-        const noticePosts = data.posts.filter((post: any) => 
-          post.title.includes('[공지]') || 
-          post.title.includes('[Notice]') ||
-          post.title.includes('[ANUNCIO]') ||
-          post.category === '공지사항'
-        )
-        
+      if (data.posts && data.posts.length > 0) {
         // 데이터 포맷팅
-        const formattedNotices = noticePosts.slice(0, 3).map((post: any) => ({
+        const formattedNotices = data.posts.slice(0, 3).map((post: any) => ({
           id: post.id,
           title: post.title,
           content: post.content,
-          author: '관리자', // 공지사항은 관리자가 작성
+          author: post.author?.nickname || post.author?.full_name || '관리자',
           likes: post.like_count || 0,
           comments: post.comment_count || 0,
           views: post.view_count || 0,
           createdAt: formatTimeAgo(post.created_at),
-          category: '공지사항'
+          category: post.category || '공지사항'
         }))
         
-        console.log('Setting notices:', formattedNotices)
+        console.log('✅ 공지사항 로드 완료:', formattedNotices.length, '개')
+        console.log('📋 공지 데이터:', formattedNotices)
         setNotices(formattedNotices)
       } else {
-        console.log('No notices found')
+        console.log('⚠️ 공지사항이 없습니다')
         setNotices([])
       }
       
     } catch (error) {
-      console.error('공지사항 로딩 실패:', error)
+      console.error('❌ 공지사항 로딩 실패:', error)
       setNotices([])
     }
   }
@@ -649,60 +645,6 @@ export default function HomeTab() {
       <div className="md:hidden space-y-6 p-4">
       
       {/* 공지사항 - 맨 위에 배치 */}
-      {notices.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📢</span>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                {language === 'ko' ? '공지사항' : 'Avisos'}
-              </h2>
-            </div>
-            <button
-              onClick={() => router.push('/community/freeboard')}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-            >
-              {language === 'ko' ? '더보기' : 'Ver Más'}
-            </button>
-          </div>
-          
-          <div className="space-y-3">
-            {notices.map((notice) => (
-              <Card key={notice.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                        {notice.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
-                        {notice.content}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
-                        <div className="flex items-center space-x-4">
-                          <span className="flex items-center space-x-1">
-                            <span>👁️</span>
-                            <span>{notice.views}</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <span>💬</span>
-                            <span>{notice.comments}</span>
-                          </span>
-                        </div>
-                        <span className="flex items-center space-x-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{notice.createdAt}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 현재 진행 이벤트 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -799,75 +741,56 @@ export default function HomeTab() {
           </h2>
         </div>
         
-        {/* 공지사항 목록 */}
+        {/* 공지사항 목록 - 실제 데이터 */}
         <div className="space-y-2">
-          {/* 공지사항 1 */}
-          <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/community/post?id=notice-1')}>
-            <CardContent className="py-1 px-3">
-              <div className="flex md:flex-row flex-col md:items-center gap-2 md:gap-3">
-                <div className="flex items-center gap-3 flex-1">
-                  <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
-                    {t('home.sections.announcement')}
-                  </Badge>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1">
-                    {language === 'ko' ? 'AMIKO 커뮤니티 이용 안내(필독)' : 'AMIKO Community Guide (Required Reading)'}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Heart className="w-4 h-4 text-red-500" />
-                    <span>0</span>
+          {notices.length > 0 ? (
+            notices.map((notice) => (
+              <Card 
+                key={notice.id}
+                className="cursor-pointer hover:bg-gray-50 transition-colors" 
+                onClick={() => router.push(`/community/post/${notice.id}`)}
+              >
+                <CardContent className="py-1 px-3">
+                  <div className="flex md:flex-row flex-col md:items-center gap-2 md:gap-3">
+                    <div className="flex items-center gap-3 flex-1">
+                      <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
+                        {t('home.sections.announcement')}
+                      </Badge>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
+                        {notice.title}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Heart className="w-4 h-4 text-red-500" />
+                        <span>{notice.likes}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="w-4 h-4 text-blue-500" />
+                        <span>{notice.comments}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{notice.views}</span>
+                      </div>
+                      <div className="flex items-center gap-1 hidden md:flex">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-gray-500">{notice.createdAt}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <MessageSquare className="w-4 h-4 text-blue-500" />
-                    <span>1</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    <span>69</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-gray-500">{language === 'ko' ? '24일 전' : 'hace 24 días'}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 공지사항 2 */}
-          <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/community/post?id=notice-2')}>
-            <CardContent className="py-1 px-3">
-              <div className="flex md:flex-row flex-col md:items-center gap-2 md:gap-3">
-                <div className="flex items-center gap-3 flex-1">
-                  <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
-                    {t('home.sections.announcement')}
-                  </Badge>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1">
-                    {language === 'ko' ? 'AMIKO 개발 일정 관련 공지사항' : 'AMIKO Development Schedule Announcement'}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Heart className="w-4 h-4 text-red-500" />
-                    <span>0</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageSquare className="w-4 h-4 text-blue-500" />
-                    <span>1</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    <span>69</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-gray-500">{language === 'ko' ? '24일 전' : 'hace 24 días'}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="py-4 text-center">
+                <p className="text-gray-500 text-sm">
+                  {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -1197,7 +1120,7 @@ export default function HomeTab() {
               </h2>
             </div>
             <button 
-              onClick={() => router.push('/community/k-chat')}
+              onClick={() => router.push('/main?tab=community&view=k-chat')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
               <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -1262,7 +1185,7 @@ export default function HomeTab() {
               </h2>
             </div>
             <button 
-              onClick={() => router.push('/community/polls')}
+              onClick={() => router.push('/main?tab=community&view=polls')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
               <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -1602,63 +1525,6 @@ export default function HomeTab() {
           <div className="space-y-4">
             
             {/* 공지사항 - 데스크톱 버전 */}
-            {notices.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <span className="text-lg">📢</span>
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                      {language === 'ko' ? '공지사항' : 'Avisos'}
-                    </h2>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push('/community/freeboard')}
-                  >
-                    {language === 'ko' ? '더보기' : 'Ver Más'}
-                  </Button>
-                </div>
-                
-                <div className="space-y-3">
-                  {notices.map((notice) => (
-                    <Card key={notice.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                              {notice.title}
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
-                              {notice.content}
-                            </p>
-                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
-                              <div className="flex items-center space-x-4">
-                                <span className="flex items-center space-x-1">
-                                  <span>👁️</span>
-                                  <span>{notice.views}</span>
-                                </span>
-                                <span className="flex items-center space-x-1">
-                                  <span>💬</span>
-                                  <span>{notice.comments}</span>
-                                </span>
-                              </div>
-                              <span className="flex items-center space-x-1">
-                                <Clock className="w-3 h-3" />
-                                <span>{notice.createdAt}</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -1756,69 +1622,52 @@ export default function HomeTab() {
               </div>
               
               <div className="space-y-2">
-                {/* 공지사항 1 */}
-                <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/community/post?id=notice-1')}>
-                  <CardContent className="py-1 px-3">
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
-                        {language === 'ko' ? '공지' : '공지'}
-                      </Badge>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1">
-                        {language === 'ko' ? 'AMIKO 커뮤니티 이용 안내(필독)' : 'AMIKO Community Guide (Required Reading)'}
-                      </h3>
-                      <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-4 h-4 text-red-500" />
-                          <span>0</span>
+                {notices.length > 0 ? (
+                  notices.map((notice) => (
+                    <Card 
+                      key={notice.id}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors" 
+                      onClick={() => router.push(`/community/post/${notice.id}`)}
+                    >
+                      <CardContent className="py-1 px-3">
+                        <div className="flex items-center gap-3">
+                          <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
+                            {language === 'ko' ? '공지' : '공지'}
+                          </Badge>
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
+                            {notice.title}
+                          </h3>
+                          <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-1">
+                              <Heart className="w-4 h-4 text-red-500" />
+                              <span>{notice.likes}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <MessageSquare className="w-4 h-4 text-blue-500" />
+                              <span>{notice.comments}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Eye className="w-4 h-4" />
+                              <span>{notice.views}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              <span className="text-gray-500">{notice.createdAt}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-4 h-4 text-blue-500" />
-                          <span>1</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          <span>69</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-gray-500">{language === 'ko' ? '24일 전' : 'hace 24 días'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 공지사항 2 */}
-                <Card className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push('/community/post?id=notice-2')}>
-                  <CardContent className="py-1 px-3">
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
-                        {language === 'ko' ? '공지' : '공지'}
-                      </Badge>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1">
-                        {language === 'ko' ? 'AMIKO 개발 일정 관련 공지사항' : 'AMIKO Development Schedule Announcement'}
-                      </h3>
-                      <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-4 h-4 text-red-500" />
-                          <span>0</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-4 h-4 text-blue-500" />
-                          <span>1</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          <span>69</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-gray-500">{language === 'ko' ? '24일 전' : 'hace 24 días'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <Card>
+                    <CardContent className="py-4 text-center">
+                      <p className="text-gray-500 text-sm">
+                        {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
 
@@ -2159,7 +2008,7 @@ export default function HomeTab() {
                     </h2>
                   </div>
                   <button 
-                    onClick={() => router.push('/main?tab=community')}
+                    onClick={() => router.push('/main?tab=community&view=k-chat')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
                     <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -2216,7 +2065,7 @@ export default function HomeTab() {
                     </h2>
                   </div>
                   <button 
-                    onClick={() => router.push('/main?tab=community')}
+                    onClick={() => router.push('/main?tab=community&view=polls')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
                     <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
