@@ -52,29 +52,29 @@ export async function getAmikoRecentVideos(maxResults: number = 6): Promise<YouT
   }
 
   try {
-    // 1단계: 채널 ID 먼저 찾기
+    // 1단계: 채널 핸들로 채널 ID 가져오기 (더 정확함)
     console.log('🔍 AMIKO 채널 검색 시작...')
-    const channelSearchUrl = new URL('https://www.googleapis.com/youtube/v3/search')
-    channelSearchUrl.searchParams.set('key', YOUTUBE_API_KEY)
-    channelSearchUrl.searchParams.set('q', 'AMIKO Official')  // 채널명으로 검색
-    channelSearchUrl.searchParams.set('type', 'channel')
-    channelSearchUrl.searchParams.set('part', 'snippet')
-    channelSearchUrl.searchParams.set('maxResults', '1')
+    const channelUrl = new URL('https://www.googleapis.com/youtube/v3/channels')
+    channelUrl.searchParams.set('key', YOUTUBE_API_KEY)
+    channelUrl.searchParams.set('forHandle', AMIKO_CHANNEL_HANDLE.replace('@', ''))  // @ 제거
+    channelUrl.searchParams.set('part', 'id')
 
-    const channelResponse = await fetch(channelSearchUrl.toString())
+    const channelResponse = await fetch(channelUrl.toString())
     if (!channelResponse.ok) {
-      throw new Error(`채널 검색 실패: ${channelResponse.status}`)
+      const errorText = await channelResponse.text()
+      console.error('채널 조회 오류:', errorText)
+      throw new Error(`채널 조회 실패: ${channelResponse.status}`)
     }
 
     const channelData = await channelResponse.json()
-    console.log('📺 채널 검색 결과:', channelData)
+    console.log('📺 채널 조회 결과:', channelData)
 
     if (!channelData.items || channelData.items.length === 0) {
       console.error('⚠️ AMIKO 채널을 찾을 수 없습니다.')
       return []
     }
 
-    const channelId = channelData.items[0].snippet.channelId
+    const channelId = channelData.items[0].id
     console.log('✅ 채널 ID 찾음:', channelId)
 
     // 2단계: 채널의 최근 업로드 영상 검색

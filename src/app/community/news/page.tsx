@@ -1096,19 +1096,21 @@ function NewsPageContent() {
                         </span>
                         <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
                       </div>
-                      {user?.id === comment.author_id && (
+                      {(user?.id === comment.author_id || isOperatorUser) && (
                         <div className="flex gap-0.5 md:gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingComment(comment.id)
-                              setEditContent(comment.content)
-                            }}
-                            className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
-                          >
-                            {language === 'ko' ? '수정' : 'Editar'}
-                          </Button>
+                          {user?.id === comment.author_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingComment(comment.id)
+                                setEditContent(comment.content)
+                              }}
+                              className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
+                            >
+                              {language === 'ko' ? '수정' : 'Editar'}
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1190,7 +1192,7 @@ function NewsPageContent() {
                         {language === 'ko' ? '답글' : 'Responder'}
                       </Button>
                       {/* 삭제 버튼 (본인 또는 관리자만) */}
-                      {(user?.id === comment.author_id || user?.is_admin) && (
+                      {(user?.id === comment.author_id || isOperatorUser) && (
                         <Button
                           variant="ghost"
                           size="sm"

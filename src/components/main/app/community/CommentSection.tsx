@@ -57,10 +57,41 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'replies'>('latest')
   const [translatingComments, setTranslatingComments] = useState<Set<string>>(new Set())
   const [currentUserProfile, setCurrentUserProfile] = useState<{ name: string; avatar: string | null } | null>(null)
+  const [isOperator, setIsOperator] = useState(false)
   
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
   const translationService = new TranslationService()
+
+  // 운영자 권한 체크
+  useEffect(() => {
+    const checkOperatorStatus = async () => {
+      if (!user || !token) {
+        setIsOperator(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/admin/check-operator', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          setIsOperator(result.isOperator || false)
+        } else {
+          setIsOperator(false)
+        }
+      } catch (error) {
+        console.error('운영자 권한 체크 실패:', error)
+        setIsOperator(false)
+      }
+    }
+
+    checkOperatorStatus()
+  }, [user, token])
 
   // 현재 사용자 프로필 정보 로드
   useEffect(() => {
@@ -313,6 +344,46 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       console.error('투표 오류:', error)
       // 에러 시 원래 상태로 복구
       await loadComments()
+    }
+  }
+
+  // 댓글 삭제
+  const handleDeleteComment = async (commentId: string, authorId?: string) => {
+    // 권한 체크: 작성자 본인이거나 운영자만 삭제 가능
+    if (!user || (!isOperator && user.id !== authorId)) {
+      alert(language === 'ko' ? '댓글을 삭제할 권한이 없습니다.' : 'No tienes permiso para eliminar este comentario.')
+      return
+    }
+
+    const confirmMessage = language === 'ko' 
+      ? '댓글을 삭제하시겠습니까?' 
+      : '¿Eliminar este comentario?'
+    
+    if (!confirm(confirmMessage)) return
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        // 댓글 목록 새로고침
+        await loadComments()
+        
+        const successMessage = language === 'ko' 
+          ? '댓글이 삭제되었습니다.' 
+          : 'Comentario eliminado.'
+        alert(successMessage)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        alert(errorData.error || (language === 'ko' ? '댓글 삭제에 실패했습니다.' : 'Error al eliminar comentario.'))
+      }
+    } catch (error) {
+      console.error('댓글 삭제 오류:', error)
+      alert(language === 'ko' ? '댓글 삭제 중 오류가 발생했습니다.' : 'Error al eliminar comentario.')
     }
   }
 
@@ -577,6 +648,16 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                           {t('freeboard.replyButton')}
                         </button>
                       )}
+                      
+                      {/* 삭제 버튼 (작성자 본인 또는 운영자) */}
+                      {user && (isOperator || user.id === comment.author?.id) && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id, comment.author?.id)}
+                          className="text-xs md:text-sm text-red-500 hover:text-red-700"
+                        >
+                          {language === 'ko' ? '삭제' : 'Eliminar'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -683,6 +764,15 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                                 <span>{reply.dislike_count}</span>
                               </button>
                               
+                              {/* 대댓글 삭제 버튼 (작성자 본인 또는 운영자) */}
+                              {user && (isOperator || user.id === reply.author?.id) && (
+                                <button
+                                  onClick={() => handleDeleteComment(reply.id, reply.author?.id)}
+                                  className="text-xs md:text-sm text-red-500 hover:text-red-700"
+                                >
+                                  {language === 'ko' ? '삭제' : 'Eliminar'}
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
