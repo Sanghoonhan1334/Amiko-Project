@@ -14,45 +14,24 @@ export async function DELETE(
       )
     }
 
-    const { id: newsId, commentId } = await params
+    const { id: newsId, commentId } = params
 
     console.log('[NEWS_COMMENT_DELETE] 뉴스 댓글 삭제:', { newsId, commentId })
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
-    let authUser = null
-
-    if (authHeader) {
-      const token = authHeader.split(' ')[1]
-      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
-
-      if (authError || !user) {
-        console.error('[NEWS_COMMENT_DELETE] 인증 실패:', authError?.message)
-        return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
-      }
-      authUser = user
-    } else {
-      // 개발 환경에서는 기본 사용자로 인증 우회
-      console.log('[NEWS_COMMENT_DELETE] 토큰 없음 - 개발 환경 인증 우회')
-      const defaultUserId = '5f83ab21-fd61-4666-94b5-087d73477476'
-      const { data: defaultUser, error: defaultUserError } = await supabaseServer
-        .from('users')
-        .select('id, email, full_name')
-        .eq('id', defaultUserId)
-        .single()
-
-      if (defaultUserError || !defaultUser) {
-        console.error('[NEWS_COMMENT_DELETE] 기본 사용자 조회 실패:', defaultUserError)
-        return NextResponse.json(
-          { error: '기본 사용자 인증에 실패했습니다.' },
-          { status: 401 }
-        )
-      }
-      authUser = defaultUser
+    
+    if (!authHeader) {
+      console.error('[NEWS_COMMENT_DELETE] Authorization 헤더 없음')
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
-    if (!authUser) {
-      return NextResponse.json({ error: '인증된 사용자를 찾을 수 없습니다.' }, { status: 401 })
+    const token = authHeader.split(' ')[1]
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+    if (authError || !user) {
+      console.error('[NEWS_COMMENT_DELETE] 인증 실패:', authError?.message)
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
     // 댓글 작성자 확인
@@ -67,9 +46,19 @@ export async function DELETE(
       return NextResponse.json({ error: '댓글을 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    // 작성자 또는 관리자만 삭제 가능
-    const isAdmin = ['admin@amiko.com', 'editor@amiko.com', 'manager@amiko.com'].includes(authUser.email)
-    if (comment.author_id !== authUser.id && !isAdmin) {
+    // 운영자 권한 확인
+    const { data: adminData } = await supabaseServer
+      .from('admin_users')
+      .select('id, is_active')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single()
+
+    const isOperator = !!adminData
+
+    // 작성자 또는 운영자만 삭제 가능
+    if (comment.author_id !== user.id && !isOperator) {
+      console.log('[NEWS_COMMENT_DELETE] 권한 없음:', { commentAuthorId: comment.author_id, userId: user.id, isOperator })
       return NextResponse.json({ error: '댓글을 삭제할 권한이 없습니다.' }, { status: 403 })
     }
 
@@ -123,46 +112,25 @@ export async function PUT(
       )
     }
 
-    const { id: newsId, commentId } = await params
+    const { id: newsId, commentId } = params
     const { content } = await request.json()
 
     console.log('[NEWS_COMMENT_UPDATE] 뉴스 댓글 수정:', { newsId, commentId, content: content?.substring(0, 50) })
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
-    let authUser = null
-
-    if (authHeader) {
-      const token = authHeader.split(' ')[1]
-      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
-
-      if (authError || !user) {
-        console.error('[NEWS_COMMENT_UPDATE] 인증 실패:', authError?.message)
-        return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
-      }
-      authUser = user
-    } else {
-      // 개발 환경에서는 기본 사용자로 인증 우회
-      console.log('[NEWS_COMMENT_UPDATE] 토큰 없음 - 개발 환경 인증 우회')
-      const defaultUserId = '5f83ab21-fd61-4666-94b5-087d73477476'
-      const { data: defaultUser, error: defaultUserError } = await supabaseServer
-        .from('users')
-        .select('id, email, full_name')
-        .eq('id', defaultUserId)
-        .single()
-
-      if (defaultUserError || !defaultUser) {
-        console.error('[NEWS_COMMENT_UPDATE] 기본 사용자 조회 실패:', defaultUserError)
-        return NextResponse.json(
-          { error: '기본 사용자 인증에 실패했습니다.' },
-          { status: 401 }
-        )
-      }
-      authUser = defaultUser
+    
+    if (!authHeader) {
+      console.error('[NEWS_COMMENT_UPDATE] Authorization 헤더 없음')
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
-    if (!authUser) {
-      return NextResponse.json({ error: '인증된 사용자를 찾을 수 없습니다.' }, { status: 401 })
+    const token = authHeader.split(' ')[1]
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+    if (authError || !user) {
+      console.error('[NEWS_COMMENT_UPDATE] 인증 실패:', authError?.message)
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
     // 유효성 검사
