@@ -1274,14 +1274,20 @@ export default function HomeTab() {
             <CardContent className="p-2">
               <div className="grid grid-cols-2 gap-2">
                 {currentPolls.length > 0 ? (
-                  currentPolls.slice(0, 4).map((poll) => (
+                  currentPolls.slice(0, 4).map((poll) => {
+                    // 실제 이미지가 있는지 확인 (placeholder, null, undefined 제외)
+                    const hasRealImage = poll.image && 
+                                        poll.image !== '/misc/placeholder.png' && 
+                                        !poll.image.includes('placeholder')
+                    
+                    return (
                     <div 
                       key={poll.id}
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/polls`)}
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
-                        {poll.image && !poll.image.includes('placeholder') ? (
+                        {hasRealImage ? (
                           <img
                             src={poll.image}
                             alt={poll.title}
@@ -1305,7 +1311,8 @@ export default function HomeTab() {
                         <span>{poll.totalVotes} · {poll.createdAt}</span>
                       </div>
                     </div>
-                  ))
+                    )
+                  }))
                 ) : (
                   <div className="col-span-2 text-center py-4">
                     <img 
