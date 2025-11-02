@@ -48,7 +48,7 @@ const supabase = createClient(
 )
 
 export default function ChatRoomClient({ roomId }: { roomId: string }) {
-  const { user, token, loading: authLoading } = useAuth()
+  const { user, token, loading: authLoading, refreshSession } = useAuth()
   const router = useRouter()
   
   // Create authenticated Supabase client with useMemo to prevent multiple instances
@@ -117,10 +117,30 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
 
     // 세션 복구 대기 (authLoading이 false가 되어도 user는 아직 없을 수 있음)
     const timeoutId = setTimeout(() => {
-      // 로딩 완료 후 사용자가 없으면 로그인 페이지로
+      // 로딩 완료 후 사용자가 없으면 세션 갱신 시도
       if (!user) {
-        console.log('❌ 사용자 없음 - 로그인 페이지로 이동')
-        router.push('/sign-in')
+        console.log('⚠️ 사용자 없음 - 세션 갱신 시도...')
+        if (refreshSession) {
+          refreshSession().then((refreshed) => {
+            if (!refreshed) {
+              console.log('❌ 세션 갱신 실패 - 로그인 페이지로 이동')
+              router.push('/sign-in')
+            } else {
+              console.log('✅ 세션 갱신 성공 - 채팅 시작')
+              // 갱신 성공 후 다시 시도
+              setTimeout(() => {
+                fetchRoom()
+                fetchMessages()
+                joinRoom()
+                subscribeToMessages()
+                startPolling()
+              }, 500)
+            }
+          })
+        } else {
+          console.log('❌ refreshSession 함수 없음 - 로그인 페이지로 이동')
+          router.push('/sign-in')
+        }
         return
       }
 
@@ -135,7 +155,7 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
 
       // Polling fallback (5초마다 메시지 확인)
       startPolling()
-    }, 500)
+    }, 1000) // 500ms → 1000ms로 증가 (더 여유있게)
 
     return () => {
       clearTimeout(timeoutId)
@@ -174,7 +194,7 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
     }
   }, [])
 
-  const fetchRoom = async () => {
+  const fetchRoom = async (retryCount = 0) => {
     try {
       const { data, error } = await authSupabase
         .from('chat_rooms')
@@ -182,7 +202,20 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
         .eq('id', roomId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        // 인증 에러 시 세션 갱신 시도
+        if (error.message?.includes('JWT') || error.message?.includes('expired') || error.code === 'PGRST301') {
+          console.log('[CHAT] 인증 에러 감지, 세션 갱신 시도...')
+          if (retryCount < 2 && refreshSession) {
+            const refreshed = await refreshSession()
+            if (refreshed) {
+              console.log('[CHAT] 세션 갱신 성공, 재시도...')
+              return fetchRoom(retryCount + 1)
+            }
+          }
+        }
+        throw error
+      }
 
       setRoom(data)
       
@@ -204,7 +237,7 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
     }
   }
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (retryCount = 0) => {
     try {
       // 우선 프로필 없이 로드
       const { data, error } = await authSupabase
@@ -215,6 +248,18 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
 
       if (error) {
         console.error('❌ Error fetching messages:', error)
+        
+        // 인증 에러 시 세션 갱신 시도
+        if (error.message?.includes('JWT') || error.message?.includes('expired') || error.code === 'PGRST301') {
+          console.log('[CHAT] 메시지 로드 인증 에러 감지, 세션 갱신 시도...')
+          if (retryCount < 2 && refreshSession) {
+            const refreshed = await refreshSession()
+            if (refreshed) {
+              console.log('[CHAT] 세션 갱신 성공, 메시지 재시도...')
+              return fetchMessages(retryCount + 1)
+            }
+          }
+        }
         throw error
       }
 

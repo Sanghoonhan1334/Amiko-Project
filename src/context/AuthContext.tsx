@@ -435,22 +435,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
+      console.log('[AUTH] 세션 갱신 시도...')
       const { data: { session }, error } = await supabase.auth.refreshSession()
+      
       if (session && !error) {
+        console.log('[AUTH] 세션 갱신 성공')
         setSession(session)
-        setUser(session.user)
+        
+        // 프로필 정보 포함하여 user 설정
+        const extendedUser = await fetchUserProfile(session.user)
+        setUser(extendedUser)
+        
+        // 로컬 스토리지 업데이트 (30일 연장)
+        const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
         localStorage.setItem('amiko_session', JSON.stringify({
           user: session.user,
-          expires_at: session.expires_at
+          expires_at: extendedExpiry,
+          original_expires_at: session.expires_at
         }))
-        console.log('[AUTH] 세션 새로고침 성공')
+        
+        // 토큰도 업데이트
+        localStorage.setItem('amiko_token', session.access_token)
+        
+        console.log('[AUTH] 세션 갱신 완료 - 로컬 스토리지 업데이트됨')
         return true
       } else {
-        console.log('[AUTH] 세션 새로고침 실패:', error)
+        console.log('[AUTH] 세션 갱신 실패:', error?.message)
         return false
       }
     } catch (error) {
-      console.error('[AUTH] 세션 새로고침 오류:', error)
+      console.error('[AUTH] 세션 갱신 오류:', error)
       return false
     }
   }
