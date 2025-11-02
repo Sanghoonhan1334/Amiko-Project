@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -416,19 +416,14 @@ export default function HomeTab() {
 
   const loadNotices = async () => {
     try {
-      console.log('🔍 공지사항 로딩 시작...')
-      
-      // 모든 갤러리에서 is_notice = true인 게시글 가져오기 (카테고리 무관)
       const response = await fetch('/api/posts?is_notice=true&limit=10&sort=created_at')
       
       if (!response.ok) {
-        console.error('❌ 공지사항 API 실패:', response.status)
         setNotices([])
         return
       }
       
       const data = await response.json()
-      console.log('📡 공지사항 API 응답:', data)
       
       if (data.posts && data.posts.length > 0) {
         // 데이터 포맷팅
@@ -452,22 +447,18 @@ export default function HomeTab() {
           }
         })
         
-        console.log('✅ 공지사항 로드 완료:', formattedNotices.length, '개')
-        console.log('📋 공지 데이터:', formattedNotices)
         setNotices(formattedNotices)
       } else {
-        console.log('⚠️ 공지사항이 없습니다')
         setNotices([])
       }
       
     } catch (error) {
-      console.error('❌ 공지사항 로딩 실패:', error)
       setNotices([])
     }
   }
 
-  // 유틸리티 함수
-  const formatTimeAgo = (dateString: string) => {
+  // 유틸리티 함수 (메모이제이션)
+  const formatTimeAgo = useCallback((dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
@@ -481,7 +472,7 @@ export default function HomeTab() {
       const days = Math.floor(diffInMinutes / 1440)
       return language === 'ko' ? `${days}일 전` : `hace ${days} días`
     }
-  }
+  }, [language])
 
   const loadGalleryPosts = async () => {
     try {
@@ -576,14 +567,10 @@ export default function HomeTab() {
 
   const loadKNoticiaNews = async () => {
     try {
-      console.log('📰 [홈탭] K-Noticia 뉴스 로딩 시작...')
       const response = await fetch('/api/news?limit=5')
-      console.log('📰 [홈탭] API 응답 상태:', response.status, response.ok)
       
       if (response.ok) {
         const data = await response.json()
-        console.log('📰 [홈탭] API 응답 데이터:', data)
-        console.log('📰 [홈탭] newsItems 개수:', data.newsItems?.length || 0)
         
         if (data.success && data.newsItems && data.newsItems.length > 0) {
           const formattedNews = data.newsItems.map((news: any) => ({
@@ -594,30 +581,23 @@ export default function HomeTab() {
             comments: news.comment_count || 0,
             views: news.view_count || 0
           }))
-          console.log('📰 [홈탭] 포맷팅된 뉴스:', formattedNews)
           setKNoticiaNews(formattedNews)
         } else {
-          console.log('📰 [홈탭] 뉴스 데이터 없음 또는 빈 배열')
           setKNoticiaNews([])
         }
       } else {
-        console.error('📰 [홈탭] API 응답 실패:', response.status)
         setKNoticiaNews([])
       }
     } catch (error) {
-      console.error('📰 [홈탭] K-Noticia 뉴스 로딩 실패:', error)
       setKNoticiaNews([])
     }
   }
 
   const loadYoutubeVideos = async () => {
     try {
-      console.log('🎥 [홈탭] YouTube 영상 로딩 시작...')
       const videos = await getAmikoRecentVideos(6)
-      console.log('🎥 [홈탭] YouTube 영상 로드 완료:', videos.length, '개')
       setYoutubeVideos(videos)
     } catch (error) {
-      console.error('YouTube 영상 로딩 실패:', error)
       setYoutubeVideos([])
     }
   }
@@ -638,8 +618,6 @@ export default function HomeTab() {
         loadKNoticiaNews(),
         loadYoutubeVideos()
       ])
-    } catch (error) {
-      console.error('데이터 로딩 실패:', error)
     } finally {
       setLoading(false)
     }
@@ -654,7 +632,6 @@ export default function HomeTab() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('홈탭 포커스 - 데이터 새로고침')
         // 뉴스 데이터만 새로고침 (전체 새로고침은 부담이 클 수 있음)
         loadKNoticiaNews()
         loadHotPosts()
@@ -669,33 +646,34 @@ export default function HomeTab() {
   }, [])
 
 
-  const formatNumber = (num: number) => {
+  const formatNumber = useCallback((num: number) => {
     if (num >= 1000) {
       return `${(num / 1000).toFixed(1)}k`
     }
     return num.toString()
-  }
+  }, [])
 
-  const shortenCategoryName = (category: string) => {
-    const categoryMap: { [key: string]: string } = {
-      '공지사항': language === 'ko' ? '공지' : 'Aviso',
-      'Anuncios': 'Aviso',
-      '자유게시판': language === 'ko' ? '자유' : 'Libre',
-      'Foro Libre': 'Libre',
-      'Libre': 'Libre',
-      'K-POP': 'K-POP',
-      'Foro K-POP': 'K-POP',
-      'K-Drama': 'Drama',
-      'Foro K-Drama': 'Drama',
-      '뷰티': language === 'ko' ? '뷰티' : 'Beauty',
-      'Foro de Belleza': 'Beauty',
-      '한국어': language === 'ko' ? '한국어' : 'Coreano',
-      'Foro de Coreano': 'Coreano',
-      '스페인어': language === 'ko' ? '스페인어' : 'Español',
-      'Foro de Español': 'Español'
-    }
+  const categoryMap = useMemo(() => ({
+    '공지사항': language === 'ko' ? '공지' : 'Aviso',
+    'Anuncios': 'Aviso',
+    '자유게시판': language === 'ko' ? '자유' : 'Libre',
+    'Foro Libre': 'Libre',
+    'Libre': 'Libre',
+    'K-POP': 'K-POP',
+    'Foro K-POP': 'K-POP',
+    'K-Drama': 'Drama',
+    'Foro K-Drama': 'Drama',
+    '뷰티': language === 'ko' ? '뷰티' : 'Beauty',
+    'Foro de Belleza': 'Beauty',
+    '한국어': language === 'ko' ? '한국어' : 'Coreano',
+    'Foro de Coreano': 'Coreano',
+    '스페인어': language === 'ko' ? '스페인어' : 'Español',
+    'Foro de Español': 'Español'
+  }), [language])
+
+  const shortenCategoryName = useCallback((category: string) => {
     return categoryMap[category] || category.substring(0, 6)
-  }
+  }, [categoryMap])
 
   if (loading) {
     return (
