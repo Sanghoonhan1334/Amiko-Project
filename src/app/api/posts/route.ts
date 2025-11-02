@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
           
           if (userData) {
             // full_name이 비어있으면 email의 '@' 앞 부분 사용
-            userName = userData.full_name || (userData.email ? userData.email.split('@')[0] : '익명')
+            userName = userData.full_name || (userData.email ? userData.email.split('@')[0] : 'Anónimo')
             avatarUrl = userData.profile_image || userData.avatar_url
           }
         }
@@ -236,8 +236,8 @@ export async function GET(request: NextRequest) {
         updated_at: post.updated_at,
         author: {
           id: post.user_id,
-          full_name: userName || '익명',
-          nickname: userName || '익명',
+          full_name: userName || 'Anónimo',
+          nickname: userName || 'Anónimo',
           avatar_url: avatarUrl
         }
       }

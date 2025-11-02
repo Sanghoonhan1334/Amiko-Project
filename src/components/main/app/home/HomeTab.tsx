@@ -295,11 +295,17 @@ export default function HomeTab() {
             categoryName = language === 'ko' ? '공지' : 'Anuncio'
           }
           
+          // 작성자 이름 처리 ('익명' 번역)
+          let authorName = post.user?.nickname || post.user?.full_name || (language === 'ko' ? '익명' : 'Anónimo')
+          if (authorName === '익명') {
+            authorName = language === 'ko' ? '익명' : 'Anónimo'
+          }
+          
           return {
             id: post.id,
             title: post.title,
             content: post.content,
-            author: post.user?.nickname || post.user?.full_name || '익명',
+            author: authorName,
             likes: post.like_count || 0,
             comments: post.comment_count || 0,
             views: post.view_count || 0,
@@ -424,17 +430,25 @@ export default function HomeTab() {
       
       if (data.posts && data.posts.length > 0) {
         // 데이터 포맷팅
-        const formattedNotices = data.posts.slice(0, 3).map((post: any) => ({
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          author: post.author?.nickname || post.author?.full_name || '관리자',
-          likes: post.like_count || 0,
-          comments: post.comment_count || 0,
-          views: post.view_count || 0,
-          createdAt: formatTimeAgo(post.created_at),
-          category: post.category || '공지사항'
-        }))
+        const formattedNotices = data.posts.slice(0, 3).map((post: any) => {
+          let authorName = post.author?.nickname || post.author?.full_name || (language === 'ko' ? '관리자' : 'Administrador')
+          // '익명'을 언어에 맞게 변환
+          if (authorName === '익명') {
+            authorName = language === 'ko' ? '익명' : 'Anónimo'
+          }
+          
+          return {
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            author: authorName,
+            likes: post.like_count || 0,
+            comments: post.comment_count || 0,
+            views: post.view_count || 0,
+            createdAt: formatTimeAgo(post.created_at),
+            category: post.category || '공지사항'
+          }
+        })
         
         console.log('✅ 공지사항 로드 완료:', formattedNotices.length, '개')
         console.log('📋 공지 데이터:', formattedNotices)
