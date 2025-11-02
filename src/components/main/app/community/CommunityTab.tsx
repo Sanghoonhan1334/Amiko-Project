@@ -157,6 +157,11 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // 드래그 중인 아이템 추적
   const [draggingItem, setDraggingItem] = useState<{ itemId: string; subIndex: number } | null>(null)
   
+  // 서브메뉴 전체 드래그 상태
+  const [isDraggingSubmenu, setIsDraggingSubmenu] = useState(false)
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
+  const [dragCurrentPos, setDragCurrentPos] = useState({ x: 0, y: 0 })
+  
   // 서브메뉴 위치 조정 state (모바일/데스크톱 별도 관리)
   const [submenuPositions, setSubmenuPositions] = useState<Record<string, { x: number; y: number }>>(() => {
     // localStorage에서 복원
@@ -326,10 +331,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   }, [router, isNavigating, onViewChange])
   
   // 서브메뉴 전체 드래그 핸들러
-  const [isDraggingSubmenu, setIsDraggingSubmenu] = useState(false)
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
-  const [dragCurrentPos, setDragCurrentPos] = useState({ x: 0, y: 0 })
-
   const handleSubmenuMouseDown = (e: React.MouseEvent, itemId: string) => {
     // 서브 아이템 자체를 클릭한 경우는 제외
     if ((e.target as HTMLElement).closest('button[draggable="true"]')) {
