@@ -73,7 +73,36 @@ function StoriesPageContent() {
   // 플로팅 버튼 상태
   const [isFabExpanded, setIsFabExpanded] = useState(false)
 
-  const isAdmin = user?.role === 'admin'
+  // 운영자 권한 확인
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user || !token) {
+        setIsAdmin(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/admin/check-operator', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          setIsAdmin(result.isOperator || false)
+        } else {
+          setIsAdmin(false)
+        }
+      } catch (error) {
+        setIsAdmin(false)
+      }
+    }
+
+    checkAdminStatus()
+  }, [user, token])
 
   // 화면 크기 체크
   useEffect(() => {
@@ -592,6 +621,44 @@ function StoriesPageContent() {
     }
   }
 
+  // 스토리 삭제
+  const handleDeleteStory = async (storyId: string, storyUserId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+    }
+    
+    const confirmMessage = language === 'ko' 
+      ? '이 스토리를 삭제하시겠습니까?' 
+      : '¿Eliminar esta historia?'
+    
+    if (!confirm(confirmMessage)) return
+
+    try {
+      const response = await fetch(`/api/stories/${storyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token || session?.access_token}`
+        }
+      })
+
+      if (response.ok) {
+        // 스토리 목록에서 제거
+        setStories(prev => prev.filter(story => story.id !== storyId))
+        
+        const successMessage = language === 'ko' 
+          ? '스토리가 삭제되었습니다.' 
+          : 'Historia eliminada.'
+        toast.success(successMessage)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        toast.error(errorData.error || (language === 'ko' ? '스토리 삭제에 실패했습니다.' : 'Error al eliminar historia.'))
+      }
+    } catch (error) {
+      console.error('스토리 삭제 오류:', error)
+      toast.error(language === 'ko' ? '스토리 삭제 중 오류가 발생했습니다.' : 'Error al eliminar historia.')
+    }
+  }
+
   // 댓글 삭제 권한 확인
   const canDeleteComment = (commentUserId: string) => {
     if (!user) return false
@@ -979,6 +1046,18 @@ function StoriesPageContent() {
                       {story.user?.full_name || '익명'}
                     </p>
                   </div>
+                  
+                  {/* 삭제 버튼 - 상단 우측 (작성자 본인 또는 관리자, hover 시 표시) */}
+                  {(user && (story.user_id === user.id || isAdmin)) && (
+                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button
+                        onClick={(e) => handleDeleteStory(story.id, story.user_id, e)}
+                        className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                   
                   {/* 스토리 텍스트 - 이미지 위에 직접 오버레이 */}
                   {story.text && (
