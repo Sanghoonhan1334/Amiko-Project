@@ -32,6 +32,7 @@ export async function GET(
         comment_count,
         is_pinned,
         is_hot,
+        is_notice,
         created_at,
         updated_at,
         user_id,
@@ -120,7 +121,7 @@ export async function GET(
         
         if (userData) {
           // full_name이 비어있으면 email의 '@' 앞 부분 사용
-          const finalName = userData.full_name || (userData.email ? userData.email.split('@')[0] : '익명')
+          const finalName = userData.full_name || (userData.email ? userData.email.split('@')[0] : 'Anónimo')
           
           console.log('[POST_GET] users에서 finalName 추출:', finalName)
           
@@ -162,11 +163,12 @@ export async function GET(
       comment_count: post.comment_count || 0,
       is_pinned: post.is_pinned || false,
       is_hot: post.is_hot || false,
+      is_notice: post.is_notice || false,
       created_at: post.created_at,
       updated_at: post.updated_at,
       author: author || {
         id: post.user_id || 'unknown',
-        full_name: '익명',
+        full_name: 'Anónimo',
         profile_image: null
       },
       gallery: gallery || {
