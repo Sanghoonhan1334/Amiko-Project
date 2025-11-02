@@ -1278,7 +1278,17 @@ export default function HomeTab() {
                     // 실제 이미지가 있는지 확인 (placeholder, null, undefined 제외)
                     const hasRealImage = poll.image && 
                                         poll.image !== '/misc/placeholder.png' && 
-                                        !poll.image.includes('placeholder')
+                                        !poll.image.includes('placeholder') &&
+                                        poll.image.length > 0
+                    
+                    // 디버깅용 로그
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('[투표 이미지 체크]', {
+                        title: poll.title,
+                        image: poll.image,
+                        hasRealImage
+                      })
+                    }
                     
                     return (
                     <div 
