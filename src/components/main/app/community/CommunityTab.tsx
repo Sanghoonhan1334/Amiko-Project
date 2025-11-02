@@ -177,11 +177,22 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
         }
       }
     }
-    // 기본값: 385px 화면 기준 rem 단위 (1rem = 16px)
-    // -147px = -9.1875rem, -143px = -8.9375rem
-    return {
-      'story-boards': { x: -147, y: -143 },
-      'k-culture': { x: -147, y: -143 }
+    
+    // 기본값 - 모바일/데스크톱 별도 설정
+    const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768
+    
+    if (isMobileDevice) {
+      // 모바일 기본값 (조정된 위치)
+      return {
+        'story-boards': { x: 90, y: -137 },
+        'k-culture': { x: -88, y: -142 }
+      }
+    } else {
+      // 데스크톱 기본값 (기존 유지)
+      return {
+        'story-boards': { x: -147, y: -143 },
+        'k-culture': { x: -147, y: -143 }
+      }
     }
   })
   
