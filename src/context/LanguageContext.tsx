@@ -14,7 +14,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('ko')
+  const [language, setLanguage] = useState<Language>('es')
   const [userLanguageSet, setUserLanguageSet] = useState(false)
 
   // 컴포넌트가 마운트된 후에만 localStorage 접근
@@ -46,20 +46,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
           !timezone.includes('America/Denver') && 
           !timezone.includes('America/Los_Angeles')
         
-        // 브라우저 언어가 스페인어이거나 스페인어권 시간대인 경우
-        if (browserLang.startsWith('es') || isSpanishSpeakingRegion) {
-          setLanguage('es')
-          localStorage.setItem('amiko-language', 'es')
-          console.log('[LANGUAGE] 브라우저/시간대 기반 스페인어 설정:', { browserLang, timezone })
-        } else {
+        // 브라우저 언어가 한국어인 경우만 한국어로 설정
+        if (browserLang.startsWith('ko') || timezone.includes('Asia/Seoul')) {
           setLanguage('ko')
           localStorage.setItem('amiko-language', 'ko')
-          console.log('[LANGUAGE] 기본 한국어 설정:', { browserLang, timezone })
+          console.log('[LANGUAGE] 브라우저/시간대 기반 한국어 설정:', { browserLang, timezone })
+        } else {
+          // 기본값: 스페인어
+          setLanguage('es')
+          localStorage.setItem('amiko-language', 'es')
+          console.log('[LANGUAGE] 기본 스페인어 설정:', { browserLang, timezone })
         }
       }
     } catch (error) {
       console.error('Error accessing localStorage:', error)
-      setLanguage('ko')
+      setLanguage('es') // 에러 시에도 스페인어 기본값
     }
   }, [])
 
