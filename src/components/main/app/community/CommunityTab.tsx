@@ -190,12 +190,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // 서브메뉴 전체 드래그 핸들러
   const handleSubmenuMouseDown = (e: React.MouseEvent, itemId: string) => {
-    // 서브 아이템 버튼을 클릭한 경우는 제외
-    const target = e.target as HTMLElement
-    if (target.closest('button') && target.closest('button')?.getAttribute('draggable') !== 'false') {
-      return
-    }
-    
     console.log('서브메뉴 드래그 시작:', itemId)
     setIsDraggingSubmenu(true)
     setDragStartPos({ x: e.clientX, y: e.clientY })
@@ -2427,13 +2421,28 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        {(activeSubmenu === item.id || closingSubmenu === item.id) && item.subItems && (
                           <div className="relative">
                             <div
-                              onMouseDown={(e) => handleSubmenuMouseDown(e, item.id)}
                               style={{ 
-                                transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)`,
-                                cursor: isDraggingSubmenu ? 'grabbing' : 'grab'
+                                transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)`
                               }}
                               className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
                             >
+                              {/* 드래그 핸들 - 서브메뉴 이동용 */}
+                              <div
+                                onMouseDown={(e) => handleSubmenuMouseDown(e, item.id)}
+                                className="bg-gray-100 dark:bg-gray-700 rounded-t-lg py-2 px-3 cursor-grab active:cursor-grabbing flex items-center justify-center gap-2 border-2 border-gray-300 dark:border-gray-600"
+                              >
+                                <div className="flex gap-0.5">
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                </div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">드래그하여 이동</span>
+                                <div className="flex gap-0.5">
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                </div>
+                              </div>
                            {(() => {
                              // 저장된 순서 사용
                              const order = subItemOrders[item.id] || item.subItems!.map((_, i) => i)
