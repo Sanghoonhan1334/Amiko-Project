@@ -1812,7 +1812,7 @@ export default function HomeTab() {
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="shadow-2xl">
+                <Card className="shadow-md">
                   <CardContent className="p-12 text-center">
                     <TrendingUp className="w-24 h-24 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 text-xl">
