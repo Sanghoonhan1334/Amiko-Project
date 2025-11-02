@@ -1281,7 +1281,7 @@ export default function HomeTab() {
                       onClick={() => router.push(`/community/polls`)}
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
-                        {poll.image ? (
+                        {poll.image && !poll.image.includes('placeholder') ? (
                           <img
                             src={poll.image}
                             alt={poll.title}
