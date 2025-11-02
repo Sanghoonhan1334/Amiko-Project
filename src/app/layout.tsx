@@ -11,9 +11,7 @@ import { LanguageProvider } from '@/context/LanguageContext'
 import { UserProvider } from '@/context/UserContext'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import QueryProvider from '@/providers/QueryProvider'
-import { GA_MEASUREMENT_ID } from '@/lib/gtag'
-import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
-import GTM from '@/components/analytics/GTM'
+import Analytics from '@/components/analytics/Analytics'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -157,7 +155,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`} suppressHydrationWarning>
-        <GTM />
+        <Analytics />
         <QueryProvider>
           <ThemeProvider
             attribute="class"
