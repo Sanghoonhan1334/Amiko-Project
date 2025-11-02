@@ -188,6 +188,40 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // px를 rem으로 변환하는 함수 (브라우저 기본 폰트 크기 16px 기준)
   const pxToRem = (px: number) => px / 16
   
+  // 서브메뉴 전체 드래그 핸들러
+  const handleSubmenuMouseDown = (e: React.MouseEvent, itemId: string) => {
+    // 서브 아이템 자체를 클릭한 경우는 제외
+    if ((e.target as HTMLElement).closest('button[draggable="true"]')) {
+      return
+    }
+    
+    setIsDraggingSubmenu(true)
+    setDragStartPos({ x: e.clientX, y: e.clientY })
+    setDragCurrentPos({ x: e.clientX, y: e.clientY })
+    e.preventDefault()
+  }
+
+  const handleSubmenuMouseMove = useCallback((e: MouseEvent, itemId: string) => {
+    if (!isDraggingSubmenu) return
+    
+    const deltaX = e.clientX - dragStartPos.x
+    const deltaY = e.clientY - dragStartPos.y
+    
+    setSubmenuPositions(prev => ({
+      ...prev,
+      [itemId]: {
+        x: (prev[itemId]?.x || -147) + deltaX,
+        y: (prev[itemId]?.y || -143) + deltaY
+      }
+    }))
+    
+    setDragStartPos({ x: e.clientX, y: e.clientY })
+  }, [isDraggingSubmenu, dragStartPos])
+
+  const handleSubmenuMouseUp = () => {
+    setIsDraggingSubmenu(false)
+  }
+  
   // submenuPositions 변경 시 localStorage에 저장
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -330,40 +364,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     // 로딩 상태는 페이지 전환 후 자동으로 해제됨
   }, [router, isNavigating, onViewChange])
   
-  // 서브메뉴 전체 드래그 핸들러
-  const handleSubmenuMouseDown = (e: React.MouseEvent, itemId: string) => {
-    // 서브 아이템 자체를 클릭한 경우는 제외
-    if ((e.target as HTMLElement).closest('button[draggable="true"]')) {
-      return
-    }
-    
-    setIsDraggingSubmenu(true)
-    setDragStartPos({ x: e.clientX, y: e.clientY })
-    setDragCurrentPos({ x: e.clientX, y: e.clientY })
-    e.preventDefault()
-  }
-
-  const handleSubmenuMouseMove = useCallback((e: MouseEvent, itemId: string) => {
-    if (!isDraggingSubmenu) return
-    
-    const deltaX = e.clientX - dragStartPos.x
-    const deltaY = e.clientY - dragStartPos.y
-    
-    setSubmenuPositions(prev => ({
-      ...prev,
-      [itemId]: {
-        x: (prev[itemId]?.x || -147) + deltaX,
-        y: (prev[itemId]?.y || -143) + deltaY
-      }
-    }))
-    
-    setDragStartPos({ x: e.clientX, y: e.clientY })
-  }, [isDraggingSubmenu, dragStartPos])
-
-  const handleSubmenuMouseUp = () => {
-    setIsDraggingSubmenu(false)
-  }
-
   // 드래그 앤 드롭 핸들러 - 소주제 순서 변경
   const handleDragStart = (e: React.DragEvent, itemId: string, subItemIndex: number) => {
     e.dataTransfer.effectAllowed = 'move'
