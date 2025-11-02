@@ -172,7 +172,7 @@ export async function PUT(
     }
 
     // 사용자 정보 조회
-    const { data: user } = await supabaseServer
+    const { data: authorData } = await supabaseServer
       .from('users')
       .select('id, full_name, avatar_url, profile_image')
       .eq('id', updatedComment.author_id)
@@ -188,9 +188,9 @@ export async function PUT(
       updated_at: updatedComment.updated_at,
       parent_comment_id: updatedComment.parent_id,
       author: {
-        id: user?.id || updatedComment.author_id,
-        full_name: user?.full_name || '알 수 없음',
-        profile_image: user?.profile_image || user?.avatar_url || null
+        id: authorData?.id || updatedComment.author_id,
+        full_name: authorData?.full_name || '알 수 없음',
+        profile_image: authorData?.profile_image || authorData?.avatar_url || null
       }
     }
 
