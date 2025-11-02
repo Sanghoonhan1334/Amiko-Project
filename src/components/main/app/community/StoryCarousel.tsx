@@ -64,31 +64,34 @@ export default function StoryCarousel() {
   // 운영자 권한 확인
   const [isAdmin, setIsAdmin] = useState(false)
   
-  const checkAdminStatus = () => {
-    if (!authUser) {
-      setIsAdmin(false)
-      return
-    }
-    
-    // 운영자 이메일 목록
-    const adminEmails = [
-      'admin@amiko.com',
-      'editor@amiko.com',
-      'manager@amiko.com'
-    ]
-    
-    // 운영자 ID 목록
-    const adminIds = [
-      '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
-    ]
-    
-    const isAdminUser = adminEmails.includes(authUser.email) || adminIds.includes(authUser.id)
-    setIsAdmin(isAdminUser)
-  }
-
   useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!authUser || !token) {
+        setIsAdmin(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/admin/check-operator', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          setIsAdmin(result.isOperator || false)
+        } else {
+          setIsAdmin(false)
+        }
+      } catch (error) {
+        console.error('관리자 권한 체크 실패:', error)
+        setIsAdmin(false)
+      }
+    }
+
     checkAdminStatus()
-  }, [authUser])
+  }, [authUser, token])
 
   // 화면 크기 감지
   const [isSmallScreen, setIsSmallScreen] = useState(false)
