@@ -451,7 +451,34 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const availablePartners = allPartners.filter(partner => partner.id !== user?.id)  // 자기 자신 제외
 
   return (
-    <>
+    <div className="relative">
+      {/* 오픈 예정 오버레이 */}
+      <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-[2px] z-50 flex items-center justify-center rounded-xl">
+        <div className="text-center space-y-4 px-6">
+          {/* 공사 중 이미지 */}
+          <div className="mb-6">
+            <img 
+              src="/misc/coming-soon.png" 
+              alt="Coming Soon" 
+              className="w-64 h-64 mx-auto object-contain"
+            />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white drop-shadow-lg">
+            Próximamente
+          </h2>
+          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 drop-shadow">
+            Esta función estará disponible pronto
+          </p>
+          <div className="pt-4">
+            <div className="inline-block px-8 py-3 bg-orange-100 dark:bg-orange-900/40 rounded-full border-2 border-orange-300 dark:border-orange-600 shadow-md">
+              <span className="text-orange-700 dark:text-orange-300 font-bold text-lg">
+                Abriendo Pronto
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* AI 화상 채팅 화면 */}
       {isCallActive && (
         <VideoCall 
@@ -814,6 +841,6 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           }}
         />
       </div>
-    </>
+    </div>
   )
 }
