@@ -109,6 +109,7 @@ const tempNewsData = [
 
 function NewsPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const languageContext = useLanguage()
   const { t, language } = languageContext || { t: (key: string) => key, language: 'ko' }
   const { user, token } = useAuth()
@@ -154,7 +155,8 @@ function NewsPageContent() {
   const [editContent, setEditContent] = useState('')
 
   const handleBack = () => {
-    router.push('/main?tab=community')
+    const fromHome = searchParams.get('from') === 'home'
+    router.push(fromHome ? '/main?tab=home' : '/main?tab=community')
   }
 
   const handleCreateNews = () => {

@@ -70,8 +70,20 @@ export async function GET(request: NextRequest) {
             created_at,
             updated_at,
             category,
-            user_id,
-            gallery_id
+            user:users!gallery_posts_user_id_fkey (
+              id,
+              full_name,
+              nickname,
+              avatar_url
+            ),
+            gallery:galleries!gallery_posts_gallery_id_fkey (
+              id,
+              slug,
+              name_ko,
+              name_es,
+              icon,
+              color
+            )
           `)
           .eq('is_deleted', false)
           .eq('is_hot', true)
@@ -86,7 +98,7 @@ export async function GET(request: NextRequest) {
         console.log('[POPULAR_POSTS] 1단계 핫글:', hotPosts?.length || 0, '개')
         posts = hotPosts || []
         
-        // 2단계: 부족하면 좋아요 많은 글로 채우기 (공지사항 제외)
+        // 2단계: 부족하면 최근 게시글로 채우기 (좋아요 조건 없이)
         if (posts.length < limit) {
           const { data: popularPosts } = await supabaseServer
             .from('gallery_posts')
@@ -105,88 +117,33 @@ export async function GET(request: NextRequest) {
               created_at,
               updated_at,
               category,
-              user_id,
-              gallery_id
-            `)
-            .eq('is_deleted', false)
-            .eq('is_notice', false)
-            .gt('like_count', 0)
-            .order('like_count', { ascending: false })
-            .limit(limit - posts.length)
-          
-          console.log('[POPULAR_POSTS] 2단계 좋아요:', popularPosts?.length || 0, '개')
-          const existingIds = new Set(posts.map(p => p.id))
-          const newPosts = (popularPosts || []).filter(p => !existingIds.has(p.id))
-          posts = [...posts, ...newPosts]
-        }
-        
-        // 3단계: 그래도 부족하면 조회수 많은 글로 채우기 (공지사항 제외)
-        if (posts.length < limit) {
-          const { data: viewedPosts } = await supabaseServer
-            .from('gallery_posts')
-            .select(`
-              id,
-              title,
-              content,
-              images,
-              view_count,
-              like_count,
-              dislike_count,
-              comment_count,
-              is_pinned,
-              is_hot,
-              is_notice,
-              created_at,
-              updated_at,
-              category,
-              user_id,
-              gallery_id
-            `)
-            .eq('is_deleted', false)
-            .eq('is_notice', false)
-            .order('view_count', { ascending: false })
-            .limit(limit - posts.length)
-          
-          console.log('[POPULAR_POSTS] 3단계 조회수:', viewedPosts?.length || 0, '개')
-          const existingIds = new Set(posts.map(p => p.id))
-          const newPosts = (viewedPosts || []).filter(p => !existingIds.has(p.id))
-          posts = [...posts, ...newPosts]
-        }
-        
-        // 4단계: 그래도 부족하면 최근 게시글로 채우기 (최종 폴백, 공지사항 제외)
-        if (posts.length < limit) {
-          const { data: recentPosts } = await supabaseServer
-            .from('gallery_posts')
-            .select(`
-              id,
-              title,
-              content,
-              images,
-              view_count,
-              like_count,
-              dislike_count,
-              comment_count,
-              is_pinned,
-              is_hot,
-              is_notice,
-              created_at,
-              updated_at,
-              category,
-              user_id,
-              gallery_id
+              user:users!gallery_posts_user_id_fkey (
+                id,
+                full_name,
+                nickname,
+                avatar_url
+              ),
+              gallery:galleries!gallery_posts_gallery_id_fkey (
+                id,
+                slug,
+                name_ko,
+                name_es,
+                icon,
+                color
+              )
             `)
             .eq('is_deleted', false)
             .eq('is_notice', false)
             .order('created_at', { ascending: false })
             .limit(limit - posts.length)
           
-          console.log('[POPULAR_POSTS] 4단계 최근글:', recentPosts?.length || 0, '개')
+          console.log('[POPULAR_POSTS] 2단계 최근글:', popularPosts?.length || 0, '개')
           const existingIds = new Set(posts.map(p => p.id))
-          const newPosts = (recentPosts || []).filter(p => !existingIds.has(p.id))
+          const newPosts = (popularPosts || []).filter(p => !existingIds.has(p.id))
           posts = [...posts, ...newPosts]
         }
         
-        console.log(`[POPULAR_POSTS] 최종 조회: ${posts.length}개 (핫글 → 좋아요 → 조회수 → 최근글)`)
+        console.log(`[POPULAR_POSTS] 최종 조회: ${posts.length}개 (핫글 → 최근글)`)
         break
         
       case 'popular':

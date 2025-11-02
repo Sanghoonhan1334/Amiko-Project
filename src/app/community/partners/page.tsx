@@ -49,7 +49,28 @@ export default function PartnersPage() {
       description: language === 'ko'
         ? '"어떻게 인류를 아름답고 건강하게 할 수 있는가"라는 질문에서 출발한 기업으로, 지속적 연구와 혁신으로 더 나은 미래의 뷰티를 만들어가고 있습니다.'
         : 'Acu-Point es una empresa que comenzó con la pregunta "¿Cómo podemos hacer a la humanidad hermosa y saludable?" y está creando un mejor futuro de la belleza a través de investigación e innovación continuas.',
-      links: []
+      links: [
+        {
+          platform: 'Instagram',
+          url: '#',
+          icon: '📷',
+          label: 'Pendiente de anuncio'
+        },
+        {
+          platform: 'Facebook',
+          url: '#',
+          icon: '👥',
+          label: 'Pendiente de anuncio'
+        },
+        {
+          platform: 'Website',
+          url: '#',
+          icon: '🌐',
+          label: 'Pendiente de anuncio'
+        }
+      ],
+      location: 'Pendiente de anuncio',
+      phone: 'Pendiente de anuncio'
     },
     {
       name: '',
@@ -258,25 +279,109 @@ export default function PartnersPage() {
                       }`}
                       style={{ aspectRatio: '1 / 1' }}
                     >
-                      <div className="relative h-full w-full overflow-hidden p-4">
+                      <div className="relative h-full w-full overflow-hidden">
                         {/* Close button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             handlePartnerClick(index)
                           }}
-                          className="absolute top-2 right-2 p-1 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 rounded-full transition-colors z-10"
+                          className="absolute top-2 right-2 p-1 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 rounded-full transition-colors z-20"
                         >
                           <X className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                         </button>
 
-                        {/* Image */}
-                        <img 
-                          src="/logos/Para fans.png"
-                          alt={currentPartner.name || 'Partner detail'}
-                          className="w-full h-full object-contain"
-                          draggable={false}
-                        />
+                        {/* Para Fans - 이미지만 표시 (이미지 안에 정보 포함) */}
+                        {currentPartner.id === 'para-fans' ? (
+                          <div className="relative w-full h-full flex items-center justify-center p-4">
+                            {/* Para Fans 상세 이미지 */}
+                            <div className="relative w-full h-full">
+                              <img 
+                                src="/logos/Para fans.png"
+                                alt={currentPartner.name || 'Partner detail'}
+                                className="w-full h-full object-contain"
+                                draggable={false}
+                              />
+                              
+                              {/* 클릭 가능한 투명 영역들 - 이미지 내 URL 위치에 정확히 맞춤 */}
+                              {/* Instagram 영역 (이미지 상 약 48% 위치) */}
+                              <a
+                                href="https://www.instagram.com/_parafans_"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute left-[10%] top-[45%] w-[80%] h-[6%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10"
+                                title="Instagram: @_parafans_"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              
+                              {/* Facebook 영역 (이미지 상 약 52% 위치) */}
+                              <a
+                                href="https://www.facebook.com/parafanscol"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute left-[10%] top-[52%] w-[80%] h-[6%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10"
+                                title="Facebook: parafanscol"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              
+                              {/* Website 영역 (이미지 상 약 59% 위치) */}
+                              <a
+                                href="https://www.parafansk.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute left-[10%] top-[59%] w-[80%] h-[6%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10"
+                                title="Website: www.parafansk.com"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          /* Acu-Point 및 기타 파트너 - 텍스트 정보 */
+                          <div className="relative h-full w-full overflow-y-auto p-4">
+                            <div className="space-y-3">
+                              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">
+                                {currentPartner.name} {currentPartner.country && `· ${currentPartner.country}`}
+                              </h3>
+                              
+                              {/* Social Media Links */}
+                              {currentPartner.links && currentPartner.links.length > 0 && (
+                                <div className="space-y-2">
+                                  {currentPartner.links.map((link: any, i: number) => (
+                                    <a
+                                      key={i}
+                                      href={link.url}
+                                      target={link.url === '#' ? '_self' : '_blank'}
+                                      rel="noopener noreferrer"
+                                      className={`flex items-center gap-2 text-xs ${link.url === '#' ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'text-blue-600 dark:text-blue-400 hover:underline'}`}
+                                      onClick={(e) => {
+                                        if (link.url === '#') {
+                                          e.preventDefault()
+                                        }
+                                      }}
+                                    >
+                                      <span className="text-base">{link.icon}</span>
+                                      <span>{link.label || link.url}</span>
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Location & Phone */}
+                              {currentPartner.location && (
+                                <div className="mt-3 space-y-1">
+                                  <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300">
+                                    <span className="text-base">📍</span>
+                                    <div>
+                                      <div>{currentPartner.location}</div>
+                                      <div className="font-semibold">{currentPartner.name.toUpperCase()} {currentPartner.country && currentPartner.country.toUpperCase()}.</div>
+                                      {currentPartner.phone && <div>{currentPartner.phone}</div>}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

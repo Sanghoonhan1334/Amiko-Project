@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Heart, MessageCircle, Eye, Share2, Send, Download } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,7 @@ interface Comment {
 export default function FanartDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, token } = useAuth()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
@@ -279,10 +280,12 @@ export default function FanartDetailPage() {
             <button
               onClick={() => {
                 const prevIndex = currentIndex - 1
+                const fromHome = searchParams.get('from') === 'home'
                 if (prevIndex >= 0 && allPostIds[prevIndex]) {
-                  router.push(`/community/fanart/${allPostIds[prevIndex]}`)
+                  router.push(`/community/fanart/${allPostIds[prevIndex]}${fromHome ? '?from=home' : ''}`)
                 } else {
-                  router.push('/community/fanart')
+                  // 이전 게시물이 없으면 목록 또는 홈으로
+                  router.push(fromHome ? '/main?tab=home' : '/community/fanart')
                 }
               }}
               disabled={currentIndex <= 0}
@@ -295,7 +298,10 @@ export default function FanartDetailPage() {
             </button>
 
             <button
-              onClick={() => router.push('/community/fanart')}
+              onClick={() => {
+                const fromHome = searchParams.get('from') === 'home'
+                router.push(fromHome ? '/main?tab=home' : '/community/fanart')
+              }}
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-sm transition-colors"
             >
               Lista
@@ -304,8 +310,9 @@ export default function FanartDetailPage() {
             <button
               onClick={() => {
                 const nextIndex = currentIndex + 1
+                const fromHome = searchParams.get('from') === 'home'
                 if (nextIndex < allPostIds.length && allPostIds[nextIndex]) {
-                  router.push(`/community/fanart/${allPostIds[nextIndex]}`)
+                  router.push(`/community/fanart/${allPostIds[nextIndex]}${fromHome ? '?from=home' : ''}`)
                 }
               }}
               disabled={currentIndex >= allPostIds.length - 1}

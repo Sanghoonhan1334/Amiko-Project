@@ -27,9 +27,11 @@ interface PostEditModalProps {
 }
 
 export default function PostEditModal({ post, isOpen, onClose, onSave }: PostEditModalProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const { token } = useAuth()
   
   const categories = [
+    { value: '공지사항', label: language === 'ko' ? '📢 공지사항' : '📢 Anuncios' },
     { value: '자유게시판', label: t('community.categories.free') },
     { value: 'K-POP', label: t('community.categories.kpop') },
     { value: 'K-Drama', label: t('community.categories.kdrama') },
@@ -37,8 +39,6 @@ export default function PostEditModal({ post, isOpen, onClose, onSave }: PostEdi
     { value: '한국어공부', label: t('community.categories.koreanStudy') },
     { value: '스페인어공부', label: t('community.categories.spanishStudy') }
   ]
-  const { token } = useAuth()
-  const { language } = useLanguage()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')

@@ -349,29 +349,21 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               {/* 수정/삭제 버튼 */}
               {canManage && (
                 <div className="flex space-x-1">
-                  {(post.is_notice ? isAdmin : isAuthor) && (
+                  {(post.is_notice ? isAdmin : (isAuthor || isAdmin)) && onEdit && (
                     <Button size="sm" variant="outline" onClick={() => {
                       console.log('수정 버튼 클릭됨, onEdit 함수:', onEdit)
-                      if (onEdit) {
-                        onEdit()
-                      } else {
-                        console.error('onEdit 함수가 정의되지 않음')
-                      }
+                      onEdit()
                     }} className="text-xs px-2 py-1">
                       {post.is_notice ? t('freeboard.editNotice') : t('freeboard.edit')}
                     </Button>
                   )}
-                  {(post.is_notice ? isAdmin : (isAuthor || isAdmin)) && (
+                  {(post.is_notice ? isAdmin : (isAuthor || isAdmin)) && onDelete && (
                     <Button 
                       size="sm" 
                       variant="outline" 
                       onClick={() => {
                         console.log('삭제 버튼 클릭됨, onDelete 함수:', onDelete)
-                        if (onDelete) {
-                          onDelete()
-                        } else {
-                          console.error('onDelete 함수가 정의되지 않음')
-                        }
+                        onDelete()
                       }}
                       className={`text-xs px-2 py-1 ${post.is_notice ? 'text-red-600 border-red-600 hover:bg-red-50' : (isAdmin && !isAuthor ? 'text-red-600 border-red-600 hover:bg-red-50' : '')}`}
                     >

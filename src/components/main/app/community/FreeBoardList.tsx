@@ -112,6 +112,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
 
   const categories: Category[] = [
+    { id: 'announcement', name: language === 'ko' ? '📢 공지사항' : '📢 Anuncios', icon: '📢' },
     { id: 'free', name: t('community.categories.free'), icon: '' },
     { id: 'kpop', name: t('community.categories.kpop'), icon: '' },
     { id: 'kdrama', name: t('community.categories.kdrama'), icon: '' },
@@ -122,6 +123,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
   const boardOptions = [
     { id: 'all', name: language === 'es' ? 'Todos' : '전체', icon: '' },
+    { id: 'announcement', name: language === 'ko' ? '📢 공지사항' : '📢 Anuncios', icon: '📢' },
     { id: 'free', name: language === 'es' ? 'Foro Libre' : '자유게시판', icon: '' },
     { id: 'kpop', name: language === 'es' ? 'Foro K-POP' : 'K-POP', icon: '' },
     { id: 'kdrama', name: language === 'es' ? 'Foro K-Drama' : 'K-Drama', icon: '' },
@@ -644,6 +646,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const boardToSlugMap: { [key: string]: string } = {
         '전체': 'all',
         'Todos': 'all',
+        '📢 공지사항': 'announcement',
+        '📢 Anuncios': 'announcement',
+        '공지사항': 'announcement',
+        'Anuncios': 'announcement',
         '자유게시판': 'free',
         'Foro Libre': 'free',
         'K-POP': 'kpop',
@@ -667,11 +673,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const offset = (currentPage - 1) * itemsPerPage
       const limit = itemsPerPage
       
-      // 전체 선택 시 모든 게시판의 글을 가져오기 위해 gallery 파라미터 제거
+      // API URL 구성
       let apiUrl
       if (gallerySlug === 'all') {
+        // 전체 선택 시 모든 게시판의 글을 가져오기
         apiUrl = `/api/posts?page=${currentPage}&limit=${limit}&offset=${offset}`
+      } else if (gallerySlug === 'announcement') {
+        // 공지사항 선택 시 카테고리로 필터링
+        apiUrl = `/api/posts?category=공지사항&page=${currentPage}&limit=${limit}&offset=${offset}`
       } else {
+        // 특정 갤러리 선택 시
         apiUrl = `/api/posts?gallery=${gallerySlug}&page=${currentPage}&limit=${limit}&offset=${offset}`
       }
       

@@ -77,6 +77,30 @@ export async function POST(request: Request) {
       )
     }
 
+    // 나라별 채팅방은 관리자만 생성 가능
+    if (type === 'country') {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('is_admin')
+        .eq('id', created_by)
+        .single()
+
+      if (userError) {
+        console.error('Error checking user permissions:', userError)
+        return NextResponse.json(
+          { success: false, error: 'Failed to check permissions' },
+          { status: 500 }
+        )
+      }
+
+      if (!userData?.is_admin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Only administrators can create country chat rooms' },
+          { status: 403 }
+        )
+      }
+    }
+
     // Create room data
     const roomData: any = {
       name,

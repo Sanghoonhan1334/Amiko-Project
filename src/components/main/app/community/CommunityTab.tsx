@@ -106,7 +106,8 @@ const pointSystem = {
 }
 
 // 카테고리 정의 함수
-const getCategories = (t: (key: string) => string) => [
+const getCategories = (t: (key: string) => string, language: string) => [
+  { id: 'announcement', name: language === 'ko' ? '📢 공지사항' : '📢 Anuncios', icon: '📢', color: 'bg-green-100 text-green-700 border-green-300' },
   { id: 'free', name: t('communityTab.categories.free'), icon: '💬', color: 'bg-gray-100 text-gray-700 border-gray-300' },
   { id: 'kpop', name: 'K-POP', icon: '🎵', color: 'bg-pink-100 text-pink-700 border-pink-300' },
   { id: 'kdrama', name: 'K-Drama', icon: '📺', color: 'bg-purple-100 text-purple-700 border-purple-300' },
@@ -2527,7 +2528,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
                     className="w-full p-3 border-2 border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white"
                   >
-                    {getCategories(t).map(category => (
+                    {getCategories(t, language).map(category => (
                       <option key={category.id} value={category.id}>
                         {category.icon} {category.name}
                       </option>

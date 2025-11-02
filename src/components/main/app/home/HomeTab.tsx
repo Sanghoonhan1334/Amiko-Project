@@ -507,13 +507,19 @@ export default function HomeTab() {
 
   const loadHotChatRoomsAndPolls = async () => {
     try {
-      // 채팅방 데이터 로드
-      const chatRoomResponse = await fetch('/api/chat/rooms?type=country')
+      // 채팅방 데이터 로드 (모든 타입: country, fanclub, free 등)
+      const chatRoomResponse = await fetch('/api/chat/rooms')
       if (chatRoomResponse.ok) {
         const chatRoomData = await chatRoomResponse.json()
         if (chatRoomData.success && chatRoomData.rooms && chatRoomData.rooms.length > 0) {
-          // 참여자 수를 함께 가져오기 위해 별도 처리 필요
-          const formattedChatRooms = chatRoomData.rooms.slice(0, 4).map((room: any) => ({
+          // 최근 업데이트 순으로 정렬하여 4개만 표시
+          const sortedRooms = [...chatRoomData.rooms].sort((a: any, b: any) => {
+            const dateA = new Date(a.updated_at || a.created_at).getTime()
+            const dateB = new Date(b.updated_at || b.created_at).getTime()
+            return dateB - dateA
+          })
+          
+          const formattedChatRooms = sortedRooms.slice(0, 4).map((room: any) => ({
             id: room.id,
             title: room.name || '',
             image: room.thumbnail_url || '/misc/placeholder.png',
@@ -524,13 +530,12 @@ export default function HomeTab() {
         }
       }
 
-      // 투표 데이터 로드
+      // 투표 데이터 로드 (투표수 조건 없이 모든 활성 투표 표시)
       const pollResponse = await fetch('/api/polls?status=active&limit=10')
       if (pollResponse.ok) {
         const pollData = await pollResponse.json()
         if (pollData.polls && pollData.polls.length > 0) {
           const formattedPolls = pollData.polls
-            .filter((poll: any) => (poll.total_votes || 0) >= 1) // 조회수 1 이상만
             .slice(0, 4)
             .map((poll: any) => ({
               id: poll.id,
@@ -606,6 +611,8 @@ export default function HomeTab() {
 
   const shortenCategoryName = (category: string) => {
     const categoryMap: { [key: string]: string } = {
+      '공지사항': language === 'ko' ? '공지' : 'Aviso',
+      'Anuncios': 'Aviso',
       '자유게시판': language === 'ko' ? '자유' : 'Libre',
       'Foro Libre': 'Libre',
       'Libre': 'Libre',
@@ -772,7 +779,7 @@ export default function HomeTab() {
               <Card 
                 key={notice.id}
                 className="cursor-pointer hover:bg-gray-50 transition-colors" 
-                onClick={() => router.push(`/community/post/${notice.id}`)}
+                onClick={() => router.push(`/community/post/${notice.id}?from=home`)}
               >
                 <CardContent className="py-1 px-3">
                   <div className="flex md:flex-row flex-col md:items-center gap-2 md:gap-3">
@@ -844,7 +851,7 @@ export default function HomeTab() {
                   <div 
                     key={post.id} 
                     className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
-                    onClick={() => router.push('/community/freeboard')}
+                    onClick={() => router.push(`/community/post/${post.id}?from=home`)}
                   >
                     <div className="flex items-center gap-2">
                       <Badge className="bg-gray-100 text-gray-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
@@ -974,7 +981,7 @@ export default function HomeTab() {
                     <div 
                       key={post.id}
                       className="cursor-pointer group"
-                      onClick={() => router.push(`/community/fanart/${post.id}`)}
+                      onClick={() => router.push(`/community/fanart/${post.id}?from=home`)}
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                         <img
@@ -1039,7 +1046,7 @@ export default function HomeTab() {
                     <div 
                       key={post.id}
                       className="cursor-pointer group"
-                      onClick={() => router.push(`/community/idol-photos/${post.id}`)}
+                      onClick={() => router.push(`/community/idol-photos/${post.id}?from=home`)}
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                         <img
@@ -1160,7 +1167,7 @@ export default function HomeTab() {
                     <div 
                       key={room.id}
                       className="cursor-pointer group"
-                      onClick={() => router.push(`/community/k-chat/${room.id}`)}
+                      onClick={() => router.push(`/community/k-chat/${room.id}?from=home`)}
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                         <img
@@ -1292,7 +1299,7 @@ export default function HomeTab() {
                   <div 
                     key={news.id}
                     className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
-                    onClick={() => router.push(`/community/news/${news.id}`)}
+                    onClick={() => router.push(`/community/news/${news.id}?from=home`)}
                   >
                     <div className="flex items-center gap-2">
                       <Badge className="bg-purple-100 text-purple-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
@@ -1641,7 +1648,7 @@ export default function HomeTab() {
               <div className="flex items-center gap-2">
                 <span className="text-green-500">📢</span>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {language === 'ko' ? '공지' : '공지'}
+                  {language === 'ko' ? '공지' : 'Anuncios'}
                 </h2>
               </div>
               
@@ -1651,12 +1658,12 @@ export default function HomeTab() {
                     <Card 
                       key={notice.id}
                       className="cursor-pointer hover:bg-gray-50 transition-colors" 
-                      onClick={() => router.push(`/community/post/${notice.id}`)}
+                      onClick={() => router.push(`/community/post/${notice.id}?from=home`)}
                     >
                       <CardContent className="py-1 px-3">
                         <div className="flex items-center gap-3">
                           <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
-                            {language === 'ko' ? '공지' : '공지'}
+                            {language === 'ko' ? '공지' : 'Anuncio'}
                           </Badge>
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
                             {notice.title}
@@ -1725,11 +1732,11 @@ export default function HomeTab() {
                         <div 
                           key={post.id} 
                           className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
-                          onClick={() => router.push('/community/freeboard')}
+                          onClick={() => router.push(`/community/post/${post.id}?from=home`)}
                         >
                           <div className="flex items-center gap-3">
                             <Badge className="bg-gray-100 text-gray-700 border-0 px-2 py-0.5 font-medium text-xs">
-                              {post.category || 'Libre'}
+                              {shortenCategoryName(post.category || (language === 'ko' ? '자유' : 'Libre'))}
                             </Badge>
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
                               {post.title}
@@ -1845,7 +1852,7 @@ export default function HomeTab() {
                       className="w-8 h-8 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
-                      팬아트
+                      {language === 'ko' ? '팬아트' : 'Fan Art'}
                     </h2>
                   </div>
                   <button 
@@ -1865,7 +1872,7 @@ export default function HomeTab() {
                           <div 
                             key={post.id}
                             className="cursor-pointer group"
-                            onClick={() => router.push(`/community/fanart/${post.id}`)}
+                            onClick={() => router.push(`/community/fanart/${post.id}?from=home`)}
                           >
                             <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                               <img
@@ -1910,7 +1917,7 @@ export default function HomeTab() {
                       className="w-8 h-8 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
-                      아이돌 사진
+                      {language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
                     </h2>
                   </div>
                   <button 
@@ -1930,7 +1937,7 @@ export default function HomeTab() {
                           <div 
                             key={post.id}
                             className="cursor-pointer group"
-                            onClick={() => router.push(`/community/idol-photos/${post.id}`)}
+                            onClick={() => router.push(`/community/idol-photos/${post.id}?from=home`)}
                           >
                             <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                               <img
@@ -1988,7 +1995,7 @@ export default function HomeTab() {
                 </Button>
               </div>
               
-              <Card className="shadow-2xl">
+              <Card className="shadow-md">
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     {onlineUsers.length > 0 ? (
@@ -2052,7 +2059,7 @@ export default function HomeTab() {
                           <div 
                             key={room.id}
                             className="cursor-pointer group"
-                            onClick={() => router.push(`/community/k-chat/${room.id}`)}
+                            onClick={() => router.push(`/community/k-chat/${room.id}?from=home`)}
                           >
                             <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
                               <img
@@ -2171,7 +2178,7 @@ export default function HomeTab() {
                         <div 
                           key={news.id}
                           className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
-                          onClick={() => router.push(`/community/news/${news.id}`)}
+                          onClick={() => router.push(`/community/news/${news.id}?from=home`)}
                         >
                           <div className="flex items-center gap-3">
                             <Badge className="bg-purple-100 text-purple-700 border-0 px-2 py-0.5 font-medium text-xs whitespace-nowrap">

@@ -1014,6 +1014,7 @@ export default function FreeBoard() {
                     onChange={(e) => setWriteCategory(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
+                    <option value="공지사항">{language === 'ko' ? '📢 공지사항' : '📢 Anuncios'}</option>
                     <option value="자유게시판">자유게시판</option>
                     <option value="K-POP">K-POP</option>
                     <option value="K-Drama">K-Drama</option>

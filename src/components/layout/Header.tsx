@@ -477,7 +477,7 @@ export default function Header() {
                             : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                         }`}
                       >
-                        <span className="text-base">🇲🇽</span>
+                        <span className="text-base">🇪🇸</span>
                         <span>Español</span>
                         {language === 'es' && (
                           <div className="ml-auto w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>

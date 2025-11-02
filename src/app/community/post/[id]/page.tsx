@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, ThumbsUp, ThumbsDown, MessageSquare, Eye, Calendar, User } from 'lucide-react'
@@ -38,6 +38,7 @@ interface Post {
 export default function PostDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const { user } = useAuth()
   
@@ -82,8 +83,8 @@ export default function PostDetailPage() {
   }
 
   const handleBack = () => {
-    // 새로운 자유게시판 페이지로 이동
-    router.push('/community/freeboard')
+    const fromHome = searchParams.get('from') === 'home'
+    router.push(fromHome ? '/main?tab=home' : '/community/freeboard')
   }
 
   const handlePostUpdated = (updatedPost: Post) => {

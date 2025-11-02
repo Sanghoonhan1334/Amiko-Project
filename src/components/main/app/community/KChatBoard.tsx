@@ -159,7 +159,12 @@ export default function KChatBoard() {
       
       if (!response.ok) {
         console.error('API Error Response:', data)
-        alert(`Error: ${data.error || 'Failed to create room'}`)
+        // 스페인어 에러 메시지
+        if (response.status === 403) {
+          alert('Solo los administradores pueden crear salas de chat por país.')
+        } else {
+          alert(`Error: ${data.error || 'Error al crear la sala de chat'}`)
+        }
         return
       }
       
@@ -281,7 +286,7 @@ export default function KChatBoard() {
                 </p>
               </div>
             </div>
-            {user && activeTab === 'fanclub' && (
+            {user && (activeTab === 'fanclub' || (activeTab === 'country' && user.is_admin)) && (
               <Button
                 onClick={() => setShowCreateModal(true)}
                 className="hidden sm:flex items-center gap-2"
@@ -369,7 +374,7 @@ export default function KChatBoard() {
           <div className="text-center py-12">
             <MessageSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-600 mb-4">Aún no hay salas de chat</p>
-            {user && activeTab === 'fanclub' && (
+            {user && (activeTab === 'fanclub' || (activeTab === 'country' && user.is_admin)) && (
               <Button onClick={() => setShowCreateModal(true)}>
                 Crear la primera sala
               </Button>
@@ -553,7 +558,7 @@ export default function KChatBoard() {
       )}
 
       {/* Floating Action Button (mobile only) */}
-      {user && activeTab === 'fanclub' && (
+      {user && (activeTab === 'fanclub' || (activeTab === 'country' && user.is_admin)) && (
         <button
           aria-label="Crear Sala"
           onClick={() => setShowCreateModal(true)}
