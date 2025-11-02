@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
         console.log('[POPULAR_POSTS] 1단계 핫글:', hotPosts?.length || 0, '개')
         posts = hotPosts || []
         
-        // 2단계: 부족하면 최근 게시글로 채우기 (공지사항 포함, 조인 실패해도 반환)
+        // 2단계: 부족하면 최근 게시글로 채우기 (공지사항 제외, 조인 실패해도 반환)
         if (posts.length < limit) {
           console.log('[POPULAR_POSTS] 2단계 시작 - 최근 게시글 조회')
           
@@ -123,6 +123,7 @@ export async function GET(request: NextRequest) {
               gallery_id
             `)
             .eq('is_deleted', false)
+            .eq('is_notice', false)
             .order('created_at', { ascending: false })
             .limit(limit)
           
@@ -166,7 +167,8 @@ export async function GET(request: NextRequest) {
         break
         
       case 'popular':
-        // is_popular 컬럼이 없으므로 like_count 기준으로 인기글 판단
+        // is_popular 컬럼이 없으므로 like_count 기준으로 인기글 판단 (공지사항 제외)
+        query = query.eq('is_notice', false)
         query = query.gt('like_count', 5)
         query = query.order('like_count', { ascending: false })
           .order('comment_count', { ascending: false })
@@ -178,7 +180,8 @@ export async function GET(request: NextRequest) {
         break
         
       case 'all':
-        // is_popular 컬럼이 없으므로 is_hot 또는 like_count 기준으로 판단
+        // is_popular 컬럼이 없으므로 is_hot 또는 like_count 기준으로 판단 (공지사항 제외)
+        query = query.eq('is_notice', false)
         query = query.or('is_hot.eq.true,like_count.gt.5')
         query = query.order('is_hot', { ascending: false })
           .order('like_count', { ascending: false })
@@ -191,6 +194,8 @@ export async function GET(request: NextRequest) {
         break
         
       default:
+        // 공지사항 제외
+        query = query.eq('is_notice', false)
         query = query.eq('is_hot', true)
         query = query.order('created_at', { ascending: false })
           .range(offset, offset + limit - 1)

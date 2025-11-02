@@ -282,8 +282,11 @@ export default function HomeTab() {
       })
 
       if (data.posts && Array.isArray(data.posts)) {
+        // 공지사항 제외 필터링
+        const filteredPosts = data.posts.filter((post: any) => !post.is_notice)
+        
         // 데이터 포맷팅
-        const formattedPosts = data.posts.map((post: any) => {
+        const formattedPosts = filteredPosts.map((post: any) => {
           console.log('[loadHotPosts] 📝 포스트 처리:', {
             id: post.id,
             title: post.title,
@@ -291,11 +294,8 @@ export default function HomeTab() {
             category: post.category
           })
           
-          // 공지사항인 경우 카테고리를 "공지"/"Anuncio"로 표시
+          // 카테고리 이름 설정
           let categoryName = post.category || (language === 'ko' ? '자유' : 'Libre')
-          if (post.is_notice) {
-            categoryName = language === 'ko' ? '공지' : 'Anuncio'
-          }
           
           // 작성자 이름 처리 ('익명' 번역)
           let authorName = post.user?.nickname || post.user?.full_name || (language === 'ko' ? '익명' : 'Anónimo')
@@ -316,7 +316,7 @@ export default function HomeTab() {
           }
         })
         
-        console.log('[loadHotPosts] ✅ 포맷팅 완료:', formattedPosts.length, '개')
+        console.log('[loadHotPosts] ✅ 포맷팅 완료 (공지사항 제외):', formattedPosts.length, '개')
         console.log('[loadHotPosts] 📋 첫 번째 포스트:', formattedPosts[0])
         
         // 5개로 제한
