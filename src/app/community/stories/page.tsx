@@ -664,29 +664,68 @@ function StoriesPageContent() {
     if (file) {
       console.log('파일 선택됨:', file.name, file.size, file.type)
       
-      // 파일 크기 체크 (10MB 제한)
-      const maxSize = 10 * 1024 * 1024 // 10MB
+      const isVideo = file.type.startsWith('video/')
+      const isImage = file.type.startsWith('image/')
+      
+      // 파일 타입 체크
+      if (!isImage && !isVideo) {
+        toast.error(language === 'ko' ? '이미지 또는 영상 파일만 업로드 가능합니다.' : 'Solo se pueden subir imágenes o videos.')
+        return
+      }
+      
+      // 파일 크기 체크 (이미지: 10MB, 영상: 50MB)
+      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024
       if (file.size > maxSize) {
-        toast.error('파일 크기는 10MB 이하여야 합니다.')
+        toast.error(
+          language === 'ko' 
+            ? `파일 크기는 ${isVideo ? '50MB' : '10MB'} 이하여야 합니다.`
+            : `El tamaño del archivo debe ser menor a ${isVideo ? '50MB' : '10MB'}.`
+        )
         return
       }
       
-      // 이미지 파일 타입 체크
-      if (!file.type.startsWith('image/')) {
-        toast.error('이미지 파일만 업로드 가능합니다.')
-        return
+      // 영상인 경우 길이 체크 (60초)
+      if (isVideo) {
+        const video = document.createElement('video')
+        video.preload = 'metadata'
+        
+        video.onloadedmetadata = function() {
+          window.URL.revokeObjectURL(video.src)
+          
+          if (video.duration > 60) {
+            toast.error(
+              language === 'ko' 
+                ? '영상은 최대 60초까지 업로드 가능합니다.'
+                : 'Los videos deben durar máximo 60 segundos.'
+            )
+            return
+          }
+          
+          // 길이 체크 통과 - 파일 저장 및 미리보기
+          setSelectedFile(file)
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            setImagePreview(e.target?.result as string)
+            console.log('영상 미리보기 생성됨')
+          }
+          reader.readAsDataURL(file)
+        }
+        
+        video.onerror = function() {
+          toast.error(language === 'ko' ? '영상 파일을 읽을 수 없습니다.' : 'No se puede leer el archivo de video.')
+        }
+        
+        video.src = URL.createObjectURL(file)
+      } else {
+        // 이미지는 바로 미리보기
+        setSelectedFile(file)
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string)
+          console.log('이미지 미리보기 생성됨')
+        }
+        reader.readAsDataURL(file)
       }
-      
-      setSelectedFile(file)
-      
-      // 이미지 미리보기 생성
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        setImagePreview(result)
-        console.log('이미지 미리보기 생성됨')
-      }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -865,20 +904,38 @@ function StoriesPageContent() {
                 onClick={() => openStoryViewer(index)}
               >
                   {story.image_url ? (
-                    <img 
-                      src={story.image_url} 
-                      alt="스토리 이미지" 
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 select-none"
-                      draggable={false}
-                      onDragStart={(e) => e.preventDefault()}
-                      style={{ 
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        pointerEvents: 'none'
-                      }}
-                    />
+                    story.image_url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) ? (
+                      <video
+                        src={story.image_url}
+                        className="w-full h-full object-cover object-center"
+                        loop
+                        muted
+                        playsInline
+                        onMouseEnter={(e) => e.currentTarget.play()}
+                        onMouseLeave={(e) => e.currentTarget.pause()}
+                        style={{ 
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          MozUserSelect: 'none',
+                          msUserSelect: 'none'
+                        }}
+                      />
+                    ) : (
+                      <img 
+                        src={story.image_url} 
+                        alt="스토리 이미지" 
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 select-none"
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                        style={{ 
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          MozUserSelect: 'none',
+                          msUserSelect: 'none',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center">
                       <ImageIcon className="w-12 h-12 text-white opacity-50" />
@@ -1043,14 +1100,22 @@ function StoriesPageContent() {
                 {t('stories.photoUpload')}
               </Label>
               
-              {/* 이미지 미리보기 */}
-              {imagePreview && (
+              {/* 이미지/영상 미리보기 */}
+              {imagePreview && selectedFile && (
                 <div className="mb-3 relative">
-                  <img 
-                    src={imagePreview} 
-                    alt="미리보기" 
-                    className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
-                  />
+                  {selectedFile.type.startsWith('video/') ? (
+                    <video 
+                      src={imagePreview}
+                      controls
+                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                  ) : (
+                    <img 
+                      src={imagePreview} 
+                      alt="미리보기" 
+                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                  )}
                   <button
                     onClick={clearImage}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors"
@@ -1066,7 +1131,7 @@ function StoriesPageContent() {
                 <div className="flex gap-2">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={handleFileSelect}
                     className="hidden"
                     id="imageUploadGallery"
@@ -1091,7 +1156,7 @@ function StoriesPageContent() {
                 <div className="flex gap-2">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={handleFileSelect}
                     className="hidden"
                     id="imageUploadCamera"
@@ -1418,32 +1483,57 @@ function StoriesPageContent() {
             
             {stories[currentStoryIndex]?.image_url ? (
               <div className="w-full h-full flex items-center justify-center relative z-[10002]">
-                <img
-                  src={stories[currentStoryIndex].image_url}
-                  alt="스토리"
-                  className="max-w-full max-h-full object-contain shadow-lg relative z-[10003] select-none pointer-events-none"
-                  draggable={false}
-                  onDragStart={(e) => e.preventDefault()}
-                  onDrag={(e) => e.preventDefault()}
-                  onDragEnd={(e) => e.preventDefault()}
-                  onContextMenu={(e) => e.preventDefault()}
-                  style={{ 
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none',
-                    msUserSelect: 'none',
-                    WebkitUserDrag: 'none' as any,
-                    KhtmlUserSelect: 'none',
-                    pointerEvents: 'none'
-                  }}
-                  onError={(e) => {
-                    console.error('❌ 스토리 이미지 로드 실패:', stories[currentStoryIndex]?.image_url)
-                    e.currentTarget.style.display = 'none'
-                  }}
-                  onLoad={() => {
-                    console.log('✅ 스토리 이미지 로드 성공:', stories[currentStoryIndex]?.image_url)
-                  }}
-                />
+                {stories[currentStoryIndex].image_url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) ? (
+                  <video
+                    src={stories[currentStoryIndex].image_url}
+                    className="max-w-full max-h-full object-contain shadow-lg relative z-[10003]"
+                    loop
+                    autoPlay
+                    muted
+                    playsInline
+                    onContextMenu={(e) => e.preventDefault()}
+                    style={{ 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}
+                    onError={(e) => {
+                      console.error('❌ 스토리 영상 로드 실패:', stories[currentStoryIndex]?.image_url)
+                      e.currentTarget.style.display = 'none'
+                    }}
+                    onLoadedData={() => {
+                      console.log('✅ 스토리 영상 로드 성공:', stories[currentStoryIndex]?.image_url)
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={stories[currentStoryIndex].image_url}
+                    alt="스토리"
+                    className="max-w-full max-h-full object-contain shadow-lg relative z-[10003] select-none pointer-events-none"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    onDrag={(e) => e.preventDefault()}
+                    onDragEnd={(e) => e.preventDefault()}
+                    onContextMenu={(e) => e.preventDefault()}
+                    style={{ 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      WebkitUserDrag: 'none' as any,
+                      KhtmlUserSelect: 'none',
+                      pointerEvents: 'none'
+                    }}
+                    onError={(e) => {
+                      console.error('❌ 스토리 이미지 로드 실패:', stories[currentStoryIndex]?.image_url)
+                      e.currentTarget.style.display = 'none'
+                    }}
+                    onLoad={() => {
+                      console.log('✅ 스토리 이미지 로드 성공:', stories[currentStoryIndex]?.image_url)
+                    }}
+                  />
+                )}
               </div>
             ) : stories[currentStoryIndex] ? (
               <div className="text-black text-center bg-red-500 p-4 rounded">
