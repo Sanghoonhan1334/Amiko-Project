@@ -84,26 +84,78 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
   const channelRef = useRef<any>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const processedMessageIds = useRef<Set<string>>(new Set())
+  const profileCache = useRef<Map<string, { display_name?: string; avatar_url?: string; total_points: number }>>(new Map())
+
+  // 사용자 프로필 가져오기 (캐시 활용)
+  const fetchUserProfile = async (userId: string) => {
+    // 캐시에서 먼저 확인
+    if (profileCache.current.has(userId)) {
+      return profileCache.current.get(userId)!
+    }
+
+    try {
+      // 프로필 조회
+      const { data: profile } = await authSupabase
+        .from('user_profiles')
+        .select('display_name, avatar_url, total_points')
+        .eq('user_id', userId)
+        .single()
+      
+      // total_points 폴백
+      let totalPoints = profile?.total_points ?? 0
+      if (!totalPoints) {
+        const { data: pointsRow } = await authSupabase
+          .from('user_points')
+          .select('total_points')
+          .eq('user_id', userId)
+          .single()
+        totalPoints = pointsRow?.total_points ?? 0
+      }
+
+      const userProfile = {
+        display_name: profile?.display_name,
+        avatar_url: profile?.avatar_url,
+        total_points: totalPoints
+      }
+
+      // 캐시에 저장
+      profileCache.current.set(userId, userProfile)
+      return userProfile
+    } catch (error) {
+      // 에러 시 기본값 반환 및 캐시 저장
+      const defaultProfile = { display_name: undefined, avatar_url: undefined, total_points: 0 }
+      profileCache.current.set(userId, defaultProfile)
+      return defaultProfile
+    }
+  }
 
   // 중복 메시지 방지 헬퍼 함수
   const addMessageSafely = (newMessage: Message) => {
     setMessages((prev) => {
       // 이미 처리된 메시지인지 확인
       if (processedMessageIds.current.has(newMessage.id)) {
-        console.log('⚠️ 중복 메시지 무시:', newMessage.id)
+        // 개발 환경에서만 로그 출력
+        if (process.env.NODE_ENV === 'development') {
+          console.log('⚠️ 중복 메시지 무시:', newMessage.id)
+        }
         return prev
       }
       
       // 배열에도 이미 있는지 확인 (이중 체크)
       const exists = prev.some(m => m.id === newMessage.id)
       if (exists) {
-        console.log('⚠️ 중복 메시지 무시 (배열에 이미 존재):', newMessage.id)
+        // 개발 환경에서만 로그 출력
+        if (process.env.NODE_ENV === 'development') {
+          console.log('⚠️ 중복 메시지 무시 (배열에 이미 존재):', newMessage.id)
+        }
         return prev
       }
       
       // 새 메시지 추가
       processedMessageIds.current.add(newMessage.id)
-      console.log('✅ 새 메시지 추가:', newMessage.id)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ 새 메시지 추가:', newMessage.id)
+      }
       return [...prev, newMessage]
     })
   }
@@ -265,33 +317,13 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
 
       const messages = data || []
       
-      // 각 메시지에 프로필 정보 추가 (별도 쿼리)
+      // 각 메시지에 프로필 정보 추가 (캐시 활용)
       const messagesWithProfiles = await Promise.all(
         messages.map(async (msg) => {
-          try {
-            const { data: profile } = await authSupabase
-              .from('user_profiles')
-              .select('display_name, avatar_url, total_points')
-              .eq('user_id', msg.user_id)
-              .single()
-            // total_points 폴백: user_points 테이블에서 조회
-            let totalPoints = profile?.total_points ?? 0
-            if (!totalPoints) {
-              const { data: pointsRow } = await authSupabase
-                .from('user_points')
-                .select('total_points')
-                .eq('user_id', msg.user_id)
-                .single()
-              totalPoints = pointsRow?.total_points ?? 0
-            }
-            msg.user_profiles = { ...(msg.user_profiles || {}), display_name: profile?.display_name, avatar_url: profile?.avatar_url, total_points: totalPoints }
-            
-            return {
-              ...msg,
-              user_profiles: msg.user_profiles
-            }
-          } catch {
-            return msg
+          const userProfile = await fetchUserProfile(msg.user_id)
+          return {
+            ...msg,
+            user_profiles: userProfile
           }
         })
       )
@@ -345,33 +377,13 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
       if (data && data.length > 0) {
         console.log('🔄 Polling: 새 메시지', data.length, '개 발견')
         
-        // 각 메시지에 프로필 추가
+        // 각 메시지에 프로필 추가 (캐시 활용)
         const messagesWithProfiles = await Promise.all(
           data.map(async (msg) => {
-            try {
-              const { data: profile } = await authSupabase
-                .from('user_profiles')
-                .select('display_name, avatar_url, total_points')
-                .eq('user_id', msg.user_id)
-                .single()
-              // total_points 폴백
-              let totalPoints2 = profile?.total_points ?? 0
-              if (!totalPoints2) {
-                const { data: pointsRow2 } = await authSupabase
-                  .from('user_points')
-                  .select('total_points')
-                  .eq('user_id', msg.user_id)
-                  .single()
-                totalPoints2 = pointsRow2?.total_points ?? 0
-              }
-              msg.user_profiles = { ...(msg.user_profiles || {}), display_name: profile?.display_name, avatar_url: profile?.avatar_url, total_points: totalPoints2 }
-              
-              return {
-                ...msg,
-                user_profiles: msg.user_profiles
-              }
-            } catch {
-              return msg
+            const userProfile = await fetchUserProfile(msg.user_id)
+            return {
+              ...msg,
+              user_profiles: userProfile
             }
           })
         )
@@ -409,7 +421,15 @@ export default function ChatRoomClient({ roomId }: { roomId: string }) {
         },
         async (payload) => {
           console.log('✅ New message received via Realtime:', payload.new)
-          const newMessage = payload.new as Message
+          const rawMessage = payload.new as Message
+          
+          // 프로필 정보 추가 (캐시 활용)
+          const userProfile = await fetchUserProfile(rawMessage.user_id)
+          const newMessage = {
+            ...rawMessage,
+            user_profiles: userProfile
+          }
+          
           // 안전하게 메시지 추가 (중복 방지)
           addMessageSafely(newMessage)
         }
