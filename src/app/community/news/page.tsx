@@ -1098,17 +1098,17 @@ function NewsPageContent() {
                       </div>
                       {/* 수정 버튼만 상단에 표시 */}
                       {user?.id === comment.author_id && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setEditingComment(comment.id)
-                            setEditContent(comment.content)
-                          }}
-                          className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
-                        >
-                          {language === 'ko' ? '수정' : 'Editar'}
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingComment(comment.id)
+                              setEditContent(comment.content)
+                            }}
+                            className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
+                          >
+                            {language === 'ko' ? '수정' : 'Editar'}
+                          </Button>
                       )}
                     </div>
                     

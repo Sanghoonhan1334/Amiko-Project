@@ -67,10 +67,10 @@ export default function StoryCarousel() {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!authUser || !token) {
-        setIsAdmin(false)
-        return
-      }
-
+      setIsAdmin(false)
+      return
+    }
+    
       try {
         const response = await fetch('/api/admin/check-operator', {
           headers: {
@@ -87,7 +87,7 @@ export default function StoryCarousel() {
       } catch (error) {
         console.error('관리자 권한 체크 실패:', error)
         setIsAdmin(false)
-      }
+  }
     }
 
     checkAdminStatus()
@@ -1080,8 +1080,8 @@ export default function StoryCarousel() {
     } catch (error) {
       console.error('스토리 삭제 오류:', error)
       alert(language === 'ko' ? '스토리 삭제 중 오류가 발생했습니다.' : 'Error al eliminar historia.')
-    }
-  }
+         }
+       }
 
   // 만료된 스토리 제거 (커뮤니티 탭에서는 24시간마다 체크하여 자동 삭제)
   useEffect(() => {

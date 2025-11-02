@@ -20,18 +20,18 @@ export async function DELETE(
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
-    
+
     if (!authHeader) {
       console.error('[NEWS_COMMENT_DELETE] Authorization 헤더 없음')
       return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
-    const token = authHeader.split(' ')[1]
-    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+      const token = authHeader.split(' ')[1]
+      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
 
-    if (authError || !user) {
-      console.error('[NEWS_COMMENT_DELETE] 인증 실패:', authError?.message)
-      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+      if (authError || !user) {
+        console.error('[NEWS_COMMENT_DELETE] 인증 실패:', authError?.message)
+        return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
     // 댓글 작성자 확인
@@ -119,18 +119,18 @@ export async function PUT(
 
     // Authorization 헤더에서 토큰 추출
     const authHeader = request.headers.get('Authorization')
-    
+
     if (!authHeader) {
       console.error('[NEWS_COMMENT_UPDATE] Authorization 헤더 없음')
       return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
-    const token = authHeader.split(' ')[1]
-    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+      const token = authHeader.split(' ')[1]
+      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
 
-    if (authError || !user) {
-      console.error('[NEWS_COMMENT_UPDATE] 인증 실패:', authError?.message)
-      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+      if (authError || !user) {
+        console.error('[NEWS_COMMENT_UPDATE] 인증 실패:', authError?.message)
+        return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
     // 유효성 검사

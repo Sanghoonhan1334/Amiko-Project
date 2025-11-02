@@ -1390,15 +1390,15 @@ export default function HomeTab() {
       {/* 최근 스토리 - 그리드 레이아웃 */}
       <div className="space-y-3 md:hidden">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <img 
-              src="/icons/story.png" 
-              alt="Stories" 
-              className="w-5 h-5 object-contain mr-2"
-            />
-            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
-              {t('home.sections.recentStories')}
-            </h2>
+        <div className="flex items-center">
+          <img 
+            src="/icons/story.png" 
+            alt="Stories" 
+            className="w-5 h-5 object-contain mr-2"
+          />
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
+            {t('home.sections.recentStories')}
+          </h2>
           </div>
           <button 
             onClick={() => router.push('/community/stories')}

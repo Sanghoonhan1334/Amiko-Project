@@ -184,9 +184,9 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       }
     } else {
       // 데스크톱 기본값 (기존 유지)
-      return {
-        'story-boards': { x: -147, y: -143 },
-        'k-culture': { x: -147, y: -143 }
+    return {
+      'story-boards': { x: -147, y: -143 },
+      'k-culture': { x: -147, y: -143 }
       }
     }
   })
