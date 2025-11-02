@@ -568,9 +568,15 @@ export default function HomeTab() {
 
   const loadKNoticiaNews = async () => {
     try {
+      console.log('📰 [홈탭] K-Noticia 뉴스 로딩 시작...')
       const response = await fetch('/api/news?limit=5')
+      console.log('📰 [홈탭] API 응답 상태:', response.status, response.ok)
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('📰 [홈탭] API 응답 데이터:', data)
+        console.log('📰 [홈탭] newsItems 개수:', data.newsItems?.length || 0)
+        
         if (data.success && data.newsItems && data.newsItems.length > 0) {
           const formattedNews = data.newsItems.map((news: any) => ({
             id: news.id,
@@ -580,11 +586,19 @@ export default function HomeTab() {
             comments: news.comment_count || 0,
             views: news.view_count || 0
           }))
+          console.log('📰 [홈탭] 포맷팅된 뉴스:', formattedNews)
           setKNoticiaNews(formattedNews)
+        } else {
+          console.log('📰 [홈탭] 뉴스 데이터 없음 또는 빈 배열')
+          setKNoticiaNews([])
         }
+      } else {
+        console.error('📰 [홈탭] API 응답 실패:', response.status)
+        setKNoticiaNews([])
       }
     } catch (error) {
-      console.error('K-Noticia 뉴스 로딩 실패:', error)
+      console.error('📰 [홈탭] K-Noticia 뉴스 로딩 실패:', error)
+      setKNoticiaNews([])
     }
   }
 
