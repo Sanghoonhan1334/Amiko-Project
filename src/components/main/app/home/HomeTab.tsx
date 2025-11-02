@@ -27,6 +27,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { getAmikoRecentVideos, type YouTubeVideo } from '@/lib/youtube'
 
 interface Event {
   id: string
@@ -127,6 +128,7 @@ export default function HomeTab() {
   const [hotChatRooms, setHotChatRooms] = useState<ChatRoom[]>([])
   const [currentPolls, setCurrentPolls] = useState<Poll[]>([])
   const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([])
+  const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([])
   const [loading, setLoading] = useState(true)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(true)
@@ -608,6 +610,18 @@ export default function HomeTab() {
     }
   }
 
+  const loadYoutubeVideos = async () => {
+    try {
+      console.log('🎥 [홈탭] YouTube 영상 로딩 시작...')
+      const videos = await getAmikoRecentVideos(6)
+      console.log('🎥 [홈탭] YouTube 영상 로드 완료:', videos.length, '개')
+      setYoutubeVideos(videos)
+    } catch (error) {
+      console.error('YouTube 영상 로딩 실패:', error)
+      setYoutubeVideos([])
+    }
+  }
+
   // 모든 데이터 로딩
   const loadAllData = async () => {
     setLoading(true)
@@ -621,7 +635,8 @@ export default function HomeTab() {
         loadNotices(),
         loadGalleryPosts(),
         loadHotChatRoomsAndPolls(),
-        loadKNoticiaNews()
+        loadKNoticiaNews(),
+        loadYoutubeVideos()
       ])
     } catch (error) {
       console.error('데이터 로딩 실패:', error)
@@ -1488,48 +1503,44 @@ export default function HomeTab() {
         <Card>
           <CardContent className="p-3">
             <div className="grid grid-cols-2 gap-3">
-              {/* 두 번 표시 */}
-              <div 
-                className="cursor-pointer group"
-                onClick={() => router.push('/about')}
-              >
-                <div className="relative aspect-square overflow-hidden rounded-lg mb-2">
-                  <img
-                    src="https://img.youtube.com/vi/do4aDyGZmgM/maxresdefault.jpg"
-                    alt="AMIKO Introduction"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-2">
-                    <div className="text-white text-[8px] font-bold">
-                      {language === 'ko' ? 'AMIKO는 어떤 플랫폼인가요?' : 'QUÉ TIPO DE PLATAFORMA ES AMIKO?'}
+              {youtubeVideos.length > 0 ? (
+                youtubeVideos.slice(0, 2).map((video) => (
+                  <div 
+                    key={video.id}
+                    className="cursor-pointer group"
+                    onClick={() => window.open(video.url, '_blank')}
+                  >
+                    <div className="relative aspect-square overflow-hidden rounded-lg mb-2">
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
+                        <div className="text-white text-[8px] font-bold line-clamp-2">
+                          {video.title}
+                        </div>
+                      </div>
+                      <div className="absolute top-2 right-2 bg-black/70 text-white text-[6px] px-1 rounded">
+                        {video.duration}
+                      </div>
+                      {/* YouTube 재생 아이콘 */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                          <Play className="w-6 h-6 text-white fill-white" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="absolute top-2 right-2 bg-black/70 text-white text-[6px] px-1 rounded">
-                    3:29
-                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 text-center py-4">
+                  <Play className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500 text-xs">
+                    {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
+                  </p>
                 </div>
-              </div>
-              
-              <div 
-                className="cursor-pointer group"
-                onClick={() => router.push('/about')}
-              >
-                <div className="relative aspect-square overflow-hidden rounded-lg mb-2">
-                  <img
-                    src="https://img.youtube.com/vi/do4aDyGZmgM/maxresdefault.jpg"
-                    alt="AMIKO Introduction"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-2">
-                    <div className="text-white text-[8px] font-bold">
-                      {language === 'ko' ? 'AMIKO는 어떤 플랫폼인가요?' : 'QUÉ TIPO DE PLATAFORMA ES AMIKO?'}
-                    </div>
-                  </div>
-                  <div className="absolute top-2 right-2 bg-black/70 text-white text-[6px] px-1 rounded">
-                    3:29
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -2386,49 +2397,44 @@ export default function HomeTab() {
               <Card>
                 <CardContent className="p-3">
                   <div className="grid grid-cols-2 gap-3">
-                    {/* 첫 번째 비디오 */}
-                    <div 
-                      className="cursor-pointer group"
-                      onClick={() => router.push('/about')}
-                    >
-                      <div className="relative aspect-video overflow-hidden rounded-lg mb-2">
-                        <img
-                          src="https://img.youtube.com/vi/do4aDyGZmgM/maxresdefault.jpg"
-                          alt="AMIKO Introduction"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-3">
-                          <div className="text-white text-sm font-bold line-clamp-2">
-                            {language === 'ko' ? 'AMIKO는 어떤 플랫폼인가요?' : 'QUÉ TIPO DE PLATAFORMA ES AMIKO?'}
+                    {youtubeVideos.length > 0 ? (
+                      youtubeVideos.slice(0, 2).map((video) => (
+                        <div 
+                          key={video.id}
+                          className="cursor-pointer group"
+                          onClick={() => window.open(video.url, '_blank')}
+                        >
+                          <div className="relative aspect-video overflow-hidden rounded-lg mb-2">
+                            <img
+                              src={video.thumbnail}
+                              alt={video.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
+                              <div className="text-white text-sm font-bold line-clamp-2">
+                                {video.title}
+                              </div>
+                            </div>
+                            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                              {video.duration}
+                            </div>
+                            {/* YouTube 재생 아이콘 */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
+                                <Play className="w-8 h-8 text-white fill-white" />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                          3:29
-                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 text-center py-6">
+                        <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500 text-sm">
+                          {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
+                        </p>
                       </div>
-                    </div>
-                    
-                    {/* 두 번째 비디오 */}
-                    <div 
-                      className="cursor-pointer group"
-                      onClick={() => router.push('/about')}
-                    >
-                      <div className="relative aspect-video overflow-hidden rounded-lg mb-2">
-                        <img
-                          src="https://img.youtube.com/vi/do4aDyGZmgM/maxresdefault.jpg"
-                          alt="AMIKO Introduction"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-3">
-                          <div className="text-white text-sm font-bold line-clamp-2">
-                            {language === 'ko' ? 'AMIKO는 어떤 플랫폼인가요?' : 'QUÉ TIPO DE PLATAFORMA ES AMIKO?'}
-                          </div>
-                        </div>
-                        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                          3:29
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
