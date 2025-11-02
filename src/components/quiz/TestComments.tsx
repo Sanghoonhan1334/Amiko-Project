@@ -33,6 +33,13 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
+  
+  // 사용자 표시 이름 가져오기 (닉네임 우선, 없으면 이름)
+  const getUserDisplayName = () => {
+    if (!user) return null
+    // nickname이 있으면 우선 사용
+    return user.user_metadata?.nickname || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario'
+  }
 
   // 댓글 조회 (로컬 스토리지 기반)
   const fetchComments = async () => {
@@ -63,8 +70,10 @@ export default function TestComments({ testId }: TestCommentsProps) {
     try {
       setIsSubmitting(true)
       
+      const displayName = getUserDisplayName()
+      
       // 닉네임이 없으면 댓글 작성 불가
-      if (!user.user_metadata?.name) {
+      if (!displayName || displayName === 'Usuario') {
         alert('Por favor, completa tu perfil con un nombre de usuario para poder comentar.')
         return
       }
@@ -74,7 +83,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
         id: Date.now().toString(),
         test_id: testId,
         user_id: user.id,
-        user_name: user.user_metadata.name,
+        user_name: displayName,
         user_avatar_url: user.user_metadata?.avatar_url || null,
         comment: newComment.trim(),
         created_at: new Date().toISOString(),
@@ -105,8 +114,10 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const handleSubmitReply = async (parentId: string) => {
     if (!replyText.trim() || !user) return
     
+    const displayName = getUserDisplayName()
+    
     // 닉네임이 없으면 답글 작성 불가
-    if (!user.user_metadata?.name) {
+    if (!displayName || displayName === 'Usuario') {
       alert('Por favor, completa tu perfil con un nombre de usuario para poder responder.')
       return
     }
@@ -116,7 +127,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
         id: Date.now().toString(),
         test_id: testId,
         user_id: user.id,
-        user_name: user.user_metadata.name,
+        user_name: displayName,
         user_avatar_url: user.user_metadata?.avatar_url || null,
         comment: replyText.trim(),
         created_at: new Date().toISOString(),
