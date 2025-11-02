@@ -615,6 +615,24 @@ export default function HomeTab() {
     loadAllData()
   }, [language])
 
+  // 페이지가 다시 포커스될 때 데이터 새로고침 (뉴스 업데이트 반영)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('홈탭 포커스 - 데이터 새로고침')
+        // 뉴스 데이터만 새로고침 (전체 새로고침은 부담이 클 수 있음)
+        loadKNoticiaNews()
+        loadHotPosts()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {

@@ -1169,6 +1169,18 @@ function NewsPageContent() {
                       >
                         {language === 'ko' ? '답글' : 'Responder'}
                       </Button>
+                      {/* 삭제 버튼 (본인 또는 관리자만) */}
+                      {(user?.id === comment.author_id || user?.is_admin) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-3 h-3 mr-0.5 md:mr-1" />
+                          {language === 'ko' ? '삭제' : 'Eliminar'}
+                        </Button>
+                      )}
                     </div>
 
                     {/* 답글 작성 폼 */}
@@ -1217,13 +1229,14 @@ function NewsPageContent() {
                                 </span>
                                 <span className="text-[8px] md:text-xs text-gray-500">{new Date(reply.created_at).toLocaleDateString()}</span>
                               </div>
-                              {user?.id === reply.author_id && (
+                              {(user?.id === reply.author_id || user?.is_admin) && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleDeleteComment(reply.id)}
                                   className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-red-600 hover:text-red-800"
                                 >
+                                  <Trash2 className="w-2.5 h-2.5 md:w-3 md:h-3 mr-0.5" />
                                   {language === 'ko' ? '삭제' : 'Eliminar'}
                                 </Button>
                               )}
