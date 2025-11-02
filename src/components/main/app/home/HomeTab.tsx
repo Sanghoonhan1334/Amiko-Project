@@ -2171,11 +2171,21 @@ export default function HomeTab() {
                             onClick={() => router.push(`/main?tab=community&poll=${poll.id}`)}
                           >
                             <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
-                              <img
-                                src={poll.image || '/misc/placeholder.png'}
-                                alt={poll.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                              />
+                              {poll.image ? (
+                                <img
+                                  src={poll.image}
+                                  alt={poll.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-yellow-50 via-yellow-100 to-orange-50 flex items-center justify-center">
+                                  <img
+                                    src="/icons/Encuestas.png"
+                                    alt="Poll"
+                                    className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-sm"
+                                  />
+                                </div>
+                              )}
                             </div>
                             <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
                               {poll.title}
