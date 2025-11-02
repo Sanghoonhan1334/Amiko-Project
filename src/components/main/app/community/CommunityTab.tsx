@@ -157,11 +157,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // 드래그 중인 아이템 추적
   const [draggingItem, setDraggingItem] = useState<{ itemId: string; subIndex: number } | null>(null)
   
-  // 서브메뉴 전체 드래그 상태
-  const [isDraggingSubmenu, setIsDraggingSubmenu] = useState(false)
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
-  const [dragCurrentPos, setDragCurrentPos] = useState({ x: 0, y: 0 })
-  
   // 서브메뉴 위치 조정 state (모바일/데스크톱 별도 관리)
   const [submenuPositions, setSubmenuPositions] = useState<Record<string, { x: number; y: number }>>(() => {
     // localStorage에서 복원
@@ -198,75 +193,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // px를 rem으로 변환하는 함수 (브라우저 기본 폰트 크기 16px 기준)
   const pxToRem = (px: number) => px / 16
-  
-  // 서브메뉴 전체 드래그 핸들러
-  const handleSubmenuMouseDown = (e: React.MouseEvent, itemId: string) => {
-    console.log('서브메뉴 드래그 시작:', itemId)
-    setIsDraggingSubmenu(true)
-    setDragStartPos({ x: e.clientX, y: e.clientY })
-    setDragCurrentPos({ x: e.clientX, y: e.clientY })
-    e.preventDefault()
-    e.stopPropagation()
-  }
-
-  const handleSubmenuMouseMove = useCallback((e: MouseEvent, itemId: string) => {
-    if (!isDraggingSubmenu) return
-    
-    const deltaX = e.clientX - dragStartPos.x
-    const deltaY = e.clientY - dragStartPos.y
-    
-    console.log('서브메뉴 드래그 중:', { deltaX, deltaY })
-    
-    setSubmenuPositions(prev => {
-      const currentPos = prev[itemId] || { x: -147, y: -143 }
-      const newPos = {
-        x: currentPos.x + deltaX,
-        y: currentPos.y + deltaY
-      }
-      console.log('새 위치:', newPos)
-      return {
-        ...prev,
-        [itemId]: newPos
-      }
-    })
-    
-    setDragStartPos({ x: e.clientX, y: e.clientY })
-  }, [isDraggingSubmenu, dragStartPos])
-
-  const handleSubmenuMouseUp = () => {
-    console.log('서브메뉴 드래그 종료')
-    setIsDraggingSubmenu(false)
-  }
-  
-  // submenuPositions 변경 시 localStorage에 저장
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isMobileDevice = window.innerWidth < 768
-      const storageKey = isMobileDevice ? 'submenu-positions-mobile' : 'submenu-positions-desktop'
-      localStorage.setItem(storageKey, JSON.stringify(submenuPositions))
-    }
-  }, [submenuPositions])
-
-  // 서브메뉴 드래그 이벤트 리스너
-  useEffect(() => {
-    if (!isDraggingSubmenu || !activeSubmenu) return
-
-    const handleMouseMove = (e: MouseEvent) => {
-      handleSubmenuMouseMove(e, activeSubmenu)
-    }
-
-    const handleMouseUp = () => {
-      handleSubmenuMouseUp()
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isDraggingSubmenu, activeSubmenu, handleSubmenuMouseMove])
   
   // 서브메뉴 토글 핸들러
   const handleToggleSubmenu = useCallback((itemId: string) => {
@@ -2437,23 +2363,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                               }}
                               className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
                             >
-                              {/* 드래그 핸들 - 서브메뉴 이동용 */}
-                              <div
-                                onMouseDown={(e) => handleSubmenuMouseDown(e, item.id)}
-                                className="bg-gray-100 dark:bg-gray-700 rounded-t-lg py-2 px-3 cursor-grab active:cursor-grabbing flex items-center justify-center gap-2 border-2 border-gray-300 dark:border-gray-600"
-                              >
-                                <div className="flex gap-0.5">
-                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                                </div>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">드래그하여 이동</span>
-                                <div className="flex gap-0.5">
-                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                                </div>
-                              </div>
                            {(() => {
                              // 저장된 순서 사용
                              const order = subItemOrders[item.id] || item.subItems!.map((_, i) => i)
