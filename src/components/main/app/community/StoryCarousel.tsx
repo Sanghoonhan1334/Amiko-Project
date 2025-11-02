@@ -1348,7 +1348,19 @@ export default function StoryCarousel() {
                         {/* 오버레이 그라데이션 */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                         
-                        {/* 좋아요/댓글/삭제 버튼 */}
+                        {/* 상단 우측 삭제 버튼 (작성자 본인 또는 관리자) */}
+                        {(authUser && (stories[currentIndex].userId === authUser.id || isAdmin)) && (
+                          <div className="absolute top-4 right-4">
+                            <button
+                              onClick={() => handleDeleteStory(stories[currentIndex].id)}
+                              className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* 좋아요/댓글 버튼 */}
                         <div className="absolute bottom-4 right-4 flex gap-3">
                           <button
                             onClick={() => handleLikeToggle(stories[currentIndex].id)}
@@ -1370,16 +1382,6 @@ export default function StoryCarousel() {
                           >
                             <MessageSquare className="w-5 h-5 text-blue-500" />
                           </button>
-                          
-                          {/* 삭제 버튼 - 작성자 본인 또는 관리자만 */}
-                          {(authUser && (stories[currentIndex].userId === authUser.id || isAdmin)) && (
-                            <button
-                              onClick={() => handleDeleteStory(stories[currentIndex].id)}
-                              className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
-                            >
-                              <Trash2 className="w-5 h-5 text-red-500" />
-                            </button>
-                          )}
                         </div>
                       </div>
                       
@@ -1479,11 +1481,6 @@ export default function StoryCarousel() {
                                 }}
                               />
                               
-                              {/* 만료 시간 표시 */}
-                              <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                                {Math.max(0, Math.floor((story.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)))}시간
-                              </div>
-                              
                               {/* 공개/비공개 표시 */}
                               <div className="absolute top-2 left-2">
                                 {story.isPublic ? (
@@ -1493,6 +1490,34 @@ export default function StoryCarousel() {
                                 ) : (
                                   <div className="bg-gray-500 text-white p-1 rounded-full">
                                     <EyeOff className="w-3 h-3" />
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* 우측 상단: 삭제 버튼 또는 만료 시간 */}
+                              <div className="absolute top-2 right-2">
+                                {(authUser && (story.userId === authUser.id || isAdmin)) ? (
+                                  // 삭제 권한이 있는 경우 - 호버 시 삭제 버튼 표시
+                                  <>
+                                    <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full group-hover:opacity-0 transition-opacity duration-200">
+                                      {Math.max(0, Math.floor((story.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)))}시간
+                                    </div>
+                                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleDeleteStory(story.id)
+                                        }}
+                                        className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  // 삭제 권한이 없는 경우 - 만료 시간만 표시
+                                  <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                                    {Math.max(0, Math.floor((story.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)))}시간
                                   </div>
                                 )}
                               </div>
@@ -1530,19 +1555,6 @@ export default function StoryCarousel() {
                                       <MessageSquare className="w-5 h-5 text-blue-500" />
                                     </button>
                                   </VerificationGuard>
-                                  
-                                  {/* 삭제 버튼 - 작성자 본인 또는 관리자만 */}
-                                  {(authUser && (story.userId === authUser.id || isAdmin)) && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleDeleteStory(story.id)
-                                      }}
-                                      className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
-                                    >
-                                      <Trash2 className="w-5 h-5 text-red-500" />
-                                    </button>
-                                  )}
                                 </div>
                               </div>
                             </div>
