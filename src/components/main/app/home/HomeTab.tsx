@@ -1312,7 +1312,7 @@ export default function HomeTab() {
                       </div>
                     </div>
                     )
-                  }))
+                  })
                 ) : (
                   <div className="col-span-2 text-center py-4">
                     <img 
