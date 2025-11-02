@@ -98,9 +98,11 @@ export async function GET(request: NextRequest) {
         console.log('[POPULAR_POSTS] 1단계 핫글:', hotPosts?.length || 0, '개')
         posts = hotPosts || []
         
-        // 2단계: 부족하면 최근 게시글로 채우기 (좋아요 조건 없이)
+        // 2단계: 부족하면 최근 게시글로 채우기 (공지사항 포함, 조인 실패해도 반환)
         if (posts.length < limit) {
-          const { data: popularPosts } = await supabaseServer
+          console.log('[POPULAR_POSTS] 2단계 시작 - 최근 게시글 조회')
+          
+          const { data: recentPosts, error: recentError } = await supabaseServer
             .from('gallery_posts')
             .select(`
               id,
@@ -117,30 +119,47 @@ export async function GET(request: NextRequest) {
               created_at,
               updated_at,
               category,
-              user:users!gallery_posts_user_id_fkey (
-                id,
-                full_name,
-                nickname,
-                avatar_url
-              ),
-              gallery:galleries!gallery_posts_gallery_id_fkey (
-                id,
-                slug,
-                name_ko,
-                name_es,
-                icon,
-                color
-              )
+              user_id,
+              gallery_id
             `)
             .eq('is_deleted', false)
-            .eq('is_notice', false)
             .order('created_at', { ascending: false })
-            .limit(limit - posts.length)
+            .limit(limit)
           
-          console.log('[POPULAR_POSTS] 2단계 최근글:', popularPosts?.length || 0, '개')
-          const existingIds = new Set(posts.map(p => p.id))
-          const newPosts = (popularPosts || []).filter(p => !existingIds.has(p.id))
-          posts = [...posts, ...newPosts]
+          if (recentError) {
+            console.error('[POPULAR_POSTS] 2단계 조회 에러:', recentError)
+          } else {
+            console.log('[POPULAR_POSTS] 2단계 최근글:', recentPosts?.length || 0, '개')
+            
+            // 사용자와 갤러리 정보를 별도로 조회
+            if (recentPosts && recentPosts.length > 0) {
+              // 사용자 정보 조회
+              const userIds = [...new Set(recentPosts.map(p => p.user_id).filter(Boolean))]
+              const { data: users } = userIds.length > 0 
+                ? await supabaseServer.from('users').select('id, full_name, nickname, avatar_url').in('id', userIds)
+                : { data: [] }
+              
+              // 갤러리 정보 조회
+              const galleryIds = [...new Set(recentPosts.map(p => p.gallery_id).filter(Boolean))]
+              const { data: galleries } = galleryIds.length > 0
+                ? await supabaseServer.from('galleries').select('id, slug, name_ko, name_es, icon, color').in('id', galleryIds)
+                : { data: [] }
+              
+              const userMap = new Map(users?.map(u => [u.id, u]) || [])
+              const galleryMap = new Map(galleries?.map(g => [g.id, g]) || [])
+              
+              // 게시글에 사용자와 갤러리 정보 매핑
+              const postsWithDetails = recentPosts.map(post => ({
+                ...post,
+                user: userMap.get(post.user_id) || null,
+                gallery: galleryMap.get(post.gallery_id) || null
+              }))
+              
+              const existingIds = new Set(posts.map(p => p.id))
+              const newPosts = postsWithDetails.filter(p => !existingIds.has(p.id))
+              posts = [...posts, ...newPosts]
+            }
+          }
         }
         
         console.log(`[POPULAR_POSTS] 최종 조회: ${posts.length}개 (핫글 → 최근글)`)
