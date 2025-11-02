@@ -1040,6 +1040,46 @@ export default function StoryCarousel() {
          }
        }
 
+  // 스토리 삭제 함수
+  const handleDeleteStory = async (storyId: string) => {
+    const confirmMessage = language === 'ko' 
+      ? '이 스토리를 삭제하시겠습니까?' 
+      : '¿Eliminar esta historia?'
+    
+    if (!confirm(confirmMessage)) return
+
+    try {
+      const response = await fetch(`/api/stories/${storyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        // 스토리 목록에서 제거
+        setStories(prev => prev.filter(story => story.id !== storyId))
+        
+        // 모달이 열려있다면 닫기
+        if (showStoryModal && selectedStory?.id === storyId) {
+          setShowStoryModal(false)
+          setSelectedStory(null)
+        }
+        
+        const successMessage = language === 'ko' 
+          ? '스토리가 삭제되었습니다.' 
+          : 'Historia eliminada.'
+        alert(successMessage)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        alert(errorData.error || (language === 'ko' ? '스토리 삭제에 실패했습니다.' : 'Error al eliminar historia.'))
+      }
+    } catch (error) {
+      console.error('스토리 삭제 오류:', error)
+      alert(language === 'ko' ? '스토리 삭제 중 오류가 발생했습니다.' : 'Error al eliminar historia.')
+    }
+  }
+
   // 만료된 스토리 제거 (커뮤니티 탭에서는 24시간마다 체크하여 자동 삭제)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -1308,7 +1348,7 @@ export default function StoryCarousel() {
                         {/* 오버레이 그라데이션 */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                         
-                        {/* 좋아요/댓글 버튼 */}
+                        {/* 좋아요/댓글/삭제 버튼 */}
                         <div className="absolute bottom-4 right-4 flex gap-3">
                           <button
                             onClick={() => handleLikeToggle(stories[currentIndex].id)}
@@ -1330,6 +1370,16 @@ export default function StoryCarousel() {
                           >
                             <MessageSquare className="w-5 h-5 text-blue-500" />
                           </button>
+                          
+                          {/* 삭제 버튼 - 작성자 본인 또는 관리자만 */}
+                          {(authUser && (stories[currentIndex].userId === authUser.id || isAdmin)) && (
+                            <button
+                              onClick={() => handleDeleteStory(stories[currentIndex].id)}
+                              className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                            >
+                              <Trash2 className="w-5 h-5 text-red-500" />
+                            </button>
+                          )}
                         </div>
                       </div>
                       
@@ -1480,6 +1530,19 @@ export default function StoryCarousel() {
                                       <MessageSquare className="w-5 h-5 text-blue-500" />
                                     </button>
                                   </VerificationGuard>
+                                  
+                                  {/* 삭제 버튼 - 작성자 본인 또는 관리자만 */}
+                                  {(authUser && (story.userId === authUser.id || isAdmin)) && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDeleteStory(story.id)
+                                      }}
+                                      className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer"
+                                    >
+                                      <Trash2 className="w-5 h-5 text-red-500" />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1940,6 +2003,19 @@ export default function StoryCarousel() {
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                   </svg>
                 </button>
+                
+                {/* 삭제 버튼 - 작성자 본인 또는 관리자만 */}
+                {(authUser && (selectedStory.userId === authUser.id || isAdmin)) && (
+                  <button
+                    onClick={() => {
+                      handleDeleteStory(selectedStory.id)
+                      setShowStoryModal(false)
+                    }}
+                    className="w-12 h-12 rounded-full flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 transition-all duration-200 hover:scale-110"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
               </div>
               
               {/* 닫기 버튼 */}

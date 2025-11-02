@@ -210,8 +210,19 @@ export async function DELETE(
       )
     }
 
-    // 소유자 확인
-    if (existingStory.user_id !== authUser.id) {
+    // 운영자 권한 확인
+    const { data: adminData } = await supabaseServer
+      .from('admin_users')
+      .select('id, is_active')
+      .eq('user_id', authUser.id)
+      .eq('is_active', true)
+      .single()
+
+    const isOperator = !!adminData
+
+    // 소유자 또는 운영자만 삭제 가능
+    if (existingStory.user_id !== authUser.id && !isOperator) {
+      console.log('[STORY_DELETE] 권한 없음:', { storyUserId: existingStory.user_id, userId: authUser.id, isOperator })
       return NextResponse.json(
         { error: '권한이 없습니다.' },
         { status: 403 }
