@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply, Trash2 } from 'lucide-react'
-import UserBadge from '@/components/common/UserBadge' // Added import for UserBadge
+import UserBadge from '@/components/common/UserBadge'
 
 interface Comment {
   id: string
@@ -33,12 +33,32 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
+  const [userNickname, setUserNickname] = useState<string | null>(null)
+  
+  // 사용자 닉네임 조회 (DB에서)
+  useEffect(() => {
+    const fetchUserNickname = async () => {
+      if (!user?.id) return
+      
+      try {
+        const response = await fetch(`/api/users/${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setUserNickname(data.user?.nickname || data.user?.full_name || null)
+        }
+      } catch (error) {
+        console.error('Error fetching user nickname:', error)
+      }
+    }
+    
+    fetchUserNickname()
+  }, [user?.id])
   
   // 사용자 표시 이름 가져오기 (닉네임 우선, 없으면 이름)
   const getUserDisplayName = () => {
     if (!user) return null
-    // nickname이 있으면 우선 사용
-    return user.user_metadata?.nickname || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario'
+    // DB에서 가져온 닉네임 우선 사용
+    return userNickname || user.user_metadata?.nickname || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario'
   }
 
   // 댓글 조회 (로컬 스토리지 기반)
