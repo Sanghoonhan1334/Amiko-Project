@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Heart, MessageSquare, Plus, User, Clock, Image as ImageIcon, Camera, Loader2, X, Calendar, GraduationCap, Briefcase } from 'lucide-react'
+import { ArrowLeft, Heart, MessageSquare, Plus, User, Clock, Image as ImageIcon, Camera, Loader2, X, Calendar, GraduationCap, Briefcase, Trash2 } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -589,6 +589,70 @@ function StoriesPageContent() {
       toast.error('답글 작성에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setIsCommenting(false)
+    }
+  }
+
+  // 댓글 삭제 권한 확인
+  const canDeleteComment = (commentUserId: string) => {
+    if (!user) return false
+    // 본인 댓글이거나 관리자인 경우
+    return user.id === commentUserId || user.is_admin === true
+  }
+
+  // 댓글 삭제
+  const handleDeleteComment = async (commentId: string, isReply: boolean = false, parentId?: string) => {
+    if (!user || !token || !selectedStory) return
+    
+    if (!confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/stories/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token || session?.access_token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el comentario')
+      }
+
+      // 로컬 상태 업데이트
+      if (isReply && parentId) {
+        // 대댓글 삭제
+        setStoryComments(prev => ({
+          ...prev,
+          [selectedStory.id]: prev[selectedStory.id]?.map(comment => {
+            if (comment.id === parentId) {
+              return {
+                ...comment,
+                replies: comment.replies?.filter((reply: any) => reply.id !== commentId) || []
+              }
+            }
+            return comment
+          }) || []
+        }))
+      } else {
+        // 일반 댓글 삭제 (대댓글도 함께 삭제됨)
+        setStoryComments(prev => ({
+          ...prev,
+          [selectedStory.id]: prev[selectedStory.id]?.filter(comment => comment.id !== commentId) || []
+        }))
+      }
+
+      // 댓글 수 감소
+      setStories(prev => prev.map(story => 
+        story.id === selectedStory.id 
+          ? { ...story, comment_count: Math.max(0, (story.comment_count || 0) - 1) }
+          : story
+      ))
+
+      toast.success('Comentario eliminado correctamente')
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error)
+      toast.error('Error al eliminar el comentario')
     }
   }
 
@@ -1595,13 +1659,26 @@ function StoriesPageContent() {
                         </div>
                         <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{comment.content}</p>
                         
-                        {/* 답글 버튼 */}
-                        <button
-                          onClick={() => startReply(comment.id, comment.author?.full_name || 'User')}
-                          className="text-xs text-purple-600 hover:text-purple-800 font-medium"
-                        >
-                          Responder
-                        </button>
+                        {/* 답글 및 삭제 버튼 */}
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => startReply(comment.id, comment.author?.full_name || 'User')}
+                            className="text-xs text-purple-600 hover:text-purple-800 font-medium"
+                          >
+                            Responder
+                          </button>
+                          
+                          {/* 삭제 버튼 (본인 또는 관리자만) */}
+                          {canDeleteComment(comment.user_id) && (
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Eliminar</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -1624,7 +1701,18 @@ function StoriesPageContent() {
                                   {new Date(reply.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'ko-KR')}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-700 whitespace-pre-wrap">{reply.content}</p>
+                              <p className="text-xs text-gray-700 whitespace-pre-wrap mb-2">{reply.content}</p>
+                              
+                              {/* 답글 삭제 버튼 (본인 또는 관리자만) */}
+                              {canDeleteComment(reply.user_id) && (
+                                <button
+                                  onClick={() => handleDeleteComment(reply.id, true, comment.id)}
+                                  className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-2.5 h-2.5" />
+                                  <span>Eliminar</span>
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}

@@ -23,7 +23,8 @@ import {
   Heart,
   MessageSquare,
   Send,
-  Languages
+  Languages,
+  Trash2
 } from 'lucide-react'
 import { Story, StoryForm } from '@/types/story'
 import UserProfileModal from '@/components/common/UserProfileModal'
@@ -681,6 +682,42 @@ export default function StoryCarousel() {
     } catch (error) {
       console.error('스토리 답글 작성 오류:', error)
       alert('답글 작성 중 오류가 발생했습니다.')
+    }
+  }
+
+  // 댓글 삭제 권한 확인
+  const canDeleteComment = (commentAuthorId?: string) => {
+    if (!user || !commentAuthorId) return false
+    // 본인 댓글이거나 관리자인 경우
+    return user.id === commentAuthorId || user.is_admin === true
+  }
+
+  // 댓글 삭제
+  const handleDeleteComment = async (commentId: string, storyId: string, isReply: boolean = false) => {
+    if (!user || !token) return
+    
+    if (!confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/stories/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token || session?.access_token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el comentario')
+      }
+
+      // 댓글 목록 새로고침
+      await loadStoryComments(storyId)
+      alert('Comentario eliminado correctamente')
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error)
+      alert('Error al eliminar el comentario')
     }
   }
 
@@ -1625,18 +1662,31 @@ export default function StoryCarousel() {
                       </div>
                       <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{comment.content}</p>
                       
-                      {/* 답글 버튼 */}
-                      <VerificationGuard requiredLevel="sms">
-                        <button
-                          onClick={() => {
-                            setReplyingTo(replyingTo === comment.id ? null : comment.id)
-                            setReplyText('')
-                          }}
-                          className="text-xs text-purple-600 hover:text-purple-800 font-medium"
-                        >
-                          {replyingTo === comment.id ? 'Cancelar' : 'Responder'}
-                        </button>
-                      </VerificationGuard>
+                      {/* 답글 및 삭제 버튼 */}
+                      <div className="flex items-center gap-3">
+                        <VerificationGuard requiredLevel="sms">
+                          <button
+                            onClick={() => {
+                              setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                              setReplyText('')
+                            }}
+                            className="text-xs text-purple-600 hover:text-purple-800 font-medium"
+                          >
+                            {replyingTo === comment.id ? 'Cancelar' : 'Responder'}
+                          </button>
+                        </VerificationGuard>
+                        
+                        {/* 삭제 버튼 (본인 또는 관리자만) */}
+                        {canDeleteComment(comment.authorId) && (
+                          <button
+                            onClick={() => handleDeleteComment(comment.id, showCommentModal!)}
+                            className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Eliminar</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1669,7 +1719,18 @@ export default function StoryCarousel() {
                                 })}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{reply.content}</p>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{reply.content}</p>
+                            
+                            {/* 답글 삭제 버튼 (본인 또는 관리자만) */}
+                            {canDeleteComment(reply.authorId) && (
+                              <button
+                                onClick={() => handleDeleteComment(reply.id, showCommentModal!, true)}
+                                className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="w-2.5 h-2.5" />
+                                <span>Eliminar</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
