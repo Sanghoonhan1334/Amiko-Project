@@ -45,7 +45,7 @@ export default function CommunityCard({
       role="button"
       aria-label={`${item.title}${item.microcopy ? `: ${item.microcopy}` : ''}`}
       className={`
-        group relative
+        group relative overflow-visible
         flex flex-col items-center justify-center
         md:bg-white md:dark:bg-gray-800
         md:border-0
@@ -79,11 +79,11 @@ export default function CommunityCard({
 
       {/* Icono with background container - Fixed height for alignment */}
       <div className="mb-2 md:mb-3 flex items-center justify-center h-16 md:h-20">
-        <div className="relative">
+        <div className="relative overflow-visible">
           {/* Background container - only on mobile */}
           <div className="md:hidden">
             <div 
-              className={`w-14 h-14 rounded-xl flex items-center justify-center border-2 transition-all duration-200 group-hover:shadow-md ${
+              className={`w-14 h-14 rounded-xl flex items-center justify-center border-2 transition-all duration-200 group-hover:shadow-md overflow-visible ${
                 showSubmenu 
                   ? 'border-purple-500 dark:border-purple-500 scale-110' 
                   : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400 group-hover:scale-110'
@@ -100,9 +100,9 @@ export default function CommunityCard({
               ) : (
                 <div className="text-3xl">{item.icon}</div>
               )}
-            {/* 서브메뉴 화살표 */}
+            {/* 서브메뉴 화살표 - 위치 조정으로 잘림 방지 */}
             {hasSubItems && (
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full flex items-center justify-center">
+              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full flex items-center justify-center shadow-sm">
                 <svg className="w-3 h-3 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

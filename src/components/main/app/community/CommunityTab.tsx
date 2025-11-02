@@ -2291,7 +2291,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
       {/* 커뮤니티 홈 메뉴 - Nuevo diseño con 6 íconos (2×3) */}
       {currentView === 'home' && (
-            <div className="w-full">
+            <div className="w-full overflow-visible">
                {/* Encabezado de sección */}
                <div className="text-center mb-6">
                  <div className="flex justify-center mb-3">
@@ -2309,7 +2309,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                </div>
         
                {/* Grid 2×3 - Mobile first design */}
-               <div className="w-full px-4 py-6 max-w-md md:max-w-xl mx-auto relative">
+               <div className="w-full px-4 py-6 max-w-md md:max-w-xl mx-auto relative overflow-visible">
                  {/* 오버레이 - 서브메뉴가 열렸을 때 다른 카드 클릭 방지 */}
                  {(activeSubmenu || closingSubmenu) && (
                    <div 
