@@ -551,13 +551,19 @@ export default function HomeTab() {
         if (pollData.polls && pollData.polls.length > 0) {
           const formattedPolls = pollData.polls
             .slice(0, 4)
-            .map((poll: any) => ({
-              id: poll.id,
-              title: poll.question || poll.title,
-              image: poll.image_url || poll.options?.[0]?.image_url,
-              totalVotes: poll.total_votes || 0,
-              createdAt: formatTimeAgo(poll.created_at)
-            }))
+            .map((poll: any) => {
+              const imageUrl = poll.image_url || poll.options?.[0]?.image_url
+              // placeholder 이미지는 null로 처리
+              const validImageUrl = (imageUrl && !imageUrl.includes('placeholder')) ? imageUrl : null
+              
+              return {
+                id: poll.id,
+                title: poll.question || poll.title,
+                image: validImageUrl,
+                totalVotes: poll.total_votes || 0,
+                createdAt: formatTimeAgo(poll.created_at)
+              }
+            })
           setCurrentPolls(formattedPolls)
         }
       }
@@ -1274,30 +1280,14 @@ export default function HomeTab() {
             <CardContent className="p-2">
               <div className="grid grid-cols-2 gap-2">
                 {currentPolls.length > 0 ? (
-                  currentPolls.slice(0, 4).map((poll) => {
-                    // 실제 이미지가 있는지 확인 (placeholder, null, undefined 제외)
-                    const hasRealImage = poll.image && 
-                                        poll.image !== '/misc/placeholder.png' && 
-                                        !poll.image.includes('placeholder') &&
-                                        poll.image.length > 0
-                    
-                    // 디버깅용 로그
-                    if (process.env.NODE_ENV === 'development') {
-                      console.log('[투표 이미지 체크]', {
-                        title: poll.title,
-                        image: poll.image,
-                        hasRealImage
-                      })
-                    }
-                    
-                    return (
+                  currentPolls.slice(0, 4).map((poll) => (
                     <div 
                       key={poll.id}
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/polls`)}
                     >
                       <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
-                        {hasRealImage ? (
+                        {poll.image ? (
                           <img
                             src={poll.image}
                             alt={poll.title}
@@ -1321,8 +1311,7 @@ export default function HomeTab() {
                         <span>{poll.totalVotes} · {poll.createdAt}</span>
                       </div>
                     </div>
-                    )
-                  })
+                  ))
                 ) : (
                   <div className="col-span-2 text-center py-4">
                     <img 
