@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply } from 'lucide-react'
+import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply, Trash2 } from 'lucide-react'
 import UserBadge from '@/components/common/UserBadge' // Added import for UserBadge
 
 interface Comment {
@@ -148,6 +148,51 @@ export default function TestComments({ testId }: TestCommentsProps) {
     } catch (error) {
       console.error('Error submitting reply:', error)
     }
+  }
+
+  // 댓글 삭제
+  const handleDeleteComment = (commentId: string, isReply: boolean = false, parentId?: string) => {
+    if (!user) return
+    
+    if (!confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+      return
+    }
+    
+    try {
+      let updatedComments: Comment[]
+      
+      if (isReply && parentId) {
+        // 대댓글 삭제
+        updatedComments = comments.map(comment => {
+          if (comment.id === parentId) {
+            return {
+              ...comment,
+              replies: comment.replies?.filter(reply => reply.id !== commentId) || []
+            }
+          }
+          return comment
+        })
+      } else {
+        // 일반 댓글 삭제 (대댓글도 함께 삭제됨)
+        updatedComments = comments.filter(comment => comment.id !== commentId)
+      }
+      
+      // 로컬 스토리지에 저장
+      localStorage.setItem(`${testId}-comments`, JSON.stringify(updatedComments))
+      
+      // 상태 업데이트
+      setComments(updatedComments)
+    } catch (error) {
+      console.error('Error deleting comment:', error)
+      alert('Error al eliminar el comentario.')
+    }
+  }
+
+  // 댓글 삭제 권한 확인
+  const canDeleteComment = (commentUserId: string) => {
+    if (!user) return false
+    // 본인 댓글이거나 관리자인 경우
+    return user.id === commentUserId || user.is_admin === true
   }
 
   // 추천/비추천 토글
@@ -411,6 +456,17 @@ export default function TestComments({ testId }: TestCommentsProps) {
                         <Reply className="w-3 h-3 md:w-4 md:h-4" />
                         <span>Responder</span>
                       </button>
+                      
+                      {/* 삭제 버튼 (본인 또는 관리자만) */}
+                      {canDeleteComment(comment.user_id) && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="flex items-center gap-1 text-xs md:text-sm text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                          <span>Eliminar</span>
+                        </button>
+                      )}
                     </div>
                     
                     {/* 답글 작성 폼 */}
@@ -496,6 +552,17 @@ export default function TestComments({ testId }: TestCommentsProps) {
                                   <ThumbsDown className={`w-2.5 h-2.5 ${reply.user_disliked ? 'fill-current' : ''}`} />
                                   <span>{reply.dislikes}</span>
                                 </button>
+                                
+                                {/* 대댓글 삭제 버튼 (본인 또는 관리자만) */}
+                                {canDeleteComment(reply.user_id) && (
+                                  <button
+                                    onClick={() => handleDeleteComment(reply.id, true, comment.id)}
+                                    className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="w-2.5 h-2.5" />
+                                    <span>Eliminar</span>
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
