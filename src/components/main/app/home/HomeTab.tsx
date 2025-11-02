@@ -1313,7 +1313,7 @@ export default function HomeTab() {
                   <div 
                     key={news.id}
                     className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
-                    onClick={() => router.push(`/community/news/${news.id}?from=home`)}
+                    onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
                   >
                     <div className="flex items-center gap-2">
                       <Badge className="bg-purple-100 text-purple-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
@@ -2192,7 +2192,7 @@ export default function HomeTab() {
                         <div 
                           key={news.id}
                           className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
-                          onClick={() => router.push(`/community/news/${news.id}?from=home`)}
+                          onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
                         >
                           <div className="flex items-center gap-3">
                             <Badge className="bg-purple-100 text-purple-700 border-0 px-2 py-0.5 font-medium text-xs whitespace-nowrap">

@@ -833,6 +833,9 @@ function NewsPageContent() {
   useEffect(() => {
     console.log('NewsPage useEffect 실행')
     
+    // URL 파라미터로 전달된 뉴스 ID 확인
+    const newsIdFromUrl = searchParams.get('id')
+    
     // 간단하고 안전한 튜토리얼 오버레이 제거
     const removeTutorialOverlays = () => {
       // Dialog 오버레이만 타겟팅하여 제거 (실제 콘텐츠는 건드리지 않음)
@@ -891,6 +894,17 @@ function NewsPageContent() {
               setTotalNews(data.total || 0)
               setTotalPages(Math.ceil((data.total || 0) / itemsPerPage))
               console.log('뉴스 로드 완료:', sortedNews.length, '개, 총', data.total || 0, '개')
+              
+              // URL 파라미터로 뉴스 ID가 전달된 경우 자동으로 열기
+              if (newsIdFromUrl && sortedNews.length > 0) {
+                const targetNews = sortedNews.find((n: any) => n.id === newsIdFromUrl)
+                if (targetNews) {
+                  console.log('URL에서 뉴스 자동 열기:', targetNews.title)
+                  setSelectedNews(targetNews)
+                  setShowNewsDetail(true)
+                  fetchComments(targetNews.id)
+                }
+              }
             } else {
               throw new Error(data.error || '뉴스를 불러오는데 실패했습니다.')
             }
