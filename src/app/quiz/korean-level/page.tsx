@@ -117,7 +117,7 @@ export default function KoreanLevelTestPage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100">
 
       {/* 메인 콘텐츠 */}
-      <div className="container mx-auto px-4 pt-20 pb-8">
+      <div className="container mx-auto px-4 pt-24 md:pt-32 pb-8">
         <div className="max-w-4xl mx-auto">
           {/* 뒤로가기 버튼 */}
           <div className="mb-6">

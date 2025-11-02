@@ -617,7 +617,7 @@ export default function IdolPositionTestPage() {
       <Header />
       
       {/* 테스트 소개 페이지 */}
-      <div className="pt-32 pb-8 px-4">
+      <div className="pt-24 md:pt-32 pb-8 px-4">
         <div className="max-w-2xl mx-auto">
           {/* 뒤로가기 버튼 */}
           <div className="mb-6">

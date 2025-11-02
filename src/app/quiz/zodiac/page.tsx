@@ -42,7 +42,7 @@ export default function ZodiacTestPage() {
     <div className="min-h-screen bg-white">
       <Header />
       
-      <div className="container mx-auto px-4 pt-24 pb-8">
+      <div className="container mx-auto px-4 pt-24 md:pt-32 pb-8">
         <div className="max-w-2xl mx-auto">
           {/* 뒤로가기 버튼 */}
           <div className="mb-6">

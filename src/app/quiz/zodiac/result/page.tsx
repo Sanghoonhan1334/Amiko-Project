@@ -168,7 +168,7 @@ export default function ZodiacResultPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-yellow-50 to-pink-100">
       <Header />
       
-      <div className="container mx-auto px-4 pt-24 pb-8">
+      <div className="container mx-auto px-4 pt-24 md:pt-32 pb-8">
         {/* 띠 이미지와 텍스트 오버레이 */}
         <div className="relative w-full max-w-2xl mx-auto mb-8">
           {/* 배경 이미지 */}
