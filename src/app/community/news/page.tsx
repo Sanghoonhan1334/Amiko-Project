@@ -1096,30 +1096,19 @@ function NewsPageContent() {
                         </span>
                         <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
                       </div>
-                      {(user?.id === comment.author_id || isOperatorUser) && (
-                        <div className="flex gap-0.5 md:gap-1">
-                          {user?.id === comment.author_id && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setEditingComment(comment.id)
-                                setEditContent(comment.content)
-                              }}
-                              className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
-                            >
-                              {language === 'ko' ? '수정' : 'Editar'}
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteComment(comment.id)}
-                            className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs text-red-600 hover:text-red-800"
-                          >
-                            {language === 'ko' ? '삭제' : 'Eliminar'}
-                          </Button>
-                        </div>
+                      {/* 수정 버튼만 상단에 표시 */}
+                      {user?.id === comment.author_id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingComment(comment.id)
+                            setEditContent(comment.content)
+                          }}
+                          className="h-4 md:h-6 px-1 md:px-2 text-[9px] md:text-xs"
+                        >
+                          {language === 'ko' ? '수정' : 'Editar'}
+                        </Button>
                       )}
                     </div>
                     
@@ -1251,7 +1240,7 @@ function NewsPageContent() {
                                 </span>
                                 <span className="text-[8px] md:text-xs text-gray-500">{new Date(reply.created_at).toLocaleDateString()}</span>
                               </div>
-                              {(user?.id === reply.author_id || user?.is_admin) && (
+                              {(user?.id === reply.author_id || isOperatorUser) && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
