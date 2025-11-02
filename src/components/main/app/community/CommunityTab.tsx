@@ -183,6 +183,15 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // px를 rem으로 변환하는 함수 (브라우저 기본 폰트 크기 16px 기준)
   const pxToRem = (px: number) => px / 16
   
+  // submenuPositions 변경 시 localStorage에 저장
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isMobileDevice = window.innerWidth < 768
+      const storageKey = isMobileDevice ? 'submenu-positions-mobile' : 'submenu-positions-desktop'
+      localStorage.setItem(storageKey, JSON.stringify(submenuPositions))
+    }
+  }, [submenuPositions])
+  
   // 서브메뉴 토글 핸들러
   const handleToggleSubmenu = useCallback((itemId: string) => {
     if (activeSubmenu === itemId) {
