@@ -1288,11 +1288,11 @@ export default function HomeTab() {
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center">
+                          <div className="w-full h-full bg-gradient-to-br from-yellow-50 via-yellow-100 to-orange-50 flex items-center justify-center">
                             <img
                               src="/icons/Encuestas.png"
                               alt="Poll"
-                              className="w-16 h-16 object-contain opacity-60"
+                              className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-sm"
                             />
                           </div>
                         )}
