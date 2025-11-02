@@ -90,13 +90,32 @@ export default function TestComments({ testId }: TestCommentsProps) {
     try {
       setIsSubmitting(true)
       
-      const displayName = getUserDisplayName()
+      // 실시간으로 닉네임 조회
+      let displayName = userNickname
+      if (!displayName) {
+        try {
+          const response = await fetch(`/api/users/${user.id}`)
+          if (response.ok) {
+            const data = await response.json()
+            displayName = data.user?.nickname || data.user?.display_name || data.user?.full_name || null
+          }
+        } catch (error) {
+          console.error('Error fetching nickname:', error)
+        }
+      }
+      
+      // 여전히 없으면 기본값 사용
+      if (!displayName) {
+        displayName = user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuario'
+      }
       
       // 닉네임이 없으면 댓글 작성 불가
       if (!displayName || displayName === 'Usuario') {
         alert('Por favor, completa tu perfil con un nombre de usuario para poder comentar.')
         return
       }
+
+      console.log('댓글 작성 - 사용 이름:', displayName)
 
       // 새 댓글 객체 생성
       const newCommentObj: Comment = {
@@ -134,13 +153,32 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const handleSubmitReply = async (parentId: string) => {
     if (!replyText.trim() || !user) return
     
-    const displayName = getUserDisplayName()
+    // 실시간으로 닉네임 조회
+    let displayName = userNickname
+    if (!displayName) {
+      try {
+        const response = await fetch(`/api/users/${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          displayName = data.user?.nickname || data.user?.display_name || data.user?.full_name || null
+        }
+      } catch (error) {
+        console.error('Error fetching nickname:', error)
+      }
+    }
+    
+    // 여전히 없으면 기본값 사용
+    if (!displayName) {
+      displayName = user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuario'
+    }
     
     // 닉네임이 없으면 답글 작성 불가
     if (!displayName || displayName === 'Usuario') {
       alert('Por favor, completa tu perfil con un nombre de usuario para poder responder.')
       return
     }
+    
+    console.log('답글 작성 - 사용 이름:', displayName)
     
     try {
       const newReply: Comment = {
