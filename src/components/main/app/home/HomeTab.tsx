@@ -1868,7 +1868,7 @@ export default function HomeTab() {
                         
                         <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                           <Play className="w-3 h-3" />
-                          <span>{formatNumber(test.participants)}명</span>
+                          <span>{formatNumber(test.participants)}{language === 'ko' ? '명' : ''}</span>
                         </div>
                       </div>
                     ))}
