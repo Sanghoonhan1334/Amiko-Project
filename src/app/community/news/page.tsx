@@ -28,6 +28,9 @@ interface Comment {
   replies?: Comment[]
   likes: number
   dislikes: number
+  user_vote?: 'like' | 'dislike' | null
+  like_count?: number
+  dislike_count?: number
 }
 
 // 운영자 권한 체크 함수를 컴포넌트 내부로 이동
@@ -399,7 +402,11 @@ function NewsPageContent() {
     try {
       console.log('뉴스 댓글 로드 시도:', newsId)
       
-      const response = await fetch(`/api/news/${newsId}/comments`)
+      const headers: HeadersInit = token 
+        ? { 'Authorization': `Bearer ${token}` }
+        : {}
+      
+      const response = await fetch(`/api/news/${newsId}/comments`, { headers })
       console.log('뉴스 댓글 로드 응답:', response.status)
       
       if (response.ok) {
@@ -690,10 +697,11 @@ function NewsPageContent() {
             if (comment.id === commentId) {
               return {
                 ...comment,
-                like_count: data.like_count || comment.like_count || comment.likes || 0,
-                dislike_count: data.dislike_count || comment.dislike_count || comment.dislikes || 0,
-                likes: data.like_count || comment.likes || 0,
-                dislikes: data.dislike_count || comment.dislikes || 0
+                like_count: data.like_count || 0,
+                dislike_count: data.dislike_count || 0,
+                likes: data.like_count || 0,
+                dislikes: data.dislike_count || 0,
+                user_vote: data.vote_type // 현재 사용자의 투표 상태 저장
               }
             }
             
@@ -705,10 +713,11 @@ function NewsPageContent() {
                   if (reply.id === commentId) {
                     return {
                       ...reply,
-                      like_count: data.like_count || reply.like_count || reply.likes || 0,
-                      dislike_count: data.dislike_count || reply.dislike_count || reply.dislikes || 0,
-                      likes: data.like_count || reply.likes || 0,
-                      dislikes: data.dislike_count || reply.dislikes || 0
+                      like_count: data.like_count || 0,
+                      dislike_count: data.dislike_count || 0,
+                      likes: data.like_count || 0,
+                      dislikes: data.dislike_count || 0,
+                      user_vote: data.vote_type // 현재 사용자의 투표 상태 저장
                     }
                   }
                   return reply
@@ -720,10 +729,13 @@ function NewsPageContent() {
           })
         )
         
-        if (type === 'like') {
+        // 토스트 메시지
+        if (data.vote_type === 'like') {
           toast.success(language === 'ko' ? '좋아요를 눌렀습니다!' : '¡Me gusta!')
-        } else {
+        } else if (data.vote_type === 'dislike') {
           toast.success(language === 'ko' ? '싫어요를 눌렀습니다!' : '¡No me gusta!')
+        } else {
+          toast.success(language === 'ko' ? '투표가 취소되었습니다.' : 'Voto cancelado')
         }
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
@@ -1147,18 +1159,26 @@ function NewsPageContent() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCommentVote(comment.id, 'like')}
-                        className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
+                        className={`h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs ${
+                          comment.user_vote === 'like' 
+                            ? 'text-blue-600 bg-blue-50' 
+                            : 'text-gray-600 hover:text-blue-600'
+                        }`}
                       >
-                        <ThumbsUp className="w-3 h-3 mr-0.5 md:mr-1" />
+                        <ThumbsUp className={`w-3 h-3 mr-0.5 md:mr-1 ${comment.user_vote === 'like' ? 'fill-current' : ''}`} />
                         {comment.like_count || comment.likes || 0}
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCommentVote(comment.id, 'dislike')}
-                        className="h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs text-gray-600"
+                        className={`h-4 md:h-6 px-0.5 md:px-2 text-[9px] md:text-xs ${
+                          comment.user_vote === 'dislike' 
+                            ? 'text-red-600 bg-red-50' 
+                            : 'text-gray-600 hover:text-red-600'
+                        }`}
                       >
-                        <ThumbsDown className="w-3 h-3 mr-0.5 md:mr-1" />
+                        <ThumbsDown className={`w-3 h-3 mr-0.5 md:mr-1 ${comment.user_vote === 'dislike' ? 'fill-current' : ''}`} />
                         {comment.dislike_count || comment.dislikes || 0}
                       </Button>
                       <Button
@@ -1247,18 +1267,26 @@ function NewsPageContent() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleCommentVote(reply.id, 'like')}
-                                className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-gray-600"
+                                className={`h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs ${
+                                  reply.user_vote === 'like' 
+                                    ? 'text-blue-600 bg-blue-50' 
+                                    : 'text-gray-600 hover:text-blue-600'
+                                }`}
                               >
-                                <ThumbsUp className="w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1" />
+                                <ThumbsUp className={`w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1 ${reply.user_vote === 'like' ? 'fill-current' : ''}`} />
                                 {reply.like_count || reply.likes || 0}
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleCommentVote(reply.id, 'dislike')}
-                                className="h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs text-gray-600"
+                                className={`h-3 md:h-5 px-0.5 md:px-2 text-[8px] md:text-xs ${
+                                  reply.user_vote === 'dislike' 
+                                    ? 'text-red-600 bg-red-50' 
+                                    : 'text-gray-600 hover:text-red-600'
+                                }`}
                               >
-                                <ThumbsDown className="w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1" />
+                                <ThumbsDown className={`w-2 h-2 md:w-3 md:h-3 mr-0.5 md:mr-1 ${reply.user_vote === 'dislike' ? 'fill-current' : ''}`} />
                                 {reply.dislike_count || reply.dislikes || 0}
                               </Button>
                             </div>

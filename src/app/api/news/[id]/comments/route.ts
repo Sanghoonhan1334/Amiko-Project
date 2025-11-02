@@ -75,6 +75,29 @@ export async function GET(
           comment.users = userMap.get(comment.author_id) || null
         })
       }
+      
+      // 현재 사용자의 투표 상태도 조회
+      const authHeader = request.headers.get('Authorization')
+      if (authHeader) {
+        const token = authHeader.split(' ')[1]
+        const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(token)
+        
+        if (!authError && authUser) {
+          const commentIds = comments.map((c: any) => c.id)
+          
+          const { data: userVotes } = await supabaseServer
+            .from('comment_reactions')
+            .select('comment_id, reaction_type')
+            .eq('user_id', authUser.id)
+            .in('comment_id', commentIds)
+          
+          const voteMap = new Map(userVotes?.map((v: any) => [v.comment_id, v.reaction_type]) || [])
+          
+          comments.forEach((comment: any) => {
+            comment.user_vote = voteMap.get(comment.id) || null
+          })
+        }
+      }
     }
 
     console.log('[NEWS_COMMENTS_GET] 댓글 조회 성공:', comments?.length || 0, '개')
