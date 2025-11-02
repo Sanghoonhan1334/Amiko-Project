@@ -191,6 +191,27 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       localStorage.setItem(storageKey, JSON.stringify(submenuPositions))
     }
   }, [submenuPositions])
+
+  // 서브메뉴 드래그 이벤트 리스너
+  useEffect(() => {
+    if (!isDraggingSubmenu || !activeSubmenu) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      handleSubmenuMouseMove(e, activeSubmenu)
+    }
+
+    const handleMouseUp = () => {
+      handleSubmenuMouseUp()
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDraggingSubmenu, activeSubmenu, handleSubmenuMouseMove])
   
   // 서브메뉴 토글 핸들러
   const handleToggleSubmenu = useCallback((itemId: string) => {
@@ -304,6 +325,44 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     // 로딩 상태는 페이지 전환 후 자동으로 해제됨
   }, [router, isNavigating, onViewChange])
   
+  // 서브메뉴 전체 드래그 핸들러
+  const [isDraggingSubmenu, setIsDraggingSubmenu] = useState(false)
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
+  const [dragCurrentPos, setDragCurrentPos] = useState({ x: 0, y: 0 })
+
+  const handleSubmenuMouseDown = (e: React.MouseEvent, itemId: string) => {
+    // 서브 아이템 자체를 클릭한 경우는 제외
+    if ((e.target as HTMLElement).closest('button[draggable="true"]')) {
+      return
+    }
+    
+    setIsDraggingSubmenu(true)
+    setDragStartPos({ x: e.clientX, y: e.clientY })
+    setDragCurrentPos({ x: e.clientX, y: e.clientY })
+    e.preventDefault()
+  }
+
+  const handleSubmenuMouseMove = useCallback((e: MouseEvent, itemId: string) => {
+    if (!isDraggingSubmenu) return
+    
+    const deltaX = e.clientX - dragStartPos.x
+    const deltaY = e.clientY - dragStartPos.y
+    
+    setSubmenuPositions(prev => ({
+      ...prev,
+      [itemId]: {
+        x: (prev[itemId]?.x || -147) + deltaX,
+        y: (prev[itemId]?.y || -143) + deltaY
+      }
+    }))
+    
+    setDragStartPos({ x: e.clientX, y: e.clientY })
+  }, [isDraggingSubmenu, dragStartPos])
+
+  const handleSubmenuMouseUp = () => {
+    setIsDraggingSubmenu(false)
+  }
+
   // 드래그 앤 드롭 핸들러 - 소주제 순서 변경
   const handleDragStart = (e: React.DragEvent, itemId: string, subItemIndex: number) => {
     e.dataTransfer.effectAllowed = 'move'
@@ -2356,8 +2415,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                        {(activeSubmenu === item.id || closingSubmenu === item.id) && item.subItems && (
                           <div className="relative">
                             <div
+                              onMouseDown={(e) => handleSubmenuMouseDown(e, item.id)}
                               style={{ 
-                                transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)`
+                                transform: `translate(${pxToRem(submenuPositions[item.id]?.x || -147)}rem, ${pxToRem(submenuPositions[item.id]?.y || -143)}rem)`,
+                                cursor: isDraggingSubmenu ? 'grabbing' : 'grab'
                               }}
                               className={`absolute top-full mt-2 flex flex-col gap-2 z-[60] px-2 min-w-max ${index % 2 === 0 ? 'left-0' : 'right-0'}`}
                             >
