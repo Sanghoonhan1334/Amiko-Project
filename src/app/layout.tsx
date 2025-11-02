@@ -147,7 +147,6 @@ export default function RootLayout({
             <AuthProvider>
               <LanguageProvider>
                 <UserProvider>
-                  {GA_MEASUREMENT_ID && <GoogleAnalytics />}
                   <CustomBanner />
                   <HeaderWrapper />
                   <main>{children}</main>
