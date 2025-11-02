@@ -190,15 +190,18 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // 서브메뉴 전체 드래그 핸들러
   const handleSubmenuMouseDown = (e: React.MouseEvent, itemId: string) => {
-    // 서브 아이템 자체를 클릭한 경우는 제외
-    if ((e.target as HTMLElement).closest('button[draggable="true"]')) {
+    // 서브 아이템 버튼을 클릭한 경우는 제외
+    const target = e.target as HTMLElement
+    if (target.closest('button') && target.closest('button')?.getAttribute('draggable') !== 'false') {
       return
     }
     
+    console.log('서브메뉴 드래그 시작:', itemId)
     setIsDraggingSubmenu(true)
     setDragStartPos({ x: e.clientX, y: e.clientY })
     setDragCurrentPos({ x: e.clientX, y: e.clientY })
     e.preventDefault()
+    e.stopPropagation()
   }
 
   const handleSubmenuMouseMove = useCallback((e: MouseEvent, itemId: string) => {
@@ -207,18 +210,26 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     const deltaX = e.clientX - dragStartPos.x
     const deltaY = e.clientY - dragStartPos.y
     
-    setSubmenuPositions(prev => ({
-      ...prev,
-      [itemId]: {
-        x: (prev[itemId]?.x || -147) + deltaX,
-        y: (prev[itemId]?.y || -143) + deltaY
+    console.log('서브메뉴 드래그 중:', { deltaX, deltaY })
+    
+    setSubmenuPositions(prev => {
+      const currentPos = prev[itemId] || { x: -147, y: -143 }
+      const newPos = {
+        x: currentPos.x + deltaX,
+        y: currentPos.y + deltaY
       }
-    }))
+      console.log('새 위치:', newPos)
+      return {
+        ...prev,
+        [itemId]: newPos
+      }
+    })
     
     setDragStartPos({ x: e.clientX, y: e.clientY })
   }, [isDraggingSubmenu, dragStartPos])
 
   const handleSubmenuMouseUp = () => {
+    console.log('서브메뉴 드래그 종료')
     setIsDraggingSubmenu(false)
   }
   
