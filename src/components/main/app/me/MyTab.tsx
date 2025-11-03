@@ -1220,6 +1220,7 @@ export default function MyTab() {
                   <button
                     onClick={() => setIsEditing(false)}
                     className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center shadow-sm border border-gray-200"
+                    title={language === 'ko' ? '취소' : 'Cancelar'}
                   >
                     <X className="w-4 h-4 text-gray-600" />
                   </button>
@@ -1227,6 +1228,7 @@ export default function MyTab() {
                       onClick={handleSaveProfile}
                     disabled={isSaving}
                     className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-sm text-white"
+                    title={language === 'ko' ? '저장' : 'Guardar'}
                   >
                     {isSaving ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1737,8 +1739,8 @@ export default function MyTab() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">학생</SelectItem>
-                      <SelectItem value="worker">직장인</SelectItem>
+                      <SelectItem value="student">{language === 'ko' ? '학생' : 'Estudiante'}</SelectItem>
+                      <SelectItem value="worker">{language === 'ko' ? '직장인' : 'Trabajador'}</SelectItem>
                     </SelectContent>
                   </Select>
               </div>
@@ -1815,7 +1817,7 @@ export default function MyTab() {
                 <Textarea
                     value={editForm.introduction}
                     onChange={(e) => setEditForm(prev => ({ ...prev, introduction: e.target.value }))}
-                    placeholder={t('profile.selfIntroduction') + '를 입력하세요'}
+                    placeholder={language === 'ko' ? '자기소개를 입력하세요' : 'Ingrese su autopresentación'}
                     className="text-sm min-h-[80px]"
                   />
                 </div>
