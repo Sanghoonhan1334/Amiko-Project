@@ -538,6 +538,7 @@ export default function MyTab() {
       const response = await fetch('/api/profile/delete-image', {
         method: 'DELETE',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -549,7 +550,8 @@ export default function MyTab() {
       } else {
         const error = await response.json();
         console.error('프로필 이미지 삭제 실패:', error);
-        alert(language === 'ko' ? `삭제 실패: ${error.error || '알 수 없는 오류'}` : `Error al eliminar: ${error.error || 'Error desconocido'}`);
+        const errorMsg = language === 'ko' ? error.error_ko : error.error_es;
+        alert(language === 'ko' ? `삭제 실패: ${errorMsg || '알 수 없는 오류'}` : `Error al eliminar: ${errorMsg || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('프로필 이미지 삭제 오류:', error);
@@ -563,6 +565,7 @@ export default function MyTab() {
       const response = await fetch('/api/profile/delete-image-by-index', {
         method: 'DELETE',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ index })
@@ -575,7 +578,8 @@ export default function MyTab() {
     } else {
         const error = await response.json();
         console.error('프로필 이미지 삭제 실패:', error);
-        alert(language === 'ko' ? `삭제 실패: ${error.error || '알 수 없는 오류'}` : `Error al eliminar: ${error.error || 'Error desconocido'}`);
+        const errorMsg = language === 'ko' ? error.error_ko : error.error_es;
+        alert(language === 'ko' ? `삭제 실패: ${errorMsg || '알 수 없는 오류'}` : `Error al eliminar: ${errorMsg || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('프로필 이미지 삭제 오류:', error);

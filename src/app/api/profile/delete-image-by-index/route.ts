@@ -5,17 +5,43 @@ export async function DELETE(request: NextRequest) {
   try {
     console.log('[PROFILE_DELETE_BY_INDEX] API 호출 시작')
     
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ 
+        error: 'Unauthorized',
+        error_ko: '인증이 필요합니다',
+        error_es: 'Se requiere autenticación'
+      }, { status: 401 })
+    }
+    
+    const token = authHeader.replace('Bearer ', '')
+    
+    // 토큰에서 사용자 정보 확인
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+    
+    if (authError || !user) {
+      return NextResponse.json({ 
+        error: 'Invalid token',
+        error_ko: '유효하지 않은 토큰입니다',
+        error_es: 'Token inválido'
+      }, { status: 401 })
+    }
+    
+    const userId = user.id
+    
     // 요청 본문에서 인덱스 추출
     const { index } = await request.json()
     console.log('[PROFILE_DELETE_BY_INDEX] 삭제할 인덱스:', index)
-    
-    // 임시로 하드코딩된 사용자 ID 사용 (테스트용)
-    const userId = '5f83ab21-fd61-4666-94b5-087d73477476'
     console.log('[PROFILE_DELETE_BY_INDEX] 사용자 ID:', userId)
     
     if (!supabaseServer) {
       console.error('[PROFILE_DELETE_BY_INDEX] Supabase 서버 클라이언트가 초기화되지 않음')
-      return NextResponse.json({ error: 'Supabase 서버 클라이언트가 초기화되지 않았습니다' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Server error',
+        error_ko: 'Supabase 서버 클라이언트가 초기화되지 않았습니다',
+        error_es: 'Error del servidor'
+      }, { status: 500 })
     }
     
     console.log('[PROFILE_DELETE_BY_INDEX] Supabase 서버 클라이언트 확인됨')
@@ -29,17 +55,29 @@ export async function DELETE(request: NextRequest) {
 
     if (userError) {
       console.error('[PROFILE_DELETE_BY_INDEX] 사용자 정보 조회 실패:', userError)
-      return NextResponse.json({ error: '사용자 정보를 조회할 수 없습니다' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'User not found',
+        error_ko: '사용자 정보를 조회할 수 없습니다',
+        error_es: 'No se puede encontrar la información del usuario'
+      }, { status: 500 })
     }
 
     if (!userData?.profile_images || !Array.isArray(userData.profile_images) || userData.profile_images.length === 0) {
       console.log('[PROFILE_DELETE_BY_INDEX] 삭제할 프로필 이미지가 없음')
-      return NextResponse.json({ message: '삭제할 프로필 이미지가 없습니다' }, { status: 200 })
+      return NextResponse.json({ 
+        message: 'No profile images to delete',
+        message_ko: '삭제할 프로필 이미지가 없습니다',
+        message_es: 'No hay fotos de perfil para eliminar'
+      }, { status: 200 })
     }
 
     if (index < 0 || index >= userData.profile_images.length) {
       console.error('[PROFILE_DELETE_BY_INDEX] 잘못된 인덱스:', index)
-      return NextResponse.json({ error: '잘못된 인덱스입니다' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'Invalid index',
+        error_ko: '잘못된 인덱스입니다',
+        error_es: 'Índice inválido'
+      }, { status: 400 })
     }
 
     const imageUrlToDelete = userData.profile_images[index]
@@ -83,7 +121,11 @@ export async function DELETE(request: NextRequest) {
 
     if (updateError) {
       console.error('[PROFILE_DELETE_BY_INDEX] 프로필 업데이트 실패:', updateError)
-      return NextResponse.json({ error: '프로필 업데이트에 실패했습니다' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Update failed',
+        error_ko: '프로필 업데이트에 실패했습니다',
+        error_es: 'Error al actualizar el perfil'
+      }, { status: 500 })
     }
     
     console.log('[PROFILE_DELETE_BY_INDEX] 프로필 업데이트 성공:', updateData)
