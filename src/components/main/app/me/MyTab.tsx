@@ -44,10 +44,9 @@ import {
   ChevronUp,
   ChevronDown,
   Fingerprint,
-  Shield
+  Smartphone
 } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Switch } from '@/components/ui/switch'
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
 import PointsRanking from '@/components/admin/PointsRanking'
 import EventManagement from '@/components/admin/EventManagement'
