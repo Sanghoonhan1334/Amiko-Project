@@ -1193,7 +1193,7 @@ export default function MyTab() {
             const totalImages = (profile?.avatar_url ? 1 : 0) + (profile?.profile_images?.length || 0)
             return totalImages > 1 && currentImageIndex === 0 ? (
               <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-xs animate-pulse">
-                ← 스와이프해서 더 보기 →
+                {language === 'ko' ? '← 스와이프해서 더 보기 →' : '← Desliza para ver más →'}
               </div>
             ) : null
           })()}
