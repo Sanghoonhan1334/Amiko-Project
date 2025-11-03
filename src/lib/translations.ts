@@ -2412,6 +2412,9 @@ export const translations = {
         archiveTiming: {
           label: '저장 타이밍',
           options: {
+            '1': '1시간 후',
+            '6': '6시간 후',
+            '12': '12시간 후',
             '24': '24시간 후',
             '48': '48시간 후',
             '72': '72시간 후',
@@ -5116,6 +5119,9 @@ export const translations = {
         archiveTiming: {
           label: 'Tiempo de Guardado',
           options: {
+            '1': 'Después de 1 hora',
+            '6': 'Después de 6 horas',
+            '12': 'Después de 12 horas',
             '24': 'Después de 24 horas',
             '48': 'Después de 48 horas',
             '72': 'Después de 72 horas',
