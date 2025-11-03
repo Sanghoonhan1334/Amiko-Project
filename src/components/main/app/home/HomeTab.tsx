@@ -1494,7 +1494,7 @@ export default function HomeTab() {
             </h2>
           </div>
           <button 
-            onClick={() => router.push('/about')}
+            onClick={() => window.open('https://www.youtube.com/@AMIKO_Officialstudio', '_blank')}
             className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
           >
             <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
@@ -2388,7 +2388,7 @@ export default function HomeTab() {
                   </h2>
                 </div>
                 <button 
-                  onClick={() => router.push('/about')}
+                  onClick={() => window.open('https://www.youtube.com/@AMIKO_Officialstudio', '_blank')}
                   className="flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
                 >
                   <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
