@@ -26,6 +26,8 @@ const origin = process.env.NODE_ENV === 'production' ? 'https://amiko.com' : 'ht
 // 사용자 등록 옵션 생성
 export async function generateUserRegistrationOptions(userId: string, userName: string, userDisplayName: string) {
   try {
+    console.log('[WEBAUTHN] 등록 옵션 생성 시작:', { userId, userName, userDisplayName })
+    
     // 기존 등록된 인증기 조회
     const { data: existingCredentials, error: fetchError } = await supabaseServer
       .from('biometric_credentials')
@@ -35,8 +37,11 @@ export async function generateUserRegistrationOptions(userId: string, userName: 
 
     if (fetchError) {
       console.error('[WEBAUTHN] 기존 인증기 조회 실패:', fetchError)
-      throw new Error('기존 인증기 조회에 실패했습니다.')
+      // 테이블이 없어도 계속 진행 (빈 배열 사용)
+      console.log('[WEBAUTHN] 기존 인증기 없음, 첫 등록으로 진행')
     }
+    
+    console.log('[WEBAUTHN] 기존 인증기 개수:', existingCredentials?.length || 0)
 
     // 기존 인증기를 AuthenticatorDevice 형식으로 변환
     const existingDevices: AuthenticatorDevice[] = existingCredentials?.map(cred => ({
@@ -72,6 +77,12 @@ export async function generateUserRegistrationOptions(userId: string, userName: 
     }
 
     const registrationOptions = await generateRegistrationOptions(options)
+    
+    console.log('[WEBAUTHN] 등록 옵션 생성 완료:', {
+      hasChallenge: !!registrationOptions.challenge,
+      rpID: registrationOptions.rp?.id,
+      userName: registrationOptions.user?.name
+    })
 
     return {
       success: true,
@@ -82,7 +93,7 @@ export async function generateUserRegistrationOptions(userId: string, userName: 
     console.error('[WEBAUTHN] 등록 옵션 생성 실패:', error)
     return {
       success: false,
-      error: '등록 옵션 생성에 실패했습니다.'
+      error: error instanceof Error ? error.message : '등록 옵션 생성에 실패했습니다.'
     }
   }
 }

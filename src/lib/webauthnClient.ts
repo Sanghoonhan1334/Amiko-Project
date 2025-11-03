@@ -33,7 +33,10 @@ export async function startBiometricRegistration(
 
     const result = await response.json()
     
-    if (!result.success) {
+    console.log('[WEBAUTHN_CLIENT] 등록 옵션 응답:', result)
+    
+    if (!result.success || !result.data) {
+      console.error('[WEBAUTHN_CLIENT] 등록 옵션 없음:', result)
       return {
         success: false,
         error: result.error || '등록 옵션 생성에 실패했습니다.'
