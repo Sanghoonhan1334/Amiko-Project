@@ -1331,15 +1331,24 @@ export default function HomeTab() {
 
       {/* 오늘의 K-Noticia - 모바일 버전 */}
       <div className="space-y-3 md:hidden">
-        <div className="flex items-center">
-          <img 
-            src="/icons/k-magazine.png" 
-            alt="K-Noticia" 
-            className="w-5 h-5 object-contain mr-2"
-          />
-          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
-            {t('home.sections.kNoticia')}
-          </h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <img 
+              src="/icons/k-magazine.png" 
+              alt="K-Noticia" 
+              className="w-5 h-5 object-contain mr-2"
+            />
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
+              {t('home.sections.kNoticia')}
+            </h2>
+          </div>
+          <button 
+            onClick={() => router.push('/community/news')}
+            className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
+          >
+            <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+            <ChevronRight className="w-3 h-3" />
+          </button>
         </div>
 
         <Card>
