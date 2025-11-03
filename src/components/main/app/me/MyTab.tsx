@@ -1747,31 +1747,31 @@ export default function MyTab() {
                 {editForm.user_type === 'student' ? (
                 <>
                     <div>
-                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">대학교</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.university')}</label>
                       <Input
                         value={editForm.university}
                         onChange={(e) => setEditForm(prev => ({ ...prev, university: e.target.value }))}
-                        placeholder="대학교를 입력하세요"
+                        placeholder={language === 'ko' ? '대학교를 입력하세요' : 'Ingrese su universidad'}
                         className="text-sm"
                       />
                   </div>
                   
                     <div>
-                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">전공</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.major')}</label>
                       <Input
                         value={editForm.major}
                         onChange={(e) => setEditForm(prev => ({ ...prev, major: e.target.value }))}
-                        placeholder="전공을 입력하세요"
+                        placeholder={language === 'ko' ? '전공을 입력하세요' : 'Ingrese su carrera'}
                         className="text-sm"
                       />
                   </div>
                     
                     <div>
-                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">학년</label>
+                      <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.grade')}</label>
                       <Input
                         value={editForm.grade}
                         onChange={(e) => setEditForm(prev => ({ ...prev, grade: e.target.value }))}
-                        placeholder="학년을 입력하세요"
+                        placeholder={language === 'ko' ? '학년을 입력하세요' : 'Ingrese su año de estudio'}
                         className="text-sm"
                       />
                     </div>
@@ -1827,7 +1827,7 @@ export default function MyTab() {
               <div className="flex items-center justify-between">
                 <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.koreanName')}</span>
                 <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
-                  {profile?.korean_name || t('profile.koreanName') + ' 없음'}
+                  {profile?.korean_name || (language === 'ko' ? '없음' : 'Sin nombre coreano')}
                 </span>
             </div>
 
@@ -1838,7 +1838,7 @@ export default function MyTab() {
               <div className="flex items-center justify-between">
                 <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.nickname')}</span>
                 <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
-                  {profile?.nickname || t('profile.nickname') + ' 미설정'}
+                  {profile?.nickname || (language === 'ko' ? '미설정' : 'Sin apodo')}
                 </span>
                 </div>
 
@@ -1849,7 +1849,7 @@ export default function MyTab() {
               <div className="flex items-center justify-between">
                 <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.spanishName')}</span>
                 <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
-                  {profile?.spanish_name || t('profile.spanishName') + ' 없음'}
+                  {profile?.spanish_name || (language === 'ko' ? '없음' : 'Sin nombre español')}
                 </span>
           </div>
 
@@ -1861,9 +1861,9 @@ export default function MyTab() {
                 <>
                   {/* 학력 정보 (대학생인 경우) */}
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-xs sm:text-sm">대학교</span>
+                    <span className="text-gray-600 text-xs sm:text-sm">{t('profile.university')}</span>
                     <span className="text-gray-800 text-xs sm:text-sm font-medium">
-                      {profile?.university || '대학교 없음'}
+                      {profile?.university || (language === 'ko' ? '대학교 없음' : 'Sin universidad')}
                     </span>
       </div>
 
@@ -1871,9 +1871,9 @@ export default function MyTab() {
                   <div className="border-t border-gray-200"></div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-xs sm:text-sm">전공</span>
+                    <span className="text-gray-600 text-xs sm:text-sm">{t('profile.major')}</span>
                     <span className="text-gray-800 text-xs sm:text-sm font-medium">
-                      {profile?.major || '전공 없음'}
+                      {profile?.major || (language === 'ko' ? '전공 없음' : 'Sin carrera')}
                     </span>
                   </div>
 
@@ -1881,9 +1881,9 @@ export default function MyTab() {
                   <div className="border-t border-gray-200"></div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 text-xs sm:text-sm">학년</span>
+                    <span className="text-gray-600 text-xs sm:text-sm">{t('profile.grade')}</span>
                     <span className="text-gray-800 text-xs sm:text-sm font-medium">
-                      {profile?.grade || '학년 없음'}
+                      {profile?.grade || (language === 'ko' ? '학년 없음' : 'Sin año de estudio')}
                     </span>
               </div>
                 </>
