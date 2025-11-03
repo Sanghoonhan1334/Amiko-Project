@@ -15,7 +15,6 @@ import {
   EyeOff
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
-import BiometricLogin from '@/components/auth/BiometricLogin'
 import { checkWebAuthnSupport, startBiometricRegistration } from '@/lib/webauthnClient'
 import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '@/components/ui/dialog'
@@ -33,7 +32,6 @@ export default function SignInPage() {
   })
   
   const [isWebAuthnSupported, setIsWebAuthnSupported] = useState(false)
-  const [showBiometricLogin, setShowBiometricLogin] = useState(false)
   const [showBiometricSetupModal, setShowBiometricSetupModal] = useState(false)
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null)
 
@@ -113,17 +111,6 @@ export default function SignInPage() {
     }
   }
 
-
-  const handleBiometricLoginSuccess = (user: any) => {
-    console.log('지문 인증 로그인 성공:', user)
-    // 지문 인증으로 로그인 성공 시 메인 앱으로 이동
-    router.push('/main')
-  }
-
-  const handleBiometricLoginError = (error: string) => {
-    console.error('지문 인증 로그인 실패:', error)
-    alert(error)
-  }
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
@@ -242,28 +229,6 @@ export default function SignInPage() {
               )}
             </Button>
           </form>
-
-          {/* 지문 인증 로그인 */}
-          {isWebAuthnSupported && (
-            <div className="space-y-4">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-slate-200 dark:border-gray-600" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-slate-50 dark:bg-gray-800 px-2 text-slate-500 dark:text-gray-400">{t('auth.or')}</span>
-                </div>
-              </div>
-              
-              <BiometricLogin
-                userId="temp-user-id" // 실제로는 사용자 ID 사용
-                onSuccess={handleBiometricLoginSuccess}
-                onError={handleBiometricLoginError}
-              />
-            </div>
-          )}
-
-          {/* 소셜 로그인 */}
 
           {/* 추가 링크 */}
           <div className="space-y-3 text-center">
