@@ -1276,7 +1276,7 @@ export default function MyTab() {
                       className="text-xs px-3 py-1 h-7 bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300"
                     >
                       <X className="w-3 h-3 mr-1" />
-                      취소
+                      {language === 'ko' ? '취소' : 'Cancelar'}
                     </Button>
                     {/* 저장 버튼 */}
                     <Button 
@@ -1290,7 +1290,7 @@ export default function MyTab() {
                       ) : (
                         <Save className="w-3 h-3 mr-1" />
                       )}
-                      저장
+                      {language === 'ko' ? '저장' : 'Guardar'}
                     </Button>
                   </>
                 ) : (
@@ -1739,7 +1739,7 @@ export default function MyTab() {
                   </div>
                 
                 <div>
-                  <label className="text-gray-600 text-sm block mb-1">사용자 타입</label>
+                  <label className="text-gray-600 text-sm block mb-1">{language === 'ko' ? '사용자 타입' : 'Tipo de usuario'}</label>
                   <Select value={editForm.user_type} onValueChange={(value) => setEditForm(prev => ({ ...prev, user_type: value }))}>
                     <SelectTrigger className="text-sm">
                       <SelectValue />
