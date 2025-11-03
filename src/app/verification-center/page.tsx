@@ -156,10 +156,32 @@ export default function VerificationCenterPage() {
                 isVerified: isVerified
               })
               
+              // 이미 인증 완료된 사용자도 프로필 수정을 위해 접근 가능하도록 변경
               if (isVerified) {
-                console.log('[VERIFICATION] 이미 인증 완료된 사용자, 메인 페이지로 리다이렉트')
-                router.push('/main?tab=me')
-                return
+                console.log('[VERIFICATION] 이미 인증 완료된 사용자 - 프로필 편집 모드로 진입')
+                // 리다이렉트하지 않고 프로필 데이터를 불러와서 편집 가능하게 함
+                // 기존 프로필 데이터를 폼에 채워넣기
+                setFormData(prev => ({
+                  ...prev,
+                  full_name: userProfile?.full_name || '',
+                  korean_name: userProfile?.korean_name || '',
+                  spanish_name: userProfile?.spanish_name || '',
+                  nickname: userProfile?.nickname || '',
+                  one_line_intro: userProfile?.one_line_intro || userProfile?.bio || '',
+                  user_type: userProfile?.user_type || 'student',
+                  university: userProfile?.university || '',
+                  major: userProfile?.major || '',
+                  grade: userProfile?.grade || '',
+                  occupation: userProfile?.occupation || '',
+                  company: userProfile?.company || '',
+                  work_experience: userProfile?.work_experience || userProfile?.career || '',
+                  interests: userProfile?.interests || [],
+                  language: userProfile?.language || userProfile?.native_language,
+                  korean_level: userProfile?.korean_level,
+                  english_level: userProfile?.english_level || 'none',
+                  spanish_level: userProfile?.spanish_level
+                }))
+                console.log('[VERIFICATION] 기존 프로필 데이터 로드 완료:', userProfile)
               }
               
               // 한국인 여부 확인 - 전화번호 국가 코드로 판별 (+82만 한국인으로 인정)
