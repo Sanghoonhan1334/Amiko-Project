@@ -409,7 +409,7 @@ export default function MyTab() {
   // 프로필 저장
   const handleSaveProfile = async () => {
     if (!user || !token) {
-      alert('로그인이 필요합니다.')
+      alert(language === 'ko' ? '로그인이 필요합니다.' : 'Se requiere inicio de sesión.')
       return
     }
 
@@ -428,13 +428,13 @@ export default function MyTab() {
         const data = await response.json()
         setProfile(data.user)
         setIsEditing(false)
-        alert('프로필이 성공적으로 저장되었습니다!')
+        alert(language === 'ko' ? '프로필이 성공적으로 저장되었습니다!' : '¡Perfil guardado exitosamente!')
       } else {
         throw new Error('프로필 저장 실패')
       }
     } catch (error) {
       console.error('프로필 저장 오류:', error)
-      alert('프로필 저장에 실패했습니다. 다시 시도해주세요.')
+      alert(language === 'ko' ? '프로필 저장에 실패했습니다. 다시 시도해주세요.' : 'Error al guardar el perfil. Inténtelo de nuevo.')
     } finally {
       setIsSaving(false)
     }
@@ -545,15 +545,15 @@ export default function MyTab() {
       if (response.ok) {
         console.log('프로필 이미지 삭제 성공');
         await loadProfile(); // 프로필 다시 로드하여 업데이트된 상태 반영
-        alert('프로필 사진이 삭제되었습니다.');
+        alert(language === 'ko' ? '프로필 사진이 삭제되었습니다.' : 'Foto de perfil eliminada.');
       } else {
         const error = await response.json();
         console.error('프로필 이미지 삭제 실패:', error);
-        alert(`삭제 실패: ${error.error || '알 수 없는 오류'}`);
+        alert(language === 'ko' ? `삭제 실패: ${error.error || '알 수 없는 오류'}` : `Error al eliminar: ${error.error || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('프로필 이미지 삭제 오류:', error);
-      alert('삭제 중 오류가 발생했습니다.');
+      alert(language === 'ko' ? '삭제 중 오류가 발생했습니다.' : 'Error durante la eliminación.');
     }
   };
 
@@ -571,15 +571,15 @@ export default function MyTab() {
       if (response.ok) {
         console.log(`프로필 이미지 ${index + 1} 삭제 성공`);
         await loadProfile(); // 프로필 다시 로드하여 업데이트된 상태 반영
-        alert(`프로필 사진 ${index + 1}이 삭제되었습니다.`);
+        alert(language === 'ko' ? `프로필 사진 ${index + 1}이 삭제되었습니다.` : `Foto ${index + 1} eliminada.`);
     } else {
         const error = await response.json();
         console.error('프로필 이미지 삭제 실패:', error);
-        alert(`삭제 실패: ${error.error || '알 수 없는 오류'}`);
+        alert(language === 'ko' ? `삭제 실패: ${error.error || '알 수 없는 오류'}` : `Error al eliminar: ${error.error || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('프로필 이미지 삭제 오류:', error);
-      alert('삭제 중 오류가 발생했습니다.');
+      alert(language === 'ko' ? '삭제 중 오류가 발생했습니다.' : 'Error durante la eliminación.');
     }
   };
 
@@ -1113,7 +1113,10 @@ export default function MyTab() {
                       {/* 사진 삭제 버튼 */}
                       <button
                         onClick={() => {
-                          if (confirm(`프로필 사진 ${globalIndex + 1}을 삭제하시겠습니까?`)) {
+                          const confirmMsg = language === 'ko' 
+                            ? `프로필 사진 ${globalIndex + 1}을 삭제하시겠습니까?`
+                            : `¿Eliminar foto de perfil ${globalIndex + 1}?`
+                          if (confirm(confirmMsg)) {
                             if (imageData.type === 'avatar') {
                               handleDeleteProfileImage()
                             } else {
@@ -1122,7 +1125,7 @@ export default function MyTab() {
                           }
                         }}
                         className="bg-red-500 bg-opacity-90 rounded-full p-2 cursor-pointer hover:bg-opacity-100 transition-all"
-                        title={`프로필 사진 ${globalIndex + 1} 삭제`}
+                        title={language === 'ko' ? `프로필 사진 ${globalIndex + 1} 삭제` : `Eliminar foto ${globalIndex + 1}`}
                       >
                         <X className="w-5 h-5 text-white" />
                       </button>
@@ -1146,7 +1149,10 @@ export default function MyTab() {
                     {/* 사진 삭제 버튼 */}
                       <button
                       onClick={() => {
-                        if (confirm(`프로필 사진 ${globalIndex + 1}을 삭제하시겠습니까?`)) {
+                        const confirmMsg = language === 'ko' 
+                          ? `프로필 사진 ${globalIndex + 1}을 삭제하시겠습니까?`
+                          : `¿Eliminar foto de perfil ${globalIndex + 1}?`
+                        if (confirm(confirmMsg)) {
                           if (imageData.type === 'avatar') {
                             handleDeleteProfileImage()
                           } else {
@@ -1155,7 +1161,7 @@ export default function MyTab() {
                         }
                       }}
                       className="bg-red-500 bg-opacity-80 rounded-full p-1.5 cursor-pointer touch-manipulation"
-                      title={`프로필 사진 ${globalIndex + 1} 삭제`}
+                      title={language === 'ko' ? `프로필 사진 ${globalIndex + 1} 삭제` : `Eliminar foto ${globalIndex + 1}`}
                     >
                       <X className="w-3 h-3 text-white" />
                       </button>
