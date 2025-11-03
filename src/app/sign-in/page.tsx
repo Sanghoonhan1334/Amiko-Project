@@ -16,13 +16,15 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import BiometricLogin from '@/components/auth/BiometricLogin'
-import { checkWebAuthnSupport } from '@/lib/webauthnClient'
+import { checkWebAuthnSupport, startBiometricRegistration } from '@/lib/webauthnClient'
 import { useEffect } from 'react'
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '@/components/ui/dialog'
+import { Fingerprint } from 'lucide-react'
 
 export default function SignInPage() {
   const router = useRouter()
   const { signIn } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -32,6 +34,8 @@ export default function SignInPage() {
   
   const [isWebAuthnSupported, setIsWebAuthnSupported] = useState(false)
   const [showBiometricLogin, setShowBiometricLogin] = useState(false)
+  const [showBiometricSetupModal, setShowBiometricSetupModal] = useState(false)
+  const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null)
 
   useEffect(() => {
     // WebAuthn 지원 여부 확인
@@ -76,6 +80,20 @@ export default function SignInPage() {
         console.log('[SIGNIN] 클라이언트 세션 업데이트 시도 (이미 서버에서 인증됨)')
       })
       
+      // 지문 인증 지원하고, 아직 등록하지 않은 경우 모달 표시
+      if (isWebAuthnSupported && result.user?.id) {
+        // 지문 등록 여부 확인
+        const biometricCheck = await fetch(`/api/auth/biometric?userId=${result.user.id}`)
+        const biometricData = await biometricCheck.json()
+        
+        if (biometricData.success && (!biometricData.data || biometricData.data.length === 0)) {
+          // 등록된 지문이 없으면 모달 표시
+          setLoggedInUserId(result.user.id)
+          setShowBiometricSetupModal(true)
+          return // 모달이 닫힐 때까지 대기
+        }
+      }
+      
       // 로그인 성공 후 메인 앱으로 이동
       router.push('/main')
       
@@ -109,6 +127,41 @@ export default function SignInPage() {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
+  }
+
+  const handleBiometricSetup = async () => {
+    if (!loggedInUserId) return
+    
+    setIsLoading(true)
+    try {
+      const result = await startBiometricRegistration(
+        loggedInUserId,
+        formData.identifier,
+        formData.identifier
+      )
+      
+      if (result.success) {
+        alert(language === 'ko' ? '지문 인증이 등록되었습니다!' : '¡Autenticación de huella digital registrada!')
+        setShowBiometricSetupModal(false)
+        router.push('/main')
+      } else {
+        throw new Error(result.error || '등록 실패')
+      }
+    } catch (error) {
+      console.error('지문 등록 오류:', error)
+      alert(language === 'ko' 
+        ? '지문 등록에 실패했습니다. 나중에 마이페이지에서 다시 시도해주세요.' 
+        : 'Error al registrar huella digital. Inténtelo más tarde en Mi Perfil.')
+      setShowBiometricSetupModal(false)
+      router.push('/main')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSkipBiometric = () => {
+    setShowBiometricSetupModal(false)
+    router.push('/main')
   }
 
   return (
@@ -235,6 +288,91 @@ export default function SignInPage() {
         </CardContent>
       </Card>
       </div>
+
+      {/* 지문 등록 제안 모달 */}
+      <Dialog open={showBiometricSetupModal} onOpenChange={setShowBiometricSetupModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center">
+                <Fingerprint className="w-10 h-10 text-green-600" />
+              </div>
+              <DialogTitle className="text-xl font-bold text-gray-900">
+                {language === 'ko' ? '🔒 지문으로 빠르게 로그인하세요!' : '🔒 ¡Inicia sesión rápido con huella!'}
+              </DialogTitle>
+              <DialogDescription className="text-gray-600 text-sm">
+                {language === 'ko' 
+                  ? '다음부터 지문으로 간편하게 로그인할 수 있습니다. 안전하고 빠릅니다!'
+                  : '¡Puedes iniciar sesión fácilmente con tu huella la próxima vez. Es seguro y rápido!'}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            {/* 장점 설명 */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
+              <div className="flex items-start gap-3">
+                <span className="text-green-600 text-lg">⚡</span>
+                <div className="text-sm text-green-800">
+                  <p className="font-medium">
+                    {language === 'ko' ? '빠른 로그인' : 'Inicio rápido'}
+                  </p>
+                  <p className="text-green-600">
+                    {language === 'ko' ? '비밀번호 입력 없이 1초 만에' : 'En 1 segundo sin contraseña'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-green-600 text-lg">🔐</span>
+                <div className="text-sm text-green-800">
+                  <p className="font-medium">
+                    {language === 'ko' ? '안전한 보안' : 'Seguridad garantizada'}
+                  </p>
+                  <p className="text-green-600">
+                    {language === 'ko' ? '지문 정보는 기기에만 저장됩니다' : 'Los datos se guardan solo en tu dispositivo'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 버튼 그룹 */}
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={handleBiometricSetup}
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 font-medium"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>{language === 'ko' ? '등록 중...' : 'Registrando...'}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Fingerprint className="w-5 h-5" />
+                    <span>{language === 'ko' ? '지금 등록하기' : 'Registrar ahora'}</span>
+                  </div>
+                )}
+              </Button>
+              
+              <Button
+                onClick={handleSkipBiometric}
+                variant="outline"
+                className="w-full"
+              >
+                {language === 'ko' ? '나중에 하기' : 'Más tarde'}
+              </Button>
+            </div>
+
+            {/* 작은 안내 */}
+            <p className="text-xs text-center text-gray-500">
+              {language === 'ko' 
+                ? '마이페이지 > 보안 설정에서 언제든지 등록할 수 있습니다.'
+                : 'Puedes registrar en cualquier momento en Mi Perfil > Seguridad.'}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

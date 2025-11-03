@@ -42,9 +42,12 @@ import {
   Check,
   Video,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Fingerprint,
+  Shield
 } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Switch } from '@/components/ui/switch'
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
 import PointsRanking from '@/components/admin/PointsRanking'
 import EventManagement from '@/components/admin/EventManagement'
@@ -53,6 +56,7 @@ import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
+import { checkWebAuthnSupport, getBiometricAuthStatus, startBiometricRegistration, deleteBiometricCredential } from '@/lib/webauthnClient'
 import ChargingTab from '../charging/ChargingTab'
 import PointsCard from './PointsCard'
 import ChargingHeader from './ChargingHeader'
@@ -361,6 +365,11 @@ export default function MyTab() {
     email: false,
     marketing: false
   })
+  
+  // 보안 설정 상태
+  const [biometricEnabled, setBiometricEnabled] = useState(false)
+  const [biometricSupported, setBiometricSupported] = useState(false)
+  const [biometricCredentials, setBiometricCredentials] = useState<any[]>([])
 
   // 파트너 섹션 노출 여부 계산 및 디버깅 로그 (verificationStatus 선언 이후)
   // 국가 코드 우선: users.phone_country → 없으면 전화번호에서 추론
@@ -704,6 +713,83 @@ export default function MyTab() {
       ...prev,
       [key]: value
     }))
+  }
+
+  // 지문 인증 상태 확인
+  useEffect(() => {
+    const checkBiometric = async () => {
+      // WebAuthn 지원 확인
+      const support = checkWebAuthnSupport()
+      setBiometricSupported(support.isSupported)
+      
+      if (support.isSupported && user?.id) {
+        // 등록된 지문 확인
+        const status = await getBiometricAuthStatus(user.id)
+        if (status.success && status.data) {
+          setBiometricEnabled(status.data.hasCredentials)
+          setBiometricCredentials(status.data.credentials)
+        }
+      }
+    }
+    
+    checkBiometric()
+  }, [user?.id])
+
+  // 지문 등록 핸들러
+  const handleEnableBiometric = async () => {
+    if (!user?.id) return
+    
+    try {
+      const result = await startBiometricRegistration(
+        user.id,
+        user.email || '',
+        user.user_metadata?.full_name || user.email || ''
+      )
+      
+      if (result.success) {
+        alert(language === 'ko' ? '지문 인증이 등록되었습니다!' : '¡Autenticación de huella registrada!')
+        setBiometricEnabled(true)
+        // 상태 재확인
+        const status = await getBiometricAuthStatus(user.id)
+        if (status.success && status.data) {
+          setBiometricCredentials(status.data.credentials)
+        }
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error('지문 등록 실패:', error)
+      alert(language === 'ko' 
+        ? '지문 등록에 실패했습니다. 다시 시도해주세요.'
+        : 'Error al registrar huella. Inténtelo de nuevo.')
+    }
+  }
+
+  // 지문 해제 핸들러
+  const handleDisableBiometric = async () => {
+    if (!user?.id || biometricCredentials.length === 0) return
+    
+    const confirmMsg = language === 'ko'
+      ? '지문 인증을 해제하시겠습니까?'
+      : '¿Desactivar autenticación de huella?'
+      
+    if (!confirm(confirmMsg)) return
+    
+    try {
+      // 모든 등록된 인증기 삭제
+      for (const cred of biometricCredentials) {
+        await deleteBiometricCredential(user.id, cred.id)
+      }
+      
+      alert(language === 'ko' ? '지문 인증이 해제되었습니다.' : 'Autenticación de huella desactivada.')
+      setBiometricEnabled(false)
+      setBiometricCredentials([])
+    } catch (error) {
+      console.error('지문 해제 실패:', error)
+      alert(language === 'ko' 
+        ? '지문 해제에 실패했습니다.'
+        : 'Error al desactivar huella.')
+    }
   }
 
   // 프로필 사진 스와이프 핸들러들
@@ -2271,6 +2357,68 @@ export default function MyTab() {
         <div className="px-4 py-4 bg-white">
       <StorySettings />
             </div>
+        
+        {/* 보안 설정 섹션 */}
+        {biometricSupported && (
+          <div className="px-4 py-4 bg-gradient-to-br from-green-50 to-blue-50">
+            <div className="flex items-center gap-2 mb-4">
+              <Shield className="w-4 h-4 text-green-600" />
+              <h2 className="font-semibold text-gray-800">
+                {language === 'ko' ? '보안 설정' : 'Configuración de seguridad'}
+              </h2>
+            </div>
+            
+            <div className="space-y-3">
+              {/* 지문 인증 토글 */}
+              <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-green-200">
+                <div className="flex items-center gap-3">
+                  <Fingerprint className="w-5 h-5 text-green-600" />
+                  <div>
+                    <div className="font-medium text-gray-800 text-sm">
+                      {language === 'ko' ? '지문 인증 로그인' : 'Inicio con huella digital'}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {language === 'ko' 
+                        ? '빠르고 안전하게 로그인하세요'
+                        : 'Inicia sesión rápido y seguro'}
+                    </div>
+                  </div>
+                </div>
+                <Switch
+                  checked={biometricEnabled}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      handleEnableBiometric()
+                    } else {
+                      handleDisableBiometric()
+                    }
+                  }}
+                />
+              </div>
+
+              {/* 등록된 기기 목록 */}
+              {biometricEnabled && biometricCredentials.length > 0 && (
+                <div className="bg-white/60 rounded-lg p-3 space-y-2">
+                  <p className="text-xs font-medium text-green-800">
+                    {language === 'ko' ? '등록된 기기:' : 'Dispositivos registrados:'}
+                  </p>
+                  {biometricCredentials.map((cred, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs text-green-700">
+                      <Smartphone className="w-3 h-3" />
+                      <span>{cred.deviceName}</span>
+                      <span className="text-green-500">•</span>
+                      <span className="text-gray-500">
+                        {language === 'ko' 
+                          ? `${new Date(cred.lastUsedAt).toLocaleDateString()}`
+                          : `${new Date(cred.lastUsedAt).toLocaleDateString()}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* 알림 설정 섹션 */}
         <div className="px-4 py-4 bg-gray-50">
