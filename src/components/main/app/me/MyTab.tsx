@@ -1411,81 +1411,25 @@ export default function MyTab() {
                         return hardcoded
                       }
                       
-                      // interest가 이미 번역 키 형태인 경우 처리
+                      // interest가 이미 번역 키 형태인 경우 처리 (profile.interests. 제거)
                       if (interest.startsWith('profile.interests.')) {
                         const cleanInterest = interest.replace('profile.interests.', '')
-                        const translated = t(`profile.interests.${cleanInterest}`)
-                        // 번역이 실패하면 원문 반환 대신 스페인어->한국어 매핑 시도
-                        if (translated === `profile.interests.${cleanInterest}`) {
-                          // 스페인어 키를 한국어로 매핑
-                          const spanishToKorean: Record<string, string> = {
-                            'Intercambio de idiomas': '언어교환',
-                            'Películas': '영화',
-                            'Música': '음악',
-                            'Comida': '음식',
-                            'Viajes': '여행',
-                            'Cultura Coreana': '한국문화',
-                            'Deportes': '스포츠',
-                            'Moda': '패션',
-                            'Juegos': '게임',
-                            'Tecnología': '기술',
-                            'Economía': '경제',
-                            'K-POP': 'K-POP',
-                            'Dramas': '드라마',
-                            'Restaurantes': '맛집',
-                            'Lectura': '독서',
-                            'Baile': '댄스',
-                            'Arte': '미술',
-                            'Naturaleza': '자연',
-                            'Mascotas': '반려동물',
-                            'Café': '커피',
-                            'Belleza': '뷰티',
-                            'Coreano': '한국어'
-                          }
-                          const koreanKey = spanishToKorean[cleanInterest]
-                          if (koreanKey) {
-                            return t(`profile.interests.${koreanKey}`) || cleanInterest
-                          }
+                        // 현지인(스페인어)이면 그냥 스페인어로 표시
+                        if (currentLang === 'es') {
+                          return cleanInterest
                         }
+                        // 한국어 사용자면 번역 시도
+                        const translated = t(`profile.interests.${cleanInterest}`)
                         return translated || cleanInterest
                       }
                       
-                      // 스페인어 값인 경우 한국어로 매핑
-                      const spanishToKorean: Record<string, string> = {
-                        'Intercambio de idiomas': '언어교환',
-                        'Películas': '영화',
-                        'Música': '음악',
-                        'Comida': '음식',
-                        'Viajes': '여행',
-                        'Cultura Coreana': '한국문화',
-                        'Deportes': '스포츠',
-                        'Moda': '패션',
-                        'Juegos': '게임',
-                        'Tecnología': '기술',
-                        'Economía': '경제',
-                        'K-POP': 'K-POP',
-                        'Dramas': '드라마',
-                        'Restaurantes': '맛집',
-                        'Lectura': '독서',
-                        'Baile': '댄스',
-                        'Arte': '미술',
-                        'Naturaleza': '자연',
-                        'Mascotas': '반려동물',
-                        'Café': '커피',
-                        'Belleza': '뷰티',
-                        'Coreano': '한국어'
+                      // 일반적인 경우: 그대로 번역 시도
+                      const translated = t(`profile.interests.${interest}`)
+                      // 번역이 실패하면 (키 그대로 반환되면) 원본 반환
+                      if (translated && !translated.startsWith('profile.interests.')) {
+                        return translated
                       }
-                      
-                      // 먼저 스페인어->한국어 매핑 시도
-                      const koreanKey = spanishToKorean[interest]
-                      if (koreanKey) {
-                        const translated = t(`profile.interests.${koreanKey}`)
-                        if (translated !== `profile.interests.${koreanKey}`) {
-                          return translated
-                        }
-                      }
-                      
-                      return t(`profile.interests.${interest}`) || t(`profile.${interest}`) || interest
+                      return interest
                     })()}
                     <button
                       onClick={() => handleRemoveInterest(interest)}
@@ -1708,84 +1652,25 @@ export default function MyTab() {
                           return hardcoded
                         }
                         
-                        // interest가 이미 번역 키 형태인 경우 처리
+                        // interest가 이미 번역 키 형태인 경우 처리 (profile.interests. 제거)
                         if (interest.startsWith('profile.interests.')) {
                           const cleanInterest = interest.replace('profile.interests.', '')
-                          const translated = t(`profile.interests.${cleanInterest}`)
-                          // 번역이 실패하면 원문 반환 대신 스페인어->한국어 매핑 시도
-                          if (translated === `profile.interests.${cleanInterest}`) {
-                            // 스페인어 키를 한국어로 매핑
-                            const spanishToKorean: Record<string, string> = {
-                              'Intercambio de idiomas': '언어교환',
-                              'Películas': '영화',
-                              'Música': '음악',
-                              'Comida': '음식',
-                              'Viajes': '여행',
-                              'Cultura Coreana': '한국문화',
-                              'Deportes': '스포츠',
-                              'Moda': '패션',
-                              'Juegos': '게임',
-                              'Tecnología': '기술',
-                              'Economía': '경제',
-                              'K-POP': 'K-POP',
-                              'Dramas': '드라마',
-                              'Restaurantes': '맛집',
-                              'Lectura': '독서',
-                              'Baile': '댄스',
-                              'Arte': '미술',
-                              'Naturaleza': '자연',
-                              'Mascotas': '반려동물',
-                              'Café': '커피',
-                              'Belleza': '뷰티',
-                              'Coreano': '한국어'
-                            }
-                            const koreanKey = spanishToKorean[cleanInterest]
-                            if (koreanKey) {
-                              return t(`profile.interests.${koreanKey}`) || cleanInterest
-                            }
+                          // 현지인(스페인어)이면 그냥 스페인어로 표시
+                          if (currentLang === 'es') {
+                            return cleanInterest
                           }
-                          console.log('Clean interest:', cleanInterest, 'Translation:', translated)
+                          // 한국어 사용자면 번역 시도
+                          const translated = t(`profile.interests.${cleanInterest}`)
                           return translated || cleanInterest
                         }
                         
-                        // 스페인어 값인 경우 한국어로 매핑
-                        const spanishToKorean: Record<string, string> = {
-                          'Intercambio de idiomas': '언어교환',
-                          'Películas': '영화',
-                          'Música': '음악',
-                          'Comida': '음식',
-                          'Viajes': '여행',
-                          'Cultura Coreana': '한국문화',
-                          'Deportes': '스포츠',
-                          'Moda': '패션',
-                          'Juegos': '게임',
-                          'Tecnología': '기술',
-                          'Economía': '경제',
-                          'K-POP': 'K-POP',
-                          'Dramas': '드라마',
-                          'Restaurantes': '맛집',
-                          'Lectura': '독서',
-                          'Baile': '댄스',
-                          'Arte': '미술',
-                          'Naturaleza': '자연',
-                          'Mascotas': '반려동물',
-                          'Café': '커피',
-                          'Belleza': '뷰티',
-                          'Coreano': '한국어'
+                        // 일반적인 경우: 그대로 번역 시도
+                        const translated = t(`profile.interests.${interest}`)
+                        // 번역이 실패하면 (키 그대로 반환되면) 원본 반환
+                        if (translated && !translated.startsWith('profile.interests.')) {
+                          return translated
                         }
-                        
-                        // 먼저 스페인어->한국어 매핑 시도
-                        const koreanKey = spanishToKorean[interest]
-                        if (koreanKey) {
-                          const translated = t(`profile.interests.${koreanKey}`)
-                          if (translated !== `profile.interests.${koreanKey}`) {
-                            return translated
-                          }
-                        }
-                        
-                        const translated = t(`profile.interests.${interest}`) || t(`profile.${interest}`) || interest
-                        console.log('Regular interest:', interest, 'Translation:', translated)
-                        return translated
+                        return interest
                       })()}
                     </span>
                   )
