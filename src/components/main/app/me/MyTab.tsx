@@ -722,12 +722,29 @@ export default function MyTab() {
       setBiometricSupported(support.isSupported)
       
       if (support.isSupported && user?.id) {
-        // 등록된 지문 확인
-        const status = await getBiometricAuthStatus(user.id)
-        if (status.success && status.data) {
-          setBiometricEnabled(status.data.hasCredentials)
-          setBiometricCredentials(status.data.credentials)
+        try {
+          // 등록된 지문 확인
+          const status = await getBiometricAuthStatus(user.id)
+          console.log('[BIOMETRIC] 상태 확인 결과:', status)
+          
+          if (status.success && status.data) {
+            const hasCredentials = status.data.hasCredentials && status.data.credentials.length > 0
+            setBiometricEnabled(hasCredentials)
+            setBiometricCredentials(status.data.credentials || [])
+          } else {
+            // 에러가 있거나 데이터가 없으면 false로 설정
+            setBiometricEnabled(false)
+            setBiometricCredentials([])
+          }
+        } catch (error) {
+          console.error('[BIOMETRIC] 상태 확인 실패:', error)
+          setBiometricEnabled(false)
+          setBiometricCredentials([])
         }
+      } else {
+        // 지원하지 않거나 사용자가 없으면 false
+        setBiometricEnabled(false)
+        setBiometricCredentials([])
       }
     }
     
@@ -736,7 +753,10 @@ export default function MyTab() {
 
   // 지문 등록 핸들러
   const handleEnableBiometric = async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      alert(language === 'ko' ? '로그인이 필요합니다.' : 'Se requiere inicio de sesión.')
+      return
+    }
     
     try {
       const result = await startBiometricRegistration(
@@ -747,32 +767,52 @@ export default function MyTab() {
       
       if (result.success) {
         alert(language === 'ko' ? '지문 인증이 등록되었습니다!' : '¡Autenticación de huella registrada!')
-        setBiometricEnabled(true)
+        
         // 상태 재확인
         const status = await getBiometricAuthStatus(user.id)
         if (status.success && status.data) {
-          setBiometricCredentials(status.data.credentials)
+          setBiometricEnabled(status.data.hasCredentials && status.data.credentials.length > 0)
+          setBiometricCredentials(status.data.credentials || [])
         }
       } else {
         throw new Error(result.error)
       }
     } catch (error) {
       console.error('지문 등록 실패:', error)
-      alert(language === 'ko' 
-        ? '지문 등록에 실패했습니다. 다시 시도해주세요.'
-        : 'Error al registrar huella. Inténtelo de nuevo.')
+      
+      // 에러 타입에 따라 다른 메시지
+      const errorMsg = error instanceof Error ? error.message : ''
+      
+      if (errorMsg.includes('abort') || errorMsg.includes('cancel')) {
+        // 사용자가 취소한 경우
+        console.log('사용자가 지문 등록을 취소함')
+      } else {
+        alert(language === 'ko' 
+          ? '지문 등록에 실패했습니다. 기기가 지문 인증을 지원하는지 확인해주세요.'
+          : 'Error al registrar huella. Verifique que su dispositivo soporte autenticación biométrica.')
+      }
+      
+      // 토글을 다시 꺼진 상태로
+      setBiometricEnabled(false)
     }
   }
 
   // 지문 해제 핸들러
   const handleDisableBiometric = async () => {
-    if (!user?.id || biometricCredentials.length === 0) return
+    if (!user?.id || biometricCredentials.length === 0) {
+      setBiometricEnabled(false)
+      return
+    }
     
     const confirmMsg = language === 'ko'
       ? '지문 인증을 해제하시겠습니까?'
       : '¿Desactivar autenticación de huella?'
       
-    if (!confirm(confirmMsg)) return
+    if (!confirm(confirmMsg)) {
+      // 취소하면 토글을 다시 켜진 상태로
+      setBiometricEnabled(true)
+      return
+    }
     
     try {
       // 모든 등록된 인증기 삭제
@@ -788,6 +828,8 @@ export default function MyTab() {
       alert(language === 'ko' 
         ? '지문 해제에 실패했습니다.'
         : 'Error al desactivar huella.')
+      // 실패하면 토글을 다시 켜진 상태로
+      setBiometricEnabled(true)
     }
   }
 
