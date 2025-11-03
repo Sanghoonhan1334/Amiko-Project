@@ -1700,7 +1700,7 @@ export default function MyTab() {
                   <Input
                     value={editForm.korean_name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, korean_name: e.target.value }))}
-                    placeholder={t('profile.koreanName') + '을 입력하세요'}
+                    placeholder={language === 'ko' ? '한국이름을 입력하세요' : 'Ingrese su nombre coreano'}
                     className="text-sm"
                   />
               </div>
@@ -2173,10 +2173,17 @@ export default function MyTab() {
               {/* 접근 조건을 만족하지 못하는 경우 안내 배너 */}
               {!showPartnerSection && (
                 <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-                  라틴아메리카에 거주하는 한국이시면 국적 인증이 필요합니다.
+                  <div className="space-y-1">
+                    <p className="font-medium">라틴아메리카에 거주하는 한국이시면 국적 인증이 필요합니다.</p>
+                    <p className="font-medium">Si eres coreano residente en Latinoamérica, necesitas verificar tu nacionalidad.</p>
+                  </div>
                   <div className="mt-2 flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>전화번호 수정</Button>
-                    <Button size="sm" onClick={() => router.push('/verification')}>국적 인증하기</Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+                      {language === 'ko' ? '전화번호 수정' : 'Editar número'}
+                    </Button>
+                    <Button size="sm" onClick={() => router.push('/verification')}>
+                      {language === 'ko' ? '국적 인증하기' : 'Verificar nacionalidad'}
+                    </Button>
                   </div>
                 </div>
               )}
