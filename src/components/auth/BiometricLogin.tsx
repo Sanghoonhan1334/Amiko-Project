@@ -14,7 +14,7 @@ interface BiometricLoginProps {
 }
 
 export default function BiometricLogin({ userId, onSuccess, onError }: BiometricLoginProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
   const [hasCredentials, setHasCredentials] = useState(false)
@@ -57,11 +57,13 @@ export default function BiometricLogin({ userId, onSuccess, onError }: Biometric
           credentialId: result.data?.id
         })
       } else {
-        onError(result.error || '지문 인증에 실패했습니다.')
+        const errorMsg = language === 'ko' ? '지문 인증에 실패했습니다.' : 'Error en la autenticación de huella digital.'
+        onError(result.error || errorMsg)
       }
     } catch (error) {
       console.error('지문 인증 로그인 실패:', error)
-      onError('지문 인증 중 오류가 발생했습니다.')
+      const errorMsg = language === 'ko' ? '지문 인증 중 오류가 발생했습니다.' : 'Error durante la autenticación de huella digital.'
+      onError(errorMsg)
     } finally {
       setIsLoading(false)
     }
@@ -120,13 +122,19 @@ export default function BiometricLogin({ userId, onSuccess, onError }: Biometric
         {/* 등록된 인증기 목록 */}
         {credentials.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-green-800">등록된 인증기:</h4>
+            <h4 className="text-sm font-medium text-green-800">
+              {language === 'ko' ? '등록된 인증기:' : 'Autenticadores registrados:'}
+            </h4>
             {credentials.map((cred, index) => (
               <div key={index} className="flex items-center gap-2 text-sm text-green-700">
                 <Smartphone className="w-4 h-4" />
                 <span>{cred.deviceName}</span>
                 <span className="text-green-500">•</span>
-                <span>마지막 사용: {new Date(cred.lastUsedAt).toLocaleDateString()}</span>
+                <span>
+                  {language === 'ko' 
+                    ? `마지막 사용: ${new Date(cred.lastUsedAt).toLocaleDateString()}` 
+                    : `Último uso: ${new Date(cred.lastUsedAt).toLocaleDateString()}`}
+                </span>
               </div>
             ))}
           </div>
@@ -158,8 +166,14 @@ export default function BiometricLogin({ userId, onSuccess, onError }: Biometric
               <span className="text-green-600 text-xs">🔒</span>
             </div>
             <div className="text-sm text-green-800">
-              <p className="font-medium mb-1">보안 안내</p>
-              <p>지문 정보는 디바이스에만 저장되며 서버로 전송되지 않습니다.</p>
+              <p className="font-medium mb-1">
+                {language === 'ko' ? '보안 안내' : 'Aviso de seguridad'}
+              </p>
+              <p>
+                {language === 'ko' 
+                  ? '지문 정보는 디바이스에만 저장되며 서버로 전송되지 않습니다.'
+                  : 'La información de huella digital se almacena solo en el dispositivo y no se transmite al servidor.'}
+              </p>
             </div>
           </div>
         </div>
