@@ -98,7 +98,7 @@ export async function startBiometricAuthentication(
     if (!result.success) {
       return {
         success: false,
-        error: result.error || '인증 옵션 생성에 실패했습니다.'
+        error: result.error_ko || result.error_es || result.error || '인증 옵션 생성에 실패했습니다.'
       }
     }
 
