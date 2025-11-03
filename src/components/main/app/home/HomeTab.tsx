@@ -597,7 +597,13 @@ export default function HomeTab() {
     try {
       const videos = await getAmikoRecentVideos(6)
       setYoutubeVideos(videos)
+      
+      // API 키가 없어서 빈 배열이 반환된 경우 경고
+      if (videos.length === 0 && !process.env.NEXT_PUBLIC_YOUTUBE_API_KEY) {
+        console.error('⚠️ YouTube API 키가 설정되지 않았습니다. Vercel 환경변수를 확인하세요.')
+      }
     } catch (error) {
+      console.error('YouTube 비디오 로딩 실패:', error)
       setYoutubeVideos([])
     }
   }
