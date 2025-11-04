@@ -108,25 +108,25 @@ export default function IdolPositionCoverPage() {
         />
         
         {/* 뒤로가기 버튼 */}
-        <div className="absolute top-8 left-4 z-10">
+        <div className="absolute top-8 left-4 z-30">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBack}
-            className="p-2 bg-white/20 hover:bg-white/30 rounded-full backdrop-blur-sm"
+            className="p-2 bg-black/40 hover:bg-black/60 rounded-full backdrop-blur-sm"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-6 h-6 text-white" />
           </Button>
         </div>
-        
-                    {/* 이미지 전체를 클릭 가능하게 만들기 */}
-                    <div 
-                      className="absolute inset-0 cursor-pointer"
-                      style={{
-                        zIndex: 20,
-                        pointerEvents: 'auto'
-                      }}
-                      onClick={(e) => {
+
+        {/* 이미지 전체를 클릭 가능하게 만들기 */}
+        <div 
+          className="absolute inset-0 cursor-pointer"
+          style={{
+            zIndex: 10,
+            pointerEvents: 'auto'
+          }}
+          onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
                         handleStart()
