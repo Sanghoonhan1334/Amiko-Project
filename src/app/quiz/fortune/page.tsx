@@ -38,11 +38,14 @@ export default function FortuneTestPage() {
   const [funCount, setFunCount] = useState(0)
   const [accurateCount, setAccurateCount] = useState(0)
 
+  // 운세 테스트 고정 ID
+  const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+
   // 운세 테스트 데이터 설정
   useEffect(() => {
     // 하드코딩된 운세 테스트 데이터
     const fortuneTestData: QuizData = {
-      id: 'fortune-test-' + Date.now(),
+      id: FORTUNE_QUIZ_ID,
       title: 'Test de Fortuna Personalizada',
       description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
       thumbnail_url: '/quizzes/fortune/cover/cover.png',
@@ -55,6 +58,51 @@ export default function FortuneTestPage() {
     setQuizData(fortuneTestData)
     setLoading(false)
   }, [])
+
+  // 상호작용 데이터 로드
+  useEffect(() => {
+    const loadInteractionData = async () => {
+      if (!user) return
+      
+      try {
+        const supabase = createSupabaseBrowserClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session?.access_token) return
+
+        // 즐겨찾기 상태 로드
+        const favResponse = await fetch(`/api/favorites?quizId=${FORTUNE_QUIZ_ID}`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+        
+        if (favResponse.ok) {
+          const favData = await favResponse.json()
+          setIsSaved(favData.isFavorited)
+        }
+
+        // 피드백 상태 로드
+        const feedbackResponse = await fetch(`/api/quiz/${FORTUNE_QUIZ_ID}/feedback`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+        
+        if (feedbackResponse.ok) {
+          const feedbackData = await feedbackResponse.json()
+          setIsFun(feedbackData.isFun)
+          setIsAccurate(feedbackData.isAccurate)
+          setFunCount(feedbackData.funCount)
+          setAccurateCount(feedbackData.accurateCount)
+        }
+      } catch (error) {
+        console.error('Error al cargar datos de interacción:', error)
+      }
+    }
+    
+    loadInteractionData()
+  }, [user])
 
   const handleBack = () => {
     router.push('/community/tests')
@@ -74,18 +122,29 @@ export default function FortuneTestPage() {
     }
     
     try {
-      const savedQuizzes = JSON.parse(localStorage.getItem('saved_quizzes') || '[]')
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
       
-      if (isSaved) {
-        // 저장 취소
-        const updatedQuizzes = savedQuizzes.filter((id: string) => id !== quizData?.id)
-        localStorage.setItem('saved_quizzes', JSON.stringify(updatedQuizzes))
-        setIsSaved(false)
-      } else {
-        // 저장
-        savedQuizzes.push(quizData?.id)
-        localStorage.setItem('saved_quizzes', JSON.stringify(savedQuizzes))
-        setIsSaved(true)
+      if (!session?.access_token) {
+        alert('Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isSaved ? 'remove' : 'add'
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          quizId: FORTUNE_QUIZ_ID,
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        setIsSaved(!isSaved)
       }
     } catch (error) {
       console.error('Error al guardar:', error)
@@ -99,12 +158,32 @@ export default function FortuneTestPage() {
     }
     
     try {
-      if (isFun) {
-        setIsFun(false)
-        setFunCount(prev => Math.max(0, prev - 1))
-      } else {
-        setIsFun(true)
-        setFunCount(prev => prev + 1)
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert('Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isFun ? 'remove' : 'add'
+      
+      const response = await fetch(`/api/quiz/${FORTUNE_QUIZ_ID}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          type: 'fun',
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setIsFun(!isFun)
+        setFunCount(data.count)
       }
     } catch (error) {
       console.error('Error al marcar como divertido:', error)
@@ -118,12 +197,32 @@ export default function FortuneTestPage() {
     }
     
     try {
-      if (isAccurate) {
-        setIsAccurate(false)
-        setAccurateCount(prev => Math.max(0, prev - 1))
-      } else {
-        setIsAccurate(true)
-        setAccurateCount(prev => prev + 1)
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert('Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isAccurate ? 'remove' : 'add'
+      
+      const response = await fetch(`/api/quiz/${FORTUNE_QUIZ_ID}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          type: 'accurate',
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setIsAccurate(!isAccurate)
+        setAccurateCount(data.count)
       }
     } catch (error) {
       console.error('Error al marcar como preciso:', error)
