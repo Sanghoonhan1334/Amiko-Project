@@ -147,7 +147,7 @@ export default function VerificationPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-gray-600 dark:border-gray-400 animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">운영자 상태 확인 중...</p>
+          <p className="text-slate-600">{t('phoneVerification.adminCheckStatus')}</p>
         </div>
       </div>
     )
