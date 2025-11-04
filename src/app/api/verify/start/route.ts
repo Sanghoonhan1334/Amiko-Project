@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendVerificationEmail } from '@/lib/emailService'
+import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 
 // OTP 전송 시작 API
 export async function POST(request: NextRequest) {
@@ -84,14 +85,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 이메일인 경우 실제 이메일 발송
+    // 채널별 실제 발송
     if (channel === 'email') {
+      // 이메일 발송
       const emailSent = await sendVerificationEmail(target, verificationCode)
       
       if (!emailSent) {
         console.error('이메일 발송 실패')
         return NextResponse.json(
           { ok: false, error: 'EMAIL_SEND_FAILED' },
+          { status: 500 }
+        )
+      }
+    } else if (channel === 'sms') {
+      // SMS 발송
+      const language = target.startsWith('+82') ? 'ko' : 'es'
+      const smsSent = await sendVerificationSMS(target, verificationCode, language)
+      
+      if (!smsSent) {
+        console.error('SMS 발송 실패')
+        return NextResponse.json(
+          { ok: false, error: 'SMS_SEND_FAILED' },
+          { status: 500 }
+        )
+      }
+    } else if (channel === 'wa') {
+      // WhatsApp 발송
+      const language = target.startsWith('+82') ? 'ko' : 'es'
+      const waSent = await sendVerificationWhatsApp(target, verificationCode, language)
+      
+      if (!waSent) {
+        console.error('WhatsApp 발송 실패')
+        return NextResponse.json(
+          { ok: false, error: 'WHATSAPP_SEND_FAILED' },
           { status: 500 }
         )
       }
