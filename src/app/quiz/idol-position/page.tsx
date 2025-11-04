@@ -298,7 +298,7 @@ export default function IdolPositionTestPage() {
         : window.location.origin     // 프로덕션/스테이징에서는 현재 도메인
       
       const shareUrl = `${baseUrl}/quiz/idol-position`
-      const shareText = `${quizData?.title || 'Test de Posición de Idol'}\n\n${quizData?.description || 'Descubre qué posición de idol te quedaría mejor'}\n\n${shareUrl}`
+      const shareText = `${quizData?.description || quizData?.title || 'Descubre qué posición de idol te quedaría mejor en un grupo de K-pop'}\n\n${shareUrl}`
       
       if (navigator.share) {
         await navigator.share({
@@ -318,7 +318,7 @@ export default function IdolPositionTestPage() {
         const isLocalhost = window.location.hostname === 'localhost'
         const baseUrl = isLocalhost ? 'https://helloamiko.com' : window.location.origin
         const shareUrl = `${baseUrl}/quiz/idol-position`
-        const shareText = `${quizData?.title}\n\n${shareUrl}`
+        const shareText = `${quizData?.description || quizData?.title}\n\n${shareUrl}`
         await navigator.clipboard.writeText(shareText)
         alert('¡Enlace copiado!')
       } catch (clipboardError) {
