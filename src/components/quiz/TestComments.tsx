@@ -34,6 +34,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
   const [userNickname, setUserNickname] = useState<string | null>(null)
+  const [userNicknames, setUserNicknames] = useState<Record<string, string>>({})
   
   // 사용자 닉네임 조회 (DB에서)
   useEffect(() => {
@@ -61,6 +62,40 @@ export default function TestComments({ testId }: TestCommentsProps) {
     return userNickname || user.user_metadata?.nickname || user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario'
   }
 
+  // 사용자 닉네임 조회 (여러 사용자)
+  const fetchUserNicknames = async (userIds: string[]) => {
+    try {
+      const uniqueUserIds = [...new Set(userIds)]
+      const newNicknames: Record<string, string> = {}
+      
+      for (const userId of uniqueUserIds) {
+        // 이미 캐싱된 닉네임이 있으면 스킵
+        if (userNicknames[userId]) {
+          newNicknames[userId] = userNicknames[userId]
+          continue
+        }
+        
+        try {
+          const response = await fetch(`/api/users/${userId}`)
+          if (response.ok) {
+            const data = await response.json()
+            const nickname = data.user?.nickname || data.user?.display_name || data.user?.full_name || userId
+            newNicknames[userId] = nickname
+          } else {
+            newNicknames[userId] = userId
+          }
+        } catch (error) {
+          console.error(`Error fetching nickname for user ${userId}:`, error)
+          newNicknames[userId] = userId
+        }
+      }
+      
+      setUserNicknames(prev => ({ ...prev, ...newNicknames }))
+    } catch (error) {
+      console.error('Error fetching user nicknames:', error)
+    }
+  }
+
   // 댓글 조회 (로컬 스토리지 기반)
   const fetchComments = async () => {
     try {
@@ -71,6 +106,22 @@ export default function TestComments({ testId }: TestCommentsProps) {
       if (storedComments) {
         const parsedComments = JSON.parse(storedComments)
         setComments(parsedComments)
+        
+        // 모든 사용자 ID 수집
+        const userIds: string[] = []
+        parsedComments.forEach((comment: Comment) => {
+          userIds.push(comment.user_id)
+          if (comment.replies) {
+            comment.replies.forEach((reply: Comment) => {
+              userIds.push(reply.user_id)
+            })
+          }
+        })
+        
+        // 닉네임 조회
+        if (userIds.length > 0) {
+          await fetchUserNicknames(userIds)
+        }
       } else {
         setComments([])
       }
@@ -142,6 +193,12 @@ export default function TestComments({ testId }: TestCommentsProps) {
       // 상태 업데이트
       setComments(updatedComments)
       setNewComment('')
+      
+      // 닉네임 캐시 업데이트
+      setUserNicknames(prev => ({
+        ...prev,
+        [user.id]: displayName
+      }))
     } catch (error) {
       console.error('Error submitting comment:', error)
     } finally {
@@ -214,6 +271,12 @@ export default function TestComments({ testId }: TestCommentsProps) {
       setComments(updatedComments)
       setReplyText('')
       setReplyingTo(null)
+      
+      // 닉네임 캐시 업데이트
+      setUserNicknames(prev => ({
+        ...prev,
+        [user.id]: displayName
+      }))
     } catch (error) {
       console.error('Error submitting reply:', error)
     }
@@ -485,7 +548,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-gray-900 text-sm md:text-base">
-                        {comment.user_name}
+                        {userNicknames[comment.user_id] || comment.user_name}
                         <UserBadge totalPoints={0} isVip={false} small />
                       </span>
                       <span className="text-xs md:text-sm text-gray-500">
@@ -590,7 +653,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-medium text-gray-900 text-xs">
-                                  {reply.user_name}
+                                  {userNicknames[reply.user_id] || reply.user_name}
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   {formatTime(reply.created_at)}
