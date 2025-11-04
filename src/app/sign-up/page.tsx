@@ -335,7 +335,7 @@ export default function SignUpPage() {
       
       if (!response.ok) throw new Error(result.error)
 
-      setAuthData(prev => ({ ...prev, phoneNumber: formData.phone }))
+      setAuthData(prev => ({ ...prev, phoneNumber: formData.phone, nationality: formData.country }))
       console.log(`✅ ${method} 인증코드 발송 성공:`, result)
       return result
     } catch (error) {
