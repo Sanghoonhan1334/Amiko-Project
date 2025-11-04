@@ -163,12 +163,14 @@ export async function POST(request: NextRequest) {
     } else if (type === 'sms' && phoneNumber) {
       // 언어 설정 (국가 코드 기반)
       const language = nationality === 'KR' ? 'ko' : 'es'
-      sendResult = await sendVerificationSMS(phoneNumber, verificationCode, language, nationality)
+      // 정규화된 번호 사용
+      sendResult = await sendVerificationSMS(normalizedPhoneNumber, verificationCode, language, nationality)
       sendMethod = 'SMS'
     } else if (type === 'whatsapp' && phoneNumber) {
       // 언어 설정 (국가 코드 기반)
       const language = nationality === 'KR' ? 'ko' : 'es'
-      sendResult = await sendVerificationWhatsApp(phoneNumber, verificationCode, language)
+      // 정규화된 번호 사용
+      sendResult = await sendVerificationWhatsApp(normalizedPhoneNumber, verificationCode, language)
       sendMethod = 'WhatsApp'
     } else {
       return NextResponse.json(
@@ -193,6 +195,7 @@ export async function POST(request: NextRequest) {
           verificationCode: verificationCode,
           email: email,
           phoneNumber: phoneNumber,
+          normalizedPhoneNumber: normalizedPhoneNumber,
           type: type,
           nationality: nationality
         }
@@ -224,6 +227,7 @@ export async function POST(request: NextRequest) {
             verificationCode: verificationCode,
             email: email,
             phoneNumber: phoneNumber,
+            normalizedPhoneNumber: normalizedPhoneNumber,
             type: type,
             nationality: nationality,
             warning: '실제 발송은 실패했지만 개발 환경이므로 성공 처리'
