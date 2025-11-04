@@ -546,9 +546,9 @@ export const translations = {
             title: '주제별 게시판',
             description: '다양한 주제를 자유롭게 소통해보세요.'
           },
-          koreanNews: {
-            title: 'K-매거진',
-            description: '한국의 최신 소식과 트렌드를 확인해보세요.'
+          kCulture: {
+            title: 'K-컬쳐 존',
+            description: '한국의 최신 소식과 K-컬쳐 콘텐츠를 확인해보세요.'
           },
           koreanTest: {
             title: '한국성향테스트',
@@ -1378,7 +1378,7 @@ export const translations = {
       lastUpdated: '최종 수정일',
       lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'info@amiko.com',
+      supportEmail: 'info@helloamiko.com',
       sections: {
         purpose: {
           title: '1. 개인정보의 처리 목적',
@@ -1422,7 +1422,7 @@ export const translations = {
           content: '개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.',
           items: [
             '개인정보 보호책임자: privacy@amiko.com',
-            '고객지원: info@amiko.com',
+            '고객지원: info@helloamiko.com',
             '운영시간: 월-금 09:00-18:00 (KST)'
           ]
         }
@@ -1435,7 +1435,7 @@ export const translations = {
       lastUpdated: '최종 수정일',
       lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'legal@amiko.com',
-      supportEmail: 'info@amiko.com',
+      supportEmail: 'info@helloamiko.com',
       sections: {
         introduction: {
           title: '1. 서비스 소개',
@@ -1509,7 +1509,7 @@ export const translations = {
       lastUpdated: '최종 수정일',
       lastUpdatedDate: '2025년 1월 19일',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'info@amiko.com',
+      supportEmail: 'info@helloamiko.com',
       sections: {
         definition: {
           title: '1. 쿠키의 정의',
@@ -1655,7 +1655,9 @@ export const translations = {
         medium: '보통',
         high: '높음',
         urgent: '긴급'
-      }
+      },
+      orContactWhatsApp: '또는 WhatsApp으로 문의하세요',
+      contactWhatsApp: 'WhatsApp으로 문의하기'
     },
 
     // 제휴 문의 페이지
@@ -1702,6 +1704,8 @@ export const translations = {
       submitSuccess: '제휴 문의가 성공적으로 제출되었습니다. 검토 후 연락드리겠습니다.',
       submitError: '제휴 문의 전송 중 오류가 발생했습니다',
       networkError: '네트워크 오류가 발생했습니다',
+      orContactWhatsApp: '또는 WhatsApp으로 문의하세요',
+      contactWhatsApp: 'WhatsApp으로 문의하기',
       benefits: {
         brandExpansion: {
           title: '브랜드 확장',
@@ -2272,8 +2276,14 @@ export const translations = {
       general: '일반인',
       generalDescription: '직장인 또는 기타',
       nationality: '국적',
+      selectUserType: '사용자 타입 선택',
+      selectUserTypeDesc: '해당하는 사용자 타입을 선택해주세요.',
+      selectUserTypeRequired: '사용자 타입 선택 필요',
       korean: '한국인',
       koreanDescription: '한국 국적을 가진 사용자',
+      koreanDesc: '한국어가 모국어인 사용자',
+      local: '현지인',
+      localDesc: '스페인어권 국가 사용자',
       nonKorean: '외국인',
       nonKoreanDescription: '한국 외 국적을 가진 사용자',
       profilePhoto: '프로필 사진',
@@ -2645,7 +2655,7 @@ export const translations = {
           title: '연락처 정보',
           email: {
             title: '이메일',
-            content: 'info@amiko.com'
+            content: 'info@helloamiko.com'
           },
           hours: {
             title: '운영 시간',
@@ -3230,15 +3240,15 @@ export const translations = {
         description: 'Amiko es un puente que conecta el otro lado del mundo. Acércate más a las culturas mutuas a través de la comunidad.',
         cards: {
           topicBoard: {
-            title: 'Foro por Temas',
+            title: 'Tableros de temas',
             description: 'Comunícate libremente sobre diversos temas.'
           },
-          koreanNews: {
-            title: 'K-Magazine',
+          kCulture: {
+            title: 'Zona de K-Cultura',
             description: 'Consulta las últimas noticias y tendencias de Corea.'
           },
           koreanTest: {
-            title: 'Test de Personalidad Coreana',
+            title: 'Test Psicológico',
             description: 'Descubre tu suerte del día y tu personalidad de manera divertida'
           },
           story: {
@@ -4107,7 +4117,7 @@ export const translations = {
     privacy: {
       lastUpdated: 'Última actualización',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'info@amiko.com',
+      supportEmail: 'info@helloamiko.com',
       title: 'Política de Privacidad',
       lastUpdatedDate: '19 de enero de 2025',
       sections: {
@@ -4157,7 +4167,7 @@ export const translations = {
           content: 'Para consultas sobre información personal, contacte:',
           items: [
             'Correo electrónico: privacy@amiko.com',
-            'Soporte al cliente: info@amiko.com',
+            'Soporte al cliente: info@helloamiko.com',
             'Horario de atención: Lunes a Viernes, 9:00 - 18:00 (KST)'
           ]
         }
@@ -4168,7 +4178,7 @@ export const translations = {
     terms: {
       lastUpdated: 'Última actualización',
       contactEmail: 'legal@amiko.com',
-      supportEmail: 'info@amiko.com',
+      supportEmail: 'info@helloamiko.com',
       title: 'Términos de Servicio',
       lastUpdatedDate: '19 de enero de 2025',
       sections: {
@@ -4234,7 +4244,7 @@ export const translations = {
     cookies: {
       lastUpdated: 'Última actualización',
       contactEmail: 'privacy@amiko.com',
-      supportEmail: 'info@amiko.com',
+      supportEmail: 'info@helloamiko.com',
       title: 'Política de Cookies',
       lastUpdatedDate: '19 de enero de 2025',
       sections: {
@@ -4476,7 +4486,9 @@ export const translations = {
         medium: 'Media',
         high: 'Alta',
         urgent: 'Urgente'
-      }
+      },
+      orContactWhatsApp: 'O contáctanos por WhatsApp',
+      contactWhatsApp: 'Consultar por WhatsApp'
     },
 
     // 제휴 문의 페이지
@@ -4523,6 +4535,8 @@ export const translations = {
       submitSuccess: 'La consulta de asociación se ha enviado exitosamente. Te contactaremos después de revisar.',
       submitError: 'Ocurrió un error al enviar la consulta de asociación',
       networkError: 'Ocurrió un error de red',
+      orContactWhatsApp: 'O contáctanos por WhatsApp',
+      contactWhatsApp: 'Consultar por WhatsApp',
       benefits: {
         brandExpansion: {
           title: 'Expansión de Marca',
@@ -4979,8 +4993,14 @@ export const translations = {
       general: 'General',
       generalDescription: 'Empleado u otros',
       nationality: 'Nacionalidad',
+      selectUserType: 'Seleccionar tipo de usuario',
+      selectUserTypeDesc: 'Por favor, selecciona tu tipo de usuario.',
+      selectUserTypeRequired: 'Selección de tipo de usuario requerida',
       korean: 'Coreano',
       koreanDescription: 'Usuario con nacionalidad coreana',
+      koreanDesc: 'Hablante nativo de coreano',
+      local: 'Local',
+      localDesc: 'Usuario de país hispanohablante',
       nonKorean: 'Extranjero',
       nonKoreanDescription: 'Usuario con nacionalidad no coreana',
       profilePhoto: 'Foto de Perfil',
@@ -5262,7 +5282,7 @@ export const translations = {
           title: 'Información de Contacto',
           email: {
             title: 'Correo Electrónico',
-            content: 'info@amiko.com'
+            content: 'info@helloamiko.com'
           },
           hours: {
             title: 'Horario de Atención',

@@ -517,10 +517,10 @@ export default function VerificationCenterPage() {
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 space-y-4">
                     <div className="flex items-center gap-2 text-yellow-800">
                       <AlertCircle className="w-5 h-5" />
-                      <h3 className="font-semibold">사용자 타입 선택</h3>
+                      <h3 className="font-semibold">{t('verification.selectUserType') || 'Seleccionar tipo de usuario'}</h3>
                     </div>
                     <p className="text-sm text-yellow-700">
-                      해당하는 사용자 타입을 선택해주세요.
+                      {t('verification.selectUserTypeDesc') || 'Por favor, selecciona tu tipo de usuario.'}
                     </p>
                     <div className="grid grid-cols-2 gap-4">
                       <button
@@ -537,10 +537,10 @@ export default function VerificationCenterPage() {
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-2xl">🇰🇷</span>
-                          <span className="font-semibold">한국인</span>
+                          <span className="font-semibold">{t('verification.korean') || 'Coreano'}</span>
                         </div>
                         <p className="text-xs text-gray-600">
-                          한국어가 모국어인 사용자
+                          {t('verification.koreanDesc') || 'Hablante nativo de coreano'}
                         </p>
                       </button>
                       <button
@@ -557,10 +557,10 @@ export default function VerificationCenterPage() {
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-2xl">🌎</span>
-                          <span className="font-semibold">현지인</span>
+                          <span className="font-semibold">{t('verification.local') || 'Local'}</span>
                         </div>
                         <p className="text-xs text-gray-600">
-                          스페인어권 국가 사용자
+                          {t('verification.localDesc') || 'Usuario de país hispanohablante'}
                         </p>
                       </button>
                     </div>
@@ -957,7 +957,7 @@ export default function VerificationCenterPage() {
               }
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isKorean === null ? '사용자 타입 선택 필요' : (isKorean ? '다음 →' : 'Siguiente →')}
+              {isKorean === null ? (t('verification.selectUserTypeRequired') || 'Seleccionar tipo de usuario requerido') : (isKorean ? '다음 →' : 'Siguiente →')}
             </Button>
           )}
         </div>
