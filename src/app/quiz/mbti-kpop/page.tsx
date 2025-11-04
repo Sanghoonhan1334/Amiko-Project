@@ -64,6 +64,51 @@ export default function MbtiKpopTestPage() {
     fetchQuizData()
   }, [])
 
+  // 상호작용 데이터 로드
+  useEffect(() => {
+    const loadInteractionData = async () => {
+      if (!user || !quizData) return
+      
+      try {
+        const supabase = createSupabaseBrowserClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session?.access_token) return
+
+        // 즐겨찾기 상태 로드
+        const favResponse = await fetch(`/api/favorites?quizId=${quizData.id}`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+        
+        if (favResponse.ok) {
+          const favData = await favResponse.json()
+          setIsSaved(favData.isFavorited)
+        }
+
+        // 피드백 상태 로드
+        const feedbackResponse = await fetch(`/api/quiz/${quizData.id}/feedback`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+        
+        if (feedbackResponse.ok) {
+          const feedbackData = await feedbackResponse.json()
+          setIsFun(feedbackData.isFun)
+          setIsAccurate(feedbackData.isAccurate)
+          setFunCount(feedbackData.funCount)
+          setAccurateCount(feedbackData.accurateCount)
+        }
+      } catch (error) {
+        console.error('Error al cargar datos de interacción:', error)
+      }
+    }
+
+    loadInteractionData()
+  }, [user, quizData])
+
   const handleBack = () => {
     router.push('/community/tests')
   }
@@ -81,22 +126,31 @@ export default function MbtiKpopTestPage() {
       return
     }
     
+    if (!quizData) return
+    
     try {
-      const savedQuizzes = JSON.parse(localStorage.getItem('saved_quizzes') || '[]')
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
       
-      if (isSaved) {
-        // 저장 취소
-        const updatedQuizzes = savedQuizzes.filter((id: string) => id !== quizData?.id)
-        localStorage.setItem('saved_quizzes', JSON.stringify(updatedQuizzes))
-        setIsSaved(false)
-      } else {
-        // 저장
-        savedQuizzes.push(quizData?.id)
-        localStorage.setItem('saved_quizzes', JSON.stringify(savedQuizzes))
-        setIsSaved(true)
+      if (!session?.access_token) {
+        alert('Por favor, inicia sesión para guardar el test.')
+        return
+      }
+
+      const response = await fetch('/api/favorites', {
+        method: isSaved ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ quizId: quizData.id })
+      })
+
+      if (response.ok) {
+        setIsSaved(!isSaved)
       }
     } catch (error) {
-      console.error('저장 실패:', error)
+      console.error('Error al guardar:', error)
     }
   }
 
@@ -106,16 +160,35 @@ export default function MbtiKpopTestPage() {
       return
     }
     
+    if (!quizData) return
+    
     try {
-      if (isFun) {
-        setIsFun(false)
-        setFunCount(prev => Math.max(0, prev - 1))
-      } else {
-        setIsFun(true)
-        setFunCount(prev => prev + 1)
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert('Por favor, inicia sesión.')
+        return
+      }
+
+      const response = await fetch(`/api/quiz/${quizData.id}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          feedbackType: 'fun',
+          value: !isFun
+        })
+      })
+
+      if (response.ok) {
+        setIsFun(!isFun)
+        setFunCount(prev => isFun ? Math.max(0, prev - 1) : prev + 1)
       }
     } catch (error) {
-      console.error('재밌어요 실패:', error)
+      console.error('Error al marcar como divertido:', error)
     }
   }
 
@@ -125,16 +198,35 @@ export default function MbtiKpopTestPage() {
       return
     }
     
+    if (!quizData) return
+    
     try {
-      if (isAccurate) {
-        setIsAccurate(false)
-        setAccurateCount(prev => Math.max(0, prev - 1))
-      } else {
-        setIsAccurate(true)
-        setAccurateCount(prev => prev + 1)
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert('Por favor, inicia sesión.')
+        return
+      }
+
+      const response = await fetch(`/api/quiz/${quizData.id}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          feedbackType: 'accurate',
+          value: !isAccurate
+        })
+      })
+
+      if (response.ok) {
+        setIsAccurate(!isAccurate)
+        setAccurateCount(prev => isAccurate ? Math.max(0, prev - 1) : prev + 1)
       }
     } catch (error) {
-      console.error('정확해요 실패:', error)
+      console.error('Error al marcar como preciso:', error)
     }
   }
 
@@ -261,6 +353,19 @@ export default function MbtiKpopTestPage() {
                     </div>
                   </div>
                 </div>
+                
+                {/* 북마크 버튼 (우측 상단) */}
+                <button
+                  onClick={handleSave}
+                  className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
+                    isSaved 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-white/80 text-gray-700 hover:bg-white'
+                  }`}
+                  aria-label={isSaved ? 'Guardado' : 'Guardar'}
+                >
+                  <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+                </button>
               </div>
             </div>
 
