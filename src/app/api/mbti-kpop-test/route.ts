@@ -170,11 +170,21 @@ async function getCelebMatches(mbti: string) {
       }
     }
 
-    // 5. 남/여 각각 1명씩 선택
-    const myTypeMale = myTypeCelebs?.find(c => c.gender === 'male') || null
-    const myTypeFemale = myTypeCelebs?.find(c => c.gender === 'female') || null
-    const bestMatchMale = bestMatchCelebs.find(c => c.gender === 'male') || null
-    const bestMatchFemale = bestMatchCelebs.find(c => c.gender === 'female') || null
+    // 5. 남/여 각각 1명씩 선택 및 이미지 경로 수정
+    const fixImagePath = (celeb: any) => {
+      if (!celeb) return null
+      return {
+        ...celeb,
+        image_url: celeb.image_url?.startsWith('/celebs/') 
+          ? celeb.image_url.replace('/celebs/', '/quizzes/mbti-with-kpop-stars/celebs/')
+          : celeb.image_url
+      }
+    }
+    
+    const myTypeMale = fixImagePath(myTypeCelebs?.find(c => c.gender === 'male'))
+    const myTypeFemale = fixImagePath(myTypeCelebs?.find(c => c.gender === 'female'))
+    const bestMatchMale = fixImagePath(bestMatchCelebs.find(c => c.gender === 'male'))
+    const bestMatchFemale = fixImagePath(bestMatchCelebs.find(c => c.gender === 'female'))
 
     return {
       myType: {
