@@ -37,7 +37,7 @@ interface TestResult {
   }
 }
 
-export default function MBTIKpopQuestionsPage() {
+export default function MBTICelebTestPage() {
   const router = useRouter()
   const { t, language } = useLanguage()
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -115,7 +115,7 @@ export default function MBTIKpopQuestionsPage() {
   const calculateResult = async (finalAnswers: number[]) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/mbti-kpop-test', {
+      const response = await fetch('/api/mbti-celeb-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ export default function MBTIKpopQuestionsPage() {
   }
 
   const handleBack = () => {
-    router.push('/quiz/mbti-kpop')
+    router.push('/community/tests')
   }
 
   const progress = ((currentQuestion + 1) / questions.length) * 100
@@ -174,7 +174,7 @@ export default function MBTIKpopQuestionsPage() {
             </Button>
             <div>
               <h1 className="text-lg font-bold text-gray-800">
-                Test de MBTI × Celebridades K-POP
+                Test de MBTI × Celebridades
               </h1>
               <p className="text-xs text-gray-600">
                 ¡Encuentra celebridades de tu tipo MBTI y tipos compatibles contigo!
@@ -261,9 +261,7 @@ export default function MBTIKpopQuestionsPage() {
 
 // 결과 컴포넌트
 function TestResultComponent({ result, language, onRestart }: { result: TestResult, language: string, onRestart: () => void }) {
-  const router = useRouter()
   const [selectedCeleb, setSelectedCeleb] = useState<any>(null)
-  
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       <Suspense fallback={<HeaderFallback />}>
@@ -272,18 +270,6 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
       
       <div className="pt-32 pb-8 px-2">
         <div className="max-w-4xl mx-auto px-2">
-          {/* 뒤로가기 버튼 */}
-          <div className="mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push('/quiz/mbti-kpop')}
-              className="p-2 hover:bg-gray-100 rounded-full"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </div>
-
           {/* 결과 헤더 */}
           <div className="text-center mb-6">
             <h1 className="text-xl font-bold text-gray-800 mb-2">
@@ -440,4 +426,3 @@ function CelebCard({ celeb, language, onClick }: { celeb: any, language: string,
     </Card>
   )
 }
-
