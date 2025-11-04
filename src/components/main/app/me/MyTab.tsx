@@ -112,7 +112,7 @@ export default function MyTab() {
           const result = await response.json()
           
           if (response.ok && result.user) {
-            // 인증 상태 확인 - 더 유연한 조건
+            // 프로필 있음 → 인증 상태 확인
             const isVerified = !!(
               result.user.email_verified_at || 
               result.user.sms_verified_at || 
@@ -144,10 +144,20 @@ export default function MyTab() {
                 router.push('/verification-center')
               }
             }
+          } else {
+            // 프로필 없음 또는 API 실패 → 무조건 인증센터로!
+            console.log('프로필이 없거나 API 실패, 인증센터로 리다이렉트')
+            if (window.location.pathname !== '/verification-center') {
+              router.push('/verification-center')
+            }
           }
         } catch (error) {
           console.error('인증 상태 확인 실패:', error)
-          // 오류 발생 시에도 인증센터로 리다이렉트하지 않음 (무한 루프 방지)
+          // 오류 발생 시에도 인증센터로 리다이렉트 (신규 가입자일 가능성)
+          if (window.location.pathname !== '/verification-center') {
+            console.log('오류 발생으로 인증센터로 리다이렉트')
+            router.push('/verification-center')
+          }
         }
       }
       
