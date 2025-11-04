@@ -16,7 +16,7 @@ import { createClient } from '@supabase/supabase-js'
 export default function VerificationCenterPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   
   // ✅ 모든 hooks를 조건부 렌더링 전에 먼저 선언
   const [loading, setLoading] = useState(false)
@@ -291,7 +291,7 @@ export default function VerificationCenterPage() {
       <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-gray-600 dark:border-gray-400 animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">{t('phoneVerification.adminCheckStatus')}</p>
+          <p className="text-slate-600">{language === 'ko' ? '검증 중...' : 'Verificando...'}</p>
         </div>
       </div>
     )
