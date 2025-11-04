@@ -293,7 +293,7 @@ export default function IdolPositionTestPage() {
         id: Date.now().toString(),
         quiz_id: quizData?.id,
         user_id: user.id,
-        user_name: user.user_metadata?.name || user.email || 'Usuario',
+        user_name: user.user_metadata?.nickname || user.user_metadata?.name || user.email || 'Usuario',
         content: newComment.trim(),
         like_count: 0,
         dislike_count: 0,
@@ -343,7 +343,7 @@ export default function IdolPositionTestPage() {
       const newReply = {
         id: Date.now().toString(),
         user_id: user.id,
-        user_name: user.user_metadata?.name || user.email || 'Usuario',
+        user_name: user.user_metadata?.nickname || user.user_metadata?.name || user.email || 'Usuario',
         content: replyText.trim(),
         like_count: 0,
         dislike_count: 0,
@@ -864,13 +864,13 @@ export default function IdolPositionTestPage() {
                         <div className="flex gap-3">
                           <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center">
                             <span className="text-xs font-medium text-gray-600">
-                              {comment.users?.full_name?.charAt(0) || 'U'}
+                              {comment.users?.nickname?.charAt(0) || comment.users?.full_name?.charAt(0) || 'U'}
                             </span>
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-medium text-gray-900">
-                                {comment.users?.full_name || comment.user_name || 'Usuario'}
+                                {comment.users?.nickname || comment.users?.full_name || comment.user_name || 'Usuario'}
                               </span>
                               <span className="text-xs text-gray-500">
                                 {new Date(comment.created_at).toLocaleDateString()}
@@ -949,13 +949,13 @@ export default function IdolPositionTestPage() {
                               <div key={reply.id} className="flex gap-3">
                                 <div className="w-6 h-6 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center">
                                   <span className="text-xs font-medium text-gray-600">
-                                    {reply.user_name?.charAt(0) || 'U'}
+                                    {reply.users?.nickname?.charAt(0) || reply.user_name?.charAt(0) || 'U'}
                                   </span>
                                 </div>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
                                     <span className="font-medium text-gray-900">
-                                      {reply.user_name || 'Usuario'}
+                                      {reply.users?.nickname || reply.user_name || 'Usuario'}
                                     </span>
                                     <span className="text-xs text-gray-500">
                                       {new Date(reply.created_at).toLocaleDateString()}
