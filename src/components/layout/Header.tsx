@@ -290,7 +290,12 @@ export default function Header() {
         })
         
         if (!profileResponse.ok) {
-          console.error('[HEADER] 프로필 API 오류:', profileResponse.status, profileResponse.statusText)
+          // 404는 프로필이 없는 정상 케이스
+          if (profileResponse.status === 404) {
+            console.log('[HEADER] 프로필 미설정 - 인증 필요')
+          } else {
+            console.error('[HEADER] 프로필 API 오류:', profileResponse.status, profileResponse.statusText)
+          }
           setVerificationStatus('unverified')
           return
         }
