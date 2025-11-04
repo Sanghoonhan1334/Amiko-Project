@@ -5,17 +5,23 @@ import { supabaseClient } from '@/lib/supabaseServer'
 
 export async function POST(request: NextRequest) {
   try {
-    const { answers } = await request.json()
+    const { answers, mbtiType } = await request.json()
     
-    if (!answers || !Array.isArray(answers) || answers.length === 0) {
+    // MBTI 타입이 직접 전달된 경우 (result 페이지에서 공유 링크로 접근)
+    let mbti = mbtiType
+    
+    // 답변이 있는 경우 계산
+    if (!mbti && answers && Array.isArray(answers) && answers.length > 0) {
+      mbti = calculateMBTI(answers)
+    }
+    
+    // MBTI 타입이 없으면 에러
+    if (!mbti) {
       return NextResponse.json(
-        { success: false, error: '답변이 필요합니다.' },
+        { success: false, error: 'MBTI 타입 또는 답변이 필요합니다.' },
         { status: 400 }
       )
     }
-
-    // MBTI 계산 로직
-    const mbti = calculateMBTI(answers)
     
     // 실제 데이터베이스에서 셀럽 매칭 정보 가져오기
     console.log('데이터베이스에서 셀럽 매칭 정보 조회 중...')
@@ -26,8 +32,8 @@ export async function POST(request: NextRequest) {
       mbti
     }
     
-    // 퀴즈 참여자 수 증가
-    if (supabaseClient) {
+    // 퀴즈 참여자 수 증가 (실제 테스트를 완료한 경우에만)
+    if (!mbtiType && answers && supabaseClient) {
       const { data: quiz } = await supabaseClient
         .from('quizzes')
         .select('id, total_participants')

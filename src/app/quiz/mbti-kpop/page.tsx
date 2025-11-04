@@ -55,16 +55,16 @@ export default function MbtiKpopTestPage() {
         }
 
         if (isMounted) {
-          setQuizData(data)
+        setQuizData(data)
         }
       } catch (err) {
         console.error('퀴즈 데이터 로딩 실패:', err)
         if (isMounted) {
-          setError('퀴즈 데이터를 불러올 수 없습니다.')
+        setError('퀴즈 데이터를 불러올 수 없습니다.')
         }
       } finally {
         if (isMounted) {
-          setLoading(false)
+        setLoading(false)
         }
       }
     }
