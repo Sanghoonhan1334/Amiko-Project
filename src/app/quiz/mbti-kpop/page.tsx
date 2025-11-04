@@ -178,8 +178,8 @@ export default function MbtiKpopTestPage() {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
-          feedbackType: 'fun',
-          value: !isFun
+          type: 'fun',
+          action: isFun ? 'remove' : 'add'
         })
       })
 
@@ -216,8 +216,8 @@ export default function MbtiKpopTestPage() {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
-          feedbackType: 'accurate',
-          value: !isAccurate
+          type: 'accurate',
+          action: isAccurate ? 'remove' : 'add'
         })
       })
 
