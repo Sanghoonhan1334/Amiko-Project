@@ -63,12 +63,17 @@ export default function TestComments({ testId }: TestCommentsProps) {
   }
 
   // 사용자 닉네임 조회 (여러 사용자)
-  const fetchUserNicknames = async (userIds: string[]) => {
+  const fetchUserNicknames = async (userIds: string[], signal?: AbortSignal) => {
     try {
       const uniqueUserIds = [...new Set(userIds)]
       const newNicknames: Record<string, string> = {}
       
       for (const userId of uniqueUserIds) {
+        // Abort 신호 체크
+        if (signal?.aborted) {
+          return
+        }
+        
         // 이미 캐싱된 닉네임이 있으면 스킵
         if (userNicknames[userId]) {
           newNicknames[userId] = userNicknames[userId]
@@ -76,7 +81,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
         }
         
         try {
-          const response = await fetch(`/api/users/${userId}`)
+          const response = await fetch(`/api/users/${userId}`, { signal })
           if (response.ok) {
             const data = await response.json()
             const nickname = data.user?.nickname || data.user?.display_name || data.user?.full_name || userId
@@ -84,51 +89,20 @@ export default function TestComments({ testId }: TestCommentsProps) {
           } else {
             newNicknames[userId] = userId
           }
-        } catch (error) {
+        } catch (error: any) {
+          if (error.name === 'AbortError') {
+            return
+          }
           console.error(`Error fetching nickname for user ${userId}:`, error)
           newNicknames[userId] = userId
         }
       }
       
-      setUserNicknames(prev => ({ ...prev, ...newNicknames }))
-    } catch (error) {
-      console.error('Error fetching user nicknames:', error)
-    }
-  }
-
-  // 댓글 조회 (로컬 스토리지 기반)
-  const fetchComments = async () => {
-    try {
-      setIsLoading(true)
-      
-      // 로컬 스토리지에서 댓글 조회
-      const storedComments = localStorage.getItem(`${testId}-comments`)
-      if (storedComments) {
-        const parsedComments = JSON.parse(storedComments)
-        setComments(parsedComments)
-        
-        // 모든 사용자 ID 수집
-        const userIds: string[] = []
-        parsedComments.forEach((comment: Comment) => {
-          userIds.push(comment.user_id)
-          if (comment.replies) {
-            comment.replies.forEach((reply: Comment) => {
-              userIds.push(reply.user_id)
-            })
-          }
-        })
-        
-        // 닉네임 조회
-        if (userIds.length > 0) {
-          await fetchUserNicknames(userIds)
-        }
-      } else {
-        setComments([])
+      if (!signal?.aborted) {
+        setUserNicknames(prev => ({ ...prev, ...newNicknames }))
       }
     } catch (error) {
-      console.error('Error fetching comments:', error)
-    } finally {
-      setIsLoading(false)
+      console.error('Error fetching user nicknames:', error)
     }
   }
 
@@ -443,7 +417,59 @@ export default function TestComments({ testId }: TestCommentsProps) {
   }
 
   useEffect(() => {
-    fetchComments()
+    const abortController = new AbortController()
+    let isMounted = true
+    
+    const loadComments = async () => {
+      try {
+        if (isMounted) {
+          setIsLoading(true)
+        }
+        
+        // 로컬 스토리지에서 댓글 조회
+        const storedComments = localStorage.getItem(`${testId}-comments`)
+        if (storedComments && isMounted) {
+          const parsedComments = JSON.parse(storedComments)
+          
+          if (isMounted) {
+            setComments(parsedComments)
+          }
+          
+          // 모든 사용자 ID 수집
+          const userIds: string[] = []
+          parsedComments.forEach((comment: Comment) => {
+            userIds.push(comment.user_id)
+            if (comment.replies) {
+              comment.replies.forEach((reply: Comment) => {
+                userIds.push(reply.user_id)
+              })
+            }
+          })
+          
+          // 닉네임 조회 (마운트된 경우에만)
+          if (userIds.length > 0 && isMounted && !abortController.signal.aborted) {
+            await fetchUserNicknames(userIds, abortController.signal)
+          }
+        } else if (isMounted) {
+          setComments([])
+        }
+      } catch (error) {
+        if (!abortController.signal.aborted) {
+          console.error('Error fetching comments:', error)
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+    
+    loadComments()
+    
+    return () => {
+      isMounted = false
+      abortController.abort()
+    }
   }, [testId])
 
   return (
