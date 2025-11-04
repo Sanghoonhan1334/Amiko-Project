@@ -231,19 +231,38 @@ export default function FortuneTestPage() {
 
   const handleShare = async () => {
     try {
+      // 프로덕션 URL 사용
+      const isLocalhost = window.location.hostname === 'localhost'
+      const baseUrl = isLocalhost 
+        ? 'https://helloamiko.com'
+        : window.location.origin
+      
+      const shareUrl = `${baseUrl}/quiz/fortune`
+      const shareText = `${quizData?.description || 'Test de Fortuna Personalizada'}\n\n${shareUrl}`
+      
       if (navigator.share) {
         await navigator.share({
-          title: quizData?.title,
-          text: quizData?.description,
-          url: window.location.href
+          title: quizData?.title || 'Test de Fortuna',
+          text: shareText
         })
       } else {
-        // 클립보드에 URL 복사
-        await navigator.clipboard.writeText(window.location.href)
-        alert('URL copiada al portapapeles')
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Enlace copiado!')
       }
-    } catch (error) {
-      console.error('Error al compartir:', error)
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return
+      }
+      try {
+        const isLocalhost = window.location.hostname === 'localhost'
+        const baseUrl = isLocalhost ? 'https://helloamiko.com' : window.location.origin
+        const shareUrl = `${baseUrl}/quiz/fortune`
+        const shareText = `${quizData?.description}\n\n${shareUrl}`
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Enlace copiado!')
+      } catch (clipboardError) {
+        console.error('Error al compartir:', clipboardError)
+      }
     }
   }
 
