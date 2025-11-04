@@ -127,6 +127,7 @@ export default function IdolPositionTestPage() {
       const commentsWithUsers = quizComments.map(comment => ({
         ...comment,
         users: {
+          nickname: comment.user_name || 'Usuario',
           full_name: comment.user_name || 'Usuario',
           avatar_url: null
         }
