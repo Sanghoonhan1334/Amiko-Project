@@ -78,19 +78,41 @@ export default function IdolPositionTestPage() {
     }
   }, [user, quizData])
 
-  // 상호작용 데이터 가져오기 (임시로 로컬 스토리지 사용)
+  // 상호작용 데이터 가져오기 (DB에서)
   const fetchInteractionData = async () => {
+    if (!user) return
+    
     try {
-      // 임시로 더미 데이터 사용
-      setFunCount(0)
-      setAccurateCount(0)
-      setIsFun(false)
-      setIsAccurate(false)
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) return
 
-      // 저장 상태는 간단히 로컬 스토리지 사용
-      if (user) {
-        const savedQuizzes = JSON.parse(localStorage.getItem('saved_quizzes') || '[]')
-        setIsSaved(savedQuizzes.includes(quizData?.id))
+      // 즐겨찾기 상태 로드
+      const favResponse = await fetch(`/api/favorites?quizId=${quizData?.id}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+      
+      if (favResponse.ok) {
+        const favData = await favResponse.json()
+        setIsSaved(favData.isFavorited)
+      }
+
+      // 피드백 상태 로드
+      const feedbackResponse = await fetch(`/api/quiz/${quizData?.id}/feedback`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+      
+      if (feedbackResponse.ok) {
+        const feedbackData = await feedbackResponse.json()
+        setIsFun(feedbackData.isFun)
+        setIsAccurate(feedbackData.isAccurate)
+        setFunCount(feedbackData.funCount)
+        setAccurateCount(feedbackData.accurateCount)
       }
     } catch (error) {
       console.error('Error al cargar los datos de interacción:', error)
@@ -116,18 +138,29 @@ export default function IdolPositionTestPage() {
     }
     
     try {
-      const savedQuizzes = JSON.parse(localStorage.getItem('saved_quizzes') || '[]')
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
       
-      if (isSaved) {
-        // 저장 취소
-        const updatedQuizzes = savedQuizzes.filter((id: string) => id !== quizData?.id)
-        localStorage.setItem('saved_quizzes', JSON.stringify(updatedQuizzes))
-        setIsSaved(false)
-      } else {
-        // 저장
-        savedQuizzes.push(quizData?.id)
-        localStorage.setItem('saved_quizzes', JSON.stringify(savedQuizzes))
-        setIsSaved(true)
+      if (!session?.access_token) {
+        alert('Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isSaved ? 'remove' : 'add'
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          quizId: quizData?.id,
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        setIsSaved(!isSaved)
       }
     } catch (error) {
       console.error('Error al guardar:', error)
@@ -141,29 +174,32 @@ export default function IdolPositionTestPage() {
     }
     
     try {
-      const supabase = createClientComponentClient()
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
       
-      if (isFun) {
-        // 재밌어요 취소
-        await supabase
-          .from('quiz_reactions')
-          .delete()
-          .eq('quiz_id', quizData?.id)
-          .eq('user_id', user.id)
-          .eq('reaction_type', 'fun')
-        setIsFun(false)
-        setFunCount(prev => Math.max(0, prev - 1))
-      } else {
-        // 재밌어요 추가
-        await supabase
-          .from('quiz_reactions')
-          .insert({ 
-            quiz_id: quizData?.id, 
-            user_id: user.id, 
-            reaction_type: 'fun' 
-          })
-        setIsFun(true)
-        setFunCount(prev => prev + 1)
+      if (!session?.access_token) {
+        alert('Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isFun ? 'remove' : 'add'
+      
+      const response = await fetch(`/api/quiz/${quizData?.id}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          type: 'fun',
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setIsFun(!isFun)
+        setFunCount(data.count)
       }
     } catch (error) {
       console.error('Error al marcar como divertido:', error)
@@ -177,29 +213,32 @@ export default function IdolPositionTestPage() {
     }
     
     try {
-      const supabase = createClientComponentClient()
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
       
-      if (isAccurate) {
-        // 정확해요 취소
-        await supabase
-          .from('quiz_reactions')
-          .delete()
-          .eq('quiz_id', quizData?.id)
-          .eq('user_id', user.id)
-          .eq('reaction_type', 'accurate')
-        setIsAccurate(false)
-        setAccurateCount(prev => Math.max(0, prev - 1))
-      } else {
-        // 정확해요 추가
-        await supabase
-          .from('quiz_reactions')
-          .insert({ 
-            quiz_id: quizData?.id, 
-            user_id: user.id, 
-            reaction_type: 'accurate' 
-          })
-        setIsAccurate(true)
-        setAccurateCount(prev => prev + 1)
+      if (!session?.access_token) {
+        alert('Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isAccurate ? 'remove' : 'add'
+      
+      const response = await fetch(`/api/quiz/${quizData?.id}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          type: 'accurate',
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setIsAccurate(!isAccurate)
+        setAccurateCount(data.count)
       }
     } catch (error) {
       console.error('Error al marcar como preciso:', error)
