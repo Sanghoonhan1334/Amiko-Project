@@ -26,8 +26,7 @@ export default function SignUpPage() {
     confirmPassword: '',
     phone: '',
     country: '',
-    isKorean: false,
-    referralCode: ''
+    isKorean: false
   })
   
   const [passwordChecks, setPasswordChecks] = useState({
@@ -409,8 +408,7 @@ export default function SignUpPage() {
           isKorean: selectedCountry?.isKorean || false,
           emailVerified: authData.isEmailVerified,
           phoneVerified: authData.isSMSVerified,
-          biometricEnabled: authData.biometricEnabled,
-          referralCode: formData.referralCode
+          biometricEnabled: authData.biometricEnabled
         })
       })
 
@@ -759,27 +757,6 @@ export default function SignUpPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="referralCode" className="text-sm font-medium text-slate-700 dark:text-gray-300">
-                {language === 'ko' ? '추천인 코드 (선택사항)' : 'Código de Referencia (Opcional)'}
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
-                <Input
-                  id="referralCode"
-                  type="text"
-                  placeholder={language === 'ko' ? '추천인 코드를 입력하세요' : 'Ingrese el código de referencia'}
-                  value={formData.referralCode}
-                  onChange={(e) => handleInputChange('referralCode', e.target.value.toUpperCase())}
-                  className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
-                  style={{ paddingLeft: '2.5rem' }}
-                />
-              </div>
-              <p className="text-xs text-slate-600 dark:text-gray-400">
-                {language === 'ko' ? '✓ 추천인 코드 입력 시 이벤트 추첨 대상이 됩니다!' : '✓ ¡Si ingresas un código de referencia, participarás en sorteos de eventos!'}
-              </p>
             </div>
 
             <Button
