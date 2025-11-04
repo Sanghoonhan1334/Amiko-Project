@@ -39,6 +39,8 @@ export default function MbtiKpopTestPage() {
 
   // 데이터베이스에서 퀴즈 데이터 가져오기
   useEffect(() => {
+    let isMounted = true
+    
     const fetchQuizData = async () => {
       try {
         const supabase = createSupabaseBrowserClient()
@@ -52,20 +54,32 @@ export default function MbtiKpopTestPage() {
           throw error
         }
 
-        setQuizData(data)
+        if (isMounted) {
+          setQuizData(data)
+        }
       } catch (err) {
         console.error('퀴즈 데이터 로딩 실패:', err)
-        setError('퀴즈 데이터를 불러올 수 없습니다.')
+        if (isMounted) {
+          setError('퀴즈 데이터를 불러올 수 없습니다.')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchQuizData()
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // 상호작용 데이터 로드
   useEffect(() => {
+    let isMounted = true
+    
     const loadInteractionData = async () => {
       if (!user || !quizData) return
       
@@ -82,7 +96,7 @@ export default function MbtiKpopTestPage() {
           }
         })
         
-        if (favResponse.ok) {
+        if (favResponse.ok && isMounted) {
           const favData = await favResponse.json()
           setIsSaved(favData.isFavorited)
         }
@@ -94,7 +108,7 @@ export default function MbtiKpopTestPage() {
           }
         })
         
-        if (feedbackResponse.ok) {
+        if (feedbackResponse.ok && isMounted) {
           const feedbackData = await feedbackResponse.json()
           setIsFun(feedbackData.isFun)
           setIsAccurate(feedbackData.isAccurate)
@@ -107,6 +121,10 @@ export default function MbtiKpopTestPage() {
     }
 
     loadInteractionData()
+    
+    return () => {
+      isMounted = false
+    }
   }, [user, quizData])
 
   const handleBack = () => {
