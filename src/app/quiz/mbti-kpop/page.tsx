@@ -156,12 +156,15 @@ export default function MbtiKpopTestPage() {
       }
 
       const response = await fetch('/api/favorites', {
-        method: isSaved ? 'DELETE' : 'POST',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ quizId: quizData.id })
+        body: JSON.stringify({ 
+          quizId: quizData.id,
+          action: isSaved ? 'remove' : 'add'
+        })
       })
 
       if (response.ok) {
