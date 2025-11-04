@@ -145,13 +145,13 @@ export async function verifyTwilioAccount(): Promise<{
 
 // 전화번호 형식 검증 및 변환 (국가 코드 포함)
 export function formatPhoneNumber(phoneNumber: string, countryCode?: string): string {
-  // 숫자만 추출
-  const digits = phoneNumber.replace(/\D/g, '')
-  
-  // 이미 +로 시작하는 경우
+  // 이미 +로 시작하는 경우 (E.164 형식)
   if (phoneNumber.startsWith('+')) {
     return phoneNumber
   }
+  
+  // 숫자만 추출
+  const digits = phoneNumber.replace(/\D/g, '')
   
   // 국가 코드가 제공된 경우 해당 국가 코드 사용
   if (countryCode) {
