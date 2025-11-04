@@ -4,8 +4,8 @@ import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
-import ShareBar from '@/components/quiz/ShareBar'
+import { ArrowRight, Share2, RotateCcw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 // 이미지 경로 매핑 헬퍼 함수
 function roleImg(slug?: string, provided?: string) {
@@ -76,6 +76,44 @@ function IdolPositionResultContent() {
       setError('Ha ocurrido un error al cargar el resultado')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRetake = () => {
+    router.push('/quiz/idol-position/questions')
+  }
+
+  const handleShare = async () => {
+    if (!result) return
+
+    const isLocalhost = window.location.hostname === 'localhost'
+    const baseUrl = isLocalhost 
+      ? 'https://helloamiko.com'
+      : window.location.origin
+    
+    const shareUrl = `${baseUrl}/quiz/idol-position/result?type=${resultType}`
+    const shareText = `Mi resultado en AMIKO: ${result.titulo}\n\n${shareUrl}`
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Mi Posición de Idol',
+          text: shareText
+        })
+      } else {
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Enlace copiado!')
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return
+      }
+      try {
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Enlace copiado!')
+      } catch (clipboardError) {
+        console.error('Error al compartir:', clipboardError)
+      }
     }
   }
 
@@ -242,6 +280,26 @@ function IdolPositionResultContent() {
           </motion.div>
         )}
 
+            {/* 액션 버튼들 */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 mx-4 max-w-2xl mx-auto">
+              <Button
+                onClick={handleRetake}
+                variant="outline"
+                className="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 px-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 flex items-center justify-center"
+              >
+                <RotateCcw className="w-5 h-5 mr-2" />
+                Repetir Test
+              </Button>
+              
+              <Button
+                onClick={handleShare}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center"
+              >
+                <Share2 className="w-5 h-5 mr-2" />
+                Compartir Resultado
+              </Button>
+            </div>
+
             {/* 하단 링크들 */}
             <div className="mt-8 text-center mx-4 space-y-4">
               <button
@@ -261,9 +319,6 @@ function IdolPositionResultContent() {
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-
-            {/* 공유바: 결과 타이틀과 이미지 전달 */}
-            <ShareBar title={result?.titulo ?? "Mi resultado"} imageUrl={result?.imagen} />
       </div>
     </div>
   )
