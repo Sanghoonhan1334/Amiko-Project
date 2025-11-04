@@ -362,6 +362,19 @@ export default function FortuneTestPage() {
                     ¿Qué te depara el destino?
                   </h2>
                 </div>
+                
+                {/* 북마크 버튼 (우측 상단) */}
+                <button
+                  onClick={handleSave}
+                  className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
+                    isSaved 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-white/80 text-gray-700 hover:bg-white'
+                  }`}
+                  aria-label={isSaved ? 'Guardado' : 'Guardar'}
+                >
+                  <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+                </button>
               </div>
             </div>
 
