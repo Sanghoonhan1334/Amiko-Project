@@ -64,59 +64,6 @@ export default function IdolPositionTestPage() {
     fetchQuizData()
   }, [])
 
-  // Open Graph 메타 태그 설정
-  useEffect(() => {
-    if (!quizData) return
-
-    const title = quizData.title || 'Test de Posición de Idol | AMIKO'
-    const description = quizData.description || 'Descubre qué posición de idol te quedaría mejor en un grupo de K-pop'
-    const imageUrl = quizData.thumbnail_url 
-      ? `${window.location.origin}${quizData.thumbnail_url}`
-      : `${window.location.origin}/quizzes/idol-position/cover.png`
-    const url = `${window.location.origin}/quiz/idol-position`
-    
-    // 기존 메타 태그 제거
-    const existingOgTags = document.head.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]')
-    existingOgTags.forEach(tag => tag.remove())
-    
-    // 새 메타 태그 추가
-    const addedMetaTags: HTMLMetaElement[] = []
-    const metaTags = [
-      { property: 'og:title', content: title },
-      { property: 'og:description', content: description },
-      { property: 'og:image', content: imageUrl },
-      { property: 'og:url', content: url },
-      { property: 'og:type', content: 'website' },
-      { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: title },
-      { name: 'twitter:description', content: description },
-      { name: 'twitter:image', content: imageUrl }
-    ]
-    
-    metaTags.forEach(({ property, name, content }) => {
-      const meta = document.createElement('meta')
-      if (property) meta.setAttribute('property', property)
-      if (name) meta.setAttribute('name', name)
-      meta.setAttribute('content', content)
-      document.head.appendChild(meta)
-      addedMetaTags.push(meta)
-    })
-    
-    // title 태그도 업데이트
-    const originalTitle = document.title
-    document.title = title
-    
-    // cleanup 함수
-    return () => {
-      addedMetaTags.forEach(tag => {
-        if (tag.parentNode) {
-          tag.parentNode.removeChild(tag)
-        }
-      })
-      document.title = originalTitle
-    }
-  }, [quizData, language])
-
   // 상호작용 데이터 가져오기
   useEffect(() => {
     if (quizData) {
