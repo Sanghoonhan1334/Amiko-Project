@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, Users, Heart, Star, X, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Users, Heart, Star, X, ChevronUp, Share2, RotateCcw, List } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { toast } from 'sonner'
@@ -225,6 +225,30 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
   const router = useRouter()
   const [selectedCeleb, setSelectedCeleb] = useState<any>(null)
   
+  const handleShare = async () => {
+    try {
+      const isLocalhost = window.location.hostname === 'localhost'
+      const baseUrl = isLocalhost ? 'https://helloamiko.com' : window.location.origin
+      const shareUrl = `${baseUrl}/quiz/mbti-kpop`
+      const shareText = `¡Mi tipo MBTI es ${result.mbti}!\n\n¡Descubre tu tipo MBTI también!\n${shareUrl}`
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: `Mi tipo MBTI: ${result.mbti}`,
+          text: shareText
+        })
+      } else {
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Texto copiado!')
+      }
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        return
+      }
+      console.error('Error al compartir:', error)
+    }
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-blue-100">
       <Suspense fallback={<HeaderFallback />}>
@@ -301,12 +325,32 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
             </p>
           </Card>
 
-          {/* 재시작 버튼 */}
-          <div className="text-center mt-6">
+          {/* 액션 버튼들 */}
+          <div className="flex flex-col gap-3 mt-6">
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => router.push('/community/tests')}
+                variant="outline"
+                className="flex items-center justify-center gap-2"
+              >
+                <List className="w-4 h-4" />
+                Ver Tests
+              </Button>
+              
+              <Button
+                onClick={handleShare}
+                className="bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                Compartir
+              </Button>
+            </div>
+            
             <Button
               onClick={onRestart}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 text-sm"
+              className="w-full bg-purple-500 hover:bg-purple-600 text-white flex items-center justify-center gap-2"
             >
+              <RotateCcw className="w-4 h-4" />
               Hacer test de nuevo
             </Button>
           </div>
