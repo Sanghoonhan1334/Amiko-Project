@@ -134,25 +134,21 @@ export default function MbtiQuestionsPage() {
   }
 
   const handleAnswer = (optionType: string) => {
+    // 답변 저장
     setAnswers(prev => ({
       ...prev,
       [currentQuestion.id]: optionType
     }))
-  }
-
-  const handleNext = () => {
-    if (isLastQuestion) {
-      // 테스트 완료 - 결과 계산
-      calculateMbtiResult()
-    } else {
-      setCurrentQuestionIndex(prev => prev + 1)
-    }
-  }
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1)
-    }
+    
+    // 약간의 딜레이 후 자동으로 다음으로 이동
+    setTimeout(() => {
+      if (isLastQuestion) {
+        // 테스트 완료 - 결과 계산
+        calculateMbtiResult()
+      } else {
+        setCurrentQuestionIndex(prev => prev + 1)
+      }
+    }, 300) // 0.3초 딜레이로 사용자가 선택을 확인할 수 있게 함
   }
 
   const calculateMbtiResult = async () => {
@@ -182,8 +178,6 @@ export default function MbtiQuestionsPage() {
       router.push('/quiz/mbti-kpop/result')
     }, 2000)
   }
-
-  const canProceed = answers[currentQuestion.id] !== undefined
 
   return (
     <div className="min-h-screen bg-white">
@@ -258,34 +252,15 @@ export default function MbtiQuestionsPage() {
             </div>
           </div>
 
-          {/* 네비게이션 버튼들 */}
-          <div className="flex justify-between">
-            <Button
-              onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0}
-              variant="outline"
-              className="px-6"
-            >
-              Anterior
-            </Button>
-
-            <Button
-              onClick={handleNext}
-              disabled={!canProceed || isSubmitting}
-              className="px-6 bg-purple-500 hover:bg-purple-600"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Analizando...</span>
-                </div>
-              ) : isLastQuestion ? (
-                'Ver Resultado'
-              ) : (
-                'Siguiente'
-              )}
-            </Button>
-          </div>
+          {/* 제출 중일 때 로딩 표시 */}
+          {isSubmitting && (
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 text-purple-600">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                <span className="text-lg font-medium">Analizando tu personalidad...</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
