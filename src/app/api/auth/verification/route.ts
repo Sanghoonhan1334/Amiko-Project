@@ -77,6 +77,9 @@ export async function POST(request: NextRequest) {
     const expiryMinutes = isTestMode ? 0.1 : 10 // 테스트 시 6초, 일반 시 10분
     const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
     
+    // whatsapp는 데이터베이스에서 sms로 저장 (스키마 제약 조건)
+    const dbType = type === 'whatsapp' ? 'sms' : type
+    
     // 기존 코드 비활성화 (REPLACED_OR_USED 시나리오를 위해)
     try {
       console.log('[VERIFICATION] 기존 미인증 코드 처리 시작')
@@ -110,8 +113,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 새 인증코드 저장 (10분간 유효)
-    // whatsapp는 데이터베이스에서 sms로 저장 (스키마 제약 조건)
-    const dbType = type === 'whatsapp' ? 'sms' : type
     const insertData = {
       email: email || null,
       phone_number: normalizedPhoneNumber || null,
