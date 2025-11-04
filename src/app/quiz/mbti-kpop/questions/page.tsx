@@ -183,3 +183,5 @@ export default function MBTIKpopQuestionsPage() {
         </div>
       </div>
     </div>
+  )
+}
