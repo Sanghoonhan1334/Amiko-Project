@@ -171,10 +171,15 @@ function TestsPageContent() {
 
   // 즐겨찾기 상태 로드
   const loadFavoriteStatus = async () => {
-    if (!user) return
+    if (!user || !token) return
     
     try {
-      const response = await fetch(`/api/favorites?userId=${user.id}`)
+      const response = await fetch(`/api/favorites?userId=${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
       if (response.ok) {
         const data = await response.json()
         const favoriteIds = data.favorites.map((fav: any) => fav.quizzes?.id).filter(Boolean)
@@ -183,7 +188,11 @@ function TestsPageContent() {
         // 각 퀴즈의 즐겨찾기 개수 로드
         const counts: Record<string, number> = {}
         for (const quiz of quizzes) {
-          const countResponse = await fetch(`/api/favorites?quizId=${quiz.id}`)
+          const countResponse = await fetch(`/api/favorites?quizId=${quiz.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
           if (countResponse.ok) {
             const countData = await countResponse.json()
             counts[quiz.id] = countData.favoriteCount || 0
@@ -211,6 +220,7 @@ function TestsPageContent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           quizId: quizId,
@@ -233,9 +243,32 @@ function TestsPageContent() {
           ...prev,
           [quizId]: data.favoriteCount
         }))
+        
+        toast.success(isFavorited 
+          ? (language === 'ko' ? '즐겨찾기에서 제거되었습니다.' : 'Eliminado de favoritos.')
+          : (language === 'ko' ? '즐겨찾기에 추가되었습니다.' : 'Añadido a favoritos.')
+        )
+      } else {
+        // 401 Unauthorized - 로그인 필요
+        if (response.status === 401) {
+          toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+          return
+        }
+        
+        const errorData = await response.json()
+        console.error('즐겨찾기 토글 실패:', errorData)
+        
+        // 중복 키 에러면 상태 다시 로드
+        if (errorData.details?.includes('duplicate key')) {
+          await loadFavoriteStatus()
+          toast.info(language === 'ko' ? '이미 즐겨찾기에 있습니다.' : 'Ya está en favoritos.')
+        } else {
+          toast.error(language === 'ko' ? '오류가 발생했습니다.' : 'Ocurrió un error.')
+        }
       }
     } catch (error) {
       console.error('즐겨찾기 토글 오류:', error)
+      toast.error(language === 'ko' ? '오류가 발생했습니다.' : 'Ocurrió un error.')
     }
   }
 
@@ -274,7 +307,21 @@ function TestsPageContent() {
   }, [selectedCategory])
 
   useEffect(() => {
-    loadFavoriteStatus()
+    if (user && quizzes.length > 0) {
+      loadFavoriteStatus()
+    }
+  }, [user, quizzes])
+
+  // 페이지가 보일 때마다 즐겨찾기 상태 다시 로드
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user && quizzes.length > 0) {
+        loadFavoriteStatus()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user, quizzes])
 
   // 🚀 최적화: 심리테스트 페이지 이미지 프리로딩
