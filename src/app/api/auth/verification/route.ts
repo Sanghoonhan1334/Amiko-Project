@@ -50,6 +50,15 @@ export async function POST(request: NextRequest) {
     if (phoneNumber && nationality) {
       normalizedPhoneNumber = toE164(phoneNumber, nationality)
       console.log('[VERIFICATION] 전화번호 정규화 (toE164):', { original: phoneNumber, normalized: normalizedPhoneNumber, nationality })
+      
+      // 정규화 실패 시 에러 (E.164 형식이 아님)
+      if (!normalizedPhoneNumber.startsWith('+')) {
+        console.error('[VERIFICATION] 전화번호 정규화 실패 - E.164 형식이 아님:', { phoneNumber, nationality, normalizedPhoneNumber })
+        return NextResponse.json(
+          { success: false, error: '전화번호 형식이 올바르지 않습니다. 올바른 전화번호를 입력해주세요.' },
+          { status: 400 }
+        )
+      }
     }
 
     // 유효성 검사
