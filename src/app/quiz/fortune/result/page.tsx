@@ -120,29 +120,38 @@ export default function FortuneResultPage() {
 
   const handleShare = async () => {
     try {
+      // 프로덕션 URL 사용
+      const isLocalhost = window.location.hostname === 'localhost'
+      const baseUrl = isLocalhost 
+        ? 'https://helloamiko.com'
+        : window.location.origin
+      
+      const shareUrl = `${baseUrl}/quiz/fortune`
+      const shareText = `Mi índice de fortuna es ${result?.luckIndex}% - ${result?.title}\n\n¡Descubre tu fortuna también!\n${shareUrl}`
+      
       if (navigator.share) {
         await navigator.share({
-          title: 'Mi resultado de fortuna',
-          text: `Mi índice de fortuna es ${result?.luckIndex}% - ${result?.title}`,
-          url: window.location.href
+          title: 'Mi Resultado de Fortuna',
+          text: shareText
         })
       } else {
-        await navigator.clipboard.writeText(window.location.href)
-        alert('URL copiada al portapapeles')
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Texto copiado!')
       }
-    } catch (error) {
-      // 공유가 취소되었거나 오류가 발생한 경우
-      if (error.name === 'AbortError') {
-        // 사용자가 공유를 취소한 경우 - 아무것도 하지 않음
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
         return
       }
       
-      // 다른 오류의 경우 URL 복사로 대체
       try {
-        await navigator.clipboard.writeText(window.location.href)
-        alert('URL copiada al portapapeles')
+        const isLocalhost = window.location.hostname === 'localhost'
+        const baseUrl = isLocalhost ? 'https://helloamiko.com' : window.location.origin
+        const shareUrl = `${baseUrl}/quiz/fortune`
+        const shareText = `Mi índice de fortuna es ${result?.luckIndex}% - ${result?.title}\n\n¡Descubre tu fortuna también!\n${shareUrl}`
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Texto copiado!')
       } catch (clipboardError) {
-        console.error('공유 및 클립보드 복사 실패:', clipboardError)
+        console.error('Error al compartir:', clipboardError)
         alert('Error al compartir.')
       }
     }
