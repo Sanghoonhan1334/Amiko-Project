@@ -230,7 +230,30 @@ function TestResultComponent({ result, language, onRestart }: { result: TestResu
       const isLocalhost = window.location.hostname === 'localhost'
       const baseUrl = isLocalhost ? 'https://helloamiko.com' : window.location.origin
       const shareUrl = `${baseUrl}/quiz/mbti-kpop`
-      const shareText = `¡Mi tipo MBTI es ${result.mbti}!\n\n¡Descubre tu tipo MBTI también!\n${shareUrl}`
+      
+      // 내 타입 연예인들
+      const myTypeCelebs = []
+      if (result.myType.male) myTypeCelebs.push(result.myType.male.stage_name)
+      if (result.myType.female) myTypeCelebs.push(result.myType.female.stage_name)
+      const myTypeCelebsText = myTypeCelebs.length > 0 ? myTypeCelebs.join(' y ') : ''
+      
+      // 궁합 좋은 연예인들
+      const bestMatchCelebs = []
+      if (result.bestMatch.male) bestMatchCelebs.push(result.bestMatch.male.stage_name)
+      if (result.bestMatch.female) bestMatchCelebs.push(result.bestMatch.female.stage_name)
+      const bestMatchCelebsText = bestMatchCelebs.length > 0 ? bestMatchCelebs.join(' y ') : ''
+      
+      let shareText = `¡Mi tipo MBTI es ${result.mbti}!`
+      
+      if (myTypeCelebsText) {
+        shareText += `\n¡Me parezco a ${myTypeCelebsText}!`
+      }
+      
+      if (result.bestMatchMbti && bestMatchCelebsText) {
+        shareText += `\n\nTipo compatible: ${result.bestMatchMbti} (${bestMatchCelebsText})`
+      }
+      
+      shareText += `\n\n¡Descubre tu tipo MBTI también!\n${shareUrl}`
       
       if (navigator.share) {
         await navigator.share({
