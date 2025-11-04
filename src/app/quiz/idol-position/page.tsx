@@ -64,6 +64,50 @@ export default function IdolPositionTestPage() {
     fetchQuizData()
   }, [])
 
+  // Open Graph 메타 태그 설정
+  useEffect(() => {
+    if (!quizData) return
+
+    const updateMetaTags = () => {
+      const title = quizData.title || 'Test de Posición de Idol | AMIKO'
+      const description = quizData.description || 'Descubre qué posición de idol te quedaría mejor en un grupo de K-pop'
+      const imageUrl = quizData.thumbnail_url 
+        ? `${window.location.origin}${quizData.thumbnail_url}`
+        : `${window.location.origin}/quizzes/idol-position/cover.png`
+      const url = `${window.location.origin}/quiz/idol-position`
+      
+      // 기존 메타 태그 제거
+      const existingOgTags = document.head.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]')
+      existingOgTags.forEach(tag => tag.remove())
+      
+      // 새 메타 태그 추가
+      const metaTags = [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: imageUrl },
+        { property: 'og:url', content: url },
+        { property: 'og:type', content: 'website' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: imageUrl }
+      ]
+      
+      metaTags.forEach(({ property, name, content }) => {
+        const meta = document.createElement('meta')
+        if (property) meta.setAttribute('property', property)
+        if (name) meta.setAttribute('name', name)
+        meta.setAttribute('content', content)
+        document.head.appendChild(meta)
+      })
+      
+      // title 태그도 업데이트
+      document.title = title
+    }
+    
+    updateMetaTags()
+  }, [quizData, language])
+
   // 상호작용 데이터 가져오기
   useEffect(() => {
     if (quizData) {
@@ -247,19 +291,39 @@ export default function IdolPositionTestPage() {
 
   const handleShare = async () => {
     try {
+      // 프로덕션 URL 사용 (localhost가 아닌 경우 현재 도메인 사용)
+      const isLocalhost = window.location.hostname === 'localhost'
+      const baseUrl = isLocalhost 
+        ? 'https://helloamiko.com'  // 로컬에서는 프로덕션 URL
+        : window.location.origin     // 프로덕션/스테이징에서는 현재 도메인
+      
+      const shareUrl = `${baseUrl}/quiz/idol-position`
+      const shareText = `${quizData?.title || 'Test de Posición de Idol'}\n\n${quizData?.description || 'Descubre qué posición de idol te quedaría mejor'}\n\n${shareUrl}`
+      
       if (navigator.share) {
         await navigator.share({
-          title: quizData?.title,
-          text: quizData?.description,
-          url: window.location.href
+          title: quizData?.title || 'Test de Posición de Idol',
+          text: shareText
         })
       } else {
-        // 클립보드에 URL 복사
-        await navigator.clipboard.writeText(window.location.href)
-        alert('URL copiada al portapapeles')
+        // 클립보드에 텍스트 + URL 복사
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Enlace copiado!')
       }
-    } catch (error) {
-      console.error('Error al compartir:', error)
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return
+      }
+      try {
+        const isLocalhost = window.location.hostname === 'localhost'
+        const baseUrl = isLocalhost ? 'https://helloamiko.com' : window.location.origin
+        const shareUrl = `${baseUrl}/quiz/idol-position`
+        const shareText = `${quizData?.title}\n\n${shareUrl}`
+        await navigator.clipboard.writeText(shareText)
+        alert('¡Enlace copiado!')
+      } catch (clipboardError) {
+        console.error('Error al compartir:', clipboardError)
+      }
     }
   }
 
