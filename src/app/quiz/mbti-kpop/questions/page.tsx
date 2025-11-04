@@ -72,44 +72,27 @@ export default function MBTIKpopQuestionsPage() {
 
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswer(answerIndex)
-  }
-
-  const handleNext = () => {
-    if (selectedAnswer === null) return
-
-    // 현재 질문의 답변을 업데이트하거나 새로 추가
+    
+    // 답변 저장
     const newAnswers = [...answers]
-    newAnswers[currentQuestion] = selectedAnswer
+    newAnswers[currentQuestion] = answerIndex
     setAnswers(newAnswers)
-    setSelectedAnswer(null)
 
-    if (currentQuestion < questions.length - 1) {
-      // 애니메이션 시작
-      setTransitionDirection('next')
-      setIsTransitioning(true)
-      setTimeout(() => {
+    // 애니메이션 시작 후 자동으로 다음으로 이동
+    setTransitionDirection('next')
+    setIsTransitioning(true)
+    
+    setTimeout(() => {
+      if (currentQuestion < questions.length - 1) {
+        // 다음 질문으로
         setCurrentQuestion(currentQuestion + 1)
+        setSelectedAnswer(null)
         setIsTransitioning(false)
-      }, 300)
-    } else {
-      // 마지막 질문이면 결과 계산
-      calculateResult(newAnswers)
-    }
-  }
-
-  const handlePrevious = () => {
-    if (currentQuestion > 0) {
-      // 애니메이션 시작
-      setTransitionDirection('prev')
-      setIsTransitioning(true)
-      setTimeout(() => {
-        setCurrentQuestion(currentQuestion - 1)
-        // 이전 질문의 답변을 표시
-        const previousAnswer = answers[currentQuestion - 1]
-        setSelectedAnswer(previousAnswer !== undefined ? previousAnswer : null)
-        setIsTransitioning(false)
-      }, 300)
-    }
+      } else {
+        // 마지막 질문이면 결과 계산
+        calculateResult(newAnswers)
+      }
+    }, 300)
   }
 
   const calculateResult = async (finalAnswers: number[]) => {
@@ -220,28 +203,6 @@ export default function MBTIKpopQuestionsPage() {
               ))}
             </div>
 
-            {/* 네비게이션 버튼 */}
-            <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentQuestion === 0 || isTransitioning}
-                className="px-2 text-xs"
-              >
-                Anterior
-              </Button>
-              
-              <Button
-                onClick={handleNext}
-                disabled={selectedAnswer === null || isTransitioning}
-                className="px-2 bg-purple-500 hover:bg-purple-600 text-white disabled:text-gray-400 text-xs"
-              >
-                {currentQuestion === questions.length - 1 
-                  ? 'Ver Resultado'
-                  : 'Siguiente'
-                }
-              </Button>
-            </div>
           </Card>
 
           {/* 로딩 상태 */}
