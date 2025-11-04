@@ -26,6 +26,23 @@ export async function POST(request: NextRequest) {
       mbti
     }
     
+    // 퀴즈 참여자 수 증가
+    if (supabaseClient) {
+      const { data: quiz } = await supabaseClient
+        .from('quizzes')
+        .select('id, total_participants')
+        .eq('slug', 'mbti-kpop')
+        .single()
+      
+      if (quiz) {
+        await supabaseClient
+          .from('quizzes')
+          .update({ total_participants: (quiz.total_participants || 0) + 1 })
+          .eq('id', quiz.id)
+        console.log('[MBTI_KPOP_TEST] 참여자 수 증가:', (quiz.total_participants || 0) + 1)
+      }
+    }
+    
     return NextResponse.json({
       success: true,
       data: result

@@ -30,7 +30,7 @@ export default function ZodiacQuestionsPage() {
   const [month, setMonth] = useState('')
   const [day, setDay] = useState('')
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!year || !month || !day) {
       alert(language === 'ko' ? '모든 정보를 입력해주세요.' : 'Por favor completa todos los campos.')
       return
@@ -38,6 +38,28 @@ export default function ZodiacQuestionsPage() {
 
     // LocalStorage에 저장
     localStorage.setItem('zodiac-birthdate', JSON.stringify({ year, month, day }))
+    
+    // 참여자 수 증가
+    try {
+      // zodiac 퀴즈의 slug로 조회
+      const quizResponse = await fetch('/api/quizzes')
+      if (quizResponse.ok) {
+        const quizData = await quizResponse.json()
+        const zodiacQuiz = (quizData.data || quizData).find((q: any) => 
+          q.slug === 'zodiac' || q.title?.includes('Horóscopo') || q.title?.includes('띠')
+        )
+        
+        if (zodiacQuiz?.id) {
+          await fetch('/api/quiz/increment-participant', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quizId: zodiacQuiz.id })
+          })
+        }
+      }
+    } catch (error) {
+      console.error('참여자 수 증가 실패:', error)
+    }
     
     // Loading 페이지로 이동
     router.push('/quiz/zodiac/loading')

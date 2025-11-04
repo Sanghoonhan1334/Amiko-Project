@@ -143,6 +143,17 @@ function FortuneQuestionsPageContent() {
     // 답변을 로컬 스토리지에 저장
     localStorage.setItem('fortune_answers', JSON.stringify(selectedAnswers))
     
+    // 참여자 수 증가
+    try {
+      await fetch('/api/quiz/increment-participant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: 'fortune-test-2024' })
+      })
+    } catch (error) {
+      console.error('참여자 수 증가 실패:', error)
+    }
+    
     // 로딩 페이지로 이동
     setTimeout(() => {
       router.push('/quiz/fortune/loading')

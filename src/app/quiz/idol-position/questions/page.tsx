@@ -152,10 +152,22 @@ export default function IdolPositionQuestionsPage() {
     const newAnswers = [...answers, newAnswer]
     setAnswers(newAnswers)
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (currentQuestion === questions.length - 1) {
         // 마지막 질문이면 결과 계산 후 전용 결과 페이지로 이동
         const testResult = calculateResult(newAnswers)
+        
+        // 참여자 수 증가
+        try {
+          await fetch('/api/quiz/increment-participant', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quizId: 'dea20361-fd46-409d-880f-f91869c1d184' })
+          })
+        } catch (error) {
+          console.error('참여자 수 증가 실패:', error)
+        }
+        
         // 결과 타입을 URL 파라미터로 전달
         router.push(`/quiz/idol-position/result?type=${testResult.position}`)
       } else {
