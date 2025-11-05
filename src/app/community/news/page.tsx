@@ -947,9 +947,8 @@ function NewsPageContent() {
                 const targetNews = sortedNews.find((n: any) => n.id === newsIdFromUrl)
                 if (targetNews) {
                   console.log('URL에서 뉴스 자동 열기:', targetNews.title)
-                  setSelectedNews(targetNews)
-                  setShowNewsDetail(true)
-                  fetchComments(targetNews.id)
+                  // handleNewsClick을 호출하여 조회수도 증가시킴
+                  handleNewsClick(targetNews)
                 }
               }
             } else {
