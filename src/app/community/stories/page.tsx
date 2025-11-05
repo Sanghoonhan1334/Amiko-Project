@@ -723,8 +723,51 @@ function StoriesPageContent() {
     }
   }
 
+  // 이미지 리사이징 및 압축 함수
+  const resizeAndCompressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const MAX_WIDTH = 1080
+          const MAX_HEIGHT = 1920
+          
+          let width = img.width
+          let height = img.height
+          
+          // 비율 유지하면서 리사이징
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width)
+              width = MAX_WIDTH
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height)
+              height = MAX_HEIGHT
+            }
+          }
+          
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+          
+          // JPEG로 변환 (HEIC 포맷 해결) + 80% 품질로 압축
+          resolve(canvas.toDataURL('image/jpeg', 0.8))
+        }
+        img.onerror = () => reject(new Error('이미지 로드 실패'))
+        img.src = e.target?.result as string
+      }
+      reader.onerror = () => reject(new Error('파일 읽기 실패'))
+      reader.readAsDataURL(file)
+    })
+  }
+
   // 파일 선택 처리
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     console.log('파일 선택 이벤트 발생:', { file: !!file, fileName: file?.name, fileSize: file?.size, fileType: file?.type })
     
@@ -740,13 +783,13 @@ function StoriesPageContent() {
         return
       }
       
-      // 파일 크기 체크 (이미지: 10MB, 영상: 50MB)
-      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024
+      // 파일 크기 체크 (이미지: 5MB, 영상: 30MB) - 모바일 최적화
+      const maxSize = isVideo ? 30 * 1024 * 1024 : 5 * 1024 * 1024
       if (file.size > maxSize) {
         toast.error(
           language === 'ko' 
-            ? `파일 크기는 ${isVideo ? '50MB' : '10MB'} 이하여야 합니다.`
-            : `El tamaño del archivo debe ser menor a ${isVideo ? '50MB' : '10MB'}.`
+            ? `파일 크기는 ${isVideo ? '30MB' : '5MB'} 이하여야 합니다.`
+            : `El tamaño del archivo debe ser menor a ${isVideo ? '30MB' : '5MB'}.`
         )
         return
       }
@@ -784,14 +827,22 @@ function StoriesPageContent() {
         
         video.src = URL.createObjectURL(file)
       } else {
-        // 이미지는 바로 미리보기
-        setSelectedFile(file)
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          setImagePreview(e.target?.result as string)
-          console.log('이미지 미리보기 생성됨')
+        // 이미지는 리사이징 + 압축 후 미리보기
+        try {
+          console.log('이미지 리사이징 시작...')
+          const compressedImage = await resizeAndCompressImage(file)
+          console.log('이미지 리사이징 완료')
+          
+          // Blob으로 변환하여 파일 크기 확인
+          const blob = await fetch(compressedImage).then(r => r.blob())
+          console.log('압축 후 크기:', (blob.size / 1024 / 1024).toFixed(2), 'MB')
+          
+          setSelectedFile(file)
+          setImagePreview(compressedImage)
+        } catch (error) {
+          console.error('이미지 처리 실패:', error)
+          toast.error(language === 'ko' ? '이미지 처리 중 오류가 발생했습니다.' : 'Error al procesar la imagen.')
         }
-        reader.readAsDataURL(file)
       }
     }
   }
@@ -807,6 +858,7 @@ function StoriesPageContent() {
     console.log('스토리 업로드 시작')
     console.log('사용자 상태:', { user: !!user, userId: user?.id })
     console.log('선택된 파일:', { selectedFile: !!selectedFile, fileName: selectedFile?.name })
+    console.log('이미지 미리보기:', { hasPreview: !!imagePreview })
     console.log('스토리 텍스트:', { text: storyText, length: storyText.length })
     
     if (!user) {
@@ -814,7 +866,7 @@ function StoriesPageContent() {
       return
     }
     
-    if (!selectedFile) {
+    if (!selectedFile || !imagePreview) {
       toast.error('이미지를 선택해주세요.')
       return
     }
@@ -822,20 +874,18 @@ function StoriesPageContent() {
     setIsUploading(true)
     
     try {
-      // 이미지를 Base64로 변환
-      const base64Image = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result as string)
-        reader.onerror = reject
-        reader.readAsDataURL(selectedFile)
-      })
+      // 이미 리사이징/압축된 imagePreview 사용 (중복 변환 방지)
+      const base64Image = imagePreview
       
       if (!token) {
         throw new Error('인증 토큰이 없습니다.')
       }
       
+      // Base64 크기 확인 (디버깅용)
+      const sizeInMB = (base64Image.length * 0.75 / 1024 / 1024).toFixed(2)
       console.log('업로드 요청 전송:', { 
         hasImage: !!base64Image, 
+        imageSizeMB: sizeInMB,
         textLength: storyText.length,
         hasToken: !!token 
       })
