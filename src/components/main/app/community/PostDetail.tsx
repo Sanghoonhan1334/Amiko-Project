@@ -329,7 +329,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                 <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
               )}
             </div>
-            <p className="text-xs md:text-sm text-gray-500">{post.author?.full_name || t('freeboard.anonymous')} / {formatDate(post.created_at)}</p>
+            <p className="text-xs md:text-sm text-gray-500">{post.author?.nickname || post.author?.full_name || t('freeboard.anonymous')} / {formatDate(post.created_at)}</p>
           </div>
 
           {/* 상태 배지 및 액션 버튼 */}

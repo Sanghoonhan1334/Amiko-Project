@@ -113,22 +113,36 @@ export async function GET(
         console.log('[POST_GET] user_profiles에서 author를 찾지 못함, users 테이블 조회')
         const { data: userData } = await supabaseServer
           .from('users')
-          .select('id, full_name, nickname, profile_image, avatar_url')
+          .select('id, email, full_name, nickname, spanish_name, korean_name, profile_image, avatar_url, is_admin')
           .eq('id', post.user_id)
           .single()
         
         console.log('[POST_GET] users 조회 결과:', userData)
         
         if (userData) {
-          // full_name이 비어있으면 email의 '@' 앞 부분 사용
-          const finalName = userData.full_name || (userData.email ? userData.email.split('@')[0] : 'Anónimo')
+          // 닉네임 우선, 없으면 이름, 없으면 이메일, 없으면 운영자 확인
+          let finalName = userData.nickname || 
+                         userData.spanish_name || 
+                         userData.korean_name || 
+                         userData.full_name
+          
+          // 여전히 없으면 이메일 사용
+          if (!finalName || finalName.trim() === '') {
+            if (userData.email) {
+              finalName = userData.email.split('@')[0]
+            } else if (userData.is_admin) {
+              finalName = 'Operador'  // 운영자
+            } else {
+              finalName = 'Anónimo'
+            }
+          }
           
           console.log('[POST_GET] users에서 finalName 추출:', finalName)
           
           author = {
             id: userData.id,
             full_name: finalName,
-            nickname: userData.nickname || finalName,
+            nickname: finalName,
             profile_image: userData.profile_image || userData.avatar_url
           }
           console.log('[POST_GET] users에서 author 설정:', author)
