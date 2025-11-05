@@ -931,8 +931,13 @@ export default function VerificationCenterPage() {
           {step === 2 ? (
             <Button 
               onClick={handleSubmit}
-              disabled={loading || !formData.one_line_intro}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg"
+              disabled={
+                loading || 
+                !formData.one_line_intro ||
+                !formData.korean_level ||  // 한국어 수준 필수
+                !formData.spanish_level    // 스페인어 수준 필수
+              }
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg disabled:bg-gray-400"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
