@@ -106,7 +106,7 @@ export default function BottomTabNavigation() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 dark:bg-gray-800 border-t-2 border-blue-200 dark:border-gray-700 shadow-2xl md:hidden">
       
-      <div className="flex items-center justify-around px-1 py-1.5">
+      <div className="grid grid-cols-5 py-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
