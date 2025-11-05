@@ -129,6 +129,7 @@ export default function HomeTab() {
   const [currentPolls, setCurrentPolls] = useState<Poll[]>([])
   const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([])
   const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([])
+  const [youtubeLoading, setYoutubeLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(true)
@@ -594,17 +595,22 @@ export default function HomeTab() {
   }
 
   const loadYoutubeVideos = async () => {
+    setYoutubeLoading(true)
     try {
       const videos = await getAmikoRecentVideos(6)
       setYoutubeVideos(videos)
       
       // API 키가 없어서 빈 배열이 반환된 경우 경고
-      if (videos.length === 0 && !process.env.NEXT_PUBLIC_YOUTUBE_API_KEY) {
-        console.error('⚠️ YouTube API 키가 설정되지 않았습니다. Vercel 환경변수를 확인하세요.')
+      if (videos.length === 0) {
+        console.error('⚠️ YouTube 영상 로드 실패 - API 키 확인 필요')
+      } else {
+        console.log('✅ YouTube 영상 로드 성공:', videos.length, '개')
       }
     } catch (error) {
       console.error('YouTube 비디오 로딩 실패:', error)
       setYoutubeVideos([])
+    } finally {
+      setYoutubeLoading(false)
     }
   }
 
@@ -1535,11 +1541,21 @@ export default function HomeTab() {
                     </div>
                   </div>
                 ))
+              ) : youtubeLoading ? (
+                <div className="col-span-2 text-center py-4">
+                  <Play className="w-8 h-8 text-gray-400 mx-auto mb-2 animate-pulse" />
+                  <p className="text-gray-500 text-xs">
+                    {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
+                  </p>
+                </div>
               ) : (
                 <div className="col-span-2 text-center py-4">
                   <Play className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-gray-500 text-xs">
-                    {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
+                    {language === 'ko' ? '영상을 불러올 수 없습니다.' : 'No se pueden cargar los videos.'}
+                  </p>
+                  <p className="text-gray-400 text-[10px] mt-1">
+                    {language === 'ko' ? 'YouTube API 설정을 확인해주세요.' : 'Verifica la configuración de la API de YouTube.'}
                   </p>
                 </div>
               )}
@@ -2429,11 +2445,21 @@ export default function HomeTab() {
                           </div>
                         </div>
                       ))
+                    ) : youtubeLoading ? (
+                      <div className="col-span-2 text-center py-6">
+                        <Play className="w-12 h-12 text-gray-400 mx-auto mb-2 animate-pulse" />
+                        <p className="text-gray-500 text-sm">
+                          {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
+                        </p>
+                      </div>
                     ) : (
                       <div className="col-span-2 text-center py-6">
                         <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                         <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
+                          {language === 'ko' ? '영상을 불러올 수 없습니다.' : 'No se pueden cargar los videos.'}
+                        </p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          {language === 'ko' ? 'YouTube API 설정을 확인해주세요.' : 'Verifica la configuración de la API de YouTube.'}
                         </p>
                       </div>
                     )}
