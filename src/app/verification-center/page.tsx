@@ -218,7 +218,7 @@ export default function VerificationCenterPage() {
                   .from('users')
                   .select('is_korean')
                   .eq('id', user.id)
-                  .single()
+                  .maybeSingle()
                 
                 if (!userError && userData && !isKoreanDetermined) {
                   console.log('[VERIFICATION] users 테이블에서 is_korean 확인:', userData.is_korean)
@@ -226,7 +226,7 @@ export default function VerificationCenterPage() {
                   setIsKoreanDetermined(true)
                 } else if (!isKoreanDetermined) {
                   // users 테이블 조회 실패 시 기본값 (현지인)
-                  console.log('[VERIFICATION] users 조회 실패 - 기본값(현지인) 설정')
+                  console.log('[VERIFICATION] users 조회 실패 - 기본값(현지인) 설정', userError)
                   setIsKorean(false)
                   setIsKoreanDetermined(true)
                 }
