@@ -99,6 +99,14 @@ export default function MyTab() {
       // 사용자 프로필 정보를 가져와서 인증 상태 확인
       const checkVerificationStatus = async () => {
         try {
+          // 방금 인증 완료한 사용자는 체크 스킵 (무한 루프 방지)
+          const justCompleted = localStorage.getItem('verification_just_completed')
+          if (justCompleted === 'true') {
+            console.log('[MYTAB] 방금 인증 완료한 사용자, 인증 체크 스킵')
+            localStorage.removeItem('verification_just_completed')
+            return
+          }
+          
           // 먼저 운영자 확인
           const adminCheck = await fetch(`/api/admin/check?userId=${user.id}`)
           const adminResult = await adminCheck.json()

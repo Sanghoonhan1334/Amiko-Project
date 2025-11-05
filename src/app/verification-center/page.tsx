@@ -446,9 +446,16 @@ export default function VerificationCenterPage() {
         
         console.log('[VERIFICATION] 프로필 생성 완료 - 인증 상태는 자동으로 업데이트됩니다')
         
+        // 인증 완료 플래그를 localStorage에 저장 (무한 루프 방지)
+        localStorage.setItem('verification_just_completed', 'true')
+        
         // 성공 메시지 표시 후 메인 페이지로 이동
         alert(isKorean ? '인증이 완료되었습니다!' : '¡Verificación completada!')
-        router.push('/main?tab=me')
+        
+        // 프로필 캐시가 업데이트될 시간을 주기 위해 약간의 딜레이
+        setTimeout(() => {
+          router.push('/main?tab=me')
+        }, 500)
       } else {
         const errorData = await response.json()
         console.error('[VERIFICATION] 프로필 생성 실패:', errorData)
