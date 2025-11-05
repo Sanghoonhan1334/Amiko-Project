@@ -27,7 +27,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { getAmikoRecentVideos, type YouTubeVideo } from '@/lib/youtube'
+import type { YouTubeVideo } from '@/lib/youtube'
 
 interface Event {
   id: string
@@ -597,15 +597,28 @@ export default function HomeTab() {
   const loadYoutubeVideos = async () => {
     setYoutubeLoading(true)
     try {
-      const videos = await getAmikoRecentVideos(6)
-      setYoutubeVideos(videos)
+      // 하드코딩된 AMIKO 채널 영상 (API 할당량 절약)
+      const videos = [
+        {
+          id: 'cZxLM4-mSrw',
+          title: 'AMIKO Official Video 1',
+          thumbnail: 'https://img.youtube.com/vi/cZxLM4-mSrw/maxresdefault.jpg',
+          duration: '',
+          publishedAt: new Date().toISOString(),
+          url: 'https://www.youtube.com/watch?v=cZxLM4-mSrw'
+        },
+        {
+          id: 'do4aDyGZmgM',
+          title: 'AMIKO Official Video 2',
+          thumbnail: 'https://img.youtube.com/vi/do4aDyGZmgM/maxresdefault.jpg',
+          duration: '',
+          publishedAt: new Date().toISOString(),
+          url: 'https://www.youtube.com/watch?v=do4aDyGZmgM'
+        }
+      ]
       
-      // API 키가 없어서 빈 배열이 반환된 경우 경고
-      if (videos.length === 0) {
-        console.error('⚠️ YouTube 영상 로드 실패 - API 키 확인 필요')
-      } else {
-        console.log('✅ YouTube 영상 로드 성공:', videos.length, '개')
-      }
+      setYoutubeVideos(videos)
+      console.log('✅ YouTube 영상 로드 완료 (하드코딩):', videos.length, '개')
     } catch (error) {
       console.error('YouTube 비디오 로딩 실패:', error)
       setYoutubeVideos([])
