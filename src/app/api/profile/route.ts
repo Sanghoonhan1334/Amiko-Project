@@ -42,7 +42,12 @@ async function handleProfileUpdate(request: NextRequest) {
       company, 
       career,
       introduction,
-      interests
+      interests,
+      is_verified,           // 인증 완료 여부
+      verification_completed, // 인증 완료 플래그
+      korean_level,          // 한국어 수준
+      spanish_level,         // 스페인어 수준
+      english_level          // 영어 수준
     } = body
 
     // Authorization 헤더에서 토큰 추출
@@ -127,6 +132,11 @@ async function handleProfileUpdate(request: NextRequest) {
       company,
       career,
       interests,
+      korean_level,          // 한국어 수준
+      spanish_level,         // 스페인어 수준
+      english_level,         // 영어 수준
+      is_verified,           // 인증 완료 여부
+      verification_completed, // 인증 완료 플래그
       join_date: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString()
     }
@@ -455,6 +465,11 @@ export async function GET(request: NextRequest) {
         company: (user as any).company,
         career: (user as any).career,
         interests: (user as any).interests,
+        korean_level: (user as any).korean_level,          // 한국어 수준
+        spanish_level: (user as any).spanish_level,        // 스페인어 수준
+        english_level: (user as any).english_level,        // 영어 수준
+        is_verified: (user as any).is_verified,            // 인증 완료 여부
+        verification_completed: (user as any).verification_completed, // 인증 완료 플래그
         join_date: (user as any).join_date,
         is_admin: (user as any).is_admin,
         is_korean: isKoreanByPhone,
