@@ -419,9 +419,10 @@ export default function Header() {
   const isDetailPage = pathname.includes('/community/fanart/') || 
                        pathname.includes('/community/idol-photos/') ||
                        pathname.includes('/community/polls/') ||
-                       pathname.includes('/community/news/')
+                       pathname.includes('/community/news/') ||
+                       pathname.includes('/community/k-chat')
 
-  // 상세 페이지에서는 헤더 전체 숨김
+  // 상세 페이지 및 Chat Zone에서는 헤더 전체 숨김
   if (isDetailPage) {
     return null
   }
