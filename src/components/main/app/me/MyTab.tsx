@@ -120,8 +120,10 @@ export default function MyTab() {
           const result = await response.json()
           
           if (response.ok && result.user) {
-            // 프로필 있음 → 인증 상태 확인
+            // 프로필 있음 → 인증 상태 확인 (is_verified 플래그 우선)
             const isVerified = !!(
+              result.user.is_verified ||  // 👈 인증센터에서 설정한 플래그
+              result.user.verification_completed ||  // 👈 인증 완료 플래그
               result.user.email_verified_at || 
               result.user.sms_verified_at || 
               result.user.kakao_linked_at || 
@@ -133,6 +135,8 @@ export default function MyTab() {
             )
             
             console.log('인증 상태 확인:', {
+              is_verified: result.user.is_verified,
+              verification_completed: result.user.verification_completed,
               email_verified_at: result.user.email_verified_at,
               sms_verified_at: result.user.sms_verified_at,
               full_name: result.user.full_name,

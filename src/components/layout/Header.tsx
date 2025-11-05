@@ -303,8 +303,10 @@ export default function Header() {
         const profileResult = await profileResponse.json()
         
         if (profileResult.user) {
-          // 인증 상태 확인 - 더 유연한 조건
+          // 인증 상태 확인 - is_verified 플래그 우선 체크
           const isVerified = !!(
+            profileResult.user.is_verified ||  // 👈 인증센터에서 설정한 플래그
+            profileResult.user.verification_completed ||  // 👈 인증 완료 플래그
             profileResult.user.email_verified_at || 
             profileResult.user.sms_verified_at || 
             profileResult.user.kakao_linked_at || 
@@ -318,6 +320,8 @@ export default function Header() {
           setVerificationStatus(isVerified ? 'verified' : 'unverified')
           
           console.log('[HEADER] 인증 상태 확인:', {
+            is_verified: profileResult.user.is_verified,
+            verification_completed: profileResult.user.verification_completed,
             korean_name: profileResult.user.korean_name,
             spanish_name: profileResult.user.spanish_name,
             nickname: profileResult.user.nickname,
