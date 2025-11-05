@@ -503,6 +503,9 @@ function NewsPageContent() {
         
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
+        
+        // 뉴스 목록도 새로고침 (comment_count 업데이트)
+        await fetchRealNews(currentPage)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('뉴스 댓글 작성 실패:', errorData)
@@ -544,6 +547,9 @@ function NewsPageContent() {
         
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
+        
+        // 뉴스 목록도 새로고침 (comment_count 업데이트)
+        await fetchRealNews(currentPage)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('뉴스 대댓글 작성 실패:', errorData)

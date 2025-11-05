@@ -146,9 +146,29 @@ export async function POST(
       )
     }
 
-    // 기본 사용자 ID 사용 (개발용)
-    const defaultUserId = '5f83ab21-fd61-4666-94b5-087d73477476'
-    console.log('[NEWS_COMMENTS_POST] userId:', defaultUserId)
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader) {
+      console.error('[NEWS_COMMENTS_POST] Authorization 헤더 없음')
+      return NextResponse.json(
+        { error: '로그인이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+
+    if (authError || !user) {
+      console.error('[NEWS_COMMENTS_POST] 인증 실패:', authError)
+      return NextResponse.json(
+        { error: '로그인이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+
+    const userId = user.id
+    console.log('[NEWS_COMMENTS_POST] userId:', userId)
 
     // 입력 검증
     if (!content || content.trim().length === 0) {
@@ -179,7 +199,7 @@ export async function POST(
     // 2. 댓글 데이터 준비
     const commentData: any = {
       post_id: newsId,
-      author_id: defaultUserId,  // author_id 사용
+      author_id: userId,  // 실제 로그인한 사용자 ID 사용
       content: content.trim(),
       like_count: 0,
       dislike_count: 0,
@@ -205,19 +225,6 @@ export async function POST(
       `)
       .single()
 
-    // 사용자 정보는 별도로 조회
-    if (newComment) {
-      const { data: userData } = await supabaseServer
-        .from('users')
-        .select('id, full_name, nickname, avatar_url')
-        .eq('id', defaultUserId)
-        .single()
-      
-      if (userData) {
-        (newComment as any).users = userData
-      }
-    }
-
     if (insertError) {
       console.error('[NEWS_COMMENTS_POST] 댓글 저장 오류:', insertError)
       console.error('[NEWS_COMMENTS_POST] 오류 상세:', {
@@ -233,6 +240,19 @@ export async function POST(
         },
         { status: 500 }
       )
+    }
+
+    // 사용자 정보는 별도로 조회
+    if (newComment) {
+      const { data: userData } = await supabaseServer
+        .from('users')
+        .select('id, full_name, nickname, avatar_url')
+        .eq('id', userId)
+        .single()
+      
+      if (userData) {
+        (newComment as any).users = userData
+      }
     }
 
     console.log('[NEWS_COMMENTS_POST] 댓글 저장 성공:', newComment.id)
