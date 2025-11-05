@@ -269,7 +269,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     if (!post) return
     
     try {
-      await shareCommunityPost(post.id, post.title, post.content)
+      await shareCommunityPost(post.id, post.title, post.content, language as 'ko' | 'es')
     } catch (error) {
       console.error('Share failed:', error)
     }

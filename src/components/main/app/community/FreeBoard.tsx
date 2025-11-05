@@ -146,7 +146,7 @@ export default function FreeBoard() {
     // 이미지 파일만 필터링
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     if (imageFiles.length === 0) {
-      alert('이미지 파일만 업로드할 수 있습니다.')
+      alert(language === 'ko' ? '이미지 파일만 업로드할 수 있습니다.' : 'Solo se pueden subir archivos de imagen.')
       return
     }
 
@@ -154,7 +154,9 @@ export default function FreeBoard() {
     const maxSize = 5 * 1024 * 1024
     const validFiles = imageFiles.filter(file => {
       if (file.size > maxSize) {
-        alert(`${file.name}은(는) 5MB를 초과합니다.`)
+        alert(language === 'ko' 
+          ? `${file.name}은(는) 5MB를 초과합니다.` 
+          : `${file.name} excede 5MB.`)
         return false
       }
       return true
@@ -164,7 +166,7 @@ export default function FreeBoard() {
 
     // 최대 5개 이미지 제한
     if (uploadedImages.length + validFiles.length > 5) {
-      alert('최대 5개까지 이미지를 업로드할 수 있습니다.')
+      alert(language === 'ko' ? '최대 5개까지 이미지를 업로드할 수 있습니다.' : 'Se pueden subir máximo 5 imágenes.')
       return
     }
 
@@ -499,7 +501,7 @@ export default function FreeBoard() {
         if (response.status === 500) {
           // 빈 객체이거나 데이터베이스 관련 에러인 경우
           if (!errorData.error || errorData.error.includes('데이터베이스') || errorData.error.includes('연결')) {
-            alert('시스템 점검 중입니다. 잠시 후 다시 시도해주세요.')
+            alert(language === 'ko' ? '시스템 점검 중입니다. 잠시 후 다시 시도해주세요.' : 'El sistema está en mantenimiento. Intente de nuevo más tarde.')
             return
           }
         }
@@ -690,7 +692,7 @@ export default function FreeBoard() {
     if (!user || !isAdmin) return
     
     if (!announcementTitle.trim() || !announcementContent.trim()) {
-      alert('제목과 내용을 모두 입력해주세요.')
+      alert(language === 'ko' ? '제목과 내용을 모두 입력해주세요.' : 'Por favor, complete el título y el contenido.')
       return
     }
 
@@ -729,10 +731,10 @@ export default function FreeBoard() {
       // 공지사항 알림 전송
       await sendAnnouncementNotification(announcementTitle, announcementContent)
       
-      alert('공지사항이 작성되었습니다.')
+      alert(language === 'ko' ? '공지사항이 작성되었습니다.' : 'Se ha publicado el anuncio.')
     } catch (error) {
       console.error('공지사항 작성 실패:', error)
-      alert('공지사항 작성에 실패했습니다.')
+      alert(language === 'ko' ? '공지사항 작성에 실패했습니다.' : 'Error al publicar el anuncio.')
     } finally {
       setAnnouncementLoading(false)
     }
@@ -774,7 +776,7 @@ export default function FreeBoard() {
       
       setAnnouncementImages(prev => [...prev, ...uploadedUrls])
     } catch (error) {
-      alert('이미지 업로드에 실패했습니다.')
+      alert(language === 'ko' ? '이미지 업로드에 실패했습니다.' : 'Error al subir la imagen.')
     } finally {
       setUploadingAnnouncementImages(false)
     }

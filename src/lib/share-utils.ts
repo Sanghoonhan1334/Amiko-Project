@@ -8,6 +8,7 @@ interface ShareOptions {
   text?: string
   url: string
   deepLink?: string // 앱 deep link
+  language?: 'ko' | 'es' // 언어 설정
 }
 
 /**
@@ -91,7 +92,7 @@ export async function checkAppInstalled(deepLink: string): Promise<boolean> {
  * @param options 공유 옵션
  */
 export async function shareContent(options: ShareOptions): Promise<void> {
-  const { title, text, url, deepLink } = options
+  const { title, text, url, deepLink, language = 'es' } = options
   
   // 네이티브 공유 API가 있으면 우선 사용
   if (navigator.share) {
@@ -131,15 +132,22 @@ export async function shareContent(options: ShareOptions): Promise<void> {
   try {
     await navigator.clipboard.writeText(deepLink || url)
     
+    const successMessage = language === 'ko' 
+      ? '링크가 클립보드에 복사되었습니다!' 
+      : '¡El enlace se copió al portapapeles!'
+    
     // 토스트 메시지 표시 (이미 toast가 있는 경우)
     if (typeof window !== 'undefined' && (window as any).toast) {
-      ;(window as any).toast.success('링크가 클립보드에 복사되었습니다!')
+      ;(window as any).toast.success(successMessage)
     } else {
-      alert('링크가 클립보드에 복사되었습니다!')
+      alert(successMessage)
     }
   } catch (error) {
     console.error('Failed to copy to clipboard:', error)
-    alert('링크 복사에 실패했습니다. URL: ' + (deepLink || url))
+    const errorMessage = language === 'ko'
+      ? '링크 복사에 실패했습니다. URL: ' + (deepLink || url)
+      : 'Error al copiar el enlace. URL: ' + (deepLink || url)
+    alert(errorMessage)
   }
 }
 
@@ -149,11 +157,13 @@ export async function shareContent(options: ShareOptions): Promise<void> {
  * @param postId 게시물 ID
  * @param title 게시물 제목
  * @param text 게시물 내용 (선택)
+ * @param language 언어 설정
  */
 export async function shareCommunityPost(
   postId: string,
   title: string,
-  text?: string
+  text?: string,
+  language: 'ko' | 'es' = 'es'
 ): Promise<void> {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const webUrl = `${baseUrl}/community/post/${postId}`
@@ -165,7 +175,8 @@ export async function shareCommunityPost(
     title: `${title} - Amiko`,
     text: text || title,
     url: webUrl,
-    deepLink
+    deepLink,
+    language
   })
 }
 
@@ -174,10 +185,12 @@ export async function shareCommunityPost(
  * 
  * @param postId 게시물 ID
  * @param title 게시물 제목
+ * @param language 언어 설정
  */
 export async function shareIdolMeme(
   postId: string,
-  title: string
+  title: string,
+  language: 'ko' | 'es' = 'es'
 ): Promise<void> {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const webUrl = `${baseUrl}/community/idol-photos/${postId}`
@@ -189,7 +202,8 @@ export async function shareIdolMeme(
     title: `Fotos de Ídolos - ${title}`,
     text: `¡Mira esta foto de ${title} en Fotos de Ídolos!`,
     url: webUrl,
-    deepLink
+    deepLink,
+    language
   })
 }
 
@@ -198,10 +212,12 @@ export async function shareIdolMeme(
  * 
  * @param storyId 스토리 ID
  * @param title 스토리 제목
+ * @param language 언어 설정
  */
 export async function shareStory(
   storyId: string,
-  title: string
+  title: string,
+  language: 'ko' | 'es' = 'es'
 ): Promise<void> {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const webUrl = `${baseUrl}/community/stories/${storyId}`
@@ -213,7 +229,8 @@ export async function shareStory(
     title: `${title} - Amiko Stories`,
     text: title,
     url: webUrl,
-    deepLink
+    deepLink,
+    language
   })
 }
 
@@ -223,11 +240,13 @@ export async function shareStory(
  * @param quizId 퀴즈 ID
  * @param resultTitle 결과 제목
  * @param resultText 결과 내용
+ * @param language 언어 설정
  */
 export async function shareQuizResult(
   quizId: string,
   resultTitle: string,
-  resultText: string
+  resultText: string,
+  language: 'ko' | 'es' = 'es'
 ): Promise<void> {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const webUrl = `${baseUrl}/quiz/${quizId}/result`
@@ -239,7 +258,8 @@ export async function shareQuizResult(
     title: resultTitle,
     text: resultText,
     url: webUrl,
-    deepLink
+    deepLink,
+    language
   })
 }
 

@@ -407,7 +407,7 @@ export default function VerificationCenterPage() {
       
       if (!token) {
         console.log('[VERIFICATION] 토큰이 없음, 로그인 페이지로 이동')
-        alert('로그인이 필요합니다. 다시 로그인해주세요.')
+        alert(language === 'ko' ? '로그인이 필요합니다. 다시 로그인해주세요.' : 'Se requiere iniciar sesión. Por favor, inicie sesión nuevamente.')
         router.push('/sign-in')
         return
       }
@@ -483,7 +483,7 @@ export default function VerificationCenterPage() {
         if (response.status === 401) {
           // 인증 오류인 경우 로그인 페이지로 이동
           console.log('[VERIFICATION] 인증 오류, 로그인 페이지로 이동')
-          alert('인증이 만료되었습니다. 다시 로그인해주세요.')
+          alert(language === 'ko' ? '인증이 만료되었습니다. 다시 로그인해주세요.' : 'La autenticación ha expirado. Por favor, inicie sesión nuevamente.')
           localStorage.removeItem('amiko_token')
           router.push('/sign-in')
           return
