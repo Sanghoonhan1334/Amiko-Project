@@ -208,10 +208,34 @@ export default function VerificationCenterPage() {
                 setIsKoreanDetermined(true)
               }
             } else if (profileResponse.status === 404) {
-              // 프로필이 설정되지 않은 경우 (드물지만 발생 가능)
-              console.log('[VERIFICATION] 프로필 미설정 - 기본값 사용')
-              // is_korean은 회원가입 시 저장되므로 users 테이블에는 항상 존재
-              // 만약 여기 도달하면 데이터 불일치이므로 로그만 남김
+              // 프로필이 설정되지 않은 경우 - users 테이블에서 is_korean 확인
+              console.log('[VERIFICATION] 프로필 미설정 - users 테이블에서 is_korean 확인')
+              
+              try {
+                const supabase = createSupabaseBrowserClient()
+                const { data: userData, error: userError } = await supabase
+                  .from('users')
+                  .select('is_korean')
+                  .eq('id', user.id)
+                  .single()
+                
+                if (!userError && userData && !isKoreanDetermined) {
+                  console.log('[VERIFICATION] users 테이블에서 is_korean 확인:', userData.is_korean)
+                  setIsKorean(userData.is_korean ?? false)
+                  setIsKoreanDetermined(true)
+                } else if (!isKoreanDetermined) {
+                  // users 테이블 조회 실패 시 기본값 (현지인)
+                  console.log('[VERIFICATION] users 조회 실패 - 기본값(현지인) 설정')
+                  setIsKorean(false)
+                  setIsKoreanDetermined(true)
+                }
+              } catch (e) {
+                console.error('[VERIFICATION] users 테이블 조회 오류:', e)
+                if (!isKoreanDetermined) {
+                  setIsKorean(false)
+                  setIsKoreanDetermined(true)
+                }
+              }
             }
           }
         } catch (profileError) {
