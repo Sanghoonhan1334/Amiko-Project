@@ -414,11 +414,7 @@ export default function VerificationCenterPage() {
 
       // Supabase 클라이언트로 토큰 갱신 시도
       try {
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
-        
+        const supabase = createSupabaseBrowserClient()
         const { data: { session }, error: refreshError } = await supabase.auth.refreshSession()
         
         if (session && !refreshError) {
@@ -426,20 +422,40 @@ export default function VerificationCenterPage() {
           localStorage.setItem('amiko_token', token)
           console.log('[VERIFICATION] Supabase 토큰 갱신 성공')
         } else {
-          console.log('[VERIFICATION] Supabase 토큰 갱신 실패:', refreshError)
+          console.error('[VERIFICATION] Supabase 토큰 갱신 실패:', refreshError)
+          // 갱신 실패 시 현재 세션 다시 확인
+          const { data: { session: currentSession } } = await supabase.auth.getSession()
+          if (currentSession) {
+            token = currentSession.access_token
+            localStorage.setItem('amiko_token', token)
+            console.log('[VERIFICATION] 현재 세션으로 토큰 복구')
+          } else {
+            // 세션도 없으면 로그인 필요
+            console.error('[VERIFICATION] 유효한 세션 없음, 로그인 필요')
+            alert(language === 'ko' ? '로그인이 만료되었습니다. 다시 로그인해주세요.' : 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.')
+            localStorage.removeItem('amiko_token')
+            localStorage.removeItem('amiko_session')
+            router.push('/sign-in')
+            return
+          }
         }
       } catch (refreshError) {
-        console.log('[VERIFICATION] 토큰 갱신 중 오류:', refreshError)
+        console.error('[VERIFICATION] 토큰 갱신 중 오류:', refreshError)
+        // 에러 발생 시에도 로그인으로
+        alert(language === 'ko' ? '인증 오류가 발생했습니다. 다시 로그인해주세요.' : 'Error de autenticación. Por favor, inicie sesión nuevamente.')
+        router.push('/sign-in')
+        return
       }
 
       console.log('[VERIFICATION] 프로필 생성 요청 시작')
       console.log('[VERIFICATION] 사용자 정보:', { userId: user?.id, userEmail: user?.email })
+      console.log('[VERIFICATION] 토큰 유효성:', { hasToken: !!token, tokenLength: token?.length })
       
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(token)}`
+          'Authorization': `Bearer ${token}`  // encodeURIComponent 제거 (토큰은 이미 인코딩됨)
         },
         body: JSON.stringify(dataToSubmit)
       })
@@ -458,7 +474,7 @@ export default function VerificationCenterPage() {
         
         // 프로필 캐시가 업데이트될 시간을 주기 위해 약간의 딜레이
         setTimeout(() => {
-          router.push('/main?tab=me')
+        router.push('/main?tab=me')
         }, 500)
       } else {
         const errorData = await response.json()
