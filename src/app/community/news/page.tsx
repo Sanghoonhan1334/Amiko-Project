@@ -179,11 +179,40 @@ function NewsPageContent() {
     setShowNewsWriteModal(true)
   }
 
-  const handleNewsClick = (newsItem: any) => {
+  const handleNewsClick = async (newsItem: any) => {
     setSelectedNews(newsItem)
     setShowNewsDetail(true)
     // 댓글 로드
     fetchComments(newsItem.id)
+    
+    // 조회수 증가
+    try {
+      const response = await fetch(`/api/news/${newsItem.id}/increment-view`, {
+        method: 'POST'
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        console.log('[NEWS] 조회수 증가:', result.view_count)
+        
+        // 로컬 상태 업데이트
+        setSelectedNews((prev: any) => ({
+          ...prev,
+          view_count: result.view_count
+        }))
+        
+        // 뉴스 목록도 업데이트
+        setNews((prevNews) => 
+          prevNews.map((n) => 
+            n.id === newsItem.id 
+              ? { ...n, view_count: result.view_count }
+              : n
+          )
+        )
+      }
+    } catch (error) {
+      console.error('[NEWS] 조회수 증가 실패:', error)
+    }
   }
 
   const handleBackToList = () => {
