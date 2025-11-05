@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 export default function VerificationCenterPage() {
   const router = useRouter()
