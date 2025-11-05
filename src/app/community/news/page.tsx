@@ -198,14 +198,15 @@ function NewsPageContent() {
         // 로컬 상태 업데이트
         setSelectedNews((prev: any) => ({
           ...prev,
-          view_count: result.view_count
+          view_count: result.view_count,
+          views: result.view_count  // UI에서 사용하는 필드명
         }))
         
         // 뉴스 목록도 업데이트
         setNews((prevNews) => 
           prevNews.map((n) => 
             n.id === newsItem.id 
-              ? { ...n, view_count: result.view_count }
+              ? { ...n, view_count: result.view_count, views: result.view_count }
               : n
           )
         )
@@ -227,7 +228,15 @@ function NewsPageContent() {
       const data = await response.json()
       
       if (data.success) {
-        const sortedNews = data.newsItems.sort((a: any, b: any) => {
+        // 필드명 매핑
+        const mappedNews = data.newsItems.map((news: any) => ({
+          ...news,
+          views: news.view_count || 0,      // view_count → views
+          comments: news.comment_count || 0, // comment_count → comments
+          likes: news.like_count || 0        // like_count → likes
+        }))
+        
+        const sortedNews = mappedNews.sort((a: any, b: any) => {
           if (a.is_pinned && !b.is_pinned) return -1
           if (!a.is_pinned && b.is_pinned) return 1
           return new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime()
@@ -501,6 +510,13 @@ function NewsPageContent() {
         setNewComment('')
         toast.success(language === 'ko' ? '댓글이 작성되었습니다!' : '¡Comentario publicado!')
         
+        // selectedNews 댓글 수 업데이트
+        setSelectedNews((prev: any) => ({
+          ...prev,
+          comment_count: (prev.comment_count || 0) + 1,
+          comments: (prev.comments || 0) + 1
+        }))
+        
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
         
@@ -544,6 +560,13 @@ function NewsPageContent() {
         setReplyContent('')
         setReplyingTo(null)
         toast.success(language === 'ko' ? '답글이 작성되었습니다!' : '¡Respuesta publicada!')
+        
+        // selectedNews 댓글 수 업데이트
+        setSelectedNews((prev: any) => ({
+          ...prev,
+          comment_count: (prev.comment_count || 0) + 1,
+          comments: (prev.comments || 0) + 1
+        }))
         
         // 댓글 목록 새로고침
         await fetchComments(selectedNews.id)
@@ -929,8 +952,16 @@ function NewsPageContent() {
             const data = await response.json()
             
             if (data.success) {
+              // 필드명 매핑 및 정렬
+              const mappedNews = data.newsItems.map((news: any) => ({
+                ...news,
+                views: news.view_count || 0,      // view_count → views
+                comments: news.comment_count || 0, // comment_count → comments
+                likes: news.like_count || 0        // like_count → likes
+              }))
+              
               // 고정된 뉴스를 먼저, 그 다음 최신순으로 정렬
-              const sortedNews = data.newsItems.sort((a: any, b: any) => {
+              const sortedNews = mappedNews.sort((a: any, b: any) => {
                 // 고정된 뉴스가 먼저
                 if (a.is_pinned && !b.is_pinned) return -1
                 if (!a.is_pinned && b.is_pinned) return 1
