@@ -930,55 +930,20 @@ img[alt="스토리"] {
   background: white !important;
 }
 
-/* 스토리 작성 모달 내부 모든 요소 밝게 */
-[data-radix-dialog-content] * {
-  color: rgb(55 65 81) !important;
-}
-
-[data-radix-dialog-content] h2,
-[data-radix-dialog-content] .text-xl {
-  color: rgb(17 24 39) !important;
-}
-
 /* 다크모드에서도 모달은 밝게 유지 */
 .dark [data-radix-dialog-content] {
   background-color: white !important;
   background: white !important;
 }
 
-.dark [data-radix-dialog-content] * {
-  color: rgb(55 65 81) !important;
-}
-
-.dark [data-radix-dialog-content] h2,
-.dark [data-radix-dialog-content] .text-xl {
+/* Native select의 option 텍스트가 보이도록 강제 */
+select option {
   color: rgb(17 24 39) !important;
+  background-color: white !important;
 }
 
-/* 사용자 프로필 모달 특별 처리 */
-[data-radix-dialog-content] h2,
-[data-radix-dialog-content] .text-lg,
-[data-radix-dialog-content] .text-2xl {
+select {
   color: rgb(17 24 39) !important;
-}
-
-[data-radix-dialog-content] p,
-[data-radix-dialog-content] span,
-[data-radix-dialog-content] div {
-  color: rgb(55 65 81) !important;
-}
-
-/* 다크모드에서도 사용자 프로필 모달 밝게 */
-.dark [data-radix-dialog-content] h2,
-.dark [data-radix-dialog-content] .text-lg,
-.dark [data-radix-dialog-content] .text-2xl {
-  color: rgb(17 24 39) !important;
-}
-
-.dark [data-radix-dialog-content] p,
-.dark [data-radix-dialog-content] span,
-.dark [data-radix-dialog-content] div {
-  color: rgb(55 65 81) !important;
 }
 
 /* 사용자 프로필 모달 z-index 최우선 */
@@ -1042,6 +1007,72 @@ img[alt="스토리"] {
 
 [data-radix-dialog-overlay] {
   z-index: 99998 !important;
+}
+
+/* Select 드롭다운이 모달 위에 표시되도록 */
+[data-radix-select-content] {
+  z-index: 100000 !important;
+  position: fixed !important;
+  min-width: 200px !important;
+}
+
+[data-radix-select-viewport] {
+  z-index: 100000 !important;
+  min-width: 200px !important;
+}
+
+/* Select 드롭다운 텍스트가 보이도록 강제 설정 */
+[data-radix-select-content] {
+  background-color: white !important;
+  color: rgb(17 24 39) !important;
+  pointer-events: auto !important;
+  min-height: 50px !important;
+  height: auto !important;
+}
+
+[data-radix-select-viewport] {
+  pointer-events: auto !important;
+  min-height: 100px !important;
+  height: auto !important;
+  max-height: 300px !important;
+}
+
+[data-radix-select-item] {
+  color: rgb(17 24 39) !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  min-height: 32px !important;
+  padding: 6px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+[data-radix-select-item]:hover,
+[data-radix-select-item][data-highlighted] {
+  background-color: rgb(243 244 246) !important;
+  color: rgb(17 24 39) !important;
+}
+
+[data-radix-select-item] * {
+  color: inherit !important;
+  pointer-events: none !important;
+}
+
+/* Select Trigger가 클릭 가능하도록 */
+button[role="combobox"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+button[role="combobox"] * {
+  pointer-events: none !important;
+}
+
+/* 디버깅: Select Portal이 정상적으로 렌더링되는지 확인 */
+[data-radix-select-portal] {
+  position: fixed !important;
+  z-index: 100000 !important;
+  pointer-events: auto !important;
 }
 
 /* 스토리 업로드 모달이 모든 요소 위에 표시되도록 */

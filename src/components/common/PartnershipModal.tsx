@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Handshake, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { Handshake, Send, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { translations } from '@/lib/translations'
 
 interface PartnershipModalProps {
   isOpen: boolean
@@ -16,18 +16,13 @@ interface PartnershipModalProps {
 }
 
 export default function PartnershipModal({ isOpen, onClose }: PartnershipModalProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [formData, setFormData] = useState({
     companyName: '',
     representativeName: '',
-    position: '',
     email: '',
     phone: '',
-    businessField: '',
-    companySize: '',
     partnershipType: '',
-    budget: '',
-    expectedEffect: '',
     message: '',
     attachments: null as File | null
   })
@@ -35,25 +30,10 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  const businessFields = Object.entries(t('partnership.businessFields')).map(([value, data]) => ({
-    value,
-    label: data.label,
-    description: data.description
-  }))
-
-  const companySizes = Object.entries(t('partnership.companySizes')).map(([value, data]) => ({
-    value,
-    label: data.label,
-    description: data.description
-  }))
-
-  const partnershipTypes = Object.entries(t('partnership.partnershipTypes')).map(([value, data]) => ({
-    value,
-    label: data.label,
-    description: data.description
-  }))
-
-  const budgetRanges = Object.entries(t('partnership.budgetRanges')).map(([value, data]) => ({
+  // t() 함수가 nested 객체를 제대로 반환하지 않아서 직접 가져오기
+  const partnershipTypesData = translations[language].partnership.partnershipTypes
+  
+  const partnershipTypes = Object.entries(partnershipTypesData).map(([value, data]: [string, any]) => ({
     value,
     label: data.label,
     description: data.description
@@ -100,14 +80,9 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
         setFormData({
           companyName: '',
           representativeName: '',
-          position: '',
           email: '',
           phone: '',
-          businessField: '',
-          companySize: '',
           partnershipType: '',
-          budget: '',
-          expectedEffect: '',
           message: '',
           attachments: null
         })
@@ -130,7 +105,19 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[98vw] max-w-sm max-h-[95vh] overflow-y-auto bg-white mx-1">
+        <DialogContent 
+        className="w-[98vw] max-w-sm max-h-[90vh] bg-white mx-1 flex flex-col shadow-2xl rounded-lg"
+        onInteractOutside={(e) => {
+          // Select 드롭다운 클릭 시 Dialog가 닫히지 않도록 방지
+          const target = e.target as HTMLElement
+          if (target.closest('[data-radix-select-content]') || 
+              target.closest('[data-radix-select-viewport]') ||
+              target.closest('[data-radix-select-item]')) {
+            e.preventDefault()
+            console.log('🛡️ [DIALOG] Select 외부 클릭 차단됨')
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="text-sm font-bold text-center text-gray-900 mb-2 whitespace-normal leading-tight">
             <Handshake className="h-4 w-4 inline mr-1 text-blue-500" />
@@ -138,12 +125,9 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-2">
-          {/* 회사 정보 */}
+        <form onSubmit={handleSubmit} className="space-y-2 overflow-y-auto flex-1">
+          {/* 기본 정보 (간소화) */}
           <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-gray-900 border-b pb-1 whitespace-normal leading-tight">
-              {t('partnership.companyInfo')}
-            </h3>
             <div className="grid grid-cols-1 gap-1">
               <div>
                 <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
@@ -165,18 +149,6 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
                   value={formData.representativeName}
                   onChange={(e) => handleInputChange('representativeName', e.target.value)}
                   placeholder={t('partnership.representativeNamePlaceholder')}
-                  className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
-                  {t('partnership.position')} *
-                </label>
-                <Input
-                  value={formData.position}
-                  onChange={(e) => handleInputChange('position', e.target.value)}
-                  placeholder={t('partnership.positionPlaceholder')}
                   className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8"
                   required
                 />
@@ -206,115 +178,30 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
                   required
                 />
               </div>
-            </div>
-          </div>
-
-          {/* 사업 정보 */}
-          <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-gray-900 border-b pb-1 whitespace-normal leading-tight">
-              {t('partnership.businessInfo')}
-            </h3>
-            <div className="grid grid-cols-1 gap-1">
-              <div>
-                <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
-                  {t('partnership.businessField')} *
-                </label>
-                <Select value={formData.businessField} onValueChange={(value) => handleInputChange('businessField', value)}>
-                  <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
-                    <SelectValue placeholder={t('partnership.businessFieldPlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {businessFields.map((field) => (
-                      <SelectItem key={field.value} value={field.value}>
-                        <div>
-                          <div className="font-medium text-[10px]">{field.label}</div>
-                          <div className="text-[9px] text-gray-500">{field.description}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
-                  {t('partnership.companySize')} *
-                </label>
-                <Select value={formData.companySize} onValueChange={(value) => handleInputChange('companySize', value)}>
-                  <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
-                    <SelectValue placeholder={t('partnership.companySizePlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companySizes.map((size) => (
-                      <SelectItem key={size.value} value={size.value}>
-                        <div>
-                          <div className="font-medium text-[10px]">{size.label}</div>
-                          <div className="text-[9px] text-gray-500">{size.description}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <div>
                 <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
                   {t('partnership.partnershipType')} *
                 </label>
-                <Select value={formData.partnershipType} onValueChange={(value) => handleInputChange('partnershipType', value)}>
-                  <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
-                    <SelectValue placeholder={t('partnership.partnershipTypePlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {partnershipTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div>
-                          <div className="font-medium text-[10px]">{type.label}</div>
-                          <div className="text-[9px] text-gray-500">{type.description}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  value={formData.partnershipType}
+                  onChange={(e) => handleInputChange('partnershipType', e.target.value)}
+                  className="w-full border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8 rounded-md px-3 bg-white text-gray-900"
+                  style={{ color: 'rgb(17 24 39)' }}
+                  required
+                >
+                  <option value="">{t('partnership.partnershipTypePlaceholder')}</option>
+                  {partnershipTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
-                  {t('partnership.budget')} *
-                </label>
-                <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
-                  <SelectTrigger className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px] h-8">
-                    <SelectValue placeholder={t('partnership.budgetPlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {budgetRanges.map((range) => (
-                      <SelectItem key={range.value} value={range.value}>
-                        <div>
-                          <div className="font-medium text-[10px]">{range.label}</div>
-                          <div className="text-[9px] text-gray-500">{range.description}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
-                {t('partnership.expectedEffect')}
-              </label>
-              <Textarea
-                value={formData.expectedEffect}
-                onChange={(e) => handleInputChange('expectedEffect', e.target.value)}
-                placeholder={t('partnership.expectedEffectPlaceholder')}
-                rows={2}
-                className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px]"
-              />
             </div>
           </div>
 
-          {/* 상세 내용 */}
+          {/* 제안 내용 */}
           <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-gray-900 border-b pb-1 whitespace-normal leading-tight">
-              {t('partnership.details')}
-            </h3>
             <div>
               <label className="block text-[10px] font-medium text-gray-700 mb-1 whitespace-normal leading-tight">
                 {t('partnership.proposalContent')} *
@@ -323,7 +210,7 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
                 value={formData.message}
                 onChange={(e) => handleInputChange('message', e.target.value)}
                 placeholder={t('partnership.proposalContentPlaceholder')}
-                rows={3}
+                rows={4}
                 className="border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-200 text-[10px]"
                 required
               />
@@ -401,6 +288,22 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
                 </>
               )}
             </Button>
+          </div>
+
+          {/* WhatsApp 제휴 문의 섹션 */}
+          <div className="border-t border-gray-200 pt-3 mt-2">
+            <p className="text-[10px] text-gray-600 text-center mb-2">
+              {t('partnership.orContactWhatsApp')}
+            </p>
+            <a
+              href="https://wa.me/51908632674?text=Hola%2C%20me%20interesa%20una%20asociaci%C3%B3n%20con%20AMIKO"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-2 px-3 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-lg transition-colors text-xs font-medium shadow-sm"
+            >
+              <MessageCircle className="w-4 h-4" />
+              {t('partnership.contactWhatsApp')}
+            </a>
           </div>
         </form>
       </DialogContent>

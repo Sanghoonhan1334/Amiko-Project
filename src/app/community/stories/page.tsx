@@ -837,7 +837,7 @@ function StoriesPageContent() {
           const blob = await fetch(compressedImage).then(r => r.blob())
           console.log('압축 후 크기:', (blob.size / 1024 / 1024).toFixed(2), 'MB')
           
-          setSelectedFile(file)
+        setSelectedFile(file)
           setImagePreview(compressedImage)
         } catch (error) {
           console.error('이미지 처리 실패:', error)

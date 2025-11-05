@@ -7,20 +7,27 @@ import { useAuth } from '@/context/AuthContext'
 import TestComments from '@/components/quiz/TestComments'
 import { Play, Clock, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 export default function KoreanLevelTestPage() {
   const router = useRouter()
   const { language } = useLanguage()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [quiz, setQuiz] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isFavorited, setIsFavorited] = useState(false)
   const [favoriteCount, setFavoriteCount] = useState(0)
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false)
+  
+  // 피드백 상태
+  const [isFun, setIsFun] = useState(false)
+  const [isAccurate, setIsAccurate] = useState(false)
+  const [funCount, setFunCount] = useState(0)
+  const [accurateCount, setAccurateCount] = useState(0)
 
   // 하드코딩된 퀴즈 데이터 (DB 연결 전까지)
   const koreanLevelQuiz = {
-    id: 'korean-level-1',
+    id: '2c9a43d4-0958-4d00-8bd1-522971617e62',  // quizzes 테이블의 실제 ID
     title: language === 'ko' ? '한국어 레벨 테스트 1' : 'Prueba de Nivel de Coreano 1',
     description: language === 'ko' 
       ? '한국어 실력을 체크해보세요! 기초부터 고급까지 여러 레벨의 문제로 구성되어 있습니다.'
@@ -35,6 +42,46 @@ export default function KoreanLevelTestPage() {
   useEffect(() => {
     setQuiz(koreanLevelQuiz)
     setLoading(false)
+    
+    // Open Graph 메타 태그 설정
+    const updateMetaTags = () => {
+      const title = language === 'ko' ? '한국어 레벨 테스트 | AMIKO' : 'Test de Nivel de Coreano | AMIKO'
+      const description = language === 'ko' 
+        ? '한국어 실력을 체크해보세요! 기초부터 고급까지 여러 레벨의 문제로 구성되어 있습니다.'
+        : '¡Prueba tu nivel de coreano! Consiste en preguntas desde nivel básico hasta avanzado.'
+      const imageUrl = `${window.location.origin}/quizzes/korean-level/cover/cover.png`
+      const url = `${window.location.origin}/quiz/korean-level`
+      
+      // 기존 메타 태그 제거
+      const existingOgTags = document.head.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]')
+      existingOgTags.forEach(tag => tag.remove())
+      
+      // 새 메타 태그 추가
+      const metaTags = [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: imageUrl },
+        { property: 'og:url', content: url },
+        { property: 'og:type', content: 'website' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: imageUrl }
+      ]
+      
+      metaTags.forEach(({ property, name, content }) => {
+        const meta = document.createElement('meta')
+        if (property) meta.setAttribute('property', property)
+        if (name) meta.setAttribute('name', name)
+        meta.setAttribute('content', content)
+        document.head.appendChild(meta)
+      })
+      
+      // title 태그도 업데이트
+      document.title = title
+    }
+    
+    updateMetaTags()
   }, [language])
 
   const handleStart = () => {
@@ -47,8 +94,23 @@ export default function KoreanLevelTestPage() {
 
   // 즐겨찾기 상태 로드
   const loadFavoriteStatus = async () => {
+    if (!user) return
+    
     try {
-      const response = await fetch(`/api/favorites?quizId=${koreanLevelQuiz.id}`)
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        console.log('토큰이 없어서 즐겨찾기 로드 스킵')
+        return
+      }
+
+      const response = await fetch(`/api/favorites?quizId=${koreanLevelQuiz.id}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+      
       if (response.ok) {
         const data = await response.json()
         setIsFavorited(data.isFavorited)
@@ -68,11 +130,21 @@ export default function KoreanLevelTestPage() {
 
     setIsLoadingFavorite(true)
     try {
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+        setIsLoadingFavorite(false)
+        return
+      }
+
       const action = isFavorited ? 'remove' : 'add'
       const response = await fetch('/api/favorites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           quizId: koreanLevelQuiz.id,
@@ -85,6 +157,7 @@ export default function KoreanLevelTestPage() {
         setIsFavorited(!isFavorited)
         setFavoriteCount(data.favoriteCount)
       } else {
+        console.error('즐겨찾기 토글 실패:', await response.text())
         throw new Error('Failed to toggle favorite')
       }
     } catch (error) {
@@ -95,10 +168,174 @@ export default function KoreanLevelTestPage() {
     }
   }
 
-  // 컴포넌트 마운트 시 즐겨찾기 상태 로드
+  // 피드백 상태 로드
+  const loadFeedbackStatus = async () => {
+    if (!user) return
+    
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        console.log('토큰이 없어서 피드백 로드 스킵')
+        return
+      }
+      
+      const response = await fetch(`/api/quiz/${koreanLevelQuiz.id}/feedback`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('[FEEDBACK_LOAD] 로드된 데이터:', data)
+        setIsFun(data.isFun)
+        setIsAccurate(data.isAccurate)
+        setFunCount(data.funCount)
+        setAccurateCount(data.accurateCount)
+      } else {
+        console.error('[FEEDBACK_LOAD] 로드 실패:', response.status, await response.text())
+      }
+    } catch (error) {
+      console.error('피드백 상태 로드 오류:', error)
+    }
+  }
+
+  // 컴포넌트 마운트 시 즐겨찾기 및 피드백 상태 로드
   useEffect(() => {
     loadFavoriteStatus()
-  }, [])
+    loadFeedbackStatus()
+  }, [user, token])
+
+  // 공유 기능
+  const handleShare = async () => {
+    // 프로덕션 URL 사용 (localhost가 아닌 경우 현재 도메인 사용)
+    const isLocalhost = window.location.hostname === 'localhost'
+    const baseUrl = isLocalhost 
+      ? 'https://helloamiko.com'  // 로컬에서는 프로덕션 URL
+      : window.location.origin     // 프로덕션/스테이징에서는 현재 도메인
+    
+    const shareUrl = `${baseUrl}/quiz/korean-level`
+    const shareText = language === 'ko' 
+      ? `한국어 실력을 체크해보세요! AMIKO에서 한국어 레벨 테스트를 해보세요.\n\n${shareUrl}`
+      : `¡Prueba tu nivel de coreano! Realiza el test de nivel de coreano en AMIKO.\n\n${shareUrl}`
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: language === 'ko' ? '한국어 레벨 테스트' : 'Test de Nivel de Coreano',
+          text: shareText
+        })
+      } else {
+        // 폴백: 클립보드에 텍스트 + URL 복사
+        await navigator.clipboard.writeText(shareText)
+        alert(language === 'ko' ? '링크가 복사되었습니다!' : '¡Enlace copiado!')
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return
+      }
+      try {
+        await navigator.clipboard.writeText(shareText)
+        alert(language === 'ko' ? '링크가 복사되었습니다!' : '¡Enlace copiado!')
+      } catch (clipboardError) {
+        console.error('공유 실패:', clipboardError)
+      }
+    }
+  }
+
+  // 재미있음 피드백 토글
+  const handleFunFeedback = async () => {
+    if (!user) {
+      alert(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+      return
+    }
+
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isFun ? 'remove' : 'add'
+      
+      const response = await fetch(`/api/quiz/${koreanLevelQuiz.id}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          type: 'fun',
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('[FUN] 응답 데이터:', data)
+        setIsFun(!isFun)
+        setFunCount(data.count)
+        console.log('[FUN] 새 카운트:', data.count)
+      } else {
+        const errorText = await response.text()
+        console.error('[FUN] 피드백 토글 실패:', errorText)
+        alert(`오류: ${errorText}`)
+      }
+    } catch (error) {
+      console.error('재미있음 토글 오류:', error)
+    }
+  }
+
+  // 정확함 피드백 토글
+  const handleAccurateFeedback = async () => {
+    if (!user) {
+      alert(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+      return
+    }
+
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
+        return
+      }
+
+      const action = isAccurate ? 'remove' : 'add'
+      
+      const response = await fetch(`/api/quiz/${koreanLevelQuiz.id}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          type: 'accurate',
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('[ACCURATE] 응답 데이터:', data)
+        setIsAccurate(!isAccurate)
+        setAccurateCount(data.count)
+        console.log('[ACCURATE] 새 카운트:', data.count)
+      } else {
+        const errorText = await response.text()
+        console.error('[ACCURATE] 피드백 토글 실패:', errorText)
+        alert(`오류: ${errorText}`)
+      }
+    } catch (error) {
+      console.error('정확함 토글 오류:', error)
+    }
+  }
 
   if (loading) {
     return (
@@ -227,47 +464,76 @@ export default function KoreanLevelTestPage() {
               }`}>
                 Guardar
               </div>
-              <div className={`text-[10px] md:text-sm mt-1 transition-colors ${
-                isFavorited ? 'text-blue-600' : 'text-gray-500'
-              }`}>
-                {favoriteCount}
-              </div>
             </div>
             
-            <div className="bg-white rounded-lg p-3 md:p-4 text-center shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
+            <div 
+              className={`bg-white rounded-lg p-3 md:p-4 text-center shadow-sm border hover:shadow-md transition-all cursor-pointer ${
+                isFun ? 'border-pink-300 bg-pink-50' : ''
+              }`}
+              onClick={handleFunFeedback}
+            >
               <div className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1 md:mb-2">
-                <svg className="w-full h-full text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg 
+                  className={`w-full h-full transition-colors ${
+                    isFun ? 'text-pink-600 fill-pink-600' : 'text-gray-600'
+                  }`}
+                  fill={isFun ? 'currentColor' : 'none'} 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <div className="text-xs md:text-base font-medium text-gray-800">Divertido</div>
-              <div className="text-[10px] md:text-sm text-gray-500 mt-1">0</div>
+              <div className={`text-xs md:text-base font-medium transition-colors ${
+                isFun ? 'text-pink-800' : 'text-gray-800'
+              }`}>Divertido</div>
+              <div className={`text-[10px] md:text-sm mt-1 transition-colors ${
+                isFun ? 'text-pink-600' : 'text-gray-500'
+              }`}>{funCount}</div>
             </div>
             
-            <div className="bg-white rounded-lg p-3 md:p-4 text-center shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
+            <div 
+              className={`bg-white rounded-lg p-3 md:p-4 text-center shadow-sm border hover:shadow-md transition-all cursor-pointer ${
+                isAccurate ? 'border-green-300 bg-green-50' : ''
+              }`}
+              onClick={handleAccurateFeedback}
+            >
               <div className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1 md:mb-2">
-                <svg className="w-full h-full text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg 
+                  className={`w-full h-full transition-colors ${
+                    isAccurate ? 'text-green-600 fill-green-600' : 'text-gray-600'
+                  }`}
+                  fill={isAccurate ? 'currentColor' : 'none'} 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="text-xs md:text-base font-medium text-gray-800">Preciso</div>
-              <div className="text-[10px] md:text-sm text-gray-500 mt-1">0</div>
+              <div className={`text-xs md:text-base font-medium transition-colors ${
+                isAccurate ? 'text-green-800' : 'text-gray-800'
+              }`}>Preciso</div>
+              <div className={`text-[10px] md:text-sm mt-1 transition-colors ${
+                isAccurate ? 'text-green-600' : 'text-gray-500'
+              }`}>{accurateCount}</div>
             </div>
             
-            <div className="bg-white rounded-lg p-3 md:p-4 text-center shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
+            <div 
+              className="bg-white rounded-lg p-3 md:p-4 text-center shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+              onClick={handleShare}
+            >
               <div className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1 md:mb-2">
                 <svg className="w-full h-full text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                 </svg>
               </div>
               <div className="text-xs md:text-base font-medium text-gray-800">Compartir</div>
-              <div className="text-[10px] md:text-sm text-gray-500 mt-1">0</div>
             </div>
           </div>
 
           {/* 댓글 섹션 */}
           <div className="border-t pt-6 mt-8">
-            <TestComments testId="korean-level-1" />
+            <TestComments testId="2c9a43d4-0958-4d00-8bd1-522971617e62" />
           </div>
         </div>
       </div>

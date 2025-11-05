@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 
 interface Question {
   id: number
@@ -16,10 +17,12 @@ interface Question {
 export default function KoreanLevelQuestionsPage() {
   const router = useRouter()
   const { language } = useLanguage()
+  const { user } = useAuth()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [answers, setAnswers] = useState<number[]>([])
   const [showResult, setShowResult] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // 한국어 레벨 테스트 질문들
   const koreanQuestions: Question[] = [
@@ -107,11 +110,13 @@ export default function KoreanLevelQuestionsPage() {
 
   const currentQuestion = koreanQuestions[currentQuestionIndex]
 
-  const handleAnswerSelect = (answerIndex: number) => {
+  const handleAnswerSelect = async (answerIndex: number) => {
+    if (isSubmitting) return
+    
     setSelectedAnswer(answerIndex)
     
     // 자동으로 다음 질문으로 이동
-    setTimeout(() => {
+    setTimeout(async () => {
       const newAnswers = [...answers, answerIndex]
       setAnswers(newAnswers)
       
@@ -119,8 +124,39 @@ export default function KoreanLevelQuestionsPage() {
         setCurrentQuestionIndex(currentQuestionIndex + 1)
         setSelectedAnswer(null)
       } else {
-        // 마지막 질문 완료
-        router.push('/quiz/korean-level/loading')
+        // 마지막 질문 완료 - 답변 제출
+        setIsSubmitting(true)
+        
+        try {
+          // API로 답변 제출
+          const response = await fetch('/api/quiz/korean-level/submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              answers: newAnswers,
+              userId: user?.id || null
+            })
+          })
+          
+          const data = await response.json()
+          
+          if (data.success && data.resultId) {
+            // 결과 페이지로 이동
+            router.push(`/quiz/korean-level/result/${data.resultId}`)
+          } else {
+            console.error('결과 저장 실패:', data.error)
+            // 에러 발생 시 기존 방식으로 폴백
+            router.push('/quiz/korean-level/loading')
+          }
+        } catch (error) {
+          console.error('답변 제출 실패:', error)
+          // 에러 발생 시 기존 방식으로 폴백
+          router.push('/quiz/korean-level/loading')
+        } finally {
+          setIsSubmitting(false)
+        }
       }
     }, 500)
   }

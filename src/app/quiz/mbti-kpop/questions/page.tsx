@@ -62,10 +62,10 @@ export default function MBTIKpopQuestionsPage() {
         setCurrentQuestion(currentQuestion + 1)
         setSelectedAnswer(null)
         setIsTransitioning(false)
-      } else {
+    } else {
         // 마지막 질문이면 결과 계산
         calculateResult(newAnswers)
-      }
+    }
     }, 300)
   }
 
@@ -151,7 +151,7 @@ export default function MBTIKpopQuestionsPage() {
             <h2 className="text-sm font-semibold text-gray-800 mb-2">
               {questions[currentQuestion].question}
             </h2>
-            
+
             <div className="space-y-1 mb-2">
               {questions[currentQuestion].options.map((option, index) => (
                 <Button
@@ -167,7 +167,7 @@ export default function MBTIKpopQuestionsPage() {
                   <span className={`${selectedAnswer === index ? "text-white" : "text-gray-700"} leading-relaxed`}>{option}</span>
                 </Button>
               ))}
-            </div>
+          </div>
 
           </Card>
 
@@ -177,9 +177,9 @@ export default function MBTIKpopQuestionsPage() {
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
                 <p className="text-gray-600">Analizando resultados...</p>
-              </div>
+                </div>
             </Card>
-          )}
+              )}
         </div>
       </div>
     </div>

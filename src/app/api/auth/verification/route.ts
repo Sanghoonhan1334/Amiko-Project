@@ -166,15 +166,15 @@ export async function POST(request: NextRequest) {
     let sendMethod = ''
     
     try {
-      if (type === 'email' && email) {
-        // 언어 설정 (국가 코드 기반)
-        const language = nationality === 'KR' ? 'ko' : 'es'
+    if (type === 'email' && email) {
+      // 언어 설정 (국가 코드 기반)
+      const language = nationality === 'KR' ? 'ko' : 'es'
         console.log('[VERIFICATION] 이메일 발송 시도:', { email, language })
-        sendResult = await sendVerificationEmail(email, verificationCode, language)
-        sendMethod = '이메일'
-      } else if (type === 'sms' && phoneNumber) {
-        // 언어 설정 (국가 코드 기반)
-        const language = nationality === 'KR' ? 'ko' : 'es'
+      sendResult = await sendVerificationEmail(email, verificationCode, language)
+      sendMethod = '이메일'
+    } else if (type === 'sms' && phoneNumber) {
+      // 언어 설정 (국가 코드 기반)
+      const language = nationality === 'KR' ? 'ko' : 'es'
         console.log('[VERIFICATION] SMS 발송 시도:', { 
           originalPhone: phoneNumber, 
           normalizedPhone: normalizedPhoneNumber, 
@@ -183,20 +183,20 @@ export async function POST(request: NextRequest) {
         })
         // 정규화된 번호 사용
         sendResult = await sendVerificationSMS(normalizedPhoneNumber, verificationCode, language, nationality)
-        sendMethod = 'SMS'
+      sendMethod = 'SMS'
         console.log('[VERIFICATION] SMS 발송 결과:', sendResult)
-      } else if (type === 'whatsapp' && phoneNumber) {
-        // 언어 설정 (국가 코드 기반)
-        const language = nationality === 'KR' ? 'ko' : 'es'
+    } else if (type === 'whatsapp' && phoneNumber) {
+      // 언어 설정 (국가 코드 기반)
+      const language = nationality === 'KR' ? 'ko' : 'es'
         console.log('[VERIFICATION] WhatsApp 발송 시도:', { normalizedPhone: normalizedPhoneNumber, language })
         // 정규화된 번호 사용
         sendResult = await sendVerificationWhatsApp(normalizedPhoneNumber, verificationCode, language)
-        sendMethod = 'WhatsApp'
-      } else {
-        return NextResponse.json(
-          { success: false, error: '지원되지 않는 인증 방식입니다.' },
-          { status: 400 }
-        )
+      sendMethod = 'WhatsApp'
+    } else {
+      return NextResponse.json(
+        { success: false, error: '지원되지 않는 인증 방식입니다.' },
+        { status: 400 }
+      )
       }
     } catch (sendError) {
       console.error('[VERIFICATION] 발송 중 예외 발생:', sendError)

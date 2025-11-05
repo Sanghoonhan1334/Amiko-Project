@@ -118,15 +118,15 @@ export default function IdolPositionCoverPage() {
             <ArrowLeft className="w-6 h-6 text-white" />
           </Button>
         </div>
-
-        {/* 이미지 전체를 클릭 가능하게 만들기 */}
-        <div 
-          className="absolute inset-0 cursor-pointer"
-          style={{
+        
+                    {/* 이미지 전체를 클릭 가능하게 만들기 */}
+                    <div 
+                      className="absolute inset-0 cursor-pointer"
+                      style={{
             zIndex: 10,
-            pointerEvents: 'auto'
-          }}
-          onClick={(e) => {
+                        pointerEvents: 'auto'
+                      }}
+                      onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
                         handleStart()

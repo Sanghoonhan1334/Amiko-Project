@@ -109,7 +109,7 @@ export default function HomePage() {
       <div className="min-h-screen body-gradient flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-600 dark:border-gray-400 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-600">{language === 'ko' ? '로딩 중...' : 'Cargando...'}</p>
         </div>
       </div>
     )
@@ -267,7 +267,7 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
                     <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">{t('heroSlides.slide3.infoSection.contact.email')}</h3>
-                    <p className="text-blue-700 dark:text-blue-300 text-sm">info@amiko.com</p>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm">info@helloamiko.com</p>
                   </div>
                   <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
                     <h3 className="font-semibold text-green-800 dark:text-green-300 mb-2">{t('heroSlides.slide3.infoSection.contact.operatingHours')}</h3>

@@ -249,12 +249,6 @@ function TestsPageContent() {
           : (language === 'ko' ? '즐겨찾기에 추가되었습니다.' : 'Añadido a favoritos.')
         )
       } else {
-        // 401 Unauthorized - 로그인 필요
-        if (response.status === 401) {
-          toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Necesitas iniciar sesión.')
-          return
-        }
-        
         const errorData = await response.json()
         console.error('즐겨찾기 토글 실패:', errorData)
         

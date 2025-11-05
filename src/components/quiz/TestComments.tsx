@@ -86,7 +86,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
             const data = await response.json()
             const nickname = data.user?.nickname || data.user?.display_name || data.user?.full_name || userId
             newNicknames[userId] = nickname
-          } else {
+      } else {
             newNicknames[userId] = userId
           }
         } catch (error: any) {

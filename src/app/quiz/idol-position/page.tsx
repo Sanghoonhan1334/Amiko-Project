@@ -268,8 +268,8 @@ export default function IdolPositionTestPage() {
       }
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        return
-      }
+      return
+    }
       try {
         const isLocalhost = window.location.hostname === 'localhost'
         const baseUrl = isLocalhost ? 'https://helloamiko.com' : window.location.origin

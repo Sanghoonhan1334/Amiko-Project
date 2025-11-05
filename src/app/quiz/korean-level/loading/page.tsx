@@ -9,8 +9,9 @@ export default function KoreanLevelLoadingPage() {
   const { language } = useLanguage()
 
   useEffect(() => {
+    // 이 페이지는 에러 발생 시에만 사용되므로 테스트 시작 페이지로 리다이렉트
     const timer = setTimeout(() => {
-      router.push('/quiz/korean-level/result')
+      router.push('/quiz/korean-level')
     }, 3000)
 
     return () => clearTimeout(timer)

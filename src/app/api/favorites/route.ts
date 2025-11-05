@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { supabaseServer } from '@/lib/supabaseServer'
 
 // 즐겨찾기 추가/제거
 export async function POST(request: NextRequest) {
@@ -10,55 +10,85 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 })
     }
 
-    const supabase = createClient()
-    
-    // 사용자 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Authorization 헤더에서 토큰 가져오기
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+    
+    console.log('[FAVORITES_POST] 인증 결과:', { userId: user?.id, authError })
+    
+    if (authError || !user) {
+      console.error('[FAVORITES_POST] 인증 실패:', authError)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.log('[FAVORITES_POST] 요청:', { action, quizId, userId: user.id })
+
     if (action === 'add') {
       // 즐겨찾기 추가
-      const { error } = await supabase
+      const { error } = await supabaseServer
         .from('user_favorites')
         .insert({ user_id: user.id, quiz_id: quizId })
       
       if (error) {
-        console.error('즐겨찾기 추가 오류:', error)
-        return NextResponse.json({ error: 'Failed to add favorite' }, { status: 500 })
+        // 중복 키 에러(23505)는 무시 - 이미 즐겨찾기에 있음
+        if (error.code === '23505') {
+          console.log('[FAVORITES_POST] 이미 즐겨찾기에 있음, 무시')
+        } else {
+          console.error('[FAVORITES_POST] 즐겨찾기 추가 오류:', error)
+          return NextResponse.json({ 
+            error: 'Failed to add favorite',
+            details: error.message 
+          }, { status: 500 })
+        }
+      } else {
+        console.log('[FAVORITES_POST] 즐겨찾기 추가 성공')
       }
     } else if (action === 'remove') {
       // 즐겨찾기 제거
-      const { error } = await supabase
+      const { error } = await supabaseServer
         .from('user_favorites')
         .delete()
         .eq('user_id', user.id)
         .eq('quiz_id', quizId)
       
       if (error) {
-        console.error('즐겨찾기 제거 오류:', error)
-        return NextResponse.json({ error: 'Failed to remove favorite' }, { status: 500 })
+        console.error('[FAVORITES_POST] 즐겨찾기 제거 오류:', error)
+        return NextResponse.json({ 
+          error: 'Failed to remove favorite',
+          details: error.message 
+        }, { status: 500 })
       }
+      console.log('[FAVORITES_POST] 즐겨찾기 제거 성공')
     }
 
     // 업데이트된 즐겨찾기 개수 반환
-    const { data: countData, error: countError } = await supabase
-      .rpc('get_quiz_favorite_count', { quiz_uuid: quizId })
+    const { count, error: countError } = await supabaseServer
+      .from('user_favorites')
+      .select('*', { count: 'exact', head: true })
+      .eq('quiz_id', quizId)
 
     if (countError) {
-      console.error('즐겨찾기 개수 조회 오류:', countError)
-      return NextResponse.json({ error: 'Failed to get favorite count' }, { status: 500 })
+      console.error('[FAVORITES_POST] 카운트 조회 오류:', countError)
     }
+
+    console.log('[FAVORITES_POST] 최종 카운트:', count)
 
     return NextResponse.json({ 
       success: true, 
-      favoriteCount: countData || 0 
+      favoriteCount: count || 0 
     })
 
-  } catch (error) {
-    console.error('즐겨찾기 API 오류:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error: any) {
+    console.error('[FAVORITES_POST] 서버 오류:', error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error?.message || String(error)
+    }, { status: 500 })
   }
 }
 
@@ -69,41 +99,38 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
     const quizId = searchParams.get('quizId')
 
-    const supabase = createClient()
-
     if (quizId) {
-      // 특정 퀴즈의 즐겨찾기 상태 및 개수 조회
-      const { data: { user } } = await supabase.auth.getUser()
+      // Authorization 헤더에서 토큰 가져오기
+      const authHeader = request.headers.get('Authorization')
+      let user = null
+      
+      if (authHeader) {
+        const token = authHeader.replace('Bearer ', '')
+        const { data: { user: authUser } } = await supabaseServer.auth.getUser(token)
+        user = authUser
+      }
       
       let isFavorited = false
       let favoriteCount = 0
 
       if (user) {
-        try {
-          const { data: favoriteData, error: favoriteError } = await supabase
-            .rpc('is_quiz_favorited_by_user', { 
-              quiz_uuid: quizId, 
-              user_uuid: user.id 
-            })
-          
-          if (!favoriteError) {
-            isFavorited = favoriteData || false
-          }
-        } catch (rpcError) {
-          console.log('[FAVORITES] RPC 함수 없음, 기본값 사용')
-        }
+        const { data: favoriteData } = await supabaseServer
+          .from('user_favorites')
+          .select('id')
+          .eq('quiz_id', quizId)
+          .eq('user_id', user.id)
+          .single()
+        
+        isFavorited = !!favoriteData
       }
 
-      try {
-        const { data: countData, error: countError } = await supabase
-          .rpc('get_quiz_favorite_count', { quiz_uuid: quizId })
-
-        if (!countError) {
-          favoriteCount = countData || 0
-        }
-      } catch (rpcError) {
-        console.log('[FAVORITES] RPC 함수 없음, 기본값 사용')
-      }
+      // 전체 즐겨찾기 개수
+      const { count } = await supabaseServer
+        .from('user_favorites')
+        .select('*', { count: 'exact', head: true })
+        .eq('quiz_id', quizId)
+      
+      favoriteCount = count || 0
 
       return NextResponse.json({
         isFavorited,
@@ -112,31 +139,29 @@ export async function GET(request: NextRequest) {
     }
 
     if (userId) {
-      // 특정 사용자의 즐겨찾기 목록 조회
-      const { data: favorites, error } = await supabase
+      // 특정 사용자의 즐겨찾기 목록 조회 (JOIN 제거, quiz_id만 반환)
+      const { data: favorites, error } = await supabaseServer
         .from('user_favorites')
-        .select(`
-          id,
-          created_at,
-          quizzes (
-            id,
-            title,
-            slug,
-            thumbnail_url,
-            category,
-            participant_count
-          )
-        `)
+        .select('id, quiz_id, created_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
       if (error) {
-        // 테이블이 없으면 빈 배열 반환
-        console.log('[FAVORITES] 테이블이나 데이터가 없음:', error.message)
+        console.log('[FAVORITES] 조회 오류:', error.message)
         return NextResponse.json({ favorites: [] })
       }
 
-      return NextResponse.json({ favorites: favorites || [] })
+      // quiz_id를 quizzes.id 형식으로 변환 (기존 클라이언트 코드와 호환)
+      const formattedFavorites = (favorites || []).map(fav => ({
+        id: fav.id,
+        created_at: fav.created_at,
+        quizzes: {
+          id: fav.quiz_id  // quiz_id를 quizzes.id로 매핑
+        }
+      }))
+
+      console.log('[FAVORITES] 조회 성공:', formattedFavorites.length, '개')
+      return NextResponse.json({ favorites: formattedFavorites })
     }
 
     return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })

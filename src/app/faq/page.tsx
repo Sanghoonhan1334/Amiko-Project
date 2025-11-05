@@ -139,7 +139,7 @@ export default function FaqPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:info@amiko.com"
+                href="mailto:info@helloamiko.com"
                 className="inline-flex items-center justify-center px-6 py-3 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-all duration-300"
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
