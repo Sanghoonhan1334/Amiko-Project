@@ -157,11 +157,9 @@ export default function VerificationCenterPage() {
                 isVerified: isVerified
               })
               
-              // 이미 인증 완료된 사용자도 프로필 수정을 위해 접근 가능하도록 변경
-              if (isVerified) {
-                console.log('[VERIFICATION] 이미 인증 완료된 사용자 - 프로필 편집 모드로 진입')
-                // 리다이렉트하지 않고 프로필 데이터를 불러와서 편집 가능하게 함
-                // 기존 프로필 데이터를 폼에 채워넣기
+              // 프로필 데이터가 있으면 폼에 채우기 (인증 여부 무관)
+              if (userProfile) {
+                console.log('[VERIFICATION] 기존 프로필 데이터 발견 - 폼에 채우기')
                 setFormData(prev => ({
                   ...prev,
                   full_name: userProfile?.full_name || '',
@@ -183,6 +181,12 @@ export default function VerificationCenterPage() {
                   spanish_level: userProfile?.spanish_level
                 }))
                 console.log('[VERIFICATION] 기존 프로필 데이터 로드 완료:', userProfile)
+                
+                if (isVerified) {
+                  console.log('[VERIFICATION] 인증 완료된 사용자 - 프로필 편집 모드')
+                } else {
+                  console.log('[VERIFICATION] 인증 미완료 사용자 - 부분 저장 데이터 복구')
+                }
               }
               
               // 한국인 여부 확인 - users 테이블의 is_korean 값 사용
