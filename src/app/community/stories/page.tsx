@@ -1199,7 +1199,7 @@ function StoriesPageContent() {
         }
       }}>
         <DialogContent 
-          className="max-w-md w-full mx-4 bg-white border-2 border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto z-[99999]" 
+          className="max-w-md w-[95vw] sm:w-full mx-auto bg-white border-2 border-gray-200 shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto z-[99999] p-3 sm:p-6" 
           style={{ 
             backgroundColor: 'white !important',
             background: 'white !important',
@@ -1208,17 +1208,17 @@ function StoriesPageContent() {
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4 border-b border-gray-200 bg-white" style={{ 
+          <DialogHeader className="pb-2 sm:pb-4 border-b border-gray-200 bg-white" style={{ 
             backgroundColor: 'white !important',
             background: 'white !important'
           }}>
-            <DialogTitle className="text-xl font-semibold text-gray-900" style={{ 
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900" style={{ 
               color: 'rgb(17 24 39) !important'
             }}>{t('stories.newStory')}</DialogTitle>
             <DialogDescription className="sr-only">새로운 스토리를 작성하는 모달입니다.</DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 bg-white" style={{ 
+          <div className="space-y-3 sm:space-y-4 bg-white" style={{ 
             backgroundColor: 'white !important',
             background: 'white !important'
           }}>
@@ -1231,25 +1231,25 @@ function StoriesPageContent() {
               
               {/* 이미지/영상 미리보기 */}
               {imagePreview && selectedFile && (
-                <div className="mb-3 relative">
+                <div className="mb-2 sm:mb-3 relative">
                   {selectedFile.type.startsWith('video/') ? (
                     <video 
                       src={imagePreview}
                       controls
-                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                      className="w-full h-36 sm:h-48 object-cover rounded-lg border-2 border-gray-200"
                     />
                   ) : (
                     <img 
                       src={imagePreview} 
                       alt="미리보기" 
-                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                      className="w-full h-36 sm:h-48 object-cover rounded-lg border-2 border-gray-200"
                     />
                   )}
                   <button
                     onClick={clearImage}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors"
+                    className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               )}
@@ -1269,12 +1269,12 @@ function StoriesPageContent() {
                   />
                   <label
                     htmlFor="imageUploadGallery"
-                    className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-600 dark:border-gray-400 hover:bg-purple-50 transition-colors text-center touch-manipulation"
+                    className="flex-1 px-3 py-2 sm:px-4 sm:py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-600 dark:border-gray-400 hover:bg-purple-50 transition-colors text-center touch-manipulation"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex flex-col items-center gap-2">
-                      <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">
+                    <div className="flex flex-col items-center gap-1 sm:gap-2">
+                      <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm text-gray-600">
                         {imagePreview ? t('stories.selectOtherPhoto') : t('stories.selectFromGallery')}
                       </span>
                     </div>
@@ -1294,12 +1294,12 @@ function StoriesPageContent() {
                   />
                   <label
                     htmlFor="imageUploadCamera"
-                    className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-600 dark:border-gray-400 hover:bg-purple-50 transition-colors text-center touch-manipulation"
+                    className="flex-1 px-3 py-2 sm:px-4 sm:py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-600 dark:border-gray-400 hover:bg-purple-50 transition-colors text-center touch-manipulation"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex flex-col items-center gap-2">
-                      <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">
+                    <div className="flex flex-col items-center gap-1 sm:gap-2">
+                      <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm text-gray-600">
                         {t('stories.takeWithCamera')}
                       </span>
                     </div>
@@ -1309,15 +1309,15 @@ function StoriesPageContent() {
             </div>
             
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block" style={{ 
+              <Label className="text-sm font-medium text-gray-700 mb-1 sm:mb-2 block" style={{ 
                 color: 'rgb(55 65 81) !important'
               }}>
                 {t('stories.storyContent')}
               </Label>
               <Textarea
                 placeholder={t('stories.storyPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                rows={4}
+                className="w-full px-2 py-2 sm:px-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                rows={3}
                 value={storyText}
                 onChange={(e) => setStoryText(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
@@ -1325,26 +1325,26 @@ function StoriesPageContent() {
               />
             </div>
             
-            <div className="flex gap-2 pt-4">
+            <div className="flex gap-2 pt-2 sm:pt-4">
               <Button
                 variant="outline"
                 onClick={() => setShowStoryUploadModal(false)}
-                className="flex-1"
+                className="flex-1 text-sm py-2 h-9"
               >
                 {t('buttons.cancel')}
               </Button>
               <Button
                 onClick={handleStoryUpload}
                 disabled={isUploading || !selectedFile}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:bg-gray-400 text-white"
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:bg-gray-400 text-white text-sm py-2 h-9"
               >
                 {isUploading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t('stories.uploading')}
+                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                    <span className="text-xs sm:text-sm">{t('stories.uploading')}</span>
                   </>
                 ) : (
-                  t('stories.upload')
+                  <span className="text-xs sm:text-sm">{t('stories.upload')}</span>
                 )}
               </Button>
             </div>
