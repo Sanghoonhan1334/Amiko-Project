@@ -132,14 +132,16 @@ async function handleProfileUpdate(request: NextRequest) {
       company,
       career,
       interests,
-      korean_level,          // 한국어 수준
-      spanish_level,         // 스페인어 수준
-      english_level,         // 영어 수준
-      is_verified,           // 인증 완료 여부
-      verification_completed, // 인증 완료 플래그
       join_date: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString()
     }
+    
+    // 선택적 필드 추가 (DB 컬럼이 없을 수 있으므로 안전하게 처리)
+    if (korean_level !== undefined) updateData.korean_level = korean_level
+    if (spanish_level !== undefined) updateData.spanish_level = spanish_level
+    if (english_level !== undefined) updateData.english_level = english_level
+    if (is_verified !== undefined) updateData.is_verified = is_verified
+    if (verification_completed !== undefined) updateData.verification_completed = verification_completed
 
     // 프로필 사진이 있으면 추가
     if (profile_image) {
