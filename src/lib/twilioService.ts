@@ -153,53 +153,68 @@ export function formatPhoneNumber(phoneNumber: string, countryCode?: string): st
   // 숫자만 추출
   const digits = phoneNumber.replace(/\D/g, '')
   
-  // 국가 코드가 제공된 경우 해당 국가 코드 사용
+  // 국가 코드가 제공된 경우 countries.ts에서 phoneCode 가져오기
   if (countryCode) {
     const { countries } = require('@/constants/countries')
     const country = countries.find((c: any) => c.code === countryCode)
     if (country && country.phoneCode) {
-      return `${country.phoneCode}${digits}`
+      // 이미 국가 코드가 포함되어 있는지 확인
+      const phoneCodeDigits = country.phoneCode.replace(/\D/g, '')
+      if (digits.startsWith(phoneCodeDigits)) {
+        // 이미 국가 코드 포함 → 그대로 사용
+        return `+${digits}`
+      } else {
+        // 국가 코드 없음 → 추가
+        // 한국의 경우 앞자리 0 제거 처리
+        if (country.code === 'KR' && digits.startsWith('0')) {
+          return `${country.phoneCode}${digits.substring(1)}`
+        }
+        return `${country.phoneCode}${digits}`
+      }
     }
   }
   
+  // countryCode가 없는 경우 기존 로직 사용 (하위 호환성)
+  
   // 한국 번호 처리 (+82)
-  if (digits.startsWith('82')) {
+  if (digits.startsWith('82') && digits.length >= 11) {
     return `+${digits}`
-  } else if (digits.startsWith('010')) {
+  } else if (digits.startsWith('010') || digits.startsWith('011') || digits.startsWith('016') || digits.startsWith('017') || digits.startsWith('018') || digits.startsWith('019')) {
     return `+82${digits.substring(1)}`
-  } else if (digits.startsWith('0')) {
+  } else if (digits.startsWith('0') && digits.length >= 10) {
     return `+82${digits.substring(1)}`
   }
   
-  // 멕시코 번호 처리 (+52)
-  if (digits.startsWith('52') && digits.length >= 12) {
-    return `+${digits}`
-  }
-  
-  // 페루 번호 처리 (+51)
-  if (digits.startsWith('51') && digits.length >= 11) {
-    return `+${digits}`
-  }
-  
-  // 칠레 번호 처리 (+56)
-  if (digits.startsWith('56') && digits.length >= 11) {
-    return `+${digits}`
-  }
-  
-  // 이란 번호 처리 (+98) - 명시적으로 처리
-  if (digits.startsWith('98') && digits.length >= 12) {
-    return `+${digits}`
-  }
-  
-  // 미국/캐나다 번호 처리 (+1)
+  // 미국/캐나다 번호 처리 (+1) - 길이로 판단
   if (digits.startsWith('1') && digits.length === 11) {
     return `+${digits}`
   } else if (digits.length === 10) {
     return `+1${digits}`
   }
   
-  // 기타 국가 번호 처리 (이미 국가 코드가 포함된 경우)
-  // digits는 숫자만 있으므로 + 체크 불필요
+  // 이란 번호 처리 (+98)
+  if (digits.startsWith('98') && digits.length >= 12) {
+    return `+${digits}`
+  }
+  
+  // 3자리 국가 코드 처리 (에콰도르 +593, 파라과이 +595, 우루과이 +598, 볼리비아 +591 등)
+  if (digits.length >= 13) {
+    const threeDigitCode = digits.substring(0, 3)
+    if (['593', '595', '598', '591', '502', '504', '505', '507', '506', '503'].includes(threeDigitCode)) {
+      return `+${digits}`
+    }
+  }
+  
+  // 2자리 국가 코드 처리 (정확한 길이 체크)
+  if (digits.length >= 11) {
+    const twoDigitCode = digits.substring(0, 2)
+    // 멕시코 +52, 페루 +51, 칠레 +56, 콜롬비아 +57, 아르헨티나 +54, 베네수엘라 +58, 브라질 +55, 쿠바 +53
+    if (['52', '51', '56', '57', '54', '58', '55', '53', '81', '86'].includes(twoDigitCode)) {
+      return `+${digits}`
+    }
+  }
+  
+  // 기타 국가 번호 처리 (이미 국가 코드가 포함된 것으로 간주)
   return `+${digits}`
 }
 
