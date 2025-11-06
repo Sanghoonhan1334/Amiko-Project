@@ -7,8 +7,11 @@ import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js'
 export function toE164(phoneNumber: string, countryCode?: string): string {
   if (!phoneNumber) return ''
   
+  console.log('[PHONE_UTILS] toE164 호출:', { phoneNumber, countryCode })
+  
   // 이미 E.164 형식이면 그대로 반환
   if (phoneNumber.startsWith('+')) {
+    console.log('[PHONE_UTILS] 이미 E.164 형식:', phoneNumber)
     return phoneNumber
   }
   
@@ -18,14 +21,55 @@ export function toE164(phoneNumber: string, countryCode?: string): string {
       ? parsePhoneNumber(phoneNumber, countryCode as any)
       : parsePhoneNumber(phoneNumber)
     
+    console.log('[PHONE_UTILS] parsePhoneNumber 결과:', { parsed: parsed?.number, isValid: parsed ? isValidPhoneNumber(parsed.number) : false })
+    
     if (parsed && isValidPhoneNumber(parsed.number)) {
+      console.log('[PHONE_UTILS] ✅ 파싱 성공:', parsed.number)
       return parsed.number
     }
   } catch (error) {
-    console.warn('[PHONE_UTILS] 전화번호 파싱 실패:', phoneNumber, error)
+    console.error('[PHONE_UTILS] ❌ 전화번호 파싱 실패:', { phoneNumber, countryCode, error })
   }
   
-  // 파싱 실패 시 원본 반환 (fallback)
+  // 파싱 실패 시 수동으로 국가 코드 추가 (fallback)
+  console.log('[PHONE_UTILS] 📋 libphonenumber-js 파싱 실패, 수동 포맷팅 시도')
+  if (countryCode) {
+    const { countries } = require('@/constants/countries')
+    const country = countries.find((c: any) => c.code === countryCode)
+    console.log('[PHONE_UTILS] 국가 정보:', { countryCode, found: !!country, phoneCode: country?.phoneCode })
+    
+    if (country && country.phoneCode) {
+      const digits = phoneNumber.replace(/\D/g, '')
+      const phoneCodeDigits = country.phoneCode.replace(/\D/g, '')
+      
+      console.log('[PHONE_UTILS] 전화번호 분석:', { 
+        원본: phoneNumber, 
+        숫자만: digits, 
+        국가코드: country.phoneCode,
+        국가코드숫자: phoneCodeDigits 
+      })
+      
+      // 이미 국가 코드가 포함되어 있는지 확인
+      if (digits.startsWith(phoneCodeDigits)) {
+        const result = `+${digits}`
+        console.log('[PHONE_UTILS] ✅ Fallback 성공 (국가코드 포함):', result)
+        return result
+      } else {
+        // 한국의 경우 앞자리 0 제거
+        if (countryCode === 'KR' && digits.startsWith('0')) {
+          const result = `${country.phoneCode}${digits.substring(1)}`
+          console.log('[PHONE_UTILS] ✅ Fallback 성공 (한국, 0 제거):', result)
+          return result
+        }
+        const result = `${country.phoneCode}${digits}`
+        console.log('[PHONE_UTILS] ✅ Fallback 성공 (국가코드 추가):', result)
+        return result
+      }
+    }
+  }
+  
+  // 국가 코드도 없으면 원본 반환
+  console.warn('[PHONE_UTILS] ⚠️ Fallback 실패, 원본 반환:', phoneNumber)
   return phoneNumber
 }
 

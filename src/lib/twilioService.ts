@@ -28,7 +28,11 @@ function getTwilioClient(): Twilio {
 export async function sendTwilioSMS(to: string, message: string): Promise<boolean> {
   try {
     // 실제 SMS 발송 시도
-    console.log(`[TWILIO_SMS] 발송 시도 시작: ${to}`)
+    console.log(`[TWILIO_SMS] ========================================`)
+    console.log(`[TWILIO_SMS] 🚀 발송 시도 시작`)
+    console.log(`[TWILIO_SMS] 받는번호: ${to}`)
+    console.log(`[TWILIO_SMS] 메시지: ${message}`)
+    console.log(`[TWILIO_SMS] 국가코드 분석: ${to.substring(0, 4)}`)
     console.log(`[TWILIO_SMS] 환경변수 확인:`, {
       accountSid: !!process.env.TWILIO_ACCOUNT_SID,
       authToken: !!process.env.TWILIO_AUTH_TOKEN,
@@ -66,7 +70,10 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
     return true
     
   } catch (error: any) {
-    console.error('[TWILIO_SMS] 발송 실패:', error)
+    console.error('[TWILIO_SMS] ========================================')
+    console.error('[TWILIO_SMS] ❌ 발송 실패!')
+    console.error('[TWILIO_SMS] 받는번호:', to)
+    console.error('[TWILIO_SMS] 에러 타입:', error?.constructor?.name)
     console.error('[TWILIO_SMS] TwilioError 상세:', {
       status: error?.status,
       code: error?.code,
@@ -77,6 +84,7 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
       message: error instanceof Error ? error.message : '알 수 없는 오류',
       stack: error instanceof Error ? error.stack : undefined
     })
+    console.error('[TWILIO_SMS] ========================================')
     return false
   }
 }
