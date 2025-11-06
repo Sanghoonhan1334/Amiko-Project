@@ -76,13 +76,13 @@ export async function GET(
         if (!userName) {
           const { data: userData, error: usersError } = await supabaseServer
             .from('users')
-            .select('id, full_name, avatar_url, profile_image')
+            .select('id, full_name, korean_name, spanish_name, nickname, avatar_url, profile_image')
             .eq('id', userId)
             .single()
           
           if (!usersError && userData) {
-            // full_name이 비어있으면 email의 '@' 앞 부분 사용
-            userName = userData.full_name || '익명'
+            // 우선순위: nickname > korean_name > spanish_name > full_name > 익명
+            userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || '익명'
             avatarUrl = userData.profile_image || userData.avatar_url
           }
         }
@@ -239,13 +239,13 @@ export async function POST(
     if (!userName) {
       const { data: userData, error: usersError } = await supabaseServer
         .from('users')
-        .select('id, full_name, avatar_url, profile_image')
+        .select('id, full_name, korean_name, spanish_name, nickname, avatar_url, profile_image')
         .eq('id', newComment.user_id)
         .single()
       
       if (!usersError && userData) {
-        // full_name이 비어있으면 email의 '@' 앞 부분 사용
-        userName = userData.full_name || '익명'
+        // 우선순위: nickname > korean_name > spanish_name > full_name > 익명
+        userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || '익명'
         avatarUrl = userData.profile_image || userData.avatar_url
       }
     }
