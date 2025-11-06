@@ -33,14 +33,37 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
     console.log(`[TWILIO_SMS] 받는번호: ${to}`)
     console.log(`[TWILIO_SMS] 메시지: ${message}`)
     console.log(`[TWILIO_SMS] 국가코드 분석: ${to.substring(0, 4)}`)
+    
+    const client = getTwilioClient()
+    
+    // 국가별 발신 번호 선택
+    let fromNumber = process.env.TWILIO_PHONE_NUMBER // 기본: 미국 번호
+    
+    // 칠레 번호가 있고, 받는 사람이 칠레면 칠레 번호 사용
+    if (to.startsWith('+56') && process.env.TWILIO_PHONE_NUMBER_CL) {
+      fromNumber = process.env.TWILIO_PHONE_NUMBER_CL
+      console.log(`[TWILIO_SMS] ✅ 칠레 → 칠레 로컬 번호 사용: ${fromNumber}`)
+    }
+    // 멕시코 번호가 있고, 받는 사람이 멕시코면 멕시코 번호 사용
+    else if (to.startsWith('+52') && process.env.TWILIO_PHONE_NUMBER_MX) {
+      fromNumber = process.env.TWILIO_PHONE_NUMBER_MX
+      console.log(`[TWILIO_SMS] ✅ 멕시코 → 멕시코 로컬 번호 사용: ${fromNumber}`)
+    }
+    // 페루 번호가 있고, 받는 사람이 페루면 페루 번호 사용
+    else if (to.startsWith('+51') && process.env.TWILIO_PHONE_NUMBER_PE) {
+      fromNumber = process.env.TWILIO_PHONE_NUMBER_PE
+      console.log(`[TWILIO_SMS] ✅ 페루 → 페루 로컬 번호 사용: ${fromNumber}`)
+    }
+    
     console.log(`[TWILIO_SMS] 환경변수 확인:`, {
       accountSid: !!process.env.TWILIO_ACCOUNT_SID,
       authToken: !!process.env.TWILIO_AUTH_TOKEN,
-      phoneNumber: !!process.env.TWILIO_PHONE_NUMBER
+      defaultNumber: !!process.env.TWILIO_PHONE_NUMBER,
+      chileNumber: !!process.env.TWILIO_PHONE_NUMBER_CL,
+      mexicoNumber: !!process.env.TWILIO_PHONE_NUMBER_MX,
+      peruNumber: !!process.env.TWILIO_PHONE_NUMBER_PE,
+      selectedFrom: fromNumber
     })
-    
-    const client = getTwilioClient()
-    const fromNumber = process.env.TWILIO_PHONE_NUMBER
     
     if (!fromNumber) {
       console.log(`[TWILIO_SMS] Twilio 발신번호가 설정되지 않음 - 개발 모드로 처리`)
