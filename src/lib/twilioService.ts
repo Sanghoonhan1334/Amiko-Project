@@ -172,17 +172,22 @@ export function formatPhoneNumber(phoneNumber: string, countryCode?: string): st
   }
   
   // 멕시코 번호 처리 (+52)
-  if (digits.startsWith('52')) {
+  if (digits.startsWith('52') && digits.length >= 12) {
     return `+${digits}`
   }
   
   // 페루 번호 처리 (+51)
-  if (digits.startsWith('51')) {
+  if (digits.startsWith('51') && digits.length >= 11) {
+    return `+${digits}`
+  }
+  
+  // 칠레 번호 처리 (+56)
+  if (digits.startsWith('56') && digits.length >= 11) {
     return `+${digits}`
   }
   
   // 이란 번호 처리 (+98) - 명시적으로 처리
-  if (digits.startsWith('98')) {
+  if (digits.startsWith('98') && digits.length >= 12) {
     return `+${digits}`
   }
   
@@ -193,12 +198,9 @@ export function formatPhoneNumber(phoneNumber: string, countryCode?: string): st
     return `+1${digits}`
   }
   
-  // 다른 국가 번호 처리
-  if (!digits.startsWith('+')) {
-    return `+${digits}`
-  }
-  
-  return digits
+  // 기타 국가 번호 처리 (이미 국가 코드가 포함된 경우)
+  // digits는 숫자만 있으므로 + 체크 불필요
+  return `+${digits}`
 }
 
 // SMS 발송 비용 계산
