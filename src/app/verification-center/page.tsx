@@ -263,6 +263,19 @@ export default function VerificationCenterPage() {
     checkUserStatus()
   }, [user?.id, user?.email, router])
 
+  // isKorean이 null로 남아있는 경우 타임아웃 해결 (5초 후 자동으로 현지인으로 설정)
+  useEffect(() => {
+    if (isKorean === null && !isKoreanDetermined) {
+      const timer = setTimeout(() => {
+        console.log('[VERIFICATION] API 응답 지연 감지 - 현지인으로 기본 설정')
+        setIsKorean(false)
+        setIsKoreanDetermined(true)
+      }, 5000) // 5초 후
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isKorean, isKoreanDetermined])
+
   // 폼 데이터 변경 디버깅
   useEffect(() => {
     console.log('[FORM] 폼 데이터 변경됨:', formData)
@@ -567,8 +580,8 @@ export default function VerificationCenterPage() {
                   </div>
                 )}
 
-                {/* 한국인이 아닌 경우 이름 필드 표시 (필수) */}
-                {!isKorean && (
+                {/* 한국인이 아닌 경우 또는 null인 경우 이름 필드 표시 (필수) */}
+                {(!isKorean || isKorean === null) && (
                   <div>
                     <Label htmlFor="spanish_name">Nombre completo *</Label>
                     <Input
@@ -952,10 +965,10 @@ export default function VerificationCenterPage() {
             <Button 
               onClick={nextStep}
               disabled={
-                isKorean === null ||
+                loading ||
                 !formData.nickname || 
-                (isKorean && !formData.korean_name) ||
-                (!isKorean && !formData.spanish_name)
+                (isKorean === true && !formData.korean_name) ||
+                ((isKorean === false || isKorean === null) && !formData.spanish_name)
               }
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
