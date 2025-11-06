@@ -126,11 +126,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 포인트 적립 (댓글 작성)
+    // 포인트 적립 (댓글 작성 - 75점 체계)
     const { error: pointError } = await (supabaseServer as any).rpc('add_points_with_limit', {
       p_user_id: user.id,
-      p_type: 'comment',
-      p_amount: 5,
+      p_type: 'comment_post',
+      p_amount: 1,
       p_description: '댓글 작성',
       p_related_id: comment.id,
       p_related_type: 'comment'

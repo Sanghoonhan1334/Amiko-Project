@@ -18,13 +18,20 @@ export async function POST(request: NextRequest) {
     // Supabase 클라이언트 생성
     const supabase = createClient()
 
-    // 포인트 지급 규칙
+    // 포인트 지급 규칙 (75점 체계)
     const pointRules: { [key: string]: number } = {
-      'question_post': 5,      // 질문 작성
-      'question_answer': 10,   // 답변 작성
-      'story_post': 3,         // 스토리 작성
-      'freeboard_post': 2,     // 자유게시판 작성
-      'comment_post': 1        // 댓글 작성
+      'attendance_check': 10,      // 출석 체크
+      'comment_post': 1,           // 댓글 작성 (max 5)
+      'likes': 1,                  // 좋아요 (max 10)
+      'freeboard_post': 2,         // 자유게시판 작성
+      'story_post': 3,             // 스토리 작성
+      'fanart_upload': 5,          // 팬아트 업로드
+      'idol_photo_upload': 5,      // 아이돌 사진 업로드
+      'fanart_likes': 1,           // 팬아트 좋아요 (max 10)
+      'idol_photo_likes': 1,       // 아이돌 사진 좋아요 (max 10)
+      'poll_vote': 3,              // 투표 참여 (max 3)
+      'news_comment': 2,           // 뉴스 댓글 (max 5)
+      'share': 3                   // 공유 (max 5)
     }
 
     const points = pointRules[activityType]
@@ -57,8 +64,8 @@ export async function POST(request: NextRequest) {
     if (!result) {
       return NextResponse.json(
         { 
-          error: '일일 커뮤니티 포인트 한도(20점)를 초과했습니다.',
-          maxPoints: 20
+          error: '일일 포인트 한도(75점) 또는 해당 활동의 일일 제한 횟수를 초과했습니다.',
+          maxPoints: 75
         },
         { status: 400 }
       )
