@@ -142,15 +142,32 @@ export default function TestComments({ testId }: TestCommentsProps) {
 
       console.log('댓글 작성 - 사용 이름:', displayName)
 
+      // API로 댓글 저장
+      const response = await fetch('/api/test-comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          test_id: testId,
+          comment: newComment.trim()
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to post comment')
+      }
+
+      const result = await response.json()
+      
+      // 포인트가 지급되었으면 이벤트 발생
+      if (result.pointsAwarded && result.pointsAwarded > 0) {
+        console.log('[TEST_COMMENT] 포인트 지급됨, 헤더 업데이트 이벤트 발생:', result.pointsAwarded)
+        window.dispatchEvent(new CustomEvent('pointsUpdated'))
+      }
+
       // 새 댓글 객체 생성
       const newCommentObj: Comment = {
-        id: Date.now().toString(),
-        test_id: testId,
-        user_id: user.id,
+        ...result.comment,
         user_name: displayName,
-        user_avatar_url: user.user_metadata?.avatar_url || null,
-        comment: newComment.trim(),
-        created_at: new Date().toISOString(),
         likes: 0,
         dislikes: 0,
         user_liked: false,
@@ -161,7 +178,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
       // 기존 댓글 목록에 새 댓글 추가
       const updatedComments = [newCommentObj, ...comments]
       
-      // 로컬 스토리지에 저장
+      // 로컬 스토리지에도 저장 (오프라인 대응)
       localStorage.setItem(`${testId}-comments`, JSON.stringify(updatedComments))
       
       // 상태 업데이트
