@@ -200,7 +200,7 @@ export function formatPhoneNumber(phoneNumber: string, countryCode?: string): st
         if (country.code === 'KR' && digits.startsWith('0')) {
           return `${country.phoneCode}${digits.substring(1)}`
         }
-        return `${country.phoneCode}${digits}`
+      return `${country.phoneCode}${digits}`
       }
     }
   }

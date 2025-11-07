@@ -201,8 +201,15 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       })
 
       if (response.ok) {
+        const data = await response.json()
         setCommentContent('')
         await loadComments()
+        
+        // 포인트가 지급되었으면 헤더 업데이트 이벤트 발생
+        if (data.pointsAwarded && data.pointsAwarded > 0) {
+          console.log('[COMMENT] 포인트 지급됨, 헤더 업데이트 이벤트 발생:', data.pointsAwarded)
+          window.dispatchEvent(new CustomEvent('pointsUpdated'))
+        }
       }
     } catch (error) {
       console.error('댓글 작성 오류:', error)
@@ -230,9 +237,16 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       })
 
       if (response.ok) {
+        const data = await response.json()
         setReplyContent('')
         setReplyingTo(null)
         await loadComments()
+        
+        // 포인트가 지급되었으면 헤더 업데이트 이벤트 발생
+        if (data.pointsAwarded && data.pointsAwarded > 0) {
+          console.log('[REPLY] 포인트 지급됨, 헤더 업데이트 이벤트 발생:', data.pointsAwarded)
+          window.dispatchEvent(new CustomEvent('pointsUpdated'))
+        }
       }
     } catch (error) {
       console.error('답글 작성 오류:', error)

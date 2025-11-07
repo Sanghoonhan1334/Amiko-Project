@@ -261,8 +261,9 @@ export async function POST(
     }
 
     // 포인트 지급 (댓글 작성 - 75점 체계)
+    let pointsAwarded = 0
     try {
-      const { error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+      const { data: pointResult, error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
         p_user_id: newComment.user_id,
         p_type: 'comment_post',
         p_amount: 1,
@@ -274,8 +275,11 @@ export async function POST(
       if (pointError) {
         console.error('[COMMENTS_POST] 포인트 적립 실패:', pointError)
         // 포인트 적립 실패해도 댓글은 생성됨
-      } else {
+      } else if (pointResult) {
         console.log('[COMMENTS_POST] 포인트 적립 성공: +1점')
+        pointsAwarded = 1
+      } else {
+        console.log('[COMMENTS_POST] 일일 한도 초과 또는 횟수 제한')
       }
     } catch (pointError) {
       console.error('[COMMENTS_POST] 포인트 적립 예외:', pointError)
@@ -299,7 +303,12 @@ export async function POST(
     }
 
     return NextResponse.json(
-      { success: true, comment: transformedComment, message: '댓글이 성공적으로 작성되었습니다.' },
+      { 
+        success: true, 
+        comment: transformedComment, 
+        message: '댓글이 성공적으로 작성되었습니다.',
+        pointsAwarded: pointsAwarded // 포인트 지급 정보 추가
+      },
       { status: 200 }
     )
   } catch (error: any) {

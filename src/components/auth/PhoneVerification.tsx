@@ -326,7 +326,7 @@ export default function PhoneVerification({
                   </span>
                 </div>
               </div>
-
+              
               {/* 스팸함 확인 안내 */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <div className="flex items-start gap-2">
