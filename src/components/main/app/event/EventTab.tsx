@@ -264,10 +264,32 @@ export default function EventTab() {
       const actualStreak = updatedRecords.length
       setCurrentStreak(actualStreak)
       
-      // 연속 출석 보상 확인 (기본 출석 포인트는 없음)
-      checkRewards(actualStreak)
+      // 출석 체크 포인트 지급 (75점 체계)
+      if (user?.id) {
+        fetch('/api/community/points', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            activityType: 'attendance_check',
+            postId: null,
+            title: '출석 체크'
+          })
+        }).then(res => {
+          if (res.ok) {
+            console.log('[ATTENDANCE] 포인트 지급 성공: +10점')
+            // 포인트 업데이트 이벤트 발생
+            window.dispatchEvent(new CustomEvent('pointsUpdated'))
+          } else {
+            console.log('[ATTENDANCE] 포인트 지급 실패 (일일 한도 또는 중복)')
+          }
+        }).catch(err => {
+          console.error('[ATTENDANCE] 포인트 API 오류:', err)
+        })
+      }
       
-      // 성공 메시지 제거
+      // 연속 출석 보상 확인 (기존 보상 시스템)
+      checkRewards(actualStreak)
       
     }, 200)
   }

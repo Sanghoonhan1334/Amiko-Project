@@ -65,7 +65,7 @@ const EventTab = dynamic(() => import('@/components/main/app/event/EventTab'), {
 })
 
 function AppPageContent() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -127,6 +127,82 @@ function AppPageContent() {
     // 🚀 최적화: fetchPoints 호출 제거됨 (React Query에서 자동 처리)
     checkAdminStatus()
   }, [user?.id, user?.email])
+
+  // 자동 출석 체크 (메인 페이지 진입 시 한 번만)
+  useEffect(() => {
+    const autoAttendanceCheck = async () => {
+      if (!user?.id) return
+
+      // localStorage로 오늘 이미 출석했는지 확인 (중복 방지)
+      const today = new Date().toISOString().split('T')[0]
+      const lastCheckDate = localStorage.getItem('last_attendance_check')
+      
+      if (lastCheckDate === today) {
+        console.log('[AUTO_ATTENDANCE] 오늘 이미 출석 체크 완료')
+        return
+      }
+
+      try {
+        const response = await fetch('/api/community/points', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            activityType: 'attendance_check',
+            postId: null,
+            title: '자동 출석 체크'
+          })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          console.log('[AUTO_ATTENDANCE] 출석 체크 성공: +10점')
+          
+          // localStorage에 오늘 출석 기록
+          localStorage.setItem('last_attendance_check', today)
+          
+          // 포인트 업데이트 이벤트 발생
+          window.dispatchEvent(new CustomEvent('pointsUpdated'))
+          
+          // 환영 메시지 표시 (언어별)
+          const welcomeMessage = language === 'ko' 
+            ? '환영합니다! ✅ 출석 체크 완료 (+10점)'
+            : '¡Bienvenido! ✅ Asistencia registrada (+10 puntos)'
+          
+          if (typeof window !== 'undefined' && (window as any).toast) {
+            (window as any).toast.success(welcomeMessage, {
+              duration: 4000,
+              position: 'top-center',
+              style: {
+                background: '#10B981',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                padding: '16px 24px',
+                borderRadius: '12px'
+              }
+            })
+          } else {
+            // toast가 없으면 alert로 대체
+            alert(welcomeMessage)
+          }
+        } else {
+          const errorData = await response.json()
+          console.log('[AUTO_ATTENDANCE] 출석 체크 실패:', errorData.error)
+          // 일일 한도 초과 또는 이미 체크한 경우 무시
+        }
+      } catch (error) {
+        console.error('[AUTO_ATTENDANCE] 출석 체크 오류:', error)
+      }
+    }
+
+    // 메인 페이지 진입 후 1초 후에 실행 (초기 로딩 완료 후)
+    const timer = setTimeout(() => {
+      autoAttendanceCheck()
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [user?.id])
 
   // URL 파라미터에서 탭 확인 및 설정
   useEffect(() => {
