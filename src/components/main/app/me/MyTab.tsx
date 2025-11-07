@@ -229,6 +229,20 @@ export default function MyTab() {
     }
   }, [user?.id])
 
+  // 포인트 업데이트 이벤트 리스너
+  useEffect(() => {
+    const handlePointsUpdate = () => {
+      console.log('[MYTAB] pointsUpdated 이벤트 수신, 포인트 및 미션 리프레시')
+      refetch() // 랭킹 및 월간/총 포인트 리프레시
+      fetchDailyMissions() // 일일 미션 리프레시
+    }
+
+    window.addEventListener('pointsUpdated', handlePointsUpdate)
+    return () => {
+      window.removeEventListener('pointsUpdated', handlePointsUpdate)
+    }
+  }, [user?.id, refetch])
+
   const fetchDailyMissions = async () => {
     try {
       const today = new Date().toISOString().split('T')[0]
