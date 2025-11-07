@@ -260,6 +260,27 @@ export async function POST(
       // 댓글은 생성되었으므로 에러를 반환하지 않음
     }
 
+    // 포인트 지급 (댓글 작성 - 75점 체계)
+    try {
+      const { error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+        p_user_id: newComment.user_id,
+        p_type: 'comment_post',
+        p_amount: 1,
+        p_description: '댓글 작성',
+        p_related_id: newComment.id,
+        p_related_type: 'comment'
+      })
+
+      if (pointError) {
+        console.error('[COMMENTS_POST] 포인트 적립 실패:', pointError)
+        // 포인트 적립 실패해도 댓글은 생성됨
+      } else {
+        console.log('[COMMENTS_POST] 포인트 적립 성공: +1점')
+      }
+    } catch (pointError) {
+      console.error('[COMMENTS_POST] 포인트 적립 예외:', pointError)
+    }
+
     // 댓글 데이터 변환
     const transformedComment = {
       id: newComment.id,
