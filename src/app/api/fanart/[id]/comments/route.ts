@@ -28,18 +28,46 @@ export async function GET(
       return NextResponse.json([])
     }
 
-    // 각 댓글의 사용자 정보를 별도로 가져오기
+    // 각 댓글의 사용자 정보를 별도로 가져오기 (user_profiles 우선, users fallback)
     const commentsWithProfiles = await Promise.all(
       allComments.map(async (comment) => {
+        let userName = null
+        let avatarUrl = null
+
+        // 먼저 user_profiles 확인
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('display_name, avatar_url')
           .eq('user_id', comment.user_id)
           .single()
 
+        if (profile && profile.display_name) {
+          userName = profile.display_name.includes('#') 
+            ? profile.display_name.split('#')[0] 
+            : profile.display_name
+          avatarUrl = profile.avatar_url
+        }
+
+        // user_profiles에 없으면 users 테이블 조회
+        if (!userName) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('nickname, korean_name, spanish_name, full_name, profile_image, avatar_url')
+            .eq('id', comment.user_id)
+            .single()
+
+          if (userData) {
+            userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || 'Usuario'
+            avatarUrl = userData.profile_image || userData.avatar_url
+          }
+        }
+
         return {
           ...comment,
-          user_profiles: profile || null
+          user_profiles: {
+            display_name: userName || 'Usuario',
+            avatar_url: avatarUrl
+          }
         }
       })
     )
