@@ -148,23 +148,67 @@ export async function POST(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // user_profiles 정보 별도로 가져오기
-    let userProfile = null
+    // 포인트 지급 (팬아트 댓글 작성 - 75점 체계)
+    let pointsAwarded = 0
     try {
-      const { data: profile } = await supabaseServer
-        .from('user_profiles')
-        .select('display_name, avatar_url')
-        .eq('user_id', user.id)
+      const { data: pointResult, error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+        p_user_id: user.id,
+        p_type: 'comment_post',
+        p_amount: 1,
+        p_description: '팬아트 댓글 작성',
+        p_related_id: data.id,
+        p_related_type: 'comment'
+      })
+
+      if (pointError) {
+        console.error('[FAN_ART_COMMENTS] 포인트 적립 실패:', pointError)
+      } else if (pointResult) {
+        console.log('[FAN_ART_COMMENTS] 포인트 적립 성공: +1점')
+        pointsAwarded = 1
+      }
+    } catch (pointError) {
+      console.error('[FAN_ART_COMMENTS] 포인트 적립 예외:', pointError)
+    }
+
+    // 사용자 정보 가져오기 (user_profiles 우선, users fallback)
+    let userName = null
+    let avatarUrl = null
+    
+    // 먼저 user_profiles 테이블에서 조회
+    const { data: profileData, error: profileError } = await supabaseServer
+      .from('user_profiles')
+      .select('display_name, avatar_url')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (!profileError && profileData && profileData.display_name) {
+      userName = profileData.display_name.includes('#') 
+        ? profileData.display_name.split('#')[0] 
+        : profileData.display_name
+      avatarUrl = profileData.avatar_url
+    }
+    
+    // user_profiles에 없으면 users 테이블 조회
+    if (!userName) {
+      const { data: userData } = await supabaseServer
+        .from('users')
+        .select('nickname, korean_name, spanish_name, full_name, profile_image, avatar_url')
+        .eq('id', user.id)
         .single()
       
-      userProfile = profile
-    } catch (err) {
-      console.log('[FAN_ART_COMMENTS] 프로필 조회 실패:', err)
+      if (userData) {
+        userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || 'Usuario'
+        avatarUrl = userData.profile_image || userData.avatar_url
+      }
     }
 
     return NextResponse.json({
       ...data,
-      user_profiles: userProfile
+      user_profiles: {
+        display_name: userName || 'Usuario',
+        avatar_url: avatarUrl
+      },
+      pointsAwarded: pointsAwarded
     })
   } catch (error) {
     console.error('[FAN_ART_COMMENTS] 전체 오류:', error)

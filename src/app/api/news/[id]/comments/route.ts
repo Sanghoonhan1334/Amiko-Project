@@ -257,6 +257,28 @@ export async function POST(
 
     console.log('[NEWS_COMMENTS_POST] 댓글 저장 성공:', newComment.id)
 
+    // 포인트 지급 (뉴스 댓글 - 75점 체계)
+    let pointsAwarded = 0
+    try {
+      const { data: pointResult, error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+        p_user_id: userId,
+        p_type: 'news_comment',
+        p_amount: 2,
+        p_description: '뉴스 댓글 작성',
+        p_related_id: newComment.id,
+        p_related_type: 'comment'
+      })
+
+      if (pointError) {
+        console.error('[NEWS_COMMENTS_POST] 포인트 적립 실패:', pointError)
+      } else if (pointResult) {
+        console.log('[NEWS_COMMENTS_POST] 포인트 적립 성공: +2점')
+        pointsAwarded = 2
+      }
+    } catch (pointError) {
+      console.error('[NEWS_COMMENTS_POST] 포인트 적립 예외:', pointError)
+    }
+
     // 4. korean_news의 comment_count 업데이트
     const { data: currentNews, error: countError } = await supabaseServer
       .from('korean_news')
@@ -283,7 +305,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      comment: newComment
+      comment: newComment,
+      pointsAwarded: pointsAwarded
     })
 
   } catch (error) {

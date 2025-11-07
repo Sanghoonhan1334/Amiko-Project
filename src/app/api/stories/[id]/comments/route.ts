@@ -288,16 +288,38 @@ export async function POST(
       console.log('[STORY_COMMENTS_POST] 댓글 수 증가 성공:', storyId)
     }
 
-    // 댓글 작성자의 사용자 정보 조회
+    // 포인트 지급 (스토리 댓글 - 75점 체계)
+    let pointsAwarded = 0
+    try {
+      const { data: pointResult, error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+        p_user_id: authUser.id,
+        p_type: 'comment_post',
+        p_amount: 1,
+        p_description: '스토리 댓글 작성',
+        p_related_id: comment.id,
+        p_related_type: 'comment'
+      })
+
+      if (pointError) {
+        console.error('[STORY_COMMENTS_POST] 포인트 적립 실패:', pointError)
+      } else if (pointResult) {
+        console.log('[STORY_COMMENTS_POST] 포인트 적립 성공: +1점')
+        pointsAwarded = 1
+      }
+    } catch (pointError) {
+      console.error('[STORY_COMMENTS_POST] 포인트 적립 예외:', pointError)
+    }
+
+    // 댓글 작성자의 사용자 정보 조회 (우선순위: nickname > korean_name > spanish_name > full_name)
     const { data: userInfo, error: userInfoError } = await supabaseServer
       .from('users')
-      .select('id, full_name, avatar_url, profile_image')
+      .select('id, nickname, korean_name, spanish_name, full_name, avatar_url, profile_image')
       .eq('id', authUser.id)
       .single()
 
     const authorInfo = userInfo ? {
       id: userInfo.id,
-      full_name: userInfo.full_name || `사용자${authUser.id.slice(-4)}`,
+      full_name: userInfo.nickname || userInfo.korean_name || userInfo.spanish_name || userInfo.full_name || `사용자${authUser.id.slice(-4)}`,
       profile_image: userInfo.profile_image || userInfo.avatar_url
     } : {
       id: authUser.id,
@@ -316,7 +338,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      comment: transformedComment
+      comment: transformedComment,
+      pointsAwarded: pointsAwarded
     })
 
   } catch (error: any) {

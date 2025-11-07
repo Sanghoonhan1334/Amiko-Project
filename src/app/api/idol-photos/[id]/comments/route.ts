@@ -160,18 +160,67 @@ export async function POST(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    console.log('🔍 [IDOL_PHOTOS_COMMENT] 댓글 작성 성공, 사용자 정보 가져오기')
+    console.log('🔍 [IDOL_PHOTOS_COMMENT] 댓글 작성 성공, 포인트 지급 시도')
 
-    // 사용자 정보를 별도로 가져오기
-    const { data: profile } = await supabaseServer
+    // 포인트 지급 (아이돌 사진 댓글 - 75점 체계)
+    let pointsAwarded = 0
+    try {
+      const { data: pointResult, error: pointError } = await supabaseServer.rpc('add_points_with_limit', {
+        p_user_id: user.id,
+        p_type: 'comment_post',
+        p_amount: 1,
+        p_description: '아이돌 사진 댓글 작성',
+        p_related_id: newComment.id,
+        p_related_type: 'comment'
+      })
+
+      if (pointError) {
+        console.error('[IDOL_PHOTOS_COMMENT] 포인트 적립 실패:', pointError)
+      } else if (pointResult) {
+        console.log('[IDOL_PHOTOS_COMMENT] 포인트 적립 성공: +1점')
+        pointsAwarded = 1
+      }
+    } catch (pointError) {
+      console.error('[IDOL_PHOTOS_COMMENT] 포인트 적립 예외:', pointError)
+    }
+
+    // 사용자 정보 가져오기 (user_profiles 우선, users fallback)
+    let userName = null
+    let avatarUrl = null
+    
+    const { data: profileData, error: profileError } = await supabaseServer
       .from('user_profiles')
       .select('display_name, avatar_url')
       .eq('user_id', user.id)
       .single()
+    
+    if (!profileError && profileData && profileData.display_name) {
+      userName = profileData.display_name.includes('#') 
+        ? profileData.display_name.split('#')[0] 
+        : profileData.display_name
+      avatarUrl = profileData.avatar_url
+    }
+    
+    if (!userName) {
+      const { data: userData } = await supabaseServer
+        .from('users')
+        .select('nickname, korean_name, spanish_name, full_name, profile_image, avatar_url')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (userData) {
+        userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || 'Usuario'
+        avatarUrl = userData.profile_image || userData.avatar_url
+      }
+    }
 
     const result = {
       ...newComment,
-      user_profiles: profile || null
+      user_profiles: {
+        display_name: userName || 'Usuario',
+        avatar_url: avatarUrl
+      },
+      pointsAwarded: pointsAwarded
     }
 
     console.log('🔍 [IDOL_PHOTOS_COMMENT] 최종 결과:', result)
