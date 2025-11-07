@@ -26,6 +26,7 @@ interface Comment {
   content: string
   created_at: string
   parent_comment_id?: string | null
+  user_id?: string
   user_profiles?: {
     display_name?: string
     avatar_url?: string
@@ -440,20 +441,50 @@ export default function FanartDetailPage() {
                       </div>
                       <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{comment.content}</p>
                       
-                      {/* 답글 버튼 */}
-                      <button
-                        onClick={() => {
-                          if (!user) {
-                            router.push('/sign-in')
-                            return
-                          }
-                          setReplyingTo(replyingTo === comment.id ? null : comment.id)
-                          setReplyText('')
-                        }}
-                        className="text-xs text-purple-600 hover:text-purple-800 font-medium"
-                      >
-                        {replyingTo === comment.id ? 'Cancelar' : 'Responder'}
-                      </button>
+                      {/* 답글 버튼 및 삭제 버튼 */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            if (!user) {
+                              router.push('/sign-in')
+                              return
+                            }
+                            setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                            setReplyText('')
+                          }}
+                          className="text-xs text-purple-600 hover:text-purple-800 font-medium"
+                        >
+                          {replyingTo === comment.id ? 'Cancelar' : 'Responder'}
+                        </button>
+                        
+                        {/* 본인 댓글일 때만 삭제 버튼 표시 */}
+                        {user && comment.user_id === user.id && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm('¿Estás seguro de que quieres eliminar este comentario?')) return
+                              
+                              try {
+                                const res = await fetch(`/api/fanart/${params.id}/comments/${comment.id}`, {
+                                  method: 'DELETE',
+                                  headers: { 'Authorization': `Bearer ${token}` }
+                                })
+                                
+                                if (res.ok) {
+                                  setComments(prev => prev.filter(c => c.id !== comment.id))
+                                  if (post) {
+                                    setPost({ ...post, comments_count: post.comments_count - 1 })
+                                  }
+                                }
+                              } catch (error) {
+                                console.error('Failed to delete comment:', error)
+                              }
+                            }}
+                            className="text-xs text-red-600 hover:text-red-800 font-medium"
+                          >
+                            Eliminar
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -476,7 +507,35 @@ export default function FanartDetailPage() {
                                 {getTimeAgo(reply.created_at)}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{reply.content}</p>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{reply.content}</p>
+                            
+                            {/* 본인 답글일 때만 삭제 버튼 표시 */}
+                            {user && reply.user_id === user.id && (
+                              <button
+                                onClick={async () => {
+                                  if (!confirm('¿Estás seguro de que quieres eliminar esta respuesta?')) return
+                                  
+                                  try {
+                                    const res = await fetch(`/api/fanart/${params.id}/comments/${reply.id}`, {
+                                      method: 'DELETE',
+                                      headers: { 'Authorization': `Bearer ${token}` }
+                                    })
+                                    
+                                    if (res.ok) {
+                                      fetchComments()
+                                      if (post) {
+                                        setPost({ ...post, comments_count: post.comments_count - 1 })
+                                      }
+                                    }
+                                  } catch (error) {
+                                    console.error('Failed to delete reply:', error)
+                                  }
+                                }}
+                                className="text-xs text-red-600 hover:text-red-800 font-medium"
+                              >
+                                Eliminar
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}

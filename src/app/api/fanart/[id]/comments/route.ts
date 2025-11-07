@@ -11,10 +11,10 @@ export async function GET(
     const supabase = createClient()
     const { id } = await params
 
-    // 먼저 댓글만 조회 (user_profiles는 별도로 가져오기)
+    // 댓글 조회 (user_id 포함)
     const { data: allComments, error: commentsError } = await supabase
       .from('fan_art_comments')
-      .select('*')
+      .select('id, user_id, content, created_at, parent_comment_id, post_id')
       .eq('post_id', id)
       .order('created_at', { ascending: false })
 
