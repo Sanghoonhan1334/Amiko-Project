@@ -1376,54 +1376,197 @@ export const translations = {
     privacy: {
       title: '개인정보처리방침',
       lastUpdated: '최종 수정일',
-      lastUpdatedDate: '2025년 1월 19일',
-      contactEmail: 'privacy@amiko.com',
+      lastUpdatedDate: '2025년 11월 9일',
+      contactEmail: 'info@helloamiko.com',
       supportEmail: 'info@helloamiko.com',
+      sectionOrder: [
+        'overview',
+        'purpose',
+        'collection',
+        'legalBasis',
+        'usage',
+        'retention',
+        'sharing',
+        'processors',
+        'child',
+        'rights',
+        'requests',
+        'security',
+        'international',
+        'cookies',
+        'changes',
+        'contactInfo'
+      ],
       sections: {
-        purpose: {
-          title: '1. 개인정보의 처리 목적',
-          content: 'Amiko는 다음의 목적을 위하여 개인정보를 처리합니다.',
+        overview: {
+          title: '0. 개요',
+          content: 'Amiko(이하 “회사”)는 이용자의 개인정보를 소중하게 여기며 개인정보 보호법, 정보통신망법 등 관련 법령을 준수합니다. 본 방침은 Amiko 웹사이트, 모바일 애플리케이션, 커뮤니티 및 화상 상담 서비스를 이용하는 모든 사용자에게 적용됩니다.',
           items: [
-            '서비스 제공: 화상 채팅 및 커뮤니티 서비스 제공',
-            '회원 관리: 회원 가입, 인증, 탈퇴 등 회원 관리',
-            '고객 지원: 문의사항 응답 및 기술 지원',
-            '마케팅: 서비스 개선 및 새로운 서비스 안내'
+            '서비스 명칭: Amiko (아미코)',
+            '적용 범위: 공식 웹사이트(helloamiko.com), 모바일 앱, 커뮤니티, 화상 상담 및 기타 부가 서비스',
+            '정책 목적: 수집되는 개인정보의 항목, 이용 목적, 보관 기간, 제3자 제공, 이용자의 권리와 행사 방법을 명확히 안내'
+          ]
+        },
+        purpose: {
+          title: '1. 개인정보 처리 목적',
+          content: '회사는 다음과 같은 목적을 위하여 개인정보를 처리합니다.',
+          items: [
+            '서비스 제공: 회원 가입, 계정 인증, 번역 및 화상 상담 등 핵심 기능 제공',
+            '맞춤형 경험: 관심사 및 학습 목표에 따른 콘텐츠 추천과 파트너 매칭',
+            '고객 지원: 문의 대응, 기술 지원, 품질 향상을 위한 피드백 수집',
+            '안전 및 준법: 부정 이용 모니터링, 정책 위반 조사, 분쟁 대응',
+            '마케팅(선택): 이벤트·프로모션 안내, 뉴스레터 발송 (언제든지 수신 거부 가능)'
           ]
         },
         collection: {
           title: '2. 수집하는 개인정보 항목',
-          content: 'Amiko는 서비스 제공을 위해 다음과 같은 개인정보를 수집합니다.',
+          content: '회사는 서비스 제공을 위해 다음과 같은 개인정보를 수집합니다.',
           items: [
-            '필수 정보: 이메일, 전화번호, 이름',
-            '선택 정보: 프로필 사진, 관심사',
-            '자동 수집: IP 주소, 접속 기록, 쿠키'
+            '계정 정보: 이름, 이메일, 암호화된 비밀번호, 전화번호(선택), 언어 설정',
+            '프로필 정보: 닉네임, 생년월일, 성별(선택), 관심사, 학습 목표, 프로필 사진',
+            '서비스 이용 정보: 수업 및 상담 예약 내역, 커뮤니티 게시글·댓글·좋아요 기록, 상담 노트, 신고 및 제재 이력',
+            '기기 및 기술 정보: IP 주소, 접속 일시, 브라우저 및 OS 버전, 기기 식별자, 쿠키 및 유사 기술',
+            '결제 및 정산 정보: 거래 고유번호, 결제 수단 유형, 영수증 및 환불 기록 (카드 번호는 결제대행사에서 직접 처리)',
+            '소통 기록: 고객센터 문의, 설문 응답, 오류 보고, 이용자 간 메시지(필요 시 한시적 저장)',
+            '민감 데이터: 화상 채팅·음성 통화 내용은 실시간 스트리밍 후 저장하지 않으며, 신고 처리 등 정당한 사유와 추가 동의가 있는 경우에만 제한적으로 보관'
+          ]
+        },
+        legalBasis: {
+          title: '3. 개인정보 처리의 법적 근거',
+          content: '회사는 다음의 법적 근거에 따라 개인정보를 처리합니다.',
+          items: [
+            '계약의 이행: 서비스 제공, 예약 관리, 고객 요청 처리',
+            '법적 의무 준수: 전자상거래법, 세법, 청소년 보호법 등 관련 법령에 따른 기록 보관',
+            '정당한 이익: 서비스 개선, 안전한 환경 조성, 부정 행위 방지 (이용자의 권리와 자유보다 우선하지 않도록 보호 조치 시행)',
+            '동의에 기반한 처리: 마케팅 알림 수신, 선택 정보 제공, 위치 기반 기능, 외부 서비스 연동 (언제든지 철회 가능)'
+          ]
+        },
+        usage: {
+          title: '4. 개인정보의 이용 목적',
+          content: '수집한 개인정보는 다음과 같이 활용됩니다.',
+          items: [
+            '서비스 운영: 회원 인증, 콘텐츠 추천, 언어 교환 및 화상 통역, 커뮤니티 운영, 학습 관리',
+            '커뮤니케이션: 공지사항, 서비스 변경, 정책 업데이트, 고객지원 회신',
+            '데이터 분석: 이용 패턴 분석, 품질 향상, 서비스·UX 개선, 신규 기능 개발',
+            '보안 및 안전: 계정 보호, 스팸·사기 행위 차단, 위법·부적절한 콘텐츠 조치'
           ]
         },
         retention: {
-          title: '3. 개인정보의 처리 및 보유 기간',
-          content: '개인정보는 수집·이용에 관한 동의일로부터 회원 탈퇴 시까지 보유·이용됩니다.',
+          title: '5. 개인정보의 보유 및 이용 기간',
+          content: '회사는 수집한 개인정보를 아래 기준에 따라 보유·이용합니다.',
           items: [
-            '회원 정보: 탈퇴 시 즉시 삭제',
-            '서비스 이용 기록: 1년간 보관',
-            '법적 의무 기록: 관련 법령에 따라 보관'
+            '회원 계정 정보: 회원 탈퇴 또는 목적 달성 시 즉시 삭제 (단, 관계 법령에 따라 일정 기간 보관할 수 있음)',
+            '거래 및 결제 기록: 전자상거래 등에서의 소비자 보호에 관한 법률에 따라 5년 보관',
+            '민원·분쟁 처리 기록: 소비자기본법에 따라 3년 보관',
+            '접속 기록: 통신비밀보호법에 따라 12개월 보관',
+            '마케팅 수신 동의 이력: 수신 철회 후 2년 보관',
+            '법적 분쟁 대비: 분쟁 해결이 완료될 때까지 또는 관련 법령에 따른 기간'
+          ]
+        },
+        sharing: {
+          title: '6. 개인정보의 제3자 제공',
+          content: '회사는 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 다만 다음의 경우 예외적으로 제공할 수 있습니다.',
+          items: [
+            '법적 요구: 법원, 수사기관 등 공공기관의 적법한 요청이 있는 경우',
+            '서비스 제공 파트너: 클라우드, 번역, 고객지원 등 필수 업무를 수행하는 위탁사 (아래 위탁 항목 참조)',
+            '결제 및 정산: 결제대행사, 금융기관 등 거래 처리를 위한 제휴사',
+            '부정행위 대응: 사기 탐지 및 예방을 위한 외부 전문기관과의 협력 시 필요한 범위 내 공유',
+            '기업 거래: 합병·인수·자산 매각 등이 진행되는 경우 이용자에게 사전 통지 후 개인정보 이전'
+          ]
+        },
+        processors: {
+          title: '7. 개인정보 처리 위탁',
+          content: '회사는 안정적인 서비스 제공을 위해 다음 업체에 일부 업무를 위탁하고 있으며, 위탁계약을 통해 개인정보가 안전하게 관리되도록 하고 있습니다.',
+          items: [
+            '클라우드 인프라: Amazon Web Services, Vercel (데이터 저장 및 서버 운영)',
+            '데이터 분석: Google Analytics (IP 익명화 적용, 옵트아웃 가능)',
+            '메시징 및 인증: Twilio (SMS/WhatsApp 인증 코드 발송)',
+            '고객 지원: Zendesk (문의 티켓 시스템)',
+            '결제 처리: Stripe (결제 정보는 Stripe에서 직접 처리하며 Amiko가 원본을 저장하지 않음)',
+            '내부 운영 도구: Slack, Notion 등 업무 커뮤니케이션 및 협업 도구'
+          ]
+        },
+        child: {
+          title: '8. 어린이 개인정보 보호',
+          content: 'Amiko는 만 13세 미만 이용자의 개인정보를 별도로 보호하며 다음과 같은 조치를 시행합니다.',
+          items: [
+            '연령 확인: 회원 가입 시 생년월일 확인 및 만 13세 미만 이용자는 보호자 동의 과정 필수',
+            '데이터 최소화: 어린이 계정에는 필수 정보만 수집하며 맞춤형 광고를 제공하지 않음',
+            '보호자 권리: privacy@amiko.com 으로 요청 시 자녀 계정 및 데이터를 열람·수정·삭제 가능',
+            '규정 준수: 미국 COPPA, EU GDPR-K, 한국 청소년 보호 관련 법령 준수',
+            '불만 처리: 어린이 개인정보 침해 신고 접수 시 24시간 이내 조치'
           ]
         },
         rights: {
-          title: '4. 정보주체의 권리',
-          content: '정보주체는 개인정보 처리에 대해 다음의 권리를 가집니다.',
+          title: '9. 정보주체의 권리',
+          content: '이용자는 언제든지 다음 권리를 행사할 수 있습니다.',
           items: [
-            '개인정보 처리 현황에 대한 열람 요구',
-            '오류 등이 있을 경우 정정·삭제 요구',
-            '처리정지 요구'
+            '열람권: 본인 확인 후 개인정보 사본 제공 요청 가능',
+            '정정권: 부정확하거나 불완전한 정보 수정 요청',
+            '삭제권: 법령상 보존 의무가 없는 범위 내에서 데이터 삭제 요구',
+            '처리 제한 및 거부권: 특정 목적에 대한 개인정보 처리 중단 요청',
+            '데이터 이동권: 기계 판독 가능한 형식으로 데이터 제공 및 다른 서비스로 이전 요청',
+            '동의 철회권: 선택적 동의를 언제든지 철회 가능 (철회 전 처리에는 영향 없음)'
+          ]
+        },
+        requests: {
+          title: '10. 권리 행사 방법',
+          content: '권리 행사는 다음 절차에 따라 진행됩니다.',
+          items: [
+            '요청 방법: 앱 내 설정 > 개인정보 보호 > 문의하기 또는 privacy@amiko.com 이메일',
+            '본인 확인: 안전한 처리를 위해 신분 확인 절차(이메일/전화 인증 등) 진행',
+            '처리 기한: 통상 영업일 기준 10일 이내 회신, 지연 시 사유 및 예상 일정 안내',
+            '불만 및 분쟁 해결: 내부 처리로 해결되지 않을 경우 개인정보보호위원회 등 감독 기관에 신고 가능'
+          ]
+        },
+        security: {
+          title: '11. 개인정보의 안전성 확보 조치',
+          content: '회사는 개인정보의 안전한 처리를 위해 다음과 같은 조치를 마련하고 있습니다.',
+          items: [
+            '기술적 보호 조치: TLS 기반 암호화 통신, 방화벽, 침입 탐지 시스템, 취약점 점검',
+            '관리적 보호 조치: 최소 권한 원칙, 임직원 보안 교육, 접근 통제 정책, 정기 감사',
+            '물리적 보호 조치: 보안이 강화된 데이터 센터, 출입 통제, 이중화 및 정기 백업',
+            '사고 대응: 개인정보 침해 발생 시 지체 없이 관련 사실과 대응 조치를 통지'
+          ]
+        },
+        international: {
+          title: '12. 국외 이전에 대한 고지',
+          content: '회사는 글로벌 인프라 운영을 위해 개인정보를 해외에 이전할 수 있으며, 다음과 같이 보호합니다.',
+          items: [
+            '데이터 저장 위치: 대한민국, 미국 등 클라우드 인프라가 위치한 국가',
+            '이전 근거: 표준 계약 조항(SCC) 체결, AWS/Vercel/Twilio 등의 보안 인증 준수',
+            '이전 목적: 글로벌 서비스 운영, 실시간 통신, 고객 지원 효율화',
+            '사용자 권리: 국외 이전에 대한 세부 정보를 요청하거나 이전 중단을 요청할 수 있음'
+          ]
+        },
+        cookies: {
+          title: '13. 쿠키 및 유사 기술의 사용',
+          content: '회사는 이용자 편의와 서비스 품질 향상을 위해 쿠키와 유사 기술을 사용합니다.',
+          items: [
+            '사용 목적: 로그인 유지, 언어 및 지역 설정, 트래픽 분석, 서비스 개선',
+            '관리 방법: 브라우저 설정 또는 Amiko 쿠키 설정 페이지에서 선택 가능',
+            '선택 쿠키: 마케팅 및 분석 쿠키는 언제든지 거부하거나 동의를 철회할 수 있음',
+            '추가 정보: 자세한 내용은 쿠키 정책에서 확인 가능'
+          ]
+        },
+        changes: {
+          title: '14. 개인정보처리방침 변경',
+          content: '회사는 법령, 서비스 변경을 반영하기 위해 본 방침을 개정할 수 있으며, 변경 시 아래 절차를 따릅니다.',
+          items: [
+            '변경 통지: 중대한 변경 시 최소 7일 전, 이용자에게 불리한 변경 시 30일 전 사전 공지',
+            '이전 버전 보관: 정책 변경 이력과 이전 버전을 웹사이트에서 열람 가능',
+            '미동의 시 권리: 변경 내용에 동의하지 않는 경우 서비스 이용 중단 및 계정 삭제 요청 가능'
           ]
         },
         contactInfo: {
-          title: '5. 개인정보 보호책임자',
-          content: '개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.',
+          title: '15. 개인정보 보호책임자 및 문의처',
+          content: '개인정보 관련 문의 및 불편 사항은 아래 담당자에게 연락하시면 신속히 처리해 드립니다.',
           items: [
-            '개인정보 보호책임자: privacy@amiko.com',
-            '고객지원: info@helloamiko.com',
-            '운영시간: 월-금 09:00-18:00 (KST)'
+            '개인정보 보호책임자(CPO): 한상훈 (info@helloamiko.com)',
+            '한국 사무소: 광주광역시 북구 효죽로 9-1, 1동 2층 1호 (중흥동, 대경빌라)',
+            '고객 지원: info@helloamiko.com / +82-10-5689-2434 (한국 시간 09:00~18:00)',
+            '라틴아메리카 지원(WhatsApp): info@helloamiko.com / +51-908-632-674 (페루 시간 09:00~18:00)',
+            '문의 처리 절차: 이메일·전화·앱 내 문의 접수 → 담당자 배정 → 10일 이내 회신'
           ]
         }
       }
@@ -1508,7 +1651,7 @@ export const translations = {
       title: '쿠키 정책',
       lastUpdated: '최종 수정일',
       lastUpdatedDate: '2025년 1월 19일',
-      contactEmail: 'privacy@amiko.com',
+      contactEmail: 'info@helloamiko.com',
       supportEmail: 'info@helloamiko.com',
       sections: {
         definition: {
@@ -4115,60 +4258,198 @@ export const translations = {
 
     // 개인정보처리방침
     privacy: {
+      title: 'Política de Privacidad',
       lastUpdated: 'Última actualización',
+      lastUpdatedDate: '9 de noviembre de 2025',
       contactEmail: 'privacy@amiko.com',
       supportEmail: 'info@helloamiko.com',
-      title: 'Política de Privacidad',
-      lastUpdatedDate: '19 de enero de 2025',
+      sectionOrder: [
+        'overview',
+        'purpose',
+        'collection',
+        'legalBasis',
+        'usage',
+        'retention',
+        'sharing',
+        'processors',
+        'child',
+        'rights',
+        'requests',
+        'security',
+        'international',
+        'cookies',
+        'changes',
+        'contactInfo'
+      ],
       sections: {
-        purpose: {
-          title: '1. Propósito de recolección y uso de información personal',
-          content: 'Amiko recolecta y utiliza información personal para los siguientes propósitos:',
+        overview: {
+          title: '0. Información general',
+          content: 'Amiko (“la Empresa”) protege los datos personales de sus usuarios y cumple con el GDPR, la Ley de Protección de Datos Personales de Corea y las normativas locales de América Latina. Esta política se aplica al sitio web, la aplicación móvil, la comunidad y los servicios de videollamada de Amiko.',
           items: [
-            'Registro y gestión de miembros: Identificación de usuarios del servicio, verificación de identidad, confirmación de intención de registro',
-            'Provisión de servicios: Aprendizaje de coreano, intercambio cultural, provisión de servicios de videollamadas',
-            'Soporte al cliente: Procesamiento de consultas, recolección de retroalimentación para mejora del servicio',
-            'Seguridad y seguridad: Prevención de uso indebido, garantía de estabilidad del servicio',
-            'Marketing: Provisión de servicios personalizados, notificación de información de eventos (con consentimiento)'
+            'Nombre del servicio: Amiko',
+            'Alcance: Sitio web helloamiko.com, aplicación móvil, comunidad, servicios de videollamadas y funciones complementarias',
+            'Objetivo de la política: Informar de forma transparente qué datos recolectamos, con qué fines, cuánto tiempo los conservamos y qué derechos tienen los usuarios'
+          ]
+        },
+        purpose: {
+          title: '1. Finalidades del tratamiento',
+          content: 'Utilizamos los datos personales para los siguientes fines legítimos:',
+          items: [
+            'Prestación de servicios: Creación y gestión de cuentas, clases de coreano, traducción en vivo y gestión de reservas',
+            'Experiencia personalizada: Recomendaciones de contenido, emparejamiento de compañeros de estudio y traducción de mensajes',
+            'Soporte al cliente: Atención de consultas, resolución de incidencias y obtención de retroalimentación',
+            'Seguridad y prevención del fraude: Detección de usos indebidos, investigaciones internas y aplicación de las normas de la comunidad',
+            'Marketing con consentimiento: Envío de boletines, anuncios de eventos y promociones opcionales'
           ]
         },
         collection: {
-          title: '2. Información personal recolectada',
-          content: 'Amiko recolecta la siguiente información personal:',
+          title: '2. Datos personales que recolectamos',
+          content: 'Recolectamos la siguiente información según la categoría y el uso del servicio:',
           items: [
-            'Información de registro: Nombre, correo electrónico, número de teléfono',
-            'Información de perfil: Edad, género, intereses, nivel de idioma',
-            'Información de uso: Historial de uso del servicio, tiempo de conexión',
-            'Información de dispositivo: Dirección IP, tipo de dispositivo, sistema operativo'
+            'Datos de registro: Nombre, correo electrónico, contraseña cifrada, número de teléfono (para autenticación SMS)',
+            'Perfil público: Nickname, fecha de nacimiento, idioma preferido, intereses, foto de perfil',
+            'Actividad del servicio: Historial de clases, horarios reservados, publicaciones, comentarios, interacciones y registros de chat',
+            'Información del dispositivo: Dirección IP, identificadores de dispositivo, sistema operativo, versión del navegador, cookies y tecnologías similares',
+            'Comunicación: Mensajes al soporte, encuestas, formularios de satisfacción y reportes de abuso',
+            'Datos sensibles: Audio y video de las videollamadas se transmiten en tiempo real y no se almacenan, salvo que el usuario autorice su conservación para resolver incidentes'
+          ]
+        },
+        legalBasis: {
+          title: '3. Base legal del tratamiento',
+          content: 'Tratamos los datos personales con las siguientes bases jurídicas:',
+          items: [
+            'Ejecución del contrato: Proporcionar los servicios solicitados y gestionar la relación con el usuario',
+            'Cumplimiento legal: Obligaciones fiscales, contables, de protección al consumidor y normativa sobre menores',
+            'Interés legítimo: Mejorar el servicio, garantizar la seguridad y prevenir el fraude (sin menoscabar los derechos del usuario)',
+            'Consentimiento: Envío de comunicaciones comerciales, uso de datos opcionales del perfil y funciones basadas en la ubicación'
+          ]
+        },
+        usage: {
+          title: '4. Uso de los datos personales',
+          content: 'La información recolectada se utiliza para:',
+          items: [
+            'Operación del servicio: Autenticación, recomendaciones de contenido, traducción simultánea y gestión de la comunidad',
+            'Comunicación con el usuario: Avisos de servicio, cambios en la plataforma, soporte técnico y respuestas a consultas',
+            'Análisis y mejora: Estudio de patrones de uso, pruebas de usabilidad, desarrollo de nuevas funciones y personalización de la experiencia',
+            'Seguridad: Protección de cuentas, prevención de spam y fraude, investigación de actividades ilícitas o infracciones de las políticas'
           ]
         },
         retention: {
-          title: '3. Período de retención y uso de información personal',
-          content: 'Amiko retiene y utiliza información personal durante el siguiente período:',
+          title: '5. Periodos de conservación',
+          content: 'Conservamos los datos personales únicamente durante el tiempo necesario para cumplir las finalidades descritas o según lo exija la ley.',
           items: [
-            'Información de registro: Hasta la retirada del servicio',
-            'Información de perfil: Hasta la retirada del servicio',
-            'Información de uso: 3 años desde la última actividad',
-            'Información de dispositivo: 1 año desde la última conexión'
+            'Información de la cuenta: Se elimina inmediatamente al cerrar la cuenta, salvo obligaciones legales vigentes',
+            'Registros de transacciones y pagos: 5 años según la legislación de comercio electrónico',
+            'Reclamaciones y atención al cliente: 3 años conforme a las leyes de protección al consumidor',
+            'Registros de acceso: 12 meses según la legislación sobre comunicaciones',
+            'Historial de consentimientos de marketing: 2 años después de la revocación',
+            'Conservación por disputas: Hasta que finalice el litigio o durante el plazo legal aplicable'
+          ]
+        },
+        sharing: {
+          title: '6. Cesión y divulgación a terceros',
+          content: 'No vendemos datos personales. Únicamente compartimos información con terceros en las situaciones descritas a continuación:',
+          items: [
+            'Cumplimiento legal: Órdenes judiciales o solicitudes de autoridades competentes',
+            'Prestadores de servicios: Empresas que operan infraestructura, traducción o soporte en nuestro nombre (ver sección de encargados del tratamiento)',
+            'Procesamiento de pagos: Pasarelas de pago y entidades financieras para completar transacciones',
+            'Prevención del fraude: Colaboración con proveedores externos para investigar usos indebidos',
+            'Operaciones corporativas: Fusiones, adquisiciones o venta de activos previa notificación al usuario'
+          ]
+        },
+        processors: {
+          title: '7. Encargados del tratamiento',
+          content: 'Trabajamos con proveedores certificados que tratan los datos bajo nuestras instrucciones y con medidas de seguridad adecuadas.',
+          items: [
+            'Infraestructura en la nube: Amazon Web Services, Vercel (almacenamiento y operación de servidores)',
+            'Análisis de datos: Google Analytics (con anonimización de IP y posibilidad de exclusión)',
+            'Mensajería y autenticación: Twilio (envío de códigos SMS/WhatsApp)',
+            'Atención al cliente: Zendesk (gestión de tickets)',
+            'Procesamiento de pagos: Stripe (la información de tarjeta se procesa directamente en Stripe)',
+            'Herramientas internas: Slack, Notion y otras plataformas de colaboración'
+          ]
+        },
+        child: {
+          title: '8. Privacidad de menores',
+          content: 'Amiko adopta medidas especiales para proteger los datos de niñas, niños y adolescentes.',
+          items: [
+            'Verificación de edad: Requerimos fecha de nacimiento y, en caso de menores de 13 años, el consentimiento verificable de padres o tutores',
+            'Limitaciones de uso: No mostramos publicidad personalizada a menores de 13 años y recopilamos únicamente la información necesaria',
+            'Derechos de los tutores: Pueden solicitar el acceso o eliminación de los datos de sus hijos escribiendo a privacy@amiko.com',
+            'Cumplimiento normativo: Cumplimos con COPPA, GDPR-K y las leyes locales de protección de menores',
+            'Atención prioritaria: Cualquier incidente relacionado con menores se atiende en un plazo no mayor a 24 horas'
           ]
         },
         rights: {
-          title: '4. Derechos del titular de la información personal',
-          content: 'Los usuarios tienen los siguientes derechos:',
+          title: '9. Derechos de los usuarios',
+          content: 'Los titulares de los datos pueden ejercer los siguientes derechos en cualquier momento:',
           items: [
-            'Derecho de acceso: Solicitar acceso a información personal',
-            'Derecho de rectificación: Solicitar corrección de información personal',
-            'Derecho de eliminación: Solicitar eliminación de información personal',
-            'Derecho de limitación: Solicitar limitación del procesamiento de información personal'
+            'Derecho de acceso: Solicitar una copia de los datos personales que conservamos',
+            'Derecho de rectificación: Corregir datos inexactos o incompletos',
+            'Derecho de supresión: Solicitar la eliminación de datos cuando ya no sean necesarios o exista un interés legítimo inferior',
+            'Derecho a la limitación u oposición: Restringir u oponerse a determinados tratamientos',
+            'Derecho a la portabilidad: Recibir los datos en un formato estructurado y transferible a otro proveedor',
+            'Derecho a retirar el consentimiento: Revocar en cualquier momento las autorizaciones otorgadas sin afectar al tratamiento previo'
+          ]
+        },
+        requests: {
+          title: '10. Procedimiento para ejercer derechos',
+          content: 'Para ejercer cualquiera de los derechos anteriores, siga los pasos detallados a continuación.',
+          items: [
+            'Cómo solicitarlo: Desde la aplicación (Configuración > Privacidad) o por correo electrónico a privacy@amiko.com',
+            'Verificación de identidad: Podemos solicitar información adicional para proteger la cuenta y confirmar la identidad del solicitante',
+            'Plazos de respuesta: Respondemos en un plazo máximo de 10 días hábiles; si se requiere más tiempo, comunicaremos el motivo y la fecha estimada',
+            'Escalamiento: Si la respuesta no resulta satisfactoria, puede acudir a la autoridad de protección de datos de su país'
+          ]
+        },
+        security: {
+          title: '11. Medidas de seguridad',
+          content: 'Implementamos medidas técnicas y organizativas razonables para proteger la información personal.',
+          items: [
+            'Medidas técnicas: Cifrado TLS, firewalls, sistemas de detección de intrusos y pruebas de vulnerabilidad periódicas',
+            'Medidas organizativas: Principio de mínimo privilegio, capacitación en privacidad y protocolos de control de acceso',
+            'Medidas físicas: Centros de datos con acceso restringido, redundancia de servidores y copias de seguridad regulares',
+            'Respuesta ante incidentes: En caso de una brecha de seguridad, notificaremos a los usuarios afectados sin demoras indebidas y aplicaremos acciones correctivas'
+          ]
+        },
+        international: {
+          title: '12. Transferencias internacionales',
+          content: 'Es posible que los datos personales se trasladen a países fuera de su lugar de residencia con las garantías adecuadas.',
+          items: [
+            'Ubicación de los servidores: Principalmente Corea del Sur y Estados Unidos',
+            'Base legal: Cláusulas contractuales tipo (SCC) y certificaciones de seguridad de AWS, Vercel y Twilio',
+            'Finalidad: Operar la infraestructura global, ofrecer soporte en tiempo real y asegurar la disponibilidad del servicio',
+            'Derechos del usuario: Puede solicitar detalles adicionales o oponerse a la transferencia en casos permitidos por la ley'
+          ]
+        },
+        cookies: {
+          title: '13. Cookies y tecnologías similares',
+          content: 'Utilizamos cookies para mejorar la experiencia del usuario y analizar el rendimiento del servicio.',
+          items: [
+            'Propósito de las cookies: Mantener sesiones activas, recordar preferencias de idioma y analizar el tráfico',
+            'Gestión: Puede cambiar la configuración en su navegador o en el gestor de cookies de Amiko',
+            'Cookies opcionales: Puede rechazar o revocar en cualquier momento las cookies analíticas o de marketing',
+            'Información adicional: Consulte la Política de Cookies para obtener más detalles'
+          ]
+        },
+        changes: {
+          title: '14. Actualizaciones de esta política',
+          content: 'Podemos actualizar esta política para reflejar cambios legales, técnicos o comerciales.',
+          items: [
+            'Notificación: Comunicaremos los cambios importantes con al menos 7 días de antelación; si le afectan negativamente, avisaremos con 30 días de anticipación',
+            'Historial: Conservamos versiones anteriores y las ponemos a disposición de los usuarios',
+            'Derecho a no aceptar: Puede dejar de usar el servicio y solicitar la eliminación de su cuenta si no acepta la versión actualizada'
           ]
         },
         contactInfo: {
-          title: '5. Contacto para consultas sobre información personal',
-          content: 'Para consultas sobre información personal, contacte:',
+          title: '15. Contacto y responsable de privacidad',
+          content: 'Si tiene preguntas, solicitudes o inquietudes relacionadas con sus datos personales, póngase en contacto con nosotros.',
           items: [
-            'Correo electrónico: privacy@amiko.com',
-            'Soporte al cliente: info@helloamiko.com',
-            'Horario de atención: Lunes a Viernes, 9:00 - 18:00 (KST)'
+            'Responsable de protección de datos (DPO): Han Sang-hun (info@helloamiko.com)',
+            'Oficina en Corea: 1F-2, 9-1 Hyojuk-ro, Buk-gu, Gwangju, República de Corea',
+            'Soporte global: info@helloamiko.com / +82-10-5689-2434 (09:00-18:00 KST, lunes a viernes)',
+            'Soporte para Latinoamérica (WhatsApp): info@helloamiko.com / +51-908-632-674 (09:00-18:00 PET, lunes a viernes)',
+            'Procedimiento de atención: Recepción de la solicitud → Asignación de responsable → Respuesta dentro de 10 días hábiles'
           ]
         }
       }
