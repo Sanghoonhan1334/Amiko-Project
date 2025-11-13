@@ -26,7 +26,8 @@ export default function SignUpPage() {
     confirmPassword: '',
     phone: '',
     country: '',
-    isKorean: false
+    isKorean: false,
+    birthDate: ''
   })
   
   const [passwordChecks, setPasswordChecks] = useState({
@@ -51,6 +52,21 @@ export default function SignUpPage() {
     isSMSVerified: false,
     biometricEnabled: false
   })
+
+  const [ageError, setAgeError] = useState<string | null>(null)
+
+  const calculateAge = (value: string) => {
+    if (!value) return null
+    const today = new Date()
+    const birth = new Date(value)
+    if (Number.isNaN(birth.getTime())) return null
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+    return age
+  }
 
   const handleInputChange = (field: string, value: string) => {
     // 전화번호 입력 시 국가별 형식으로 변환
@@ -110,6 +126,19 @@ export default function SignUpPage() {
     // 닉네임 검증
     if (field === 'nickname') {
       validateNickname(value)
+    }
+
+    if (field === 'birthDate') {
+      const age = calculateAge(value)
+      if (!value) {
+        setAgeError(t('auth.birthDateRequired'))
+      } else if (age === null) {
+        setAgeError(t('auth.birthDateInvalid'))
+      } else if (age < 13) {
+        setAgeError(t('auth.ageRestriction'))
+      } else {
+        setAgeError(null)
+      }
     }
   }
   
@@ -393,6 +422,19 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
+      if (!formData.birthDate) {
+        throw new Error(t('auth.birthDateRequired'))
+      }
+
+      const age = calculateAge(formData.birthDate)
+      if (age === null) {
+        throw new Error(t('auth.birthDateInvalid'))
+      }
+
+      if (age < 13) {
+        throw new Error(t('auth.ageRestriction'))
+      }
+
       // 실제 회원가입 API 호출
       const selectedCountry = countries.find(c => c.code === formData.country)
       const response = await fetch('/api/auth/signup', {
@@ -406,6 +448,7 @@ export default function SignUpPage() {
           phone: formData.phone,
           country: formData.country,
           isKorean: selectedCountry?.isKorean || false,
+          birthDate: formData.birthDate,
           emailVerified: authData.isEmailVerified,
           phoneVerified: authData.isSMSVerified,
           biometricEnabled: authData.biometricEnabled
@@ -444,6 +487,22 @@ export default function SignUpPage() {
     e.preventDefault()
     
     if (!isPasswordValid || formData.password !== formData.confirmPassword) {
+      return
+    }
+
+    if (!formData.birthDate) {
+      setAgeError(t('auth.birthDateRequired'))
+      return
+    }
+
+    const age = calculateAge(formData.birthDate)
+    if (age === null) {
+      setAgeError(t('auth.birthDateInvalid'))
+      return
+    }
+
+    if (age < 13) {
+      setAgeError(t('auth.ageRestriction'))
       return
     }
 
@@ -638,6 +697,29 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="birthDate" className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                {t('auth.birthDate')}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={formData.birthDate}
+                  onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                  className="border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
+                  required
+                  max={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <p className="text-xs text-slate-500 dark:text-gray-400">
+                {t('auth.birthDateHelp')}
+              </p>
+              {ageError && (
+                <p className="text-xs text-red-500">{ageError}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.password')}
               </Label>
@@ -762,7 +844,21 @@ export default function SignUpPage() {
             <Button
               type="submit"
               className="w-full bg-slate-900 dark:bg-gray-700 hover:bg-slate-800 dark:hover:bg-gray-600 text-white py-3 text-lg font-medium transition-colors"
-              disabled={isLoading || !formData.name || !formData.nickname || !formData.email || !formData.password || !formData.confirmPassword || !formData.phone || !formData.country || !isPasswordValid || !isNicknameValid || formData.password !== formData.confirmPassword}
+              disabled={
+                isLoading ||
+                !formData.name ||
+                !formData.nickname ||
+                !formData.email ||
+                !formData.password ||
+                !formData.confirmPassword ||
+                !formData.phone ||
+                !formData.country ||
+                !formData.birthDate ||
+                !isPasswordValid ||
+                !isNicknameValid ||
+                formData.password !== formData.confirmPassword ||
+                !!ageError
+              }
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

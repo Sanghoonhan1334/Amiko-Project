@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       phone, 
       country, 
       isKorean,
+      birthDate,
       emailVerified = false,
       phoneVerified = false,
       biometricEnabled = false,
@@ -37,9 +38,31 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // 필수 필드 검증
-    if (!email || !password || !name || !nickname) {
+    if (!email || !password || !name || !nickname || !birthDate) {
       return NextResponse.json(
         { error: '필수 정보가 누락되었습니다.' },
+        { status: 400 }
+      )
+    }
+
+    const birth = new Date(birthDate)
+    if (Number.isNaN(birth.getTime())) {
+      return NextResponse.json(
+        { error: '유효한 생년월일을 입력해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    const today = new Date()
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+
+    if (age < 13) {
+      return NextResponse.json(
+        { error: '만 13세 미만의 사용자는 보호자 동의 없이 가입할 수 없습니다.' },
         { status: 400 }
       )
     }
@@ -215,6 +238,8 @@ export async function POST(request: NextRequest) {
               is_korean: isKorean || false, // 한국인 여부 추가
               email_verified: false, // 이메일 인증은 별도로 진행
               phone_verified: false, // 전화번호 인증은 별도로 진행
+              birth_date: birth.toISOString().split('T')[0],
+              age_verified: true,
               created_at: new Date().toISOString()
             })
 
