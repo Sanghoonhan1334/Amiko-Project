@@ -414,16 +414,37 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
         const response = await fetch('/api/conversation-partners')
         if (response.ok) {
           const data = await response.json()
-          const partners = data.partners?.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            language: `${p.country === '대한민국' ? '스페인어' : '한국어'} ${p.language_level}`,
-            country: p.country,
-            status: p.status,
-            interests: p.interests || [],
-            bio: p.bio,
-            avatar: p.avatar_url
-          })) || []
+          const partners = data.partners?.map((p: any) => {
+            // user_id가 없으면 경고 로그 출력
+            if (!p.user_id) {
+              console.error('[VideoCallStarter] ⚠️ user_id가 없는 파트너:', {
+                partner_id: p.id,
+                name: p.name,
+                full_data: p
+              })
+            }
+            
+            const userId = p.user_id || p.id
+            console.log('[VideoCallStarter] 파트너 매핑:', { 
+              partner_id: p.id, 
+              user_id: p.user_id, 
+              final_id: userId,
+              name: p.name,
+              has_user_id: !!p.user_id
+            })
+            return {
+              id: userId, // user_id를 우선 사용 (users 테이블의 실제 ID)
+              user_id: p.user_id, // 원본 user_id도 보관
+              partner_id: p.id, // conversation_partners 테이블의 ID
+              name: p.name,
+              language: `${p.country === '대한민국' ? '스페인어' : '한국어'} ${p.language_level}`,
+              country: p.country,
+              status: p.status,
+              interests: p.interests || [],
+              bio: p.bio,
+              avatar: p.avatar_url
+            }
+          }) || []
           setAllPartners(partners)
         }
       } catch (error) {
@@ -641,6 +662,12 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         variant="outline"
                         size="sm"
                         onClick={() => {
+                          console.log('[VideoCallStarter] 프로필 보기 클릭 (데스크톱):', { 
+                            partner_id: partner.partner_id,
+                            user_id: partner.user_id,
+                            id: partner.id,
+                            name: partner.name 
+                          })
                           setSelectedUserId(partner.id)
                           setShowProfileDialog(true)
                         }}
@@ -731,6 +758,12 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                         variant="outline"
                         size="sm"
                         onClick={() => {
+                          console.log('[VideoCallStarter] 프로필 보기 클릭 (모바일):', { 
+                            partner_id: partner.partner_id,
+                            user_id: partner.user_id,
+                            id: partner.id,
+                            name: partner.name 
+                          })
                           setSelectedUserId(partner.id)
                           setShowProfileDialog(true)
                         }}

@@ -34,6 +34,56 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: quizzes, error: quizzesError } = await query;
+    
+    // fortune 관련 퀴즈 중복 제거 및 통합
+    let quizzesList = quizzes || []
+    
+    // DB에서 slug='fortune'으로 조회 (id는 UUID 타입이므로 slug 사용)
+    const { data: dbFortuneQuiz } = await supabase
+      .from('quizzes')
+      .select('id, slug, title, description, category, thumbnail_url, total_questions, total_participants, is_active, created_at, updated_at')
+      .eq('slug', 'fortune')
+      .maybeSingle()
+    
+    // slug='fortune'인 퀴즈들 찾기
+    const fortuneQuizzes = quizzesList.filter((q: any) => 
+      q.slug === 'fortune'
+    )
+    
+    // fortune 퀴즈 결정: DB에 있으면 DB 데이터 우선, 없으면 목록에서 찾기
+    let fortuneQuiz = null
+    if (dbFortuneQuiz) {
+      // DB에 있으면 DB 데이터 사용 (최신 참여자 수 포함)
+      fortuneQuiz = { ...dbFortuneQuiz, is_active: true }
+      console.log('[QUIZZES] fortune 퀴즈 DB에서 조회 (slug=fortune):', fortuneQuiz.total_participants)
+    } else {
+      // DB에 없으면 목록에서 찾기
+      fortuneQuiz = fortuneQuizzes.find((q: any) => q.slug === 'fortune')
+    }
+    
+    // 기존 fortune 퀴즈들 제거 (중복 방지)
+    quizzesList = quizzesList.filter((q: any) => 
+      q.slug !== 'fortune'
+    )
+    
+    // fortune 퀴즈가 있으면 추가, 없으면 기본 데이터 추가
+    if (fortuneQuiz) {
+      quizzesList = [...quizzesList, fortuneQuiz]
+    } else {
+      // DB에 없으면 기본 데이터 추가 (id는 UUID로 자동 생성됨)
+      quizzesList = [...quizzesList, {
+        slug: 'fortune',
+        title: 'Test de Fortuna Personalizada',
+        description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
+        category: 'fortune',
+        thumbnail_url: '/quizzes/fortune/cover/cover.png',
+        total_questions: 9,
+        total_participants: 0,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }]
+    }
 
     if (quizzesError) {
       console.log('[QUIZZES] 퀴즈 조회 실패:', quizzesError);
@@ -46,11 +96,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('[QUIZZES] 퀴즈 조회 성공, 개수:', quizzes?.length || 0);
+    console.log('[QUIZZES] 퀴즈 조회 성공, 개수:', quizzesList.length);
 
     // 각 퀴즈의 완성 여부 확인 (질문이 있으면 완성된 것으로 간주)
     const quizzesWithCompletionStatus = await Promise.all(
-      (quizzes || []).map(async (quiz) => {
+      quizzesList.map(async (quiz: any) => {
         // 특별 구현된 퀴즈들 (별도 페이지로 구현됨, DB 질문 불필요)
         const specialQuizzes = ['korean-level', 'zodiac', 'fortune', 'mbti-kpop', 'idol-position']
         

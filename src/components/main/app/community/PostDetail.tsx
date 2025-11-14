@@ -11,6 +11,7 @@ import { TranslationService } from '@/lib/translation'
 import { useRouter } from 'next/navigation'
 import CommentSection from './CommentSection'
 import { shareCommunityPost } from '@/lib/share-utils'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Post {
   id: string
@@ -277,10 +278,10 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center pt-24 pb-12 min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('freeboard.loadingPosts')}</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('freeboard.loadingPosts')}</p>
         </div>
       </div>
     )
@@ -288,10 +289,10 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   if (error || !post) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center pt-24 pb-12 min-h-[60vh]">
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">{error || t('freeboard.postNotFound')}</p>
+          <p className="text-red-600 dark:text-red-400 mb-4">{error || t('freeboard.postNotFound')}</p>
           <Button onClick={onBack} variant="outline">
             ← {t('freeboard.backToList')}
           </Button>
@@ -329,7 +330,14 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                 <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
               )}
             </div>
-            <p className="text-xs md:text-sm text-gray-500">{post.author?.nickname || post.author?.full_name || t('freeboard.anonymous')} / {formatDate(post.created_at)}</p>
+            <p className="text-xs md:text-sm text-gray-500 flex items-center gap-1">
+              <AuthorName
+                userId={post.author?.id}
+                name={post.author?.nickname || post.author?.full_name || t('freeboard.anonymous')}
+                className="font-medium text-gray-700"
+              />
+              <span>/ {formatDate(post.created_at)}</span>
+            </p>
           </div>
 
           {/* 상태 배지 및 액션 버튼 */}
@@ -378,12 +386,11 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
         {/* 게시물 내용 */}
         <div className="mb-3 md:mb-6">
-          <div className="flex items-center gap-2 mb-2 md:mb-3">
-            <h3 className="text-base md:text-lg font-semibold text-gray-800">{t('freeboard.content')}</h3>
-            {post.translatedContent && (
+          {post.translatedContent && (
+            <div className="flex items-center gap-2 mb-2 md:mb-3">
               <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
-            )}
-          </div>
+            </div>
+          )}
           <div 
             className="prose max-w-none prose-sm md:prose-base"
             dangerouslySetInnerHTML={{ __html: formatContent(post.translatedContent || post.content) }}

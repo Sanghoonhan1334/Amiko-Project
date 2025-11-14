@@ -1,14 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 import { InterestBadges } from './TranslatedInterests'
+import UserBadge from './UserBadge'
 import { toast } from 'sonner'
 import { 
   User, 
@@ -22,7 +25,8 @@ import {
   Star,
   X,
   Languages,
-  Loader2
+  Loader2,
+  Flag
 } from 'lucide-react'
 
 interface UserProfile {
@@ -51,6 +55,8 @@ interface UserProfile {
   is_korean?: boolean
   created_at: string
   join_date?: string
+  total_points?: number
+  is_vip?: boolean
 }
 
 interface UserProfileModalProps {
@@ -59,8 +65,16 @@ interface UserProfileModalProps {
   onClose: () => void
 }
 
+const REASONS = [
+  { key: 'spam', ko: '스팸 / 광고', es: 'Spam o publicidad no deseada' },
+  { key: 'harassment', ko: '혐오 / 괴롭힘', es: 'Acoso u ofensas' },
+  { key: 'inappropriate', ko: '부적절한 콘텐츠', es: 'Contenido inapropiado' },
+  { key: 'other', ko: '기타', es: 'Otro' }
+]
+
 export default function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalProps) {
   const { t, language } = useLanguage()
+  const { user, token } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -74,8 +88,16 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
     occupation?: string
     company?: string
     work_experience?: string
+    interests?: string[]
   }>({})
   const [translationMode, setTranslationMode] = useState<'none' | 'ko-to-es' | 'es-to-ko'>('none')
+
+  // 신고 상태
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportReason, setReportReason] = useState<string>('')
+  const [reportDetails, setReportDetails] = useState('')
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportSuccess, setReportSuccess] = useState(false)
 
   // 목업 프로필 데이터
   const mockProfiles: Record<string, UserProfile> = {
@@ -218,31 +240,116 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
   // 프로필 데이터 가져오기
   const fetchUserProfile = async (id: string) => {
+    console.log('[UserProfileModal] 프로필 조회 시작:', { userId: id })
     setLoading(true)
     setError(null)
     
     try {
       // 목업 데이터가 있으면 사용
       if (mockProfiles[id]) {
+        console.log('[UserProfileModal] 목업 데이터 사용:', id)
         setProfile(mockProfiles[id])
         setLoading(false)
         return
       }
 
       // 실제 API 호출
+      console.log('[UserProfileModal] API 호출:', `/api/user/${id}`)
       const response = await fetch(`/api/user/${id}`)
       
       if (!response.ok) {
-        throw new Error('프로필을 불러오는데 실패했습니다.')
+        let errorData = {}
+        try {
+          const text = await response.text()
+          errorData = text ? JSON.parse(text) : {}
+        } catch (e) {
+          console.error('[UserProfileModal] 에러 응답 파싱 실패:', e)
+        }
+        
+        const errorMessage = errorData.error || `프로필을 불러오는데 실패했습니다. (HTTP ${response.status})`
+        console.error('[UserProfileModal] 프로필 API 에러:', { 
+          status: response.status, 
+          statusText: response.statusText,
+          url: `/api/user/${id}`,
+          userId: id,
+          error: errorData,
+          errorString: JSON.stringify(errorData, null, 2)
+        })
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
+      if (!data.profile) {
+        throw new Error('프로필 데이터가 없습니다.')
+      }
       setProfile(data.profile)
     } catch (err) {
       console.error('프로필 조회 실패:', err)
       setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // 신고 제출 함수
+  const handleSubmitReport = async () => {
+    if (!token) {
+      setError(language === 'ko' 
+        ? '신고하려면 먼저 로그인하세요.' 
+        : 'Debes iniciar sesión para enviar una denuncia.')
+      return
+    }
+    
+    if (!reportReason) {
+      setError(language === 'ko' 
+        ? '신고 사유를 선택하세요.' 
+        : 'Selecciona un motivo de denuncia.')
+      return
+    }
+
+    if (!userId) {
+      setError(language === 'ko' 
+        ? '사용자 ID가 없습니다.' 
+        : 'ID de usuario no encontrado.')
+      return
+    }
+
+    try {
+      setReportSubmitting(true)
+      setReportSuccess(false)
+      setError(null)
+
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reportedUserId: userId,
+          reportType: 'account',
+          reason: reportReason,
+          details: reportDetails.trim()
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        throw new Error(result.error || result.message || '신고에 실패했습니다.')
+      }
+
+      setReportSuccess(true)
+      setReportReason('')
+      setReportDetails('')
+      setError(null)
+    } catch (err) {
+      console.error('[UserProfileModal] report error:', err)
+      setError(language === 'ko' 
+        ? '신고를 제출하는 중 문제가 발생했습니다.' 
+        : 'Ocurrió un problema al enviar la denuncia.')
+    } finally {
+      setReportSubmitting(false)
     }
   }
 
@@ -264,21 +371,55 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
   }, [isOpen])
 
 
+  // 간단한 언어 감지 함수 (한글/스페인어 문자 기반)
+  const detectLanguage = (text: string): 'ko' | 'es' => {
+    if (!text || text.trim().length === 0) return language // 기본값은 현재 언어
+    
+    // 한글 유니코드 범위: AC00-D7AF
+    const koreanRegex = /[가-힣]/
+    
+    // 스페인어 특수 문자나 일반적인 스페인어 단어 패턴
+    const spanishIndicators = /\b(es|el|la|los|las|un|una|del|de|en|con|por|para|que|está|están|son|soy|eres|somos|sois|música|más|juegos|cultura|coreano|coreana|intercambio|idioma|idiomas)\b/i
+    
+    // 스페인어 특수 문자 (á, é, í, ó, ú, ñ 등)
+    const spanishChars = /[áéíóúñüÁÉÍÓÚÑÜ]/
+    
+    // 한글이 있으면 한국어로 판단
+    const hasKorean = koreanRegex.test(text)
+    
+    // 스페인어 지시어나 특수 문자가 있고 한글이 없으면 스페인어로 판단
+    const hasSpanish = (spanishIndicators.test(text) || spanishChars.test(text)) && !hasKorean
+    
+    // 한글이 있으면 한국어로 판단
+    if (hasKorean) return 'ko'
+    // 스페인어 지시어가 있고 한글이 없으면 스페인어로 판단
+    if (hasSpanish) return 'es'
+    // 둘 다 없으면 현재 언어 설정을 기본값으로
+    return language
+  }
+
   // 번역 함수들
   const handleTranslateToSpanish = async () => {
     if (translating) return
+    // 텍스트 언어를 자동 감지하여 한국어 → 스페인어로 번역
     await performTranslation('ko', 'es')
   }
 
   const handleTranslateToKorean = async () => {
     if (translating) return
+    // 텍스트 언어를 자동 감지하여 스페인어 → 한국어로 번역
     await performTranslation('es', 'ko')
   }
 
   const performTranslation = async (sourceLang: 'ko' | 'es', targetLang: 'ko' | 'es') => {
-    if (!profile) return
+    if (!profile) {
+      console.warn('[TRANSLATE] 프로필이 없어 번역을 수행할 수 없습니다.')
+      return
+    }
 
+    console.log('[TRANSLATE] 번역 시작:', { sourceLang, targetLang, profileId: profile.id })
     setTranslating(true)
+    
     try {
       const fieldsToTranslate = [
         { key: 'bio', value: profile.bio },
@@ -289,10 +430,121 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
         { key: 'work_experience', value: profile.work_experience }
       ].filter(field => field.value && field.value.trim())
 
+      // 관심사 번역 (배열)
+      let translatedInterests: string[] | undefined = undefined
+      if (profile.interests && profile.interests.length > 0) {
+        try {
+          console.log('[TRANSLATE] 관심사 번역 시작:', profile.interests)
+          const interestTranslations: string[] = []
+          for (const interest of profile.interests) {
+            try {
+              const detectedLang = detectLanguage(interest)
+              
+              // 감지된 언어가 targetLang과 같으면 번역하지 않음 (이미 번역된 상태)
+              if (detectedLang === targetLang) {
+                console.log(`[TRANSLATE] 관심사 "${interest}" 이미 ${targetLang}이므로 번역 건너뜀`)
+                interestTranslations.push(interest)
+                continue
+              }
+              
+              // 감지된 언어를 sourceLang으로 사용
+              const actualSourceLang = detectedLang
+              
+              // sourceLang이 targetLang과 같으면 번역하지 않음
+              if (actualSourceLang === targetLang) {
+                console.log(`[TRANSLATE] 관심사 "${interest}" sourceLang과 targetLang이 같아서 번역 건너뜀`)
+                interestTranslations.push(interest)
+                continue
+              }
+              
+              console.log(`[TRANSLATE] 관심사 "${interest}" 번역 중:`, { detectedLang, actualSourceLang, targetLang })
+              
+              const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  text: interest,
+                  targetLang: targetLang,
+                  sourceLang: actualSourceLang
+                }),
+              })
+
+              if (response.ok) {
+                const data = await response.json()
+                if (data.success && data.translatedText) {
+                  // 번역된 텍스트가 이상한 에러 메시지인지 확인
+                  const translatedText = data.translatedText.trim()
+                  if (translatedText && 
+                      !translatedText.includes('PLEASE SELECT') && 
+                      !translatedText.includes('ERROR') &&
+                      translatedText.length < 100) { // 너무 긴 텍스트는 에러일 가능성
+                    interestTranslations.push(translatedText)
+                    console.log(`[TRANSLATE] 관심사 "${interest}" 번역 성공:`, translatedText)
+                  } else {
+                    interestTranslations.push(interest) // 번역 실패 시 원문 사용
+                    console.warn(`[TRANSLATE] 관심사 "${interest}" 번역 결과 이상, 원문 사용:`, translatedText)
+                  }
+                } else {
+                  interestTranslations.push(interest) // 번역 실패 시 원문 사용
+                  console.warn(`[TRANSLATE] 관심사 "${interest}" 번역 실패, 원문 사용:`, data.error)
+                }
+              } else {
+                interestTranslations.push(interest) // 번역 실패 시 원문 사용
+                const errorData = await response.json().catch(() => ({}))
+                console.warn(`[TRANSLATE] 관심사 "${interest}" API 오류, 원문 사용:`, response.status, errorData)
+              }
+            } catch (error) {
+              console.error(`[TRANSLATE] 관심사 "${interest}" 번역 예외:`, error)
+              interestTranslations.push(interest) // 번역 실패 시 원문 사용
+            }
+          }
+          // 번역된 관심사가 있으면 저장 (모든 관심사를 처리했는지 확인)
+          if (interestTranslations.length === profile.interests.length) {
+            translatedInterests = interestTranslations
+            console.log('[TRANSLATE] 관심사 번역 완료:', translatedInterests)
+          } else {
+            console.warn(`[TRANSLATE] 관심사 번역 불완전: ${interestTranslations.length}/${profile.interests.length}`)
+            // 일부만 번역된 경우에도 저장 (나머지는 원문 사용)
+            if (interestTranslations.length > 0) {
+              translatedInterests = interestTranslations
+            }
+          }
+        } catch (error) {
+          console.error('[TRANSLATE] 관심사 번역 오류:', error)
+        }
+      }
+
+      console.log('[TRANSLATE] 번역할 필드:', fieldsToTranslate.map(f => f.key))
+
+      if (fieldsToTranslate.length === 0) {
+        console.warn('[TRANSLATE] 번역할 필드가 없습니다.')
+        toast.info(language === 'ko' ? '번역할 내용이 없습니다.' : 'No hay contenido para traducir.')
+        setTranslating(false)
+        return
+      }
+
       const translatedFieldsData: any = {}
+      let successCount = 0
+      let failCount = 0
       
       for (const field of fieldsToTranslate) {
         try {
+          // 각 필드의 실제 언어를 감지
+          const detectedLang = detectLanguage(field.value || '')
+          // 감지된 언어가 sourceLang과 다르면 감지된 언어를 사용
+          const actualSourceLang = detectedLang !== sourceLang ? detectedLang : sourceLang
+          
+          console.log(`[TRANSLATE] ${field.key} 번역 중:`, {
+            text: field.value?.substring(0, 50),
+            detectedLang,
+            originalSourceLang: sourceLang,
+            actualSourceLang,
+            targetLang
+          })
+          
+          // sourceLang을 명시하지 않으면 API가 자동 감지하도록 함
           const response = await fetch('/api/translate', {
             method: 'POST',
             headers: {
@@ -301,27 +553,73 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
             body: JSON.stringify({
               text: field.value,
               targetLang: targetLang,
-              sourceLang: sourceLang
+              sourceLang: actualSourceLang // 감지된 언어 사용 (API가 자동 감지할 수도 있음)
             }),
           })
 
+          console.log(`[TRANSLATE] ${field.key} API 응답:`, response.status, response.statusText)
+
           if (response.ok) {
             const data = await response.json()
-            if (data.success) {
+            console.log(`[TRANSLATE] ${field.key} 번역 결과:`, data.success ? '성공' : '실패', data.translatedText?.substring(0, 50))
+            
+            if (data.success && data.translatedText) {
               translatedFieldsData[field.key] = data.translatedText
+              successCount++
+            } else {
+              console.error(`[TRANSLATE] ${field.key} 번역 실패:`, data.error || '알 수 없는 오류')
+              failCount++
             }
+          } else {
+            const errorData = await response.json().catch(() => ({}))
+            console.error(`[TRANSLATE] ${field.key} API 오류:`, response.status, errorData)
+            failCount++
           }
         } catch (error) {
-          console.error(`번역 실패 (${field.key}):`, error)
+          console.error(`[TRANSLATE] ${field.key} 번역 예외:`, error)
+          failCount++
         }
       }
 
-      setTranslatedFields(translatedFieldsData)
-      setTranslationMode(sourceLang === 'ko' ? 'ko-to-es' : 'es-to-ko')
-      toast.success('번역이 완료되었습니다.')
+      // 관심사 번역 결과 추가
+      if (translatedInterests && translatedInterests.length > 0) {
+        translatedFieldsData.interests = translatedInterests
+        // 번역이 실제로 이루어진 관심사 개수 계산 (원문과 다른 것만)
+        const actuallyTranslatedCount = translatedInterests.filter((translated, index) => {
+          const original = profile.interests?.[index]
+          return original && translated !== original
+        }).length
+        if (actuallyTranslatedCount > 0) {
+          successCount += actuallyTranslatedCount
+          console.log('[TRANSLATE] 관심사 번역 결과:', { 
+            total: translatedInterests.length, 
+            actuallyTranslated: actuallyTranslatedCount 
+          })
+        }
+      }
+
+      const totalFields = fieldsToTranslate.length + (profile.interests?.length || 0)
+      console.log('[TRANSLATE] 번역 완료:', { successCount, failCount, total: totalFields })
+
+      if (successCount > 0) {
+        setTranslatedFields(translatedFieldsData)
+        setTranslationMode(sourceLang === 'ko' ? 'ko-to-es' : 'es-to-ko')
+        const successMessage = language === 'ko' 
+          ? `번역이 완료되었습니다. (${successCount}/${totalFields})`
+          : `Traducción completada. (${successCount}/${totalFields})`
+        toast.success(successMessage)
+      } else {
+        const errorMessage = language === 'ko'
+          ? '번역에 실패했습니다. 잠시 후 다시 시도해주세요.'
+          : 'La traducción falló. Por favor, inténtalo de nuevo más tarde.'
+        toast.error(errorMessage)
+      }
     } catch (error) {
-      console.error('번역 오류:', error)
-      toast.error('번역 중 오류가 발생했습니다.')
+      console.error('[TRANSLATE] 번역 오류:', error)
+      const errorMessage = language === 'ko'
+        ? '번역 중 오류가 발생했습니다.'
+        : 'Ocurrió un error durante la traducción.'
+      toast.error(errorMessage)
     } finally {
       setTranslating(false)
     }
@@ -329,10 +627,12 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
   const handleShowOriginal = () => {
     setTranslationMode('none')
+    setTranslatedFields({}) // 번역된 필드 초기화 (관심사 포함)
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
+    const locale = language === 'ko' ? 'ko-KR' : 'es-ES'
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -372,23 +672,33 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-semibold text-gray-900" style={{ 
               color: 'rgb(17 24 39) !important'
-            }}>{t('userProfile.title')}</DialogTitle>
+            }}>{t('auth.userProfile.title') || (language === 'ko' ? '사용자 프로필' : 'Perfil de Usuario')}</DialogTitle>
             
             {/* 번역 드롭다운 */}
             {profile && !loading && (
               <div className="flex items-center">
                 {translationMode === 'none' ? (
-                  <Select onValueChange={(value) => {
-                    if (value === 'ko-to-es') {
-                      handleTranslateToSpanish()
-                    } else if (value === 'es-to-ko') {
-                      handleTranslateToKorean()
-                    }
-                  }}>
-                    <SelectTrigger className="w-40 text-xs">
+                  <Select 
+                    onValueChange={(value) => {
+                      if (value === 'ko-to-es') {
+                        handleTranslateToSpanish()
+                      } else if (value === 'es-to-ko') {
+                        handleTranslateToKorean()
+                      }
+                    }}
+                    disabled={translating}
+                  >
+                    <SelectTrigger className="w-40 text-xs" disabled={translating}>
                       <div className="flex items-center gap-1">
-                        <Languages className="w-3 h-3" />
-                        <SelectValue placeholder={language === 'ko' ? '번역 선택' : 'Traducción'} />
+                        {translating ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Languages className="w-3 h-3" />
+                        )}
+                        <SelectValue placeholder={translating 
+                          ? (language === 'ko' ? '번역 중...' : 'Traduciendo...')
+                          : (language === 'ko' ? '번역 선택' : 'Traducción')
+                        } />
                       </div>
                     </SelectTrigger>
                     <SelectContent className="z-[100000]">
@@ -406,9 +716,17 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                     variant="outline"
                     size="sm"
                     className="text-xs flex items-center gap-1"
+                    disabled={translating}
                   >
-                    <Languages className="w-3 h-3" />
-                    {language === 'ko' ? '원본 보기' : 'Ver Original'}
+                    {translating ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Languages className="w-3 h-3" />
+                    )}
+                    {translating 
+                      ? (language === 'ko' ? '번역 중...' : 'Traduciendo...')
+                      : (language === 'ko' ? '원본 보기' : 'Ver Original')
+                    }
                   </Button>
                 )}
               </div>
@@ -530,15 +848,23 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 {/* 배지 */}
                 <UserBadge totalPoints={profile.total_points || 0} isVip={profile.is_vip || false} />
               </h2>
-              {/* 닉네임 표시 */}
-              {profile.nickname && (
-                <p className="text-sm md:text-base text-gray-600 mb-2" style={{ 
-                  color: 'rgb(75 85 99) !important'
-                }}>
-                  @{profile.nickname}
-                  <UserBadge totalPoints={profile.total_points || 0} isVip={profile.is_vip || false} small />
-                </p>
-              )}
+              {/* 닉네임 표시 - nickname이 full_name과 다르고 의미 있는 값일 때만 표시 */}
+              {(() => {
+                // nickname이 full_name과 다르고, 자동 생성된 값이 아닐 때만 표시
+                const displayNickname = profile.nickname && 
+                  profile.nickname !== profile.full_name &&
+                  !profile.nickname.match(/^user[a-z0-9]+$/i) && // userc017214c 같은 자동 생성 값 제외
+                  profile.nickname.trim() !== ''
+                
+                return displayNickname ? (
+                  <p className="text-sm md:text-base text-gray-600 mb-2" style={{ 
+                    color: 'rgb(75 85 99) !important'
+                  }}>
+                    @{profile.nickname}
+                    <UserBadge totalPoints={profile.total_points || 0} isVip={profile.is_vip || false} small />
+                  </p>
+                ) : null
+              })()}
               
               {/* 한국이름/스페인어 이름 */}
               <div className="flex items-center justify-center gap-2 mb-3 text-xs md:text-sm text-gray-500">
@@ -553,7 +879,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               <div className="flex items-center justify-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3 md:w-4 md:h-4" />
-                  {formatDate(profile.join_date || profile.created_at)} {t('userProfile.joinedOn')}
+                  {formatDate(profile.join_date || profile.created_at)} {t('auth.userProfile.joinedOn')}
                 </div>
                 {profile.location && (
                   <div className="flex items-center gap-1">
@@ -566,10 +892,14 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               {/* 사용자 타입 배지 */}
               <div className="flex justify-center gap-1 md:gap-2 mb-3 md:mb-4">
                 <Badge variant={profile.is_korean ? "default" : "secondary"} className="text-xs">
-                  {profile.is_korean ? "🇰🇷 한국인" : "🌍 외국인"}
+                  {profile.is_korean 
+                    ? `🇰🇷 ${t('profileModal.koreanNationality')}` 
+                    : `🌍 ${t('profileModal.nonKorean')}`}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  {profile.user_type === 'student' ? "🎓 학생" : "💼 직장인"}
+                  {profile.user_type === 'student' 
+                    ? `🎓 ${t('profileModal.student')}` 
+                    : `💼 ${t('profileModal.professional') || t('profileModal.general') || (language === 'ko' ? '직장인' : 'Profesional')}`}
                 </Badge>
               </div>
             </div>
@@ -596,7 +926,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 ) : (
                   <>
                     <Briefcase className="w-3 h-3 md:w-4 md:h-4" />
-                    직업 정보
+                    {t('profileModal.jobInfo')}
                   </>
                 )}
               </h3>
@@ -627,19 +957,19 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                   <>
                     {profile.occupation && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">직업:</span>
+                        <span className="text-gray-600">{t('profileModal.occupation')}:</span>
                         <span className="font-medium">{getFieldValue('occupation', profile.occupation)}</span>
                       </div>
                     )}
                     {profile.company && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">회사:</span>
+                        <span className="text-gray-600">{t('profileModal.company')}:</span>
                         <span className="font-medium">{getFieldValue('company', profile.company)}</span>
                       </div>
                     )}
                     {profile.work_experience && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">경력:</span>
+                        <span className="text-gray-600">{t('profileModal.career')}:</span>
                         <span className="font-medium">{getFieldValue('work_experience', profile.work_experience)}</span>
                       </div>
                     )}
@@ -687,12 +1017,135 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                   {t('profile.interests')}
                 </h3>
                 
-                <InterestBadges interests={profile.interests} />
+                <InterestBadges 
+                  interests={translationMode !== 'none' && translatedFields.interests ? translatedFields.interests : profile.interests} 
+                  skipTranslation={translationMode !== 'none' && !!translatedFields.interests} 
+                />
               </Card>
+            )}
+
+            {/* 신고하기 버튼 */}
+            {profile && (
+              <div className="mt-8 flex justify-end">
+                {!user ? (
+                  <p className="text-sm text-gray-600">
+                    {language === 'ko'
+                      ? '신고 기능을 사용하려면 먼저 로그인해주세요.'
+                      : 'Inicia sesión para poder enviar una denuncia.'}
+                  </p>
+                ) : user.id !== profile.id ? (
+                  <Button
+                    onClick={() => setShowReportModal(true)}
+                    variant="outline"
+                    className="border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    {language === 'ko' ? '이 사용자 신고하기' : 'Denunciar a este usuario'}
+                  </Button>
+                ) : null}
+              </div>
             )}
           </div>
         )}
       </DialogContent>
+
+      {/* 신고 모달 */}
+      <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-700">
+              {language === 'ko' ? '이 사용자 신고하기' : 'Denunciar a este usuario'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'ko'
+                ? '부적절한 행동이나 콘텐츠를 신고해주세요.'
+                : 'Reporta comportamientos o contenido inapropiado.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                {language === 'ko' ? '신고 사유' : 'Motivo de la denuncia'}
+              </label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={language === 'ko' ? '사유를 선택하세요' : 'Selecciona un motivo'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {REASONS.map((reason) => (
+                    <SelectItem key={reason.key} value={reason.key}>
+                      {language === 'ko' ? reason.ko : reason.es}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                {language === 'ko'
+                  ? '상세 설명 (선택)'
+                  : 'Descripción detallada (opcional)'}
+              </label>
+              <Textarea
+                value={reportDetails}
+                onChange={(event) => setReportDetails(event.target.value)}
+                rows={4}
+                maxLength={500}
+                className="text-sm"
+                placeholder={
+                  language === 'ko'
+                    ? '문제가 발생한 상황이나 참고할 내용을 적어주세요.'
+                    : 'Describe qué sucedió o agrega información adicional.'}
+                disabled={reportSubmitting}
+              />
+              <p className="text-xs text-gray-400 mt-1">{reportDetails.length}/500</p>
+            </div>
+
+            {error && (
+              <p className="text-xs text-red-500">
+                {error}
+              </p>
+            )}
+
+            {reportSuccess && (
+              <p className="text-xs text-green-600">
+                {language === 'ko'
+                  ? '신고가 접수되었습니다. 운영자가 검토 후 조치하겠습니다.'
+                  : 'Tu denuncia ha sido registrada. El equipo la revisará.'}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowReportModal(false)
+                  setReportReason('')
+                  setReportDetails('')
+                  setError(null)
+                  setReportSuccess(false)
+                }}
+                disabled={reportSubmitting}
+              >
+                {language === 'ko' ? '취소' : 'Cancelar'}
+              </Button>
+              <Button
+                onClick={handleSubmitReport}
+                disabled={reportSubmitting || !reportReason}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {reportSubmitting
+                  ? language === 'ko'
+                    ? '전송 중...'
+                    : 'Enviando...'
+                  : language === 'ko'
+                  ? '신고 제출'
+                  : 'Enviar denuncia'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
 }

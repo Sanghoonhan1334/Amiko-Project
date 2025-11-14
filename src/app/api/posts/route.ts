@@ -23,8 +23,45 @@ export async function GET(request: NextRequest) {
 
     console.log('[POSTS_GET] 게시물 목록 조회:', { page, limit, sortBy, searchQuery, gallerySlug, category, isNotice })
 
-    // 기본 쿼리 구성 (자유게시판 갤러리)
-    let query = supabaseServer
+    // 공지사항 필터가 있으면 공지사항만 반환
+    if (isNotice === 'true') {
+      console.log('[POSTS_GET] 공지사항만 조회')
+      // 공지사항만 조회하는 로직 (기존과 동일하게 유지)
+    }
+
+    // 갤러리 데이터 조회 (일반 게시글 필터링용)
+    let galleryData = null
+    if (gallerySlug) {
+      console.log('[POSTS_GET] 특정 갤러리 조회:', gallerySlug)
+      const { data: gallery, error: galleryQueryError } = await supabaseServer
+        .from('galleries')
+        .select('id, slug, name_ko')
+        .eq('slug', gallerySlug)
+        .maybeSingle()
+      
+      console.log('[POSTS_GET] 갤러리 조회 결과:', { 
+        gallerySlug,
+        gallery, 
+        galleryQueryError: galleryQueryError?.message 
+      })
+      
+      if (gallery) {
+        galleryData = gallery
+        console.log('[POSTS_GET] 갤러리 ID:', galleryData.id)
+      } else {
+        console.log('[POSTS_GET] 갤러리를 찾을 수 없음')
+      }
+    } else {
+      console.log('[POSTS_GET] 전체 게시글 조회 (갤러리 필터링 없음)')
+    }
+
+    // 공지사항과 일반 게시글을 분리하여 조회 (공지사항이 항상 먼저)
+    // PostgreSQL/Supabase에서 boolean 정렬: false < true
+    // ascending: false -> true(true)가 먼저, false(false)가 나중
+    // 따라서 공지사항(is_notice = true)을 먼저 보려면 ascending: false
+    
+    // 공지사항 먼저 가져오기 (페이지네이션 없이 모든 공지사항)
+    let noticeQuery = supabaseServer
       .from('gallery_posts')
       .select(`
         id,
@@ -44,74 +81,134 @@ export async function GET(request: NextRequest) {
         user_id
       `)
       .eq('is_deleted', false)
-
-    // 갤러리 필터링 처리
+      .eq('is_notice', true)
+      .order('created_at', { ascending: false })
+    
+    // 갤러리 필터링 적용 (공지사항은 모든 갤러리에 표시되므로 조건 없음)
+    
+    // 카테고리 필터 적용 (공지사항)
+    if (category) {
+      noticeQuery = noticeQuery.eq('category', category)
+    }
+    
+    // 검색 쿼리 적용 (공지사항)
+    if (searchQuery) {
+      noticeQuery = noticeQuery.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+    }
+    
+    const { data: noticePosts, error: noticeError } = await noticeQuery
+    
+    console.log('[POSTS_GET] 공지사항 조회 결과:', {
+      noticeCount: noticePosts?.length || 0,
+      noticeError: noticeError?.message
+    })
+    
+    // 일반 게시글 가져오기 (페이지네이션 적용)
+    let regularQuery = supabaseServer
+      .from('gallery_posts')
+      .select(`
+        id,
+        title,
+        content,
+        images,
+        category,
+        view_count,
+        like_count,
+        dislike_count,
+        comment_count,
+        is_pinned,
+        is_hot,
+        is_notice,
+        created_at,
+        updated_at,
+        user_id
+      `)
+      .eq('is_deleted', false)
+      .eq('is_notice', false)
+    
+    // 갤러리 필터링 적용 (일반 게시글)
     if (gallerySlug) {
-      console.log('[POSTS_GET] 특정 갤러리 조회:', gallerySlug)
-      
-      // 요청된 갤러리 찾기
-      const { data: galleryData, error: galleryQueryError } = await supabaseServer
+      const { data: galleryData } = await supabaseServer
         .from('galleries')
         .select('id, slug, name_ko')
         .eq('slug', gallerySlug)
         .single()
       
-      console.log('[POSTS_GET] 갤러리 조회 결과:', { 
-        gallerySlug,
-        galleryData, 
-        galleryQueryError: galleryQueryError?.message 
-      })
-      
       if (galleryData) {
-        console.log('[POSTS_GET] 갤러리 ID로 필터링:', galleryData.id)
-        // 공지사항(is_notice = true)은 모든 갤러리에 표시되므로
-        // gallery_id = galleryData.id OR is_notice = true 조건 적용
-        query = query.or(`gallery_id.eq.${galleryData.id},is_notice.eq.true`)
+        regularQuery = regularQuery.eq('gallery_id', galleryData.id)
+      }
+    }
+    
+    // 카테고리 필터 적용 (일반 게시글)
+    if (category) {
+      regularQuery = regularQuery.eq('category', category)
+    }
+    
+    // 검색 쿼리 적용 (일반 게시글)
+    if (searchQuery) {
+      regularQuery = regularQuery.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+    }
+    
+    // 정렬 적용 (일반 게시글)
+    if (sortBy === 'latest') {
+      regularQuery = regularQuery.order('created_at', { ascending: false })
+    } else if (sortBy === 'oldest') {
+      regularQuery = regularQuery.order('created_at', { ascending: true })
+    } else if (sortBy === 'popular') {
+      regularQuery = regularQuery.order('like_count', { ascending: false })
+    } else if (sortBy === 'views') {
+      regularQuery = regularQuery.order('view_count', { ascending: false })
+    }
+    
+    // 고정 게시물 우선 표시 (일반 게시글)
+    regularQuery = regularQuery.order('is_pinned', { ascending: false })
+    
+    // 공지사항 개수를 고려한 페이지네이션
+    const noticeCount = noticePosts?.length || 0
+    
+    // 첫 페이지 (page === 1): 공지사항 + 일반 게시글
+    // 두 번째 페이지 이상: 일반 게시글만
+    if (page === 1) {
+      // 첫 페이지: 공지사항 개수만큼 일반 게시글 개수 감소
+      const regularLimit = Math.max(0, limit - noticeCount)
+      if (regularLimit > 0) {
+        regularQuery = regularQuery.range(0, regularLimit - 1)
       } else {
-        console.log('[POSTS_GET] 갤러리를 찾을 수 없음 - 모든 게시글 조회')
-        // 갤러리가 없으면 모든 게시글 조회 (필터링 없음)
+        // 공지사항이 limit를 모두 차지하면 일반 게시글 없음
+        regularQuery = regularQuery.limit(0)
       }
     } else {
-      console.log('[POSTS_GET] 전체 게시글 조회 (갤러리 필터링 없음)')
-      // gallery 파라미터가 없으면 모든 게시글 조회
+      // 두 번째 페이지 이상: 공지사항을 제외하고 일반 게시글만
+      // offset 계산: (page - 1) * limit - noticeCount
+      const regularOffset = (page - 1) * limit - noticeCount
+      if (regularOffset >= 0) {
+        regularQuery = regularQuery.range(regularOffset, regularOffset + limit - 1)
+      } else {
+        // offset이 음수면 일반 게시글 없음 (공지사항만 있는 페이지)
+        regularQuery = regularQuery.limit(0)
+      }
     }
+    
+    const { data: regularPosts, error: regularError } = await regularQuery
+    
+    console.log('[POSTS_GET] 일반 게시글 조회 결과:', {
+      regularCount: regularPosts?.length || 0,
+      regularError: regularError?.message,
+      noticeCount,
+      page,
+      limit
+    })
+    
+    // 공지사항과 일반 게시글 합치기
+    const posts = [...(noticePosts || []), ...(regularPosts || [])]
+    const postsError = noticeError || regularError
 
-    // 카테고리 필터 적용
-    if (category) {
-      console.log('[POSTS_GET] 카테고리 필터 적용:', category)
-      query = query.eq('category', category)
-    }
-
-    // 공지사항 필터 적용
-    if (isNotice === 'true') {
-      console.log('[POSTS_GET] 공지사항 필터 적용: is_notice = true')
-      query = query.eq('is_notice', true)
-    }
-
-    // 검색 쿼리 적용
-    if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
-    }
-
-    // 정렬 적용
-    if (sortBy === 'latest') {
-      query = query.order('created_at', { ascending: false })
-    } else if (sortBy === 'oldest') {
-      query = query.order('created_at', { ascending: true })
-    } else if (sortBy === 'popular') {
-      query = query.order('like_count', { ascending: false })
-    } else if (sortBy === 'views') {
-      query = query.order('view_count', { ascending: false })
-    }
-
-    // 고정 게시물 우선 표시
-    query = query.order('is_pinned', { ascending: false })
-
-    // 전체 게시글 수 조회 (페이지네이션 없이)
+    // 전체 게시글 수 조회 (페이지네이션용)
     const countQuery = supabaseServer
       .from('gallery_posts')
       .select('*', { count: 'exact', head: true })
       .eq('is_deleted', false)
+      .eq('is_notice', false) // 일반 게시글만 카운트 (공지사항은 항상 포함)
     
     // 갤러리 필터링 적용 (count 쿼리에도)
     if (gallerySlug && gallerySlug !== 'all') {
@@ -126,25 +223,37 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    const { count: totalPosts, error: countError } = await countQuery
+    // 카테고리 필터 적용 (count 쿼리)
+    if (category) {
+      countQuery.eq('category', category)
+    }
+    
+    // 검색 쿼리 적용 (count 쿼리)
+    if (searchQuery) {
+      countQuery.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+    }
+    
+    const { count: totalRegularPosts, error: countError } = await countQuery
+    
+    // 총 게시글 수 = 공지사항 수 + 일반 게시글 수
+    const totalPosts = (noticePosts?.length || 0) + (totalRegularPosts || 0)
     
     if (countError) {
       console.error('[POSTS_GET] 전체 게시글 수 조회 오류:', countError)
     }
 
-    // 페이지네이션 적용하여 실제 데이터 조회
-    query = query.range(offset, offset + limit - 1)
-
-    const { data: posts, error: postsError } = await query
-
     console.log('[POSTS_GET] 게시글 조회 결과:', {
       postsCount: posts?.length || 0,
+      noticeCount: noticePosts?.length || 0,
+      regularCount: regularPosts?.length || 0,
       postsError: postsError?.message,
       firstPost: posts?.[0] ? {
         id: posts[0].id,
         title: posts[0].title,
+        is_notice: posts[0].is_notice,
         user_id: posts[0].user_id
-      } : null
+      } : null,
+      allPosts: posts?.map(p => ({ id: p.id, title: p.title, is_notice: p.is_notice })) || []
     })
 
     if (postsError) {
@@ -165,10 +274,12 @@ export async function GET(request: NextRequest) {
 
     // 데이터가 없어도 성공으로 처리
     console.log(`[POSTS_GET] 조회된 게시물 수: ${posts?.length || 0}`)
+    console.log(`[POSTS_GET] 공지사항 수: ${noticePosts?.length || 0}, 일반 게시글 수: ${regularPosts?.length || 0}`)
     console.log('[POSTS_GET] 조회된 게시물 데이터:', posts?.map(p => ({
       id: p.id,
       title: p.title,
       user_id: p.user_id,
+      is_notice: p.is_notice,
       created_at: p.created_at
     })))
 
@@ -178,45 +289,90 @@ export async function GET(request: NextRequest) {
       let avatarUrl = null
       
       if (post.user_id) {
-        // 먼저 user_profiles 테이블에서 조회
-        const { data: profileData, error: profileError } = await supabaseServer
-          .from('user_profiles')
-          .select('display_name, avatar_url')
-          .eq('user_id', post.user_id)
-          .single()
-        
-        // user_profiles에 데이터가 있고 display_name이 있으면 우선 사용
-        if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
-          // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
-          userName = profileData.display_name.includes('#') 
-            ? profileData.display_name.split('#')[0] 
-            : profileData.display_name
+        try {
+              // 먼저 user_profiles 테이블에서 조회 (상세 페이지와 동일한 로직)
+          const { data: profileData, error: profileError } = await supabaseServer
+            .from('user_profiles')
+            .select('display_name, avatar_url')
+            .eq('user_id', post.user_id)
+            .maybeSingle()
           
-          avatarUrl = profileData.avatar_url
+          console.log(`[POSTS_GET] user_profiles 조회 결과 (${post.user_id}):`, { profileData, profileError: profileError?.message })
           
-          // avatar_url을 공개 URL로 변환
-          if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
-            const { data: { publicUrl } } = supabaseServer.storage
-              .from('profile-images')
-              .getPublicUrl(avatarUrl)
-            avatarUrl = publicUrl
+          // user_profiles에 데이터가 있고 display_name이 있으면 우선 사용
+          if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
+            // # 이후 부분 제거 (예: "parkg9832#c017" → "parkg9832")
+            userName = profileData.display_name.includes('#') 
+              ? profileData.display_name.split('#')[0] 
+              : profileData.display_name.trim()
+            
+            avatarUrl = profileData.avatar_url
+            
+            // avatar_url을 공개 URL로 변환
+            if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+              const { data: { publicUrl } } = supabaseServer.storage
+                .from('profile-images')
+                .getPublicUrl(avatarUrl)
+              avatarUrl = publicUrl
+            }
+            
+            console.log(`[POSTS_GET] user_profiles에서 이름 조회 성공: ${post.user_id} -> ${userName}`)
+          } else if (profileError) {
+            console.warn(`[POSTS_GET] user_profiles 조회 오류 (${post.user_id}):`, profileError.message)
+          } else if (!profileData) {
+            console.log(`[POSTS_GET] user_profiles에 데이터 없음 (${post.user_id}), users 테이블 조회 시도`)
           }
+        } catch (profileErr) {
+          console.error(`[POSTS_GET] user_profiles 조회 예외 (${post.user_id}):`, profileErr)
         }
         
-        // user_profiles에 데이터가 없거나 display_name이 없으면 users 테이블 조회
-        if (!userName) {
-          const { data: userData } = await supabaseServer
-            .from('users')
-            .select('id, full_name, nickname, profile_image, avatar_url')
-            .eq('id', post.user_id)
-            .single()
-          
-          if (userData) {
-            // full_name이 비어있으면 email의 '@' 앞 부분 사용
-            userName = userData.full_name || (userData.email ? userData.email.split('@')[0] : 'Anónimo')
-            avatarUrl = userData.profile_image || userData.avatar_url
+        // user_profiles에 데이터가 없거나 display_name이 없으면 users 테이블 조회 (상세 페이지와 동일한 우선순위)
+        if (!userName || userName.trim() === '') {
+          try {
+            const { data: userData, error: userError } = await supabaseServer
+              .from('users')
+              .select('id, email, full_name, nickname, spanish_name, korean_name, profile_image, avatar_url, is_admin')
+              .eq('id', post.user_id)
+              .maybeSingle()
+            
+            console.log(`[POSTS_GET] users 조회 결과 (${post.user_id}):`, { userData: userData ? { id: userData.id, nickname: userData.nickname, spanish_name: userData.spanish_name, korean_name: userData.korean_name, full_name: userData.full_name } : null, userError: userError?.message })
+            
+            if (!userError && userData) {
+              // 상세 페이지와 동일한 우선순위: nickname > spanish_name > korean_name > full_name > email > 운영자 > 익명
+              userName = (userData.nickname && userData.nickname.trim() !== '') ? userData.nickname.trim() : 
+                        (userData.spanish_name && userData.spanish_name.trim() !== '') ? userData.spanish_name.trim() : 
+                        (userData.korean_name && userData.korean_name.trim() !== '') ? userData.korean_name.trim() : 
+                        (userData.full_name && userData.full_name.trim() !== '') ? userData.full_name.trim() : 
+                        (userData.email ? userData.email.split('@')[0] : null)
+              
+              // 여전히 없으면 운영자 확인 또는 익명
+              if (!userName || userName.trim() === '') {
+                if (userData.is_admin) {
+                  userName = 'Operador' // 운영자
+                } else {
+                  userName = 'Anónimo'
+                }
+                console.warn(`[POSTS_GET] 사용자 이름을 찾을 수 없음 (${post.user_id}), ${userName}으로 설정`)
+              } else {
+                console.log(`[POSTS_GET] users에서 이름 조회 성공: ${post.user_id} -> ${userName}`)
+              }
+              
+              avatarUrl = userData.profile_image || userData.avatar_url
+            } else if (userError) {
+              console.error(`[POSTS_GET] users 조회 오류 (${post.user_id}):`, userError.message)
+              userName = 'Anónimo'
+            } else {
+              console.warn(`[POSTS_GET] users에서 사용자를 찾을 수 없음 (${post.user_id}), 익명으로 설정`)
+              userName = 'Anónimo'
+            }
+          } catch (userErr) {
+            console.error(`[POSTS_GET] users 조회 예외 (${post.user_id}):`, userErr)
+            userName = 'Anónimo'
           }
         }
+      } else {
+        console.warn(`[POSTS_GET] user_id가 없음, 익명으로 설정`)
+        userName = 'Anónimo'
       }
       
       return {

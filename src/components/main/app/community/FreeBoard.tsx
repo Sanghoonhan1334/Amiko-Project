@@ -32,6 +32,7 @@ import { useRouter } from 'next/navigation'
 import PostDetail from './PostDetail'
 import PostEditModal from './PostEditModal'
 import { CardGridSkeleton } from '@/components/ui/skeleton'
+import AuthorName from '@/components/common/AuthorName'
 
 // 게시글 타입 정의
 interface Post {
@@ -264,7 +265,8 @@ export default function FreeBoard() {
 
   // 게시글 목록 정렬 (공지글을 맨 위에 고정)
   const sortPosts = (posts: Post[]) => {
-    return posts.sort((a, b) => {
+    // 원본 배열을 변경하지 않도록 새 배열 생성
+    const sorted = [...posts].sort((a, b) => {
       // 공지글은 항상 맨 위에
       if (a.is_notice && !b.is_notice) return -1
       if (!a.is_notice && b.is_notice) return 1
@@ -277,6 +279,15 @@ export default function FreeBoard() {
       // 일반 게시글끼리는 생성일 기준 내림차순
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
+    
+    console.log('[SORT_POSTS] 정렬 결과:', {
+      total: sorted.length,
+      notices: sorted.filter(p => p.is_notice).length,
+      firstPost: sorted[0] ? { title: sorted[0].title, is_notice: sorted[0].is_notice } : null,
+      firstNotice: sorted.find(p => p.is_notice) ? { title: sorted.find(p => p.is_notice)!.title } : null
+    })
+    
+    return sorted
   }
 
   // 게시글 목록 조회
@@ -326,10 +337,14 @@ export default function FreeBoard() {
       const data: PostListResponse = await response.json()
       console.log('게시글 목록 응답:', data)
       console.log('첫 번째 게시글의 작성자 정보:', data.posts[0]?.author)
+      console.log('첫 번째 게시글 is_notice:', data.posts[0]?.is_notice)
+      console.log('공지사항 개수:', data.posts?.filter(p => p.is_notice).length || 0)
       
-      // 공지글을 맨 위에 고정하여 정렬
-      const sortedPosts = sortPosts(data.posts)
-      setPosts(sortedPosts)
+      // API에서 이미 공지사항이 먼저 정렬되어 반환되므로, 클라이언트 정렬은 생략
+      // 만약 정렬이 필요하다면 sortPosts 함수 사용
+      // const sortedPosts = sortPosts(data.posts)
+      // setPosts(sortedPosts)
+      setPosts(data.posts || [])
       
       // 페이지네이션 정보 업데이트
       setPagination({
@@ -861,14 +876,14 @@ export default function FreeBoard() {
 
   if (loading && posts.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pt-20 md:pt-28">
         <CardGridSkeleton count={6} />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-20 md:pt-28">
       {/* 에러 메시지 */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -1314,24 +1329,28 @@ export default function FreeBoard() {
         </div>
       ) : (
         /* 게시글 목록 */
-        <Card>
+        <Card className="mt-8 md:mt-12">
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto"></div>
-              <p className="mt-2 text-gray-600">{t('freeboard.loadingPosts')}</p>
+            <div className="text-center pt-32 md:pt-40 pb-8 min-h-[50vh] flex items-center justify-center">
+              <div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">{t('freeboard.loadingPosts')}</p>
+              </div>
             </div>
           ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-red-600">{error}</p>
-              <Button onClick={fetchPosts} className="mt-2">{t('freeboard.retry')}</Button>
+            <div className="text-center pt-32 md:pt-40 pb-8 min-h-[50vh] flex items-center justify-center">
+              <div>
+                <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                <Button onClick={fetchPosts} className="mt-2">{t('freeboard.retry')}</Button>
+              </div>
             </div>
           ) : posts.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600">{t('freeboard.noPosts')}</p>
+            <div className="text-center pt-32 md:pt-40 pb-8 min-h-[50vh] flex items-center justify-center">
+              <p className="text-gray-600 dark:text-gray-400">{t('freeboard.noPosts')}</p>
             </div>
           ) : (
             <>
-              {/* 게시글 목록 테이블 */}
+              {/* 게시글 목록 테이블 - 공지사항이 먼저, 그 다음 일반 게시글 */}
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-gray-600">
@@ -1346,23 +1365,23 @@ export default function FreeBoard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {/* 공지사항 먼저 표시 */}
+                    {/* 공지사항을 맨 위에 먼저 표시 */}
                     {posts.filter(post => post.is_notice).map((post, index) => (
                       <tr
-                        key={post.id}
+                        key={`notice-${post.id}`}
                         className="hover:bg-orange-50 dark:hover:bg-orange-900/20 cursor-pointer bg-orange-50 dark:bg-orange-900/10 border-l-4 border-orange-500"
                         onClick={() => handlePostClick(post)}
                       >
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400 font-semibold">
                             <Pin className="w-3 h-3" />
-                            공지
+                            {language === 'ko' ? '공지' : 'Anuncio'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           <div className="flex items-center gap-1">
                             <span className="text-xs">📄</span>
-                            <span>{post.category || '자유게시판'}</span>
+                            <span>{post.category || (language === 'ko' ? '자유게시판' : 'Foro Libre')}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -1381,17 +1400,20 @@ export default function FreeBoard() {
                             )}
                             <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
                               <Pin className="w-3 h-3 mr-1" />
-                              공지
+                              {language === 'ko' ? '공지' : 'Anuncio'}
                             </Badge>
                             {post.is_pinned && (
                               <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
-                                개념글
+                                {language === 'ko' ? '개념글' : 'Destacado'}
                               </Badge>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                          {post.author?.full_name || '익명'}
+                          <AuthorName
+                            userId={post.author?.id}
+                            name={post.author?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                          />
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           {formatDate(post.created_at)}
@@ -1460,7 +1482,10 @@ export default function FreeBoard() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                          {post.author?.full_name || '익명'}
+                          <AuthorName
+                            userId={post.author?.id}
+                            name={post.author?.full_name || '익명'}
+                          />
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                           {formatDate(post.created_at)}

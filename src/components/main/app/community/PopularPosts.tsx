@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import UserBadge from '@/components/common/UserBadge'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Post {
   id: string
@@ -272,10 +273,13 @@ export default function PopularPosts({ onPostSelect }: PopularPostsProps) {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {post.user.nickname || post.user.full_name || '익명'}
+                    <AuthorName
+                      userId={post.user.id}
+                      name={post.user.nickname || post.user.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                      className="text-sm font-medium text-gray-800"
+                    >
                       <UserBadge totalPoints={post.user.total_points || 0} isVip={post.user.is_vip || false} small />
-                    </p>
+                    </AuthorName>
                     <p className="text-xs text-gray-500">{formatDate(post.created_at)}</p>
                   </div>
                 </div>

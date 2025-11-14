@@ -2134,16 +2134,25 @@ export const translations = {
       title: '사용자 프로필',
       selfIntroduction: '자기소개',
       academicInfo: '학업 정보',
+      jobInfo: '직업 정보',
       university: '대학교',
       major: '전공',
       year: '학년',
+      occupation: '직업',
+      company: '회사',
+      career: '경력',
       languageLevel: '언어 수준',
       korean: '한국어',
       english: '영어',
       spanish: '스페인어',
       advanced: '고급',
       intermediate: '중급',
-      beginner: '초급'
+      beginner: '초급',
+      koreanNationality: '한국인',
+      nonKorean: '외국인',
+      student: '학생',
+      general: '일반인',
+      professional: '직장인'
     },
 
     // 회원가입
@@ -5672,16 +5681,25 @@ export const translations = {
       title: 'Perfil de Usuario',
       selfIntroduction: 'Autopresentación',
       academicInfo: 'Información Académica',
+      jobInfo: 'Información Profesional',
       university: 'Universidad',
       major: 'Carrera',
       year: 'Año',
+      occupation: 'Ocupación',
+      company: 'Empresa',
+      career: 'Experiencia',
       languageLevel: 'Nivel de Idioma',
       korean: 'Coreano',
       english: 'Inglés',
       spanish: 'Español',
       advanced: 'Avanzado',
       intermediate: 'Intermedio',
-      beginner: 'Principiante'
+      beginner: 'Principiante',
+      koreanNationality: 'Coreano',
+      nonKorean: 'Extranjero',
+      student: 'Estudiante',
+      general: 'General',
+      professional: 'Profesional'
     },
 
     // 회원가입

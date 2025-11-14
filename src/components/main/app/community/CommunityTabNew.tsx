@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
+import AuthorName from '@/components/common/AuthorName'
 
 interface RecentStory {
   id: string
@@ -832,7 +833,11 @@ export default function CommunityTabNew() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm">{selectedStoryForComment.author}</span>
+                    <AuthorName
+                      name={selectedStoryForComment.author}
+                      disableLink
+                      className="font-semibold text-sm text-gray-800"
+                    />
                     <span className="text-xs text-gray-500">{selectedStoryForComment.createdAt}</span>
                   </div>
                   <p className="text-sm text-gray-800 leading-relaxed">
@@ -868,9 +873,11 @@ export default function CommunityTabNew() {
                     <div className="flex-1 min-w-0">
                       <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-sm">
-                            {comment.author?.full_name || '익명'}
-                          </span>
+                          <AuthorName
+                            userId={comment.author?.id}
+                            name={comment.author?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                            className="font-semibold text-sm"
+                          />
                         </div>
                         <p className="text-sm text-gray-800 leading-relaxed break-words">
                           {comment.content}

@@ -8,11 +8,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import FanartUploadModal from './FanartUploadModal'
+import AuthorName from '@/components/common/AuthorName'
 
 interface FanartPost {
   id: string
   title: string
   author_name: string
+  author_id?: string | null
   likes_count: number
   comments_count: number
   views: number
@@ -229,6 +231,11 @@ export default function FanartBoard() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-3 flex flex-col justify-end">
                           <p className="text-white text-sm font-semibold truncate">{post.title}</p>
+                          <AuthorName
+                            userId={post.author_id}
+                            name={post.author_name}
+                            className="text-xs text-white/90"
+                          />
                           <div className="flex items-center gap-3 mt-1 text-white text-xs">
                             <span>♥ {post.likes_count}</span>
                             <span>💬 {post.comments_count}</span>
@@ -300,7 +307,11 @@ export default function FanartBoard() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-gray-900 truncate">{post.title}</h3>
-                          <p className="text-sm text-gray-500 mt-1">{post.author_name}</p>
+                          <AuthorName
+                            userId={post.author_id}
+                            name={post.author_name}
+                            className="text-sm text-gray-500 mt-1"
+                          />
                           <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                             <span>♥ {post.likes_count}</span>
                             <span>💬 {post.comments_count}</span>

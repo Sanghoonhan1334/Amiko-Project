@@ -11,14 +11,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ProfileSkeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
-import { 
-  Edit3, 
-  Save, 
-  X, 
-  Gift, 
-  Bell, 
-  Mail, 
+import {
+  Edit3,
+  Save,
+  X,
+  Gift,
+  Bell,
+  Mail,
   Settings,
   Heart,
   Calendar,
@@ -36,7 +37,6 @@ import {
   Users,
   Newspaper,
   Clock,
-  CreditCard,
   TrendingUp,
   Copy,
   Check,
@@ -44,7 +44,8 @@ import {
   ChevronUp,
   ChevronDown,
   Fingerprint,
-  Smartphone
+  Smartphone,
+  Lock
 } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
@@ -77,6 +78,10 @@ export default function MyTab() {
   const [dailyEarnedPoints, setDailyEarnedPoints] = useState(0)
   const [isMissionsExpanded, setIsMissionsExpanded] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   
   // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
   const { 
@@ -369,7 +374,64 @@ export default function MyTab() {
 
   const [showInterestSelector, setShowInterestSelector] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  
+  const [settingsExpanded, setSettingsExpanded] = useState<string[]>([])
+  const compactSwitchClass = 'origin-right scale-75 sm:scale-100'
+
+  const handleAccountDeletion = useCallback(async () => {
+    if (!token) {
+      setDeleteError(language === 'ko' ? '다시 로그인 후 시도해주세요.' : 'Inicia sesión nuevamente e inténtalo otra vez.')
+      return
+    }
+
+    setIsDeletingAccount(true)
+    setDeleteError(null)
+
+    try {
+      const response = await fetch('/api/account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result?.error) {
+        setDeleteError(
+          result?.error ||
+            result?.message ||
+            (language === 'ko'
+              ? '계정 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'
+              : 'No se pudo eliminar la cuenta. Inténtalo de nuevo más tarde.')
+        )
+        setIsDeletingAccount(false)
+        return
+      }
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.clear()
+          sessionStorage.clear()
+        } catch (storageError) {
+          console.warn('[ACCOUNT_DELETE] 스토리지 정리 중 오류:', storageError)
+        }
+      }
+
+      setShowDeleteDialog(false)
+      router.push('/sign-in?accountDeleted=1')
+      router.refresh()
+    } catch (error) {
+      console.error('[ACCOUNT_DELETE] 요청 실패:', error)
+      setDeleteError(
+        language === 'ko'
+          ? '계정 삭제 요청 중 오류가 발생했습니다.'
+          : 'Ocurrió un error al procesar la eliminación de la cuenta.'
+      )
+      setIsDeletingAccount(false)
+    }
+  }, [language, router, token])
+
   // 인증센터에서 가져온 관심사 목록
   const availableInterests = [
     '한국어', '한국문화', '음식', '여행', '영화', '음악', '스포츠', 
@@ -1182,6 +1244,7 @@ export default function MyTab() {
 
   // 틴더 스타일 메인 레이아웃
   return (
+    <>
     <div className="min-h-screen bg-white">
       {/* 틴더 스타일 풀스크린 컨테이너 */}
       <div className="w-full">
@@ -1858,7 +1921,6 @@ export default function MyTab() {
               </div>
             )}
         </div>
-        
         {/* 기본 정보 섹션 */}
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center gap-2 mb-3">
@@ -2430,149 +2492,343 @@ export default function MyTab() {
           )}
                   </div>
 
-        {/* 스토리 설정 섹션 */}
-        <div className="px-4 py-4 bg-white">
-      <StorySettings />
+        {/* 설정 섹션 */}
+        <div className="px-4 pb-4">
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="flex items-start gap-3 p-5 border-b border-gray-100">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500 text-white flex items-center justify-center">
+                <Settings className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-900">
+                  {language === 'ko' ? '계정 및 환경 설정' : 'Configuraciones de cuenta'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setSettingsExpanded(prev => (prev.length > 0 ? [] : ['stories', 'security', 'notifications']))
+                }
+                className="px-3 py-2 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+              >
+                {settingsExpanded.length > 0
+                  ? language === 'ko'
+                    ? '모두 접기'
+                    : 'Cerrar todo'
+                  : language === 'ko'
+                  ? '모두 펼치기'
+                  : 'Abrir todo'}
+              </button>
             </div>
-        
-        {/* 보안 설정 섹션 */}
-        {biometricSupported && (
-          <div className="px-4 py-4 bg-gradient-to-br from-green-50 to-blue-50">
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-4 h-4 text-green-600" />
-              <h2 className="font-semibold text-gray-800">
-                {language === 'ko' ? '보안 설정' : 'Configuración de seguridad'}
-              </h2>
-            </div>
-            
-            <div className="space-y-3">
-              {/* 지문 인증 토글 */}
-              <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-green-200">
-                <div className="flex items-center gap-3">
-                  <Fingerprint className="w-5 h-5 text-green-600" />
-                  <div>
-                    <div className="font-medium text-gray-800 text-sm">
-                      {language === 'ko' ? '지문 인증 로그인' : 'Inicio con huella digital'}
+
+            <Accordion type="multiple" value={settingsExpanded} onValueChange={setSettingsExpanded}>
+              <AccordionItem value="stories" className="border-b border-gray-100">
+                <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-500 flex items-center justify-center">
+                      <Video className="w-5 h-5" />
                     </div>
-                    <div className="text-xs text-gray-600">
-                      {language === 'ko' 
-                        ? '빠르고 안전하게 로그인하세요'
-                        : 'Inicia sesión rápido y seguro'}
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {language === 'ko' ? '스토리 및 콘텐츠 관리' : 'Historias y contenido'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {language === 'ko'
+                          ? '스토리 노출, 저장소, 개별 스토리를 한 곳에서 조정하세요.'
+                          : 'Controla visibilidad, almacenamiento y ajustes individuales.'}
+                      </p>
                     </div>
                   </div>
-                </div>
-                <Switch
-                  checked={biometricEnabled}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      handleEnableBiometric()
-                    } else {
-                      handleDisableBiometric()
-                    }
-                  }}
-                />
-              </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5">
+                  <StorySettings />
+                </AccordionContent>
+              </AccordionItem>
 
-              {/* 등록된 기기 목록 */}
-              {biometricEnabled && biometricCredentials.length > 0 && (
-                <div className="bg-white/60 rounded-lg p-3 space-y-2">
-                  <p className="text-xs font-medium text-green-800">
-                    {language === 'ko' ? '등록된 기기:' : 'Dispositivos registrados:'}
-                  </p>
-                  {biometricCredentials.map((cred, index) => (
-                    <div key={index} className="flex items-center gap-2 text-xs text-green-700">
-                      <Smartphone className="w-3 h-3" />
-                      <span>{cred.deviceName}</span>
-                      <span className="text-green-500">•</span>
-                      <span className="text-gray-500">
-                        {language === 'ko' 
-                          ? `${new Date(cred.lastUsedAt).toLocaleDateString()}`
-                          : `${new Date(cred.lastUsedAt).toLocaleDateString()}`}
-                      </span>
+              <AccordionItem value="security" className="border-b border-gray-100">
+                <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                      <Lock className="w-5 h-5" />
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {language === 'ko' ? '보안 및 보호 옵션' : 'Seguridad y protección'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {language === 'ko'
+                          ? '지문 로그인과 등록된 기기를 확인하세요.'
+                          : 'Revisa el inicio con huella y los dispositivos registrados.'}
+                      </p>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5 space-y-3">
+                  {biometricSupported ? (
+                    <>
+                      <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-emerald-200">
+                        <div className="flex items-center gap-3">
+                          <Fingerprint className="w-5 h-5 text-emerald-600" />
+                          <div>
+                            <div className="font-medium text-gray-800 text-sm">
+                              {language === 'ko' ? '지문 인증 로그인' : 'Inicio con huella digital'}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {language === 'ko' ? '빠르고 안전하게 로그인하세요' : 'Inicia sesión rápido y seguro'}
+                            </div>
+                          </div>
+                        </div>
+                        <Switch
+                      className={compactSwitchClass}
+                          checked={biometricEnabled}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              handleEnableBiometric()
+                            } else {
+                              handleDisableBiometric()
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {biometricEnabled && biometricCredentials.length > 0 && (
+                        <div className="bg-white/60 rounded-lg p-3 space-y-2 border border-emerald-100">
+                          <p className="text-xs font-medium text-emerald-800">
+                            {language === 'ko' ? '등록된 기기:' : 'Dispositivos registrados:'}
+                          </p>
+                          {biometricCredentials.map((cred, index) => (
+                            <div key={index} className="flex items-center gap-2 text-xs text-emerald-700">
+                              <Smartphone className="w-3 h-3" />
+                              <span>{cred.deviceName}</span>
+                              <span className="text-emerald-500">•</span>
+                              <span className="text-gray-500">{new Date(cred.lastUsedAt).toLocaleDateString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="bg-white/70 border border-emerald-100 rounded-xl p-4 text-xs text-emerald-700">
+                      {language === 'ko'
+                        ? '현재 기기는 지문 인증을 지원하지 않습니다. 지원 기기에서 다시 시도해주세요.'
+                        : 'El dispositivo actual no admite huella digital. Inténtalo desde un dispositivo compatible.'}
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="notifications">
+                <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                      <Bell className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {language === 'ko' ? '알림 설정' : 'Notificaciones'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {language === 'ko'
+                          ? '이메일, 푸시 등 수신 방식을 직접 선택할 수 있어요.'
+                          : 'Elige cómo recibir correos, avisos push y marketing.'}
+                      </p>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5 space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <div className="font-medium text-gray-800 text-xs">{t('myTab.webPushNotification')}</div>
+                        <div className="text-xs text-gray-600">{t('myTab.webPushDescription')}</div>
+                      </div>
+                    </div>
+                    <Switch
+                      className={compactSwitchClass}
+                      checked={notificationSettings.webPush}
+                      onCheckedChange={(checked) => handleNotificationChange('webPush', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <div className="font-medium text-gray-800 text-xs">{t('myTab.emailNotification')}</div>
+                        <div className="text-xs text-gray-600">{t('myTab.emailDescription')}</div>
+                      </div>
+                    </div>
+                    <Switch
+                      className={compactSwitchClass}
+                      checked={notificationSettings.email}
+                      onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <div className="font-medium text-gray-800 text-xs">{t('myTab.marketingNotification')}</div>
+                        <div className="text-xs text-gray-600">{t('myTab.marketingDescription')}</div>
+                      </div>
+                    </div>
+                    <Switch
+                      className={compactSwitchClass}
+                      checked={notificationSettings.marketing}
+                      onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            <div className="border-t border-gray-100 px-5 py-4 bg-gray-50 rounded-b-2xl">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!token}
+                className="w-full justify-center px-4 py-3 text-sm font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                onClick={() => {
+                  setDeleteConfirmText('')
+                  setDeleteError(null)
+                  setShowDeleteDialog(true)
+                }}
+              >
+                {language === 'ko' ? '계정 삭제' : 'Eliminar cuenta'}
+              </Button>
             </div>
           </div>
-        )}
-        
-        {/* 알림 설정 섹션 */}
-        <div className="px-4 py-4 bg-gray-50">
-          <div className="flex items-center gap-2 mb-3">
-            <Bell className="w-4 h-4 text-blue-500" />
-            <h2 className="font-semibold text-gray-800">{t('myTab.notificationSettings')}</h2>
         </div>
-        
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-purple-600" />
-              <div>
-                  <div className="font-medium text-gray-800 dark:text-gray-200 text-xs">{t('myTab.webPushNotification')}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300">{t('myTab.webPushDescription')}</div>
-              </div>
+
+        {/* 충전소 섹션 구분선 */}
+        <div className="mx-4 my-6">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
+              <img src="/misc/charging-title.png" alt="충전소" className="w-5 h-5" />
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('storeTab.title')}</span>
             </div>
-            <Switch
-              checked={notificationSettings.webPush}
-              onCheckedChange={(checked) => handleNotificationChange('webPush', checked)}
-            />
-          </div>
-          
-            <div className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-purple-600" />
-              <div>
-                  <div className="font-medium text-gray-800 dark:text-gray-200 text-xs">{t('myTab.emailNotification')}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300">{t('myTab.emailDescription')}</div>
-              </div>
-            </div>
-            <Switch
-              checked={notificationSettings.email}
-              onCheckedChange={(checked) => handleNotificationChange('email', checked)}
-            />
-          </div>
-          
-            <div className="flex items-center justify-between p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-purple-200 dark:border-gray-600">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-purple-600" />
-              <div>
-                  <div className="font-medium text-gray-800 dark:text-gray-200 text-xs">{t('myTab.marketingNotification')}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300">{t('myTab.marketingDescription')}</div>
-              </div>
-            </div>
-            <Switch
-              checked={notificationSettings.marketing}
-              onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
-            />
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
           </div>
         </div>
-      </div>
 
-          {/* 충전소 섹션 구분선 */}
-          <div className="mx-4 my-6">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
-                <img src="/misc/charging-title.png" alt="충전소" className="w-5 h-5" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('storeTab.title')}</span>
-              </div>
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
-            </div>
-          </div>
-
-          {/* 충전소 섹션 */}
-          <div className="px-4 py-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border-t border-blue-200 dark:border-blue-800">
-            <ChargingHeader />
-            <PointsCard />
-            <ChargingTab />
-          </div>
-
+        {/* 충전소 섹션 */}
+        <div className="px-4 py-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border-t border-blue-200 dark:border-blue-800">
+          <ChargingHeader />
+          <PointsCard />
+          <ChargingTab />
+        </div>
 
         {/* 하단 여백 */}
         <div className="h-20"></div>
-        
       </div>
     </div>
+
+    <Dialog
+        open={showDeleteDialog}
+        onOpenChange={(open) => {
+          setShowDeleteDialog(open)
+          if (!open) {
+            setDeleteConfirmText('')
+            setDeleteError(null)
+            setIsDeletingAccount(false)
+          }
+        }}
+      >
+        <DialogContent
+          className="max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl"
+          showCloseButton={!isDeletingAccount}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'ko' ? '계정을 정말 삭제할까요?' : '¿Eliminar tu cuenta permanentemente?'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'ko'
+                ? '계정을 삭제하면 개인정보와 포인트, 설정이 영구적으로 삭제되며 복구할 수 없습니다.'
+                : 'La eliminación eliminará permanentemente tus datos personales, puntos y ajustes. No podrás deshacer esta acción.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm text-gray-600">
+            <p>
+              {language === 'ko'
+                ? '삭제를 진행하려면 아래 확인 문구를 입력해주세요.'
+                : 'Para continuar, escribe la palabra de confirmación abajo.'}
+            </p>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
+              <p className="font-semibold text-gray-700 mb-1">{language === 'ko' ? '삭제 시 처리 내용' : 'Lo que sucederá'}</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>
+                  {language === 'ko'
+                    ? '개인정보, 알림 설정, 선호도 등 계정 정보가 모두 삭제됩니다.'
+                    : 'Se eliminarán tu información personal, ajustes y preferencias.'}
+                </li>
+                <li>
+                  {language === 'ko'
+                    ? '작성한 게시글과 댓글은 더 이상 노출되지 않거나 “탈퇴한 사용자”로 표시됩니다.'
+                    : 'Tus publicaciones y comentarios dejarán de mostrarse o aparecerán como “usuario eliminado”.'}
+                </li>
+                <li>
+                  {language === 'ko'
+                    ? '삭제 후에는 동일 이메일로 재가입이 가능하지만 기존 데이터는 복구되지 않습니다.'
+                    : 'Podrás crear una nueva cuenta con el mismo correo, pero los datos anteriores no se podrán recuperar.'}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-600">
+              {language === 'ko'
+                ? '"DELETE" 를 대문자로 입력해주세요.'
+                : 'Escribe “DELETE” en mayúsculas para confirmar.'}
+            </label>
+            <Input
+              value={deleteConfirmText}
+              onChange={(event) => setDeleteConfirmText(event.target.value)}
+              placeholder="DELETE"
+              disabled={isDeletingAccount}
+            />
+          </div>
+
+          {deleteError && (
+            <p className="text-sm text-red-500">
+              {deleteError}
+            </p>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              disabled={isDeletingAccount}
+              onClick={() => {
+                setShowDeleteDialog(false)
+                setDeleteConfirmText('')
+                setDeleteError(null)
+              }}
+            >
+              {language === 'ko' ? '취소' : 'Cancelar'}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleteConfirmText !== 'DELETE' || isDeletingAccount}
+              onClick={handleAccountDeletion}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeletingAccount
+                ? language === 'ko'
+                  ? '삭제 중...'
+                  : 'Eliminando...'
+                : language === 'ko'
+                ? '완전히 삭제하기'
+                : 'Eliminar definitivamente'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

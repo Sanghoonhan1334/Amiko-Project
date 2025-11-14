@@ -7,6 +7,7 @@ import { Share2, Heart, MessageCircle, Edit, Trash2, Pin, PinOff } from 'lucide-
 import { toast } from 'sonner'
 import { shareContent } from '@/lib/share-utils'
 import { useLanguage } from '@/context/LanguageContext'
+import AuthorName from '@/components/common/AuthorName'
 
 interface NewsDetailProps {
   news: {

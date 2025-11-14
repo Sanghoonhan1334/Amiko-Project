@@ -62,8 +62,8 @@ const fortuneQuestions: Question[] = [
     id: 6,
     question: "La vida es",
     options: [
-      { text: "Un huevo", type: "simple", weight: 1 },
-      { text: "Una papa", type: "complex", weight: 1 }
+      { text: "Un camino", type: "simple", weight: 1 },
+      { text: "Un laberinto", type: "complex", weight: 1 }
     ]
   },
   {
@@ -108,6 +108,11 @@ function FortuneQuestionsPageContent() {
   }
 
   const handleAnswerSelect = (answerType: string) => {
+    // 중복 호출 방지
+    if (isSubmitting) {
+      return
+    }
+    
     setSelectedAnswers(prev => ({
       ...prev,
       [currentQuestion.id]: answerType
@@ -116,6 +121,7 @@ function FortuneQuestionsPageContent() {
     // 자동으로 다음 질문으로 넘어가기
     setTimeout(() => {
       if (isLastQuestion) {
+        // 마지막 질문이면 제출
         handleSubmit()
       } else {
         setCurrentQuestionIndex(prev => prev + 1)
@@ -124,11 +130,21 @@ function FortuneQuestionsPageContent() {
   }
 
   const handleNext = () => {
-    if (isLastQuestion) {
-      handleSubmit()
-    } else {
-      setCurrentQuestionIndex(prev => prev + 1)
+    // 중복 호출 방지
+    if (isSubmitting) {
+      return
     }
+    
+    // 마지막 질문이면 제출하지 않음 (handleAnswerSelect에서 이미 처리)
+    if (isLastQuestion) {
+      // 이미 답을 선택했다면 제출, 아니면 무시
+      if (selectedAnswers[currentQuestion.id]) {
+        handleSubmit()
+      }
+      return
+    }
+    
+    setCurrentQuestionIndex(prev => prev + 1)
   }
 
   const handlePrevious = () => {
@@ -138,20 +154,34 @@ function FortuneQuestionsPageContent() {
   }
 
   const handleSubmit = async () => {
+    // 중복 호출 방지
+    if (isSubmitting) {
+      console.log('[FORTUNE] 이미 제출 중입니다. 중복 호출 방지.')
+      return
+    }
+    
     setIsSubmitting(true)
     
     // 답변을 로컬 스토리지에 저장
     localStorage.setItem('fortune_answers', JSON.stringify(selectedAnswers))
     
-    // 참여자 수 증가
+    // 참여자 수 증가 (한 번만 실행)
     try {
-      await fetch('/api/quiz/increment-participant', {
+      const response = await fetch('/api/quiz/increment-participant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quizId: 'fortune-test-2024' })
       })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('[FORTUNE] 참여자 수 증가 성공:', data.participantCount)
+      } else {
+        const errorData = await response.json()
+        console.error('[FORTUNE] 참여자 수 증가 실패:', errorData)
+      }
     } catch (error) {
-      console.error('참여자 수 증가 실패:', error)
+      console.error('[FORTUNE] 참여자 수 증가 에러:', error)
     }
     
     // 로딩 페이지로 이동

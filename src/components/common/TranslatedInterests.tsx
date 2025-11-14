@@ -64,8 +64,9 @@ export default function TranslatedInterests({
 export function InterestBadges({ 
   interests, 
   maxDisplay = 5,
-  className = ""
-}: Omit<TranslatedInterestsProps, 'showCount'>) {
+  className = "",
+  skipTranslation = false // 번역을 건너뛸지 여부 (이미 번역된 관심사를 받았을 때)
+}: Omit<TranslatedInterestsProps, 'showCount'> & { skipTranslation?: boolean }) {
   const { t } = useLanguage()
   
   if (!interests || interests.length === 0) {
@@ -76,15 +77,23 @@ export function InterestBadges({
     )
   }
   
-  const translatedInterests = interests.map(interest => {
-    const translationKey = `videoCall.interests.${interest}`
-    const translated = t(translationKey)
-    // 번역 키가 그대로 반환되면 번역 실패 (원문 사용)
-    return translated === translationKey ? interest : translated
-  })
+  // skipTranslation이 true이면 관심사를 그대로 사용 (이미 번역된 관심사)
+  const displayInterests = skipTranslation 
+    ? interests 
+    : interests.map(interest => {
+        const translationKey = `videoCall.interests.${interest}`
+        const translated = t(translationKey)
+        // 번역 키가 그대로 반환되면 번역 실패 (원문 사용)
+        // 또는 이미 번역된 텍스트인 경우 (한글/스페인어가 아닌 경우) 그대로 사용
+        if (translated === translationKey) {
+          return interest
+        }
+        // 번역 키가 있으면 번역된 값 사용
+        return translated
+      })
   
-  const visibleInterests = translatedInterests.slice(0, maxDisplay)
-  const remainingCount = translatedInterests.length - maxDisplay
+  const visibleInterests = displayInterests.slice(0, maxDisplay)
+  const remainingCount = displayInterests.length - maxDisplay
   
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>

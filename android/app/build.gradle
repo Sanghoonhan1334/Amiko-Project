@@ -1,21 +1,26 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.amiko.app"
+    namespace "com.amiko.biz"  // ✅ namespace도 applicationId와 통일
     compileSdk rootProject.ext.compileSdkVersion
+
     defaultConfig {
-        applicationId "com.amiko.app"
+        applicationId "com.amiko.biz"   // ✅ 패키지명 유지
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.1"
+
+        // ✅ 버전 정보 업데이트
+        versionCode 5
+        versionName "1.0.3"
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            // Files and dirs to omit from the packaged assets dir
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
     signingConfigs {
         release {
             storeFile file('keystore/amiko-release.keystore')
@@ -24,6 +29,7 @@ android {
             keyPassword 'amiko2024'
         }
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -34,7 +40,7 @@ android {
 }
 
 repositories {
-    flatDir{
+    flatDir {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
@@ -44,20 +50,23 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+
     implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
-    implementation project(':capacitor-cordova-android-plugins')
 }
 
 apply from: 'capacitor.build.gradle'
 
+// ✅ Firebase 관련 설정 자동 적용
 try {
     def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
+    if (servicesJSON.exists() && servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
     }
-} catch(Exception e) {
+} catch (Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }

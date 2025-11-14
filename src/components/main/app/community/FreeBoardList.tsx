@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Post {
   id: string
@@ -38,6 +39,7 @@ interface Post {
   category_id: string
   category_name: string
   author_name: string
+  author_id?: string | null
   created_at: string
   views: number
   likes: number
@@ -427,8 +429,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     return true
   })
 
-  // 탭에 따라 게시글 정렬
+  // 탭에 따라 게시글 정렬 (공지사항은 항상 먼저)
   const sortedPosts = [...filteredPosts].sort((a, b) => {
+    // 공지사항은 항상 맨 위에
+    if (a.is_notice && !b.is_notice) return -1
+    if (!a.is_notice && b.is_notice) return 1
+    
+    // 공지사항끼리는 생성일 기준 내림차순
+    if (a.is_notice && b.is_notice) {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    }
+    
+    // 일반 게시글은 탭에 따라 정렬
     switch (activeTab) {
       case 'recommended':
         // 추천순: 좋아요 수 + 조회수 조합
@@ -719,6 +731,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           content: post.content,
           category_id: post.category_id || 'general',
           category_name: post.category || '자유게시판',
+          author_id: post.author?.id || null,
           author_name: post.author?.full_name || (post.is_notice ? (language === 'es' ? 'Administrador' : '운영자') : (language === 'es' ? 'Anónimo' : '익명')),
           created_at: post.created_at,
           views: post.view_count || 0,
@@ -730,23 +743,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         }))
 
         console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
+        console.log('[LOAD_POSTS] 첫 번째 게시글 is_notice:', transformedPosts[0]?.is_notice)
+        console.log('[LOAD_POSTS] 공지사항 개수:', transformedPosts.filter(p => p.is_notice).length)
         
-        // 공지사항을 맨 위에 고정하여 정렬
-        const sortedPosts = transformedPosts.sort((a: any, b: any) => {
-          // 공지글은 항상 맨 위에
-          if (a.is_notice && !b.is_notice) return -1
-          if (!a.is_notice && b.is_notice) return 1
-          
-          // 공지글끼리는 생성일 기준 내림차순
-          if (a.is_notice && b.is_notice) {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          }
-          
-          // 일반 게시글은 원래 순서 유지
-          return 0
-        })
-        
-        setPosts(sortedPosts)
+        // API에서 이미 공지사항이 먼저 정렬되어 반환되므로, 클라이언트 정렬은 생략
+        // API 응답 순서를 그대로 사용
+        setPosts(transformedPosts)
         
         // 페이지네이션 정보 업데이트
         const total = data.total || transformedPosts.length
@@ -1110,7 +1112,13 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{post.author_name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">
+                              <AuthorName
+                                userId={post.author_id}
+                                name={post.author_name}
+                                className="justify-center"
+                              />
+                            </td>
                             <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{formatDate(post.created_at)}</td>
                             <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{formatNumber(post.views)}</td>
                             <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{formatNumber(post.likes)}</td>

@@ -70,6 +70,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               >
                 화상 채팅
               </Link>
+              <Link 
+                href="/admin/reports" 
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                신고 관리
+              </Link>
             </nav>
           </div>
         </div>

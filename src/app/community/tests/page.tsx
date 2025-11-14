@@ -309,14 +309,27 @@ function TestsPageContent() {
   // 페이지가 보일 때마다 즐겨찾기 상태 다시 로드
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && user && quizzes.length > 0) {
-        loadFavoriteStatus()
+      if (document.visibilityState === 'visible') {
+        // 페이지가 보일 때 퀴즈 목록 새로고침 (참여자 수 업데이트)
+        fetchQuizzes()
+        if (user && quizzes.length > 0) {
+          loadFavoriteStatus()
+        }
       }
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user, quizzes])
+
+  // 주기적으로 참여자 수 새로고침 (30초마다)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchQuizzes()
+    }, 30000) // 30초마다
+
+    return () => clearInterval(interval)
+  }, [selectedCategory])
 
   // 🚀 최적화: 심리테스트 페이지 이미지 프리로딩
   useEffect(() => {

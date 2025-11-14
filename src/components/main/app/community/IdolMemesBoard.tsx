@@ -16,6 +16,7 @@ interface Post {
   media_type?: 'image' | 'video'
   thumbnail_url?: string
   author_name?: string
+  author_id?: string | null
   views: number
   likes_count: number
   comments_count: number

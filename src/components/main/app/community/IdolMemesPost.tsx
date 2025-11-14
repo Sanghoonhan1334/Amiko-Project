@@ -5,6 +5,7 @@ import { Heart, MessageCircle, Eye, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Post {
   id: string
@@ -14,6 +15,7 @@ interface Post {
   media_type?: 'image' | 'video'
   thumbnail_url?: string
   author_name?: string
+  author_id?: string | null
   views: number
   likes_count: number
   comments_count: number
@@ -150,9 +152,12 @@ export default function IdolMemesPost({ post, theme, onDelete }: IdolMemesPostPr
         <div className={`flex items-center gap-2 text-xs mb-2 ${
           isDark ? 'text-gray-400' : 'text-gray-600'
         }`}>
-          {post.author_name && (
-            <span className="font-medium">{post.author_name}</span>
-          )}
+          <AuthorName
+            userId={post.author_id}
+            name={post.author_name}
+            className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}
+            disableLink={!post.author_id}
+          />
           <span>•</span>
           <span>{timeAgo}</span>
         </div>

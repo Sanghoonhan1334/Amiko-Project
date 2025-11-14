@@ -41,34 +41,102 @@ export default function FortuneTestPage() {
   // 운세 테스트 고정 ID
   const FORTUNE_QUIZ_ID = 'fortune-test-2024'
 
-  // 운세 테스트 데이터 설정
+  // 운세 테스트 데이터 로드
   useEffect(() => {
-    // 하드코딩된 운세 테스트 데이터
-    const fortuneTestData: QuizData = {
-      id: FORTUNE_QUIZ_ID,
-      title: 'Test de Fortuna Personalizada',
-      description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
-      thumbnail_url: '/quizzes/fortune/cover/cover.png',
-      total_questions: 9,
-      total_participants: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    const loadQuizData = async () => {
+      try {
+        // DB에서 퀴즈 데이터 가져오기 시도
+        const response = await fetch(`/api/quizzes/${FORTUNE_QUIZ_ID}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.data?.quiz) {
+            // DB에 퀴즈가 있으면 사용
+            setQuizData({
+              id: data.data.quiz.id,
+              title: data.data.quiz.title || 'Test de Fortuna Personalizada',
+              description: data.data.quiz.description || 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
+              thumbnail_url: data.data.quiz.thumbnail_url || '/quizzes/fortune/cover/cover.png',
+              total_questions: data.data.quiz.total_questions || 9,
+              total_participants: data.data.quiz.total_participants || 0,
+              created_at: data.data.quiz.created_at || new Date().toISOString(),
+              updated_at: data.data.quiz.updated_at || new Date().toISOString()
+            })
+            setLoading(false)
+            return
+          }
+        }
+        
+        // DB에 없으면 기본 데이터 사용 (하지만 참여자 수는 0으로 시작)
+        const fortuneTestData: QuizData = {
+          id: FORTUNE_QUIZ_ID,
+          title: 'Test de Fortuna Personalizada',
+          description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
+          thumbnail_url: '/quizzes/fortune/cover/cover.png',
+          total_questions: 9,
+          total_participants: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+
+        setQuizData(fortuneTestData)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error al cargar datos del quiz:', error)
+        // 에러 발생 시 기본 데이터 사용
+        const fortuneTestData: QuizData = {
+          id: FORTUNE_QUIZ_ID,
+          title: 'Test de Fortuna Personalizada',
+          description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
+          thumbnail_url: '/quizzes/fortune/cover/cover.png',
+          total_questions: 9,
+          total_participants: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        setQuizData(fortuneTestData)
+        setLoading(false)
+      }
     }
 
-    setQuizData(fortuneTestData)
-    setLoading(false)
+    loadQuizData()
   }, [])
 
-  // 상호작용 데이터 로드
+  // 참여자 수 새로고침 함수
+  const refreshParticipantCount = async () => {
+    try {
+      const response = await fetch(`/api/quizzes/${FORTUNE_QUIZ_ID}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data?.quiz) {
+          setQuizData(prev => prev ? {
+            ...prev,
+            total_participants: data.data.quiz.total_participants || 0
+          } : prev)
+        }
+      }
+    } catch (error) {
+      console.error('Error al actualizar contador de participantes:', error)
+    }
+  }
+
+  // 상호작용 데이터 및 참여자 수 로드
   useEffect(() => {
     const loadInteractionData = async () => {
-      if (!user) return
+      if (!user) {
+        // 사용자가 없어도 참여자 수는 로드
+        await refreshParticipantCount()
+        return
+      }
       
       try {
         const supabase = createSupabaseBrowserClient()
         const { data: { session } } = await supabase.auth.getSession()
         
-        if (!session?.access_token) return
+        if (!session?.access_token) {
+          await refreshParticipantCount()
+          return
+        }
 
         // 즐겨찾기 상태 로드
         const favResponse = await fetch(`/api/favorites?quizId=${FORTUNE_QUIZ_ID}`, {
@@ -99,9 +167,26 @@ export default function FortuneTestPage() {
       } catch (error) {
         console.error('Error al cargar datos de interacción:', error)
       }
+      
+      // 참여자 수 새로고침
+      await refreshParticipantCount()
     }
     
     loadInteractionData()
+    
+    // 주기적으로 참여자 수 새로고침 (10초마다)
+    const interval = setInterval(refreshParticipantCount, 10000)
+    
+    // 페이지 포커스 시 참여자 수 새로고침
+    const handleFocus = () => {
+      refreshParticipantCount()
+    }
+    window.addEventListener('focus', handleFocus)
+    
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('focus', handleFocus)
+    }
   }, [user])
 
   const handleBack = () => {

@@ -35,6 +35,14 @@ export async function GET() {
       // users 객체 제거 (불필요한 데이터 제거)
       const { users, ...partnerData } = partner
       
+      // user_id가 있는지 확인
+      if (!partnerData.user_id) {
+        console.warn('[API] conversation-partners: user_id가 없습니다:', {
+          partner_id: partnerData.id,
+          partner_name: partnerData.name
+        })
+      }
+      
       return {
         ...partnerData,
         avatar_url: avatarUrl

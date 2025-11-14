@@ -57,8 +57,19 @@ export async function GET(
 
     let quiz, quizError;
 
+    // fortune-test-2024는 slug로 조회 (id는 UUID 타입이므로)
+    if (id === 'fortune-test-2024') {
+      console.log('[QUIZ_DETAIL] 운세 테스트 slug로 조회: fortune');
+      const result = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('slug', 'fortune')
+        .maybeSingle(); // is_active 체크 없이 조회
+      quiz = result.data;
+      quizError = result.error;
+    }
     // UUID 형식인 경우 ID로 조회, 그렇지 않으면 slug로 조회
-    if (isUUID(id)) {
+    else if (isUUID(id)) {
       console.log('[QUIZ_DETAIL] UUID 형식으로 ID 조회:', id);
       const result = await supabase
         .from('quizzes')
@@ -80,12 +91,35 @@ export async function GET(
       quizError = result.error;
     }
 
-    if (quizError) {
-      console.log('[QUIZ_DETAIL] 퀴즈 조회 실패:', quizError);
+    if (quizError || !quiz) {
+      console.log('[QUIZ_DETAIL] 퀴즈 조회 실패:', quizError || 'Quiz not found');
+      // fortune-test-2024의 경우 퀴즈가 없어도 기본 데이터 반환
+      if (id === 'fortune-test-2024') {
+        console.log('[QUIZ_DETAIL] 운세 테스트 기본 데이터 반환');
+        return NextResponse.json({
+          success: true,
+          data: {
+            quiz: {
+              slug: 'fortune',
+              title: 'Test de Fortuna Personalizada',
+              description: 'Descubre tu fortuna de hoy basada en tu estado emocional y personalidad. ¡Un test único que te revelará qué te depara el destino!',
+              category: 'fortune',
+              thumbnail_url: '/quizzes/fortune/cover/cover.png',
+              total_questions: 9,
+              total_participants: 0,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            questions: [],
+            results: []
+          }
+        });
+      }
       return NextResponse.json(
         { 
           error: '퀴즈를 찾을 수 없습니다.',
-          details: quizError.message
+          details: quizError?.message || 'Quiz not found'
         },
         { status: 404 }
       );

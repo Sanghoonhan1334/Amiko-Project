@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Skeleton } from '@/components/ui/skeleton'
+import AuthorName from '@/components/common/AuthorName'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -2676,7 +2677,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />
-                            <span>{question.author?.full_name || question.author || '익명'}</span>
+                            <AuthorName
+                              userId={(question.author as any)?.id}
+                              name={question.author?.full_name || question.author || (language === 'ko' ? '익명' : 'Anónimo')}
+                              disableLink={!((question.author as any)?.id)}
+                              className="text-sm text-gray-600 dark:text-gray-300"
+                            />
                             <Badge className={`ml-2 text-xs ${
                               question.authorType === 'korean' 
                                 ? 'bg-purple-100 text-purple-700 border-purple-300' 
@@ -2743,7 +2749,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-2">
-                      <span>{question.author?.full_name || question.author || '익명'}</span>
+                      <AuthorName
+                        userId={(question.author as any)?.id}
+                        name={question.author?.full_name || question.author || (language === 'ko' ? '익명' : 'Anónimo')}
+                        disableLink={!((question.author as any)?.id)}
+                        className="text-sm"
+                      />
                       <Badge className={`text-xs px-1 py-0 ${
                         question.authorType === 'korean' 
                           ? 'bg-purple-100 text-purple-700' 
@@ -3137,7 +3148,11 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   <div className="p-4 bg-gray-50 rounded-lg !opacity-100">
                     <p className="text-gray-700 mb-3">{selectedQuestion.preview}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span>{selectedQuestion.author?.full_name || selectedQuestion.author || '익명'}</span>
+                      <AuthorName
+                        userId={selectedQuestion.author?.id}
+                        name={selectedQuestion.author?.full_name || selectedQuestion.author || (language === 'ko' ? '익명' : 'Anónimo')}
+                        disableLink={!selectedQuestion.author?.id}
+                      />
                       <span>{formatTime(selectedQuestion.createdAt)}</span>
                       <span>{selectedQuestion.views} 조회</span>
                     </div>
@@ -3170,7 +3185,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                             <div className="flex-1">
                               <p className="text-gray-700 mb-2">{answer.content}</p>
                               <div className="flex items-center gap-3 text-sm text-gray-500">
-                                <span>{answer.author || '익명'}</span>
+                                <AuthorName
+                                  userId={(answer.author as any)?.id}
+                                  name={
+                                    (answer.author as any)?.full_name ||
+                                    (typeof answer.author === 'string' ? answer.author : null) ||
+                                    (language === 'ko' ? '익명' : 'Anónimo')
+                                  }
+                                  disableLink={!((answer.author as any)?.id)}
+                                />
                                 <span>{formatTime(answer.createdAt)}</span>
                                 {answer.isAccepted && (
                                   <Badge className="bg-green-100 text-green-700 border-green-300">
@@ -3388,9 +3411,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   </div>
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-gray-800">
-                    {selectedStory.user?.full_name || '익명'}
-                  </p>
+                  <AuthorName
+                    userId={selectedStory.user?.id}
+                    name={selectedStory.user?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                    disableLink={!selectedStory.user?.id}
+                    className="text-lg font-semibold text-gray-800"
+                  />
                   <p className="text-sm text-gray-500">
                     {formatTime(selectedStory.created_at)}
                   </p>
@@ -3510,9 +3536,12 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">
-                    {selectedStoryForComment.user?.full_name || '익명'}
-                  </p>
+                  <AuthorName
+                    userId={selectedStoryForComment.user?.id}
+                    name={selectedStoryForComment.user?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                    disableLink={!selectedStoryForComment.user?.id}
+                    className="text-sm font-semibold text-gray-800"
+                  />
                   <p className="text-xs text-gray-500">
                     {selectedStoryForComment.text?.substring(0, 30)}...
                   </p>

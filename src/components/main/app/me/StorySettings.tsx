@@ -35,6 +35,8 @@ export default function StorySettings() {
     maxArchived: 100
   })
 
+  const switchSizeClass = 'origin-right scale-75 sm:scale-100'
+
 
   // 사용자 스토리 로드
   const loadUserStories = async () => {
@@ -196,7 +198,7 @@ export default function StorySettings() {
   return (
     <div className="space-y-4">
       {/* 전역 스토리 설정 */}
-      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
+      <Card className="bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-500/60">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100 text-sm">
             <Settings className="w-4 h-4" />
@@ -210,6 +212,7 @@ export default function StorySettings() {
               <p className="text-xs text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.autoPublic.description')}</p>
             </div>
             <Switch
+              className={switchSizeClass}
               checked={globalStorySettings.autoPublic}
               onCheckedChange={(checked) => setGlobalStorySettings(prev => ({ ...prev, autoPublic: checked }))}
             />
@@ -221,6 +224,7 @@ export default function StorySettings() {
               <p className="text-xs text-gray-500 dark:text-gray-300">{t('storySettings.globalSettings.showInProfile.description')}</p>
             </div>
             <Switch
+              className={switchSizeClass}
               checked={globalStorySettings.showInProfile}
               onCheckedChange={(checked) => setGlobalStorySettings(prev => ({ ...prev, showInProfile: checked }))}
             />
@@ -229,7 +233,7 @@ export default function StorySettings() {
       </Card>
 
       {/* 아카이브 설정 */}
-      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
+      <Card className="bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-500/60">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-100 text-sm">
             <Calendar className="w-4 h-4" />
@@ -243,6 +247,7 @@ export default function StorySettings() {
               <p className="text-xs text-gray-500 dark:text-gray-300">{t('storySettings.archiveSettings.autoArchive.description')}</p>
             </div>
             <Switch
+              className={switchSizeClass}
               checked={archiveSettings.autoArchive}
               onCheckedChange={(checked) => setArchiveSettings(prev => ({ ...prev, autoArchive: checked }))}
             />
@@ -269,7 +274,7 @@ export default function StorySettings() {
       </Card>
 
       {/* 개별 스토리 설정 */}
-      <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600">
+      <Card className="bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-500/60">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className="text-gray-800 dark:text-gray-100 text-sm">{t('storySettings.individualSettings.title')}</CardTitle>
@@ -324,7 +329,7 @@ export default function StorySettings() {
                 const timeLeft = Math.max(0, Math.floor((story.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)))
                 
                 return (
-                <div key={story.id} className={`flex items-center justify-between p-3 border rounded-lg ${isExpired ? 'bg-gray-50 dark:bg-gray-700 opacity-60' : 'bg-white dark:bg-gray-800'} border-gray-200 dark:border-gray-600`}>
+                <div key={story.id} className={`flex items-center justify-between p-3 border rounded-lg ${isExpired ? 'bg-gray-50 dark:bg-gray-700 opacity-60' : 'bg-white dark:bg-gray-800'} border-purple-200 dark:border-purple-500/50`}>
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <img

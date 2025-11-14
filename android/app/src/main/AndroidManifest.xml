@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.amiko.biz">
+
+    <!-- 네트워크 통신 -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -9,22 +13,23 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- 메인 액티비티 (Capacitor BridgeActivity 상속) -->
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
             android:name=".MainActivity"
+            android:exported="true"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
-            android:exported="true"
             android:windowSoftInputMode="adjustResize"
-            android:fitsSystemWindows="true">
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|locale|navigation">
 
+            <!-- 런처 진입 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep Linking: Custom URL Scheme -->
+            <!-- 커스텀 스킴 딥링크 (amiko://) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -32,16 +37,18 @@
                 <data android:scheme="amiko" />
             </intent-filter>
 
-            <!-- Universal Links: HTTPS -->
+            <!-- HTTPS 유니버설 링크 -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="www.helloamiko.com" />
+                <data
+                    android:scheme="https"
+                    android:host="www.helloamiko.com" />
             </intent-filter>
-
         </activity>
 
+        <!-- FileProvider (앱 내 파일 공유) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -49,11 +56,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
     </application>
-
-    <!-- Permissions -->
-
-    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

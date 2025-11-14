@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Languages } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { useRouter } from 'next/navigation'
 import { TranslationService } from '@/lib/translation'
 import UserBadge from '@/components/common/UserBadge'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Comment {
   id: string
@@ -46,7 +46,6 @@ interface CommentSectionProps {
 export default function CommentSection({ postId, onCommentCountChange }: CommentSectionProps) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
-  const router = useRouter()
   
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
@@ -611,10 +610,17 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="font-medium text-xs md:text-sm text-gray-800">
-                        {comment.author?.nickname || comment.author?.full_name || t('freeboard.anonymous')}
-                        <UserBadge totalPoints={comment.author?.total_points || 0} isVip={comment.author?.is_vip || false} small />
-                      </span>
+                      <AuthorName
+                        userId={comment.author?.id}
+                        name={comment.author?.nickname || comment.author?.full_name || t('freeboard.anonymous')}
+                        className="font-medium text-xs md:text-sm text-gray-800"
+                      >
+                        <UserBadge
+                          totalPoints={comment.author?.total_points || 0}
+                          isVip={comment.author?.is_vip || false}
+                          small
+                        />
+                      </AuthorName>
                       <span className="text-[10px] md:text-xs text-gray-500">
                         {formatTime(comment.created_at)}
                       </span>
@@ -735,10 +741,17 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
-                              <span className="font-medium text-xs md:text-sm text-gray-800">
-                                {reply.author?.nickname || reply.author?.full_name || t('freeboard.anonymous')}
-                                <UserBadge totalPoints={reply.author?.total_points || 0} isVip={reply.author?.is_vip || false} small />
-                              </span>
+                        <AuthorName
+                          userId={reply.author?.id}
+                          name={reply.author?.nickname || reply.author?.full_name || t('freeboard.anonymous')}
+                          className="font-medium text-xs md:text-sm text-gray-800"
+                        >
+                          <UserBadge
+                            totalPoints={reply.author?.total_points || 0}
+                            isVip={reply.author?.is_vip || false}
+                            small
+                          />
+                        </AuthorName>
                               <span className="text-[10px] md:text-xs text-gray-500">
                                 {formatTime(reply.created_at)}
                               </span>

@@ -1,4 +1,4 @@
-package com.amiko.app;
+package com.amiko.biz;
 
 import android.graphics.Color;
 import android.os.Build;
@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
