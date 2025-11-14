@@ -26,7 +26,137 @@ export async function GET(request: NextRequest) {
     // 공지사항 필터가 있으면 공지사항만 반환
     if (isNotice === 'true') {
       console.log('[POSTS_GET] 공지사항만 조회')
-      // 공지사항만 조회하는 로직 (기존과 동일하게 유지)
+      
+      // 공지사항만 조회
+      let noticeQuery = supabaseServer
+        .from('gallery_posts')
+        .select(`
+          id,
+          title,
+          content,
+          images,
+          category,
+          view_count,
+          like_count,
+          dislike_count,
+          comment_count,
+          is_pinned,
+          is_hot,
+          is_notice,
+          created_at,
+          updated_at,
+          user_id
+        `)
+        .eq('is_deleted', false)
+        .eq('is_notice', true)
+        .order('created_at', { ascending: false })
+      
+      // 카테고리 필터 적용
+      if (category) {
+        noticeQuery = noticeQuery.eq('category', category)
+      }
+      
+      // 검색 쿼리 적용
+      if (searchQuery) {
+        noticeQuery = noticeQuery.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+      }
+      
+      // limit 적용
+      if (limit) {
+        noticeQuery = noticeQuery.limit(limit)
+      }
+      
+      const { data: noticePosts, error: noticeError } = await noticeQuery
+      
+      if (noticeError) {
+        console.error('[POSTS_GET] 공지사항 조회 오류:', noticeError)
+        return NextResponse.json({
+          success: true,
+          posts: [],
+          pagination: {
+            currentPage: page,
+            totalPages: 0,
+            totalPosts: 0,
+            hasNextPage: false,
+            hasPrevPage: false
+          }
+        })
+      }
+      
+      // 사용자 정보 조회 및 변환
+      const transformedPosts = noticePosts ? await Promise.all(noticePosts.map(async (post) => {
+        let userName = null
+        let avatarUrl = null
+        
+        if (post.user_id) {
+          try {
+            const { data: profileData, error: profileError } = await supabaseServer
+              .from('user_profiles')
+              .select('display_name, avatar_url')
+              .eq('user_id', post.user_id)
+              .maybeSingle()
+            
+            if (!profileError && profileData && profileData.display_name && profileData.display_name.trim() !== '') {
+              userName = profileData.display_name.includes('#') 
+                ? profileData.display_name.split('#')[0] 
+                : profileData.display_name
+              avatarUrl = profileData.avatar_url
+            } else {
+              const { data: userData, error: userError } = await supabaseServer
+                .from('users')
+                .select('nickname, korean_name, spanish_name, full_name')
+                .eq('id', post.user_id)
+                .maybeSingle()
+              
+              if (!userError && userData) {
+                userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || 'Anónimo'
+              } else {
+                userName = 'Anónimo'
+              }
+            }
+          } catch (error) {
+            console.error(`[POSTS_GET] 사용자 정보 조회 오류 (${post.user_id}):`, error)
+            userName = 'Anónimo'
+          }
+        } else {
+          userName = 'Anónimo'
+        }
+        
+        return {
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          category: post.category || '공지사항',
+          is_notice: true,
+          is_survey: false,
+          is_verified: false,
+          is_pinned: post.is_pinned,
+          view_count: post.view_count,
+          like_count: post.like_count,
+          dislike_count: post.dislike_count,
+          comment_count: post.comment_count,
+          created_at: post.created_at,
+          updated_at: post.updated_at,
+          author: {
+            id: post.user_id,
+            name: userName,
+            avatar: avatarUrl
+          },
+          images: post.images || []
+        }
+      })) : []
+      
+      return NextResponse.json({
+        success: true,
+        posts: transformedPosts,
+        pagination: {
+          currentPage: page,
+          totalPages: 1,
+          totalPosts: transformedPosts.length,
+          hasNextPage: false,
+          hasPrevPage: false
+        }
+      })
     }
 
     // 갤러리 데이터 조회 (일반 게시글 필터링용)
