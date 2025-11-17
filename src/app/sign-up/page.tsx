@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,15 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowRight, ArrowLeft, User, Mail, Lock, Phone, Globe } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
-import EmailVerification from '@/components/auth/EmailVerification'
 import PhoneVerification from '@/components/auth/PhoneVerification'
 import { countries } from '@/constants/countries'
+import { signUpEvents, marketingEvents } from '@/lib/analytics'
 
 export default function SignUpPage() {
   const router = useRouter()
   const { t, language } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
-  const [currentStep, setCurrentStep] = useState<'form' | 'email' | 'sms' | 'complete'>('form')
+  const [currentStep, setCurrentStep] = useState<'form' | 'sms' | 'complete'>('form')
   const [formData, setFormData] = useState({
     name: '',
     nickname: '',
@@ -48,12 +48,17 @@ export default function SignUpPage() {
     phoneNumber: '',
     nationality: '',
     verificationCode: '',
-    isEmailVerified: false,
+    isEmailVerified: true,
     isSMSVerified: false,
     biometricEnabled: false
   })
 
   const [ageError, setAgeError] = useState<string | null>(null)
+
+  // 가입 퍼널 이벤트: 회원가입 시작
+  useEffect(() => {
+    signUpEvents.startSignUp()
+  }, [])
 
   const calculateAge = (value: string) => {
     if (!value) return null
@@ -138,7 +143,14 @@ export default function SignUpPage() {
         setAgeError(t('auth.ageRestriction'))
       } else {
         setAgeError(null)
+        // 가입 퍼널 이벤트: 생년월일 입력
+        signUpEvents.enterBirthdate()
       }
+    }
+    
+    // 가입 퍼널 이벤트: 휴대폰 번호 입력
+    if (field === 'phone' && value.length > 0) {
+      signUpEvents.enterPhone()
     }
   }
   
@@ -199,11 +211,8 @@ export default function SignUpPage() {
   // 뒤로가기 함수
   const handleGoBack = () => {
     switch (currentStep) {
-      case 'email':
-        setCurrentStep('form')
-        break
       case 'sms':
-        setCurrentStep('email')
+        setCurrentStep('form')
         break
       case 'complete':
         setCurrentStep('sms')
@@ -261,79 +270,7 @@ export default function SignUpPage() {
     }
   }
 
-  // 인증 관련 함수들
-  const handleEmailAuth = async (email: string, nationality?: string) => {
-    // 이메일만 저장하고 페이지 이동 (자동 발송 없음)
-    setAuthData(prev => ({ ...prev, email }))
-    setCurrentStep('email')
-  }
-
-  // 이메일 재발송 전용 함수
-  const handleEmailResend = async () => {
-    if (!authData.email) return
-    
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/auth/verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: authData.email, 
-          type: 'email',
-          nationality: formData.country 
-        })
-      })
-
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error)
-
-      console.log('이메일 인증코드 발송 성공')
-      
-      // 개발 환경에서 디버그 정보가 있으면 콘솔에 표시
-      if (result.debug && result.debug.verificationCode) {
-        console.log('\n' + '='.repeat(60))
-        console.log('📧 [개발환경] 이메일 인증코드 (사용자용)')
-        console.log('='.repeat(60))
-        console.log(`이메일: ${authData.email}`)
-        console.log(`인증코드: ${result.debug.verificationCode}`)
-        console.log('='.repeat(60) + '\n')
-      }
-    } catch (error) {
-      console.error('이메일 인증 발송 실패:', error)
-      const errorMessage = error instanceof Error ? error.message : '이메일 인증코드 발송에 실패했습니다.'
-      alert(`${t('auth.emailVerificationCodeSendFailed')}\n\n오류: ${errorMessage}\n\n잠시 후 다시 시도해주세요.`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-
-  const handleEmailVerify = async (code: string) => {
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/auth/verification/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: authData.email, 
-          code, 
-          type: 'email' 
-        })
-      })
-
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error)
-
-      setAuthData(prev => ({ ...prev, isEmailVerified: true }))
-      // 이메일 인증 완료 후 SMS 인증으로 이동
-      setCurrentStep('sms')
-    } catch (error) {
-      console.error('이메일 인증 실패:', error)
-      alert(t('auth.verificationCodeIncorrect'))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // 인증 관련 함수들 (이메일 단계 제거됨)
 
   // 인증 방식별 발송 함수
   const handlePhoneAuth = async (method: string) => {
@@ -407,6 +344,8 @@ export default function SignUpPage() {
       }
 
       setAuthData(prev => ({ ...prev, isSMSVerified: true }))
+      // 가입 퍼널 이벤트: 휴대폰 인증 완료
+      signUpEvents.verifyPhone('sms')
       // SMS 인증 완료 후 회원가입 처리
       handleSignUp()
     } catch (error) {
@@ -462,6 +401,12 @@ export default function SignUpPage() {
       }
 
       console.log('회원가입 성공:', result)
+      
+      // 가입 퍼널 이벤트: 회원가입 완료
+      signUpEvents.completeSignUp(result.user?.id)
+      // 마케팅 퍼널 이벤트: 회원가입 완료
+      marketingEvents.signUp(result.user?.id, 'email')
+      
       alert(t('auth.signUpSuccess'))
       
       // 회원가입 성공 후 로그인 페이지로 이동
@@ -556,7 +501,8 @@ export default function SignUpPage() {
         country: formData.country
       }))
       
-      setCurrentStep('email')
+      // 이메일 인증 단계는 제거하고 SMS 인증으로 바로 진행
+      setCurrentStep('sms')
       
     } catch (error) {
       console.error('중복 체크 오류:', error)
@@ -569,29 +515,6 @@ export default function SignUpPage() {
   // 단계별 렌더링
   const renderStep = () => {
     switch (currentStep) {
-      case 'email':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleGoBack}
-                className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-700"
-              >
-                <ArrowLeft className="w-4 h-4" />
-{t('auth.back')}
-              </Button>
-            </div>
-            <EmailVerification
-              email={authData.email}
-              onVerify={handleEmailVerify}
-              onResend={handleEmailResend}
-              isLoading={isLoading}
-            />
-          </div>
-        )
-      
       case 'sms':
         return (
           <div className="space-y-4">

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { paymentEvents } from '@/lib/analytics'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 
@@ -156,11 +157,19 @@ export default function ChargingTab() {
 
       if (response.ok) {
         const { client_secret } = await response.json();
+        
+        // 포인트 충전 퍼널 이벤트: 결제 페이지 이동
+        paymentEvents.goToPayment(undefined, packageData.price)
+        
         // Stripe 결제 처리 로직
         console.log('결제 준비 완료:', client_secret);
         alert('결제 페이지로 이동합니다.');
       } else {
         const errorData = await response.json();
+        
+        // 포인트 충전 퍼널 이벤트: 결제 취소
+        paymentEvents.paymentCancel(undefined, errorData.error || '알 수 없는 오류')
+        
         alert(`결제 준비 실패: ${errorData.error || '알 수 없는 오류'}`);
       }
     } catch (error) {

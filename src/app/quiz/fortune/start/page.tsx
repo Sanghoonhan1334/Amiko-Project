@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/layout/Header'
+import { quizEvents } from '@/lib/analytics'
 
 function HeaderFallback() {
   return (

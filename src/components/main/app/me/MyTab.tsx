@@ -56,7 +56,8 @@ import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
-import { checkWebAuthnSupport, getBiometricAuthStatus, startBiometricRegistration, deleteBiometricCredential } from '@/lib/webauthnClient'
+import { checkWebAuthnSupport, getBiometricAuthStatus, startBiometricRegistration, deleteBiometricCredential, checkPlatformAuthenticatorAvailable } from '@/lib/webauthnClient'
+import { isAndroidDevice } from '@/lib/share-utils'
 import ChargingTab from '../charging/ChargingTab'
 import PointsCard from './PointsCard'
 import ChargingHeader from './ChargingHeader'
@@ -815,32 +816,147 @@ export default function MyTab() {
   // 지문 인증 상태 확인
   useEffect(() => {
     const checkBiometric = async () => {
-      // WebAuthn 지원 확인
+      // WebAuthn 기본 지원 확인
       const support = checkWebAuthnSupport()
-      setBiometricSupported(support.isSupported)
+      const isAndroid = isAndroidDevice()
+      const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      const hasPublicKeyCredential = typeof window !== 'undefined' && !!window.PublicKeyCredential
+      // WebAuthn은 HTTPS 또는 localhost에서만 작동
+      // 로컬 네트워크 IP는 HTTP이지만, Android에서는 실제로 작동할 수 있으므로 허용
+      const isHTTPS = typeof window !== 'undefined' && (
+        window.location.protocol === 'https:' || 
+        window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1' ||
+        // 로컬 네트워크 IP도 허용 (실제로는 제한적이지만 시도)
+        window.location.hostname.match(/^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\./)
+      )
       
-      if (support.isSupported && user?.id) {
-        try {
-          // 등록된 지문 확인
-          const status = await getBiometricAuthStatus(user.id)
-          console.log('[BIOMETRIC] 상태 확인 결과:', status)
-          
-          if (status.success && status.data) {
-            const hasCredentials = status.data.hasCredentials && status.data.credentials.length > 0
-            setBiometricEnabled(hasCredentials)
-            setBiometricCredentials(status.data.credentials || [])
-          } else {
-            // 에러가 있거나 데이터가 없으면 false로 설정
+      console.log('[BIOMETRIC] 초기 확인:', {
+        isSupported: support.isSupported,
+        isAndroid,
+        isMobile,
+        hasPublicKeyCredential,
+        isHTTPS,
+        protocol: typeof window !== 'undefined' ? window.location.protocol : 'N/A',
+        hostname: typeof window !== 'undefined' ? window.location.hostname : 'N/A',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A'
+      })
+      
+      // Android 기기에서는 PublicKeyCredential만 있으면 지원하는 것으로 간주
+      // (Android/Chrome에서는 isUserVerifyingPlatformAuthenticatorAvailable()이 false를 반환할 수 있음)
+      // 또는 모바일 기기면 지문 인증이 가능할 가능성이 높음
+      // HTTP 환경에서는 WebAuthn이 작동하지 않으므로 HTTPS 또는 localhost/로컬 IP 확인
+      
+      // Android 또는 모바일 기기이고 PublicKeyCredential이 있으면 지원하는 것으로 간주
+      // Android Chrome에서는 실제로 지문 인증이 가능하므로, PublicKeyCredential만 있으면 OK
+      if ((isAndroid || isMobile) && hasPublicKeyCredential && isHTTPS) {
+        console.log('[BIOMETRIC] 모바일 기기 + WebAuthn 지원 + HTTPS = 지문 인증 사용 가능')
+        setBiometricSupported(true)
+        
+        if (user?.id) {
+          try {
+            // 등록된 지문 확인
+            const status = await getBiometricAuthStatus(user.id)
+            console.log('[BIOMETRIC] 상태 확인 결과:', status)
+            
+            if (status.success && status.data) {
+              const hasCredentials = status.data.hasCredentials && status.data.credentials.length > 0
+              setBiometricEnabled(hasCredentials)
+              setBiometricCredentials(status.data.credentials || [])
+            } else {
+              setBiometricEnabled(false)
+              setBiometricCredentials([])
+            }
+          } catch (error) {
+            console.error('[BIOMETRIC] 상태 확인 실패:', error)
             setBiometricEnabled(false)
             setBiometricCredentials([])
           }
-        } catch (error) {
-          console.error('[BIOMETRIC] 상태 확인 실패:', error)
+        }
+        return
+      }
+      
+      // HTTPS가 아닌 경우 (로컬 네트워크는 허용)
+      // Android Chrome에서는 로컬 네트워크에서도 WebAuthn이 작동할 수 있으므로 시도
+      if ((isAndroid || isMobile) && !isHTTPS) {
+        console.warn('[BIOMETRIC] 모바일 기기지만 HTTPS가 아님')
+        console.warn('[BIOMETRIC] 현재 프로토콜:', typeof window !== 'undefined' ? window.location.protocol : 'N/A')
+        console.warn('[BIOMETRIC] WebAuthn은 HTTPS에서만 완전히 작동하지만, Android에서는 시도해봅니다')
+        // Android에서는 HTTP에서도 시도 (실제로는 제한적이지만)
+        if (isAndroid && hasPublicKeyCredential) {
+          console.log('[BIOMETRIC] Android 기기 - HTTP 환경이지만 시도')
+          setBiometricSupported(true)
+          // 등록된 지문 확인은 생략 (HTTP에서는 API 호출이 제한적일 수 있음)
+          setBiometricEnabled(false)
+          setBiometricCredentials([])
+          return
+        }
+        setBiometricSupported(false)
+        setBiometricEnabled(false)
+        setBiometricCredentials([])
+        return
+      }
+      
+      // Android 기기인데 PublicKeyCredential이 없는 경우 (드물지만 가능)
+      if (isAndroid && !hasPublicKeyCredential) {
+        console.warn('[BIOMETRIC] Android 기기지만 PublicKeyCredential 없음')
+        setBiometricSupported(false)
+        setBiometricEnabled(false)
+        setBiometricCredentials([])
+        return
+      }
+      
+      if (!support.isSupported) {
+        console.log('[BIOMETRIC] WebAuthn 기본 지원 안 됨')
+        setBiometricSupported(false)
+        setBiometricEnabled(false)
+        setBiometricCredentials([])
+        return
+      }
+      
+      // iOS/Desktop: 플랫폼 인증기 사용 가능 여부 확인 (비동기)
+      try {
+        const platformAvailable = await checkPlatformAuthenticatorAvailable()
+        console.log('[BIOMETRIC] 플랫폼 인증기 사용 가능:', platformAvailable)
+        
+        const isActuallySupported = platformAvailable || support.isSupported
+        
+        console.log('[BIOMETRIC] 최종 지원 여부:', isActuallySupported, {
+          platformAvailable,
+          basicSupport: support.isSupported
+        })
+        
+        setBiometricSupported(isActuallySupported)
+        
+        if (isActuallySupported && user?.id) {
+          try {
+            // 등록된 지문 확인
+            const status = await getBiometricAuthStatus(user.id)
+            console.log('[BIOMETRIC] 상태 확인 결과:', status)
+            
+            if (status.success && status.data) {
+              const hasCredentials = status.data.hasCredentials && status.data.credentials.length > 0
+              setBiometricEnabled(hasCredentials)
+              setBiometricCredentials(status.data.credentials || [])
+            } else {
+              // 에러가 있거나 데이터가 없으면 false로 설정
+              setBiometricEnabled(false)
+              setBiometricCredentials([])
+            }
+          } catch (error) {
+            console.error('[BIOMETRIC] 상태 확인 실패:', error)
+            setBiometricEnabled(false)
+            setBiometricCredentials([])
+          }
+        } else {
+          // 지원하지 않거나 사용자가 없으면 false
           setBiometricEnabled(false)
           setBiometricCredentials([])
         }
-      } else {
-        // 지원하지 않거나 사용자가 없으면 false
+      } catch (error) {
+        console.error('[BIOMETRIC] 플랫폼 인증기 확인 실패:', error)
+        // 에러가 나도 기본 WebAuthn 지원이 있으면 사용 가능으로 간주
+        setBiometricSupported(support.isSupported)
         setBiometricEnabled(false)
         setBiometricCredentials([])
       }
@@ -2545,6 +2661,7 @@ export default function MyTab() {
                 </AccordionContent>
               </AccordionItem>
 
+              {process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true' && (
               <AccordionItem value="security" className="border-b border-gray-100">
                 <AccordionTrigger className="px-5 py-4 hover:no-underline">
                   <div className="flex items-center gap-3 text-left">
@@ -2616,6 +2733,7 @@ export default function MyTab() {
                   )}
                 </AccordionContent>
               </AccordionItem>
+              )}
 
               <AccordionItem value="notifications">
                 <AccordionTrigger className="px-5 py-4 hover:no-underline">

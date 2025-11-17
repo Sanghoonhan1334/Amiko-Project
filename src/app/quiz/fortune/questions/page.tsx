@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/layout/Header'
+import { quizEvents } from '@/lib/analytics'
 
 interface Question {
   id: number
@@ -103,6 +104,16 @@ function FortuneQuestionsPageContent() {
   const isLastQuestion = currentQuestionIndex === fortuneQuestions.length - 1
   const canProceed = selectedAnswers[currentQuestion.id] !== undefined
 
+  // 퀴즈 퍼널 이벤트: 질문 표시
+  useEffect(() => {
+    const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+    quizEvents.quizQuestion(
+      FORTUNE_QUIZ_ID,
+      currentQuestionIndex + 1,
+      currentQuestion.id.toString()
+    )
+  }, [currentQuestionIndex])
+
   const handleBack = () => {
     router.push('/quiz/fortune')
   }
@@ -117,6 +128,14 @@ function FortuneQuestionsPageContent() {
       ...prev,
       [currentQuestion.id]: answerType
     }))
+    
+    // 퀴즈 퍼널 이벤트: 답변 선택
+    const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+    quizEvents.quizAnswer(
+      FORTUNE_QUIZ_ID,
+      currentQuestionIndex + 1,
+      answerType
+    )
 
     // 자동으로 다음 질문으로 넘어가기
     setTimeout(() => {
@@ -183,6 +202,10 @@ function FortuneQuestionsPageContent() {
     } catch (error) {
       console.error('[FORTUNE] 참여자 수 증가 에러:', error)
     }
+    
+    // 퀴즈 퍼널 이벤트: 로딩 페이지 이동
+    const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+    quizEvents.quizLoading(FORTUNE_QUIZ_ID)
     
     // 로딩 페이지로 이동
     setTimeout(() => {

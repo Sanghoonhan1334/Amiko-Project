@@ -429,8 +429,12 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 [isolation:isolate] bg-white dark:bg-gray-900 border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-        <div className="w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto">
+      <header
+        className="fixed top-0 left-0 right-0 z-[9999] border-b shadow-sm"
+      >
+        {/* Background layer with high z-index */}
+        <div className="header-background absolute inset-0 bg-white dark:bg-gray-900 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95 z-0" />
+        <div className="relative w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto z-10">
           <div className="flex justify-between items-center h-16 sm:h-20 md:h-28 lg:h-28 xl:h-28 2xl:h-28 3xl:h-28 relative">
             {/* 좌측: 언어 전환 버튼 및 시계 */}
             <div className="flex flex-col items-start gap-0.5 sm:gap-2 flex-shrink-0 w-16 sm:w-24 md:w-28">
@@ -452,7 +456,7 @@ export default function Header() {
                 
                 {/* 언어 선택 드롭다운 */}
                 {showLanguageDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-50">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-[10000]">
                     <div className="space-y-1">
                       <button
                         onClick={() => {
@@ -503,7 +507,7 @@ export default function Header() {
                 className="relative cursor-pointer group time-dropdown"
                 onClick={() => setShowTimeDetails(!showTimeDetails)}
               >
-                <div className="flex items-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-0.5 sm:py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg border border-blue-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-0.5 sm:py-1.5 bg-blue-50 dark:bg-gray-700 rounded-lg border border-blue-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300">
                   <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-blue-600 dark:text-blue-400" />
                   <div className="flex flex-row gap-0.5 sm:gap-2 text-xs font-medium">
                     <span 
@@ -535,7 +539,7 @@ export default function Header() {
                 
                 {/* 상세 시간 정보 드롭다운 */}
                 {showTimeDetails && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-50">
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-[10000]">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">🌏 세계 시간</span>
@@ -719,9 +723,9 @@ export default function Header() {
             </div>
 
             {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 -translate-x-1/2 -top-4 sm:-top-4 md:-top-6 lg:-top-8 z-[100] flex flex-col items-center">
+            <div className="absolute left-1/2 -translate-x-1/2 top-0 z-[100] flex flex-col items-center justify-start h-full">
               {/* 로고 */}
-              <div className="relative logo-container z-[100] dark:z-[50] overflow-hidden">
+              <div className="relative logo-container z-[100] dark:z-[50] overflow-hidden -mt-4 sm:-mt-5 md:-mt-6 lg:-mt-8">
                 {/* 라이트 모드 */}
                 <img
                   src="/logos/amiko-logo.png"
@@ -746,9 +750,9 @@ export default function Header() {
                   onClick={(e) => { e.stopPropagation(); router.push('/'); }}
                 />
               </div>
-
+              
               {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 -mt-6 md:-mt-8 relative z-[100] ml-[12px]">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 absolute top-full left-1/2 -translate-x-1/2 -mt-10 md:-mt-12 lg:-mt-14 z-[100] ml-[12px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership' || isDetailPage) ? (
                   // 랜딩페이지 및 상세 페이지에서는 네비게이션 제거
                   <></>
@@ -978,7 +982,7 @@ export default function Header() {
       </header>
 
       {/* 모바일 메뉴 */}
-      <div className={`fixed inset-0 z-[500] transition-all duration-300 ${
+      <div className={`fixed inset-0 z-[10001] transition-all duration-300 ${
         isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         {/* 배경 오버레이 */}

@@ -9,6 +9,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { useAuth } from '@/context/AuthContext'
 import TestComments from '@/components/quiz/TestComments'
+import { quizEvents } from '@/lib/analytics'
 
 interface QuizData {
   id: string
@@ -195,6 +196,8 @@ export default function FortuneTestPage() {
 
   const handleStart = () => {
     setIsStarting(true)
+    // 퀴즈 퍼널 이벤트: 퀴즈 시작
+    quizEvents.startQuiz(FORTUNE_QUIZ_ID, 'Test de Fortuna Personalizada')
     // 시작 페이지로 이동
     router.push('/quiz/fortune/start')
   }

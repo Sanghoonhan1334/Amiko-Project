@@ -1,11 +1,23 @@
 'use client'
 
 import Script from 'next/script'
+import { useEffect } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { trackPageView } from '@/lib/analytics'
 
 // GA4 직접 측정 (GTM 우회)
-const GA4_MEASUREMENT_ID = 'G-5RM3B0CKWJ'
+const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || 'G-5RM3B0CKWJ'
 
 export default function Analytics() {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // 페이지뷰 추적
+  useEffect(() => {
+    const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '')
+    trackPageView(url)
+  }, [pathname, searchParams])
+
   return (
     <>
       {/* Google Analytics 4 */}
@@ -21,6 +33,7 @@ export default function Analytics() {
           gtag('js', new Date());
           gtag('config', '${GA4_MEASUREMENT_ID}', {
             page_path: window.location.pathname,
+            send_page_view: false
           });
         `}
       </Script>

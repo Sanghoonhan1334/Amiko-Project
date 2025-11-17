@@ -15,12 +15,14 @@ import {
   EyeOff
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
-import { checkWebAuthnSupport, startBiometricRegistration } from '@/lib/webauthnClient'
+import { checkWebAuthnSupport, startBiometricRegistration, startBiometricAuthentication } from '@/lib/webauthnClient'
 import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '@/components/ui/dialog'
 import { Fingerprint } from 'lucide-react'
+import { signInEvents } from '@/lib/analytics'
 
 export default function SignInPage() {
+  const BIOMETRIC_ENABLED = process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true'
   const router = useRouter()
   const { signIn } = useAuth()
   const { t, language } = useLanguage()
@@ -38,27 +40,57 @@ export default function SignInPage() {
   const [savedUserId, setSavedUserId] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!BIOMETRIC_ENABLED) {
+      setIsWebAuthnSupported(false)
+      setCanUseBiometric(false)
+      return
+    }
     // WebAuthn 지원 여부 확인
     const support = checkWebAuthnSupport()
     setIsWebAuthnSupported(support.isSupported)
     
+    console.log('[SIGNIN] WebAuthn 지원 여부:', support.isSupported)
+    
     // 마지막 로그인 사용자 확인
     const checkLastUser = async () => {
       const lastUserId = localStorage.getItem('amiko_last_user_id')
+      console.log('[SIGNIN] localStorage에서 사용자 ID 확인:', lastUserId)
+      
       if (lastUserId && support.isSupported) {
         setSavedUserId(lastUserId)
         
         // 해당 사용자의 지문 등록 여부 확인
         try {
+          console.log('[SIGNIN] 지문 등록 여부 확인 시작:', lastUserId)
           const biometricCheck = await fetch(`/api/auth/biometric?userId=${lastUserId}`)
           const biometricData = await biometricCheck.json()
           
+          console.log('[SIGNIN] 지문 등록 여부 API 응답:', {
+            success: biometricData.success,
+            dataLength: biometricData.data?.length || 0,
+            data: biometricData.data
+          })
+          
           if (biometricData.success && biometricData.data && biometricData.data.length > 0) {
+            console.log('[SIGNIN] 지문 인증 사용 가능 - 버튼 표시')
             setCanUseBiometric(true)
+          } else {
+            console.log('[SIGNIN] 지문 인증 사용 불가:', {
+              success: biometricData.success,
+              hasData: !!biometricData.data,
+              dataLength: biometricData.data?.length || 0
+            })
+            setCanUseBiometric(false)
           }
         } catch (error) {
-          console.log('지문 확인 실패:', error)
+          console.error('[SIGNIN] 지문 확인 실패:', error)
+          setCanUseBiometric(false)
         }
+      } else {
+        console.log('[SIGNIN] 지문 로그인 버튼 표시 조건 불만족:', {
+          hasUserId: !!lastUserId,
+          isSupported: support.isSupported
+        })
       }
     }
     
@@ -70,10 +102,22 @@ export default function SignInPage() {
       ...prev,
       [field]: value
     }))
+    
+    // 로그인 퍼널 이벤트: 이메일 입력
+    if (field === 'identifier' && value.length > 0) {
+      signInEvents.enterEmail()
+    }
+    
+    // 로그인 퍼널 이벤트: 비밀번호 입력
+    if (field === 'password' && value.length > 0) {
+      signInEvents.enterPassword()
+    }
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    // 로그인 퍼널 이벤트: 로그인 시작
+    signInEvents.startSignIn()
     setIsLoading(true)
 
     try {
@@ -90,10 +134,19 @@ export default function SignInPage() {
       const result = await response.json()
 
       if (!response.ok) {
+        // 로그인 퍼널 이벤트: 로그인 실패
+        signInEvents.signInError(result.error || 'SIGN_IN_FAILED', result.error || t('auth.signInFailed'))
         throw new Error(result.error || t('auth.signInFailed'))
       }
 
-      console.log('로그인 성공:', result)
+      console.log('[SIGNIN] 로그인 성공 응답:', result)
+      
+      // 로그인 퍼널 이벤트: 로그인 성공
+      const userId = result.data?.user?.id || result.user?.id
+      signInEvents.signInSuccess(userId, 'email')
+      
+      // API 응답 구조: result.data.user.id (이미 위에서 추출됨)
+      console.log('[SIGNIN] 추출된 사용자 ID:', userId)
       
       // API가 실제 인증을 수행하므로, 클라이언트에서 추가 인증 시도 필요 없음
       // 세션은 서버에서 쿠키로 설정되었으므로, 클라이언트 세션도 업데이트하기 위해 signIn 호출 (에러 무시)
@@ -103,19 +156,34 @@ export default function SignInPage() {
       })
       
       // 마지막 로그인 사용자 ID 저장
-      if (result.user?.id) {
-        localStorage.setItem('amiko_last_user_id', result.user.id)
+      if (userId) {
+        console.log('[SIGNIN] localStorage에 사용자 ID 저장:', userId)
+        localStorage.setItem('amiko_last_user_id', userId)
+        setSavedUserId(userId) // 즉시 상태 업데이트
+      } else {
+        console.error('[SIGNIN] 사용자 ID를 찾을 수 없음:', result)
       }
       
       // 지문 인증 지원하고, 아직 등록하지 않은 경우 모달 표시
-      if (isWebAuthnSupported && result.user?.id) {
+      if (isWebAuthnSupported && userId) {
         // 지문 등록 여부 확인
-        const biometricCheck = await fetch(`/api/auth/biometric?userId=${result.user.id}`)
+        const biometricCheck = await fetch(`/api/auth/biometric?userId=${userId}`)
         const biometricData = await biometricCheck.json()
         
-        if (biometricData.success && (!biometricData.data || biometricData.data.length === 0)) {
+        console.log('[SIGNIN] 로그인 후 지문 확인:', {
+          success: biometricData.success,
+          dataLength: biometricData.data?.length || 0,
+          data: biometricData.data
+        })
+        
+        if (biometricData.success && biometricData.data && biometricData.data.length > 0) {
+          // 이미 등록된 지문이 있으면 즉시 사용 가능으로 설정
+          console.log('[SIGNIN] 이미 등록된 지문 있음 - canUseBiometric=true')
+          setCanUseBiometric(true)
+        } else if (biometricData.success && (!biometricData.data || biometricData.data.length === 0)) {
           // 등록된 지문이 없으면 모달 표시
-          setLoggedInUserId(result.user.id)
+          console.log('[SIGNIN] 등록된 지문 없음 - 모달 표시')
+          setLoggedInUserId(userId)
           setShowBiometricSetupModal(true)
           return // 모달이 닫힐 때까지 대기
         }
@@ -157,6 +225,12 @@ export default function SignInPage() {
       )
       
       if (result.success) {
+        console.log('[SIGNIN] 지문 등록 성공 - 상태 업데이트')
+        
+        // 지문 등록 성공 시 즉시 상태 업데이트
+        setSavedUserId(loggedInUserId)
+        setCanUseBiometric(true)
+        
         alert(language === 'ko' ? '지문 인증이 등록되었습니다!' : '¡Autenticación de huella digital registrada!')
         setShowBiometricSetupModal(false)
         router.push('/main')
@@ -185,35 +259,72 @@ export default function SignInPage() {
     
     setIsLoading(true)
     try {
-      // WebAuthn 인증 시작
-      const challenge = new Uint8Array(32)
-      crypto.getRandomValues(challenge)
+      console.log('[BIOMETRIC_LOGIN] 지문 로그인 시작:', { userId: savedUserId })
       
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge: challenge,
-          rpId: window.location.hostname,
-          userVerification: 'required',
-          timeout: 60000
-        }
-      }) as PublicKeyCredential | null
+      // 실제 WebAuthn 인증 플로우 시작
+      const result = await startBiometricAuthentication(savedUserId)
       
-      if (!credential) {
-        throw new Error('지문 인증 취소')
+      if (!result.success) {
+        throw new Error(result.error || '인증 실패')
       }
       
-      // 인증 성공 - 세션 생성 (간단히 메인으로 이동)
-      // 실제로는 서버에서 credential 검증 후 세션 생성
-      console.log('지문 인증 성공:', credential)
+      console.log('[BIOMETRIC_LOGIN] 지문 인증 성공:', result.data)
       
-      // 임시: 토큰 기반 로그인으로 세션 생성
+      // 인증 성공 후 서버에서 세션 생성
+      // 사용자 정보를 가져와서 세션 생성
+      const sessionResponse = await fetch('/api/auth/biometric/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: savedUserId,
+          credentialId: result.data?.id
+        })
+      })
+      
+      const sessionResult = await sessionResponse.json()
+      
+      if (!sessionResponse.ok || !sessionResult.success) {
+        throw new Error(sessionResult.error || '세션 생성 실패')
+      }
+      
+      console.log('[BIOMETRIC_LOGIN] 세션 생성 성공:', sessionResult)
+      
+      // AuthContext 업데이트를 위해 signIn 호출 (비밀번호 없이)
+      // 서버에서 이미 세션이 생성되었으므로, 클라이언트 상태만 업데이트
+      try {
+        await signIn(savedUserId, '').catch(() => {
+          // 이미 서버에서 세션이 생성되었으므로 실패는 무시
+          console.log('[BIOMETRIC_LOGIN] 클라이언트 세션 업데이트 시도 (서버 세션 이미 생성됨)')
+        })
+      } catch (err) {
+        // 무시 - 서버 세션이 이미 있음
+      }
+      
+      // 로그인 성공 후 메인으로 이동
       router.push('/main')
       
     } catch (error) {
-      console.error('지문 로그인 실패:', error)
-      alert(language === 'ko' 
-        ? '지문 인증에 실패했습니다. 일반 로그인을 이용해주세요.'
-        : 'Error en autenticación de huella. Use el inicio de sesión normal.')
+      console.error('[BIOMETRIC_LOGIN] 지문 로그인 실패:', error)
+      
+      const errorMessage = error instanceof Error ? error.message : ''
+      
+      // 사용자 친화적인 에러 메시지
+      if (errorMessage.includes('cancel') || errorMessage.includes('abort') || errorMessage.includes('취소')) {
+        // 사용자가 취소한 경우 - 조용히 실패
+        console.log('[BIOMETRIC_LOGIN] 사용자가 인증 취소')
+      } else if (errorMessage.includes('등록된 인증기가 없습니다') || errorMessage.includes('No hay autenticadores')) {
+        // 등록된 인증기가 없는 경우
+        setCanUseBiometric(false)
+        localStorage.removeItem('amiko_last_user_id')
+        alert(language === 'ko' 
+          ? '등록된 지문 인증이 없습니다. 일반 로그인을 이용해주세요.'
+          : 'No hay autenticación de huella registrada. Use el inicio de sesión normal.')
+      } else {
+        // 기타 오류
+        alert(language === 'ko' 
+          ? '지문 인증에 실패했습니다. 일반 로그인을 이용해주세요.'
+          : 'Error en autenticación de huella. Use el inicio de sesión normal.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -299,7 +410,20 @@ export default function SignInPage() {
           </form>
 
           {/* 지문 빠른 로그인 */}
-          {canUseBiometric && savedUserId && (
+          {/* 디버깅: 조건 확인 */}
+          {BIOMETRIC_ENABLED && process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded space-y-1">
+              <div>디버그 정보:</div>
+              <div>• canUseBiometric: {String(canUseBiometric)}</div>
+              <div>• savedUserId: {savedUserId || 'null'}</div>
+              <div>• localStorage: {typeof window !== 'undefined' ? localStorage.getItem('amiko_last_user_id') || '없음' : 'N/A'}</div>
+              <div>• isWebAuthnSupported: {String(isWebAuthnSupported)}</div>
+              <div className="text-red-600 mt-2">
+                {!savedUserId && '⚠️ 로그인을 하면 savedUserId가 설정됩니다.'}
+              </div>
+            </div>
+          )}
+          {BIOMETRIC_ENABLED && canUseBiometric && savedUserId && (
             <>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -352,9 +476,10 @@ export default function SignInPage() {
       </Card>
       </div>
 
-      {/* 지문 등록 제안 모달 */}
+      {/* 지문 등록 제안 모달 (기능 플래그) */}
+      {BIOMETRIC_ENABLED && (
       <Dialog open={showBiometricSetupModal} onOpenChange={setShowBiometricSetupModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-gray-800">
           <DialogHeader>
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center">
@@ -436,6 +561,7 @@ export default function SignInPage() {
           </div>
         </DialogContent>
       </Dialog>
+      )}
     </div>
   )
 }

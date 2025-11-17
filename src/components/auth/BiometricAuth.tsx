@@ -5,15 +5,27 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Fingerprint, CheckCircle, AlertCircle } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { startBiometricRegistration, startBiometricAuthentication } from '@/lib/webauthnClient'
 
 interface BiometricAuthProps {
+  userId?: string
+  userName?: string
+  userDisplayName?: string
   onEnable: () => void
   onSkip: () => void
   onLogin?: () => void
   mode?: 'setup' | 'login' | 'suggestion'
 }
 
-export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'suggestion' }: BiometricAuthProps) {
+export default function BiometricAuth({ 
+  userId, 
+  userName, 
+  userDisplayName, 
+  onEnable, 
+  onSkip, 
+  onLogin, 
+  mode = 'suggestion' 
+}: BiometricAuthProps) {
   const { t } = useLanguage()
   const [isSupported, setIsSupported] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -40,50 +52,46 @@ export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'sugge
   const handleBiometricSetup = async () => {
     if (!isSupported) return
     
+    if (!userId || !userName || !userDisplayName) {
+      setError('사용자 정보가 필요합니다. 로그인 후 다시 시도해주세요.')
+      return
+    }
+    
     setIsLoading(true)
     setError(null)
     setSuccess(false)
     
     try {
-      // WebAuthn 등록
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: new Uint8Array(32),
-          rp: { name: "Amiko" },
-          user: {
-            id: new TextEncoder().encode('user-id'),
-            name: "user@example.com",
-            displayName: "User"
-          },
-          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required"
-          },
-          timeout: 60000 // 60초 타임아웃
-        }
-      })
+      // 실제 WebAuthn 등록 플로우 사용
+      const result = await startBiometricRegistration(userId, userName, userDisplayName)
       
-      if (credential) {
+      if (result.success) {
         setSuccess(true)
         setTimeout(() => {
           onEnable()
         }, 1000)
+      } else {
+        throw new Error(result.error || '등록 실패')
       }
     } catch (error: any) {
-      console.error('Biometric setup failed:', error)
+      console.error('[BIOMETRIC_AUTH] 등록 실패:', error)
+      
+      const errorMessage = error instanceof Error ? error.message : String(error)
       
       // 오류 타입별 메시지 설정
-      if (error.name === 'NotAllowedError') {
+      if (errorMessage.includes('cancel') || errorMessage.includes('abort') || errorMessage.includes('취소')) {
+        // 사용자가 취소한 경우 - 조용히 실패
+        console.log('[BIOMETRIC_AUTH] 사용자가 등록 취소')
+      } else if (errorMessage.includes('NotAllowedError') || errorMessage.includes('거부')) {
         setError('지문 인증이 거부되었습니다. 브라우저 설정에서 지문 인증을 허용해주세요.')
-      } else if (error.name === 'TimeoutError') {
+      } else if (errorMessage.includes('TimeoutError') || errorMessage.includes('시간')) {
         setError('지문 인증 시간이 초과되었습니다. 다시 시도해주세요.')
-      } else if (error.name === 'NotSupportedError') {
+      } else if (errorMessage.includes('NotSupportedError') || errorMessage.includes('지원하지 않습니다')) {
         setError('이 디바이스는 지문 인증을 지원하지 않습니다.')
-      } else if (error.name === 'SecurityError') {
+      } else if (errorMessage.includes('SecurityError') || errorMessage.includes('보안')) {
         setError('보안 오류가 발생했습니다. HTTPS 환경에서만 사용 가능합니다.')
       } else {
-        setError('지문 인증 설정에 실패했습니다. 나중에 설정하거나 건너뛸 수 있습니다.')
+        setError(errorMessage || '지문 인증 설정에 실패했습니다. 나중에 설정하거나 건너뛸 수 있습니다.')
       }
     } finally {
       setIsLoading(false)
@@ -91,25 +99,34 @@ export default function BiometricAuth({ onEnable, onSkip, onLogin, mode = 'sugge
   }
 
   const handleBiometricLogin = async () => {
-    if (!isSupported) return
+    if (!isSupported || !userId) return
     
     setIsLoading(true)
+    setError(null)
+    
     try {
-      // WebAuthn 인증
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge: new Uint8Array(32),
-          allowCredentials: [],
-          userVerification: "required"
-        }
-      })
+      // 실제 WebAuthn 인증 플로우 사용
+      const result = await startBiometricAuthentication(userId)
       
-      // 성공 시 콜백 호출
-      if (onLogin) {
-        onLogin()
+      if (result.success) {
+        // 성공 시 콜백 호출
+        if (onLogin) {
+          onLogin()
+        }
+      } else {
+        throw new Error(result.error || '인증 실패')
       }
-    } catch (error) {
-      console.error('Biometric login failed:', error)
+    } catch (error: any) {
+      console.error('[BIOMETRIC_AUTH] 로그인 실패:', error)
+      
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      
+      if (errorMessage.includes('cancel') || errorMessage.includes('abort') || errorMessage.includes('취소')) {
+        // 사용자가 취소한 경우 - 조용히 실패
+        console.log('[BIOMETRIC_AUTH] 사용자가 인증 취소')
+      } else {
+        setError(errorMessage || '지문 인증에 실패했습니다.')
+      }
     } finally {
       setIsLoading(false)
     }

@@ -1,0 +1,9 @@
+{
+  "git.branchProtection": false,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.showPushSuccessNotification": true,
+  "git.statusBar.enabled": true,
+  "git.statusBar.position": "left"
+}
+

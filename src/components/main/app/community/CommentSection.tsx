@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext'
 import { TranslationService } from '@/lib/translation'
 import UserBadge from '@/components/common/UserBadge'
 import AuthorName from '@/components/common/AuthorName'
+import { communityEvents } from '@/lib/analytics'
 
 interface Comment {
   id: string
@@ -204,6 +205,9 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         setCommentContent('')
         await loadComments()
         
+        // 커뮤니티 퍼널 이벤트: 게시물 댓글 작성
+        communityEvents.commentPost(postId, commentContent.trim().length)
+        
         // 포인트가 지급되었으면 헤더 업데이트 이벤트 발생
         if (data.pointsAwarded && data.pointsAwarded > 0) {
           console.log('[COMMENT] 포인트 지급됨, 헤더 업데이트 이벤트 발생:', data.pointsAwarded)
@@ -240,6 +244,9 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         setReplyContent('')
         setReplyingTo(null)
         await loadComments()
+        
+        // 커뮤니티 퍼널 이벤트: 게시물 댓글 작성 (답글도 포함)
+        communityEvents.commentPost(postId, replyContent.trim().length)
         
         // 포인트가 지급되었으면 헤더 업데이트 이벤트 발생
         if (data.pointsAwarded && data.pointsAwarded > 0) {

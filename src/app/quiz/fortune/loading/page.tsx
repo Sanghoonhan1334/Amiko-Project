@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
+import { quizEvents } from '@/lib/analytics'
 
 function FortuneLoadingPageContent() {
   const router = useRouter()
@@ -17,6 +18,10 @@ function FortuneLoadingPageContent() {
   ]
 
   useEffect(() => {
+    // 퀴즈 퍼널 이벤트: 로딩 페이지
+    const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+    quizEvents.quizLoading(FORTUNE_QUIZ_ID)
+    
     let messageIndex = 0
     
     const interval = setInterval(() => {

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
+import { marketingEvents } from '@/lib/analytics'
 
 export default function Hero() {
   const router = useRouter()
@@ -350,7 +351,10 @@ export default function Hero() {
               {t('heroSlides.slide3.bottomSection.description')}
             </p>
             <button 
-              onClick={() => router.push('/main')}
+              onClick={() => {
+                marketingEvents.clickCTA('landing_start_button')
+                router.push('/main')
+              }}
               className="bg-white dark:bg-gray-800 text-blue-600 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-0 md:py-4 text-xl md:text-2xl font-bold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 min-w-[180px] inline-flex items-center justify-center whitespace-nowrap border-2 border-white/20 dark:border-gray-600"
             >
               {t('heroSlides.slide3.bottomSection.startButton')}

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, RotateCcw, Share2, Grid3x3 } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import { useAuth } from '@/context/AuthContext'
+import { quizEvents } from '@/lib/analytics'
 
 interface FortuneResult {
   luckIndex: number
@@ -964,6 +965,14 @@ export default function FortuneResultPage() {
       const fortuneResult = calculateFortune()
       setResult(fortuneResult)
       setLoading(false)
+      
+      // 퀴즈 퍼널 이벤트: 퀴즈 결과 확인
+      const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+      quizEvents.quizResult(
+        FORTUNE_QUIZ_ID,
+        fortuneResult.luckIndex.toString(),
+        fortuneResult.luckIndex
+      )
     }, 2000)
   }, [user])
 
@@ -976,6 +985,10 @@ export default function FortuneResultPage() {
   }
 
   const handleRetake = () => {
+    // 퀴즈 퍼널 이벤트: 퀴즈 재응시
+    const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+    quizEvents.quizRetry(FORTUNE_QUIZ_ID)
+    
     localStorage.removeItem('fortune_answers')
     router.push('/quiz/fortune/start')
   }
@@ -990,6 +1003,15 @@ export default function FortuneResultPage() {
       
       const shareUrl = `${baseUrl}/quiz/fortune`
       const shareText = `Mi índice de fortuna es ${result?.luckIndex}% - ${result?.title}\n\n¡Descubre tu fortuna también!\n${shareUrl}`
+      
+      // 퀴즈 퍼널 이벤트: 퀴즈 결과 공유
+      const FORTUNE_QUIZ_ID = 'fortune-test-2024'
+      const shareMethod = navigator.share ? 'native' : 'clipboard'
+      quizEvents.quizShare(
+        FORTUNE_QUIZ_ID,
+        result?.luckIndex.toString(),
+        shareMethod
+      )
       
       if (navigator.share) {
         await navigator.share({

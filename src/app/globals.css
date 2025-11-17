@@ -29,6 +29,7 @@
 
 html {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
+  background-color: hsl(var(--background)) !important; /* ensure page edges use palette background */
 }
 
 body {
@@ -150,14 +151,14 @@ link[rel="shortcut icon"] img {
   }
   
   body {
-    background-color: white !important;
+    background-color: hsl(var(--background)) !important;
     color: hsl(var(--foreground));
   }
   
   /* 다크모드에서 전체 배경 강제 적용 */
   .dark html,
   .dark body {
-    background-color: #111827 !important; /* gray-900 */
+    background-color: hsl(var(--background)) !important;
   }
   
   /* 다크모드에서 모든 요소의 기본 배경색 강제 적용 */
@@ -639,8 +640,137 @@ link[rel="shortcut icon"] img {
 
 /* 깔끔한 흰색 배경 */
 @layer utilities {
+  /* ===== Palette presets (Default/Tropical/Sunset/Carnival) applied via html[data-palette] ===== */
+  html[data-palette="default"] {
+    /* Default: Original white/clean mode - baseline for A/B testing */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --primary: 262.1 83.3% 57.8%; /* original purple */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+  .dark[data-palette="default"] {
+    --background: 210 11% 7%;
+    --foreground: 210 20% 90%;
+    --card: 210 11% 9%;
+    --border: 210 11% 20%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 11% 15%;
+    --secondary-foreground: 210 20% 90%;
+    --muted: 210 11% 15%;
+    --muted-foreground: 215 10% 65%;
+    --accent: 210 11% 15%;
+    --accent-foreground: 210 20% 90%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+
+  html[data-palette="tropical"] {
+    /* Tropical Latin: teal/mint + coral accents */
+    --background: 168 50% 94%; /* deeper mint tint */
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --primary: 168 76% 43%; /* teal 500 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 12 92% 72%; /* coral 300 */
+    --secondary-foreground: 210 40% 15%;
+    --accent: 43 96% 56%; /* banana 400 */
+    --accent-foreground: 222.2 84% 4.9%;
+    --muted: 168 40% 96%;
+    --muted-foreground: 168 16% 32%;
+    --ring: 168 76% 43%;
+  }
+  .dark[data-palette="tropical"] {
+    --background: 210 11% 7%;
+    --foreground: 210 20% 90%;
+    --card: 210 11% 9%;
+    --border: 210 11% 20%;
+    --primary: 168 70% 48%; /* brighter teal for dark */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 12 85% 64%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 43 96% 60%;
+    --accent-foreground: 210 40% 98%;
+    --muted: 210 11% 15%;
+    --muted-foreground: 215 10% 70%;
+    --ring: 168 70% 48%;
+  }
+
+  html[data-palette="sunset"] {
+    /* Sunset Gradient: orange/pink/coral - warm sunset tones */
+    --background: 17 85% 94%; /* deeper warm tint */
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --primary: 17 96% 54%; /* orange 500 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 328 85% 67%; /* pink 400 */
+    --secondary-foreground: 222.2 84% 4.9%;
+    --accent: 12 85% 55%; /* deep coral/red-orange - warmer than purple */
+    --accent-foreground: 0 0% 100%;
+    --muted: 17 40% 96%;
+    --muted-foreground: 17 16% 32%;
+    --ring: 17 96% 54%;
+  }
+  .dark[data-palette="sunset"] {
+    --background: 210 11% 7%;
+    --foreground: 210 20% 90%;
+    --card: 210 11% 9%;
+    --border: 210 11% 20%;
+    --primary: 17 96% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 328 85% 70%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 12 85% 60%; /* brighter coral for dark mode */
+    --accent-foreground: 210 40% 98%;
+    --muted: 210 11% 15%;
+    --muted-foreground: 215 10% 70%;
+    --ring: 17 96% 60%;
+  }
+
+  html[data-palette="mexican"] {
+    /* Carnival Latin: bright pink/gold with subtle purple - inspired by Brazilian/Colombian festivals */
+    --background: 328 40% 94%; /* softer pink tint */
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --primary: 328 85% 58%; /* bright pink - main color */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 43 96% 56%; /* gold/amber - secondary accent */
+    --secondary-foreground: 222.2 84% 4.9%;
+    --accent: 262 75% 55%; /* softer purple - subtle accent */
+    --accent-foreground: 0 0% 100%;
+    --muted: 328 35% 96%;
+    --muted-foreground: 328 16% 32%;
+    --ring: 328 85% 58%;
+  }
+  .dark[data-palette="mexican"] {
+    --background: 210 11% 7%;
+    --foreground: 210 20% 90%;
+    --card: 210 11% 9%;
+    --border: 210 11% 20%;
+    --primary: 328 85% 63%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 43 96% 60%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 262 75% 60%;
+    --accent-foreground: 210 40% 98%;
+    --muted: 210 11% 15%;
+    --muted-foreground: 215 10% 70%;
+    --ring: 328 85% 63%;
+  }
+
   .body-gradient {
-    background: white;
+    background: hsl(var(--background));
   }
   
   .dark .body-gradient {
@@ -648,6 +778,247 @@ link[rel="shortcut icon"] img {
   }
   
   /* 온라인 상태 무지개 테두리 애니메이션 */
+  /* ===== Palette visual bindings to common utility classes ===== */
+  html[data-palette] .btn-primary {
+    background-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    border-color: hsl(var(--primary)) !important;
+  }
+  html[data-palette] .btn-primary:hover {
+    filter: brightness(0.95) !important;
+  }
+  html[data-palette] .btn-secondary {
+    background-color: hsl(var(--secondary)) !important;
+    color: hsl(var(--secondary-foreground)) !important;
+    border-color: hsl(var(--secondary)) !important;
+  }
+  html[data-palette] .btn-secondary:hover {
+    filter: brightness(0.97) !important;
+  }
+  html[data-palette] .badge-brand {
+    background-color: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+  }
+  html[data-palette] .badge-mint,
+  html[data-palette] .badge-banana,
+  html[data-palette] .badge-sky {
+    background-color: hsl(var(--muted)) !important;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Map frequently used brand utility classes to palette variables */
+  html[data-palette] .text-brand-400,
+  html[data-palette] .text-brand-500,
+  html[data-palette] .text-brand-600,
+  html[data-palette] .text-brand-700,
+  html[data-palette] .text-brand-800 {
+    color: hsl(var(--primary)) !important;
+  }
+  html[data-palette] .bg-brand-50,
+  html[data-palette] .bg-brand-100,
+  html[data-palette] .bg-brand-200 {
+    background-color: hsl(var(--muted)) !important;
+  }
+  html[data-palette] .bg-brand-300,
+  html[data-palette] .bg-brand-400 {
+    background-color: hsl(var(--accent)) !important;
+  }
+  html[data-palette] .bg-brand-500,
+  html[data-palette] .bg-brand-600,
+  html[data-palette] .bg-brand-700 {
+    background-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+  }
+  html[data-palette] .hover\:bg-brand-600:hover {
+    background-color: hsl(var(--primary)) !important;
+    filter: brightness(0.92) !important;
+  }
+  html[data-palette] .border-brand-100,
+  html[data-palette] .border-brand-200,
+  html[data-palette] .border-brand-300 {
+    border-color: hsl(var(--muted)) !important;
+  }
+  html[data-palette] .border-brand-400,
+  html[data-palette] .border-brand-500,
+  html[data-palette] .border-brand-600 {
+    border-color: hsl(var(--primary)) !important;
+  }
+  html[data-palette] .ring-brand-500,
+  html[data-palette] .focus\:ring-brand-500:focus,
+  html[data-palette] .focus\:ring-brand-200:focus {
+    --tw-ring-color: hsl(var(--ring)) !important;
+  }
+  html[data-palette] .focus\:border-brand-500:focus {
+    border-color: hsl(var(--ring)) !important;
+    outline-color: hsl(var(--ring)) !important;
+  }
+
+  /* Broader fallback remaps for commonly used neutral classes
+     so palettes are visible even where brand/primary aren't used. */
+  html[data-palette] .bg-white {
+    background-color: hsl(var(--card)) !important;
+  }
+  html[data-palette] .dark .bg-gray-800 {
+    background-color: hsl(var(--card)) !important;
+  }
+  html[data-palette] .text-gray-900 {
+    color: hsl(var(--foreground)) !important;
+  }
+  html[data-palette] .text-gray-800,
+  html[data-palette] .text-gray-700,
+  html[data-palette] .text-gray-600 {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+  html[data-palette] .border-gray-200,
+  html[data-palette] .border-gray-300 {
+    border-color: hsl(var(--border)) !important;
+  }
+  html[data-palette] .hover\:bg-gray-50:hover {
+    background-color: hsl(var(--secondary)) !important;
+  }
+  html[data-palette] .hover\:text-gray-900:hover {
+    color: hsl(var(--foreground)) !important;
+  }
+  html[data-palette] .shadow-xl,
+  html[data-palette] .shadow-lg {
+    /* subtle hue shift via ring variable for visual feedback */
+    --tw-ring-color: hsl(var(--ring)) !important;
+  }
+
+  /* Header palette styling */
+  html[data-palette] header {
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  html[data-palette] header .header-background {
+    background-color: hsl(var(--card)) !important;
+    background-image: linear-gradient(0deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0.08)) !important;
+  }
+  
+  /* Default palette: header should be pure white */
+  html[data-palette="default"] header .header-background {
+    background-color: hsl(var(--card)) !important;
+    background-image: none !important;
+  }
+
+  /* Footer border - darker for better separation (except default) */
+  html[data-palette]:not([data-palette="default"]) footer {
+    border-top-color: hsl(var(--primary) / 0.3) !important;
+  }
+  /* Cards defined via custom .card class */
+  html[data-palette] .card {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  /* Card borders - darker for better visibility (except default) */
+  html[data-palette]:not([data-palette="default"]) .card,
+  html[data-palette]:not([data-palette="default"]) [class*="card"],
+  html[data-palette]:not([data-palette="default"]) [class~="card"] {
+    border-color: hsl(var(--primary) / 0.25) !important;
+    border-width: 1px !important;
+  }
+  
+  /* Override Tailwind border utilities in cards and white containers */
+  html[data-palette]:not([data-palette="default"]) [class*="border-gray-200"],
+  html[data-palette]:not([data-palette="default"]) [class*="border-gray-300"],
+  html[data-palette]:not([data-palette="default"]) [class*="border-gray-700"],
+  html[data-palette]:not([data-palette="default"]) [class*="border-gray-200/50"],
+  html[data-palette]:not([data-palette="default"]) [class*="border-gray-300/50"],
+  html[data-palette]:not([data-palette="default"]) [class*="border-gray-700/50"],
+  html[data-palette]:not([data-palette="default"]) .dark [class*="border-gray-700"] {
+    border-color: hsl(var(--primary) / 0.25) !important;
+  }
+  
+  /* Apply to white background containers that act like cards */
+  html[data-palette]:not([data-palette="default"]) [class*="bg-white"][class*="border"],
+  html[data-palette]:not([data-palette="default"]) [class*="bg-white"][class*="rounded"] {
+    border-color: hsl(var(--primary) / 0.25) !important;
+  }
+  /* handle opacity utilities like bg-white/80 */
+  html[data-palette] [class*="bg-white/"] {
+    background-color: hsl(var(--card)) !important;
+  }
+  /* catch plain bg-white composed via utilities in many cards */
+  /* Exclude containers with images/videos to preserve media visibility */
+  html[data-palette] [class~="bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
+  html[data-palette] [class*=" bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
+  html[data-palette] [class^="bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]) {
+    background-color: hsl(var(--card)) !important;
+  }
+  
+  /* Ensure image/video containers maintain their original background */
+  html[data-palette] [class*="aspect-video"]:not([class*="bg-gradient"]),
+  html[data-palette] [class*="aspect-square"]:not([class*="bg-gradient"]),
+  html[data-palette] :has(img):not([class*="bg-gradient"]),
+  html[data-palette] :has(video):not([class*="bg-gradient"]),
+  html[data-palette] :has(iframe):not([class*="bg-gradient"]),
+  html[data-palette] [class*="aspect-video"] > img,
+  html[data-palette] [class*="aspect-square"] > img,
+  html[data-palette] img[src],
+  html[data-palette] img[alt] {
+    background-color: transparent !important;
+  }
+  
+  /* Remove any background color/image from image containers */
+  html[data-palette] [class*="aspect-video"]:has(img),
+  html[data-palette] [class*="aspect-square"]:has(img),
+  html[data-palette] [class*="aspect-video"]:has(img[src]),
+  html[data-palette] [class*="aspect-square"]:has(img[src]) {
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+  
+  /* Override bg-gray-* classes on image containers */
+  html[data-palette] [class*="aspect-video"]:has(img)[class*="bg-gray"],
+  html[data-palette] [class*="aspect-square"]:has(img)[class*="bg-gray"],
+  html[data-palette] [class*="bg-gray-100"]:has(img),
+  html[data-palette] [class*="bg-gray-50"]:has(img) {
+    background-color: transparent !important;
+  }
+  
+  /* Ensure img tags themselves are visible, but don't override display to respect Tailwind classes */
+  html[data-palette] img:not([class*="hidden"]) {
+    opacity: 1 !important;
+    visibility: visible !important;
+    /* Don't set display here - let Tailwind's responsive classes handle it */
+  }
+  
+  /* Ensure images in aspect containers are visible */
+  html[data-palette] [class*="aspect-square"] img,
+  html[data-palette] [class*="aspect-video"] img {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+  }
+  /* map generic light cards that are utility composed (rounded + shadow) */
+  html[data-palette] [class*="rounded-"][class*="shadow"][class*="bg-white"] {
+    background-color: hsl(var(--card)) !important;
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  /* gray background variants frequently used in sections */
+  /* Exclude image/video containers */
+  html[data-palette] [class~="bg-gray-50"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
+  html[data-palette] [class~="bg-gray-100"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]) {
+    background-color: hsl(var(--secondary)) !important;
+  }
+  /* borders with opacity utilities */
+  html[data-palette] [class*="border-gray-200"],
+  html[data-palette] [class*="border-gray-300"],
+  html[data-palette] [class*="border-gray-700"] {
+    border-color: hsl(var(--border)) !important;
+  }
+  /* ensure main area reflects background */
+  html[data-palette] body > main {
+    background-color: hsl(var(--background)) !important;
+  }
+  /* broad override for gradient utilities to reflect palette */
+  html[data-palette] [class*="bg-gradient-to-"] {
+    background-image: linear-gradient(to right, hsl(var(--muted)), hsl(var(--accent))) !important;
+  }
+
   @keyframes rainbow-border {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }

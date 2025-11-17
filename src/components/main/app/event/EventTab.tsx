@@ -20,6 +20,7 @@ import { useLanguage } from '@/context/LanguageContext'
 // 🚀 최적화: React Query hook 추가
 import { useUser } from '@/context/UserContext'
 import { getUserLevel } from '@/lib/user-level'
+import { useTheme } from 'next-themes'
 import ZepEventCard from './ZepEventCard'
 
 interface AttendanceRecord {
@@ -55,6 +56,7 @@ export default function EventTab() {
   const searchParams = useSearchParams()
   const { user, loading, refreshUser } = useUser()
   const { t, language } = useLanguage()
+  const { theme } = useTheme()
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
   const [currentStreak, setCurrentStreak] = useState(0)
   // 핵심: 항상 중앙 context의 user?.points를 신뢰하게!
@@ -373,8 +375,8 @@ export default function EventTab() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto px-0 md:px-8 py-0 sm:py-2 md:py-6 -mt-8" data-tutorial="event-section">
       {/* 배지/참여 기준 안내 카드 */}
-      <div className="p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-        <div className="text-xs sm:text-sm text-emerald-900 dark:text-emerald-100">
+      <div className="p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
+        <div className="text-xs sm:text-sm text-purple-900 dark:text-purple-100">
           <div className="font-bold text-base sm:text-lg md:text-xl mb-2">{t('eventTab.badgeGuide.title')}</div>
           <div className="space-y-0.5">
             <div>{t('eventTab.badgeGuide.sprout')}</div>
@@ -393,7 +395,7 @@ export default function EventTab() {
                 }))
                 router.push('/main?tab=me#my-level')
               }}
-              className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-700 hover:via-emerald-600 hover:to-emerald-700 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 shadow-md hover:shadow-lg transition-all duration-300"
+              className="w-full bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 hover:from-purple-700 hover:via-purple-600 hover:to-purple-700 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 shadow-md hover:shadow-lg transition-all duration-300"
             >
               <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {t('eventTab.badgeGuide.viewMyLevel')}
@@ -414,7 +416,7 @@ export default function EventTab() {
         {/* 데스크톱: 카드 스타일 */}
         <div className="hidden md:grid grid-cols-2 gap-4 sm:gap-6" data-tutorial="event-participation">
           {/* 현지인용 특별 이벤트 */}
-          <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-700 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-xl">
+          <div className="p-4 sm:p-6 border border-blue-200 dark:border-gray-600 rounded-xl" style={{ background: theme === 'dark' ? 'linear-gradient(to bottom right, rgb(55 65 81), rgb(55 65 81))' : 'linear-gradient(to bottom right, rgb(239 246 255), rgb(219 234 254))' }}>
             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                 <img 
@@ -438,7 +440,7 @@ export default function EventTab() {
                   <p className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.localEvent.raffleDescription')}</p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">✈</span>
                   </div>
                   <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
@@ -462,7 +464,7 @@ export default function EventTab() {
         {/* 모바일: 카드 스타일 */}
         <div className="block md:hidden space-y-4 px-1" data-tutorial="event-participation">
           {/* 현지인용 특별 이벤트 카드 */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-700 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-xl p-2 shadow-sm">
+          <div className="border border-blue-200 dark:border-gray-600 rounded-xl p-2 shadow-sm" style={{ background: theme === 'dark' ? 'linear-gradient(to bottom right, rgb(55 65 81), rgb(55 65 81))' : 'linear-gradient(to bottom right, rgb(239 246 255), rgb(219 234 254))' }}>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                 <img 
@@ -485,7 +487,7 @@ export default function EventTab() {
                 <p className="text-xs text-gray-600 dark:text-gray-400">{t('eventTab.attendanceCheck.specialEvents.localEvent.raffleDescription')}</p>
               </div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">✈</span>
                 </div>
                 <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{t('eventTab.attendanceCheck.specialEvents.localEvent.firstPrize')}</div>
@@ -652,12 +654,12 @@ export default function EventTab() {
               </div>
             </div>
             
-            <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg mx-2 sm:mx-0">
+            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg mx-2 sm:mx-0">
               <div className="flex items-center gap-2">
                 <span className="text-base">⚠️</span>
-                <span className='font-medium text-yellow-800 dark:text-yellow-300 text-sm'>{t('eventTab.pointSystem.earningMethods.warning.title')}</span>
+                <span className='font-medium text-blue-800 dark:text-blue-300 text-sm'>{t('eventTab.pointSystem.earningMethods.warning.title')}</span>
               </div>
-              <p className='text-xs text-yellow-700 dark:text-yellow-300 mt-1'>
+              <p className='text-xs text-blue-700 dark:text-blue-300 mt-1'>
                 {t('eventTab.pointSystem.earningMethods.warning.message')}
               </p>
             </div>
@@ -685,11 +687,11 @@ export default function EventTab() {
 
       {/* ACU-POINT 선크림 이벤트 */}
       <div id="acu-point-event" className="scroll-mt-20">
-        <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
+        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
               <div className="text-xl sm:text-2xl">☀️</div>
-              <CardTitle className="text-sm sm:text-base md:text-lg text-emerald-700 dark:text-emerald-300">
+              <CardTitle className="text-sm sm:text-base md:text-lg text-purple-700 dark:text-purple-300">
                 {language === 'ko' ? 'ACU-POINT 선크림 오픈 이벤트' : 'Evento de Apertura ACU-POINT'}
               </CardTitle>
             </div>
@@ -710,7 +712,7 @@ export default function EventTab() {
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🎁</span>
                 <div className="flex-1">
-                  <h3 className="font-bold text-emerald-800 dark:text-emerald-200 mb-1">
+                  <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-1">
                     {language === 'ko' ? '추첨 상품' : 'Premio del Sorteo'}
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300">
@@ -724,7 +726,7 @@ export default function EventTab() {
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🎯</span>
                 <div className="flex-1">
-                  <h3 className="font-bold text-emerald-800 dark:text-emerald-200 mb-1">
+                  <h3 className="font-bold text-purple-800 dark:text-purple-200 mb-1">
                     {language === 'ko' ? '참여 조건' : 'Condiciones de Participación'}
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300">

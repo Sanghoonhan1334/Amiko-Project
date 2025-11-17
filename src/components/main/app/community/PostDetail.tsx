@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import CommentSection from './CommentSection'
 import { shareCommunityPost } from '@/lib/share-utils'
 import AuthorName from '@/components/common/AuthorName'
+import { communityEvents } from '@/lib/analytics'
 
 interface Post {
   id: string
@@ -103,6 +104,11 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       
       const data = await response.json()
       setPost(data.post)
+      
+      // 커뮤니티 퍼널 이벤트: 게시물 조회 (PostDetail 컴포넌트에서)
+      if (data.post) {
+        communityEvents.viewPost(postId, data.post.title)
+      }
     } catch (err) {
       console.error('게시물 로드 오류:', err)
       setError(err instanceof Error ? err.message : t('community.postDetail.errors.unknownError'))
@@ -225,6 +231,11 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       const data = await response.json()
       console.log('투표 성공:', data)
       
+      // 커뮤니티 퍼널 이벤트: 게시물 좋아요
+      if (voteType === 'like' && data.vote_type === 'like') {
+        communityEvents.likePost(postId, true)
+      }
+      
       // 서버 응답으로 최종 동기화
       setUserVote(data.vote_type)
       if (post) {
@@ -271,6 +282,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     
     try {
       await shareCommunityPost(post.id, post.title, post.content, language as 'ko' | 'es')
+      // 커뮤니티 퍼널 이벤트: 게시물 공유
+      communityEvents.sharePost(post.id, 'native')
     } catch (error) {
       console.error('Share failed:', error)
     }

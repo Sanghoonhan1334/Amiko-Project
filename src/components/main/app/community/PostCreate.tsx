@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { communityEvents } from '@/lib/analytics'
 
 interface Gallery {
   id: string
@@ -227,6 +228,9 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
 
       const data = await response.json()
       console.log('게시물 작성 성공:', data.post.id)
+      
+      // 커뮤니티 퍼널 이벤트: 게시물 생성
+      communityEvents.createPost(gallery.slug, title.trim())
       
       // 성공 시 폼 초기화 및 콜백 호출
       setTitle('')

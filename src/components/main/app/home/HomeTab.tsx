@@ -775,7 +775,8 @@ export default function HomeTab() {
                   {currentEvents.map((event, index) => (
                     <div
                       key={event.id}
-                      className="w-full flex-shrink-0 cursor-pointer"
+                      className="relative w-full flex-shrink-0 cursor-pointer"
+                      style={{ height: '160px' }}
                       onClick={() => {
                         if (event.id === 'event-2') {
                           router.push('/main?tab=event&show=acu-point-sunscreen')
@@ -788,7 +789,8 @@ export default function HomeTab() {
                       <img 
                         src={event.bannerMobile || event.image} 
                         alt={event.title}
-                        className="w-full h-full object-cover block min-[430px]:hidden pointer-events-none"
+                        className="absolute inset-0 w-full h-full object-contain block min-[430px]:hidden pointer-events-none"
+                        style={{ maxHeight: '160px', objectFit: 'contain' }}
                         draggable={false}
                       />
                       
@@ -796,7 +798,8 @@ export default function HomeTab() {
                       <img 
                         src={event.bannerDesktop || event.image} 
                         alt={event.title}
-                        className="w-full h-full object-cover hidden min-[430px]:block pointer-events-none"
+                        className="absolute inset-0 w-full h-full object-contain hidden min-[430px]:block pointer-events-none"
+                        style={{ maxHeight: '160px', objectFit: 'contain' }}
                         draggable={false}
                       />
                     </div>
@@ -1531,22 +1534,17 @@ export default function HomeTab() {
                     className="cursor-pointer group"
                     onClick={() => window.open(video.url, '_blank')}
                   >
-                    <div className="relative aspect-square overflow-hidden rounded-lg mb-2">
+                    <div className="relative aspect-square overflow-hidden rounded-lg mb-2 bg-gray-100">
                       <img
                         src={video.thumbnail}
                         alt={video.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
-                        <div className="text-white text-[8px] font-bold line-clamp-2">
-                          {video.title}
-                        </div>
-                      </div>
-                      <div className="absolute top-2 right-2 bg-black/70 text-white text-[6px] px-1 rounded">
+                      <div className="absolute top-2 right-2 bg-black/70 text-white text-[6px] px-1 rounded z-10">
                         {video.duration}
                       </div>
                       {/* YouTube 재생 아이콘 */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
                           <Play className="w-6 h-6 text-white fill-white" />
                         </div>
@@ -1665,7 +1663,7 @@ export default function HomeTab() {
                 <CardContent className="p-0 bg-transparent">
                   <div 
                     id="event-container-desktop"
-                    className="relative h-56 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                    className="relative h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
@@ -1681,7 +1679,8 @@ export default function HomeTab() {
                         {currentEvents.map((event, index) => (
                           <div
                             key={event.id}
-                            className="w-full flex-shrink-0 cursor-pointer"
+                            className="relative w-full flex-shrink-0 cursor-pointer"
+                            style={{ height: '160px' }}
                             onClick={() => {
                               if (event.id === 'event-2') {
                                 router.push('/main?tab=event&show=acu-point-sunscreen')
@@ -1694,13 +1693,15 @@ export default function HomeTab() {
                             <img 
                               src={event.bannerDesktop || event.image} 
                               alt={event.title}
-                              className="w-full h-full object-cover rounded-lg hidden min-[430px]:block pointer-events-none"
+                              className="absolute inset-0 w-full h-full object-contain rounded-lg hidden min-[430px]:block pointer-events-none"
+                              style={{ maxHeight: '160px', objectFit: 'contain' }}
                               draggable={false}
                             />
                             <img 
                               src={event.bannerMobile || event.image} 
                               alt={event.title}
-                              className="w-full h-full object-cover rounded-lg block min-[430px]:hidden pointer-events-none"
+                              className="absolute inset-0 w-full h-full object-contain rounded-lg block min-[430px]:hidden pointer-events-none"
+                              style={{ maxHeight: '160px', objectFit: 'contain' }}
                               draggable={false}
                             />
                           </div>
@@ -2435,22 +2436,17 @@ export default function HomeTab() {
                           className="cursor-pointer group"
                           onClick={() => window.open(video.url, '_blank')}
                         >
-                          <div className="relative aspect-video overflow-hidden rounded-lg mb-2">
+                          <div className="relative aspect-video overflow-hidden rounded-lg mb-2 bg-gray-100">
                             <img
                               src={video.thumbnail}
                               alt={video.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
-                              <div className="text-white text-sm font-bold line-clamp-2">
-                                {video.title}
-                              </div>
-                            </div>
-                            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
                               {video.duration}
                             </div>
                             {/* YouTube 재생 아이콘 */}
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                               <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
                                 <Play className="w-8 h-8 text-white fill-white" />
                               </div>

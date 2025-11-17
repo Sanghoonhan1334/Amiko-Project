@@ -1,78 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// 지문 인증 등록
-export async function POST(request: NextRequest) {
-  try {
-    const { userId, userName, userDisplayName } = await request.json()
-
-    if (!userId || !userName || !userDisplayName) {
-      return NextResponse.json(
-        { error: '필수 정보가 누락되었습니다.' },
-        { status: 400 }
-      )
-    }
-
-    // 임시로 지문 인증 등록 성공 처리 (테스트용)
-    const mockCredentialId = `credential_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    console.log('[BIOMETRIC_REGISTER] Mock 지문 인증 등록:', {
-      userId,
-      userName,
-      userDisplayName,
-      credentialId: mockCredentialId
-    })
-
-    return NextResponse.json({
-      success: true,
-      message: '지문 인증이 등록되었습니다.',
-      data: {
-        credentialId: mockCredentialId,
-        counter: 0
-      }
-    })
-
-  } catch (error) {
-    console.error('[BIOMETRIC_REGISTER] 오류:', error)
-    return NextResponse.json(
-      { error: '지문 인증 등록 중 오류가 발생했습니다.' },
-      { status: 500 }
-    )
-  }
-}
-
-// 지문 인증 검증
-export async function PUT(request: NextRequest) {
-  try {
-    const { userId } = await request.json()
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
-      )
-    }
-
-    // 임시로 지문 인증 성공 처리 (테스트용)
-    console.log('[BIOMETRIC_VERIFY] Mock 지문 인증 성공:', { userId })
-
-    return NextResponse.json({
-      success: true,
-      message: '지문 인증이 완료되었습니다.',
-      data: {
-        userId: userId,
-        credentialId: `credential_${userId}`,
-        counter: 1
-      }
-    })
-
-  } catch (error) {
-    console.error('[BIOMETRIC_VERIFY] 오류:', error)
-    return NextResponse.json(
-      { error: '지문 인증 검증 중 오류가 발생했습니다.' },
-      { status: 500 }
-    )
-  }
-}
+import { supabaseServer } from '@/lib/supabaseServer'
 
 // 지문 인증 목록 조회
 export async function GET(request: NextRequest) {
@@ -82,42 +9,80 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
+        { 
+          success: false,
+          error: '사용자 ID가 필요합니다.',
+          error_ko: '사용자 ID가 필요합니다.',
+          error_es: 'Se requiere ID de usuario'
+        },
         { status: 400 }
       )
     }
 
-    // 임시로 지문 인증 목록 반환 (테스트용)
-    const mockCredentials = [
-      {
-        id: `credential_${userId}_1`,
-        deviceName: 'iPhone 15 Pro',
-        deviceType: 'fingerprint',
-        lastUsedAt: new Date().toISOString(),
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        counter: 5
-      },
-      {
-        id: `credential_${userId}_2`,
-        deviceName: 'MacBook Pro',
-        deviceType: 'touchid',
-        lastUsedAt: new Date(Date.now() - 3600000).toISOString(),
-        createdAt: new Date(Date.now() - 172800000).toISOString(),
-        counter: 12
+    console.log('[BIOMETRIC_LIST] 지문 인증 목록 조회 시작:', { userId })
+
+    // 데이터베이스에서 등록된 인증기 조회
+    const { data: credentials, error: fetchError } = await supabaseServer
+      .from('biometric_credentials')
+      .select('id, credential_id, device_name, device_type, last_used_at, created_at, counter')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .order('last_used_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+
+    if (fetchError) {
+      console.error('[BIOMETRIC_LIST] DB 조회 실패:', fetchError)
+      
+      // 테이블이 없는 경우 빈 배열 반환
+      if (fetchError.code === '42P01' || fetchError.message?.includes('does not exist')) {
+        console.log('[BIOMETRIC_LIST] 테이블이 없음, 빈 배열 반환')
+        return NextResponse.json({
+          success: true,
+          data: []
+        })
       }
-    ]
-    
-    console.log('[BIOMETRIC_LIST] Mock 지문 인증 목록 반환:', { userId, credentials: mockCredentials })
+      
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '지문 인증 목록 조회 중 오류가 발생했습니다.',
+          error_ko: '지문 인증 목록 조회 중 오류가 발생했습니다.',
+          error_es: 'Error al consultar la lista de autenticación de huella digital.'
+        },
+        { status: 500 }
+      )
+    }
+
+    // 데이터 형식 변환
+    const formattedCredentials = (credentials || []).map(cred => ({
+      id: cred.credential_id, // credential_id를 id로 사용 (클라이언트에서 사용하는 형식)
+      credentialId: cred.credential_id,
+      deviceName: cred.device_name || 'Unknown Device',
+      deviceType: cred.device_type || 'fingerprint',
+      lastUsedAt: cred.last_used_at || cred.created_at,
+      createdAt: cred.created_at,
+      counter: cred.counter || 0
+    }))
+
+    console.log('[BIOMETRIC_LIST] 조회 성공:', { 
+      userId, 
+      count: formattedCredentials.length 
+    })
 
     return NextResponse.json({
       success: true,
-      data: mockCredentials
+      data: formattedCredentials
     })
 
   } catch (error) {
     console.error('[BIOMETRIC_LIST] 오류:', error)
     return NextResponse.json(
-      { error: '지문 인증 목록 조회 중 오류가 발생했습니다.' },
+      { 
+        success: false,
+        error: '지문 인증 목록 조회 중 오류가 발생했습니다.',
+        error_ko: '지문 인증 목록 조회 중 오류가 발생했습니다.',
+        error_es: 'Error al consultar la lista de autenticación de huella digital.'
+      },
       { status: 500 }
     )
   }
@@ -132,27 +97,62 @@ export async function DELETE(request: NextRequest) {
 
     if (!userId || !credentialId) {
       return NextResponse.json(
-        { error: '사용자 ID와 인증 ID가 필요합니다.' },
+        { 
+          success: false,
+          error: '사용자 ID와 인증 ID가 필요합니다.',
+          error_ko: '사용자 ID와 인증 ID가 필요합니다.',
+          error_es: 'Se requiere ID de usuario e ID de credencial.'
+        },
         { status: 400 }
       )
     }
 
-    // 임시로 지문 인증 삭제 성공 처리 (테스트용)
-    console.log('[BIOMETRIC_DELETE] Mock 지문 인증 삭제:', { userId, credentialId })
+    console.log('[BIOMETRIC_DELETE] 지문 인증 삭제 시작:', { userId, credentialId })
+
+    // 데이터베이스에서 인증기 삭제 (soft delete: is_active = false)
+    const { error: deleteError } = await supabaseServer
+      .from('biometric_credentials')
+      .update({ 
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId)
+      .eq('credential_id', credentialId)
+
+    if (deleteError) {
+      console.error('[BIOMETRIC_DELETE] 삭제 실패:', deleteError)
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '지문 인증 삭제 중 오류가 발생했습니다.',
+          error_ko: '지문 인증 삭제 중 오류가 발생했습니다.',
+          error_es: 'Error al eliminar la autenticación de huella digital.'
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log('[BIOMETRIC_DELETE] 삭제 성공:', { userId, credentialId })
 
     return NextResponse.json({
       success: true,
       message: '지문 인증이 삭제되었습니다.',
+      message_ko: '지문 인증이 삭제되었습니다.',
+      message_es: 'Autenticación de huella digital eliminada.',
       data: {
-        credentialId: credentialId,
-        biometricEnabled: true
+        credentialId: credentialId
       }
     })
 
   } catch (error) {
     console.error('[BIOMETRIC_DELETE] 오류:', error)
     return NextResponse.json(
-      { error: '지문 인증 삭제 중 오류가 발생했습니다.' },
+      { 
+        success: false,
+        error: '지문 인증 삭제 중 오류가 발생했습니다.',
+        error_ko: '지문 인증 삭제 중 오류가 발생했습니다.',
+        error_es: 'Error al eliminar la autenticación de huella digital.'
+      },
       { status: 500 }
     )
   }

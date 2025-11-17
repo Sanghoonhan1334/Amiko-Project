@@ -9,6 +9,7 @@ import PostDetail from './PostDetail'
 import PostCreate from './PostCreate'
 import PostEditModal from './PostEditModal'
 import PopularPosts from './PopularPosts'
+import { communityEvents } from '@/lib/analytics'
 
 interface Gallery {
   id: string
@@ -58,16 +59,21 @@ export default function CommunityMain() {
   const [editingPost, setEditingPost] = useState<Post | null>(null)
 
   const handleGallerySelect = (gallery: Gallery) => {
+    // 커뮤니티 퍼널 이벤트: 갤러리 조회
+    communityEvents.viewGallery(gallery.slug, gallery.name_es || gallery.name_ko)
     setSelectedGallery(gallery)
     setViewMode('posts')
   }
 
   const handlePostSelect = (post: Post) => {
+    // 커뮤니티 퍼널 이벤트: 게시물 조회
+    communityEvents.viewPost(post.id, post.title, selectedGallery?.slug)
     setSelectedPost(post)
     setViewMode('post-detail')
   }
 
   const handleCreatePost = () => {
+    // 커뮤니티 퍼널 이벤트: 게시물 생성 시작 (실제 생성은 PostCreate에서)
     setViewMode('post-create')
   }
 

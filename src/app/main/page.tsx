@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Video } from 'lucide-react'
 // 🚀 최적화: React Query hook 추가
 import { useMainPageData } from '@/hooks/useMainPageData'
+import { appEngagementEvents } from '@/lib/analytics'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -257,6 +258,32 @@ function AppPageContent() {
   useEffect(() => {
     if (activeTab === 'community') {
       setCommunityView('home')
+    }
+  }, [activeTab])
+
+  // 메인 앱 DAU 퍼널: 탭별 방문 이벤트 추적
+  useEffect(() => {
+    if (!activeTab) return
+    
+    switch (activeTab) {
+      case 'home':
+        appEngagementEvents.visitHomeTab()
+        break
+      case 'meet':
+        appEngagementEvents.visitMeetTab()
+        break
+      case 'community':
+        appEngagementEvents.visitCommunityTab()
+        break
+      case 'event':
+        appEngagementEvents.visitEventTab()
+        break
+      case 'charging':
+        appEngagementEvents.visitChargingTab()
+        break
+      case 'me':
+        appEngagementEvents.visitProfileTab()
+        break
     }
   }, [activeTab])
 

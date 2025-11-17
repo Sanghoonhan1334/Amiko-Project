@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import Header from './Header'
 import DarkModeToggle from '@/components/common/DarkModeToggle'
+import PaletteSwitcher from '@/components/common/PaletteSwitcher'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function HeaderWrapper() {
@@ -30,6 +31,7 @@ export default function HeaderWrapper() {
     }>
       <Header />
       <DarkModeToggle />
+      <PaletteSwitcher />
     </Suspense>
   )
 }

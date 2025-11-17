@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import InquiryModal from '@/components/common/InquiryModal'
 import PartnershipModal from '@/components/common/PartnershipModal'
+import { marketingEvents } from '@/lib/analytics'
 
 const Hero = dynamic(() => import('@/components/landing/Hero'), {
   ssr: false,
@@ -275,7 +276,10 @@ export default function HomePage() {
                   </div>
                 </div>
                 <Button 
-                  onClick={() => setIsInquiryModalOpen(true)}
+                  onClick={() => {
+                    marketingEvents.clickCTA('contact_inquiry_button')
+                    setIsInquiryModalOpen(true)
+                  }}
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
@@ -318,7 +322,10 @@ export default function HomePage() {
                   </div>
                 </div>
                 <Button 
-                  onClick={() => setIsPartnershipModalOpen(true)}
+                  onClick={() => {
+                    marketingEvents.clickCTA('partnership_button')
+                    setIsPartnershipModalOpen(true)
+                  }}
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   <Handshake className="mr-2 h-4 w-4" />
