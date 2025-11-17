@@ -374,7 +374,7 @@ export default function PollBoard() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
+      <div className="border-b border-gray-200 bg-white/95 backdrop-blur-sm pt-20 md:pt-28 lg:pt-32">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-4">
             <button

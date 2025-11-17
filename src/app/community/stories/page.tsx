@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, Suspense } from 'react'
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -117,7 +117,7 @@ function StoriesPageContent() {
   }, [])
 
   // 스토리 로드 함수
-  const loadStories = async () => {
+  const loadStories = useCallback(async () => {
     console.log('=== loadStories 함수 호출 ===')
     console.log('현재 token:', token)
     console.log('현재 session:', session)
@@ -142,7 +142,7 @@ function StoriesPageContent() {
       const response = await fetch('/api/stories', { headers })
       if (response.ok) {
         const data = await response.json()
-        const convertedStories = data.stories.map((story: any) => {
+        const convertedStories = (data.stories || []).map((story: any) => {
           console.log('=== 스토리 변환 디버깅 ===')
           console.log('원본 스토리:', story)
           console.log('story.user_name:', story.user_name)
@@ -167,23 +167,24 @@ function StoriesPageContent() {
           console.log('서버에서 받은 좋아요 상태:', data.userLikedStories)
           setLikedStories(new Set(data.userLikedStories))
         }
+      } else {
+        // 응답이 실패했을 때도 빈 배열로 설정
+        console.error('스토리 로드 실패:', response.status)
+        setStories([])
       }
     } catch (error) {
       console.error('스토리 로드 오류:', error)
+      setStories([])
     } finally {
       setStoriesLoading(false)
     }
-  }
+  }, [token, session])
 
   useEffect(() => {
-    // 토큰이나 세션이 준비되면 스토리 로드
-    if (token || session?.access_token) {
-      console.log('=== 인증 준비됨, 스토리 로드 시작 ===')
-      loadStories()
-    } else {
-      console.log('=== 인증 대기 중 ===')
-    }
-  }, [token, session])
+    // 토큰이 있든 없든 스토리 로드 (공개 스토리는 토큰 없이도 볼 수 있어야 함)
+    console.log('=== 스토리 로드 시작 ===')
+    loadStories()
+  }, [loadStories])
 
   // 시간 포맷 함수
   const formatTime = (dateString: string, isShort = false) => {
@@ -970,7 +971,18 @@ function StoriesPageContent() {
             
             <Button 
               size="lg"
-              className="hidden md:flex bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
+              className="hidden md:flex text-white px-8 py-4 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
+              style={{ 
+                background: 'linear-gradient(to right, #ff6b9d, #c44569, #8b5cf6)',
+                border: 'none',
+                color: 'white'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #ff5a8a, #b83a5e, #7a4ae6)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #ff6b9d, #c44569, #8b5cf6)'
+              }}
               onClick={() => {
                 if (!user) {
                   toast.error('로그인이 필요합니다.')
@@ -1369,7 +1381,17 @@ function StoriesPageContent() {
                   }
                   setShowStoryUploadModal(true)
                 }}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-full text-sm font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
+                className="text-white px-4 py-2 rounded-full text-sm font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{ 
+                  background: 'linear-gradient(to right, #ff6b9d, #c44569, #8b5cf6)',
+                  color: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #ff5a8a, #b83a5e, #7a4ae6)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #ff6b9d, #c44569, #8b5cf6)'
+                }}
               >
                 {t('stories.createStory')}
               </button>
@@ -1386,7 +1408,17 @@ function StoriesPageContent() {
                   setIsFabExpanded(true)
                 }
               }}
-              className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 active:scale-95"
+              className="w-11 h-11 rounded-full text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 active:scale-95"
+              style={{ 
+                background: 'linear-gradient(to right, #ff6b9d, #c44569, #8b5cf6)',
+                color: 'white'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #ff5a8a, #b83a5e, #7a4ae6)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, #ff6b9d, #c44569, #8b5cf6)'
+              }}
             >
               {isFabExpanded ? (
                 <X className="w-5 h-5 drop-shadow-sm font-bold" strokeWidth={3} />

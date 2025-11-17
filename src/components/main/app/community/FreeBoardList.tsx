@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { toast } from 'sonner'
@@ -63,6 +64,7 @@ interface FreeBoardListProps {
 const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPostSelect }) => {
   const { user, token } = useAuth()
   const { language, t } = useLanguage()
+  const { theme } = useTheme()
   const router = useRouter()
   
   // 번역 서비스 초기화
@@ -960,7 +962,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               {/* 글쓰기 버튼 */}
               <Button
                 onClick={handleOpenPostModal}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                className="text-white px-4 py-2 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                style={{ 
+                  background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
+                  border: 'none',
+                  color: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(37 99 235), rgb(126 34 206))'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))'
+                }}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 {t('community.writePost')}
@@ -1072,14 +1085,14 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 ) : (
                   <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
+                      <thead style={{ backgroundColor: theme === 'dark' ? 'rgb(55 65 81)' : 'rgb(249 250 251)' }}>
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('freeboard.board')}</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('freeboard.title')}</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('freeboard.writer')}</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('freeboard.createdAt')}</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('freeboard.views')}</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('freeboard.recommend')}</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(17 24 39)' }}>{t('freeboard.board')}</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(17 24 39)' }}>{t('freeboard.title')}</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider" style={{ color: theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(17 24 39)' }}>{t('freeboard.writer')}</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider" style={{ color: theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(17 24 39)' }}>{t('freeboard.createdAt')}</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider" style={{ color: theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(17 24 39)' }}>{t('freeboard.views')}</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider" style={{ color: theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(17 24 39)' }}>{t('freeboard.recommend')}</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -1421,7 +1434,17 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
               {/* 글쓰기 버튼 */}
               <button
                 onClick={handleOpenPostModal}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-xs font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
+                className="text-white px-4 py-2 rounded-full text-xs font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{ 
+                  background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
+                  color: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(37 99 235), rgb(126 34 206))'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))'
+                }}
               >
                 {t('community.writePost')}
               </button>
@@ -1438,7 +1461,17 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   setIsFabExpanded(true)
                 }
               }}
-              className="w-11 h-11 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center border-2 border-white hover:scale-110 active:scale-95"
+              className="w-11 h-11 rounded-full text-white shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center border-2 border-white hover:scale-110 active:scale-95"
+              style={{ 
+                background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
+                color: 'white'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, rgb(37 99 235), rgb(126 34 206))'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))'
+              }}
             >
               {isFabExpanded ? (
                 <X className="w-5 h-5 drop-shadow-sm font-bold" strokeWidth={3} />
@@ -1589,8 +1622,19 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 className={`px-6 py-2 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${
                   isSubmittingPost 
                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
+                    : 'text-white'
                 }`}
+                style={!isSubmittingPost ? { 
+                  background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
+                  border: 'none',
+                  color: 'white'
+                } : undefined}
+                onMouseEnter={!isSubmittingPost ? (e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(37 99 235), rgb(126 34 206))'
+                } : undefined}
+                onMouseLeave={!isSubmittingPost ? (e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))'
+                } : undefined}
               >
                 {isSubmittingPost ? '작성 중...' : t('community.createPost')}
               </button>

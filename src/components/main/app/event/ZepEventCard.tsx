@@ -307,7 +307,6 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
             alt="Reunión con Operadores de ZEP"
             className="w-full aspect-video object-cover max-h-64 sm:max-h-80 md:max-h-96"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>
         
         <p className="text-sm text-gray-600 dark:text-gray-400">

@@ -74,31 +74,21 @@ export default function IdolMemesBoard() {
   const pinnedPosts = Array.isArray(posts) ? posts.filter(post => post.is_pinned) : []
   const regularPosts = Array.isArray(posts) ? posts.filter(post => !post.is_pinned) : []
 
-  const isDark = theme === 'night'
-
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      isDark ? 'bg-black text-white' : 'bg-white text-gray-900'
-    }`}>
+    <div className="min-h-screen transition-colors duration-300 bg-background text-foreground">
       {/* Header */}
-      <div className={`sticky top-0 z-50 border-b ${
-        isDark ? 'border-gray-800 bg-black/95' : 'border-gray-200 bg-white/95'
-      } backdrop-blur-sm`}>
+      <div className="border-b border-border bg-card/95 backdrop-blur-sm pt-16 md:pt-32">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={() => router.push('/main?tab=community')}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-              }`}
+              className="p-2 rounded-lg transition-colors hover:bg-muted"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold">Fotos de Ídolos</h1>
-              <p className={`text-sm mt-1 ${
-                isDark ? 'text-gray-400' : 'text-gray-600'
-              }`}>
+              <h1 className="text-lg md:text-2xl font-bold text-foreground">Fotos de Ídolos</h1>
+              <p className="text-xs md:text-sm mt-1 text-muted-foreground">
                 Comparte y disfruta de las mejores fotos de tus ídolos favoritos
               </p>
             </div>
@@ -110,7 +100,6 @@ export default function IdolMemesBoard() {
               variant={sortBy === 'popular' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('popular')}
-              className={isDark ? '' : ''}
             >
               <TrendingUp className="w-4 h-4 mr-1" />
               Popular
@@ -128,15 +117,13 @@ export default function IdolMemesBoard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-6 pt-4 md:pt-16">
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className={`aspect-square rounded-lg ${
-                  isDark ? 'bg-gray-900 animate-pulse' : 'bg-gray-100 animate-pulse'
-                }`}
+                className="aspect-square rounded-lg bg-muted animate-pulse"
               />
             ))}
           </div>
@@ -145,12 +132,10 @@ export default function IdolMemesBoard() {
             {/* Pinned Posts */}
             {pinnedPosts.length > 0 && (
               <div className="mb-6">
-                <div className={`px-4 py-2 mb-3 rounded-lg ${
-                  isDark ? 'bg-purple-900/30' : 'bg-purple-100'
-                }`}>
-                  <h2 className="font-semibold text-sm">📌 Importante</h2>
+                <div className="px-4 py-2 mb-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <h2 className="font-semibold text-sm text-foreground">📌 Importante</h2>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {pinnedPosts.map(post => (
                     <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} />
                   ))}
@@ -160,26 +145,20 @@ export default function IdolMemesBoard() {
 
             {/* Regular Posts */}
             {regularPosts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {regularPosts.map(post => (
                   <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} />
                 ))}
               </div>
             ) : (
               <div className="text-center py-16">
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                  isDark ? 'bg-gray-800' : 'bg-gray-100'
-                }`}>
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-muted">
                   <span className="text-4xl">📸</span>
                 </div>
-                <h3 className={`text-xl font-semibold mb-2 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <h3 className="text-xl font-semibold mb-2 text-foreground">
                   No hay publicaciones aún
                 </h3>
-                <p className={`text-sm mb-6 ${
-                  isDark ? 'text-gray-500' : 'text-gray-500'
-                }`}>
+                <p className="text-sm mb-6 text-muted-foreground">
                   ¡Sube el primer meme!
                 </p>
                 {user && (

@@ -395,7 +395,18 @@ export default function EventTab() {
                 }))
                 router.push('/main?tab=me#my-level')
               }}
-              className="w-full bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 hover:from-purple-700 hover:via-purple-600 hover:to-purple-700 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 shadow-md hover:shadow-lg transition-all duration-300"
+              className="w-full text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 shadow-md hover:shadow-lg transition-all duration-300"
+              style={{ 
+                background: 'linear-gradient(to right, rgb(124 58 237), rgb(139 92 246), rgb(124 58 237))',
+                border: 'none',
+                color: 'white'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, rgb(109 40 217), rgb(124 58 237), rgb(109 40 217))'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(to right, rgb(124 58 237), rgb(139 92 246), rgb(124 58 237))'
+              }}
             >
               <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {t('eventTab.badgeGuide.viewMyLevel')}
@@ -523,8 +534,8 @@ export default function EventTab() {
                 <span className="text-white text-base">🎯</span>
               </div>
               <div>
-                <h3 className="text-sm font-bold text-green-800 dark:text-gray-200">{t('eventTab.pointSystem.earningMethods.title')}</h3>
-                <p className="text-xs text-green-600 dark:text-green-400">{t('eventTab.pointSystem.earningMethods.subtitle')}</p>
+                <h3 className="text-sm font-bold text-green-800 dark:text-gray-200 point-system-title">{t('eventTab.pointSystem.earningMethods.title')}</h3>
+                <p className="text-xs text-green-600 dark:text-green-400 point-system-subtitle">{t('eventTab.pointSystem.earningMethods.subtitle')}</p>
               </div>
             </div>
             
@@ -674,7 +685,18 @@ export default function EventTab() {
                   }))
                   router.push('/main?tab=me#my-points')
                 }}
-                className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white"
+                className="w-full text-white font-medium text-sm shadow-sm hover:shadow-md transition-all duration-300"
+                style={{ 
+                  background: 'linear-gradient(to right, rgb(34 197 94), rgb(13 148 136))',
+                  border: 'none',
+                  color: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(22 163 74), rgb(15 118 110))'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, rgb(34 197 94), rgb(13 148 136))'
+                }}
               >
                 <Trophy className="w-4 h-4 mr-2" />
                 {t('eventTab.pointSystem.earningMethods.viewMyPoints')}

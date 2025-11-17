@@ -62,21 +62,34 @@ export default function PaletteSwitcher() {
     )
   }
 
+  // Default palette: no colored border/icon, just neutral gray
+  const isDefault = palette === 'default'
+  
   return (
     <Button
       onClick={handleTogglePalette}
       variant="outline"
       size="icon"
-      className="fixed bottom-20 right-4 z-[100001] pointer-events-auto h-11 w-11 rounded-full shadow-lg hover:opacity-95 transition-all duration-300"
-      style={{
-        borderColor: 'hsl(var(--primary))',
-        backgroundColor: 'hsl(var(--muted))',
-        color: 'hsl(var(--primary))',
-        borderWidth: 2,
-      }}
+      className={`fixed bottom-20 right-4 z-[100001] pointer-events-auto h-11 w-11 rounded-full shadow-lg hover:opacity-95 transition-all duration-300 ${
+        isDefault
+          ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
+          : ''
+      }`}
+      style={
+        isDefault
+          ? {
+              borderWidth: 1,
+            }
+          : {
+              borderColor: 'hsl(var(--primary))',
+              backgroundColor: 'hsl(var(--muted))',
+              color: 'hsl(var(--primary))',
+              borderWidth: 2,
+            }
+      }
       title={`Palette: ${palette}`}
     >
-      <Paintbrush className="h-5 w-5" />
+      <Paintbrush className={`h-5 w-5 ${isDefault ? 'text-gray-500 dark:text-gray-400' : ''}`} />
     </Button>
   )
 }
