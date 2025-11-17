@@ -12,6 +12,7 @@ import { UserProvider } from '@/context/UserContext'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import QueryProvider from '@/providers/QueryProvider'
 import Analytics from '@/components/analytics/Analytics'
+import { Suspense } from 'react'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -136,7 +137,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`} suppressHydrationWarning>
-        <Analytics />
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
         <QueryProvider>
           <ThemeProvider
             attribute="class"

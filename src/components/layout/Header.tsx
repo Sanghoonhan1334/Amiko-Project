@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
-export default function Header() {
+function HeaderContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -1151,5 +1151,23 @@ export default function Header() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function Header() {
+  return (
+    <Suspense fallback={
+      <div className="h-16 bg-gray-200 dark:bg-gray-700 animate-pulse">
+        <div className="container mx-auto px-4 h-full flex items-center justify-between">
+          <div className="h-8 w-32 bg-gray-300 dark:bg-gray-600 rounded" />
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-20 bg-gray-300 dark:bg-gray-600 rounded" />
+            <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          </div>
+        </div>
+      </div>
+    }>
+      <HeaderContent />
+    </Suspense>
   )
 }
