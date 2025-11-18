@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import SplashSequence from '@/components/splash/SplashSequence'
 // import ScrollToTopButton from '@/components/common/ScrollToTopButton'
@@ -75,9 +76,11 @@ const Hero = dynamic(() => import('@/components/landing/Hero'), {
   )
 })
 
-export default function HomePage() {
+function HomePageContent() {
   const [isClient, setIsClient] = useState(false)
-  const [showSplash, setShowSplash] = useState(true)
+  const searchParams = useSearchParams()
+  const shouldShowSplash = searchParams.get('splash') === 'true'
+  const [showSplash, setShowSplash] = useState(false)
   const { t, language } = useLanguage()
   const router = useRouter()
   
@@ -90,13 +93,34 @@ export default function HomePage() {
   useEffect(() => {
     setIsClient(true)
     
-    // 스플래시 화면 표시 후 메인 콘텐츠로 전환
-    const timer = setTimeout(() => {
-      setShowSplash(false)
-    }, 2000) // 2초 후 스플래시 종료
+    // URL에 splash=true가 있으면 스플래시 표시 (로고 클릭)
+    if (shouldShowSplash) {
+      setShowSplash(true)
+      // URL에서 쿼리 파라미터 제거
+      router.replace('/', { scroll: false })
+    } else {
+      // 초기 로드 시에만 스플래시 표시
+      setShowSplash(true)
+    }
+  }, [shouldShowSplash, router])
 
-    return () => clearTimeout(timer)
-  }, [])
+  useEffect(() => {
+    // 스플래시 표시 시 body에 클래스 추가/제거
+    if (showSplash) {
+      document.body.classList.add('splash-active')
+      const timer = setTimeout(() => {
+        setShowSplash(false)
+        document.body.classList.remove('splash-active')
+      }, 2000) // 2초 후 스플래시 종료
+
+      return () => {
+        clearTimeout(timer)
+        document.body.classList.remove('splash-active')
+      }
+    } else {
+      document.body.classList.remove('splash-active')
+    }
+  }, [showSplash])
 
   const handleSplashComplete = () => {
     setShowSplash(false)
@@ -616,5 +640,20 @@ export default function HomePage() {
       {/* 맨 위로 이동 버튼 - 제거됨 */}
       {/* <ScrollToTopButton /> */}
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen body-gradient flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-600 dark:border-gray-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <HomePageContent />
+    </Suspense>
   )
 }

@@ -22,28 +22,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 개발 환경에서 테스트용 하드코딩된 중복 이메일 체크
-    const testEmails = [
-      'hsanghoon133334@gmail.com',
-      'test@example.com',
-      'admin@helloamiko.com'
-    ]
-    
-    if (process.env.NODE_ENV === 'development' && testEmails.includes(email.toLowerCase())) {
-      console.log(`[EMAIL_CHECK] 개발 환경 - 테스트 이메일 중복 체크: ${email}`)
-      return NextResponse.json({
-        success: true,
-        exists: true,
-        message: '이미 가입된 이메일입니다.'
-      })
-    }
+    // 개발 환경 하드코딩 이메일 체크 제거
+    // 실제 데이터베이스에서 확인하도록 변경
 
     // Supabase에서 이메일 중복 체크
+    // 삭제된 계정(deleted_at이 있는 경우)은 제외하고 확인
     try {
       const { data, error } = await supabaseServer
         .from('users')
-        .select('id')
+        .select('id, deleted_at')
         .eq('email', email.toLowerCase())
+        .is('deleted_at', null) // 삭제되지 않은 계정만 확인
         .single()
 
       if (error && error.code !== 'PGRST116') { // PGRST116은 "no rows returned" 에러
@@ -54,7 +43,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // 데이터가 있으면 중복, 없으면 사용 가능
+      // 데이터가 있으면 중복, 없으면 사용 가능 (삭제된 계정은 사용 가능으로 처리)
       const exists = !!data
 
       console.log(`[EMAIL_CHECK] ${email}: ${exists ? '중복' : '사용 가능'}`)

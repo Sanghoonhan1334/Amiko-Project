@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +29,12 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
   const router = useRouter()
   const [title, setTitle] = useState('')
 
+  // 게시물 작성 시작 이벤트
+  useEffect(() => {
+    communityEvents.clickWritePost(gallery.slug)
+    communityEvents.startPost(gallery.slug)
+  }, [gallery.slug])
+
   // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
   React.useEffect(() => {
     if (user) {
@@ -39,24 +45,21 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
           const result = await response.json()
           
           if (response.ok && result.user) {
-            // 인증 상태 확인 - 더 유연한 조건
-            const isVerified = !!(
-              result.user.email_verified_at || 
-              result.user.sms_verified_at || 
-              result.user.kakao_linked_at || 
-              result.user.wa_verified_at ||
-              (result.user.korean_name && result.user.nickname) ||
-              (result.user.spanish_name && result.user.nickname) ||
-              (result.user.full_name && result.user.phone) ||
-              (result.user.full_name && result.user.university && result.user.major)
+            // 기본 등급: SMS 1차 인증만 체크
+            const hasSMSVerification = !!(
+              result.user.phone_verified ||
+              result.user.sms_verified_at ||
+              result.user.phone_verified_at
             )
             
-            if (!isVerified) {
-              console.log('사용자가 인증되지 않음, 인증센터로 리다이렉트')
-              // 현재 경로가 이미 verification-center가 아닌 경우에만 리다이렉트
-              if (window.location.pathname !== '/verification-center') {
-                router.push('/verification-center')
-              }
+            if (!hasSMSVerification) {
+              console.log('SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.')
+              alert(language === 'ko' 
+                ? 'SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.'
+                : 'Se requiere verificación SMS. Complete la verificación SMS durante el registro.'
+              )
+              router.push('/sign-up')
+              return
             }
           }
         } catch (error) {
@@ -229,6 +232,12 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
       const data = await response.json()
       console.log('게시물 작성 성공:', data.post.id)
       
+      // 커뮤니티 퍼널 이벤트: 게시물 제출
+      communityEvents.submitPost(gallery.slug, title.trim())
+      
+      // 커뮤니티 퍼널 이벤트: 게시물 작성 성공
+      communityEvents.postSuccess(data.post.id, gallery.slug, title.trim())
+      
       // 커뮤니티 퍼널 이벤트: 게시물 생성
       communityEvents.createPost(gallery.slug, title.trim())
       
@@ -285,7 +294,13 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
                   id="title"
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTitle(e.target.value)
+                    // 커뮤니티 퍼널 이벤트: 제목 작성
+                    if (e.target.value.length > 0) {
+                      communityEvents.writeTitle(e.target.value.length)
+                    }
+                  }}
                   placeholder="제목을 입력해주세요"
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
                   maxLength={200}
@@ -301,7 +316,13 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
                 <textarea
                   id="content"
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => {
+                    setContent(e.target.value)
+                    // 커뮤니티 퍼널 이벤트: 내용 작성
+                    if (e.target.value.length > 0) {
+                      communityEvents.writeContent(e.target.value.length)
+                    }
+                  }}
                   placeholder="내용을 입력해주세요"
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
                   rows={8}

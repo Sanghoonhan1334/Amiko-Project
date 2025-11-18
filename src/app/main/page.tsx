@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Video } from 'lucide-react'
 // 🚀 최적화: React Query hook 추가
 import { useMainPageData } from '@/hooks/useMainPageData'
-import { appEngagementEvents } from '@/lib/analytics'
+import { appEngagementEvents, marketingEvents } from '@/lib/analytics'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -260,6 +260,25 @@ function AppPageContent() {
       setCommunityView('home')
     }
   }, [activeTab])
+
+  // 재방문 사용자 감지
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    const lastVisit = localStorage.getItem('amiko_last_visit')
+    const now = Date.now()
+    
+    if (lastVisit) {
+      const timeSinceLastVisit = now - parseInt(lastVisit, 10)
+      // 24시간 이상 경과한 경우 재방문으로 간주
+      if (timeSinceLastVisit > 24 * 60 * 60 * 1000) {
+        marketingEvents.returningUsers()
+      }
+    }
+    
+    // 현재 방문 시간 저장
+    localStorage.setItem('amiko_last_visit', now.toString())
+  }, [])
 
   // 메인 앱 DAU 퍼널: 탭별 방문 이벤트 추적
   useEffect(() => {

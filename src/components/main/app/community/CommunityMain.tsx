@@ -59,6 +59,8 @@ export default function CommunityMain() {
   const [editingPost, setEditingPost] = useState<Post | null>(null)
 
   const handleGallerySelect = (gallery: Gallery) => {
+    // 커뮤니티 퍼널 이벤트: 카테고리 방문
+    communityEvents.visitCategory(gallery.name_es || gallery.name_ko, gallery.slug)
     // 커뮤니티 퍼널 이벤트: 갤러리 조회
     communityEvents.viewGallery(gallery.slug, gallery.name_es || gallery.name_ko)
     setSelectedGallery(gallery)

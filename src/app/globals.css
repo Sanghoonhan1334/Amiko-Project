@@ -1691,3 +1691,17 @@ button[role="combobox"] * {
 .rdp-nav {
   display: none !important;
 }
+
+/* 스플래시 활성화 시 헤더 및 푸터 숨기기 */
+body.splash-active header,
+body.splash-active [class*="Header"],
+body.splash-active [class*="header"],
+body.splash-active footer,
+body.splash-active [class*="Footer"],
+body.splash-active [class*="footer"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}

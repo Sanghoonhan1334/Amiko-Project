@@ -39,6 +39,11 @@ export default function SignInPage() {
   const [canUseBiometric, setCanUseBiometric] = useState(false)
   const [savedUserId, setSavedUserId] = useState<string | null>(null)
 
+  // 로그인 페이지 방문 이벤트
+  useEffect(() => {
+    signInEvents.visitLogin()
+  }, [])
+
   useEffect(() => {
     if (!BIOMETRIC_ENABLED) {
       setIsWebAuthnSupported(false)
@@ -106,11 +111,13 @@ export default function SignInPage() {
     // 로그인 퍼널 이벤트: 이메일 입력
     if (field === 'identifier' && value.length > 0) {
       signInEvents.enterEmail()
+      signInEvents.enterLoginEmail()
     }
     
     // 로그인 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
       signInEvents.enterPassword()
+      signInEvents.enterLoginPassword()
     }
   }
 
@@ -118,6 +125,8 @@ export default function SignInPage() {
     e.preventDefault()
     // 로그인 퍼널 이벤트: 로그인 시작
     signInEvents.startSignIn()
+    // 로그인 퍼널 이벤트: 로그인 시도
+    signInEvents.loginAttempt()
     setIsLoading(true)
 
     try {
@@ -144,6 +153,7 @@ export default function SignInPage() {
       // 로그인 퍼널 이벤트: 로그인 성공
       const userId = result.data?.user?.id || result.user?.id
       signInEvents.signInSuccess(userId, 'email')
+      signInEvents.loginSuccess(userId, 'email')
       
       // API 응답 구조: result.data.user.id (이미 위에서 추출됨)
       console.log('[SIGNIN] 추출된 사용자 ID:', userId)
@@ -362,6 +372,9 @@ export default function SignInPage() {
                   required
                 />
               </div>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
+                {t('auth.loginIdInfo')}
+              </p>
             </div>
 
             <div className="space-y-2">

@@ -29,7 +29,7 @@ export default function AuthConfirmDialog({
 
   const handleConfirm = () => {
     onOpenChange(false)
-    router.push('/verification')
+    router.push('/verification-center')
   }
 
   const handleCancel = () => {

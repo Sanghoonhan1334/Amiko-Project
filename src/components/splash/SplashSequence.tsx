@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useLocale } from '@/hooks/useLocale'
@@ -29,6 +30,11 @@ const copy = {
 export default function SplashSequence({ onComplete }: SplashSequenceProps) {
   const locale = useLocale()
   const t = copy[locale]
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // 2초 후 자동으로 완료
   useEffect(() => {
@@ -81,12 +87,13 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
     exit: { opacity: 0 }
   }
 
-  return (
+  const splashContent = (
     <motion.div
       variants={containerVariants}
       initial="initial"
       exit="exit"
-      className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-[99999]"
+      style={{ position: 'fixed', zIndex: 99999 }}
     >
       {/* 로고와 텍스트 표시 */}
       <div className="flex flex-col items-center -mt-32 md:-mt-64">
@@ -148,4 +155,10 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
       </div>
     </motion.div>
   )
+
+  if (!mounted) {
+    return null
+  }
+
+  return createPortal(splashContent, document.body)
 }

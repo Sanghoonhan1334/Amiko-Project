@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
 import CommentSection from './CommentSection'
 import { shareCommunityPost } from '@/lib/share-utils'
 import AuthorName from '@/components/common/AuthorName'
-import { communityEvents } from '@/lib/analytics'
+import { communityEvents, marketingEvents } from '@/lib/analytics'
 
 interface Post {
   id: string
@@ -48,6 +48,9 @@ interface PostDetailProps {
 
 export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDetailProps) {
   const { t, language } = useLanguage()
+  const [readStartTime] = useState(Date.now())
+  const [scrollDepth, setScrollDepth] = useState(0)
+  const [maxScrollDepth, setMaxScrollDepth] = useState(0)
   const { user, token } = useAuth()
   const router = useRouter()
   const [post, setPost] = useState<Post | null>(null)
@@ -92,6 +95,59 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     loadPost()
     loadUserVote()
   }, [postId])
+
+  // 스크롤 추적 및 읽기 시간 추적
+  useEffect(() => {
+    if (!post) return
+
+    let readTimeInterval: NodeJS.Timeout
+    let scrollTimeout: NodeJS.Timeout
+
+    // 읽기 시간 추적 (30초마다)
+    readTimeInterval = setInterval(() => {
+      const readTimeSeconds = Math.floor((Date.now() - readStartTime) / 1000)
+      if (readTimeSeconds > 0 && readTimeSeconds % 30 === 0) {
+        communityEvents.readTime(postId, readTimeSeconds)
+      }
+    }, 30000)
+
+    // 스크롤 깊이 추적
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout)
+      scrollTimeout = setTimeout(() => {
+        const windowHeight = window.innerHeight
+        const documentHeight = document.documentElement.scrollHeight
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+        const scrollPercent = Math.round((scrollTop / (documentHeight - windowHeight)) * 100)
+        
+        if (scrollPercent > maxScrollDepth) {
+          setMaxScrollDepth(scrollPercent)
+          communityEvents.scrollDepth(postId, scrollPercent)
+        }
+        
+        // 스크롤 이벤트 (25%, 50%, 75%, 100%에서만)
+        const milestones = [25, 50, 75, 100]
+        if (milestones.includes(scrollPercent)) {
+          marketingEvents.scroll(scrollPercent)
+        }
+      }, 100)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      clearInterval(readTimeInterval)
+      clearTimeout(scrollTimeout)
+      window.removeEventListener('scroll', handleScroll)
+      
+      // 최종 읽기 시간 전송
+      const finalReadTime = Math.floor((Date.now() - readStartTime) / 1000)
+      if (finalReadTime > 10) {
+        communityEvents.readTime(postId, finalReadTime)
+      }
+    }
+  }, [post, postId, readStartTime, maxScrollDepth])
 
   const loadPost = async () => {
     try {

@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { checkAuthAndRedirect } from '@/lib/auth-utils'
+import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -52,6 +53,7 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [allPartners, setAllPartners] = useState<any[]>([])
   const [isKoreanPartner, setIsKoreanPartner] = useState(false)
   const [isCheckingPartner, setIsCheckingPartner] = useState(true)
@@ -74,10 +76,22 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       
       try {
         setVerificationStatus('loading')
-        const response = await fetch(`/api/auth/status?userId=${user.id}`)
-        const result = await response.json()
-        if (response.ok && result.success) {
-          if (result.emailVerified || result.smsVerified) {
+        // 프로필 정보 조회 (2차 인증 체크용)
+        const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
+        const profileResult = await profileResponse.json()
+        
+        if (profileResponse.ok && profileResult.user) {
+          const userData = profileResult.user
+          
+          // 고급 등급: 인증센터 2차 인증 (프로필 완성) 체크
+          // 조건: 이름 + 닉네임 + (대학+전공 또는 직업+회사)
+          const hasName = !!(userData.korean_name || userData.spanish_name || userData.full_name)
+          const hasNickname = !!userData.nickname
+          const hasStudentInfo = !!(userData.university && userData.major)
+          const hasWorkInfo = !!(userData.occupation && userData.company)
+          const hasFullProfile = hasName && hasNickname && (hasStudentInfo || hasWorkInfo)
+          
+          if (hasFullProfile) {
             setVerificationStatus('verified')
           } else {
             setVerificationStatus('unverified')
@@ -99,9 +113,15 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
 
 
 
-  const handleStartCall = () => {
+  const handleStartCall = async () => {
     if (!channelName.trim()) {
       alert(t('videoCall.enterChannelName'))
+      return
+    }
+
+    // 고급 등급: 인증센터 2차 인증 (프로필 완성) 체크
+    if (user?.id && verificationStatus === 'unverified') {
+      setShowAuthDialog(true)
       return
     }
 
@@ -539,10 +559,16 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
               <p className="text-sm text-gray-600 dark:text-gray-400">{t('videoCall.quickStartDescription')}</p>
             </div>
             <Button 
-              onClick={() => {
+              onClick={async () => {
                 // 로그인하지 않은 사용자는 로그인 페이지로 이동
                 if (!user) {
                   router.push('/sign-in')
+                  return
+                }
+                
+                // 고급 등급: 인증센터 2차 인증 (프로필 완성) 체크
+                if (verificationStatus === 'unverified') {
+                  setShowAuthDialog(true)
                   return
                 }
                 
@@ -874,6 +900,16 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           }}
         />
       </div>
+
+      {/* 인증 확인 다이얼로그 */}
+      <AuthConfirmDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        title={t('auth.authRequired') || '인증이 필요합니다'}
+        description={t('auth.fullVerificationRequired') || '화상통화를 위해서는 인증센터에서 프로필을 완성해주세요. 인증센터로 이동하시겠습니까?'}
+        confirmText={t('auth.goToAuthCenter') || '인증센터로 이동'}
+        cancelText={t('buttons.cancel') || '취소'}
+      />
     </div>
   )
 }

@@ -135,6 +135,27 @@ export default function ChargingTab() {
   // 쿠폰 구매 처리
   const handleCouponPurchase = async (packageData: any) => {
     try {
+      // 고급 등급: 인증센터 2차 인증 (프로필 완성) 체크
+      if (user?.id) {
+        const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
+        const profileResult = await profileResponse.json()
+        
+        if (profileResponse.ok && profileResult.user) {
+          const userData = profileResult.user
+          const hasName = !!(userData.korean_name || userData.spanish_name || userData.full_name)
+          const hasNickname = !!userData.nickname
+          const hasStudentInfo = !!(userData.university && userData.major)
+          const hasWorkInfo = !!(userData.occupation && userData.company)
+          const hasFullProfile = hasName && hasNickname && (hasStudentInfo || hasWorkInfo)
+          
+          if (!hasFullProfile) {
+            alert(t('auth.fullVerificationRequired') || '결제를 위해서는 인증센터에서 프로필을 완성해주세요.')
+            window.location.href = '/verification-center'
+            return
+          }
+        }
+      }
+
       // 사용자 국가 확인 (한국인은 구매 불가)
       const userCountry = await getUserCountry();
       if (userCountry === 'KR') {

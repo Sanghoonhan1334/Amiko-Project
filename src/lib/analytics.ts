@@ -132,6 +132,31 @@ export const marketingEvents = {
    */
   sessionRepeat: () => {
     trackEvent('session_repeat', {})
+  },
+
+  /**
+   * 스크롤 이벤트
+   */
+  scroll: (scrollDepth?: number) => {
+    trackEvent('scroll', {
+      scroll_depth: scrollDepth
+    })
+  },
+
+  /**
+   * 사용자 참여도
+   */
+  userEngagement: (engagementTime?: number) => {
+    trackEvent('user_engagement', {
+      engagement_time_msec: engagementTime
+    })
+  },
+
+  /**
+   * 재방문 사용자
+   */
+  returningUsers: () => {
+    trackEvent('returning_users', {})
   }
 }
 
@@ -148,10 +173,45 @@ export const signUpEvents = {
   },
 
   /**
+   * 폼 시작
+   */
+  formStart: () => {
+    trackEvent('form_start', {})
+  },
+
+  /**
+   * 이메일 입력 (회원가입)
+   */
+  enterEmail: () => {
+    trackEvent('enter_email', {})
+  },
+
+  /**
+   * 비밀번호 입력 (회원가입)
+   */
+  enterPassword: () => {
+    trackEvent('enter_password', {})
+  },
+
+  /**
    * 생년월일 입력
    */
   enterBirthdate: () => {
     trackEvent('enter_birthdate', {})
+  },
+
+  /**
+   * 생년월일 입력 (정확한 이벤트명)
+   */
+  enterBirthday: () => {
+    trackEvent('enter_birthday', {})
+  },
+
+  /**
+   * 닉네임 입력
+   */
+  enterNickname: () => {
+    trackEvent('enter_nickname', {})
   },
 
   /**
@@ -171,11 +231,62 @@ export const signUpEvents = {
   },
 
   /**
+   * 이메일 인증 완료
+   */
+  verifyEmail: () => {
+    trackEvent('verify_email', {})
+  },
+
+  /**
    * 휴대폰 인증 완료
    */
   verifyPhone: (method?: 'sms' | 'whatsapp') => {
     trackEvent('verify_phone', {
       verification_method: method || 'sms'
+    })
+  },
+
+  /**
+   * 비밀번호 검증 통과
+   */
+  passwordOk: () => {
+    trackEvent('password_ok', {})
+  },
+
+  /**
+   * 생년월일 검증 통과
+   */
+  birthdayOk: () => {
+    trackEvent('birthday_ok', {})
+  },
+
+  /**
+   * 닉네임 검증 통과
+   */
+  nicknameOk: () => {
+    trackEvent('nickname_ok', {})
+  },
+
+  /**
+   * 회원가입 제출
+   */
+  submitRegister: () => {
+    trackEvent('submit_register', {})
+  },
+
+  /**
+   * 회원가입 버튼 클릭
+   */
+  registerClick: () => {
+    trackEvent('register_click', {})
+  },
+
+  /**
+   * 사용자 생성
+   */
+  createUser: (userId?: string) => {
+    trackEvent('create_user', {
+      user_id: userId
     })
   },
 
@@ -186,6 +297,15 @@ export const signUpEvents = {
     trackEvent('complete_sign_up', {
       user_id: userId,
       funnel_completed: true
+    })
+  },
+
+  /**
+   * 회원가입 성공 (정확한 이벤트명)
+   */
+  signUpSuccess: (userId?: string) => {
+    trackEvent('sign_up_success', {
+      user_id: userId
     })
   }
 }
@@ -203,10 +323,24 @@ export const signInEvents = {
   },
 
   /**
+   * 로그인 페이지 방문
+   */
+  visitLogin: () => {
+    trackEvent('visit_login', {})
+  },
+
+  /**
    * 이메일 입력
    */
   enterEmail: () => {
     trackEvent('enter_email', {})
+  },
+
+  /**
+   * 로그인 이메일 입력 (정확한 이벤트명)
+   */
+  enterLoginEmail: () => {
+    trackEvent('enter_login_email', {})
   },
 
   /**
@@ -217,10 +351,34 @@ export const signInEvents = {
   },
 
   /**
+   * 로그인 비밀번호 입력 (정확한 이벤트명)
+   */
+  enterLoginPassword: () => {
+    trackEvent('enter_login_password', {})
+  },
+
+  /**
+   * 로그인 시도
+   */
+  loginAttempt: () => {
+    trackEvent('login_attempt', {})
+  },
+
+  /**
    * 로그인 성공
    */
   signInSuccess: (userId?: string, method?: 'email' | 'biometric') => {
     trackEvent('sign_in_success', {
+      user_id: userId,
+      signin_method: method || 'email'
+    })
+  },
+
+  /**
+   * 로그인 성공 (정확한 이벤트명)
+   */
+  loginSuccess: (userId?: string, method?: 'email' | 'biometric') => {
+    trackEvent('login_success', {
       user_id: userId,
       signin_method: method || 'email'
     })
@@ -294,6 +452,16 @@ export const communityEvents = {
   },
 
   /**
+   * 카테고리 방문
+   */
+  visitCategory: (categoryName?: string, categorySlug?: string) => {
+    trackEvent('visit_category', {
+      category_name: categoryName,
+      category_slug: categorySlug
+    })
+  },
+
+  /**
    * 갤러리 조회
    */
   viewGallery: (gallerySlug?: string, galleryName?: string) => {
@@ -311,6 +479,63 @@ export const communityEvents = {
       post_id: postId,
       post_title: postTitle,
       gallery_slug: gallerySlug
+    })
+  },
+
+  /**
+   * 게시물 작성 버튼 클릭
+   */
+  clickWritePost: (gallerySlug?: string) => {
+    trackEvent('click_write_post', {
+      gallery_slug: gallerySlug
+    })
+  },
+
+  /**
+   * 게시물 작성 시작
+   */
+  startPost: (gallerySlug?: string) => {
+    trackEvent('start_post', {
+      gallery_slug: gallerySlug
+    })
+  },
+
+  /**
+   * 게시물 제목 작성
+   */
+  writeTitle: (titleLength?: number) => {
+    trackEvent('write_title', {
+      title_length: titleLength
+    })
+  },
+
+  /**
+   * 게시물 내용 작성
+   */
+  writeContent: (contentLength?: number) => {
+    trackEvent('write_content', {
+      content_length: contentLength
+    })
+  },
+
+  /**
+   * 게시물 제출
+   */
+  submitPost: (gallerySlug?: string, postTitle?: string) => {
+    trackEvent('submit_post', {
+      gallery_slug: gallerySlug,
+      post_title: postTitle
+    })
+  },
+
+  /**
+   * 게시물 작성 성공
+   */
+  postSuccess: (postId?: string, gallerySlug?: string, postTitle?: string) => {
+    trackEvent('post_success', {
+      post_id: postId,
+      gallery_slug: gallerySlug,
+      post_title: postTitle
     })
   },
 
@@ -351,6 +576,26 @@ export const communityEvents = {
     trackEvent('share_post', {
       post_id: postId,
       share_method: shareMethod
+    })
+  },
+
+  /**
+   * 게시물 읽기 시간
+   */
+  readTime: (postId?: string, readTimeSeconds?: number) => {
+    trackEvent('read_time', {
+      post_id: postId,
+      read_time_seconds: readTimeSeconds
+    })
+  },
+
+  /**
+   * 스크롤 깊이
+   */
+  scrollDepth: (postId?: string, scrollDepth?: number) => {
+    trackEvent('scroll_depth', {
+      post_id: postId,
+      scroll_depth: scrollDepth
     })
   }
 }

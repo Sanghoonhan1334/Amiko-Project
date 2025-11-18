@@ -54,10 +54,12 @@ export default function SignUpPage() {
   })
 
   const [ageError, setAgeError] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   // 가입 퍼널 이벤트: 회원가입 시작
   useEffect(() => {
     signUpEvents.startSignUp()
+    signUpEvents.formStart()
   }, [])
 
   const calculateAge = (value: string) => {
@@ -132,6 +134,25 @@ export default function SignUpPage() {
     if (field === 'nickname') {
       validateNickname(value)
     }
+    
+    // 이메일 검증 (오타 감지)
+    if (field === 'email') {
+      validateEmail(value)
+      // 가입 퍼널 이벤트: 이메일 입력
+      if (value.length > 0) {
+        signUpEvents.enterEmail()
+      }
+    }
+    
+    // 가입 퍼널 이벤트: 비밀번호 입력
+    if (field === 'password' && value.length > 0) {
+      signUpEvents.enterPassword()
+    }
+    
+    // 가입 퍼널 이벤트: 닉네임 입력
+    if (field === 'nickname' && value.length > 0) {
+      signUpEvents.enterNickname()
+    }
 
     if (field === 'birthDate') {
       const age = calculateAge(value)
@@ -145,6 +166,8 @@ export default function SignUpPage() {
         setAgeError(null)
         // 가입 퍼널 이벤트: 생년월일 입력
         signUpEvents.enterBirthdate()
+        signUpEvents.enterBirthday()
+        signUpEvents.birthdayOk()
       }
     }
     
@@ -162,6 +185,11 @@ export default function SignUpPage() {
       noRepeated: !/(.)\1{2,}/.test(password) // 3개 이상 연속된 문자 방지
     }
     setPasswordChecks(checks)
+    
+    // 비밀번호 검증 통과 시 이벤트
+    if (Object.values(checks).every(check => check)) {
+      signUpEvents.passwordOk()
+    }
   }
   
   const validateNickname = async (nickname: string) => {
@@ -188,11 +216,62 @@ export default function SignUpPage() {
             ...prev,
             isAvailable: result.available
           }))
+          
+          // 닉네임 검증 통과 시 이벤트
+          if (result.available) {
+            signUpEvents.nicknameOk()
+          }
         }
       } catch (error) {
         console.error('닉네임 중복 확인 오류:', error)
       }
     }
+  }
+  
+  const validateEmail = (email: string) => {
+    if (!email || email.length === 0) {
+      setEmailError(null)
+      return
+    }
+    
+    // 기본 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setEmailError(language === 'ko' ? '올바른 이메일 형식이 아닙니다.' : 'Formato de correo electrónico inválido.')
+      return
+    }
+    
+    // 도메인 추출
+    const domain = email.split('@')[1]?.toLowerCase() || ''
+    
+    // 일반적인 이메일 도메인 오타 패턴
+    const commonTypos: Record<string, string[]> = {
+      'gmail.com': ['gamil.com', 'gmai.com', 'gmaill.com', 'gmal.com', 'gmial.com', 'gmaol.com'],
+      'yahoo.com': ['yhoo.com', 'yahooo.com', 'yaho.com', 'yahoo.co', 'yhooo.com'],
+      'naver.com': ['naverr.com', 'naver.co', 'naverr.co'],
+      'hotmail.com': ['hotmai.com', 'hotmaill.com', 'hotmal.com', 'hotmial.com'],
+      'outlook.com': ['outlok.com', 'outlok.co', 'outlook.co'],
+      'daum.net': ['daumm.net', 'daum.ne'],
+      'hanmail.net': ['hanmai.net', 'hanmaill.net'],
+      'icloud.com': ['icloud.co', 'icloudd.com'],
+      'live.com': ['live.co', 'livve.com']
+    }
+    
+    // 오타 감지
+    for (const [correctDomain, typos] of Object.entries(commonTypos)) {
+      if (typos.includes(domain)) {
+        const suggestion = correctDomain
+        setEmailError(
+          language === 'ko' 
+            ? `이메일 도메인에 오타가 있는 것 같습니다. "${suggestion}"를 확인해주세요.`
+            : `Parece que hay un error tipográfico en el dominio del correo. Por favor verifica "${suggestion}".`
+        )
+        return
+      }
+    }
+    
+    // 오타가 없으면 에러 제거
+    setEmailError(null)
   }
   
   const isPasswordValid = Object.values(passwordChecks).every(check => check)
@@ -402,10 +481,15 @@ export default function SignUpPage() {
 
       console.log('회원가입 성공:', result)
       
+      // 가입 퍼널 이벤트: 사용자 생성
+      signUpEvents.createUser(result.data?.userId || result.user?.id)
+      
       // 가입 퍼널 이벤트: 회원가입 완료
-      signUpEvents.completeSignUp(result.user?.id)
+      signUpEvents.completeSignUp(result.data?.userId || result.user?.id)
+      signUpEvents.signUpSuccess(result.data?.userId || result.user?.id)
+      
       // 마케팅 퍼널 이벤트: 회원가입 완료
-      marketingEvents.signUp(result.user?.id, 'email')
+      marketingEvents.signUp(result.data?.userId || result.user?.id, 'email')
       
       alert(t('auth.signUpSuccess'))
       
@@ -431,6 +515,9 @@ export default function SignUpPage() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // 가입 퍼널 이벤트: 회원가입 버튼 클릭
+    signUpEvents.registerClick()
+    
     if (!isPasswordValid || formData.password !== formData.confirmPassword) {
       return
     }
@@ -450,6 +537,9 @@ export default function SignUpPage() {
       setAgeError(t('auth.ageRestriction'))
       return
     }
+
+    // 가입 퍼널 이벤트: 회원가입 제출
+    signUpEvents.submitRegister()
 
     setIsLoading(true)
     
@@ -611,12 +701,23 @@ export default function SignUpPage() {
                   placeholder="example@email.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
+                  className={`border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100 ${
+                    emailError ? 'border-red-500 dark:border-red-500 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500 dark:focus:ring-red-500' : ''
+                  }`}
                   style={{ paddingLeft: '2.2rem', paddingRight: '0.75rem' }}
                   required
                   title="올바른 이메일 주소를 입력해주세요"
                 />
               </div>
+              {emailError ? (
+                <p className="text-xs text-red-500 dark:text-red-400">
+                  {emailError}
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-gray-400">
+                  {t('auth.emailLoginIdInfo')}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -741,6 +842,9 @@ export default function SignUpPage() {
                   />
                 </div>
               </div>
+              <p className="text-xs text-slate-500 dark:text-gray-400">
+                {t('auth.phoneLoginIdInfo')}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -780,7 +884,8 @@ export default function SignUpPage() {
                 !isPasswordValid ||
                 !isNicknameValid ||
                 formData.password !== formData.confirmPassword ||
-                !!ageError
+                !!ageError ||
+                !!emailError
               }
             >
               {isLoading ? (

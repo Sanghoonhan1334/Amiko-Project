@@ -430,7 +430,7 @@ function HeaderContent() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-[9999] border-b shadow-sm"
+        className="fixed top-0 left-0 right-0 z-50 border-b shadow-sm"
       >
         {/* Background layer with high z-index */}
         <div className="header-background absolute inset-0 bg-white dark:bg-gray-900 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95 z-0" />
@@ -456,7 +456,7 @@ function HeaderContent() {
                 
                 {/* 언어 선택 드롭다운 */}
                 {showLanguageDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-[10000]">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-[60]">
                     <div className="space-y-1">
                       <button
                         onClick={() => {
@@ -539,7 +539,7 @@ function HeaderContent() {
                 
                 {/* 상세 시간 정보 드롭다운 */}
                 {showTimeDetails && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-[10000]">
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-[60]">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">🌏 세계 시간</span>
@@ -747,7 +747,10 @@ function HeaderContent() {
                 {/* 클릭 히트영역 - 로고보다 작게 제한 */}
                 <div
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[60] dark:z-[40] bg-transparent"
-                  onClick={(e) => { e.stopPropagation(); router.push('/'); }}
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    router.push('/?splash=true');
+                  }}
                 />
               </div>
               
@@ -982,7 +985,7 @@ function HeaderContent() {
       </header>
 
       {/* 모바일 메뉴 */}
-      <div className={`fixed inset-0 z-[10001] transition-all duration-300 ${
+      <div className={`fixed inset-0 z-[70] transition-all duration-300 ${
         isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         {/* 배경 오버레이 */}

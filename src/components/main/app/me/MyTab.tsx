@@ -65,6 +65,7 @@ import ChargingHeader from './ChargingHeader'
 import { useEventPoints } from '@/hooks/useEventPoints'
 import UserBadge from '@/components/common/UserBadge'
 import { getUserLevel } from '@/lib/user-level'
+import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 
 export default function MyTab() {
   const { t, language } = useLanguage()
@@ -83,6 +84,7 @@ export default function MyTab() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
   
   // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
   const { 
@@ -156,25 +158,25 @@ export default function MyTab() {
             })
             
             if (!isVerified) {
-              console.log('사용자가 인증되지 않음, 인증센터로 리다이렉트')
-              // 현재 경로가 이미 verification-center가 아닌 경우에만 리다이렉트
+              console.log('사용자가 인증되지 않음, 인증 다이얼로그 표시')
+              // 현재 경로가 이미 verification-center가 아닌 경우에만 다이얼로그 표시
               if (window.location.pathname !== '/verification-center') {
-                router.push('/verification-center')
+                setShowAuthDialog(true)
               }
             }
           } else {
-            // 프로필 없음 또는 API 실패 → 무조건 인증센터로!
-            console.log('프로필이 없거나 API 실패, 인증센터로 리다이렉트')
+            // 프로필 없음 또는 API 실패 → 인증 다이얼로그 표시
+            console.log('프로필이 없거나 API 실패, 인증 다이얼로그 표시')
             if (window.location.pathname !== '/verification-center') {
-              router.push('/verification-center')
+              setShowAuthDialog(true)
             }
           }
         } catch (error) {
           console.error('인증 상태 확인 실패:', error)
-          // 오류 발생 시에도 인증센터로 리다이렉트 (신규 가입자일 가능성)
+          // 오류 발생 시에도 인증 다이얼로그 표시 (신규 가입자일 가능성)
           if (window.location.pathname !== '/verification-center') {
-            console.log('오류 발생으로 인증센터로 리다이렉트')
-            router.push('/verification-center')
+            console.log('오류 발생으로 인증 다이얼로그 표시')
+            setShowAuthDialog(true)
           }
         }
       }
@@ -410,6 +412,23 @@ export default function MyTab() {
         return
       }
 
+      // 삭제 성공 메시지 표시
+      const successMessage = result?.message || 
+        (result?.success === false || (result?.warnings && result.warnings.length > 0)
+          ? (language === 'ko'
+              ? '계정 삭제가 완료되었지만 일부 데이터 정리에 실패했습니다.'
+              : 'La cuenta se eliminó, pero hubo problemas al limpiar algunos datos.')
+          : (language === 'ko'
+              ? '계정이 삭제되었습니다.'
+              : 'La cuenta se ha eliminado correctamente.'))
+      
+      // 다이얼로그 닫기 및 로딩 상태 해제
+      setIsDeletingAccount(false)
+      setShowDeleteDialog(false)
+      
+      // 성공 메시지 표시
+      alert(successMessage)
+
       if (typeof window !== 'undefined') {
         try {
           localStorage.clear()
@@ -419,7 +438,7 @@ export default function MyTab() {
         }
       }
 
-      setShowDeleteDialog(false)
+      // 로그인 페이지로 리다이렉트
       router.push('/sign-in?accountDeleted=1')
       router.refresh()
     } catch (error) {
@@ -2947,6 +2966,18 @@ export default function MyTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 인증 확인 다이얼로그 */}
+      <AuthConfirmDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        title={language === 'ko' ? '인증이 필요합니다' : 'Se requiere autenticación'}
+        description={language === 'ko' 
+          ? '프로필을 보려면 인증센터에서 프로필을 완성해주세요. 인증센터로 이동하시겠습니까?'
+          : 'Para ver tu perfil, completa tu perfil en el centro de autenticación. ¿Deseas ir al centro de autenticación?'}
+        confirmText={language === 'ko' ? '인증센터로 이동' : 'Ir al centro de autenticación'}
+        cancelText={language === 'ko' ? '취소' : 'Cancelar'}
+      />
     </>
   )
 }

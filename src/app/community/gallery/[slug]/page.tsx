@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Plus } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import dynamic from 'next/dynamic'
+import { communityEvents } from '@/lib/analytics'
 
 // 무거운 컴포넌트들을 동적 임포트로 최적화
 const GalleryPostList = dynamic(() => import('@/components/main/app/community/GalleryPostList'), {
@@ -65,6 +66,11 @@ export default function GalleryPostsPage() {
 
       const data = await response.json()
       setGallery(data.gallery)
+      
+      // 커뮤니티 퍼널 이벤트: 카테고리 방문
+      if (data.gallery) {
+        communityEvents.visitCategory(data.gallery.name_es || data.gallery.name_ko, data.gallery.slug)
+      }
     } catch (error) {
       console.error('갤러리 로딩 오류:', error)
       router.push('/main?tab=community')
