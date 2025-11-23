@@ -413,8 +413,9 @@ export default function MyTab() {
       }
 
       // 삭제 성공 메시지 표시
+      const hasWarnings = result?.warnings && result.warnings.length > 0
       const successMessage = result?.message || 
-        (result?.success === false || (result?.warnings && result.warnings.length > 0)
+        (result?.success === false || hasWarnings
           ? (language === 'ko'
               ? '계정 삭제가 완료되었지만 일부 데이터 정리에 실패했습니다.'
               : 'La cuenta se eliminó, pero hubo problemas al limpiar algunos datos.')
@@ -422,12 +423,14 @@ export default function MyTab() {
               ? '계정이 삭제되었습니다.'
               : 'La cuenta se ha eliminado correctamente.'))
       
-      // 다이얼로그 닫기 및 로딩 상태 해제
+      // 다이얼로그 닫기 및 로딩 상태 해제 (성공/부분 실패 모두)
       setIsDeletingAccount(false)
       setShowDeleteDialog(false)
       
-      // 성공 메시지 표시
-      alert(successMessage)
+      // 성공 메시지 표시 (약간의 지연을 두어 다이얼로그가 먼저 닫히도록)
+      setTimeout(() => {
+        alert(successMessage)
+      }, 100)
 
       if (typeof window !== 'undefined') {
         try {

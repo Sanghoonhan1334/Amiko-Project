@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 사용자 정보 조회
-    const { data: userInfo, error: userInfoError } = await supabaseServer!
+    let userInfo
+    const { data: userInfoData, error: userInfoError } = await supabaseServer!
       .from('users')
       .select('*')
       .eq('id', authResult.data.user.id)
@@ -84,6 +85,52 @@ export async function POST(request: NextRequest) {
 
     if (userInfoError) {
       console.error('[SIGNIN] 사용자 정보 조회 실패:', userInfoError)
+      
+      // auth.users에는 있지만 public.users에는 없는 경우 (계정 삭제가 부분적으로 실패한 경우)
+      if (userInfoError.code === 'PGRST116') {
+        console.log('[SIGNIN] public.users에 사용자 없음, auth.users에서 정보 가져와서 재생성 시도')
+        
+        // auth.users에서 사용자 정보 가져오기
+        const { data: authUserData, error: authUserError } = await supabaseServer!
+          .auth.admin.getUserById(authResult.data.user.id)
+        
+        if (!authUserError && authUserData?.user) {
+          const authUser = authUserData.user
+          
+          // public.users에 기본 레코드 재생성
+          const { data: recreatedUser, error: recreateError } = await supabaseServer!
+            .from('users')
+            .insert({
+              id: authUser.id,
+              email: authUser.email || '',
+              nickname: 'deleted_user', // NOT NULL 제약 조건
+              full_name: authUser.user_metadata?.name || null,
+              phone: authUser.user_metadata?.phone || null,
+              language: 'ko',
+              is_active: true,
+              created_at: authUser.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select()
+            .single()
+          
+          if (recreateError) {
+            console.error('[SIGNIN] public.users 재생성 실패:', recreateError)
+            // 재생성 실패해도 계속 진행 (기본값 사용)
+            userInfo = null
+          } else {
+            console.log('[SIGNIN] public.users 재생성 성공:', recreatedUser)
+            userInfo = recreatedUser
+          }
+        } else {
+          console.error('[SIGNIN] auth.users에서 사용자 정보 가져오기 실패:', authUserError)
+          userInfo = null
+        }
+      } else {
+        userInfo = null
+      }
+    } else {
+      userInfo = userInfoData
     }
 
     // 사용자 인증 상태 조회

@@ -38,11 +38,22 @@ export default function SignInPage() {
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null)
   const [canUseBiometric, setCanUseBiometric] = useState(false)
   const [savedUserId, setSavedUserId] = useState<string | null>(null)
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
 
   // 로그인 페이지 방문 이벤트
   useEffect(() => {
     signInEvents.visitLogin()
-  }, [])
+    
+    // accountDeleted 쿼리 파라미터 확인
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('accountDeleted') === '1') {
+        setShowDeleteSuccess(true)
+        // URL에서 쿼리 파라미터 제거 (깔끔한 URL 유지)
+        router.replace('/sign-in', { scroll: false })
+      }
+    }
+  }, [router])
 
   useEffect(() => {
     if (!BIOMETRIC_ENABLED) {
@@ -343,7 +354,38 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-3 sm:p-4 pt-32 sm:pt-44">
       <div className="flex justify-center">
-      <Card className="w-full max-w-md bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-lg">
+      <div className="w-full max-w-md space-y-4">
+        {/* 계정 삭제 완료 메시지 */}
+        {showDeleteSuccess && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                  {language === 'ko' ? '계정이 성공적으로 삭제되었습니다.' : 'La cuenta se ha eliminado correctamente.'}
+                </p>
+                <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                  {language === 'ko' 
+                    ? '이메일과 비밀번호로 다시 가입하실 수 있습니다.' 
+                    : 'Puede registrarse nuevamente con su correo electrónico y contraseña.'}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDeleteSuccess(false)}
+                className="flex-shrink-0 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      <Card className="w-full bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-lg">
         <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
           <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-gray-100">
             {t('auth.signIn')}
@@ -575,6 +617,7 @@ export default function SignInPage() {
         </DialogContent>
       </Dialog>
       )}
+      </div>
     </div>
   )
 }

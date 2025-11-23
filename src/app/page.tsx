@@ -643,6 +643,36 @@ function HomePageContent() {
   )
 }
 
+// 랜ing페이지 제거: 자동으로 /main으로 리다이렉트
+function RedirectToMain() {
+  const router = useRouter()
+  
+  useEffect(() => {
+    // 스플래시는 유지하되, 바로 메인으로 이동
+    const searchParams = new URLSearchParams(window.location.search)
+    const shouldShowSplash = searchParams.get('splash') === 'true'
+    
+    if (!shouldShowSplash) {
+      // 스플래시 없이 바로 리다이렉트
+      router.replace('/main')
+    } else {
+      // 스플래시 표시 후 메인으로 이동
+      setTimeout(() => {
+        router.replace('/main')
+      }, 2000)
+    }
+  }, [router])
+  
+  return (
+    <div className="min-h-screen body-gradient flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-600 dark:border-gray-400 mx-auto"></div>
+        <p className="mt-4 text-gray-600">로딩 중...</p>
+      </div>
+    </div>
+  )
+}
+
 export default function HomePage() {
   return (
     <Suspense fallback={
@@ -653,7 +683,7 @@ export default function HomePage() {
         </div>
       </div>
     }>
-      <HomePageContent />
+      <RedirectToMain />
     </Suspense>
   )
 }

@@ -231,7 +231,8 @@ export async function POST(request: NextRequest) {
               const { data: authUsers, error: listError } = await supabaseServer.auth.admin.listUsers()
               
               if (!listError && authUsers) {
-                const existingAuthUser = authUsers.users.find(u => u.email === email)
+                const emailLower = email.toLowerCase()
+                const existingAuthUser = authUsers.users.find(u => u.email?.toLowerCase() === emailLower)
                 
                 if (existingAuthUser) {
                   // users 테이블에서 해당 사용자가 삭제된 계정인지 확인
@@ -250,15 +251,16 @@ export async function POST(request: NextRequest) {
                     
                     if (forceDeleteError) {
                       console.error('[SIGNUP] 강제 삭제 실패:', forceDeleteError)
-                      return NextResponse.json(
-                        { error: '계정 삭제 중 오류가 발생했습니다. 고객지원팀에 문의해주세요.' },
-                        { status: 500 }
-                      )
+                      // 삭제 실패해도 재시도 (auth.users에서 이미 삭제되었을 수 있음)
+                      console.warn('[SIGNUP] 삭제 실패했지만 재시도 진행')
+                    } else {
+                      console.log(`[SIGNUP] 삭제된 계정의 Auth 사용자 강제 삭제 완료: ${existingAuthUser.id}`)
                     }
                     
-                    console.log(`[SIGNUP] 삭제된 계정의 Auth 사용자 강제 삭제 완료: ${existingAuthUser.id}`)
+                    // 삭제 후 충분한 대기 시간 (Supabase가 완전히 처리할 시간)
+                    await new Promise(resolve => setTimeout(resolve, 2000)) // 2초 대기
                     
-                    // 삭제 후 다시 사용자 생성 시도
+                    // 다시 사용자 생성 시도
                     const { data: retryAuthData, error: retryAuthError } = await supabaseServer.auth.admin.createUser({
                       email: email,
                       password: password,
@@ -272,14 +274,43 @@ export async function POST(request: NextRequest) {
                     
                     if (retryAuthError) {
                       console.error('[SIGNUP] 재시도 후에도 사용자 생성 실패:', retryAuthError)
-                      return NextResponse.json(
-                        { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
-                        { status: 500 }
-                      )
+                      
+                      // 여전히 중복 에러면 한 번 더 시도
+                      if (retryAuthError.message?.includes('already registered') || 
+                          retryAuthError.message?.includes('already exists')) {
+                        console.log('[SIGNUP] 여전히 중복 에러, 추가 대기 후 재시도')
+                        await new Promise(resolve => setTimeout(resolve, 3000)) // 3초 더 대기
+                        
+                        const { data: finalRetryData, error: finalRetryError } = await supabaseServer.auth.admin.createUser({
+                          email: email,
+                          password: password,
+                          user_metadata: {
+                            name: name,
+                            phone: formattedPhone,
+                            country: country
+                          },
+                          email_confirm: true
+                        })
+                        
+                        if (finalRetryError) {
+                          return NextResponse.json(
+                            { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
+                            { status: 500 }
+                          )
+                        }
+                        
+                        userId = finalRetryData.user.id
+                        console.log(`[SIGNUP] 최종 재시도 후 사용자 생성 성공: ${userId}`)
+                      } else {
+                        return NextResponse.json(
+                          { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
+                          { status: 500 }
+                        )
+                      }
+                    } else {
+                      userId = retryAuthData.user.id
+                      console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
                     }
-                    
-                    userId = retryAuthData.user.id
-                    console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
                     // users 테이블 삽입은 아래 공통 로직으로 진행
                   } else {
                     // 삭제되지 않은 활성 계정

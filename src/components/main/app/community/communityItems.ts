@@ -32,33 +32,16 @@ export interface PartnerLink {
 }
 
 export const communityItems: CommunityItem[] = [
-  // 1. Story & Boards (스토리&게시판)
+  // 1. Tableros por Temas (주제별 게시판) - 스토리 제거, 직접 라우트로 변경
   {
     id: 'story-boards',
-    title: 'Historia y Tableros',
-    titleKey: 'community.storyBoards',
-    microcopy: 'Tableros y Historias',
-    microcopyKey: 'community.storyBoardsDesc',
+    title: 'Tablero por Temas',
+    titleKey: 'community.freeBoard',
+    microcopy: 'Discute sobre diversos temas de K-Cultura',
+    microcopyKey: 'community.freeBoardDesc',
     icon: '/icons/topic-board.png',
     accentColor: '#3B82F6', // Blue
-    subItems: [
-      {
-        id: 'topics',
-        title: 'Tablero por Temas',
-        titleKey: 'community.freeBoard',
-        route: '/community/freeboard',
-        icon: '/icons/Tablero por tema.png',
-        accentColor: '#3B82F6'
-      },
-      {
-        id: 'story',
-        title: 'Historia',
-        titleKey: 'community.story',
-        route: '/community/stories',
-        icon: '/icons/story.png',
-        accentColor: '#EC4899'
-      }
-    ]
+    route: '/community/freeboard' // 직접 라우트로 변경 (서브메뉴 제거)
   },
   
   // 2. Zona de K-Cultura (K-Culture Zone)
@@ -102,14 +85,6 @@ export const communityItems: CommunityItem[] = [
         route: '/community/polls',
         icon: '/icons/Encuestas.png',
         accentColor: '#10B981'
-      },
-      {
-        id: 'magazine',
-        title: 'K-Magazine',
-        titleKey: 'community.koreanNews',
-        route: '/community/news',
-        icon: '/icons/k-magazine.png',
-        accentColor: '#8B5CF6'
       }
     ]
   },

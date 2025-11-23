@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { Plus, Users, MessageSquare, Globe, Heart, Image as ImageIcon, X, ArrowLeft, Star, Search, Trash2 } from 'lucide-react'
+import { Users, MessageSquare, ArrowLeft, Star, Search, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,19 +22,13 @@ interface ChatRoom {
   created_at: string
 }
 
-type TabType = 'country' | 'fanclub'
-
 export default function KChatBoard() {
   const { user, token } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<TabType>('country')
   const [rooms, setRooms] = useState<ChatRoom[]>([])
   const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  const [favoriteRooms, setFavoriteRooms] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
+  const [favoriteRooms, setFavoriteRooms] = useState<Set<string>>(new Set())
 
   // 즐겨찾기 로드
   useEffect(() => {
@@ -46,7 +40,7 @@ export default function KChatBoard() {
 
   useEffect(() => {
     fetchRooms()
-  }, [activeTab])
+  }, [])
 
   // 관리자 권한 확인 (디버그용)
   useEffect(() => {
@@ -71,11 +65,19 @@ export default function KChatBoard() {
   const fetchRooms = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/chat/rooms?type=${activeTab}`)
+      // 단일 아미코 채팅방만 가져오기 (이름으로 필터링)
+      const response = await fetch('/api/chat/rooms')
       const data = await response.json()
       
       if (data.success) {
-        setRooms(data.rooms || [])
+        // "아미코 채팅방" 또는 "Amiko Chat" 이름의 채팅방만 필터링
+        const amikoRoom = data.rooms?.find((room: ChatRoom) => 
+          room.name?.toLowerCase().includes('amiko') || 
+          room.name?.toLowerCase().includes('아미코')
+        )
+        
+        // 아미코 채팅방이 없으면 모든 채팅방 중 첫 번째를 사용하거나 빈 배열
+        setRooms(amikoRoom ? [amikoRoom] : (data.rooms?.length > 0 ? [data.rooms[0]] : []))
       }
     } catch (error) {
       console.error('Failed to fetch chat rooms:', error)
@@ -85,99 +87,7 @@ export default function KChatBoard() {
     }
   }
 
-  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB')
-      return
-    }
-
-    setThumbnailFile(file)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setThumbnailPreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const uploadThumbnail = async (file: File): Promise<string | null> => {
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch('/api/upload/image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
-
-      const data = await response.json()
-      return data.url || null
-    } catch (error) {
-      console.error('Failed to upload thumbnail:', error)
-      return null
-    }
-  }
-
-  const handleCreateRoom = async (formData: FormData) => {
-    try {
-      const name = formData.get('name') as string
-      const description = formData.get('description') as string
-      const country = formData.get('country') as string
-
-      let thumbnailUrl: string | null = null
-      if (thumbnailFile) {
-        thumbnailUrl = await uploadThumbnail(thumbnailFile)
-      }
-
-      const roomData: any = {
-        name,
-        description,
-        type: activeTab,
-        created_by: user?.id
-      }
-
-      if (activeTab === 'country' && country) {
-        roomData.country = country
-      }
-
-      if (thumbnailUrl) {
-        roomData.thumbnail_url = thumbnailUrl
-      }
-
-      const response = await fetch('/api/chat/rooms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(roomData)
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        console.error('API Error Response:', data)
-        // 스페인어 에러 메시지
-        if (response.status === 403) {
-          alert('Solo los administradores pueden crear salas de chat por país.')
-        } else {
-          alert(`Error: ${data.error || 'Error al crear la sala de chat'}`)
-        }
-        return
-      }
-      
-      if (data.success) {
-        setShowCreateModal(false)
-        setThumbnailFile(null)
-        setThumbnailPreview(null)
-        fetchRooms()
-      }
-    } catch (error) {
-      console.error('Failed to create room:', error)
-    }
-  }
+  // 채팅방 생성 기능 제거 (단일 채팅방만 사용)
 
   const getTimeAgo = (dateString: string) => {
     const now = new Date()
@@ -280,59 +190,12 @@ export default function KChatBoard() {
                 <span className="hidden sm:inline">Comunidad</span>
               </button>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold">K-Chat Zone</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">아미코 채팅방</h1>
                 <p className="text-xs sm:text-sm mt-1 text-gray-600">
-                  Únete a chats por país o fanclub para discutir K-cultura
+                  Amiko Chat - 한국과 남미를 잇는 채팅방
                 </p>
               </div>
             </div>
-            {user && (activeTab === 'fanclub' || (activeTab === 'country' && user.is_admin)) && (
-              <Button
-                onClick={() => setShowCreateModal(true)}
-                className="hidden sm:flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Crear Sala
-              </Button>
-            )}
-          </div>
-
-          {/* Tabs */}
-          <div className="flex items-center gap-2 mt-4">
-            <Button
-              variant={activeTab === 'country' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setActiveTab('country')}
-              className={`flex items-center gap-2 transition-all ${
-                activeTab === 'country' 
-                  ? 'bg-blue-500 text-white hover:bg-blue-600 scale-105 shadow-md' 
-                  : 'hover:bg-gray-100 active:scale-95'
-              }`}
-            >
-              <Globe className="w-4 h-4" />
-              Chat por País
-            </Button>
-            <Button
-              variant={activeTab === 'fanclub' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setActiveTab('fanclub')}
-              className={`flex items-center gap-2 transition-all ${
-                activeTab === 'fanclub' 
-                  ? 'bg-blue-500 text-white hover:bg-blue-600 scale-105 shadow-md' 
-                  : 'hover:bg-gray-100 active:scale-95'
-              }`}
-            >
-              <Heart className="w-4 h-4" />
-              FanChat · Libre
-            </Button>
-          </div>
-          {/* Tab helper description */}
-          <div className="mt-2 text-xs sm:text-sm text-gray-600">
-            {activeTab === 'country' ? (
-              <span>Salas oficiales por país. Solo administradores crean las salas.</span>
-            ) : (
-              <span>Crea o únete a chats libres con quien quieras. Es un espacio abierto para conversar.</span>
-            )}
           </div>
         </div>
       </div>
@@ -459,114 +322,7 @@ export default function KChatBoard() {
         )}
       </div>
 
-      {/* Create Room Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Crear Sala de Chat</h2>
-            <form action={handleCreateRoom}>
-              <div className="space-y-4">
-                {/* Thumbnail Upload */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2">Miniatura de la Sala</label>
-                  {thumbnailPreview ? (
-                    <div className="relative w-full h-40 sm:h-48 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
-                      <Image
-                        src={thumbnailPreview}
-                        alt="Thumbnail preview"
-                        fill
-                        className="object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setThumbnailFile(null)
-                          setThumbnailPreview(null)
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-40 sm:h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
-                      <ImageIcon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mb-2" />
-                      <p className="text-xs sm:text-sm text-gray-600">Haz clic o arrastra para subir</p>
-                      <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 5MB</p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleThumbnailSelect}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-1">Nombre de la Sala</label>
-                  <input
-                    name="name"
-                    type="text"
-                    required
-                    className="w-full border rounded-lg px-3 py-2 text-sm"
-                    placeholder={activeTab === 'country' ? 'Ingresa el nombre de la sala' : 'Ej: Sala para Mark ~'}
-                  />
-                </div>
-                {activeTab === 'country' && (
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1">País</label>
-                    <input
-                      name="country"
-                      type="text"
-                      required
-                      className="w-full border rounded-lg px-3 py-2 text-sm"
-                      placeholder="Ingresa el país"
-                    />
-                  </div>
-                )}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-1">Descripción</label>
-                  <textarea
-                    name="description"
-                    className="w-full border rounded-lg px-3 py-2 text-sm"
-                    rows={3}
-                    placeholder="Describe tu sala de chat"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4 sm:mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowCreateModal(false)
-                    setThumbnailFile(null)
-                    setThumbnailPreview(null)
-                  }}
-                  className="flex-1 text-sm"
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" className="flex-1 text-sm bg-purple-500 text-white hover:bg-purple-600 border border-purple-500">
-                  Crear
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Floating Action Button (mobile only) */}
-      {user && (activeTab === 'fanclub' || (activeTab === 'country' && user.is_admin)) && (
-        <button
-          aria-label="Crear Sala"
-          onClick={() => setShowCreateModal(true)}
-          className="sm:hidden fixed bottom-6 right-4 z-50 rounded-full bg-blue-600 text-white shadow-lg w-12 h-12 flex items-center justify-center active:scale-95"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      )}
+      {/* 채팅방 생성 기능 제거됨 - 단일 아미코 채팅방만 사용 */}
     </div>
   )
 }

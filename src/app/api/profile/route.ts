@@ -359,35 +359,62 @@ export async function GET(request: NextRequest) {
       })
     }
     console.log('[PROFILE GET] users 테이블에서 사용자 조회 시작:', userId)
-    const { data: user, error: userError } = await supabaseServer
+    const { data: userData, error: userError } = await supabaseServer
       .from('users')
       .select('*')
       .eq('id', userId)
       .single()
 
+    let user
     if (userError) {
       console.log('[PROFILE GET] users 테이블에서 사용자 없음, auth.users 확인:', userError.message)
       // 사용자가 없으면 auth.users에서 확인
-      const { data: authUser, error: authError } = await supabaseServer.auth.admin.getUserById(userId)
+      const { data: authUserData, error: authError } = await supabaseServer.auth.admin.getUserById(userId)
       
-      if (authUser && !authError) {
-        console.log('[PROFILE GET] auth.users에는 있지만 public.users에는 없음')
-        // auth.users에는 있지만 public.users에는 없는 경우
-        return NextResponse.json({
-          error: '사용자 프로필이 설정되지 않았습니다. 인증을 완료해주세요.',
-          needsVerification: true,
-          authUser: {
-            id: (authUser as any).id,
-            email: (authUser as any).email,
-            user_metadata: (authUser as any).user_metadata
-          }
-        }, { status: 404 })
+      if (authUserData?.user && !authError) {
+        console.log('[PROFILE GET] auth.users에는 있지만 public.users에는 없음, 자동 재생성 시도')
+        const authUser = authUserData.user
+        
+        // public.users에 기본 레코드 재생성 (계정 삭제가 부분적으로 실패한 경우 복구)
+        const { data: recreatedUser, error: recreateError } = await supabaseServer
+          .from('users')
+          .insert({
+            id: authUser.id,
+            email: authUser.email || '',
+            nickname: 'deleted_user', // NOT NULL 제약 조건
+            full_name: authUser.user_metadata?.name || null,
+            phone: authUser.user_metadata?.phone || null,
+            language: 'ko',
+            is_active: true,
+            created_at: authUser.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single()
+        
+        if (recreateError) {
+          console.error('[PROFILE GET] public.users 재생성 실패:', recreateError)
+          return NextResponse.json({
+            error: '사용자 프로필이 설정되지 않았습니다. 인증을 완료해주세요.',
+            needsVerification: true,
+            authUser: {
+              id: authUser.id,
+              email: authUser.email,
+              user_metadata: authUser.user_metadata
+            }
+          }, { status: 404 })
+        } else {
+          console.log('[PROFILE GET] public.users 재생성 성공:', recreatedUser)
+          user = recreatedUser
+        }
+      } else {
+        return NextResponse.json(
+          { error: '사용자 정보를 찾을 수 없습니다.' },
+          { status: 404 }
+        )
       }
-      
-      return NextResponse.json(
-        { error: '사용자 정보를 찾을 수 없습니다.' },
-        { status: 404 }
-      )
+    } else {
+      user = userData
     }
 
     // auth.users에서 user_metadata 가져오기 (회원가입 시 입력한 국적 정보가 여기 있음)

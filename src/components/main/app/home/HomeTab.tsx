@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import SplashSequence from '@/components/splash/SplashSequence'
 import { 
   Calendar, 
   Users, 
@@ -116,6 +118,11 @@ export default function HomeTab() {
   const { t, language } = useLanguage()
   const { user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // 스플래시 애니메이션 상태
+  const [showSplash, setShowSplash] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   
   const [currentEvents, setCurrentEvents] = useState<Event[]>([])
   const [hotPosts, setHotPosts] = useState<HotPost[]>([])
@@ -141,6 +148,46 @@ export default function HomeTab() {
   const [showStoryViewer, setShowStoryViewer] = useState(false)
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0)
   const [viewerStories, setViewerStories] = useState<RecentStory[]>([])
+  
+  // 스플래시 애니메이션 초기화
+  useEffect(() => {
+    setIsClient(true)
+    
+    // URL에 splash=true가 있으면 스플래시 표시 (로고 클릭)
+    const shouldShowSplash = searchParams.get('splash') === 'true'
+    
+    if (shouldShowSplash) {
+      setShowSplash(true)
+      // URL에서 쿼리 파라미터 제거
+      router.replace('/main?tab=home', { scroll: false })
+    } else {
+      // 초기 로드 시에만 스플래시 표시 (하루에 한 번만)
+      const lastSplashDate = localStorage.getItem('amiko_last_splash_date')
+      const today = new Date().toDateString()
+      
+      if (lastSplashDate !== today) {
+        setShowSplash(true)
+        localStorage.setItem('amiko_last_splash_date', today)
+      }
+    }
+  }, [searchParams, router])
+  
+  // 스플래시 표시 시 body에 클래스 추가/제거
+  useEffect(() => {
+    if (showSplash) {
+      document.body.classList.add('splash-active')
+    } else {
+      document.body.classList.remove('splash-active')
+    }
+    
+    return () => {
+      document.body.classList.remove('splash-active')
+    }
+  }, [showSplash])
+  
+  const handleSplashComplete = () => {
+    setShowSplash(false)
+  }
   
 
   // 이벤트 자동 슬라이드
@@ -392,6 +439,12 @@ export default function HomeTab() {
   }
 
   const loadRecentStories = async () => {
+    // 스토리 기능이 비활성화되어 있으면 로드하지 않음
+    if (process.env.NEXT_PUBLIC_ENABLE_STORIES !== 'true') {
+      setRecentStories([])
+      return
+    }
+    
     try {
       console.log('Loading recent stories...')
       
@@ -515,26 +568,45 @@ export default function HomeTab() {
 
   const loadHotChatRoomsAndPolls = async () => {
     try {
-      // 채팅방 데이터 로드 (모든 타입: country, fanclub, free 등)
+      // 단일 아미코 채팅방만 로드 (나라별 채팅방 제거)
       const chatRoomResponse = await fetch('/api/chat/rooms')
       if (chatRoomResponse.ok) {
         const chatRoomData = await chatRoomResponse.json()
         if (chatRoomData.success && chatRoomData.rooms && chatRoomData.rooms.length > 0) {
-          // 최근 업데이트 순으로 정렬하여 4개만 표시
-          const sortedRooms = [...chatRoomData.rooms].sort((a: any, b: any) => {
-            const dateA = new Date(a.updated_at || a.created_at).getTime()
-            const dateB = new Date(b.updated_at || b.created_at).getTime()
-            return dateB - dateA
-          })
+          // "아미코 채팅방" 또는 "Amiko Chat" 이름의 채팅방만 필터링
+          const amikoRoom = chatRoomData.rooms.find((room: any) => 
+            room.name?.toLowerCase().includes('amiko') || 
+            room.name?.toLowerCase().includes('아미코')
+          )
           
-          const formattedChatRooms = sortedRooms.slice(0, 4).map((room: any) => ({
-            id: room.id,
-            title: room.name || '',
-            image: room.thumbnail_url || '/misc/placeholder.png',
-            memberCount: 0, // TODO: 실제 참여자 수 가져오기
-            lastMessageAt: room.updated_at ? formatTimeAgo(room.updated_at) : undefined
-          }))
-          setHotChatRooms(formattedChatRooms)
+          // 아미코 채팅방이 있으면 단일 채팅방만 표시, 없으면 빈 배열
+          if (amikoRoom) {
+            const formattedChatRooms = [{
+              id: amikoRoom.id,
+              title: amikoRoom.name || '아미코 채팅방',
+              image: amikoRoom.thumbnail_url || '/misc/placeholder.png',
+              memberCount: amikoRoom.participant_count || 0,
+              lastMessageAt: amikoRoom.updated_at ? formatTimeAgo(amikoRoom.updated_at) : undefined
+            }]
+            setHotChatRooms(formattedChatRooms)
+          } else {
+            // 아미코 채팅방이 없으면 모든 채팅방 중 첫 번째를 사용 (임시)
+            const firstRoom = chatRoomData.rooms[0]
+            if (firstRoom) {
+              const formattedChatRooms = [{
+                id: firstRoom.id,
+                title: firstRoom.name || '아미코 채팅방',
+                image: firstRoom.thumbnail_url || '/misc/placeholder.png',
+                memberCount: firstRoom.participant_count || 0,
+                lastMessageAt: firstRoom.updated_at ? formatTimeAgo(firstRoom.updated_at) : undefined
+              }]
+              setHotChatRooms(formattedChatRooms)
+            } else {
+              setHotChatRooms([])
+            }
+          }
+        } else {
+          setHotChatRooms([])
         }
       }
 
@@ -567,6 +639,12 @@ export default function HomeTab() {
   }
 
   const loadKNoticiaNews = async () => {
+    // 뉴스 기능이 비활성화되어 있으면 로드하지 않음
+    if (process.env.NEXT_PUBLIC_ENABLE_NEWS !== 'true') {
+      setKNoticiaNews([])
+      return
+    }
+    
     try {
       const response = await fetch('/api/news?limit=5')
       
@@ -699,6 +777,22 @@ export default function HomeTab() {
   const shortenCategoryName = useCallback((category: string) => {
     return categoryMap[category] || category.substring(0, 6)
   }, [categoryMap])
+
+  // 스플래시 애니메이션 표시
+  if (!isClient) {
+    return (
+      <div className="min-h-screen body-gradient flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-600 dark:border-gray-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600">{language === 'ko' ? '로딩 중...' : 'Cargando...'}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (showSplash) {
+    return <SplashSequence onComplete={handleSplashComplete} />
+  }
 
   if (loading) {
     return (
@@ -1155,8 +1249,8 @@ export default function HomeTab() {
         </div>
       </div>
 
-      {/* 화상채팅 온라인 인원 - 모바일 버전 */}
-      <div className="space-y-3">
+      {/* 화상채팅 온라인 인원 - 모바일 버전 - 미구현으로 숨김 */}
+      {/* <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-green-600" />
@@ -1206,7 +1300,7 @@ export default function HomeTab() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* 지금 핫 한 채팅방 & 지금 투표 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1234,43 +1328,47 @@ export default function HomeTab() {
           
           <Card>
             <CardContent className="p-2">
-              <div className="grid grid-cols-2 gap-2">
-                {hotChatRooms.length > 0 ? (
-                  hotChatRooms.slice(0, 4).map((room) => (
+              {hotChatRooms.length > 0 ? (
+                <div className="space-y-2">
+                  {hotChatRooms.map((room) => (
                     <div 
                       key={room.id}
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/k-chat/${room.id}?from=home`)}
                     >
-                      <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
-                        <img
-                          src={room.image || '/misc/placeholder.png'}
-                          alt={room.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
-                        {room.title}
-                      </p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Users className="w-3 h-3" />
-                        <span>{room.memberCount} · {room.lastMessageAt || '지금'}</span>
+                      <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-lg">
+                          <img
+                            src={room.image || '/misc/placeholder.png'}
+                            alt={room.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
+                            {room.title}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <Users className="w-3 h-3" />
+                            <span>{room.memberCount} · {room.lastMessageAt || '지금'}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="col-span-2 text-center py-4">
-                    <img 
-                      src="/icons/Zona de K-Cultura.png" 
-                      alt="K-Culture Zone" 
-                      className="w-8 h-8 mx-auto mb-2 opacity-40"
-                    />
-                    <p className="text-gray-500 text-xs">
-                      {language === 'ko' ? '핫 한 채팅방이 없습니다' : 'No hay chats calientes'}
-                    </p>
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <img 
+                    src="/icons/Zona de K-Cultura.png" 
+                    alt="K-Culture Zone" 
+                    className="w-8 h-8 mx-auto mb-2 opacity-40"
+                  />
+                  <p className="text-gray-500 text-xs">
+                    {language === 'ko' ? '핫 한 채팅방이 없습니다' : 'No hay chats calientes'}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -1352,18 +1450,20 @@ export default function HomeTab() {
       </div>
 
       {/* 오늘의 K-Noticia - 모바일 버전 */}
-      <div className="space-y-3 md:hidden">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <img 
-              src="/icons/k-magazine.png" 
-              alt="K-Noticia" 
-              className="w-5 h-5 object-contain mr-2"
-            />
-            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
-              {t('home.sections.kNoticia')}
-            </h2>
-          </div>
+      {/* K-Noticia 뉴스 섹션 - 환경 변수로 제어 */}
+      {process.env.NEXT_PUBLIC_ENABLE_NEWS === 'true' && (
+        <div className="space-y-3 md:hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <img 
+                src="/icons/k-magazine.png" 
+                alt="K-Noticia" 
+                className="w-5 h-5 object-contain mr-2"
+              />
+              <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
+                {t('home.sections.kNoticia')}
+              </h2>
+            </div>
           <button 
             onClick={() => router.push('/community/news')}
             className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
@@ -1422,10 +1522,12 @@ export default function HomeTab() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      )}
 
-      {/* 최근 스토리 - 그리드 레이아웃 */}
-      <div className="space-y-3 md:hidden">
+      {/* 최근 스토리 - 그리드 레이아웃 - 환경 변수로 제어 */}
+      {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
+        <div className="space-y-3 md:hidden">
         <div className="flex items-center justify-between">
         <div className="flex items-center">
           <img 
@@ -1504,7 +1606,8 @@ export default function HomeTab() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      )}
 
       {/* AMIKO 최근 영상 */}
       <div className="space-y-3 md:hidden">
@@ -2068,8 +2171,8 @@ export default function HomeTab() {
               </div>
             </div>
 
-            {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 */}
-            <div className="space-y-4">
+            {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 - 미구현으로 숨김 */}
+            {/* <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -2124,7 +2227,7 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
 
             {/* 지금 핫 한 채팅방 & 지금 투표 - 데스크톱 */}
             <div className="grid grid-cols-2 gap-4">
@@ -2148,39 +2251,43 @@ export default function HomeTab() {
                 
                 <Card>
                   <CardContent className="p-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      {hotChatRooms.length > 0 ? (
-                        hotChatRooms.slice(0, 4).map((room) => (
+                    {hotChatRooms.length > 0 ? (
+                      <div className="space-y-2">
+                        {hotChatRooms.map((room) => (
                           <div 
                             key={room.id}
                             className="cursor-pointer group"
                             onClick={() => router.push(`/community/k-chat/${room.id}?from=home`)}
                           >
-                            <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
-                              <img
-                                src={room.image || '/misc/placeholder.png'}
-                                alt={room.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                              />
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
-                              {room.title}
-                            </p>
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <Users className="w-3 h-3" />
-                              <span>{room.memberCount} · {room.lastMessageAt || '지금'}</span>
+                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                              <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-lg">
+                                <img
+                                  src={room.image || '/misc/placeholder.png'}
+                                  alt={room.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
+                                  {room.title}
+                                </p>
+                                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  <Users className="w-3 h-3" />
+                                  <span>{room.memberCount} · {room.lastMessageAt || '지금'}</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        ))
-                      ) : (
-                        <div className="col-span-2 text-center py-4">
-                          <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-gray-500 text-xs">
-                            {language === 'ko' ? '핫 한 채팅방이 없습니다' : 'No hay chats calientes'}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500 text-xs">
+                          {language === 'ko' ? '핫 한 채팅방이 없습니다' : 'No hay chats calientes'}
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -2253,8 +2360,9 @@ export default function HomeTab() {
               </div>
             </div>
 
-            {/* 오늘의 K-Noticia - 데스크톱 */}
-            <div className="space-y-4">
+            {/* 오늘의 K-Noticia - 데스크톱 - 환경 변수로 제어 */}
+            {process.env.NEXT_PUBLIC_ENABLE_NEWS === 'true' && (
+              <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <img 
@@ -2324,10 +2432,12 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+              </div>
+            )}
 
-            {/* 최근 스토리 - 데스크톱 */}
-            <div className="space-y-4">
+            {/* 최근 스토리 - 데스크톱 - 환경 변수로 제어 */}
+            {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
+              <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <img 
@@ -2406,7 +2516,8 @@ export default function HomeTab() {
                   )}
                 </CardContent>
               </Card>
-            </div>
+              </div>
+            )}
 
             {/* AMIKO 최근 영상 - 데스크톱 */}
             <div className="space-y-4">

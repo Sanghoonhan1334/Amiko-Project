@@ -9,6 +9,8 @@ import { LogOut, Play, Users, Menu, X, MessageSquare, Calendar, Bell, Settings, 
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
+import InquiryModal from '@/components/common/InquiryModal'
+import PartnershipModal from '@/components/common/PartnershipModal'
 
 function HeaderContent() {
   const router = useRouter()
@@ -22,6 +24,10 @@ function HeaderContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
   const [highlightMainButton, setHighlightMainButton] = useState(false)
+  
+  // 문의/제휴 모달 상태
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false)
+  const [isPartnershipModalOpen, setIsPartnershipModalOpen] = useState(false)
   
   // 네비게이션 활성 상태 관리
   const [activeNavItem, setActiveNavItem] = useState(pathname)
@@ -749,7 +755,7 @@ function HeaderContent() {
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[60] dark:z-[40] bg-transparent"
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    router.push('/?splash=true');
+                    router.push('/main?tab=home&splash=true');
                   }}
                 />
               </div>
@@ -1024,24 +1030,28 @@ function HeaderContent() {
               </Link>
 
               {/* 문의하기 */}
-              <Link 
-                href="/inquiry"
-                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
-                onClick={toggleMobileMenu}
+              <button
+                onClick={() => {
+                  setIsInquiryModalOpen(true)
+                  toggleMobileMenu()
+                }}
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300 w-full text-left"
               >
                 <span className="text-base">📧</span>
                 <span className="text-sm font-medium">{language === 'ko' ? '문의하기' : 'Contacto'}</span>
-              </Link>
+              </button>
 
               {/* 제휴문의 */}
-              <Link 
-                href="/partnership"
-                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
-                onClick={toggleMobileMenu}
+              <button
+                onClick={() => {
+                  setIsPartnershipModalOpen(true)
+                  toggleMobileMenu()
+                }}
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300 w-full text-left"
               >
                 <span className="text-base">🤝</span>
                 <span className="text-sm font-medium">{language === 'ko' ? '제휴문의' : 'Colaboración'}</span>
-              </Link>
+              </button>
             </div>
             
             {/* 구분선 */}
@@ -1153,6 +1163,18 @@ function HeaderContent() {
           </div>
         </div>
       </div>
+      
+      {/* 문의 모달 */}
+      <InquiryModal 
+        isOpen={isInquiryModalOpen} 
+        onClose={() => setIsInquiryModalOpen(false)} 
+      />
+      
+      {/* 제휴 모달 */}
+      <PartnershipModal 
+        isOpen={isPartnershipModalOpen} 
+        onClose={() => setIsPartnershipModalOpen(false)} 
+      />
     </>
   )
 }
