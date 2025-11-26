@@ -281,121 +281,122 @@ export async function DELETE(request: NextRequest) {
         console.log(`[ACCOUNT_DELETE] auth.users 삭제 전 대기: ${waitTime}ms`)
         await new Promise(resolve => setTimeout(resolve, waitTime))
       
-      // 강력한 재시도 로직: 최대 5번 재시도, 점진적으로 증가하는 대기 시간
-      const maxRetries = 5
-      let retryCount = 0
-      let lastError: any = null
-      
-      while (retryCount <= maxRetries && !authDeleteSuccess) {
-        if (retryCount > 0) {
-          // 재시도 시 점진적으로 증가하는 대기 시간 (5초, 10초, 15초, 20초, 25초)
-          const retryWaitTime = 5000 * retryCount
-          console.log(`[ACCOUNT_DELETE] ${retryCount}차 재시도 전 대기: ${retryWaitTime}ms`)
-          await new Promise(resolve => setTimeout(resolve, retryWaitTime))
-        }
+        // 강력한 재시도 로직: 최대 5번 재시도, 점진적으로 증가하는 대기 시간
+        const maxRetries = 5
+        let retryCount = 0
+        let lastError: any = null
         
-        console.log(`[ACCOUNT_DELETE] auth.users 삭제 시도 (${retryCount === 0 ? '1차' : `${retryCount}차 재시도`})`)
-        const { error: authDeleteError } = await supabaseServer.auth.admin.deleteUser(userId)
-        
-        if (authDeleteError) {
-          console.error(`[ACCOUNT_DELETE] ${retryCount === 0 ? '1차' : `${retryCount}차 재시도`} auth 사용자 삭제 실패:`, authDeleteError)
-          console.error('[ACCOUNT_DELETE] 에러 상세:', JSON.stringify(authDeleteError, null, 2))
-          console.error('[ACCOUNT_DELETE] 에러 메시지:', authDeleteError.message)
-          console.error('[ACCOUNT_DELETE] 에러 코드:', authDeleteError.code)
-          lastError = authDeleteError
+        while (retryCount <= maxRetries && !authDeleteSuccess) {
+          if (retryCount > 0) {
+            // 재시도 시 점진적으로 증가하는 대기 시간 (5초, 10초, 15초, 20초, 25초)
+            const retryWaitTime = 5000 * retryCount
+            console.log(`[ACCOUNT_DELETE] ${retryCount}차 재시도 전 대기: ${retryWaitTime}ms`)
+            await new Promise(resolve => setTimeout(resolve, retryWaitTime))
+          }
           
-          // 모든 종류의 에러에 대해 재시도 (단, 마지막 재시도까지)
-          if (retryCount < maxRetries) {
-            retryCount++
-            continue
-          } else {
-            // 마지막 재시도 실패 시, 이메일로 사용자 찾아서 삭제 시도
-            console.log('[ACCOUNT_DELETE] 모든 재시도 실패, 이메일로 사용자 찾아서 삭제 시도')
-            try {
-              const { data: authUsers, error: listError } = await supabaseServer.auth.admin.listUsers()
-              
-              if (!listError && authUsers) {
-                const existingAuthUser = authUsers.users.find(u => u.id === userId || u.email === originalEmail)
+          console.log(`[ACCOUNT_DELETE] auth.users 삭제 시도 (${retryCount === 0 ? '1차' : `${retryCount}차 재시도`})`)
+          const { error: authDeleteError } = await supabaseServer.auth.admin.deleteUser(userId)
+          
+          if (authDeleteError) {
+            console.error(`[ACCOUNT_DELETE] ${retryCount === 0 ? '1차' : `${retryCount}차 재시도`} auth 사용자 삭제 실패:`, authDeleteError)
+            console.error('[ACCOUNT_DELETE] 에러 상세:', JSON.stringify(authDeleteError, null, 2))
+            console.error('[ACCOUNT_DELETE] 에러 메시지:', authDeleteError.message)
+            console.error('[ACCOUNT_DELETE] 에러 코드:', authDeleteError.code)
+            lastError = authDeleteError
+            
+            // 모든 종류의 에러에 대해 재시도 (단, 마지막 재시도까지)
+            if (retryCount < maxRetries) {
+              retryCount++
+              continue
+            } else {
+              // 마지막 재시도 실패 시, 이메일로 사용자 찾아서 삭제 시도
+              console.log('[ACCOUNT_DELETE] 모든 재시도 실패, 이메일로 사용자 찾아서 삭제 시도')
+              try {
+                const { data: authUsers, error: listError } = await supabaseServer.auth.admin.listUsers()
                 
-                if (existingAuthUser) {
-                  console.log(`[ACCOUNT_DELETE] 이메일로 사용자 찾음 (${existingAuthUser.id}), 최종 강제 삭제 시도`)
-                  await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
-                  const { error: finalDeleteError } = await supabaseServer.auth.admin.deleteUser(existingAuthUser.id)
+                if (!listError && authUsers) {
+                  const existingAuthUser = authUsers.users.find(u => u.id === userId || u.email === originalEmail)
                   
-                  if (finalDeleteError) {
-                    console.error('[ACCOUNT_DELETE] 최종 강제 삭제 실패:', finalDeleteError)
-                    failedOperations.push('auth.deleteUser')
+                  if (existingAuthUser) {
+                    console.log(`[ACCOUNT_DELETE] 이메일로 사용자 찾음 (${existingAuthUser.id}), 최종 강제 삭제 시도`)
+                    await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
+                    const { error: finalDeleteError } = await supabaseServer.auth.admin.deleteUser(existingAuthUser.id)
+                    
+                    if (finalDeleteError) {
+                      console.error('[ACCOUNT_DELETE] 최종 강제 삭제 실패:', finalDeleteError)
+                      failedOperations.push('auth.deleteUser')
+                    } else {
+                      console.log('[ACCOUNT_DELETE] 최종 강제 삭제 성공')
+                      authDeleteSuccess = true
+                    }
                   } else {
-                    console.log('[ACCOUNT_DELETE] 최종 강제 삭제 성공')
+                    console.log('[ACCOUNT_DELETE] Auth에서 사용자를 찾을 수 없음 (이미 삭제됨)')
                     authDeleteSuccess = true
                   }
                 } else {
-                  console.log('[ACCOUNT_DELETE] Auth에서 사용자를 찾을 수 없음 (이미 삭제됨)')
-                  authDeleteSuccess = true
+                  console.error('[ACCOUNT_DELETE] Auth 사용자 목록 조회 실패:', listError)
+                  failedOperations.push('auth.deleteUser')
                 }
-              } else {
-                console.error('[ACCOUNT_DELETE] Auth 사용자 목록 조회 실패:', listError)
+              } catch (finalRetryError) {
+                console.error('[ACCOUNT_DELETE] 최종 삭제 시도 중 예외:', finalRetryError)
                 failedOperations.push('auth.deleteUser')
               }
-            } catch (finalRetryError) {
-              console.error('[ACCOUNT_DELETE] 최종 삭제 시도 중 예외:', finalRetryError)
-              failedOperations.push('auth.deleteUser')
+              break
             }
+          } else {
+            console.log(`[ACCOUNT_DELETE] ${retryCount === 0 ? '1차' : `${retryCount}차 재시도`} auth 사용자 삭제 성공!`)
+            authDeleteSuccess = true
             break
           }
-        } else {
-          console.log(`[ACCOUNT_DELETE] ${retryCount === 0 ? '1차' : `${retryCount}차 재시도`} auth 사용자 삭제 성공!`)
-          authDeleteSuccess = true
-          break
-        }
-      }
-      
-      // 삭제 확인: 잠시 후 사용자가 실제로 삭제되었는지 확인
-      if (authDeleteSuccess) {
-        await new Promise(resolve => setTimeout(resolve, 3000)) // 3초 대기
-        
-        try {
-          const { data: verifyUsers, error: verifyError } = await supabaseServer.auth.admin.listUsers()
-          
-          if (!verifyError && verifyUsers) {
-            const stillExists = verifyUsers.users.some(u => u.id === userId || u.email === originalEmail)
-            
-            if (stillExists) {
-              console.warn('[ACCOUNT_DELETE] 삭제 확인: 사용자가 여전히 존재함, 최종 확인 후 강제 삭제 시도')
-              const existingUser = verifyUsers.users.find(u => u.id === userId || u.email === originalEmail)
-              
-              if (existingUser) {
-                await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
-                const { error: verifyDeleteError } = await supabaseServer.auth.admin.deleteUser(existingUser.id)
-                
-                if (verifyDeleteError) {
-                  console.error('[ACCOUNT_DELETE] 확인 후 강제 삭제 실패:', verifyDeleteError)
-                  failedOperations.push('auth.deleteUser.verify')
-                  authDeleteSuccess = false
-                } else {
-                  console.log('[ACCOUNT_DELETE] 확인 후 강제 삭제 성공')
-                  authDeleteSuccess = true
-                }
-              }
-            } else {
-              console.log('[ACCOUNT_DELETE] 삭제 확인: 사용자가 완전히 삭제됨')
-              authDeleteSuccess = true
-            }
-          }
-        } catch (verifyError) {
-          console.error('[ACCOUNT_DELETE] 삭제 확인 중 오류:', verifyError)
-          // 확인 실패는 경고만 하고 계속 진행 (삭제가 성공했을 수도 있음)
         }
         
+        // 삭제 확인: 잠시 후 사용자가 실제로 삭제되었는지 확인
         if (authDeleteSuccess) {
-          console.log('[ACCOUNT_DELETE] auth.users 삭제 성공 확인 완료')
+          await new Promise(resolve => setTimeout(resolve, 3000)) // 3초 대기
+          
+          try {
+            const { data: verifyUsers, error: verifyError } = await supabaseServer.auth.admin.listUsers()
+            
+            if (!verifyError && verifyUsers) {
+              const stillExists = verifyUsers.users.some(u => u.id === userId || u.email === originalEmail)
+              
+              if (stillExists) {
+                console.warn('[ACCOUNT_DELETE] 삭제 확인: 사용자가 여전히 존재함, 최종 확인 후 강제 삭제 시도')
+                const existingUser = verifyUsers.users.find(u => u.id === userId || u.email === originalEmail)
+                
+                if (existingUser) {
+                  await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
+                  const { error: verifyDeleteError } = await supabaseServer.auth.admin.deleteUser(existingUser.id)
+                  
+                  if (verifyDeleteError) {
+                    console.error('[ACCOUNT_DELETE] 확인 후 강제 삭제 실패:', verifyDeleteError)
+                    failedOperations.push('auth.deleteUser.verify')
+                    authDeleteSuccess = false
+                  } else {
+                    console.log('[ACCOUNT_DELETE] 확인 후 강제 삭제 성공')
+                    authDeleteSuccess = true
+                  }
+                }
+              } else {
+                console.log('[ACCOUNT_DELETE] 삭제 확인: 사용자가 완전히 삭제됨')
+                authDeleteSuccess = true
+              }
+            }
+          } catch (verifyError) {
+            console.error('[ACCOUNT_DELETE] 삭제 확인 중 오류:', verifyError)
+            // 확인 실패는 경고만 하고 계속 진행 (삭제가 성공했을 수도 있음)
+          }
+          
+          if (authDeleteSuccess) {
+            console.log('[ACCOUNT_DELETE] auth.users 삭제 성공 확인 완료')
+          }
+        } else {
+          console.error('[ACCOUNT_DELETE] auth.users 삭제 최종 실패, 모든 재시도 소진')
         }
-      } else {
-        console.error('[ACCOUNT_DELETE] auth.users 삭제 최종 실패, 모든 재시도 소진')
+      } catch (error) {
+        console.error('[ACCOUNT_DELETE] auth 사용자 삭제 중 예외 발생:', error)
+        failedOperations.push('auth.deleteUser')
       }
-    } catch (error) {
-      console.error('[ACCOUNT_DELETE] auth 사용자 삭제 중 예외 발생:', error)
-      failedOperations.push('auth.deleteUser')
     }
 
     // 삭제 로그 기록
