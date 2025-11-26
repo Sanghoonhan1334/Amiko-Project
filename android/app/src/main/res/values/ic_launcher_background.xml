@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Amiko 브랜드 색상: #6366f1 (indigo-500) -->
+    <color name="ic_launcher_background">#6366f1</color>
 </resources>
