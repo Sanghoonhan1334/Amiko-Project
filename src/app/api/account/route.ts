@@ -235,18 +235,51 @@ export async function DELETE(request: NextRequest) {
     // SQL 함수에서 session_replication_role = replica를 사용하여 외래 키 제약 조건을 비활성화했으므로
     // public.users는 이미 삭제되었고, 이제 auth.users 삭제를 시도할 수 있음
     let authDeleteSuccess = false
-    try {
-      // 먼저 사용자 이메일 저장 (삭제 후 확인용)
-      const originalEmail = user.email
+    
+    // SQL 함수 결과 확인: auth.users 삭제가 성공했는지 확인
+    const sqlAuthDeleteFailed = sqlDeleteResult && sqlDeleteResult.failed_operations && 
+      (sqlDeleteResult.failed_operations.includes('auth.users') || 
+       sqlDeleteResult.failed_operations.includes('auth.users_insufficient_privilege'))
+    
+    if (sqlDeleteResult && !sqlAuthDeleteFailed) {
+      // SQL 함수에서 auth.users 삭제가 성공했거나 시도하지 않은 경우
+      // (failed_operations에 auth.users 관련 항목이 없으면 성공으로 간주)
+      console.log('[ACCOUNT_DELETE] SQL 함수에서 auth.users 삭제 성공 또는 시도하지 않음, API에서 확인 필요')
       
-      // public.users 삭제 후 충분한 대기 시간 (데이터베이스가 모든 변경사항을 처리할 시간)
-      // SQL 함수가 성공했으면 public.users는 이미 삭제되었으므로 대기 시간을 줄임
-      // 하지만 Supabase의 내부 동기화를 위해 충분한 시간 필요
-      const waitTime = (sqlDeleteResult && (!sqlDeleteResult.failed_operations || sqlDeleteResult.failed_operations.length === 0)) 
-        ? 15000  // SQL 함수 성공 시 15초 대기 (Supabase 내부 동기화 시간)
-        : 15000  // 기존 로직 실행 시도 15초 대기
-      console.log(`[ACCOUNT_DELETE] auth.users 삭제 전 대기: ${waitTime}ms`)
-      await new Promise(resolve => setTimeout(resolve, waitTime))
+      // auth.users가 실제로 삭제되었는지 확인
+      try {
+        const { data: authUserCheck, error: checkError } = await supabaseServer.auth.admin.getUserById(userId)
+        
+        if (checkError || !authUserCheck || !authUserCheck.user) {
+          console.log('[ACCOUNT_DELETE] auth.users 삭제 확인: 사용자가 존재하지 않음 (삭제 성공)')
+          authDeleteSuccess = true
+        } else {
+          console.log('[ACCOUNT_DELETE] auth.users 삭제 확인: 사용자가 여전히 존재함, API에서 삭제 시도 필요')
+          authDeleteSuccess = false
+        }
+      } catch (checkException) {
+        console.error('[ACCOUNT_DELETE] auth.users 삭제 확인 중 예외:', checkException)
+        authDeleteSuccess = false
+      }
+    } else {
+      console.log('[ACCOUNT_DELETE] SQL 함수에서 auth.users 삭제 실패 또는 권한 부족, API에서 재시도 필요')
+      authDeleteSuccess = false
+    }
+    
+    // SQL 함수에서 삭제가 실패했거나 확인이 필요한 경우에만 API에서 재시도
+    // 먼저 사용자 이메일 저장 (삭제 후 확인용)
+    const originalEmail = user.email
+    
+    if (!authDeleteSuccess) {
+      try {
+        // public.users 삭제 후 충분한 대기 시간 (데이터베이스가 모든 변경사항을 처리할 시간)
+        // SQL 함수가 성공했으면 public.users는 이미 삭제되었으므로 대기 시간을 줄임
+        // 하지만 Supabase의 내부 동기화를 위해 충분한 시간 필요
+        const waitTime = (sqlDeleteResult && (!sqlDeleteResult.failed_operations || sqlDeleteResult.failed_operations.length === 0)) 
+          ? 15000  // SQL 함수 성공 시 15초 대기 (Supabase 내부 동기화 시간)
+          : 15000  // 기존 로직 실행 시도 15초 대기
+        console.log(`[ACCOUNT_DELETE] auth.users 삭제 전 대기: ${waitTime}ms`)
+        await new Promise(resolve => setTimeout(resolve, waitTime))
       
       // 강력한 재시도 로직: 최대 5번 재시도, 점진적으로 증가하는 대기 시간
       const maxRetries = 5
