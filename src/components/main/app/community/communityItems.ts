@@ -85,6 +85,14 @@ export const communityItems: CommunityItem[] = [
         route: '/community/polls',
         icon: '/icons/Encuestas.png',
         accentColor: '#10B981'
+      },
+      {
+        id: 'k-news',
+        title: 'K-Noticia',
+        titleKey: 'community.koreanNews',
+        route: '/community/news',
+        icon: '/icons/k-magazine.png',
+        accentColor: '#8B5CF6'
       }
     ]
   },

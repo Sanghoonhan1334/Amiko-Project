@@ -84,10 +84,62 @@ export default function PollBoard() {
   const [creating, setCreating] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<(string | null)[]>([])
   const [uploadingImages, setUploadingImages] = useState<boolean[]>([])
+  const [isVerified, setIsVerified] = useState(false)
+  const [checkingVerification, setCheckingVerification] = useState(false)
 
   useEffect(() => {
     fetchPolls()
   }, [statusFilter])
+
+  // 인증 상태 확인
+  useEffect(() => {
+    const checkVerification = async () => {
+      if (!user || !user.id) {
+        setIsVerified(false)
+        return
+      }
+
+      setCheckingVerification(true)
+      try {
+        const response = await fetch(`/api/profile?userId=${user.id}`)
+        if (response.ok) {
+          const result = await response.json()
+          if (result.user) {
+            // 인증 상태 확인 - user_type에 따라 다른 조건 적용
+            const userType = result.user.user_type || 'student'
+            const verified = !!(
+              result.user.is_verified ||
+              result.user.verification_completed ||
+              result.user.email_verified_at ||
+              result.user.sms_verified_at ||
+              result.user.kakao_linked_at ||
+              result.user.wa_verified_at ||
+              (result.user.korean_name) ||
+              (result.user.spanish_name) ||
+              (userType === 'student' && result.user.full_name && result.user.university && result.user.major) ||
+              (userType === 'general' && result.user.full_name && (result.user.occupation || result.user.company))
+            )
+            setIsVerified(verified)
+          } else {
+            setIsVerified(false)
+          }
+        } else {
+          setIsVerified(false)
+        }
+      } catch (error) {
+        console.error('인증 상태 확인 오류:', error)
+        setIsVerified(false)
+      } finally {
+        setCheckingVerification(false)
+      }
+    }
+
+    if (user && user.id) {
+      checkVerification()
+    } else {
+      setIsVerified(false)
+    }
+  }, [user?.id])
 
   // 이미지 파일을 base64로 변환
   const convertToBase64 = (file: File): Promise<string> => {
@@ -297,6 +349,16 @@ export default function PollBoard() {
       return
     }
 
+    if (!isVerified) {
+      const message = language === 'ko' 
+        ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+        : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+      if (confirm(message)) {
+        router.push('/verification-center')
+      }
+      return
+    }
+
     try {
       setCreating(true)
       const response = await fetch('/api/polls', {
@@ -407,6 +469,15 @@ export default function PollBoard() {
                     <div className="p-2">
                       <button
                         onClick={() => {
+                          if (!isVerified) {
+                            const message = language === 'ko' 
+                              ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                              : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                            if (confirm(message)) {
+                              router.push('/verification-center')
+                            }
+                            return
+                          }
                           setNewPoll({ ...newPoll, poll_type: 'text', options: ['', ''] })
                           setShowPollTypeMenu(false)
                           setShowCreateModal(true)
@@ -423,6 +494,15 @@ export default function PollBoard() {
                       
                       <button
                         onClick={() => {
+                          if (!isVerified) {
+                            const message = language === 'ko' 
+                              ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                              : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                            if (confirm(message)) {
+                              router.push('/verification-center')
+                            }
+                            return
+                          }
                           setNewPoll({ ...newPoll, poll_type: 'image', options: ['', ''] })
                           setImagePreviews([null, null])
                           setShowPollTypeMenu(false)
@@ -440,6 +520,15 @@ export default function PollBoard() {
                       
                       <button
                         onClick={() => {
+                          if (!isVerified) {
+                            const message = language === 'ko' 
+                              ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                              : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                            if (confirm(message)) {
+                              router.push('/verification-center')
+                            }
+                            return
+                          }
                           setNewPoll({ ...newPoll, poll_type: 'date', options: ['', ''] })
                           setShowPollTypeMenu(false)
                           setShowCreateModal(true)
@@ -456,6 +545,15 @@ export default function PollBoard() {
                       
                       <button
                         onClick={() => {
+                          if (!isVerified) {
+                            const message = language === 'ko' 
+                              ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                              : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                            if (confirm(message)) {
+                              router.push('/verification-center')
+                            }
+                            return
+                          }
                           setNewPoll({ ...newPoll, poll_type: 'text', options: ['', '', ''] })
                           setShowPollTypeMenu(false)
                           setShowCreateModal(true)
@@ -874,6 +972,15 @@ export default function PollBoard() {
               <div className="p-2">
                 <button
                   onClick={() => {
+                    if (!isVerified) {
+                      const message = language === 'ko' 
+                        ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                        : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                      if (confirm(message)) {
+                        router.push('/verification-center')
+                      }
+                      return
+                    }
                     setNewPoll({ ...newPoll, poll_type: 'text', options: ['', ''] })
                     setShowPollTypeMenu(false)
                     setShowCreateModal(true)
@@ -889,6 +996,15 @@ export default function PollBoard() {
                 
                 <button
                   onClick={() => {
+                    if (!isVerified) {
+                      const message = language === 'ko' 
+                        ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                        : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                      if (confirm(message)) {
+                        router.push('/verification-center')
+                      }
+                      return
+                    }
                     setNewPoll({ ...newPoll, poll_type: 'image', options: ['', ''] })
                     setImagePreviews([null, null])
                     setShowPollTypeMenu(false)
@@ -905,6 +1021,15 @@ export default function PollBoard() {
                 
                 <button
                   onClick={() => {
+                    if (!isVerified) {
+                      const message = language === 'ko' 
+                        ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                        : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                      if (confirm(message)) {
+                        router.push('/verification-center')
+                      }
+                      return
+                    }
                     setNewPoll({ ...newPoll, poll_type: 'date', options: ['', ''] })
                     setShowPollTypeMenu(false)
                     setShowCreateModal(true)
@@ -920,6 +1045,15 @@ export default function PollBoard() {
                 
                 <button
                   onClick={() => {
+                    if (!isVerified) {
+                      const message = language === 'ko' 
+                        ? '투표를 생성하려면 인증이 필요합니다. 인증 센터로 이동하시겠습니까?'
+                        : 'Se requiere verificación para crear una encuesta. ¿Desea ir al centro de verificación?'
+                      if (confirm(message)) {
+                        router.push('/verification-center')
+                      }
+                      return
+                    }
                     setNewPoll({ ...newPoll, poll_type: 'text', options: ['', '', ''] })
                     setShowPollTypeMenu(false)
                     setShowCreateModal(true)

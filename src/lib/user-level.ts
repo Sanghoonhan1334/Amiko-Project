@@ -20,7 +20,7 @@ export function getUserLevel(totalPoints: number): LevelResult {
   if (totalPoints > 300) return { level: 'lv3', label: 'Lv3' }
   if (totalPoints > 150) return { level: 'lv2', label: 'Lv2' }
   if (totalPoints > 75) return { level: 'lv1', label: 'Lv1' }
-  return { level: 'sprout', label: '새싹' }
+  return { level: 'sprout', label: '씨앗' }
 }
 
 // 누적 포인트 + VIP 플래그 판단 버전 (VIP > 장미 > 레벨)
@@ -32,7 +32,7 @@ export function getUserLevelWithVip(totalPoints: number, isVip: boolean): LevelR
   if (totalPoints > 300) return { level: 'lv3', label: 'Lv3', isVip: false, isRose: false };
   if (totalPoints > 150) return { level: 'lv2', label: 'Lv2', isVip: false, isRose: false };
   if (totalPoints > 75) return { level: 'lv1', label: 'Lv1', isVip: false, isRose: false };
-  return { level: 'sprout', label: '새싹', isVip: false, isRose: false };
+  return { level: 'sprout', label: '씨앗', isVip: false, isRose: false };
 }
 
 export function isEligibleForEvents(totalPoints: number): boolean {

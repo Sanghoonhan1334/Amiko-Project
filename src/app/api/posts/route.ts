@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
                 .maybeSingle()
               
               if (!userError && userData) {
-                userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || 'Anónimo'
+                userName = userData.korean_name || userData.spanish_name || userData.full_name || 'Anónimo'
               } else {
                 userName = 'Anónimo'
               }
@@ -191,6 +191,7 @@ export async function GET(request: NextRequest) {
     // 따라서 공지사항(is_notice = true)을 먼저 보려면 ascending: false
     
     // 공지사항 먼저 가져오기 (페이지네이션 없이 모든 공지사항)
+    // 공지사항은 기한(expires_at) 필드가 없으므로 모든 활성 공지사항을 표시
     let noticeQuery = supabaseServer
       .from('gallery_posts')
       .select(`
@@ -230,7 +231,8 @@ export async function GET(request: NextRequest) {
     
     console.log('[POSTS_GET] 공지사항 조회 결과:', {
       noticeCount: noticePosts?.length || 0,
-      noticeError: noticeError?.message
+      noticeError: noticeError?.message,
+      noticePosts: noticePosts?.map(p => ({ id: p.id, title: p.title, is_deleted: p.is_deleted, is_notice: p.is_notice }))
     })
     
     // 일반 게시글 가져오기 (페이지네이션 적용)
@@ -465,13 +467,12 @@ export async function GET(request: NextRequest) {
               .eq('id', post.user_id)
               .maybeSingle()
             
-            console.log(`[POSTS_GET] users 조회 결과 (${post.user_id}):`, { userData: userData ? { id: userData.id, nickname: userData.nickname, spanish_name: userData.spanish_name, korean_name: userData.korean_name, full_name: userData.full_name } : null, userError: userError?.message })
+            console.log(`[POSTS_GET] users 조회 결과 (${post.user_id}):`, { userData: userData ? { id: userData.id, spanish_name: userData.spanish_name, korean_name: userData.korean_name, full_name: userData.full_name } : null, userError: userError?.message })
             
             if (!userError && userData) {
-              // 상세 페이지와 동일한 우선순위: nickname > spanish_name > korean_name > full_name > email > 운영자 > 익명
-              userName = (userData.nickname && userData.nickname.trim() !== '') ? userData.nickname.trim() : 
+              // 우선순위: korean_name > spanish_name > full_name > email > 운영자 > 익명
+              userName = (userData.korean_name && userData.korean_name.trim() !== '') ? userData.korean_name.trim() : 
                         (userData.spanish_name && userData.spanish_name.trim() !== '') ? userData.spanish_name.trim() : 
-                        (userData.korean_name && userData.korean_name.trim() !== '') ? userData.korean_name.trim() : 
                         (userData.full_name && userData.full_name.trim() !== '') ? userData.full_name.trim() : 
                         (userData.email ? userData.email.split('@')[0] : null)
               
@@ -523,7 +524,6 @@ export async function GET(request: NextRequest) {
         author: {
           id: post.user_id,
           full_name: userName || 'Anónimo',
-          nickname: userName || 'Anónimo',
           avatar_url: avatarUrl
         }
       }

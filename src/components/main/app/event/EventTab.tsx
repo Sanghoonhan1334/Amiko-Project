@@ -22,6 +22,7 @@ import { useUser } from '@/context/UserContext'
 import { getUserLevel } from '@/lib/user-level'
 import { useTheme } from 'next-themes'
 import ZepEventCard from './ZepEventCard'
+import SeedIcon from '@/components/common/SeedIcon'
 
 interface AttendanceRecord {
   date: string
@@ -80,7 +81,19 @@ export default function EventTab() {
   const safePoints = typeof user?.points === 'number' ? user.points : 0;
   const levelResult = getUserLevel(safePoints);
   const currentLevel = levelResult.label || '확인불가';
-  const levelIcon = levelResult.level === 'sprout' ? '🌱' : levelResult.level === 'rose' ? '🌹' : '🌿';
+  const getLevelIcon = (level: string) => {
+    const iconMap: Record<string, string> = {
+      sprout: 'seed', // SVG 컴포넌트로 대체
+      lv1: '🌱',
+      lv2: '☘️',
+      lv3: '🍀',
+      lv4: '🌿',
+      lv5: '🌳',
+      rose: '🌹',
+    }
+    return iconMap[level] || 'seed'
+  }
+  const levelIconValue = getLevelIcon(levelResult.level);
   const rewards = getRewards(language);
   const getNextReward = () => {
     const milestones = Object.keys(rewards).map(Number).sort((a, b) => a - b)
@@ -94,13 +107,13 @@ export default function EventTab() {
     }
   }, [totalPoints, loading, user?.id, refreshUser]);
 
-  // URL 쿼리 파라미터로 ACU-POINT 섹션으로 스크롤
+  // URL 쿼리 파라미터로 특정 섹션으로 스크롤
   useEffect(() => {
     const showParam = searchParams?.get('show')
-    if (showParam === 'acu-point-sunscreen') {
-      // 섹션으로 스크롤
+    if (showParam === 'korean-meeting') {
+      // 한국어 모임 섹션으로 스크롤
       setTimeout(() => {
-        const element = document.getElementById('acu-point-event')
+        const element = document.getElementById('korean-meeting-event')
         if (element) {
           const headerOffset = 100
           const elementPosition = element.getBoundingClientRect().top
@@ -112,6 +125,21 @@ export default function EventTab() {
           })
         }
       }, 100)
+    } else if (showParam === 'acu-point-sunscreen') {
+      // ACU-POINT 섹션으로 스크롤 - 숨김 처리로 인해 비활성화
+      // setTimeout(() => {
+      //   const element = document.getElementById('acu-point-event')
+      //   if (element) {
+      //     const headerOffset = 100
+      //     const elementPosition = element.getBoundingClientRect().top
+      //     const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+
+      //     window.scrollTo({
+      //       top: offsetPosition,
+      //       behavior: 'smooth'
+      //     })
+      //   }
+      // }, 100)
     }
   }, [searchParams]);
 
@@ -379,7 +407,10 @@ export default function EventTab() {
         <div className="text-xs sm:text-sm text-purple-900 dark:text-purple-100">
           <div className="font-bold text-base sm:text-lg md:text-xl mb-2">{t('eventTab.badgeGuide.title')}</div>
           <div className="space-y-0.5">
-            <div>{t('eventTab.badgeGuide.sprout')}</div>
+            <div className="flex items-center gap-1">
+              <SeedIcon size={16} className="inline-block" />
+              <span>{t('eventTab.badgeGuide.sprout')}</span>
+            </div>
             <div>{t('eventTab.badgeGuide.levels')}</div>
             <div>{t('eventTab.badgeGuide.rose')}</div>
             <div>{t('eventTab.badgeGuide.vip')}</div>
@@ -414,19 +445,19 @@ export default function EventTab() {
           </div>
         </div>
       </div>
-      {/* 특별 이벤트 제목 */}
-      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+      {/* 특별 이벤트 제목 - 내용이 없어서 숨김 처리 */}
+      {/* <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
         <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100">{t('eventTab.attendanceCheck.specialEvents.title')}</h2>
-      </div>
+      </div> */}
 
       {/* 추천인 이벤트 비활성화 */}
 
       {/* 구분선 제거 (추천인 섹션 비활성화에 따라) */}
 
         {/* 데스크톱: 카드 스타일 */}
-        <div className="hidden md:grid grid-cols-2 gap-4 sm:gap-6" data-tutorial="event-participation">
-          {/* 현지인용 특별 이벤트 */}
+        {/* 비행기 이벤트 숨김 처리 */}
+        {/* <div className="hidden md:grid grid-cols-2 gap-4 sm:gap-6" data-tutorial="event-participation">
           <div className="p-4 sm:p-6 border border-blue-200 dark:border-gray-600 rounded-xl" style={{ background: theme === 'dark' ? 'linear-gradient(to bottom right, rgb(55 65 81), rgb(55 65 81))' : 'linear-gradient(to bottom right, rgb(239 246 255), rgb(219 234 254))' }}>
             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
@@ -470,11 +501,11 @@ export default function EventTab() {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* 모바일: 카드 스타일 */}
-        <div className="block md:hidden space-y-4 px-1" data-tutorial="event-participation">
-          {/* 현지인용 특별 이벤트 카드 */}
+        {/* 비행기 이벤트 숨김 처리 */}
+        {/* <div className="block md:hidden space-y-4 px-1" data-tutorial="event-participation">
           <div className="border border-blue-200 dark:border-gray-600 rounded-xl p-2 shadow-sm" style={{ background: theme === 'dark' ? 'linear-gradient(to bottom right, rgb(55 65 81), rgb(55 65 81))' : 'linear-gradient(to bottom right, rgb(239 246 255), rgb(219 234 254))' }}>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
@@ -516,10 +547,10 @@ export default function EventTab() {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
-      {/* 구분선 */}
-      <div className="border-t-2 border-gray-300 my-8"></div>
+      {/* 구분선 - 특별 이벤트 섹션이 숨겨져서 제거 */}
+      {/* <div className="border-t-2 border-gray-300 my-8"></div> */}
       
       {/* 포인트 시스템 제목 */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4">
@@ -704,11 +735,11 @@ export default function EventTab() {
             </div>
           </div>
 
-      {/* 구분선 */}
-      <div className="border-t-2 border-gray-300 my-8"></div>
+      {/* 구분선 - ACU-POINT 이벤트가 숨겨져서 제거 */}
+      {/* <div className="border-t-2 border-gray-300 my-8"></div> */}
 
-      {/* ACU-POINT 선크림 이벤트 */}
-      <div id="acu-point-event" className="scroll-mt-20">
+      {/* ACU-POINT 선크림 이벤트 - 숨김 처리 */}
+      {/* <div id="acu-point-event" className="scroll-mt-20">
         <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
@@ -719,7 +750,6 @@ export default function EventTab() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 이미지 */}
             <div className="relative w-full rounded-lg overflow-hidden max-w-2xl mx-auto">
               <img 
                 src="/images/acu-point-sunscreen-detail.jpg"
@@ -729,7 +759,6 @@ export default function EventTab() {
               />
             </div>
 
-            {/* 이벤트 설명 */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🎁</span>
@@ -755,6 +784,69 @@ export default function EventTab() {
                     {language === 'ko' 
                       ? '레벨 1 달성한 모든 사용자 (누적 포인트 75점 이상)' 
                       : 'Todos los usuarios que han alcanzado el Nivel 1 (75 puntos acumulados o más)'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div> */}
+
+      {/* 구분선 */}
+      <div className="border-t-2 border-gray-300 my-8"></div>
+
+      {/* 한국어 모임 이벤트 */}
+      <div id="korean-meeting-event" className="scroll-mt-20">
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-2">
+              <div className="text-xl sm:text-2xl">🇰🇷</div>
+              <CardTitle className="text-sm sm:text-base md:text-lg text-blue-700 dark:text-blue-300">
+                {language === 'ko' ? '한국어 모임' : 'Reunión de Coreano'}
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 이벤트 설명 */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">📅</span>
+                <div className="flex-1">
+                  <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
+                    {language === 'ko' ? '일정' : 'Horario'}
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {language === 'ko' 
+                      ? '2주에 한번씩 정기적으로 한국어 모임을 진행합니다!' 
+                      : '¡Reunión de coreano cada 2 semanas!'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">💬</span>
+                <div className="flex-1">
+                  <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
+                    {language === 'ko' ? '내용' : 'Contenido'}
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {language === 'ko' 
+                      ? '한국어를 배우고 싶은 분들과 함께 대화하며 한국어 실력을 향상시킬 수 있는 모임입니다.' 
+                      : 'Una reunión donde puedes mejorar tu coreano conversando con personas que quieren aprender coreano.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">👥</span>
+                <div className="flex-1">
+                  <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
+                    {language === 'ko' ? '참여 방법' : 'Cómo Participar'}
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {language === 'ko' 
+                      ? '이벤트 탭에서 정기적으로 업데이트되는 일정을 확인하세요!' 
+                      : '¡Consulta el calendario actualizado regularmente en la pestaña de eventos!'}
                   </p>
                 </div>
               </div>

@@ -36,23 +36,87 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
     
     const client = getTwilioClient()
     
-    // 국가별 발신 번호 선택
-    let fromNumber = process.env.TWILIO_PHONE_NUMBER // 기본: 미국 번호
+    // 계정에 등록된 전화번호 자동 조회 (계정과 번호 불일치 방지)
+    let fromNumber = process.env.TWILIO_PHONE_NUMBER // 기본값
+    let accountInfo: any = null
     
+    try {
+      // 먼저 계정에 등록된 번호 목록 조회
+      accountInfo = await verifyTwilioAccount()
+      if (accountInfo.isValid && accountInfo.phoneNumbers && accountInfo.phoneNumbers.length > 0) {
+        console.log(`[TWILIO_SMS] 계정에 등록된 번호 목록: ${accountInfo.phoneNumbers.join(', ')}`)
+        
+        // 환경 변수에 설정된 번호가 계정에 등록되어 있는지 확인
+        if (fromNumber && accountInfo.phoneNumbers.includes(fromNumber)) {
+          console.log(`[TWILIO_SMS] ✅ 환경변수 번호(${fromNumber})가 계정에 등록되어 있음`)
+        } else {
+          // 환경변수 번호가 계정에 없으면, 계정에 등록된 첫 번째 번호 사용
+          fromNumber = accountInfo.phoneNumbers[0]
+          console.log(`[TWILIO_SMS] ⚠️  환경변수 번호가 계정에 없어서 계정의 첫 번째 번호 사용: ${fromNumber}`)
+        }
+      } else {
+        // 계정에 등록된 번호가 없을 때
+        if (fromNumber) {
+          console.error(`[TWILIO_SMS] ❌ 계정에 등록된 번호가 없지만 환경변수 번호(${fromNumber})가 설정되어 있습니다.`)
+          console.error(`[TWILIO_SMS] 이 번호는 현재 계정에 등록되어 있지 않아 발송이 실패할 수 있습니다.`)
+          console.error(`[TWILIO_SMS] 해결 방법:`)
+          console.error(`[TWILIO_SMS] 1. Twilio 콘솔에서 전화번호를 구매/등록하세요: https://console.twilio.com/`)
+          console.error(`[TWILIO_SMS] 2. 또는 .env.local의 TWILIO_PHONE_NUMBER를 계정에 등록된 번호로 변경하세요.`)
+        } else {
+          console.error(`[TWILIO_SMS] ❌ 계정에 등록된 번호가 없고 환경변수 번호도 설정되지 않았습니다.`)
+          console.error(`[TWILIO_SMS] Twilio 콘솔에서 전화번호를 구매/등록하거나 .env.local에 TWILIO_PHONE_NUMBER를 설정하세요.`)
+        }
+      }
+    } catch (accountError) {
+      console.warn(`[TWILIO_SMS] 계정 정보 조회 실패, 환경변수 번호 사용: ${fromNumber}`, accountError)
+    }
+    
+    // 계정에 등록된 번호가 없고, 환경변수 번호가 계정에 등록되어 있지 않을 가능성이 높을 때 경고
+    if (fromNumber && accountInfo && accountInfo.isValid && accountInfo.phoneNumbers && accountInfo.phoneNumbers.length > 0) {
+      if (!accountInfo.phoneNumbers.includes(fromNumber)) {
+        console.error(`[TWILIO_SMS] ⚠️  경고: 환경변수 번호(${fromNumber})가 계정에 등록되어 있지 않습니다.`)
+        console.error(`[TWILIO_SMS] 등록된 번호: ${accountInfo.phoneNumbers.join(', ')}`)
+        console.error(`[TWILIO_SMS] 발송 시도는 하겠지만, Twilio API에서 에러가 발생할 수 있습니다.`)
+      }
+    }
+    
+    // 국가별 발신 번호 선택 (계정에 등록된 번호가 있을 때만)
     // 칠레 번호가 있고, 받는 사람이 칠레면 칠레 번호 사용
     if (to.startsWith('+56') && process.env.TWILIO_PHONE_NUMBER_CL) {
-      fromNumber = process.env.TWILIO_PHONE_NUMBER_CL
-      console.log(`[TWILIO_SMS] ✅ 칠레 → 칠레 로컬 번호 사용: ${fromNumber}`)
+      // 환경변수의 칠레 번호가 계정에 등록되어 있는지 확인
+      try {
+        const accountInfo = await verifyTwilioAccount()
+        if (accountInfo.phoneNumbers?.includes(process.env.TWILIO_PHONE_NUMBER_CL)) {
+          fromNumber = process.env.TWILIO_PHONE_NUMBER_CL
+          console.log(`[TWILIO_SMS] ✅ 칠레 → 칠레 로컬 번호 사용: ${fromNumber}`)
+        }
+      } catch (e) {
+        // 무시하고 기본 번호 사용
+      }
     }
     // 멕시코 번호가 있고, 받는 사람이 멕시코면 멕시코 번호 사용
     else if (to.startsWith('+52') && process.env.TWILIO_PHONE_NUMBER_MX) {
-      fromNumber = process.env.TWILIO_PHONE_NUMBER_MX
-      console.log(`[TWILIO_SMS] ✅ 멕시코 → 멕시코 로컬 번호 사용: ${fromNumber}`)
+      try {
+        const accountInfo = await verifyTwilioAccount()
+        if (accountInfo.phoneNumbers?.includes(process.env.TWILIO_PHONE_NUMBER_MX)) {
+          fromNumber = process.env.TWILIO_PHONE_NUMBER_MX
+          console.log(`[TWILIO_SMS] ✅ 멕시코 → 멕시코 로컬 번호 사용: ${fromNumber}`)
+        }
+      } catch (e) {
+        // 무시하고 기본 번호 사용
+      }
     }
     // 페루 번호가 있고, 받는 사람이 페루면 페루 번호 사용
     else if (to.startsWith('+51') && process.env.TWILIO_PHONE_NUMBER_PE) {
-      fromNumber = process.env.TWILIO_PHONE_NUMBER_PE
-      console.log(`[TWILIO_SMS] ✅ 페루 → 페루 로컬 번호 사용: ${fromNumber}`)
+      try {
+        const accountInfo = await verifyTwilioAccount()
+        if (accountInfo.phoneNumbers?.includes(process.env.TWILIO_PHONE_NUMBER_PE)) {
+          fromNumber = process.env.TWILIO_PHONE_NUMBER_PE
+          console.log(`[TWILIO_SMS] ✅ 페루 → 페루 로컬 번호 사용: ${fromNumber}`)
+        }
+      } catch (e) {
+        // 무시하고 기본 번호 사용
+      }
     }
     
     console.log(`[TWILIO_SMS] 환경변수 확인:`, {
@@ -66,11 +130,11 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
     })
     
     if (!fromNumber) {
-      console.log(`[TWILIO_SMS] Twilio 발신번호가 설정되지 않음 - 개발 모드로 처리`)
-      console.log(`[TWILIO_SMS] 수신번호: ${to}`)
-      console.log(`[TWILIO_SMS] 메시지: ${message}`)
-      console.log(`[TWILIO_SMS] 실제 발송하지 않음 (환경변수 미설정)`)
-      return true
+      console.warn(`[TWILIO_SMS] ⚠️  Twilio 발신번호가 설정되지 않음 - 발송 불가`)
+      console.warn(`[TWILIO_SMS] 수신번호: ${to}`)
+      console.warn(`[TWILIO_SMS] 메시지: ${message}`)
+      console.warn(`[TWILIO_SMS] 실제 발송하지 않음 (환경변수 미설정)`)
+      return false // 발송 실패로 처리
     }
     
     console.log(`[TWILIO_SMS] 발송 요청:`, {
@@ -103,6 +167,16 @@ export async function sendTwilioSMS(to: string, message: string): Promise<boolea
       moreInfo: error?.moreInfo,
       message: error?.message
     })
+    
+    // 특정 에러 코드에 대한 명확한 안내
+    if (error?.code === 21660) {
+      console.error('[TWILIO_SMS] ⚠️  에러 21660: 발신번호와 계정이 일치하지 않습니다.')
+      console.error('[TWILIO_SMS] 해결 방법:')
+      console.error('[TWILIO_SMS] 1. Twilio 콘솔(https://console.twilio.com/)에서 현재 계정의 전화번호를 확인하세요.')
+      console.error('[TWILIO_SMS] 2. .env.local의 TWILIO_PHONE_NUMBER를 계정에 등록된 번호로 변경하세요.')
+      console.error('[TWILIO_SMS] 3. 또는 Twilio 콘솔에서 전화번호를 구매/등록하세요.')
+    }
+    
     console.error('[TWILIO_SMS] 에러 상세:', {
       message: error instanceof Error ? error.message : '알 수 없는 오류',
       stack: error instanceof Error ? error.stack : undefined
@@ -151,18 +225,22 @@ export async function verifyTwilioAccount(): Promise<{
   isValid: boolean
   accountSid?: string
   phoneNumber?: string
+  phoneNumbers?: string[]
   balance?: number
   error?: string
 }> {
   try {
     const client = getTwilioClient()
     const account = await client.api.accounts(client.accountSid).fetch()
-    const incomingNumbers = await client.incomingPhoneNumbers.list({ limit: 1 })
+    const incomingNumbers = await client.incomingPhoneNumbers.list()
+    
+    const phoneNumbers = incomingNumbers.map(num => num.phoneNumber)
     
     return {
       isValid: true,
       accountSid: account.sid,
       phoneNumber: incomingNumbers[0]?.phoneNumber,
+      phoneNumbers: phoneNumbers,
       balance: parseFloat(account.balance || '0')
     }
     
@@ -172,6 +250,49 @@ export async function verifyTwilioAccount(): Promise<{
       error: error instanceof Error ? error.message : '알 수 없는 오류'
     }
   }
+}
+
+// 계정에 등록된 전화번호 중 사용 가능한 번호 찾기
+async function getAvailablePhoneNumber(to: string): Promise<string | null> {
+  try {
+    const accountInfo = await verifyTwilioAccount()
+    if (!accountInfo.isValid || !accountInfo.phoneNumbers || accountInfo.phoneNumbers.length === 0) {
+      console.warn('[TWILIO_SMS] 계정에 등록된 전화번호가 없습니다.')
+      return null
+    }
+    
+    // 받는 번호의 국가 코드 확인
+    const toCountry = getCountryFromPhoneNumber(to)
+    
+    // 국가별로 매칭되는 번호 찾기
+    for (const phoneNumber of accountInfo.phoneNumbers) {
+      const fromCountry = getCountryFromPhoneNumber(phoneNumber)
+      
+      // 같은 국가면 우선 사용
+      if (fromCountry === toCountry) {
+        console.log(`[TWILIO_SMS] 같은 국가 매칭: ${phoneNumber} (${fromCountry})`)
+        return phoneNumber
+      }
+    }
+    
+    // 같은 국가가 없으면 첫 번째 번호 사용
+    console.log(`[TWILIO_SMS] 기본 번호 사용: ${accountInfo.phoneNumbers[0]}`)
+    return accountInfo.phoneNumbers[0]
+    
+  } catch (error) {
+    console.error('[TWILIO_SMS] 번호 조회 오류:', error)
+    return null
+  }
+}
+
+// 전화번호에서 국가 코드 추출
+function getCountryFromPhoneNumber(phoneNumber: string): string {
+  if (phoneNumber.startsWith('+82')) return 'KR'
+  if (phoneNumber.startsWith('+56')) return 'CL'
+  if (phoneNumber.startsWith('+52')) return 'MX'
+  if (phoneNumber.startsWith('+51')) return 'PE'
+  if (phoneNumber.startsWith('+1')) return 'US'
+  return 'UNKNOWN'
 }
 
 // 전화번호 형식 검증 및 변환 (국가 코드 포함)

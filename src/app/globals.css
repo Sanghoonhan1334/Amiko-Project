@@ -224,6 +224,71 @@ link[rel="shortcut icon"] img {
   .dark .bg-white {
     background-color: #1f2937 !important; /* gray-800 */
   }
+  
+  /* 아미코 로고 배경은 항상 흰색 유지 - 모든 경우 커버 */
+  .amiko-logo-bg,
+  .dark .amiko-logo-bg,
+  [class*="amiko-logo-bg"],
+  [data-amiko-logo-bg="true"],
+  [data-amiko-logo-bg="true"]:hover,
+  [data-amiko-logo-bg="true"]:active,
+  [data-amiko-logo-bg="true"]:focus {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    background-image: none !important;
+  }
+  
+  /* 부모 요소의 배경색이 상속되지 않도록 (이미지 제외) */
+  .amiko-logo-bg > *:not(img):not([class*="Image"]):not([data-nimg]),
+  [data-amiko-logo-bg="true"] > *:not(img):not([class*="Image"]):not([data-nimg]) {
+    background-color: transparent !important;
+  }
+  
+  /* 로고 이미지는 정상적으로 표시되도록 */
+  .amiko-logo-bg img,
+  [data-amiko-logo-bg="true"] img,
+  .amiko-logo-bg [class*="Image"],
+  [data-amiko-logo-bg="true"] [class*="Image"],
+  .amiko-logo-bg [data-nimg],
+  [data-amiko-logo-bg="true"] [data-nimg] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background-color: transparent !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* Next.js Image 컴포넌트의 span 래퍼도 보이도록 */
+  .amiko-logo-bg span,
+  [data-amiko-logo-bg="true"] span {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* 인라인 스타일이 있어도 덮어쓰기 - 최고 우선순위 */
+  div.amiko-logo-bg[style],
+  div[class*="amiko-logo-bg"][style],
+  div[data-amiko-logo-bg="true"][style],
+  [data-amiko-logo-bg="true"][style] {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    background-image: none !important;
+  }
+  
+  /* 모든 팔레트에서도 흰색 유지 */
+  html[data-palette] .amiko-logo-bg,
+  html[data-palette] [data-amiko-logo-bg="true"],
+  html[data-palette="default"] .amiko-logo-bg,
+  html[data-palette="default"] [data-amiko-logo-bg="true"],
+  html[data-palette="sunset"] .amiko-logo-bg,
+  html[data-palette="sunset"] [data-amiko-logo-bg="true"],
+  html[data-palette="mexican"] .amiko-logo-bg,
+  html[data-palette="mexican"] [data-amiko-logo-bg="true"] {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+  }
 }
 
 /* 폰트 변수 */
@@ -1704,4 +1769,113 @@ body.splash-active [class*="footer"] {
   opacity: 0 !important;
   pointer-events: none !important;
   z-index: -1 !important;
+}
+
+/* 아코디언 슬라이드 다운 애니메이션 */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 아코디언 슬라이드 업 애니메이션 */
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* 모바일 채팅창 슬라이드 다운 (닫기) */
+@keyframes slideDownMobile {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+/* 모바일 채팅창 슬라이드 업 (열기) */
+@keyframes slideUpMobile {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 데스크톱 채팅창 슬라이드 인 (오른쪽에서 왼쪽으로 열기) */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 데스크톱 채팅창 슬라이드 아웃 (왼쪽에서 오른쪽으로 닫기) */
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* 모바일 플로팅 채팅창 작은 텍스트 스타일 */
+@media (max-width: 640px) {
+  /* GlobalChatButton 내부의 ChatRoomClient 작게 */
+  .mobile-chat-small * {
+    font-size: 0.75rem !important; /* 12px */
+  }
+  
+  .mobile-chat-small input,
+  .mobile-chat-small textarea,
+  .mobile-chat-small button {
+    font-size: 0.75rem !important;
+    padding: 0.375rem 0.5rem !important;
+  }
+  
+  .mobile-chat-small .w-8,
+  .mobile-chat-small .h-8 {
+    width: 1.25rem !important; /* 20px */
+    height: 1.25rem !important;
+  }
+  
+  .mobile-chat-small .gap-3 {
+    gap: 0.5rem !important;
+  }
+  
+  .mobile-chat-small .px-4,
+  .mobile-chat-small .py-4 {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  
+  .mobile-chat-small .space-y-4 > * + * {
+    margin-top: 0.5rem !important;
+  }
 }

@@ -2134,9 +2134,9 @@ function StoriesPageContent() {
                       {profileUser.spanish_name}
                     </p>
                   )}
-                  {profileUser.nickname && (
+                  {(profileUser.korean_name || profileUser.spanish_name || profileUser.full_name) && (
                     <p className="text-sm text-blue-600 dark:text-blue-400">
-                      @{profileUser.nickname}
+                      {profileUser.korean_name || profileUser.spanish_name || profileUser.full_name}
                     </p>
                   )}
                 </div>

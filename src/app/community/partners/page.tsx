@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ArrowLeft, X } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/context/LanguageContext'
@@ -9,6 +9,8 @@ export default function PartnersPage() {
   const { t, language } = useLanguage()
   const [selectedPartner, setSelectedPartner] = useState<number | null>(null)
   const [closingPartner, setClosingPartner] = useState<number | null>(null)
+  const paraFansImageRef = useRef<HTMLImageElement>(null)
+  const [imageBounds, setImageBounds] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
 
   const partners = [
     {
@@ -184,6 +186,36 @@ export default function PartnersPage() {
 
   const currentPartner = selectedPartner !== null ? partners[selectedPartner] : null
 
+  // 이미지 위치 재측정 (selectedPartner 변경 시)
+  useEffect(() => {
+    if (selectedPartner !== null && currentPartner?.id === 'para-fans' && paraFansImageRef.current) {
+      const updateBounds = () => {
+        if (paraFansImageRef.current) {
+          const rect = paraFansImageRef.current.getBoundingClientRect()
+          const container = paraFansImageRef.current.parentElement
+          if (container) {
+            const containerRect = container.getBoundingClientRect()
+            setImageBounds({
+              left: rect.left - containerRect.left,
+              top: rect.top - containerRect.top,
+              width: rect.width,
+              height: rect.height
+            })
+          }
+        }
+      }
+      
+      // 이미지가 이미 로드된 경우 즉시 측정
+      if (paraFansImageRef.current.complete) {
+        setTimeout(updateBounds, 100)
+      }
+      
+      // 리사이즈 이벤트 리스너
+      window.addEventListener('resize', updateBounds)
+      return () => window.removeEventListener('resize', updateBounds)
+    }
+  }, [selectedPartner, currentPartner])
+
   return (
     <>
       <style>{animationStyles}</style>
@@ -295,44 +327,72 @@ export default function PartnersPage() {
                         {currentPartner.id === 'para-fans' ? (
                           <div className="relative w-full h-full flex items-center justify-center p-4">
                             {/* Para Fans 상세 이미지 */}
-                            <div className="relative w-full h-full">
+                            <div className="relative w-full h-full flex items-center justify-center">
                               <img 
+                                ref={paraFansImageRef}
                                 src="/logos/Para fans.png"
                                 alt={currentPartner.name || 'Partner detail'}
-                                className="w-full h-full object-contain"
+                                className="max-w-full max-h-full object-contain"
                                 draggable={false}
+                                onLoad={() => {
+                                  if (paraFansImageRef.current) {
+                                    const rect = paraFansImageRef.current.getBoundingClientRect()
+                                    const container = paraFansImageRef.current.parentElement
+                                    if (container) {
+                                      const containerRect = container.getBoundingClientRect()
+                                      setImageBounds({
+                                        left: rect.left - containerRect.left,
+                                        top: rect.top - containerRect.top,
+                                        width: rect.width,
+                                        height: rect.height
+                                      })
+                                    }
+                                  }
+                                }}
                               />
                               
-                              {/* 클릭 가능한 투명 영역들 - 이미지 내 URL 위치에 정확히 맞춤 */}
-                              {/* Instagram 영역 (이미지 상 약 48% 위치) */}
-                              <a
-                                href="https://www.instagram.com/_parafans_"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute left-[10%] top-[45%] w-[80%] h-[6%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10"
-                                title="Instagram: @_parafans_"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              
-                              {/* Facebook 영역 (이미지 상 약 52% 위치) */}
-                              <a
-                                href="https://www.facebook.com/parafanscol"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute left-[10%] top-[52%] w-[80%] h-[6%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10"
-                                title="Facebook: parafanscol"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              
-                              {/* Website 영역 (이미지 상 약 59% 위치) */}
-                              <a
-                                href="https://www.parafansk.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute left-[10%] top-[59%] w-[80%] h-[6%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10"
-                                title="Website: www.parafansk.com"
-                                onClick={(e) => e.stopPropagation()}
-                              />
+                              {/* 클릭 가능한 투명 영역들 - 이미지의 실제 위치에 맞춤 */}
+                              {imageBounds && (
+                                <div 
+                                  className="absolute pointer-events-none"
+                                  style={{
+                                    left: `${imageBounds.left}px`,
+                                    top: `${imageBounds.top}px`,
+                                    width: `${imageBounds.width}px`,
+                                    height: `${imageBounds.height}px`
+                                  }}
+                                >
+                                  {/* Instagram 영역 - 첫 번째 URL */}
+                                  <a
+                                    href="https://www.instagram.com/_parafans_"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute left-[10%] top-[38%] w-[80%] h-[5%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    title="Instagram: @_parafans_"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  
+                                  {/* Facebook 영역 - 두 번째 URL */}
+                                  <a
+                                    href="https://www.facebook.com/parafanscol"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute left-[10%] top-[44%] w-[80%] h-[5%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    title="Facebook: parafanscol"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  
+                                  {/* Website 영역 - 세 번째 URL */}
+                                  <a
+                                    href="https://www.parafansk.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute left-[10%] top-[50%] w-[80%] h-[5%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    title="Website: www.parafansk.com"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              )}
                             </div>
                           </div>
                         ) : (

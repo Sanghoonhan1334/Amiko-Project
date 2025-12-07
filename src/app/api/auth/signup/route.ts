@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
       email, 
       password, 
       name, 
-      nickname,
       phone, 
       country, 
       isKorean,
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // 필수 필드 검증
-    if (!email || !password || !name || !nickname || !birthDate) {
+    if (!email || !password || !name || !birthDate) {
       return NextResponse.json(
         { error: '필수 정보가 누락되었습니다.' },
         { status: 400 }
@@ -67,21 +66,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 닉네임 검증
-    if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(nickname)) {
-      return NextResponse.json(
-        { error: '닉네임은 알파벳, 숫자, 특수문자만 사용할 수 있습니다.' },
-        { status: 400 }
-      )
-    }
-
-    if (nickname.length < 3 || nickname.length > 20) {
-      return NextResponse.json(
-        { error: '닉네임은 3-20자 사이여야 합니다.' },
-        { status: 400 }
-      )
-    }
-
     // 비밀번호 검증
     if (password.length < 8) {
       return NextResponse.json(
@@ -97,6 +81,8 @@ export async function POST(request: NextRequest) {
     if (supabaseServer) {
       try {
         console.log(`[SIGNUP] 이메일 중복 확인 시작: ${email}`)
+        
+        // 1. public.users 테이블 확인
         const { data: existingUser, error: checkError } = await supabaseServer
           .from('users')
           .select('id, deleted_at')
@@ -104,7 +90,7 @@ export async function POST(request: NextRequest) {
           .is('deleted_at', null) // 삭제되지 않은 계정만 확인
           .single()
 
-        console.log(`[SIGNUP] 중복 확인 결과:`, { existingUser, checkError })
+        console.log(`[SIGNUP] public.users 중복 확인 결과:`, { existingUser, checkError })
 
         if (checkError && checkError.code !== 'PGRST116') {
           // PGRST116은 "no rows returned" 에러 (사용자 없음)
@@ -121,6 +107,92 @@ export async function POST(request: NextRequest) {
             { error: '이미 가입된 이메일입니다.' },
             { status: 409 }
           )
+        }
+        
+        // 2. auth.users 테이블 확인 (public.users에 없어도 auth.users에 남아있을 수 있음)
+        // getUserByEmail이 없으므로 listUsers()를 사용하여 이메일로 필터링
+        try {
+          const { data: authUsersData, error: authListError } = await supabaseServer.auth.admin.listUsers()
+          
+          if (!authListError && authUsersData) {
+            const emailLower = email.toLowerCase()
+            const existingAuthUser = authUsersData.users.find(u => u.email?.toLowerCase() === emailLower)
+            
+            if (existingAuthUser) {
+              console.log(`[SIGNUP] auth.users에 사용자 존재: ${email} (ID: ${existingAuthUser.id})`)
+              console.log(`[SIGNUP] auth.users에서 사용자 삭제 시도 (force 옵션 사용)`)
+              
+              // auth.users에 존재하지만 public.users에는 없는 경우 (삭제 실패한 경우)
+              // force 옵션을 사용하여 외래 키 제약 조건을 무시하고 강제 삭제
+              const { error: deleteAuthError } = await supabaseServer.auth.admin.deleteUser(existingAuthUser.id, true)
+              
+              if (deleteAuthError) {
+                console.error(`[SIGNUP] auth.users 삭제 실패 (force 옵션 사용): ${email}`, deleteAuthError)
+                
+                // force 옵션으로도 실패하면, 관련 데이터를 먼저 정리한 후 재시도
+                console.log(`[SIGNUP] 관련 데이터 정리 후 재시도`)
+                try {
+                  // verification_codes에서 이메일 관련 데이터 삭제
+                  await supabaseServer
+                    .from('verification_codes')
+                    .delete()
+                    .eq('email', email.toLowerCase())
+                  
+                  // 다시 삭제 시도
+                  const { error: retryDeleteError } = await supabaseServer.auth.admin.deleteUser(existingAuthUser.id, true)
+                  
+                  if (retryDeleteError) {
+                    console.error(`[SIGNUP] 재시도 후에도 auth.users 삭제 실패: ${email}`, retryDeleteError)
+                    // 삭제 실패해도 계속 진행 (createUser 시도 시 에러 처리 로직에서 처리)
+                    console.warn(`[SIGNUP] auth.users 삭제 실패했지만 계속 진행 (createUser 시도 시 에러 처리)`)
+                  } else {
+                    console.log(`[SIGNUP] 재시도 후 auth.users에서 사용자 삭제 성공: ${email}`)
+                    // 삭제 성공 시 global.registeredEmails에서도 제거
+                    if (global.registeredEmails!.has(email)) {
+                      global.registeredEmails!.delete(email)
+                      console.log(`[SIGNUP] 재시도 후 global.registeredEmails에서도 제거: ${email}`)
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000)) // 1초 대기
+                  }
+                } catch (cleanupError) {
+                  console.error(`[SIGNUP] 관련 데이터 정리 중 오류: ${email}`, cleanupError)
+                  // 정리 실패해도 계속 진행
+                }
+              } else {
+                console.log(`[SIGNUP] auth.users에서 사용자 삭제 성공: ${email}`)
+                // 삭제 성공 시 global.registeredEmails에서도 제거
+                if (global.registeredEmails!.has(email)) {
+                  global.registeredEmails!.delete(email)
+                  console.log(`[SIGNUP] global.registeredEmails에서도 제거: ${email}`)
+                }
+                // 삭제 성공 후 충분한 대기 시간
+                await new Promise(resolve => setTimeout(resolve, 1000)) // 1초 대기
+              }
+            } else {
+              console.log(`[SIGNUP] auth.users에 사용자 없음: ${email}`)
+              // auth.users에 사용자가 없으면 global.registeredEmails에서도 제거
+              if (global.registeredEmails!.has(email)) {
+                global.registeredEmails!.delete(email)
+                console.log(`[SIGNUP] auth.users에 사용자 없으므로 global.registeredEmails에서도 제거: ${email}`)
+              }
+            }
+          } else {
+            console.warn(`[SIGNUP] auth.users 목록 조회 실패: ${authListError?.message || '알 수 없는 오류'}`)
+            // 목록 조회 실패 시에도 global.registeredEmails에서 제거 (안전을 위해)
+            if (global.registeredEmails!.has(email)) {
+              global.registeredEmails!.delete(email)
+              console.log(`[SIGNUP] auth.users 목록 조회 실패 시 global.registeredEmails에서도 제거: ${email}`)
+            }
+            // 목록 조회 실패는 경고만 하고 계속 진행 (createUser 시도 시 에러 처리)
+          }
+        } catch (authCheckException) {
+          console.error(`[SIGNUP] auth.users 확인 중 예외: ${email}`, authCheckException)
+          // 예외 발생 시에도 global.registeredEmails에서 제거 (안전을 위해)
+          if (global.registeredEmails!.has(email)) {
+            global.registeredEmails!.delete(email)
+            console.log(`[SIGNUP] auth.users 확인 예외 시 global.registeredEmails에서도 제거: ${email}`)
+          }
+          // auth.users 확인 실패는 경고만 하고 계속 진행 (새 사용자일 수도 있음)
         }
         
         console.log(`[SIGNUP] 이메일 중복 확인 완료: ${email} (새 사용자 또는 삭제된 계정)`)
@@ -174,9 +246,6 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // 이메일을 전역 변수에 저장 (중복 검증용)
-    global.registeredEmails!.add(email)
-    
     // Supabase Auth를 사용하여 실제 사용자 생성
     if (supabaseServer) {
       try {
@@ -217,7 +286,14 @@ export async function POST(request: NextRequest) {
           email_confirm: true // 이메일 인증 완료로 설정
         })
 
-        if (authError) {
+        if (!authError && authData?.user) {
+          // 정상적인 createUser 성공
+          userId = authData.user.id
+          console.log(`[SIGNUP] Supabase Auth 사용자 생성 성공: ${userId}`)
+          // 이메일을 전역 변수에 저장 (중복 검증용)
+          global.registeredEmails!.add(email)
+          console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
+        } else if (authError) {
           console.error('[SIGNUP] Supabase Auth 사용자 생성 실패:', authError)
           
           // 이메일 중복 에러 처리
@@ -301,6 +377,9 @@ export async function POST(request: NextRequest) {
                         
                         userId = finalRetryData.user.id
                         console.log(`[SIGNUP] 최종 재시도 후 사용자 생성 성공: ${userId}`)
+                        // 이메일을 전역 변수에 저장 (중복 검증용)
+                        global.registeredEmails!.add(email)
+                        console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
                       } else {
                         return NextResponse.json(
                           { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
@@ -310,6 +389,9 @@ export async function POST(request: NextRequest) {
                     } else {
                       userId = retryAuthData.user.id
                       console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
+                      // 이메일을 전역 변수에 저장 (중복 검증용)
+                      global.registeredEmails!.add(email)
+                      console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
                     }
                     // users 테이블 삽입은 아래 공통 로직으로 진행
                   } else {
@@ -343,6 +425,9 @@ export async function POST(request: NextRequest) {
                   
                   userId = retryAuthData.user.id
                   console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
+                  // 이메일을 전역 변수에 저장 (중복 검증용)
+                  global.registeredEmails!.add(email)
+                  console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
                   // users 테이블 삽입은 아래 공통 로직으로 진행
                 }
               } else {
@@ -371,23 +456,29 @@ export async function POST(request: NextRequest) {
         if (userId) {
           console.log(`[SIGNUP] users 테이블에 사용자 추가: ${userId}`)
           
+          // 한국인 여부 검증: 국적이 KR이고 전화번호가 +82로 시작해야 함
+          // 이렇게 하면 현지인이 "대한민국"을 선택해도 전화번호가 +82가 아니면 is_korean: false로 설정됨
+          const phoneCountryCode = formattedPhone.startsWith('+82') ? '82' : null
+          const isActuallyKorean = country === 'KR' && phoneCountryCode === '82'
+          
+          console.log(`[SIGNUP] 한국인 여부 검증:`, {
+            selectedCountry: country,
+            phoneNumber: formattedPhone,
+            phoneCountryCode: phoneCountryCode,
+            frontendIsKorean: isKorean,
+            actualIsKorean: isActuallyKorean
+          })
+          
           // users 테이블에 추가 또는 업데이트 (삭제된 계정 재가입 시)
-          const phoneCountryDigits = (selectedCountry?.phoneCode || '').replace(/\D/g, '') || null
-          const userData = {
+          // nickname은 NOT NULL 제약조건이 있으므로 full_name을 사용 (임시)
+          const userData: any = {
             id: userId,
             email: email,
             full_name: name,
-            nickname: nickname.toLowerCase(), // 소문자로 저장
-            phone: phone,
-            phone_country: phoneCountryDigits,
+            nickname: name, // full_name을 nickname으로 사용 (임시, 나중에 제거 예정)
+            phone: formattedPhone, // 포맷팅된 전화번호 사용
             language: country === 'KR' ? 'ko' : 'es', // 한국이 아니면 스페인어로 설정
-            is_korean: isKorean || false, // 한국인 여부 추가
-            email_verified: false, // 이메일 인증은 별도로 진행
-            phone_verified: phoneVerified, // SMS 인증 완료 여부
-            birth_date: birth.toISOString().split('T')[0],
-            age_verified: true,
-            deleted_at: null, // 삭제된 계정 재가입 시 deleted_at 제거
-            is_active: true, // 계정 활성화
+            is_korean: isActuallyKorean, // 검증된 한국인 여부만 저장
             updated_at: new Date().toISOString()
           }
           
@@ -465,18 +556,113 @@ export async function POST(request: NextRequest) {
 
           if (userError) {
             console.error('[SIGNUP] users 테이블 저장 실패:', userError)
+            console.error('[SIGNUP] userError 상세:', {
+              code: userError.code,
+              message: userError.message,
+              details: userError.details,
+              hint: userError.hint
+            })
+            // users 테이블 저장 실패 시 에러 반환
+            // auth.users는 생성되었지만 public.users에 저장 실패한 경우
+            // auth.users에서도 삭제하여 일관성 유지
+            try {
+              await supabaseServer.auth.admin.deleteUser(userId, true)
+              console.log(`[SIGNUP] users 테이블 저장 실패로 인해 auth.users에서도 삭제: ${userId}`)
+            } catch (deleteError) {
+              console.error('[SIGNUP] auth.users 삭제 실패:', deleteError)
+            }
+            // global.registeredEmails에서도 제거
+            if (global.registeredEmails!.has(email)) {
+              global.registeredEmails!.delete(email)
+              console.log(`[SIGNUP] users 테이블 저장 실패로 인해 global.registeredEmails에서도 제거: ${email}`)
+            }
+            // 개발 환경에서만 상세한 에러 정보 포함
+            const errorMessage = process.env.NODE_ENV === 'development' 
+              ? `회원가입 중 오류가 발생했습니다: ${userError.message || '알 수 없는 오류'}`
+              : '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+            return NextResponse.json(
+              { 
+                error: errorMessage,
+                ...(process.env.NODE_ENV === 'development' && {
+                  debug: {
+                    code: userError.code,
+                    details: userError.details,
+                    hint: userError.hint
+                  }
+                })
+              },
+              { status: 500 }
+            )
           } else {
             console.log('[SIGNUP] users 테이블 저장 성공')
           }
+        } else {
+          // userId가 설정되지 않았으면 에러 반환
+          console.error('[SIGNUP] userId가 설정되지 않음')
+          console.error('[SIGNUP] userId 미설정 상세:', {
+            email,
+            userId: userId,
+            userIdType: typeof userId,
+            userIdDefined: typeof userId !== 'undefined'
+          })
+          // global.registeredEmails에서도 제거
+          if (global.registeredEmails!.has(email)) {
+            global.registeredEmails!.delete(email)
+            console.log(`[SIGNUP] userId 미설정으로 인해 global.registeredEmails에서도 제거: ${email}`)
+          }
+          return NextResponse.json(
+            { 
+              error: process.env.NODE_ENV === 'development'
+                ? '계정 생성에 실패했습니다: userId가 설정되지 않았습니다'
+                : '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.',
+              ...(process.env.NODE_ENV === 'development' && {
+                debug: {
+                  email,
+                  userId: userId,
+                  userIdDefined: typeof userId !== 'undefined'
+                }
+              })
+            },
+            { status: 500 }
+          )
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('[SIGNUP] Supabase 사용자 생성 중 오류:', error)
-        userId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        console.error('[SIGNUP] 에러 상세:', {
+          message: error?.message,
+          stack: error?.stack,
+          code: error?.code,
+          details: error?.details
+        })
+        // global.registeredEmails에서도 제거
+        if (global.registeredEmails!.has(email)) {
+          global.registeredEmails!.delete(email)
+          console.log(`[SIGNUP] 예외 발생으로 인해 global.registeredEmails에서도 제거: ${email}`)
+        }
+        // 개발 환경에서만 상세한 에러 정보 포함
+        const errorMessage = process.env.NODE_ENV === 'development'
+          ? `회원가입 중 오류가 발생했습니다: ${error?.message || '알 수 없는 오류'}`
+          : '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        return NextResponse.json(
+          { 
+            error: errorMessage,
+            ...(process.env.NODE_ENV === 'development' && {
+              debug: {
+                code: error?.code,
+                details: error?.details,
+                stack: error?.stack
+              }
+            })
+          },
+          { status: 500 }
+        )
       }
     } else {
-      // Supabase가 연결되지 않은 경우 임시 ID 생성
-      userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      console.warn('[SIGNUP] Supabase가 연결되지 않았습니다. 임시 ID를 사용합니다.')
+      // Supabase가 연결되지 않은 경우 에러 반환
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
     }
     
     console.log('\n' + '='.repeat(60))

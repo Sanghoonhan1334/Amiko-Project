@@ -62,7 +62,7 @@ export default function VerificationPage() {
     register_as_partner: false
   })
 
-  // 운영자 체크 로직
+  // 운영자 체크 및 사용자 타입 확인 로직
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user?.id && !user?.email) {
@@ -87,6 +87,28 @@ export default function VerificationPage() {
             router.push('/main?tab=me')
             return
           }
+        }
+        
+        // 사용자 타입 확인 - 한국인이 아니면 현지인 전용 페이지로 리다이렉트
+        try {
+          const { createSupabaseBrowserClient } = await import('@/lib/supabase-client')
+          const supabase = createSupabaseBrowserClient()
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('is_korean')
+            .eq('id', user.id)
+            .maybeSingle()
+          
+          if (!userError && userData) {
+            const isKorean = userData.is_korean === true
+            if (!isKorean) {
+              console.log('[VERIFICATION] 현지인 감지 - 현지인 전용 페이지로 리다이렉트')
+              router.push('/verification-center')
+              return
+            }
+          }
+        } catch (e) {
+          console.error('[VERIFICATION] 사용자 타입 확인 오류:', e)
         }
       } catch (error) {
         console.error('운영자 상태 확인 실패:', error)

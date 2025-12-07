@@ -66,6 +66,7 @@ import { useEventPoints } from '@/hooks/useEventPoints'
 import UserBadge from '@/components/common/UserBadge'
 import { getUserLevel } from '@/lib/user-level'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
+import InquiryModal from '@/components/common/InquiryModal'
 
 export default function MyTab() {
   const { t, language } = useLanguage()
@@ -128,7 +129,8 @@ export default function MyTab() {
           const result = await response.json()
           
           if (response.ok && result.user) {
-            // 프로필 있음 → 인증 상태 확인 (is_verified 플래그 우선)
+            // 프로필 있음 → 인증 상태 확인 (실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시)
+            // 회원가입 시 입력한 정보만으로는 인증완료로 처리하지 않음
             const isVerified = !!(
               result.user.is_verified ||  // 👈 인증센터에서 설정한 플래그
               result.user.verification_completed ||  // 👈 인증 완료 플래그
@@ -136,9 +138,9 @@ export default function MyTab() {
               result.user.sms_verified_at || 
               result.user.kakao_linked_at || 
               result.user.wa_verified_at ||
-              (result.user.korean_name && result.user.nickname) ||
-              (result.user.spanish_name && result.user.nickname) ||
-              (result.user.full_name && result.user.phone) ||
+              (result.user.korean_name) ||
+              (result.user.spanish_name) ||
+              // full_name && phone 조건 제거 - 회원가입 시 자동으로 true가 되어 인증완료로 표시되는 문제 방지
               (result.user.full_name && result.user.university && result.user.major)
             )
             
@@ -153,7 +155,6 @@ export default function MyTab() {
               major: result.user.major,
               korean_name: result.user.korean_name,
               spanish_name: result.user.spanish_name,
-              nickname: result.user.nickname,
               isVerified: isVerified
             })
             
@@ -284,7 +285,6 @@ export default function MyTab() {
     full_name: '',
     korean_name: '',
     spanish_name: '',
-    nickname: '',
     phone: '',
     one_line_intro: '',
     introduction: '',
@@ -414,7 +414,9 @@ export default function MyTab() {
 
       // 삭제 성공 메시지 표시
       const hasWarnings = result?.warnings && result.warnings.length > 0
-      const successMessage = result?.message || 
+      const failedOperations = result?.failedOperations || result?.warnings || []
+      
+      let successMessage = result?.message || 
         (result?.success === false || hasWarnings
           ? (language === 'ko'
               ? '계정 삭제가 완료되었지만 일부 데이터 정리에 실패했습니다.'
@@ -422,6 +424,24 @@ export default function MyTab() {
           : (language === 'ko'
               ? '계정이 삭제되었습니다.'
               : 'La cuenta se ha eliminado correctamente.'))
+      
+      // 실패한 작업 목록이 있으면 상세 정보 추가
+      if (failedOperations.length > 0) {
+        console.warn('[ACCOUNT_DELETE] 실패한 작업 목록:', failedOperations)
+        console.warn('[ACCOUNT_DELETE] 사용자 ID:', result?.userId)
+        
+        const failedDetails = failedOperations.join(', ')
+        successMessage += `\n\n${language === 'ko' ? '실패한 작업:' : 'Operaciones fallidas:'} ${failedDetails}`
+        
+        // 디버깅을 위해 콘솔에도 출력
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+          console.error('[ACCOUNT_DELETE] 실패한 작업 상세:', {
+            userId: result?.userId,
+            failedOperations: failedOperations,
+            timestamp: new Date().toISOString()
+          })
+        }
+      }
       
       // 다이얼로그 닫기 및 로딩 상태 해제 (성공/부분 실패 모두)
       setIsDeletingAccount(false)
@@ -490,6 +510,9 @@ export default function MyTab() {
   const [biometricEnabled, setBiometricEnabled] = useState(false)
   const [biometricSupported, setBiometricSupported] = useState(false)
   const [biometricCredentials, setBiometricCredentials] = useState<any[]>([])
+  
+  // 문의 모달 상태
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false)
 
   // 파트너 섹션 노출 여부 계산 및 디버깅 로그 (verificationStatus 선언 이후)
   // 국가 코드 우선: users.phone_country → 없으면 전화번호에서 추론
@@ -505,6 +528,10 @@ export default function MyTab() {
     isByKoreanPhone || adminOverride
   )
 
+  // 해외 거주 한국인 감지: 국적이 한국인데 전화번호가 +82가 아닌 경우
+  const isKoreanByNationality = isKorean || (profile as any)?.country === 'KR' || (profileUser as any)?.country === 'KR'
+  const isOverseasKorean = isKoreanByNationality && !isByKoreanPhone && effectiveCountryCode !== null
+
   // 디버그 로그/표시는 비활성화 (안정화 완료)
 
   // 프로필 사진 스와이프 관련 상태
@@ -518,7 +545,6 @@ export default function MyTab() {
       full_name: profileData?.name || profileData?.full_name || '',
       korean_name: profileData?.korean_name || '',
       spanish_name: profileData?.spanish_name || '',
-      nickname: profileData?.nickname || '',
       phone: profileData?.phone || '',
       one_line_intro: profileData?.bio || profileData?.one_line_intro || '',
       introduction: profileData?.introduction || '',
@@ -596,11 +622,6 @@ export default function MyTab() {
   }
 
   // 닉네임 검증
-  const validateNickname = (nickname: string) => {
-    const nicknameRegex = /^[a-zA-Z0-9_!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]*$/
-    return nicknameRegex.test(nickname)
-  }
-
   // 프로필 이미지 업로드 핸들러
   const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -1623,6 +1644,31 @@ export default function MyTab() {
               </div>
             </div>
 
+        {/* 해외 거주 한국인 안내 메시지 */}
+        {isOverseasKorean && (
+          <div className="px-4 py-3 bg-yellow-50 border-l-4 border-yellow-400">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-800 mb-1">
+                  {language === 'ko' ? '해외 거주 한국인 인증' : 'Verificación de coreano en el extranjero'}
+                </p>
+                <p className="text-xs text-yellow-700 mb-2">
+                  {language === 'ko' 
+                    ? '국적이 한국인데 해외 전화번호를 사용 중이시군요. 해외 거주 한국인 인증을 원하시면 문의를 남겨주세요.'
+                    : 'Detectamos que eres coreano pero usas un número de teléfono extranjero. Si deseas verificar tu estado como coreano en el extranjero, por favor deja una consulta.'}
+                </p>
+                <button
+                  onClick={() => setIsInquiryModalOpen(true)}
+                  className="text-xs text-yellow-800 underline hover:text-yellow-900 font-medium"
+                >
+                  {language === 'ko' ? '문의하기 →' : 'Dejar consulta →'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 관심사 섹션 */}
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center justify-between mb-3">
@@ -2080,20 +2126,6 @@ export default function MyTab() {
                   />
               </div>
               
-                <div>
-                  <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.nickname')}</label>
-                  <Input
-                    value={editForm.nickname}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, nickname: e.target.value }))}
-                    placeholder={t('profile.nickname') + '을 입력하세요'}
-                    className={`text-sm ${editForm.nickname && !validateNickname(editForm.nickname) ? 'border-red-500' : ''}`}
-                  />
-                  {editForm.nickname && !validateNickname(editForm.nickname) && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {language === 'ko' ? '알파벳, 숫자, 특수문자만 사용 가능합니다' : 'Solo se permiten letras, números y caracteres especiales'}
-                    </p>
-                )}
-              </div>
 
                 <div>
                   <label className="text-gray-600 text-xs sm:text-sm block mb-1">{t('profile.spanishName')}</label>
@@ -2209,13 +2241,6 @@ export default function MyTab() {
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
 
-              {/* 닉네임 */}
-              <div className="flex items-center justify-between">
-                <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.nickname')}</span>
-                <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
-                  {profile?.nickname || (language === 'ko' ? '미설정' : 'Sin apodo')}
-                </span>
-                </div>
 
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
@@ -2980,6 +3005,11 @@ export default function MyTab() {
           : 'Para ver tu perfil, completa tu perfil en el centro de autenticación. ¿Deseas ir al centro de autenticación?'}
         confirmText={language === 'ko' ? '인증센터로 이동' : 'Ir al centro de autenticación'}
         cancelText={language === 'ko' ? '취소' : 'Cancelar'}
+      />
+      {/* 문의 모달 */}
+      <InquiryModal
+        isOpen={isInquiryModalOpen}
+        onClose={() => setIsInquiryModalOpen(false)}
       />
     </>
   )

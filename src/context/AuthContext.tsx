@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null)
   
   // 사용자 프로필 정보 (is_admin 포함) 가져오기
-  const fetchUserProfile = async (baseUser: User): Promise<ExtendedUser> => {
+  const fetchUserProfile = async (baseUser: User): Promise<ExtendedUser | null> => {
     try {
       console.log('[AUTH] 사용자 프로필 정보 가져오기:', baseUser.email)
       const response = await fetch(`/api/profile?userId=${baseUser.id}`)
@@ -50,13 +50,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           is_korean: result.user.is_korean || false,
           full_name: result.user.full_name || baseUser.user_metadata?.name
         }
+      } else if (response.status === 404) {
+        // public.users에 사용자가 없음 (삭제된 계정)
+        console.warn('[AUTH] 프로필이 없음 (404) - 삭제된 계정일 수 있음:', baseUser.email)
+        return null
       }
     } catch (error) {
       console.error('[AUTH] 프로필 정보 가져오기 실패:', error)
     }
     
-    // 실패 시 기본 user 반환
-    return baseUser as ExtendedUser
+    // 실패 시 null 반환 (프로필이 없음을 의미)
+    return null
   }
   
   // 사용자 프로필 언어 가져오기
@@ -199,19 +203,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // 프로필 정보 포함하여 user 설정
           const extendedUser = await fetchUserProfile(session.user)
-          setUser(extendedUser)
           
-          // 사용자 프로필 언어 가져오기
-          await fetchUserLanguage(session.user.id)
-          
-          // 로컬 스토리지에 저장 (더 긴 만료시간으로)
-          const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60) // 30일 추가
-          localStorage.setItem('amiko_session', JSON.stringify({
-            user: session.user,
-            expires_at: extendedExpiry,
-            original_expires_at: session.expires_at
-          }))
-          console.log('[AUTH] 세션을 로컬 스토리지에 저장 (30일 연장)')
+          if (!extendedUser) {
+            // 프로필이 없으면 public.users에 사용자가 없음 (삭제된 계정)
+            console.warn('[AUTH] 프로필이 없음 - auth.users에만 존재하는 orphaned 계정 감지')
+            console.log('[AUTH] 세션 무효화 및 auth.users에서 삭제 시도')
+            
+            // 세션 무효화 및 auth.users에서 삭제를 위한 API 호출
+            try {
+              const cleanupResponse = await fetch('/api/auth/cleanup-orphaned-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: session.user.id })
+              })
+              
+              if (cleanupResponse.ok) {
+                console.log('[AUTH] Orphaned 세션 정리 완료')
+              } else {
+                console.error('[AUTH] Orphaned 세션 정리 실패')
+              }
+            } catch (cleanupError) {
+              console.error('[AUTH] Orphaned 세션 정리 중 오류:', cleanupError)
+            }
+            
+            // 세션 무효화 및 로그아웃
+            await supabase.auth.signOut()
+            localStorage.removeItem('amiko_session')
+            setSession(null)
+            setUser(null)
+            console.log('[AUTH] 세션 무효화 완료')
+          } else {
+            setUser(extendedUser)
+            
+            // 사용자 프로필 언어 가져오기
+            await fetchUserLanguage(session.user.id)
+            
+            // 로컬 스토리지에 저장 (더 긴 만료시간으로)
+            const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60) // 30일 추가
+            localStorage.setItem('amiko_session', JSON.stringify({
+              user: session.user,
+              expires_at: extendedExpiry,
+              original_expires_at: session.expires_at
+            }))
+            console.log('[AUTH] 세션을 로컬 스토리지에 저장 (30일 연장)')
+          }
         } else {
           // Supabase 세션이 없으면 로컬 스토리지도 정리
           console.log('[AUTH] Supabase 세션 없음, 로컬 스토리지 정리')

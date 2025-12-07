@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { useRouter } from 'next/navigation'
-import { Users, MessageSquare, ArrowLeft, Star, Search, Trash2 } from 'lucide-react'
+import { Users, MessageSquare, ArrowLeft, Star, Search, Trash2, Plus, X } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
 
 interface ChatRoom {
@@ -24,6 +26,7 @@ interface ChatRoom {
 
 export default function KChatBoard() {
   const { user, token } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [rooms, setRooms] = useState<ChatRoom[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,19 +68,12 @@ export default function KChatBoard() {
   const fetchRooms = async () => {
     try {
       setLoading(true)
-      // 단일 아미코 채팅방만 가져오기 (이름으로 필터링)
-      const response = await fetch('/api/chat/rooms')
+      // fanclub 타입만 가져오기 (아미코 전체 채팅은 플로팅 버튼으로 접근)
+      const response = await fetch('/api/chat/rooms?type=fanclub')
       const data = await response.json()
       
       if (data.success) {
-        // "아미코 채팅방" 또는 "Amiko Chat" 이름의 채팅방만 필터링
-        const amikoRoom = data.rooms?.find((room: ChatRoom) => 
-          room.name?.toLowerCase().includes('amiko') || 
-          room.name?.toLowerCase().includes('아미코')
-        )
-        
-        // 아미코 채팅방이 없으면 모든 채팅방 중 첫 번째를 사용하거나 빈 배열
-        setRooms(amikoRoom ? [amikoRoom] : (data.rooms?.length > 0 ? [data.rooms[0]] : []))
+        setRooms(data.rooms || [])
       }
     } catch (error) {
       console.error('Failed to fetch chat rooms:', error)
@@ -87,7 +83,6 @@ export default function KChatBoard() {
     }
   }
 
-  // 채팅방 생성 기능 제거 (단일 채팅방만 사용)
 
   const getTimeAgo = (dateString: string) => {
     const now = new Date()
@@ -190,9 +185,9 @@ export default function KChatBoard() {
                 <span className="hidden sm:inline">Comunidad</span>
               </button>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold">아미코 채팅방</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">{t('community.chatRoomTitle')}</h1>
                 <p className="text-xs sm:text-sm mt-1 text-gray-600">
-                  Amiko Chat - 한국과 남미를 잇는 채팅방
+                  {t('community.chatRoomSubtitle')}
                 </p>
               </div>
             </div>
@@ -236,19 +231,32 @@ export default function KChatBoard() {
         ) : rooms.length === 0 ? (
           <div className="text-center py-12">
             <MessageSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600 mb-4">Aún no hay salas de chat</p>
-            {user && (activeTab === 'fanclub' || (activeTab === 'country' && user.is_admin)) && (
-              <Button onClick={() => setShowCreateModal(true)}>
-                Crear la primera sala
+            <p className="text-gray-600 mb-4">{t('community.chatRoomNoRooms') || 'Aún no hay salas de chat'}</p>
+            {user && (
+              <Button onClick={() => router.push('/community/k-chat/create')}>
+                {t('community.chatRoomCreateFirst') || 'Crear la primera sala'}
               </Button>
             )}
             {!user && (
               <Link href="/sign-in">
-                <Button>Iniciar sesión para crear una sala</Button>
+                <Button>{t('community.chatRoomLoginToCreate') || 'Iniciar sesión para crear una sala'}</Button>
               </Link>
             )}
           </div>
         ) : (
+          <>
+            {/* 채팅방 생성 페이지로 이동하는 버튼 */}
+            {user && (
+              <div className="mb-4 flex justify-end">
+                <Button 
+                  onClick={() => router.push('/community/k-chat/create')}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('community.chatRoomCreate') || '채팅방 만들기'}
+                </Button>
+              </div>
+            )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedRooms.map(room => {
               const isFavorite = favoriteRooms.has(room.id)
@@ -319,10 +327,10 @@ export default function KChatBoard() {
               )
             })}
           </div>
+          </>
         )}
       </div>
 
-      {/* 채팅방 생성 기능 제거됨 - 단일 아미코 채팅방만 사용 */}
     </div>
   )
 }

@@ -58,6 +58,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const [translatingComments, setTranslatingComments] = useState<Set<string>>(new Set())
   const [currentUserProfile, setCurrentUserProfile] = useState<{ name: string; avatar: string | null } | null>(null)
   const [isOperator, setIsOperator] = useState(false)
+  const [isVerified, setIsVerified] = useState<boolean | null>(null) // 인증 상태
   
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -93,16 +94,17 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
     checkOperatorStatus()
   }, [user, token])
 
-  // 현재 사용자 프로필 정보 로드
+  // 현재 사용자 프로필 정보 로드 및 인증 상태 확인
   useEffect(() => {
     const loadUserProfile = async () => {
       if (!user?.id || !token) {
         setCurrentUserProfile(null)
+        setIsVerified(null)
         return
       }
 
       try {
-        const response = await fetch('/api/profile', {
+        const response = await fetch(`/api/profile?userId=${user.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -112,17 +114,31 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         if (response.ok) {
           const data = await response.json()
           const profile = data.user || data.profile
-          const displayName = profile?.display_name || profile?.full_name || profile?.nickname || user.email?.split('@')[0] || 'U'
+          const displayName = profile?.display_name || profile?.korean_name || profile?.spanish_name || profile?.full_name || user.email?.split('@')[0] || 'U'
           const avatarUrl = profile?.profile_image || profile?.avatar_url || null
           
           setCurrentUserProfile({
             name: displayName,
             avatar: avatarUrl
           })
+
+          // 인증 상태 확인 (SMS/WhatsApp/Phone 인증 중 하나라도 있으면 인증된 것으로 간주)
+          const hasVerification = !!(
+            profile?.phone_verified ||
+            profile?.sms_verified_at ||
+            profile?.phone_verified_at ||
+            profile?.wa_verified_at ||
+            profile?.kakao_linked_at
+          )
+          
+          setIsVerified(hasVerification)
+        } else {
+          setIsVerified(false)
         }
       } catch (error) {
         console.error('프로필 로드 실패:', error)
         setCurrentUserProfile(null)
+        setIsVerified(false)
       }
     }
 
@@ -186,6 +202,32 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const handleSubmitComment = async () => {
     if (!commentContent.trim() || submitting) return
 
+    // 인증 상태 확인
+    if (isVerified === false) {
+      alert(language === 'ko' 
+        ? '댓글을 작성하려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
+        : 'Se requiere verificación para comentar. Complete la verificación en el centro de verificación.'
+      )
+      return
+    }
+
+    // 인증 상태가 아직 확인 중인 경우
+    if (isVerified === null) {
+      alert(language === 'ko' 
+        ? '인증 상태를 확인하는 중입니다. 잠시 후 다시 시도해주세요.'
+        : 'Verificando estado de autenticación. Por favor, intente de nuevo en un momento.'
+      )
+      return
+    }
+
+    if (!token) {
+      alert(language === 'ko' 
+        ? '로그인이 필요합니다.'
+        : 'Se requiere inicio de sesión.'
+      )
+      return
+    }
+
     try {
       setSubmitting(true)
       const response = await fetch(`/api/posts/${postId}/comments`, {
@@ -224,6 +266,32 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   // 답글 작성
   const handleSubmitReply = async (parentId: string) => {
     if (!replyContent.trim() || submitting) return
+
+    // 인증 상태 확인
+    if (isVerified === false) {
+      alert(language === 'ko' 
+        ? '댓글을 작성하려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
+        : 'Se requiere verificación para comentar. Complete la verificación en el centro de verificación.'
+      )
+      return
+    }
+
+    // 인증 상태가 아직 확인 중인 경우
+    if (isVerified === null) {
+      alert(language === 'ko' 
+        ? '인증 상태를 확인하는 중입니다. 잠시 후 다시 시도해주세요.'
+        : 'Verificando estado de autenticación. Por favor, intente de nuevo en un momento.'
+      )
+      return
+    }
+
+    if (!token) {
+      alert(language === 'ko' 
+        ? '로그인이 필요합니다.'
+        : 'Se requiere inicio de sesión.'
+      )
+      return
+    }
 
     try {
       setSubmitting(true)
@@ -549,6 +617,16 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       {/* 댓글 작성 폼 */}
       {user ? (
         <div className="px-4 py-3 md:py-4 border-t border-gray-200">
+          {isVerified === false && (
+            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs md:text-sm text-yellow-800 text-center">
+                {language === 'ko' 
+                  ? '⚠️ 댓글을 작성하려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
+                  : '⚠️ Se requiere verificación para comentar. Complete la verificación en el centro de verificación.'
+                }
+              </p>
+            </div>
+          )}
           <div className="flex space-x-3">
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium overflow-hidden">
               {currentUserProfile?.avatar ? (
@@ -570,6 +648,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
                 rows={3}
                 maxLength={1000}
+                disabled={isVerified === false}
               />
               <div className="flex justify-between items-center mt-2">
                 <span className="text-[10px] md:text-xs text-gray-500">
@@ -577,9 +656,9 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                 </span>
                 <Button
                   onClick={handleSubmitComment}
-                  disabled={submitting || !commentContent.trim()}
+                  disabled={submitting || !commentContent.trim() || isVerified === false}
                   size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 py-1.5 md:px-4 md:py-2"
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 py-1.5 md:px-4 md:py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? t('freeboard.commentWriting') : t('freeboard.commentWrite')}
                 </Button>
@@ -613,13 +692,13 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
               <div className={`p-4 ${index > 0 ? 'border-t border-gray-200' : ''}`}>
                 <div className="flex space-x-3">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm font-medium">
-                    {(comment.author?.nickname || comment.author?.full_name)?.charAt(0) || 'U'}
+                    {(comment.author?.korean_name || comment.author?.spanish_name || comment.author?.full_name)?.charAt(0) || 'U'}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <AuthorName
                         userId={comment.author?.id}
-                        name={comment.author?.nickname || comment.author?.full_name || t('freeboard.anonymous')}
+                        name={comment.author?.korean_name || comment.author?.spanish_name || comment.author?.full_name || t('freeboard.anonymous')}
                         className="font-medium text-xs md:text-sm text-gray-800"
                       >
                         <UserBadge
@@ -750,7 +829,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                             <div className="flex items-center space-x-2 mb-2">
                         <AuthorName
                           userId={reply.author?.id}
-                          name={reply.author?.nickname || reply.author?.full_name || t('freeboard.anonymous')}
+                          name={reply.author?.korean_name || reply.author?.spanish_name || reply.author?.full_name || t('freeboard.anonymous')}
                           className="font-medium text-xs md:text-sm text-gray-800"
                         >
                           <UserBadge

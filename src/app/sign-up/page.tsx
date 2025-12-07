@@ -20,7 +20,6 @@ export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState<'form' | 'sms' | 'complete'>('form')
   const [formData, setFormData] = useState({
     name: '',
-    nickname: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -35,12 +34,6 @@ export default function SignUpPage() {
     hasNumber: false,
     hasSpecial: false,
     noRepeated: false
-  })
-
-  const [nicknameChecks, setNicknameChecks] = useState({
-    length: false,
-    isAlphabetic: false,
-    isAvailable: false
   })
   
   const [authData, setAuthData] = useState({
@@ -130,11 +123,6 @@ export default function SignUpPage() {
       validatePassword(value)
     }
     
-    // 닉네임 검증
-    if (field === 'nickname') {
-      validateNickname(value)
-    }
-    
     // 이메일 검증 (오타 감지)
     if (field === 'email') {
       validateEmail(value)
@@ -147,11 +135,6 @@ export default function SignUpPage() {
     // 가입 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
       signUpEvents.enterPassword()
-    }
-    
-    // 가입 퍼널 이벤트: 닉네임 입력
-    if (field === 'nickname' && value.length > 0) {
-      signUpEvents.enterNickname()
     }
 
     if (field === 'birthDate') {
@@ -192,41 +175,6 @@ export default function SignUpPage() {
     }
   }
   
-  const validateNickname = async (nickname: string) => {
-    const checks = {
-      length: nickname.length >= 3 && nickname.length <= 20,
-      isAlphabetic: /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(nickname), // 알파벳, 숫자, 특수문자 허용
-      isAvailable: true // 기본값
-    }
-    setNicknameChecks(checks)
-
-    // 길이와 알파벳 조건을 만족하는 경우에만 중복 확인
-    if (checks.length && checks.isAlphabetic && nickname.length > 0) {
-      try {
-        const response = await fetch('/api/auth/check-nickname', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nickname })
-        })
-
-        const result = await response.json()
-        
-        if (response.ok) {
-          setNicknameChecks(prev => ({
-            ...prev,
-            isAvailable: result.available
-          }))
-          
-          // 닉네임 검증 통과 시 이벤트
-          if (result.available) {
-            signUpEvents.nicknameOk()
-          }
-        }
-      } catch (error) {
-        console.error('닉네임 중복 확인 오류:', error)
-      }
-    }
-  }
   
   const validateEmail = (email: string) => {
     if (!email || email.length === 0) {
@@ -275,7 +223,6 @@ export default function SignUpPage() {
   }
   
   const isPasswordValid = Object.values(passwordChecks).every(check => check)
-  const isNicknameValid = Object.values(nicknameChecks).every(check => check)
 
   const handleCountryChange = (countryCode: string) => {
     const selectedCountry = countries.find(c => c.code === countryCode)
@@ -378,7 +325,17 @@ export default function SignUpPage() {
       const result = await response.json()
       console.log('📥 [DEBUG] API 응답:', JSON.stringify(result, null, 2))
       
-      if (!response.ok) throw new Error(result.error)
+      // 응답이 실패했거나 success가 false인 경우 에러 처리
+      if (!response.ok || !result.success) {
+        const errorMessage = result.error || result.message || '인증코드 발송에 실패했습니다.'
+        console.error('❌ [DEBUG] 발송 실패:', errorMessage)
+        // 개발 환경에서 debug 정보가 있으면 포함
+        if (result.debug) {
+          console.warn('⚠️ [DEBUG] 개발 환경 - 인증코드:', result.debug.verificationCode)
+          throw new Error(`${errorMessage}\n(개발 환경: 인증코드는 ${result.debug.verificationCode})`)
+        }
+        throw new Error(errorMessage)
+      }
 
       setAuthData(prev => ({ ...prev, phoneNumber: formData.phone, nationality: formData.country }))
       console.log(`✅ ${method} 인증코드 발송 성공:`, result)
@@ -462,7 +419,6 @@ export default function SignUpPage() {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          nickname: formData.nickname,
           phone: formData.phone,
           country: formData.country,
           isKorean: selectedCountry?.isKorean || false,
@@ -587,7 +543,6 @@ export default function SignUpPage() {
         phoneNumber: formData.phone,
         nationality: formData.country,
         name: formData.name,
-        nickname: formData.nickname,
         country: formData.country
       }))
       
@@ -651,43 +606,6 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-          <Label htmlFor="nickname" className="text-sm font-medium text-slate-700 dark:text-gray-300">
-            {t('signUp.nicknameLabel')}
-          </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
-                <Input
-                  id="nickname"
-                  type="text"
-                  placeholder={t('signUp.nicknamePlaceholder')}
-                  value={formData.nickname}
-                  onChange={(e) => handleInputChange('nickname', e.target.value)}
-                  className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
-                  style={{ paddingLeft: '2.5rem' }}
-                  required
-                />
-              </div>
-              {/* 닉네임 검증 메시지 */}
-              {formData.nickname && (
-                <div className="space-y-1">
-                  <div className={`flex items-center gap-2 text-xs ${nicknameChecks.length ? 'text-green-600' : 'text-red-500'}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${nicknameChecks.length ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    {t('auth.nicknameLength')}
-                  </div>
-                  <div className={`flex items-center gap-2 text-xs ${nicknameChecks.isAlphabetic ? 'text-green-600' : 'text-red-500'}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${nicknameChecks.isAlphabetic ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    {t('auth.nicknameCharacters')}
-                  </div>
-                  {nicknameChecks.length && nicknameChecks.isAlphabetic && (
-                    <div className={`flex items-center gap-2 text-xs ${nicknameChecks.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${nicknameChecks.isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      {nicknameChecks.isAvailable ? t('auth.nicknameAvailable') : t('auth.nicknameUnavailable')}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-gray-300">
@@ -874,7 +792,6 @@ export default function SignUpPage() {
               disabled={
                 isLoading ||
                 !formData.name ||
-                !formData.nickname ||
                 !formData.email ||
                 !formData.password ||
                 !formData.confirmPassword ||
@@ -882,7 +799,6 @@ export default function SignUpPage() {
                 !formData.country ||
                 !formData.birthDate ||
                 !isPasswordValid ||
-                !isNicknameValid ||
                 formData.password !== formData.confirmPassword ||
                 !!ageError ||
                 !!emailError

@@ -53,6 +53,8 @@ export default function IdolMemesDetailPage() {
   const [currentIndex, setCurrentIndex] = useState<number>(-1)
   const [replyingTo, setReplyingTo] = useState<string | null>(null) // 답글 작성 중인 댓글 ID
   const [replyText, setReplyText] = useState('') // 답글 내용
+  const [isVerified, setIsVerified] = useState(false)
+  const [checkingVerification, setCheckingVerification] = useState(false)
 
   useEffect(() => {
     fetchAllPostIds()
@@ -69,6 +71,56 @@ export default function IdolMemesDetailPage() {
     fetchPost()
     fetchComments()
   }, [params.id, token])
+
+  // 인증 상태 확인
+  useEffect(() => {
+    const checkVerification = async () => {
+      if (!user || !user.id) {
+        setIsVerified(false)
+        return
+      }
+
+      setCheckingVerification(true)
+      try {
+        const response = await fetch(`/api/profile?userId=${user.id}`)
+        if (response.ok) {
+          const result = await response.json()
+          if (result.user) {
+            // 인증 상태 확인 - user_type에 따라 다른 조건 적용
+            const userType = result.user.user_type || 'student'
+            const verified = !!(
+              result.user.is_verified ||
+              result.user.verification_completed ||
+              result.user.email_verified_at ||
+              result.user.sms_verified_at ||
+              result.user.kakao_linked_at ||
+              result.user.wa_verified_at ||
+              (result.user.korean_name) ||
+              (result.user.spanish_name) ||
+              (userType === 'student' && result.user.full_name && result.user.university && result.user.major) ||
+              (userType === 'general' && result.user.full_name && (result.user.occupation || result.user.company))
+            )
+            setIsVerified(verified)
+          } else {
+            setIsVerified(false)
+          }
+        } else {
+          setIsVerified(false)
+        }
+      } catch (error) {
+        console.error('인증 상태 확인 오류:', error)
+        setIsVerified(false)
+      } finally {
+        setCheckingVerification(false)
+      }
+    }
+
+    if (user && user.id) {
+      checkVerification()
+    } else {
+      setIsVerified(false)
+    }
+  }, [user?.id])
 
   const fetchAllPostIds = async () => {
     try {
@@ -192,6 +244,12 @@ export default function IdolMemesDetailPage() {
       return
     }
 
+    if (!isVerified) {
+      alert('댓글을 작성하려면 인증이 필요합니다.')
+      router.push('/verification-center')
+      return
+    }
+
     if (!commentText.trim()) {
       console.log('🔍 [댓글] 댓글 내용이 비어있음')
       return
@@ -244,6 +302,12 @@ export default function IdolMemesDetailPage() {
   const handleReplySubmit = async (parentCommentId: string) => {
     if (!user) {
       router.push('/sign-in')
+      return
+    }
+
+    if (!isVerified) {
+      alert('댓글을 작성하려면 인증이 필요합니다.')
+      router.push('/verification-center')
       return
     }
 
@@ -592,7 +656,34 @@ export default function IdolMemesDetailPage() {
           )}
 
           {/* Comment Input */}
-          {user ? (
+          {checkingVerification ? (
+            <div className="border-t border-gray-200 pt-6 text-center">
+              <p className="text-sm text-gray-500">Verificando autenticación...</p>
+            </div>
+          ) : !user ? (
+            <div className="border-t border-gray-200 pt-6 text-center">
+              <p className="text-sm text-gray-500 mb-4">Inicia sesión para comentar.</p>
+              <button
+                onClick={() => router.push('/sign-in')}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Iniciar sesión
+              </button>
+            </div>
+          ) : !isVerified ? (
+            <div className="border-t border-gray-200 pt-6 text-center">
+              <p className="text-sm text-gray-500 mb-4">Se requiere verificación para comentar.</p>
+              <button
+                onClick={() => router.push('/verification-center')}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Verificar
+              </button>
+            </div>
+          ) : (
             <div className="border-t border-gray-200 pt-6">
               <div className="flex gap-3">
                 <div className="w-10 h-10 rounded-full bg-purple-500 flex-shrink-0 flex items-center justify-center">
@@ -626,19 +717,6 @@ export default function IdolMemesDetailPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="border-t border-gray-200 pt-6 text-center">
-              <p className="text-sm text-gray-500 mb-4">Inicia sesión para comentar.</p>
-              <button
-                onClick={() => router.push('/sign-in')}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-sm font-medium transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Iniciar sesión
-              </button>
             </div>
           )}
         </div>

@@ -112,6 +112,9 @@ export async function POST(request: Request) {
 
     if (type === 'country') {
       roomData.country = country
+    } else if (type === 'fanclub') {
+      const { fanclub_name } = body
+      roomData.fanclub_name = fanclub_name || name
     }
 
     if (thumbnail_url) {
@@ -171,6 +174,21 @@ export async function DELETE(request: Request) {
       )
     }
 
+    // 채팅방 정보 가져오기
+    const { data: roomData, error: roomError } = await supabase
+      .from('chat_rooms')
+      .select('created_by')
+      .eq('id', roomId)
+      .single()
+
+    if (roomError || !roomData) {
+      console.error('Error fetching chat room:', roomError)
+      return NextResponse.json(
+        { success: false, error: 'Chat room not found' },
+        { status: 404 }
+      )
+    }
+
     // 사용자 권한 확인
     const { data: userData, error: userError } = await supabase
       .from('users')
@@ -186,10 +204,13 @@ export async function DELETE(request: Request) {
       )
     }
 
-    // 관리자인지 확인
-    if (!userData?.is_admin) {
+    // 관리자이거나 본인이 만든 채팅방인지 확인
+    const isAdmin = userData?.is_admin || false
+    const isCreator = roomData.created_by === userId
+
+    if (!isAdmin && !isCreator) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized: Admin only' },
+        { success: false, error: 'Unauthorized: Only admin or room creator can delete' },
         { status: 403 }
       )
     }

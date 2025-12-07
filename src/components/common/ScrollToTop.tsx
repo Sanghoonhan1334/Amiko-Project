@@ -41,14 +41,14 @@ export default function ScrollToTop() {
   }
 
   return (
-    <div className="fixed bottom-44 right-4 z-50 md:bottom-44 md:right-6 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
+    <div className="fixed bottom-36 right-2 z-50 sm:bottom-24 sm:right-8 md:bottom-36 md:right-16 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
       <Button
         onClick={scrollToTop}
-        className="w-11 h-11 rounded-full bg-gray-800 hover:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+        className="w-11 h-11 sm:w-14 sm:h-14 md:w-14 md:h-14 rounded-full bg-gray-800 hover:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
         size="icon"
         title="맨 위로"
       >
-        <ChevronUp className="w-5 h-5" />
+        <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 md:w-6 md:h-6" />
       </Button>
     </div>
   )

@@ -309,7 +309,9 @@ function HeaderContent() {
         const profileResult = await profileResponse.json()
         
         if (profileResult.user) {
-          // 인증 상태 확인 - is_verified 플래그 우선 체크
+          // 인증 상태 확인 - 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
+          // 회원가입 시 입력한 정보만으로는 인증완료로 처리하지 않음
+          const userType = profileResult.user.user_type || 'student'
           const isVerified = !!(
             profileResult.user.is_verified ||  // 👈 인증센터에서 설정한 플래그
             profileResult.user.verification_completed ||  // 👈 인증 완료 플래그
@@ -317,10 +319,10 @@ function HeaderContent() {
             profileResult.user.sms_verified_at || 
             profileResult.user.kakao_linked_at || 
             profileResult.user.wa_verified_at ||
-            (profileResult.user.korean_name && profileResult.user.nickname) ||
-            (profileResult.user.spanish_name && profileResult.user.nickname) ||
-            (profileResult.user.full_name && profileResult.user.phone) ||
-            (profileResult.user.full_name && profileResult.user.university && profileResult.user.major)
+            (profileResult.user.korean_name) ||
+            (profileResult.user.spanish_name) ||
+            (userType === 'student' && profileResult.user.full_name && profileResult.user.university && profileResult.user.major) ||
+            (userType === 'general' && profileResult.user.full_name && (profileResult.user.occupation || profileResult.user.company))
           )
           
           setVerificationStatus(isVerified ? 'verified' : 'unverified')
@@ -330,11 +332,13 @@ function HeaderContent() {
             verification_completed: profileResult.user.verification_completed,
             korean_name: profileResult.user.korean_name,
             spanish_name: profileResult.user.spanish_name,
-            nickname: profileResult.user.nickname,
             full_name: profileResult.user.full_name,
             phone: profileResult.user.phone,
             university: profileResult.user.university,
             major: profileResult.user.major,
+            user_type: profileResult.user.user_type,
+            occupation: profileResult.user.occupation,
+            company: profileResult.user.company,
             isVerified: isVerified
           })
         } else {
@@ -360,6 +364,61 @@ function HeaderContent() {
     }
   }, [user?.id, isAdmin])
 
+  // 인증 완료 플래그 확인 (인증센터에서 인증 완료 후 자동으로 상태 업데이트)
+  useEffect(() => {
+    const checkVerificationJustCompleted = () => {
+      const justCompleted = localStorage.getItem('verification_just_completed')
+      if (justCompleted === 'true' && user?.id) {
+        console.log('[HEADER] 인증 완료 플래그 감지, 인증 상태 다시 확인')
+        localStorage.removeItem('verification_just_completed')
+        
+        // 인증 상태 다시 확인
+        const checkVerificationStatus = async () => {
+          try {
+            const baseUrl = window.location.origin
+            const profileResponse = await fetch(`${baseUrl}/api/profile?userId=${user.id}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+            
+            if (profileResponse.ok) {
+              const profileResult = await profileResponse.json()
+              if (profileResult.user) {
+                const userType = profileResult.user.user_type || 'student'
+                const isVerified = !!(
+                  profileResult.user.is_verified ||
+                  profileResult.user.verification_completed ||
+                  profileResult.user.email_verified_at || 
+                  profileResult.user.sms_verified_at || 
+                  profileResult.user.kakao_linked_at || 
+                  profileResult.user.wa_verified_at ||
+                  (profileResult.user.korean_name && profileResult.user.nickname) ||
+                  (profileResult.user.spanish_name && profileResult.user.nickname) ||
+                  (userType === 'student' && profileResult.user.full_name && profileResult.user.university && profileResult.user.major) ||
+                  (userType === 'general' && profileResult.user.full_name && (profileResult.user.occupation || profileResult.user.company))
+                )
+                setVerificationStatus(isVerified ? 'verified' : 'unverified')
+                console.log('[HEADER] 인증 상태 업데이트 완료:', isVerified)
+              }
+            }
+          } catch (error) {
+            console.error('[HEADER] 인증 상태 재확인 오류:', error)
+          }
+        }
+        
+        checkVerificationStatus()
+      }
+    }
+
+    // 주기적으로 플래그 확인 (인증 완료 후 즉시 반영)
+    const interval = setInterval(checkVerificationJustCompleted, 1000)
+    checkVerificationJustCompleted() // 즉시 한 번 확인
+    
+    return () => clearInterval(interval)
+  }, [user?.id])
+
   // 모바일 메뉴 토글
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -372,7 +431,7 @@ function HeaderContent() {
   }
 
   // 메인페이지 네비게이션 클릭 핸들러
-  const handleMainNavClick = (tab: string) => {
+  const handleMainNavClick = async (tab: string) => {
     console.log('handleMainNavClick 호출됨:', tab)
     console.log('현재 사용자:', user)
     console.log('현재 경로:', pathname)
@@ -382,6 +441,62 @@ function HeaderContent() {
       console.log('로그인 필요 - 로그인 페이지로 이동')
       router.push('/sign-in')
       return
+    }
+    
+    // 프로필 탭 클릭 시 인증 상태 확인
+    if (tab === 'me' && user) {
+      try {
+        // 운영자 확인
+        const adminCheck = await fetch(`/api/admin/check?userId=${user.id}`)
+        const adminResult = await adminCheck.json()
+        
+        if (adminResult.isAdmin) {
+          console.log('운영자 확인됨, 인증 체크 스킵')
+        } else {
+          // 인증 상태 확인
+          const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
+          
+          if (profileResponse.ok) {
+            const profileResult = await profileResponse.json()
+            
+            if (profileResult.user) {
+              // 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
+              const isVerified = !!(
+                profileResult.user.is_verified ||
+                profileResult.user.verification_completed ||
+                profileResult.user.email_verified_at ||
+                profileResult.user.sms_verified_at ||
+                profileResult.user.kakao_linked_at ||
+                profileResult.user.wa_verified_at ||
+                (profileResult.user.korean_name && profileResult.user.nickname) ||
+                (profileResult.user.spanish_name && profileResult.user.nickname) ||
+                (profileResult.user.full_name && profileResult.user.university && profileResult.user.major)
+              )
+              
+              if (!isVerified) {
+                console.log('인증 필요 - 인증센터로 이동')
+                router.push('/verification-center')
+                return
+              }
+            } else {
+              // 프로필이 없으면 인증센터로 이동
+              console.log('프로필 없음 - 인증센터로 이동')
+              router.push('/verification-center')
+              return
+            }
+          } else if (profileResponse.status === 404) {
+            // 프로필이 없으면 인증센터로 이동
+            console.log('프로필 없음 (404) - 인증센터로 이동')
+            router.push('/verification-center')
+            return
+          }
+        }
+      } catch (error) {
+        console.error('인증 상태 확인 실패:', error)
+        // 오류 발생 시에도 인증센터로 이동 (안전하게 처리)
+        router.push('/verification-center')
+        return
+      }
     }
     
     console.log('활성 탭 설정:', tab)

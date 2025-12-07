@@ -2,6 +2,7 @@ import React from 'react'
 import { getUserLevel } from '@/lib/user-level'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useLanguage } from '@/context/LanguageContext'
+import SeedIcon from './SeedIcon'
 
 type Props = {
   totalPoints: number
@@ -13,8 +14,12 @@ type Props = {
 }
 
 const ICONS: Record<string, string> = {
-  sprout: '🌱',
-  lv: '🌿',
+  sprout: 'seed', // SVG 컴포넌트로 대체
+  lv1: '🌱',
+  lv2: '☘️',
+  lv3: '🍀',
+  lv4: '🌿',
+  lv5: '🌳',
   rose: '🌹',
   vip: '👑',
 }
@@ -52,16 +57,27 @@ export default function UserBadge({ totalPoints, isVip, userId, showLabel = true
   if (isVip) badges.push(<span key="vip" className={iconSizeClass} title="VIP">{ICONS.vip}</span>)
   if (isRose) badges.push(<span key="rose" className={iconSizeClass} title={t('myTab.levelTooltip.rosePoints')}>{ICONS.rose}</span>)
   if (!isRose) {
-    badges.push(<span key="leaf" className={iconSizeClass} title={translatedLabel}>{isSprout ? ICONS.sprout : ICONS.lv}</span>)
-    if (!isSprout && showLabel) {
+    // 레벨별 아이콘 선택
+    if (isSprout) {
+      // 씨앗은 SVG 컴포넌트 사용
       badges.push(
-        <span
-          key="lv"
-          className={`inline-flex items-center rounded-full bg-green-100 text-green-800 font-medium ${labelSizeClass}`}
-        >
-          {translatedLabel}
+        <span key="seed" className={iconSizeClass} title={translatedLabel}>
+          <SeedIcon size={size === 'sm' ? 16 : size === 'lg' ? 24 : 20} className="inline-block" />
         </span>
       )
+    } else {
+      const levelIcon = ICONS[level] || ICONS.lv1
+      badges.push(<span key="leaf" className={iconSizeClass} title={translatedLabel}>{levelIcon}</span>)
+      if (showLabel) {
+        badges.push(
+          <span
+            key="lv"
+            className={`inline-flex items-center rounded-full bg-green-100 text-green-800 font-medium ${labelSizeClass}`}
+          >
+            {translatedLabel}
+          </span>
+        )
+      }
     }
   }
 

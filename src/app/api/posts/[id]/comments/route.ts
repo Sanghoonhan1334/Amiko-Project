@@ -81,8 +81,8 @@ export async function GET(
             .single()
           
           if (!usersError && userData) {
-            // 우선순위: nickname > korean_name > spanish_name > full_name > 익명
-            userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || '익명'
+            // 우선순위: korean_name > spanish_name > full_name > 익명
+            userName = userData.korean_name || userData.spanish_name || userData.full_name || '익명'
             avatarUrl = userData.profile_image || userData.avatar_url
           }
         }
@@ -90,7 +90,6 @@ export async function GET(
         usersMap[userId] = {
           id: userId,
           full_name: userName || '익명',
-          nickname: userName || '익명',
           profile_image: avatarUrl
         }
       }))
@@ -171,6 +170,31 @@ export async function POST(
       return NextResponse.json({ error: '인증된 사용자를 찾을 수 없습니다.' }, { status: 401 })
     }
 
+    // 인증 상태 확인 (SMS/WhatsApp/Phone 인증 중 하나라도 있어야 댓글 작성 가능)
+    const { data: userData, error: userDataError } = await supabaseServer
+      .from('users')
+      .select('phone_verified, sms_verified_at, phone_verified_at, wa_verified_at, kakao_linked_at')
+      .eq('id', authUser.id)
+      .single()
+
+    if (!userDataError && userData) {
+      const hasVerification = !!(
+        userData.phone_verified ||
+        userData.sms_verified_at ||
+        userData.phone_verified_at ||
+        userData.wa_verified_at ||
+        userData.kakao_linked_at
+      )
+
+      if (!hasVerification) {
+        console.error('[COMMENTS_POST] 인증되지 않은 사용자:', authUser.id)
+        return NextResponse.json(
+          { error: '댓글을 작성하려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.' },
+          { status: 403 }
+        )
+      }
+    }
+
     // 유효성 검사
     if (!content || content.trim() === '') {
       return NextResponse.json({ error: '댓글 내용을 입력해주세요.' }, { status: 400 })
@@ -244,8 +268,8 @@ export async function POST(
         .single()
       
       if (!usersError && userData) {
-        // 우선순위: nickname > korean_name > spanish_name > full_name > 익명
-        userName = userData.nickname || userData.korean_name || userData.spanish_name || userData.full_name || '익명'
+        // 우선순위: korean_name > spanish_name > full_name > 익명
+        userName = userData.korean_name || userData.spanish_name || userData.full_name || '익명'
         avatarUrl = userData.profile_image || userData.avatar_url
       }
     }
@@ -297,7 +321,6 @@ export async function POST(
       author: {
         id: newComment.user_id,
         full_name: userName || '익명',
-        nickname: userName || '익명',
         profile_image: avatarUrl
       }
     }

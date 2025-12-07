@@ -121,9 +121,8 @@ export async function GET(
         
         if (userData) {
           // 닉네임 우선, 없으면 이름, 없으면 이메일, 없으면 운영자 확인
-          let finalName = userData.nickname || 
+          let finalName = userData.korean_name || 
                          userData.spanish_name || 
-                         userData.korean_name || 
                          userData.full_name
           
           // 여전히 없으면 이메일 사용

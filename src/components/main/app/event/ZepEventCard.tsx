@@ -314,38 +314,38 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
         </p>
 
         {/* 달력 */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-2 md:p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1">
               <button
                 onClick={goToPreviousMonth}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </button>
-              <h4 className="text-sm md:text-base font-semibold text-gray-700 dark:text-gray-300 min-w-[100px] text-center">
+              <h4 className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-[80px] text-center">
                 {monthNames[currentMonth]} {currentYear}
               </h4>
               <button
                 onClick={goToNextMonth}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
               >
-                <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
             {isAdmin && !checkingAdmin && (
-              <span className="text-xs text-purple-600 dark:text-purple-400 text-right">
+              <span className="text-[10px] text-purple-600 dark:text-purple-400 text-right">
                 Fecha (hora de América del Sur)
               </span>
             )}
           </div>
           
           {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2">
+          <div className="grid grid-cols-7 gap-0.5 md:gap-1 mb-1">
             {daysOfWeek.map((day, idx) => (
               <div
                 key={idx}
-                className="text-center text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400"
+                className="text-center text-[10px] md:text-xs font-medium text-gray-500 dark:text-gray-400"
               >
                 {day}
               </div>
@@ -353,7 +353,7 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
           </div>
           
           {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7 gap-1 md:gap-2">
+          <div className="grid grid-cols-7 gap-0.5 md:gap-1">
             {calendarDays.map((date, idx) => {
               if (date === null) {
                 return <div key={idx} className="aspect-square"></div>
@@ -367,7 +367,7 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
                   onClick={() => handleDateClick(date)}
                   disabled={!isClickable}
                   className={`
-                    aspect-square text-xs md:text-base font-medium rounded-md
+                    aspect-square text-[10px] md:text-xs font-medium rounded-md
                     transition-all duration-200 relative
                     bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600
                     ${isClickable ? 'cursor-pointer' : 'cursor-default'}
@@ -386,7 +386,7 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
                             r="42" 
                             fill="none" 
                             stroke="#ef4444" 
-                            strokeWidth="8"
+                            strokeWidth="6"
                           />
                         </svg>
                       </div>

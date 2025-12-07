@@ -47,7 +47,7 @@ export const createPayPalOrder = async (paymentData: PayPalPaymentRequest) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'PayPal 주문 생성 실패');
+      throw new Error(data.error || 'Failed to create PayPal order');
     }
 
     return {
@@ -55,10 +55,12 @@ export const createPayPalOrder = async (paymentData: PayPalPaymentRequest) => {
       orderId: data.orderId,
     };
   } catch (error) {
-    console.error('PayPal 주문 생성 실패:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Order creation failed:', error);
+    }
     return {
       success: false,
-      error: error instanceof Error ? error.message : '알 수 없는 오류',
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
   }
 };
@@ -77,7 +79,7 @@ export const approvePayPalOrder = async (orderId: string) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'PayPal 주문 승인 실패');
+      throw new Error(data.error || 'Failed to approve PayPal order');
     }
 
     return {
@@ -85,10 +87,12 @@ export const approvePayPalOrder = async (orderId: string) => {
       order: data.order,
     };
   } catch (error) {
-    console.error('PayPal 주문 승인 실패:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Order approval failed:', error);
+    }
     return {
       success: false,
-      error: error instanceof Error ? error.message : '알 수 없는 오류',
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
   }
 };

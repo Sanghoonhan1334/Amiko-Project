@@ -27,11 +27,15 @@ export async function GET() {
       data: {
         accountSid: accountInfo.accountSid,
         phoneNumber: accountInfo.phoneNumber,
+        phoneNumbers: accountInfo.phoneNumbers || [], // 등록된 모든 번호 목록
         balance: accountInfo.balance,
         pricing: {
           sms: calculateSMSCost('KR'),
           whatsapp: 0.005
-        }
+        },
+        note: accountInfo.phoneNumbers && accountInfo.phoneNumbers.length > 0 
+          ? `계정에 ${accountInfo.phoneNumbers.length}개의 번호가 등록되어 있습니다.`
+          : '계정에 등록된 번호가 없습니다.'
       }
     })
 

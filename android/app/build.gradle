@@ -10,8 +10,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
 
         // ✅ 버전 정보 업데이트
-        versionCode 5
-        versionName "1.0.3"
+        versionCode 8
+        versionName "1.0.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

@@ -5,6 +5,8 @@
 // Updated: 2025-01-25 - 국가별 프로바이더 선택 로직 추가
 // =====================================================
 
+import { Twilio } from 'twilio'
+
 // SMS 프로바이더 타입
 type SMSProvider = 'twilio' | 'bird'
 
@@ -99,12 +101,12 @@ export function createSMSTemplate(type: 'verification', data: Record<string, any
     case 'verification':
       if (language === 'ko') {
         return {
-          message: `[Amiko] 인증코드: ${data.code}\n이 코드는 5분 후에 만료됩니다.\n타인에게 공유하지 마세요.`,
+          message: `[Amiko] 인증코드: ${data.code}\n이 코드는 2분 후에 만료됩니다.\n타인에게 공유하지 마세요.`,
           language: 'ko'
         }
       } else {
         return {
-          message: `[Amiko] Código de verificación: ${data.code}\nEste código expira en 5 minutos.\nNo compartas con otros.`,
+          message: `[Amiko] Código de verificación: ${data.code}\nEste código expira en 2 minutos.\nNo compartas con otros.`,
           language: 'es'
         }
       }
@@ -190,36 +192,42 @@ async function fallbackToTwilio(to: string, message: string, countryCode?: strin
           return true
         } else {
           console.error('[SMS_SEND] Twilio SMS 발송 실패')
-          // 개발 모드로 fallback
-          return logToConsole(to, message)
+          // 발송 실패 (logToConsole은 false 반환)
+          logToConsole(to, message)
+          return false
         }
       } catch (twilioError) {
         console.error('[SMS_SEND] Twilio 연동 오류:', twilioError)
-        // 개발 모드로 fallback
-        return logToConsole(to, message)
+        // 발송 실패 (logToConsole은 false 반환)
+        logToConsole(to, message)
+        return false
       }
     } else {
-      // 개발 환경에서는 콘솔 출력으로 처리
-      return logToConsole(to, message)
+      // Twilio 설정이 없으면 발송 실패
+      console.warn('[SMS_SEND] Twilio 설정이 없어 SMS 발송 불가')
+      logToConsole(to, message)
+      return false
     }
   } catch (error) {
     console.error('[SMS_SEND] Twilio fallback 오류:', error)
-    return logToConsole(to, message)
+    logToConsole(to, message)
+    return false
   }
 }
 
 /**
- * 개발 환경용 콘솔 로그 출력
+ * 개발 환경용 콘솔 로그 출력 (실제 발송 실패)
  */
 function logToConsole(to: string, message: string): boolean {
-  console.log('\n' + '='.repeat(60))
-  console.log('📱 SMS 발송 (개발 환경)')
-  console.log('='.repeat(60))
-  console.log(`받는 번호: ${to}`)
-  console.log('메시지:')
-  console.log(message)
-  console.log('='.repeat(60) + '\n')
-  return true
+  console.warn('\n' + '='.repeat(60))
+  console.warn('⚠️  SMS 발송 실패 (개발 환경 - 실제 발송 불가)')
+  console.warn('='.repeat(60))
+  console.warn(`받는 번호: ${to}`)
+  console.warn('메시지:')
+  console.warn(message)
+  console.warn('⚠️  실제 SMS는 발송되지 않았습니다.')
+  console.warn('='.repeat(60) + '\n')
+  return false // 발송 실패로 처리
 }
 
 // SMS 인증코드 발송
@@ -229,16 +237,18 @@ export async function sendVerificationSMS(phoneNumber: string, code: string, lan
   // 개발 환경에서도 실제 SMS 발송 시도 (Twilio 설정이 있으면)
   const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER
   
+  // 개발 환경에서 Twilio 설정이 없으면 실제 발송하지 않음
   if (process.env.NODE_ENV === 'development' && !hasTwilioConfig) {
-    console.log('\n' + '='.repeat(60))
-    console.log('📱 SMS 인증코드 발송 (개발 환경 - Twilio 미설정)')
-    console.log('='.repeat(60))
-    console.log(`받는 번호: ${phoneNumber}`)
-    console.log(`국가 코드: ${countryCode}`)
-    console.log(`언어: ${language}`)
-    console.log(`인증코드: ${code}`)
-    console.log('='.repeat(60) + '\n')
-    return true
+    console.warn('\n' + '='.repeat(60))
+    console.warn('⚠️  SMS 인증코드 발송 실패 (개발 환경 - Twilio 미설정)')
+    console.warn('='.repeat(60))
+    console.warn(`받는 번호: ${phoneNumber}`)
+    console.warn(`국가 코드: ${countryCode}`)
+    console.warn(`언어: ${language}`)
+    console.warn(`인증코드: ${code}`)
+    console.warn('⚠️  실제 SMS는 발송되지 않습니다. Twilio 설정이 필요합니다.')
+    console.warn('='.repeat(60) + '\n')
+    return false // 실패로 반환하여 사용자에게 알림
   }
   
   try {
@@ -260,8 +270,75 @@ export async function sendVerificationSMS(phoneNumber: string, code: string, lan
   }
 }
 
-// WhatsApp 인증코드 발송
+// WhatsApp 인증코드 발송 (템플릿 사용)
 export async function sendVerificationWhatsApp(phoneNumber: string, code: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
+  try {
+    console.log('[WHATSAPP_VERIFICATION] WhatsApp 인증코드 발송 시작:', { phoneNumber, code, language })
+    
+    // Twilio 계정이 설정되어 있는지 확인
+    const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+    const hasTemplateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID
+    
+    if (hasTwilioConfig && hasTemplateSid) {
+      // 템플릿을 사용한 WhatsApp 발송 (직접 Twilio API 호출)
+      try {
+        // 정적 import로 이미 가져온 Twilio 사용
+        const accountSid = process.env.TWILIO_ACCOUNT_SID!
+        const authToken = process.env.TWILIO_AUTH_TOKEN!
+        const client = new Twilio(accountSid, authToken)
+        
+        const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || process.env.TWILIO_WHATSAPP_FROM!
+        const templateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID!
+        
+        // 전화번호 형식 정규화
+        const normalizedPhone = phoneNumber.startsWith('+') 
+          ? phoneNumber 
+          : `+${phoneNumber.replace(/\D/g, '')}`
+        
+        const whatsappTo = normalizedPhone.startsWith('whatsapp:')
+          ? normalizedPhone
+          : `whatsapp:${normalizedPhone}`
+        
+        const whatsappFrom = whatsappNumber.startsWith('whatsapp:')
+          ? whatsappNumber
+          : `whatsapp:${whatsappNumber}`
+        
+        // WhatsApp Authentication 템플릿 사용
+        const result = await client.messages.create({
+          from: whatsappFrom,
+          to: whatsappTo,
+          contentSid: templateSid,
+          contentVariables: JSON.stringify({
+            '1': code
+          })
+        })
+        
+        console.log(`[WHATSAPP_VERIFICATION] 템플릿을 사용한 WhatsApp 발송 완료: ${phoneNumber}`)
+        console.log(`[WHATSAPP_VERIFICATION] 메시지 SID: ${result.sid}`)
+        console.log(`[WHATSAPP_VERIFICATION] 상태: ${result.status}`)
+        return true
+        
+      } catch (twilioError: any) {
+        console.error('[WHATSAPP_VERIFICATION] 템플릿 발송 오류:', twilioError)
+        console.error('[WHATSAPP_VERIFICATION] 에러 코드:', twilioError?.code)
+        console.error('[WHATSAPP_VERIFICATION] 에러 메시지:', twilioError?.message)
+        // 템플릿 발송 실패 시 기존 방식으로 fallback
+        return await fallbackToOldWhatsAppMethod(phoneNumber, code, language)
+      }
+    } else {
+      // 템플릿 SID가 없으면 기존 방식 사용
+      console.warn('[WHATSAPP_VERIFICATION] 템플릿 SID가 없어 기존 방식 사용')
+      return await fallbackToOldWhatsAppMethod(phoneNumber, code, language)
+    }
+    
+  } catch (error) {
+    console.error('[WHATSAPP_VERIFICATION] 오류:', error)
+    return false
+  }
+}
+
+// 기존 WhatsApp 발송 방식 (fallback)
+async function fallbackToOldWhatsAppMethod(phoneNumber: string, code: string, language: 'ko' | 'es'): Promise<boolean> {
   try {
     const template = createSMSTemplate('verification', { code }, language)
     

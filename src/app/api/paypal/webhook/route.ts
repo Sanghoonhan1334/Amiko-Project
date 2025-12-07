@@ -13,7 +13,9 @@ export async function POST(request: NextRequest) {
     // PayPal webhook 검증 (실제 운영에서는 검증 로직 추가)
     const webhookData = JSON.parse(body);
     
-    console.log('PayPal Webhook 수신:', webhookData);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PayPal Webhook] Received:', { eventType: webhookData.event_type, paymentId: webhookData.resource?.id });
+    }
 
     // 이벤트 타입 확인
     const eventType = webhookData.event_type;
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
     const paymentId = resource.id;
     if (!supabaseClient) {
       return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { error: 'Database connection is not configured' },
         { status: 500 }
       );
     }
@@ -40,7 +42,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (purchaseError || !purchase) {
-      console.error('구매 기록을 찾을 수 없습니다:', paymentId);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[PayPal Webhook] Purchase not found:', paymentId);
+      }
       return NextResponse.json({ error: 'Purchase not found' }, { status: 404 });
     }
 
@@ -60,13 +64,17 @@ export async function POST(request: NextRequest) {
         break;
         
       default:
-        console.log('처리하지 않는 이벤트 타입:', eventType);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[PayPal Webhook] Unhandled event type:', eventType);
+        }
     }
 
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('PayPal Webhook 처리 실패:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal Webhook] Processing failed:', error);
+    }
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }
@@ -122,9 +130,13 @@ async function handlePaymentCompleted(supabase: any, purchase: any, resource: an
         });
     }
 
-    console.log('결제 완료 처리 완료:', purchase.id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PayPal Webhook] Payment completed:', purchase.id);
+    }
   } catch (error) {
-    console.error('결제 완료 처리 실패:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal Webhook] Failed to process payment completion:', error);
+    }
   }
 }
 
@@ -155,9 +167,13 @@ async function handlePaymentFailed(supabase: any, purchase: any, resource: any) 
         priority: 'normal'
       });
 
-    console.log('결제 실패 처리 완료:', purchase.id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PayPal Webhook] Payment failed:', purchase.id);
+    }
   } catch (error) {
-    console.error('결제 실패 처리 실패:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal Webhook] Failed to process payment failure:', error);
+    }
   }
 }
 
@@ -188,8 +204,12 @@ async function handlePaymentCancelled(supabase: any, purchase: any, resource: an
         priority: 'normal'
       });
 
-    console.log('결제 취소 처리 완료:', purchase.id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PayPal Webhook] Payment cancelled:', purchase.id);
+    }
   } catch (error) {
-    console.error('결제 취소 처리 실패:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal Webhook] Failed to process payment cancellation:', error);
+    }
   }
 }

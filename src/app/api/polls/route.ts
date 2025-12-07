@@ -82,6 +82,44 @@ export async function POST(request: NextRequest) {
 
     console.log('[POLLS_POST] User authenticated:', user.id)
 
+    // 인증 상태 확인 (SMS/WhatsApp/Phone 인증 중 하나라도 있어야 투표 생성 가능)
+    const { data: userData, error: userDataError } = await supabase
+      .from('users')
+      .select('phone_verified, sms_verified_at, phone_verified_at, wa_verified_at, kakao_linked_at, is_verified, verification_completed, email_verified_at, korean_name, spanish_name, nickname, full_name, user_type, university, major, occupation, company')
+      .eq('id', user.id)
+      .single()
+
+    if (!userDataError && userData) {
+      const userType = userData.user_type || 'student'
+      const hasVerification = !!(
+        userData.is_verified ||
+        userData.verification_completed ||
+        userData.email_verified_at ||
+        userData.sms_verified_at ||
+        userData.phone_verified_at ||
+        userData.wa_verified_at ||
+        userData.kakao_linked_at ||
+        (userData.korean_name) ||
+        (userData.spanish_name) ||
+        (userType === 'student' && userData.full_name && userData.university && userData.major) ||
+        (userType === 'general' && userData.full_name && (userData.occupation || userData.company))
+      )
+
+      if (!hasVerification) {
+        console.error('[POLLS_POST] 인증되지 않은 사용자:', user.id)
+        return NextResponse.json(
+          { error: '투표를 생성하려면 인증이 필요합니다.' },
+          { status: 403 }
+        )
+      }
+    } else {
+      console.error('[POLLS_POST] 사용자 정보 조회 실패:', userDataError)
+      return NextResponse.json(
+        { error: '사용자 정보를 확인할 수 없습니다.' },
+        { status: 500 }
+      )
+    }
+
     const body = await request.json()
     console.log('[POLLS_POST] Request body:', { 
       title: body.title?.substring(0, 50), 

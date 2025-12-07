@@ -170,6 +170,44 @@ export async function POST(
     const userId = user.id
     console.log('[NEWS_COMMENTS_POST] userId:', userId)
 
+    // 인증 상태 확인 (SMS/WhatsApp/Phone 인증 중 하나라도 있어야 댓글 작성 가능)
+    const { data: userData, error: userDataError } = await supabaseServer
+      .from('users')
+      .select('phone_verified, sms_verified_at, phone_verified_at, wa_verified_at, kakao_linked_at, is_verified, verification_completed, email_verified_at, korean_name, spanish_name, nickname, full_name, user_type, university, major, occupation, company')
+      .eq('id', userId)
+      .single()
+
+    if (!userDataError && userData) {
+      const userType = userData.user_type || 'student'
+      const hasVerification = !!(
+        userData.is_verified ||
+        userData.verification_completed ||
+        userData.email_verified_at ||
+        userData.sms_verified_at ||
+        userData.phone_verified_at ||
+        userData.wa_verified_at ||
+        userData.kakao_linked_at ||
+        (userData.korean_name) ||
+        (userData.spanish_name) ||
+        (userType === 'student' && userData.full_name && userData.university && userData.major) ||
+        (userType === 'general' && userData.full_name && (userData.occupation || userData.company))
+      )
+
+      if (!hasVerification) {
+        console.error('[NEWS_COMMENTS_POST] 인증되지 않은 사용자:', userId)
+        return NextResponse.json(
+          { error: '댓글을 작성하려면 인증이 필요합니다.' },
+          { status: 403 }
+        )
+      }
+    } else {
+      console.error('[NEWS_COMMENTS_POST] 사용자 정보 조회 실패:', userDataError)
+      return NextResponse.json(
+        { error: '사용자 정보를 확인할 수 없습니다.' },
+        { status: 500 }
+      )
+    }
+
     // 입력 검증
     if (!content || content.trim().length === 0) {
       console.error('[NEWS_COMMENTS_POST] 댓글 내용이 비어있음')

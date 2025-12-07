@@ -156,6 +156,8 @@ function NewsPageContent() {
   const [replyContent, setReplyContent] = useState('')
   const [editingComment, setEditingComment] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [isVerified, setIsVerified] = useState(false)
+  const [checkingVerification, setCheckingVerification] = useState(false)
 
   const handleBack = () => {
     const fromHome = searchParams.get('from') === 'home'
@@ -486,6 +488,17 @@ function NewsPageContent() {
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !selectedNews?.id) return
+    
+    // 인증 체크
+    if (!user || !isVerified) {
+      toast.error(language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.')
+      if (!user) {
+        router.push('/sign-in')
+      } else {
+        router.push('/verification-center')
+      }
+      return
+    }
 
     try {
       console.log('뉴스 댓글 작성 시도:', { content: newComment.trim(), newsId: selectedNews.id })
@@ -535,6 +548,17 @@ function NewsPageContent() {
 
   const handleSubmitReply = async (parentId: string) => {
     if (!replyContent.trim() || !selectedNews?.id) return
+    
+    // 인증 체크
+    if (!user || !isVerified) {
+      toast.error(language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.')
+      if (!user) {
+        router.push('/sign-in')
+      } else {
+        router.push('/verification-center')
+      }
+      return
+    }
 
     try {
       console.log('뉴스 대댓글 작성 시도:', { parentId, content: replyContent.trim(), newsId: selectedNews.id })
@@ -1112,7 +1136,31 @@ function NewsPageContent() {
             </h2>
             
             {/* 댓글 작성 폼 */}
-            {user ? (
+            {checkingVerification ? (
+              <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
+                <p className="text-gray-600 text-[10px] md:text-sm">
+                  {language === 'ko' ? '인증 확인 중...' : 'Verificando autenticación...'}
+                </p>
+              </div>
+            ) : !user ? (
+              <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
+                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">
+                  {language === 'ko' ? '댓글을 작성하려면 로그인이 필요합니다.' : 'Necesitas iniciar sesión para comentar.'}
+                </p>
+                <Button onClick={() => router.push('/sign-in')} variant="outline" className="text-[10px] md:text-sm">
+                  {language === 'ko' ? '로그인하기' : 'Iniciar Sesión'}
+                </Button>
+              </div>
+            ) : !isVerified ? (
+              <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
+                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">
+                  {language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.'}
+                </p>
+                <Button onClick={() => router.push('/verification-center')} variant="outline" className="text-[10px] md:text-sm">
+                  {language === 'ko' ? '인증하기' : 'Verificar'}
+                </Button>
+              </div>
+            ) : (
               <div className="mb-2 md:mb-6">
                 <Textarea
                   placeholder={language === 'ko' ? '댓글을 작성해주세요...' : 'Escribe un comentario...'}
@@ -1131,15 +1179,6 @@ function NewsPageContent() {
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
-                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">
-                  {language === 'ko' ? '댓글을 작성하려면 로그인이 필요합니다.' : 'Necesitas iniciar sesión para comentar.'}
-                </p>
-                <Button onClick={() => router.push('/sign-in')} variant="outline" className="text-[10px] md:text-sm">
-                  {language === 'ko' ? '로그인하기' : 'Iniciar Sesión'}
-                </Button>
-              </div>
             )}
 
             {/* 댓글 목록 */}
@@ -1157,7 +1196,7 @@ function NewsPageContent() {
                     <div className="flex items-start justify-between mb-1 md:mb-2">
                       <div className="flex items-center gap-1 md:gap-2">
                         <span className="font-semibold text-[10px] md:text-sm text-gray-800">
-                          {comment.users?.nickname || comment.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                          {comment.users?.korean_name || comment.users?.spanish_name || comment.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
                         </span>
                         <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
                       </div>
@@ -1301,7 +1340,7 @@ function NewsPageContent() {
                             <div className="flex items-start justify-between mb-1 md:mb-2">
                               <div className="flex items-center gap-0.5 md:gap-2">
                                 <span className="font-semibold text-[9px] md:text-xs text-gray-800">
-                                  {reply.users?.nickname || reply.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                                  {reply.users?.korean_name || reply.users?.spanish_name || reply.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
                                 </span>
                                 <span className="text-[8px] md:text-xs text-gray-500">{new Date(reply.created_at).toLocaleDateString()}</span>
                               </div>

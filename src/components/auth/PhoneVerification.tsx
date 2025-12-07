@@ -48,7 +48,7 @@ export default function PhoneVerification({
 }: PhoneVerificationProps) {
   const { t } = useLanguage()
   const [verificationCode, setVerificationCode] = useState('')
-  const [timeLeft, setTimeLeft] = useState(300) // 5분
+  const [timeLeft, setTimeLeft] = useState(120) // 2분
   const [selectedMethod, setSelectedMethod] = useState<string>('')
   const [codeSent, setCodeSent] = useState(false)
   const [isWaitingForCode, setIsWaitingForCode] = useState(false)
@@ -84,8 +84,8 @@ export default function PhoneVerification({
           name: t('auth.whatsappAuth'),
           icon: <MessageSquare className="w-5 h-5" />,
           description: t('auth.whatsappCodeSend'),
-          color: 'bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-300 hover:to-gray-400 shadow-lg hover:shadow-lg transform hover:scale-100 transition-all duration-200 text-black font-black opacity-95',
-          isAvailable: false
+          color: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-white',
+          isAvailable: true
         },
         {
           id: 'sms',
@@ -116,11 +116,11 @@ export default function PhoneVerification({
       return
     }
     
-    // WhatsApp은 아직 사용 불가
-    if (methodId === 'whatsapp') {
-      alert(t('auth.whatsappAuthAlert'))
-      return
-    }
+    // WhatsApp은 이제 사용 가능
+    // if (methodId === 'whatsapp') {
+    //   alert(t('auth.whatsappAuthAlert'))
+    //   return
+    // }
     
     setSelectedMethod(methodId)
     setCodeSent(true)
@@ -136,7 +136,7 @@ export default function PhoneVerification({
     
     if (selectedMethod) {
       setIsWaitingForCode(true)
-      setTimeLeft(300) // 5분 타이머 시작
+      setTimeLeft(120) // 2분 타이머 시작
       
       // 재전송 시 입력창 리셋
       setVerificationCode('')
@@ -161,8 +161,8 @@ export default function PhoneVerification({
   }
 
   const handleResend = async () => {
-    if (selectedMethod) {
-      setTimeLeft(300)
+    if (selectedMethod && timeLeft === 0) {
+      setTimeLeft(120) // 2분 타이머 시작
       setVerificationCode('')
       setIsWaitingForCode(true)
       await onResend(selectedMethod)
@@ -222,28 +222,37 @@ export default function PhoneVerification({
                       {t('auth.kakaoComingSoon')}
                     </div>
                   )}
-                  {method.id === 'whatsapp' && (
+                  {/* WhatsApp은 이제 활성화됨 - 배지 제거 */}
+                  {/* {method.id === 'whatsapp' && (
                     <div className="absolute -top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
                       {t('auth.comingSoon')}
                     </div>
-                  )}
+                  )} */}
                   
                   <Button
                     key={method.id}
                     onClick={() => handleMethodSelect(method.id)}
                     disabled={!method.isAvailable || isLoading}
-                    className={`${method.color} ${method.id === 'kakao' ? 'text-black font-black' : 'text-white font-semibold'} py-3 px-4 h-auto flex items-center justify-start gap-3 min-h-[60px] rounded-xl border-0 relative`}
+                    style={{ height: '80px', minHeight: '80px' }}
+                    className={`${method.color} ${method.id === 'kakao' ? 'text-black font-black' : 'text-white font-semibold'} w-full !h-[80px] !min-h-[80px] py-2.5 px-4 flex items-center justify-start gap-3 rounded-xl border-0 relative`}
                   >
                     <div className={`flex-shrink-0 p-1 rounded-lg backdrop-blur-sm ${method.id === 'kakao' ? 'bg-gray-600/30' : 'bg-white/20'}`}>
                       <div className="w-5 h-5 flex items-center justify-center">
                         {method.icon}
                       </div>
                     </div>
-                    <div className="text-left flex-1 pr-12">
-                      <div className={`font-bold text-sm leading-tight ${method.id === 'kakao' ? '!text-black !font-black' : ''}`}>{method.name}</div>
-                      <div className={`text-xs leading-tight mt-0.5 font-medium ${method.id === 'kakao' ? '!text-black !opacity-100' : 'opacity-90'}`}>{method.description}</div>
+                    <div className="text-left flex-1 pr-6 min-w-0 overflow-hidden">
+                      <div className={`font-bold text-sm leading-tight mb-0.5 ${method.id === 'kakao' ? '!text-black !font-black' : ''}`}>{method.name}</div>
+                      <div className={`text-xs leading-snug font-medium whitespace-normal break-words ${method.id === 'kakao' ? '!text-black !opacity-100' : 'opacity-90'}`} style={{ 
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word'
+                      }}>{method.description}</div>
                     </div>
-                    <div className="flex-shrink-0 absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <div className="flex-shrink-0 absolute right-2 top-1/2 transform -translate-y-1/2">
                       <svg className={`w-4 h-4 ${method.id === 'kakao' ? 'text-black opacity-80' : 'text-white opacity-70'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -398,11 +407,14 @@ export default function PhoneVerification({
                 <Button 
                   variant="outline" 
                   onClick={handleResend}
-                  disabled={isLoading}
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 text-sm py-2"
+                  disabled={isLoading || timeLeft > 0}
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
-                  {t('phoneVerification.resendCode')}
+                  {timeLeft > 0 
+                    ? `${t('phoneVerification.timeLeft')} ${formatTime(timeLeft)}`
+                    : t('phoneVerification.resendCode')
+                  }
                 </Button>
               </div>
               

@@ -33,7 +33,6 @@ export default function VerificationCenterPage() {
     full_name: '',
     korean_name: '',
     spanish_name: '',
-    nickname: '',
     one_line_intro: '',
     profile_image: null as File | null,
     
@@ -136,12 +135,13 @@ export default function VerificationCenterPage() {
               const profileData = await profileResponse.json()
               const userProfile = profileData.user || profileData.profile
               
-              // 인증 완료 여부 확인 - 더 유연한 조건으로 변경
+              // 인증 완료 여부 확인 - 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
+              // 회원가입 시 입력한 정보만으로는 인증완료로 처리하지 않음
               const isVerified = userProfile?.is_verified || 
                                 userProfile?.verification_completed ||
-                                (userProfile?.korean_name && userProfile?.nickname) ||
-                                (userProfile?.spanish_name && userProfile?.nickname) ||
-                                (userProfile?.full_name && userProfile?.phone) ||
+                                (userProfile?.korean_name) ||
+                                (userProfile?.spanish_name) ||
+                                // full_name && phone 조건 제거 - 회원가입 시 자동으로 true가 되어 인증완료로 표시되는 문제 방지
                                 (userProfile?.full_name && userProfile?.university && userProfile?.major)
               
               console.log('[VERIFICATION] 인증 상태 확인:', {
@@ -149,7 +149,6 @@ export default function VerificationCenterPage() {
                 verification_completed: userProfile?.verification_completed,
                 korean_name: userProfile?.korean_name,
                 spanish_name: userProfile?.spanish_name,
-                nickname: userProfile?.nickname,
                 full_name: userProfile?.full_name,
                 phone: userProfile?.phone,
                 university: userProfile?.university,
@@ -165,7 +164,6 @@ export default function VerificationCenterPage() {
                   full_name: userProfile?.full_name || '',
                   korean_name: userProfile?.korean_name || '',
                   spanish_name: userProfile?.spanish_name || '',
-                  nickname: userProfile?.nickname || '',
                   one_line_intro: userProfile?.one_line_intro || userProfile?.bio || '',
                   user_type: userProfile?.user_type || 'student',
                   university: userProfile?.university || '',
@@ -211,6 +209,13 @@ export default function VerificationCenterPage() {
               if (!isKoreanDetermined) {
                 setIsKorean(finalIsKorean)
                 setIsKoreanDetermined(true)
+                
+                // 한국인이면 한국인 전용 페이지로 리다이렉트
+                if (finalIsKorean === true) {
+                  console.log('[VERIFICATION_CENTER] 한국인 감지 - 한국인 전용 페이지로 리다이렉트')
+                  router.push('/verification')
+                  return
+                }
               }
             } else if (profileResponse.status === 404) {
               // 프로필이 설정되지 않은 경우 - users 테이블에서 is_korean 확인
@@ -226,8 +231,16 @@ export default function VerificationCenterPage() {
                 
                 if (!userError && userData && !isKoreanDetermined) {
                   console.log('[VERIFICATION] users 테이블에서 is_korean 확인:', userData.is_korean)
-                  setIsKorean(userData.is_korean ?? false)
+                  const userIsKorean = userData.is_korean ?? false
+                  setIsKorean(userIsKorean)
                   setIsKoreanDetermined(true)
+                  
+                  // 한국인이면 한국인 전용 페이지로 리다이렉트
+                  if (userIsKorean === true) {
+                    console.log('[VERIFICATION_CENTER] 한국인 감지 - 한국인 전용 페이지로 리다이렉트')
+                    router.push('/verification')
+                    return
+                  }
                 } else if (!isKoreanDetermined) {
                   // users 테이블 조회 실패 시 기본값 (현지인)
                   console.log('[VERIFICATION] users 조회 실패 - 기본값(현지인) 설정', userError)
@@ -613,19 +626,6 @@ export default function VerificationCenterPage() {
                 )}
 
                 <div>
-                  <Label htmlFor="nickname">{language === 'ko' ? '닉네임' : 'Apodo'} *</Label>
-                  <Input
-                    id="nickname"
-                    value={formData.nickname}
-                    onChange={(e) => handleInputChange('nickname', e.target.value)}
-                    placeholder={language === 'ko' ? '커뮤니티에서 사용할 닉네임을 입력해주세요' : 'Ingrese un apodo para usar en la comunidad'}
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    {language === 'ko' ? '커뮤니티 게시글, 댓글 등에서 사용됩니다' : 'Se utiliza en publicaciones y comentarios de la comunidad'}
-                  </p>
-                </div>
-
-                <div>
                   <Label htmlFor="user_type">{language === 'ko' ? '구분' : 'Tipo de usuario'} *</Label>
                   <Select value={formData.user_type} onValueChange={(value) => handleInputChange('user_type', value)}>
                     <SelectTrigger>
@@ -633,9 +633,16 @@ export default function VerificationCenterPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="student">{language === 'ko' ? '대학생' : 'Estudiante'}</SelectItem>
-                      <SelectItem value="general">{language === 'ko' ? '일반인' : 'Profesional'}</SelectItem>
+                      <SelectItem value="general">
+                        {language === 'ko' ? '일반인 (대학 미진학자 포함)' : 'Profesional (Incluye personas sin universidad)'}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {language === 'ko' 
+                      ? '대학을 다니지 않으신 경우 "일반인"을 선택해주세요. 직업 정보를 입력하시면 됩니다.'
+                      : 'Si no asistió a la universidad, seleccione "Profesional". Puede ingresar información sobre su ocupación.'}
+                  </p>
                 </div>
 
               </div>
@@ -731,25 +738,44 @@ export default function VerificationCenterPage() {
                       
                       <div>
                         <Label htmlFor="company">
-                          {language === 'ko' ? '회사 *' : 'Empresa/Organización *'}
+                          {language === 'ko' ? '회사/소속' : 'Empresa/Organización'}
                         </Label>
                         <Input
                           id="company"
                           value={formData.company}
                           onChange={(e) => handleInputChange('company', e.target.value)}
-                          placeholder={language === 'ko' ? '회사명 또는 소속을 입력해주세요' : 'Ingrese el nombre de su empresa u organización'}
+                          placeholder={language === 'ko' ? '회사명 또는 소속을 입력해주세요 (선택사항)' : 'Ingrese el nombre de su empresa u organización (opcional)'}
                         />
+                        <p className="text-sm text-gray-500 mt-1">
+                          {language === 'ko' 
+                            ? '회사에 다니지 않거나 자영업자인 경우 생략 가능합니다.'
+                            : 'Puede omitir si no trabaja en una empresa o es trabajador independiente.'}
+                        </p>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* 관심사 및 선호도 */}
-                {/* 관심사 선택 */}
+                {/* 관심사/잘 아는 주제 및 선호도 */}
+                {/* 한국인(isKorean === true): "잘 아는 주제" (한국어가 모국어라서 관심분야라고 하기 애매)
+                    현지인(isKorean === false/null): "관심분야" (한국어를 배우는 입장이라 관심분야가 맞음) */}
                 <div>
-                  <Label className="text-lg font-medium mb-4 block">
-                    {language === 'ko' ? '관심사 (최대 5개)' : 'Intereses (máximo 5)'}
+                  <Label className="text-lg font-medium mb-2 block">
+                    {isKorean === true 
+                      ? (language === 'ko' ? '잘 아는 주제 (최대 5개)' : 'Temas que conoce bien (máximo 5)')
+                      : (language === 'ko' ? '관심분야 (최대 5개)' : 'Intereses (máximo 5)')
+                    }
                   </Label>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {isKorean === true
+                      ? (language === 'ko' 
+                          ? '다른 사용자들에게 잘 대답해줄 수 있는 주제를 선택해주세요.' 
+                          : 'Seleccione los temas sobre los que puede responder bien a otros usuarios.')
+                      : (language === 'ko'
+                          ? '관심 있는 주제를 선택해주세요.'
+                          : 'Seleccione los temas de su interés.')
+                    }
+                  </p>
                   <div className="grid grid-cols-3 gap-3">
                     {(language === 'ko' 
                       ? ['한국어', '한국문화', '음식', '여행', '영화', '음악', '스포츠', '패션', '게임', '기술', '경제', '언어교환']
@@ -771,7 +797,10 @@ export default function VerificationCenterPage() {
                   </div>
                   {formData.interests.length > 0 && (
                     <p className="mt-2 text-sm text-gray-600">
-                      {language === 'ko' ? '선택됨' : 'Seleccionados'}: {formData.interests.join(', ')} 
+                      {isKorean === true
+                        ? (language === 'ko' ? '선택한 주제' : 'Temas seleccionados')
+                        : (language === 'ko' ? '선택한 관심분야' : 'Intereses seleccionados')
+                      }: {formData.interests.join(', ')} 
                       <span className="ml-2 text-blue-600">({formData.interests.length}/5)</span>
                     </p>
                   )}
@@ -966,7 +995,6 @@ export default function VerificationCenterPage() {
               onClick={nextStep}
               disabled={
                 loading ||
-                !formData.nickname || 
                 (isKorean === true && !formData.korean_name) ||
                 ((isKorean === false || isKorean === null) && !formData.spanish_name)
               }

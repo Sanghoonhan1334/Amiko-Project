@@ -372,41 +372,39 @@ export async function GET(request: NextRequest) {
       const { data: authUserData, error: authError } = await supabaseServer.auth.admin.getUserById(userId)
       
       if (authUserData?.user && !authError) {
-        console.log('[PROFILE GET] auth.users에는 있지만 public.users에는 없음, 자동 재생성 시도')
         const authUser = authUserData.user
         
-        // public.users에 기본 레코드 재생성 (계정 삭제가 부분적으로 실패한 경우 복구)
-        const { data: recreatedUser, error: recreateError } = await supabaseServer
-          .from('users')
-          .insert({
-            id: authUser.id,
-            email: authUser.email || '',
-            nickname: 'deleted_user', // NOT NULL 제약 조건
-            full_name: authUser.user_metadata?.name || null,
-            phone: authUser.user_metadata?.phone || null,
-            language: 'ko',
-            is_active: true,
-            created_at: authUser.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select()
-          .single()
+        // 계정 삭제가 진행 중인지 확인 (최근 1시간 내 삭제 로그 확인)
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+        const { data: deletionLog, error: deletionLogError } = await supabaseServer
+          .from('data_deletion_logs')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('created_at', oneHourAgo)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
         
-        if (recreateError) {
-          console.error('[PROFILE GET] public.users 재생성 실패:', recreateError)
-          return NextResponse.json({
-            error: '사용자 프로필이 설정되지 않았습니다. 인증을 완료해주세요.',
-            needsVerification: true,
-            authUser: {
-              id: authUser.id,
-              email: authUser.email,
-              user_metadata: authUser.user_metadata
-            }
-          }, { status: 404 })
-        } else {
-          console.log('[PROFILE GET] public.users 재생성 성공:', recreatedUser)
-          user = recreatedUser
+        if (deletionLog && !deletionLogError) {
+          console.log('[PROFILE GET] 계정 삭제가 진행 중입니다. public.users 재생성 건너뜀:', deletionLog)
+          return NextResponse.json(
+            { error: '계정 삭제가 진행 중입니다. 잠시 후 다시 시도해주세요.' },
+            { status: 404 }
+          )
         }
+        
+        // ⚠️ 중요: public.users 재생성 비활성화
+        // 계정 삭제 과정에서 public.users가 삭제되면, auth.users 삭제 전에 재생성되면 
+        // 외래 키 제약 조건 때문에 auth.users 삭제가 실패합니다.
+        // 따라서 재생성 로직을 완전히 비활성화하고 에러를 반환합니다.
+        console.log('[PROFILE GET] auth.users에는 있지만 public.users에는 없음. 재생성하지 않음 (계정 삭제 방지)')
+        return NextResponse.json({
+          error: '사용자 프로필이 없습니다. 계정 삭제가 진행 중이거나 프로필이 삭제되었습니다.',
+          needsVerification: false,
+          details: 'Profile not found - account deletion may be in progress'
+        }, { status: 404 })
+        
+        // 기존 재생성 로직 제거됨 - 계정 삭제 시 외래 키 제약 조건 충돌 방지
       } else {
         return NextResponse.json(
           { error: '사용자 정보를 찾을 수 없습니다.' },

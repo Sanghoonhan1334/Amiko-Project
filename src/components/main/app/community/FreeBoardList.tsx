@@ -1415,7 +1415,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         </div> */}
 
         {/* 플로팅 글쓰기 버튼 */}
-        <div className="fixed bottom-20 right-4 z-50 md:hidden">
+        <div className="fixed bottom-64 right-2 z-50 md:hidden">
           <div className="flex items-center justify-end">
             {/* 확장된 버튼들 */}
             <div className={`transition-all duration-300 ease-in-out ${

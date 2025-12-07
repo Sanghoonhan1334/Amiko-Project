@@ -43,7 +43,17 @@ export async function DELETE(request: NextRequest) {
       })
       
       if (sqlError) {
-        console.error('[ACCOUNT_DELETE] SQL 함수 실행 실패:', sqlError)
+        console.error('[ACCOUNT_DELETE] SQL 함수 실행 실패:', {
+          error: sqlError.message,
+          code: sqlError.code,
+          details: sqlError.details,
+          hint: sqlError.hint,
+          userId
+        })
+        // SQL 함수가 없거나 실패한 경우 (PGRST428: 함수를 찾을 수 없음)
+        if (sqlError.code === 'PGRST428' || sqlError.message?.includes('function') || sqlError.message?.includes('does not exist')) {
+          console.log('[ACCOUNT_DELETE] delete_user_account SQL 함수가 존재하지 않음, 기존 로직 사용')
+        }
         // SQL 함수 실패 시 기존 로직으로 폴백
       } else {
         sqlDeleteResult = sqlResult
@@ -52,10 +62,14 @@ export async function DELETE(request: NextRequest) {
         // SQL 함수에서 실패한 작업이 있으면 failedOperations에 추가
         if (sqlResult?.failed_operations && Array.isArray(sqlResult.failed_operations)) {
           failedOperations.push(...sqlResult.failed_operations)
+          console.warn('[ACCOUNT_DELETE] SQL 함수에서 실패한 작업:', sqlResult.failed_operations)
         }
       }
     } catch (sqlException) {
-      console.error('[ACCOUNT_DELETE] SQL 함수 실행 중 예외:', sqlException)
+      console.error('[ACCOUNT_DELETE] SQL 함수 실행 중 예외:', {
+        error: sqlException instanceof Error ? sqlException.message : String(sqlException),
+        userId
+      })
       // SQL 함수 실패 시 기존 로직으로 폴백
     }
     
@@ -69,25 +83,57 @@ export async function DELETE(request: NextRequest) {
 
     const deleteByUserId = async (table: string, columnName: string = 'user_id') => {
       try {
-        const { error } = await supabaseServer.from(table).delete().eq(columnName, userId)
+        const { error, count } = await supabaseServer.from(table).delete().eq(columnName, userId).select()
         if (error) {
-          console.error(`[ACCOUNT_DELETE] ${table} 삭제 실패:`, error)
-          failedOperations.push(`delete:${table}`)
+          console.error(`[ACCOUNT_DELETE] ${table} 삭제 실패:`, {
+            table,
+            column: columnName,
+            userId,
+            error: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          })
+          failedOperations.push(`delete:${table}(${error.code || 'UNKNOWN'})`)
         } else {
-          console.log(`[ACCOUNT_DELETE] ${table} 삭제 성공`)
+          console.log(`[ACCOUNT_DELETE] ${table} 삭제 성공`, count ? `(${count}개 행 삭제됨)` : '')
         }
       } catch (error) {
-        console.error(`[ACCOUNT_DELETE] ${table} 삭제 예외:`, error)
-        failedOperations.push(`delete:${table}`)
+        console.error(`[ACCOUNT_DELETE] ${table} 삭제 예외:`, {
+          table,
+          column: columnName,
+          userId,
+          error: error instanceof Error ? error.message : String(error)
+        })
+        failedOperations.push(`delete:${table}(EXCEPTION)`)
       }
     }
 
     const updateByUserId = async (table: string, updates: Record<string, unknown>) => {
       try {
-        await supabaseServer.from(table).update(updates).eq('user_id', userId)
+        const { error, count } = await supabaseServer.from(table).update(updates).eq('user_id', userId).select()
+        if (error) {
+          console.error(`[ACCOUNT_DELETE] ${table} 업데이트 실패:`, {
+            table,
+            userId,
+            updates,
+            error: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          })
+          failedOperations.push(`update:${table}(${error.code || 'UNKNOWN'})`)
+        } else {
+          console.log(`[ACCOUNT_DELETE] ${table} 업데이트 성공`, count ? `(${count}개 행 업데이트됨)` : '')
+        }
       } catch (error) {
-        console.error(`[ACCOUNT_DELETE] ${table} 업데이트 실패:`, error)
-        failedOperations.push(`update:${table}`)
+        console.error(`[ACCOUNT_DELETE] ${table} 업데이트 예외:`, {
+          table,
+          userId,
+          updates,
+          error: error instanceof Error ? error.message : String(error)
+        })
+        failedOperations.push(`update:${table}(EXCEPTION)`)
       }
     }
 
@@ -128,7 +174,7 @@ export async function DELETE(request: NextRequest) {
       }
 
       // 포인트 및 로그 테이블은 기록을 위해 user_id를 익명화
-      await updateByUserId('point_history', { user_id: null }) // points_history → point_history로 수정
+      await updateByUserId('points_history', { user_id: null }) // 실제 테이블 이름: points_history
       await updateByUserId('post_reactions', { user_id: null })
       await updateByUserId('post_views', { user_id: null })
       await updateByUserId('reactions', { user_id: null }) // reactions 테이블도 익명화
@@ -180,6 +226,7 @@ export async function DELETE(request: NextRequest) {
       // 사용자 레코드를 익명화 후 삭제 (auth.users 삭제 전에 먼저 처리)
       // 주의: public.users는 auth.users를 참조하는 외래 키가 있으므로,
       // auth.users 삭제 전에 public.users를 먼저 삭제해야 외래 키 제약 조건 문제를 피할 수 있음
+      let publicUsersDeleted = false
       try {
         // 먼저 익명화
         const { error: usersError } = await supabaseServer
@@ -209,24 +256,47 @@ export async function DELETE(request: NextRequest) {
           
           // 익명화 성공 후 삭제 (auth.users 삭제 전에)
           try {
-            const { error: deleteUsersError } = await supabaseServer
+            const { error: deleteUsersError, count } = await supabaseServer
               .from('users')
               .delete()
               .eq('id', userId)
+              .select()
             
             if (deleteUsersError) {
               console.error('[ACCOUNT_DELETE] public.users 삭제 실패:', deleteUsersError)
+              failedOperations.push('public.users')
               // 삭제 실패해도 계속 진행 (이미 익명화됨)
             } else {
-              console.log('[ACCOUNT_DELETE] public.users 삭제 성공 (auth.users 삭제 준비 완료)')
+              // 삭제 성공 여부 확인
+              const { data: checkData, error: checkError } = await supabaseServer
+                .from('users')
+                .select('id')
+                .eq('id', userId)
+                .maybeSingle()
+              
+              if (checkError && checkError.code === 'PGRST116') {
+                // 사용자가 없음 (삭제 성공)
+                console.log('[ACCOUNT_DELETE] public.users 삭제 성공 확인 (auth.users 삭제 준비 완료)')
+                publicUsersDeleted = true
+              } else if (!checkData || !checkData.id) {
+                // 사용자가 없음 (삭제 성공)
+                console.log('[ACCOUNT_DELETE] public.users 삭제 성공 확인 (auth.users 삭제 준비 완료)')
+                publicUsersDeleted = true
+              } else {
+                // 여전히 존재함
+                console.warn('[ACCOUNT_DELETE] public.users 삭제 후에도 여전히 존재함, 재시도 필요')
+                failedOperations.push('public.users')
+              }
             }
           } catch (error) {
             console.error('[ACCOUNT_DELETE] public.users 삭제 예외:', error)
+            failedOperations.push('public.users')
             // 삭제 실패해도 계속 진행
           }
         }
       } catch (error) {
         console.error('[ACCOUNT_DELETE] users 테이블 익명화 예외:', error)
+        failedOperations.push('public.users')
         // 익명화 실패해도 삭제는 계속 진행
       }
     }
@@ -272,13 +342,68 @@ export async function DELETE(request: NextRequest) {
     
     if (!authDeleteSuccess) {
       try {
-        // public.users 삭제 후 충분한 대기 시간 (데이터베이스가 모든 변경사항을 처리할 시간)
-        // SQL 함수가 성공했으면 public.users는 이미 삭제되었으므로 대기 시간을 줄임
-        // 하지만 Supabase의 내부 동기화를 위해 충분한 시간 필요
-        const waitTime = (sqlDeleteResult && (!sqlDeleteResult.failed_operations || sqlDeleteResult.failed_operations.length === 0)) 
-          ? 15000  // SQL 함수 성공 시 15초 대기 (Supabase 내부 동기화 시간)
-          : 15000  // 기존 로직 실행 시도 15초 대기
-        console.log(`[ACCOUNT_DELETE] auth.users 삭제 전 대기: ${waitTime}ms`)
+        // public.users 삭제 후 충분한 대기 시간 및 확인
+        // 1. public.users가 확실히 삭제되었는지 확인
+        let publicUsersDeleted = false
+        let checkAttempts = 0
+        const maxCheckAttempts = 10
+        
+        while (!publicUsersDeleted && checkAttempts < maxCheckAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 2000)) // 2초마다 확인
+          
+          try {
+            const { data: usersCheck, error: usersCheckError } = await supabaseServer
+              .from('users')
+              .select('id')
+              .eq('id', userId)
+              .maybeSingle()
+            
+            if (usersCheckError && usersCheckError.code === 'PGRST116') {
+              // 사용자가 없음 (삭제됨)
+              console.log(`[ACCOUNT_DELETE] public.users 삭제 확인 성공 (${checkAttempts + 1}차 확인)`)
+              publicUsersDeleted = true
+            } else if (!usersCheck || !usersCheck.id) {
+              // 사용자가 없음
+              console.log(`[ACCOUNT_DELETE] public.users 삭제 확인 성공 (${checkAttempts + 1}차 확인)`)
+              publicUsersDeleted = true
+            } else {
+              // 아직 존재함
+              console.log(`[ACCOUNT_DELETE] public.users 아직 존재함 (${checkAttempts + 1}차 확인), 재확인 대기...`)
+              checkAttempts++
+              
+              // 5번째 시도에서 강제 삭제
+              if (checkAttempts === 5) {
+                console.log('[ACCOUNT_DELETE] public.users 강제 삭제 시도')
+                const { error: forceDeleteError } = await supabaseServer
+                  .from('users')
+                  .delete()
+                  .eq('id', userId)
+                
+                if (!forceDeleteError) {
+                  console.log('[ACCOUNT_DELETE] public.users 강제 삭제 성공')
+                  publicUsersDeleted = true
+                } else {
+                  console.error('[ACCOUNT_DELETE] public.users 강제 삭제 실패:', forceDeleteError)
+                }
+              }
+            }
+          } catch (checkError) {
+            console.error(`[ACCOUNT_DELETE] public.users 확인 중 오류 (${checkAttempts + 1}차):`, checkError)
+            checkAttempts++
+          }
+        }
+        
+        if (!publicUsersDeleted) {
+          console.error('[ACCOUNT_DELETE] public.users 삭제 확인 실패, 계속 진행하지만 auth.users 삭제가 실패할 수 있음')
+          // 삭제 확인 실패도 실패 작업으로 기록
+          if (!failedOperations.includes('public.users')) {
+            failedOperations.push('public.users')
+          }
+        }
+        
+        // 추가 대기 시간 (Supabase 내부 동기화)
+        const waitTime = 5000 // 5초 대기
+        console.log(`[ACCOUNT_DELETE] auth.users 삭제 전 최종 대기: ${waitTime}ms`)
         await new Promise(resolve => setTimeout(resolve, waitTime))
       
         // 강력한 재시도 로직: 최대 5번 재시도, 점진적으로 증가하는 대기 시간
@@ -295,7 +420,37 @@ export async function DELETE(request: NextRequest) {
           }
           
           console.log(`[ACCOUNT_DELETE] auth.users 삭제 시도 (${retryCount === 0 ? '1차' : `${retryCount}차 재시도`})`)
-          const { error: authDeleteError } = await supabaseServer.auth.admin.deleteUser(userId)
+          
+          // SQL 함수를 통해 직접 삭제 시도 (SECURITY DEFINER 권한 사용)
+          let authDeleteError: any = null
+          try {
+            // SQL 함수를 호출하여 auth.users 직접 삭제 시도
+            const { data: sqlDeleteResult, error: sqlDeleteError } = await supabaseServer.rpc('delete_auth_user_directly', {
+              p_user_id: userId
+            })
+            
+            if (sqlDeleteError) {
+              console.error(`[ACCOUNT_DELETE] SQL 함수로 삭제 실패, 관리 API로 시도:`, sqlDeleteError)
+              
+              // SQL 실패 시 관리 API로 시도
+              const { error: adminDeleteError } = await supabaseServer.auth.admin.deleteUser(userId)
+              if (adminDeleteError) {
+                console.error(`[ACCOUNT_DELETE] 관리 API 삭제도 실패:`, adminDeleteError)
+                authDeleteError = adminDeleteError
+              } else {
+                console.log(`[ACCOUNT_DELETE] 관리 API 삭제 성공`)
+                authDeleteError = null
+              }
+            } else {
+              console.log(`[ACCOUNT_DELETE] SQL 함수로 auth.users 삭제 성공:`, sqlDeleteResult)
+              authDeleteError = null
+            }
+          } catch (deleteException: any) {
+            console.error('[ACCOUNT_DELETE] 삭제 예외 발생:', deleteException)
+            // 예외 발생 시 관리 API로 재시도
+            const { error: adminDeleteError } = await supabaseServer.auth.admin.deleteUser(userId)
+            authDeleteError = adminDeleteError || deleteException
+          }
           
           if (authDeleteError) {
             console.error(`[ACCOUNT_DELETE] ${retryCount === 0 ? '1차' : `${retryCount}차 재시도`} auth 사용자 삭제 실패:`, authDeleteError)
@@ -365,16 +520,59 @@ export async function DELETE(request: NextRequest) {
                 const existingUser = verifyUsers.users.find(u => u.id === userId || u.email === originalEmail)
                 
                 if (existingUser) {
-                  await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
-                  const { error: verifyDeleteError } = await supabaseServer.auth.admin.deleteUser(existingUser.id)
+                  // public.users가 완전히 삭제되었는지 다시 한 번 확인
+                  const { data: usersCheck, error: usersCheckError } = await supabaseServer
+                    .from('users')
+                    .select('id')
+                    .eq('id', userId)
+                    .maybeSingle()
                   
-                  if (verifyDeleteError) {
-                    console.error('[ACCOUNT_DELETE] 확인 후 강제 삭제 실패:', verifyDeleteError)
+                  if (!usersCheckError && !usersCheck) {
+                    // public.users가 삭제되었으므로 auth.users 삭제 시도
+                    await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
+                    const { error: verifyDeleteError } = await supabaseServer.auth.admin.deleteUser(existingUser.id)
+                    
+                    if (verifyDeleteError) {
+                      console.error('[ACCOUNT_DELETE] 확인 후 강제 삭제 실패:', verifyDeleteError)
+                      // Database error는 외래 키 제약 조건 문제일 수 있음
+                      // 이 경우 public.users가 완전히 삭제되지 않았을 가능성이 높음
+                      if (verifyDeleteError.message?.includes('Database error')) {
+                        console.error('[ACCOUNT_DELETE] Database error - public.users가 완전히 삭제되지 않았을 수 있음')
+                        // public.users를 다시 확인하고 강제 삭제 시도
+                        const { error: forceDeleteError } = await supabaseServer
+                          .from('users')
+                          .delete()
+                          .eq('id', userId)
+                        
+                        if (!forceDeleteError) {
+                          console.log('[ACCOUNT_DELETE] public.users 강제 삭제 성공, auth.users 재시도')
+                          await new Promise(resolve => setTimeout(resolve, 3000))
+                          const { error: retryDeleteError } = await supabaseServer.auth.admin.deleteUser(existingUser.id)
+                          
+                          if (retryDeleteError) {
+                            failedOperations.push('auth.deleteUser.verify')
+                            authDeleteSuccess = false
+                          } else {
+                            console.log('[ACCOUNT_DELETE] 재시도 후 auth.users 삭제 성공')
+                            authDeleteSuccess = true
+                          }
+                        } else {
+                          failedOperations.push('auth.deleteUser.verify')
+                          authDeleteSuccess = false
+                        }
+                      } else {
+                        failedOperations.push('auth.deleteUser.verify')
+                        authDeleteSuccess = false
+                      }
+                    } else {
+                      console.log('[ACCOUNT_DELETE] 확인 후 강제 삭제 성공')
+                      authDeleteSuccess = true
+                    }
+                  } else {
+                    console.error('[ACCOUNT_DELETE] public.users가 여전히 존재함, auth.users 삭제 불가')
+                    failedOperations.push('public.users')
                     failedOperations.push('auth.deleteUser.verify')
                     authDeleteSuccess = false
-                  } else {
-                    console.log('[ACCOUNT_DELETE] 확인 후 강제 삭제 성공')
-                    authDeleteSuccess = true
                   }
                 }
               } else {
@@ -415,13 +613,24 @@ export async function DELETE(request: NextRequest) {
       // 로그 실패는 응답을 막지 않음
     }
 
+    // 실패한 작업 상세 로깅
+    if (failedOperations.length > 0) {
+      console.error('[ACCOUNT_DELETE] 실패한 작업 목록:', failedOperations)
+      console.error('[ACCOUNT_DELETE] 삭제된 사용자 ID:', userId)
+      console.error('[ACCOUNT_DELETE] 삭제된 사용자 이메일:', user.email)
+    } else {
+      console.log('[ACCOUNT_DELETE] 모든 작업 성공적으로 완료:', userId)
+    }
+
     return NextResponse.json({
       success: failedOperations.length === 0,
       message:
         failedOperations.length === 0
           ? '계정이 삭제되었습니다.'
           : '계정 삭제가 완료되었지만 일부 데이터 정리에 실패했습니다.',
-      warnings: failedOperations
+      warnings: failedOperations,
+      failedOperations: failedOperations, // 명확성을 위해 추가
+      userId: userId // 디버깅용
     })
   } catch (error) {
     console.error('[ACCOUNT_DELETE] 서버 오류:', error)

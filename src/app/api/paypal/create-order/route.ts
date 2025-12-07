@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     // 필수 필드 검증
     if (!amount || !orderId || !orderName) {
       return NextResponse.json(
-        { error: '필수 필드가 누락되었습니다.' },
+        { error: 'Required fields are missing' },
         { status: 400 }
       );
     }
@@ -61,9 +61,11 @@ export async function POST(request: NextRequest) {
     const paypalData = await paypalResponse.json();
 
     if (!paypalResponse.ok) {
-      console.error('PayPal API 에러:', paypalData);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[PayPal] API error:', paypalData);
+      }
       return NextResponse.json(
-        { error: 'PayPal 주문 생성 실패' },
+        { error: 'Failed to create PayPal order' },
         { status: 500 }
       );
     }
@@ -84,9 +86,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('PayPal 주문 생성 API 에러:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Create order API error:', error);
+    }
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -99,7 +103,7 @@ async function getPayPalAccessToken(): Promise<string> {
   const baseUrl = process.env.PAYPAL_API_BASE_URL || 'https://api-m.sandbox.paypal.com';
 
   if (!clientId || !clientSecret) {
-    throw new Error('PayPal 클라이언트 ID 또는 시크릿이 설정되지 않았습니다.');
+    throw new Error('PayPal client ID or secret is not configured');
   }
 
   const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
@@ -114,7 +118,7 @@ async function getPayPalAccessToken(): Promise<string> {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(`PayPal Access Token 획득 실패: ${data.error_description || data.error}`);
+    throw new Error(`Failed to get PayPal access token: ${data.error_description || data.error}`);
   }
 
   return data.access_token;

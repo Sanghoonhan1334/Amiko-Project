@@ -24,11 +24,13 @@ import {
   Palette,
   Image as ImageIcon,
   ChevronRight,
-  MessageCircle
+  MessageCircle,
+  Megaphone
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import type { YouTubeVideo } from '@/lib/youtube'
 
 interface Event {
@@ -278,24 +280,14 @@ export default function HomeTab() {
       // 임시 하드코딩된 이벤트 데이터
       const mockEvents = [
         {
-          id: 'event-2',
-          title: language === 'ko' ? 'ACU-POINT 화장품 이벤트' : 'Evento de Cosméticos ACU-POINT',
-          description: language === 'ko' ? '가장 많이 사용한 사람에게 매월 선크림 + 마스크팩 세트를 공짜로 드립니다!' : '¡La persona que más use la comunidad recibe un set mensual de protector solar + mascarilla GRATIS!',
-          image: '/misc/event-title.png',
-          bannerMobile: '/banners/gran-lanzamiento-mobile.png',
-          bannerDesktop: '/banners/gran-lanzamiento-desktop.png',
-          date: language === 'ko' ? '1월부터 매달 진행' : 'Mensual desde enero - ¡GRATIS!',
-          participants: 156
-        },
-        {
-          id: 'event-1',
-          title: language === 'ko' ? '한국 비행기 티켓 추첨 이벤트' : 'Evento de Sorteo de Boletos de Avión a Corea',
-          description: language === 'ko' ? '커뮤니티에 참여하고 한국 비행기 티켓을 받아가세요!' : '¡Participa en la comunidad y gana boletos de avión a Corea!',
-          image: '/misc/event-title.png',
-          bannerMobile: '/banners/evento-apartura-mobile.png',
-          bannerDesktop: '/banners/evento-apartura-desktop.png',
-          date: language === 'ko' ? '2026년 말' : 'Fin de año de 2026',
-          participants: 324
+          id: 'event-korean-meeting',
+          title: language === 'ko' ? '한국어 모임' : 'Reunión de Coreano',
+          description: language === 'ko' ? '2주에 한번씩 한국어 모임을 진행합니다!' : '¡Reunión de coreano cada 2 semanas!',
+          image: null,
+          bannerMobile: null,
+          bannerDesktop: null,
+          date: language === 'ko' ? '2주마다 진행' : 'Cada 2 semanas',
+          participants: 0
         }
       ]
       
@@ -346,7 +338,7 @@ export default function HomeTab() {
           let categoryName = post.category || (language === 'ko' ? '자유' : 'Libre')
           
           // 작성자 이름 처리 ('익명' 번역)
-          let authorName = post.user?.nickname || post.user?.full_name || (language === 'ko' ? '익명' : 'Anónimo')
+          let authorName = post.user?.korean_name || post.user?.spanish_name || post.user?.full_name || (language === 'ko' ? '익명' : 'Anónimo')
           if (authorName === '익명') {
             authorName = language === 'ko' ? '익명' : 'Anónimo'
           }
@@ -482,7 +474,7 @@ export default function HomeTab() {
       if (data.posts && data.posts.length > 0) {
         // 데이터 포맷팅
         const formattedNotices = data.posts.slice(0, 3).map((post: any) => {
-          let authorName = post.author?.nickname || post.author?.full_name || (language === 'ko' ? '관리자' : 'Administrador')
+          let authorName = post.author?.korean_name || post.author?.spanish_name || post.author?.full_name || (language === 'ko' ? '관리자' : 'Administrador')
           // '익명'을 언어에 맞게 변환
           if (authorName === '익명') {
             authorName = language === 'ko' ? '익명' : 'Anónimo'
@@ -568,42 +560,43 @@ export default function HomeTab() {
 
   const loadHotChatRoomsAndPolls = async () => {
     try {
-      // 단일 아미코 채팅방만 로드 (나라별 채팅방 제거)
+      // 사용자가 만든 채팅방 로드 (아미코 채팅방 제외)
       const chatRoomResponse = await fetch('/api/chat/rooms')
       if (chatRoomResponse.ok) {
         const chatRoomData = await chatRoomResponse.json()
         if (chatRoomData.success && chatRoomData.rooms && chatRoomData.rooms.length > 0) {
-          // "아미코 채팅방" 또는 "Amiko Chat" 이름의 채팅방만 필터링
-          const amikoRoom = chatRoomData.rooms.find((room: any) => 
-            room.name?.toLowerCase().includes('amiko') || 
-            room.name?.toLowerCase().includes('아미코')
-          )
+          // 아미코 채팅방 제외 (이름이나 설명에 amiko, 아미코, equipo, administradores 포함된 것 제외)
+          const filteredRooms = chatRoomData.rooms.filter((room: any) => {
+            const name = room.name?.toLowerCase() || ''
+            const description = room.description?.toLowerCase() || ''
+            const isAmikoRoom = 
+              name.includes('amiko') || name.includes('아미코') || 
+              name.includes('equipo') || name.includes('administradores') ||
+              description.includes('amiko') || description.includes('아미코') ||
+              description.includes('administradores coreanos')
+            return !isAmikoRoom && room.type === 'fanclub' && room.is_active !== false
+          })
           
-          // 아미코 채팅방이 있으면 단일 채팅방만 표시, 없으면 빈 배열
-          if (amikoRoom) {
-            const formattedChatRooms = [{
-              id: amikoRoom.id,
-              title: amikoRoom.name || '아미코 채팅방',
-              image: amikoRoom.thumbnail_url || '/misc/placeholder.png',
-              memberCount: amikoRoom.participant_count || 0,
-              lastMessageAt: amikoRoom.updated_at ? formatTimeAgo(amikoRoom.updated_at) : undefined
-            }]
+          // 최근 업데이트된 순으로 정렬하고 최대 3개만 표시
+          const sortedRooms = filteredRooms
+            .sort((a: any, b: any) => {
+              const dateA = new Date(a.updated_at || a.created_at || 0).getTime()
+              const dateB = new Date(b.updated_at || b.created_at || 0).getTime()
+              return dateB - dateA
+            })
+            .slice(0, 3)
+          
+          if (sortedRooms.length > 0) {
+            const formattedChatRooms = sortedRooms.map((room: any) => ({
+              id: room.id,
+              title: room.name || 'Chat Room',
+              image: room.thumbnail_url || '/misc/placeholder.png',
+              memberCount: room.participant_count || 0,
+              lastMessageAt: room.updated_at ? formatTimeAgo(room.updated_at) : undefined
+            }))
             setHotChatRooms(formattedChatRooms)
           } else {
-            // 아미코 채팅방이 없으면 모든 채팅방 중 첫 번째를 사용 (임시)
-            const firstRoom = chatRoomData.rooms[0]
-            if (firstRoom) {
-              const formattedChatRooms = [{
-                id: firstRoom.id,
-                title: firstRoom.name || '아미코 채팅방',
-                image: firstRoom.thumbnail_url || '/misc/placeholder.png',
-                memberCount: firstRoom.participant_count || 0,
-                lastMessageAt: firstRoom.updated_at ? formatTimeAgo(firstRoom.updated_at) : undefined
-              }]
-              setHotChatRooms(formattedChatRooms)
-            } else {
-              setHotChatRooms([])
-            }
+            setHotChatRooms([])
           }
         } else {
           setHotChatRooms([])
@@ -639,12 +632,6 @@ export default function HomeTab() {
   }
 
   const loadKNoticiaNews = async () => {
-    // 뉴스 기능이 비활성화되어 있으면 로드하지 않음
-    if (process.env.NEXT_PUBLIC_ENABLE_NEWS !== 'true') {
-      setKNoticiaNews([])
-      return
-    }
-    
     try {
       const response = await fetch('/api/news?limit=5')
       
@@ -665,9 +652,11 @@ export default function HomeTab() {
           setKNoticiaNews([])
         }
       } else {
+        console.error('뉴스 로딩 실패:', response.status, response.statusText)
         setKNoticiaNews([])
       }
     } catch (error) {
+      console.error('뉴스 로딩 오류:', error)
       setKNoticiaNews([])
     }
   }
@@ -869,33 +858,24 @@ export default function HomeTab() {
                   {currentEvents.map((event, index) => (
                     <div
                       key={event.id}
-                      className="relative w-full flex-shrink-0 cursor-pointer"
+                      className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-4"
                       style={{ height: '160px' }}
                       onClick={() => {
-                        if (event.id === 'event-2') {
-                          router.push('/main?tab=event&show=acu-point-sunscreen')
-                        } else {
-                          router.push('/main?tab=event')
-                        }
+                        router.push('/main?tab=event&show=korean-meeting')
                       }}
                     >
-                      {/* 모바일 배너 */}
-                      <img 
-                        src={event.bannerMobile || event.image} 
-                        alt={event.title}
-                        className="absolute inset-0 w-full h-full object-contain block min-[430px]:hidden pointer-events-none"
-                        style={{ maxHeight: '160px', objectFit: 'contain' }}
-                        draggable={false}
-                      />
-                      
-                      {/* 데스크톱 배너 (430px 이상) */}
-                      <img 
-                        src={event.bannerDesktop || event.image} 
-                        alt={event.title}
-                        className="absolute inset-0 w-full h-full object-contain hidden min-[430px]:block pointer-events-none"
-                        style={{ maxHeight: '160px', objectFit: 'contain' }}
-                        draggable={false}
-                      />
+                      {/* 텍스트 기반 배너 */}
+                      <div className="text-center text-white">
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2">
+                          {event.title}
+                        </h3>
+                        <p className="text-sm sm:text-base text-white/90 mb-1">
+                          {event.description}
+                        </p>
+                        <p className="text-xs sm:text-sm text-white/80">
+                          {event.date}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1450,15 +1430,17 @@ export default function HomeTab() {
       </div>
 
       {/* 오늘의 K-Noticia - 모바일 버전 */}
-      {/* K-Noticia 뉴스 섹션 - 환경 변수로 제어 */}
-      {process.env.NEXT_PUBLIC_ENABLE_NEWS === 'true' && (
-        <div className="space-y-3 md:hidden">
+      {/* K-Noticia 뉴스 섹션 */}
+      <div className="space-y-3 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img 
+              <Image 
                 src="/icons/k-magazine.png" 
                 alt="K-Noticia" 
-                className="w-5 h-5 object-contain mr-2"
+                width={20}
+                height={20}
+                className="object-contain mr-2"
+                priority
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.kNoticia')}
@@ -1509,10 +1491,12 @@ export default function HomeTab() {
                 ))
               ) : (
                 <div className="text-center py-4">
-                  <img 
+                  <Image 
                     src="/icons/k-magazine.png" 
                     alt="K-Noticia" 
-                    className="w-8 h-8 mx-auto mb-2 opacity-40"
+                    width={32}
+                    height={32}
+                    className="mx-auto mb-2 opacity-40"
                   />
                   <p className="text-gray-500 text-xs">
                     {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
@@ -1522,8 +1506,7 @@ export default function HomeTab() {
             </div>
           </CardContent>
         </Card>
-        </div>
-      )}
+      </div>
 
       {/* 최근 스토리 - 그리드 레이아웃 - 환경 변수로 제어 */}
       {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
@@ -1782,121 +1765,77 @@ export default function HomeTab() {
                         {currentEvents.map((event, index) => (
                           <div
                             key={event.id}
-                            className="relative w-full flex-shrink-0 cursor-pointer"
+                            className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-6"
                             style={{ height: '160px' }}
                             onClick={() => {
-                              if (event.id === 'event-2') {
-                                router.push('/main?tab=event&show=acu-point-sunscreen')
-                              } else {
-                                router.push('/main?tab=event')
-                              }
+                              router.push('/main?tab=event&show=korean-meeting')
                             }}
                           >
-                            {/* 배너 이미지 (430px 기준으로 변경) */}
-                            <img 
-                              src={event.bannerDesktop || event.image} 
-                              alt={event.title}
-                              className="absolute inset-0 w-full h-full object-contain rounded-lg hidden min-[430px]:block pointer-events-none"
-                              style={{ maxHeight: '160px', objectFit: 'contain' }}
-                              draggable={false}
-                            />
-                            <img 
-                              src={event.bannerMobile || event.image} 
-                              alt={event.title}
-                              className="absolute inset-0 w-full h-full object-contain rounded-lg block min-[430px]:hidden pointer-events-none"
-                              style={{ maxHeight: '160px', objectFit: 'contain' }}
-                              draggable={false}
-                            />
+                            {/* 텍스트 기반 배너 */}
+                            <div className="text-center text-white">
+                              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-3">
+                                {event.title}
+                              </h3>
+                              <p className="text-base md:text-lg text-white/90 mb-2">
+                                {event.description}
+                              </p>
+                              <p className="text-sm md:text-base text-white/80">
+                                {event.date}
+                              </p>
+                            </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <Calendar className="w-16 h-16 mx-auto mb-4 opacity-80" />
-                          <p className="text-lg font-medium">
-                            {language === 'ko' ? '진행 중인 이벤트가 없습니다' : 'No ongoing events'}
-                          </p>
-                        </div>
+                      <div className="flex items-center justify-center h-40 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <p className="text-gray-500 dark:text-gray-400">
+                          {language === 'ko' ? '진행 중인 이벤트가 없습니다' : 'No hay eventos en curso'}
+                        </p>
                       </div>
                     )}
-                    
-                    {/* 이벤트 인디케이터 */}
-                    {currentEvents.length > 1 && (
-                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                        {currentEvents.map((_, index) => (
-                          <button
-                            key={index}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                              index === currentEventIndex ? 'bg-white shadow-md' : 'bg-white/50 hover:bg-white/70'
-                            }`}
-                            onClick={() => setCurrentEventIndex(index)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                    
                   </div>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* 공지사항 - 데스크톱 버전 */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-green-500">📢</span>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {language === 'ko' ? '공지' : 'Anuncios'}
-                </h2>
-              </div>
               
-              <div className="space-y-2">
-                {notices.length > 0 ? (
-                  notices.map((notice) => (
-                    <Card 
-                      key={notice.id}
-                      className="cursor-pointer hover:bg-gray-50 transition-colors" 
-                      onClick={() => router.push(`/community/post/${notice.id}?from=home`)}
-                    >
-                      <CardContent className="py-1 px-3">
-                        <div className="flex items-center gap-3">
-                          <Badge className="bg-green-100 text-green-700 border-0 px-2 py-0.5 font-medium text-xs">
-                            {language === 'ko' ? '공지' : 'Anuncio'}
-                          </Badge>
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                            {notice.title}
-                          </h3>
-                          <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                            <div className="flex items-center gap-1">
-                              <Heart className="w-4 h-4 text-red-500" />
-                              <span>{notice.likes}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <MessageSquare className="w-4 h-4 text-blue-500" />
-                              <span>{notice.comments}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Eye className="w-4 h-4" />
-                              <span>{notice.views}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              <span className="text-gray-500">{notice.createdAt}</span>
-                            </div>
+              {/* 공지사항 - 데스크톱 버전 */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <Megaphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {language === 'ko' ? '공지' : 'Anuncios'}
+                  </h2>
+                </div>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    {notices.length > 0 ? (
+                      <div className="space-y-3">
+                        {notices.slice(0, 3).map((announcement) => (
+                          <div
+                            key={announcement.id}
+                            className="cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            onClick={() => router.push(`/community/freeboard/${announcement.id}`)}
+                          >
+                            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
+                              {announcement.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {announcement.createdAt || new Date().toLocaleDateString()}
+                            </p>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <Card>
-                    <CardContent className="py-4 text-center">
-                      <p className="text-gray-500 text-sm">
-                        {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500 text-sm">
+                          {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
@@ -2360,15 +2299,17 @@ export default function HomeTab() {
               </div>
             </div>
 
-            {/* 오늘의 K-Noticia - 데스크톱 - 환경 변수로 제어 */}
-            {process.env.NEXT_PUBLIC_ENABLE_NEWS === 'true' && (
-              <div className="space-y-4">
+            {/* 오늘의 K-Noticia - 데스크톱 */}
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <img 
+                  <Image 
                     src="/icons/k-magazine.png" 
                     alt="K-Noticia" 
-                    className="w-5 h-5 object-contain"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                    priority
                   />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {t('home.sections.kNoticia')}
@@ -2419,10 +2360,12 @@ export default function HomeTab() {
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <img 
+                        <Image 
                           src="/icons/k-magazine.png" 
                           alt="K-Noticia" 
-                          className="w-12 h-12 mx-auto mb-3 opacity-40"
+                          width={48}
+                          height={48}
+                          className="mx-auto mb-3 opacity-40"
                         />
                         <p className="text-gray-500 text-sm">
                           {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
@@ -2432,8 +2375,7 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-              </div>
-            )}
+            </div>
 
             {/* 최근 스토리 - 데스크톱 - 환경 변수로 제어 */}
             {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (

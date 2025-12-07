@@ -178,10 +178,10 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768
     
     if (isMobileDevice) {
-      // 모바일 기본값 (조정된 위치)
+      // 모바일 기본값 (조정된 위치) - 서브메뉴를 살짝 오른쪽으로 이동
       return {
         'story-boards': { x: 90, y: -137 },
-        'k-culture': { x: -88, y: -142 }
+        'k-culture': { x: -80, y: -142 }
       }
     } else {
       // 데스크톱 기본값 (기존 유지)
