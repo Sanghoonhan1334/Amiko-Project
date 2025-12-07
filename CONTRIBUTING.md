@@ -1,236 +1,349 @@
-# 기여 가이드 (Contributing Guide)
+# Contributing Guide / Guía de Contribución
 
-Amiko 프로젝트에 기여해 주셔서 감사합니다! 이 문서는 프로젝트에 기여하기 위한 가이드를 제공합니다.
+Thank you for contributing to the Amiko project! / ¡Gracias por contribuir al proyecto Amiko!
 
-## 📋 목차
+This document provides guidelines for contributing to the project. / Este documento proporciona pautas para contribuir al proyecto.
 
-1. [브랜치 전략](#브랜치-전략)
-2. [코드 스타일](#코드-스타일)
-3. [커밋 메시지 규칙](#커밋-메시지-규칙)
-4. [PR (Pull Request) 절차](#pr-pull-request-절차)
-5. [개발 환경 설정](#개발-환경-설정)
+---
 
-## 🌿 브랜치 전략
+## 📋 Table of Contents / Tabla de Contenidos
 
-### 주요 브랜치
+1. [Branch Strategy / Estrategia de Ramas](#branch-strategy--estrategia-de-ramas)
+2. [Important Rules / Reglas Importantes](#important-rules--reglas-importantes)
+3. [Workflow Process / Proceso de Flujo de Trabajo](#workflow-process--proceso-de-flujo-de-trabajo)
+4. [Code Style / Estilo de Código](#code-style--estilo-de-código)
+5. [Commit Message Rules / Reglas de Mensajes de Commit](#commit-message-rules--reglas-de-mensajes-de-commit)
+6. [PR (Pull Request) Process / Proceso de PR](#pr-pull-request-process--proceso-de-pr)
+7. [Development Environment Setup / Configuración del Entorno de Desarrollo](#development-environment-setup--configuración-del-entorno-de-desarrollo)
 
-- `main` - 프로덕션 브랜치 (안정적인 코드만 포함)
-- `dev` - 개발 브랜치 (통합 테스트용)
+---
 
-### 기능 브랜치
+## 🌿 Branch Strategy / Estrategia de Ramas
 
-새로운 기능을 개발할 때는 `dev` 브랜치에서 `feature/*` 브랜치를 생성합니다.
+### Main Branches / Ramas Principales
 
-**브랜치 명명 규칙:**
-- `feature/paypal-integration` - PayPal 결제 통합
-- `feature/legal-terms` - 법적 약관 추가
-- `feature/class-tab` - 강의 탭 구현
-- `feature/latin-ui` - 라틴아메리카 UI 개선
-- `fix/payment-bug` - 버그 수정
-- `chore/update-dependencies` - 의존성 업데이트
+- **`main`** - Production branch (stable code only) / Rama de producción (solo código estable)
+  - ❌ **Direct push is FORBIDDEN** / El push directo está PROHIBIDO
+  - ✅ Only merged from `dev` after testing / Solo se fusiona desde `dev` después de pruebas
+  
+- **`dev`** - Development/Integration branch / Rama de desarrollo/integración
+  - ✅ Integration point for all features / Punto de integración para todas las funcionalidades
+  - ✅ Requires PR and code review / Requiere PR y revisión de código
 
-**예시:**
+### Feature Branches / Ramas de Funcionalidades
+
+Create `feature/*` branches from `dev` for new features. / Crear ramas `feature/*` desde `dev` para nuevas funcionalidades.
+
+**Branch Naming Convention / Convención de Nomenclatura:**
+- `feature/payments-paypal-maria` - PayPal payment integration (María) / Integración de pagos PayPal (María)
+- `feature/legal-policy-update` - Legal policy updates (Legal Expert) / Actualizaciones de políticas legales (Experto Legal)
+- `feature/class-tab-ui` - Class/course tab development / Desarrollo de pestaña de clases/cursos
+- `fix/payment-bug` - Bug fixes / Correcciones de errores
+- `chore/update-dependencies` - Maintenance tasks / Tareas de mantenimiento
+
+**Example / Ejemplo:**
 ```bash
-# dev 브랜치에서 시작
+# Start from dev branch / Comenzar desde la rama dev
 git checkout dev
 git pull origin dev
 
-# 새 기능 브랜치 생성
-git checkout -b feature/paypal-integration
+# Create new feature branch / Crear nueva rama de funcionalidad
+git checkout -b feature/payments-paypal-maria
 
-# 작업 후 커밋
+# Work and commit / Trabajar y hacer commit
 git add .
-git commit -m "feat: PayPal 결제 통합 초기 구현"
+git commit -m "feat: add PayPal payment integration"
 
-# 원격 저장소에 푸시
-git push origin feature/paypal-integration
+# Push to remote / Subir a remoto
+git push origin feature/payments-paypal-maria
 ```
 
-## 💻 코드 스타일
+---
+
+## 🚨 Important Rules / Reglas Importantes
+
+### ❌ FORBIDDEN / PROHIBIDO
+
+1. **❌ NEVER push directly to `main` branch** / NUNCA hacer push directo a la rama `main`
+   - `main` is production and must be protected / `main` es producción y debe estar protegida
+   - All changes must go through PR process / Todos los cambios deben pasar por el proceso de PR
+
+2. **❌ NEVER force push to shared branches** / NUNCA forzar push a ramas compartidas
+   - This can break other developers' work / Esto puede romper el trabajo de otros desarrolladores
+
+3. **❌ NEVER commit sensitive data** / NUNCA hacer commit de datos sensibles
+   - API keys, passwords, private keys / Claves API, contraseñas, claves privadas
+
+### ✅ REQUIRED / REQUERIDO
+
+1. **✅ Always create feature branch from `dev`** / Siempre crear rama de funcionalidad desde `dev`
+2. **✅ Always pull latest changes before starting** / Siempre obtener los últimos cambios antes de comenzar
+3. **✅ Always create PR for code review** / Siempre crear PR para revisión de código
+4. **✅ Always test before creating PR** / Siempre probar antes de crear PR
+
+---
+
+## 🔄 Workflow Process / Proceso de Flujo de Trabajo
+
+### Step 1: Start Development / Iniciar Desarrollo
+
+```bash
+# Switch to dev branch / Cambiar a la rama dev
+git checkout dev
+
+# Pull latest changes / Obtener últimos cambios
+git pull origin dev
+
+# Create your feature branch / Crear tu rama de funcionalidad
+git checkout -b feature/payments-paypal-maria
+```
+
+### Step 2: Develop and Commit / Desarrollar y Hacer Commit
+
+```bash
+# Make your changes / Hacer tus cambios
+# ... edit files ...
+
+# Stage changes / Preparar cambios
+git add .
+
+# Commit with proper message / Hacer commit con mensaje apropiado
+git commit -m "feat: add PayPal order creation API"
+
+# Push to remote / Subir a remoto
+git push origin feature/payments-paypal-maria
+```
+
+### Step 3: Create Pull Request / Crear Pull Request
+
+1. Go to GitHub repository / Ir al repositorio de GitHub
+2. Click "New Pull Request" / Hacer clic en "New Pull Request"
+3. Select: `feature/payments-paypal-maria` → `dev` / Seleccionar: `feature/payments-paypal-maria` → `dev`
+4. Fill PR description / Completar descripción del PR
+5. Request review / Solicitar revisión
+6. Wait for approval / Esperar aprobación
+
+### Step 4: Code Review / Revisión de Código
+
+- Reviewer checks code quality / El revisor verifica la calidad del código
+- Reviewer approves or requests changes / El revisor aprueba o solicita cambios
+- Make changes if needed / Hacer cambios si es necesario
+- Re-request review / Volver a solicitar revisión
+
+### Step 5: Merge to dev / Fusionar a dev
+
+- After approval, merge PR to `dev` / Después de la aprobación, fusionar PR a `dev`
+- Delete feature branch (optional) / Eliminar rama de funcionalidad (opcional)
+- `dev` branch is automatically tested / La rama `dev` se prueba automáticamente
+
+### Step 6: Merge dev to main / Fusionar dev a main
+
+- After testing in `dev`, create PR: `dev` → `main` / Después de probar en `dev`, crear PR: `dev` → `main`
+- Requires additional review / Requiere revisión adicional
+- Merge only when production-ready / Fusionar solo cuando esté listo para producción
+
+---
+
+## 💻 Code Style / Estilo de Código
 
 ### TypeScript
 
-- TypeScript 엄격 모드 사용
-- 타입 명시 (any 사용 지양)
-- 인터페이스/타입 정의는 `src/types/`에 위치
+- Use TypeScript strict mode / Usar modo estricto de TypeScript
+- Explicit types (avoid `any`) / Tipos explícitos (evitar `any`)
+- Interfaces/types in `src/types/` / Interfaces/tipos en `src/types/`
 
 ### ESLint
 
-프로젝트는 ESLint를 사용합니다. 코드를 작성한 후 반드시 린트를 실행하세요:
+The project uses ESLint. Run lint before creating PR: / El proyecto usa ESLint. Ejecutar lint antes de crear PR:
 
 ```bash
 npm run lint
 ```
 
-린트 오류가 있으면 PR 전에 수정해 주세요.
+Fix lint errors before PR. / Corregir errores de lint antes del PR.
 
-### Prettier
+### File Structure / Estructura de Archivos
 
-현재 Prettier는 설정되지 않았으나, 추후 추가 예정입니다.
+- Components: `src/components/`
+- API Routes: `src/app/api/`
+- Utilities: `src/lib/`
+- Type Definitions: `src/types/`
 
-### 파일 구조
+---
 
-- 컴포넌트: `src/components/`
-- API 라우트: `src/app/api/`
-- 유틸리티: `src/lib/`
-- 타입 정의: `src/types/`
+## 📝 Commit Message Rules / Reglas de Mensajes de Commit
 
-## 📝 커밋 메시지 규칙
-
-커밋 메시지는 다음 형식을 따릅니다:
+### Format / Formato
 
 ```
 <type>: <subject>
 
-<body> (선택사항)
+<body> (optional)
 
-<footer> (선택사항)
+<footer> (optional)
 ```
 
-### Type
+### Types / Tipos
 
-- `feat`: 새로운 기능 추가
-- `fix`: 버그 수정
-- `docs`: 문서 수정
-- `style`: 코드 포맷팅, 세미콜론 누락 등 (기능 변경 없음)
-- `refactor`: 코드 리팩토링
-- `test`: 테스트 추가 또는 수정
-- `chore`: 빌드 프로세스 또는 보조 도구 변경
+- `feat`: New feature / Nueva funcionalidad
+- `fix`: Bug fix / Corrección de error
+- `docs`: Documentation changes / Cambios en documentación
+- `style`: Code formatting (no functional changes) / Formato de código (sin cambios funcionales)
+- `refactor`: Code refactoring / Refactorización de código
+- `test`: Test additions / Adiciones de pruebas
+- `chore`: Maintenance tasks / Tareas de mantenimiento
 
-### 예시
+### Examples / Ejemplos
 
 ```bash
-# 기능 추가
-git commit -m "feat: PayPal 결제 통합 구현"
+# Feature / Funcionalidad
+git commit -m "feat: add PayPal payment integration"
 
-# 버그 수정
-git commit -m "fix: 결제 웹훅 처리 오류 수정"
+# Bug fix / Corrección de error
+git commit -m "fix: resolve payment webhook validation issue"
 
-# 문서 수정
-git commit -m "docs: README에 환경 변수 설명 추가"
+# Documentation / Documentación
+git commit -m "docs: update API documentation"
 
-# 리팩토링
-git commit -m "refactor: 결제 API 코드 구조 개선"
+# Refactoring / Refactorización
+git commit -m "refactor: improve error handling in payment flow"
 ```
 
-## 🔄 PR (Pull Request) 절차
+---
 
-### 1. 이슈 생성 (선택사항)
+## 🔄 PR (Pull Request) Process / Proceso de PR
 
-큰 기능 개발의 경우 먼저 이슈를 생성하여 논의하는 것을 권장합니다.
+### Before Creating PR / Antes de Crear PR
 
-### 2. 브랜치 생성 및 개발
+Checklist / Lista de verificación:
 
-1. `dev` 브랜치에서 최신 코드를 가져옵니다:
-   ```bash
-   git checkout dev
-   git pull origin dev
-   ```
+- [ ] Code builds successfully / El código se compila correctamente (`npm run build`)
+- [ ] ESLint passes / ESLint pasa (`npm run lint`)
+- [ ] Commit messages follow rules / Los mensajes de commit siguen las reglas
+- [ ] Documentation updated (if needed) / Documentación actualizada (si es necesario)
+- [ ] Tests performed (if possible) / Pruebas realizadas (si es posible)
 
-2. 새 기능 브랜치를 생성합니다:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+### PR Title Format / Formato del Título del PR
 
-3. 코드를 작성하고 커밋합니다.
+Follow commit message format: / Seguir formato de mensaje de commit:
 
-### 3. PR 생성 전 체크리스트
-
-PR을 생성하기 전에 다음 사항을 확인하세요:
-
-- [ ] 코드가 빌드됩니다 (`npm run build`)
-- [ ] ESLint를 통과합니다 (`npm run lint`)
-- [ ] 커밋 메시지가 규칙을 따릅니다
-- [ ] 관련 문서를 업데이트했습니다 (필요한 경우)
-- [ ] 테스트를 수행했습니다 (가능한 경우)
-
-### 4. PR 생성
-
-1. GitHub에서 PR을 생성합니다.
-2. PR 제목은 커밋 메시지 형식을 따릅니다.
-3. PR 설명에 다음을 포함하세요:
-   - 변경 사항 요약
-   - 관련 이슈 번호 (있는 경우)
-   - 테스트 방법
-   - 스크린샷 (UI 변경의 경우)
-
-**PR 제목 예시:**
 ```
-feat: PayPal 결제 통합 구현
+feat: PayPal payment integration
+fix: Payment webhook validation issue
+docs: Update API documentation
 ```
 
-**PR 설명 예시:**
+### PR Description Template / Plantilla de Descripción del PR
+
 ```markdown
-## 변경 사항
-- PayPal 결제 API 연동
-- 결제 버튼 컴포넌트 추가
-- 웹훅 처리 로직 구현
+## Changes / Cambios
+- PayPal payment API integration
+- Payment button component added
+- Webhook processing logic implemented
 
-## 관련 이슈
+## Related Issue / Issue Relacionado
 Closes #123
 
-## 테스트 방법
-1. 결제 페이지에서 PayPal 버튼 클릭
-2. PayPal 샌드박스 계정으로 결제 진행
-3. 결제 완료 확인
+## Testing / Pruebas
+1. Click PayPal button on payment page
+2. Complete payment with PayPal sandbox account
+3. Verify payment completion
+
+## Screenshots / Capturas de Pantalla
+(If UI changes / Si hay cambios de UI)
 ```
 
-### 5. 코드 리뷰
+### Code Review / Revisión de Código
 
-- 리뷰어의 피드백에 적극적으로 응답하세요
-- 필요한 경우 코드를 수정하고 다시 커밋하세요
-- 모든 리뷰가 완료되면 `dev` 브랜치로 머지됩니다
+- Respond actively to reviewer feedback / Responder activamente al feedback del revisor
+- Make changes if requested / Hacer cambios si se solicitan
+- Re-request review after changes / Volver a solicitar revisión después de cambios
+- After all reviews complete, PR is merged to `dev` / Después de completar todas las revisiones, el PR se fusiona a `dev`
 
-## 🛠️ 개발 환경 설정
+---
 
-### 필수 요구사항
+## 🛠️ Development Environment Setup / Configuración del Entorno de Desarrollo
 
-- Node.js 18 이상
-- npm 또는 yarn
+### Requirements / Requisitos
+
+- Node.js 18 or higher / Node.js 18 o superior
+- npm or yarn
 - Git
 
-### 초기 설정
+### Initial Setup / Configuración Inicial
 
-1. 저장소 클론:
+1. Clone repository / Clonar repositorio:
    ```bash
    git clone <repository-url>
    cd Amiko-Project-main
    ```
 
-2. 의존성 설치:
+2. Install dependencies / Instalar dependencias:
    ```bash
    npm install
    ```
 
-3. 환경 변수 설정:
+3. Setup environment variables / Configurar variables de entorno:
    ```bash
    cp .env.local.example .env.local
-   # .env.local 파일을 열어 실제 값으로 채우기
+   # Edit .env.local with actual values / Editar .env.local con valores reales
    ```
 
-4. 개발 서버 실행:
+4. Run development server / Ejecutar servidor de desarrollo:
    ```bash
    npm run dev
    ```
 
-### 유용한 명령어
+### Useful Commands / Comandos Útiles
 
 ```bash
-# 개발 서버 실행
+# Development server / Servidor de desarrollo
 npm run dev
 
-# 프로덕션 빌드
+# Production build / Compilación de producción
 npm run build
 
-# 린트 실행
+# Run linter / Ejecutar linter
 npm run lint
 
-# 프로덕션 서버 실행 (빌드 후)
+# Production server (after build) / Servidor de producción (después de compilar)
 npm start
 ```
 
-## 📞 문의
+---
 
-질문이나 제안사항이 있으면 이슈를 생성하거나 팀에 직접 문의하세요.
+## 📚 Additional Resources / Recursos Adicionales
 
-감사합니다! 🎉
+- **Detailed Git Workflow**: See [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md)
+- **Project Overview**: See [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
+- **Code Improvement Guide**: See [docs/CODE_IMPROVEMENT_GUIDE.md](docs/CODE_IMPROVEMENT_GUIDE.md)
+
+---
+
+## 🔒 Branch Protection Rules / Reglas de Protección de Ramas
+
+### main Branch / Rama main
+
+- ❌ **Direct push forbidden** / Push directo prohibido
+- ✅ **Requires PR from dev** / Requiere PR desde dev
+- ✅ **Minimum 1 reviewer required** / Mínimo 1 revisor requerido
+- ✅ **CI must pass** / CI debe pasar
+- ✅ **No force push allowed** / No se permite forzar push
+
+### dev Branch / Rama dev
+
+- ✅ **Requires PR from feature branches** / Requiere PR desde ramas de funcionalidades
+- ✅ **Minimum 1 reviewer required** / Mínimo 1 revisor requerido
+- ✅ **CI must pass** / CI debe pasar
+
+---
+
+## 📞 Support / Soporte
+
+If you have questions, please: / Si tienes preguntas, por favor:
+
+- Create an issue in the repository / Crear un issue en el repositorio
+- Ask in team chat / Preguntar en el chat del equipo
+- Refer to [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) for detailed workflow / Consultar [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) para flujo de trabajo detallado
+
+Thank you! / ¡Gracias! 🎉

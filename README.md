@@ -179,13 +179,17 @@ La documentación detallada del proyecto se puede encontrar en la carpeta `docs/
 
 ### Estrategia de Ramas / 브랜치 전략
 
-- `main` - Rama de producción
-- `dev` - Rama de desarrollo
-- `feature/*` - Rama de desarrollo de funcionalidades (ej: `feature/paypal-integration`, `feature/legal-terms`)
+- `main` - Rama de producción (❌ push directo prohibido)
+- `dev` - Rama de desarrollo/integración
+- `feature/*` - Rama de desarrollo de funcionalidades (ej: `feature/payments-paypal-maria`, `feature/legal-policy-update`)
 
-- `main` - 프로덕션 브랜치
-- `dev` - 개발 브랜치
-- `feature/*` - 기능 개발 브랜치 (예: `feature/paypal-integration`, `feature/legal-terms`)
+- `main` - 프로덕션 브랜치 (❌ 직접 push 금지)
+- `dev` - 개발/통합 브랜치
+- `feature/*` - 기능 개발 브랜치 (예: `feature/payments-paypal-maria`, `feature/legal-policy-update`)
+
+**⚠️ IMPORTANTE / 중요**: El flujo de trabajo es: `feature/*` → PR → `dev` → PR → `main`. Ver [CONTRIBUTING.md](CONTRIBUTING.md) y [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) para más detalles.
+
+**⚠️ IMPORTANT**: Workflow is: `feature/*` → PR → `dev` → PR → `main`. See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) for details.
 
 ### Estilo de Código / 코드 스타일
 
