@@ -170,20 +170,28 @@ export async function POST(
       return NextResponse.json({ error: '인증된 사용자를 찾을 수 없습니다.' }, { status: 401 })
     }
 
-    // 인증 상태 확인 (SMS/WhatsApp/Phone 인증 중 하나라도 있어야 댓글 작성 가능)
+    // 인증 상태 확인 (Header와 동일한 조건 사용)
     const { data: userData, error: userDataError } = await supabaseServer
       .from('users')
-      .select('phone_verified, sms_verified_at, phone_verified_at, wa_verified_at, kakao_linked_at')
+      .select('is_verified, verification_completed, email_verified_at, sms_verified_at, phone_verified, phone_verified_at, wa_verified_at, kakao_linked_at, korean_name, spanish_name, full_name, university, major, user_type, occupation, company')
       .eq('id', authUser.id)
       .single()
 
     if (!userDataError && userData) {
+      const userType = userData.user_type || 'student'
       const hasVerification = !!(
-        userData.phone_verified ||
+        userData.is_verified ||
+        userData.verification_completed ||
+        userData.email_verified_at ||
         userData.sms_verified_at ||
-        userData.phone_verified_at ||
+        userData.kakao_linked_at ||
         userData.wa_verified_at ||
-        userData.kakao_linked_at
+        userData.phone_verified ||
+        userData.phone_verified_at ||
+        userData.korean_name ||
+        userData.spanish_name ||
+        (userType === 'student' && userData.full_name && userData.university && userData.major) ||
+        (userType === 'general' && userData.full_name && (userData.occupation || userData.company))
       )
 
       if (!hasVerification) {

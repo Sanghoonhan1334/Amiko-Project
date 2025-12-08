@@ -122,13 +122,21 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
             avatar: avatarUrl
           })
 
-          // 인증 상태 확인 (SMS/WhatsApp/Phone 인증 중 하나라도 있으면 인증된 것으로 간주)
+          // 인증 상태 확인 (Header와 동일한 조건 사용)
+          const userType = profile?.user_type || 'student'
           const hasVerification = !!(
-            profile?.phone_verified ||
+            profile?.is_verified ||
+            profile?.verification_completed ||
+            profile?.email_verified_at ||
             profile?.sms_verified_at ||
-            profile?.phone_verified_at ||
+            profile?.kakao_linked_at ||
             profile?.wa_verified_at ||
-            profile?.kakao_linked_at
+            profile?.phone_verified ||
+            profile?.phone_verified_at ||
+            profile?.korean_name ||
+            profile?.spanish_name ||
+            (userType === 'student' && profile?.full_name && profile?.university && profile?.major) ||
+            (userType === 'general' && profile?.full_name && (profile?.occupation || profile?.company))
           )
           
           setIsVerified(hasVerification)
