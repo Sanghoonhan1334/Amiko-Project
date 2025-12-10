@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
         const result = await response.json()
 
         if (!response.ok) {
-          throw new Error(result.error || 'SMS 발송에 실패했습니다.')
+          throw new Error(result.error || t('auth.forgotPassword.smsSendFailed'))
         }
 
         setIsCodeSent(true)
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
         const result = await response.json()
 
         if (!response.ok) {
-          throw new Error(result.error || 'SMS 발송에 실패했습니다.')
+          throw new Error(result.error || t('auth.forgotPassword.smsSendFailed'))
         }
 
         setIsCodeSent(true)
@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
         const result = await response.json()
 
         if (!response.ok || !result.success) {
-          throw new Error(result.error || '인증코드가 올바르지 않습니다.')
+          throw new Error(result.error || t('auth.forgotPassword.invalidVerificationCode'))
         }
 
         // 이메일 찾기 성공
@@ -137,19 +137,19 @@ export default function ForgotPasswordPage() {
         const result = await response.json()
 
         if (!response.ok || !result.success) {
-          throw new Error(result.error || '인증코드가 올바르지 않습니다.')
+          throw new Error(result.error || t('auth.forgotPassword.invalidVerificationCode'))
         }
 
         // 인증 성공 시 비밀번호 재설정 페이지로 이동
         if (result.resetToken) {
           router.push(`/reset-password?token=${result.resetToken}`)
         } else {
-          throw new Error('비밀번호 재설정 토큰을 받지 못했습니다.')
+          throw new Error(t('auth.forgotPassword.resetTokenNotReceived'))
         }
       }
     } catch (error) {
       console.error('인증코드 확인 오류:', error)
-      alert(error instanceof Error ? error.message : '인증코드 확인에 실패했습니다.')
+      alert(error instanceof Error ? error.message : t('auth.forgotPassword.verificationFailed'))
     } finally {
       setIsVerifying(false)
     }
@@ -166,15 +166,15 @@ export default function ForgotPasswordPage() {
                 <Mail className="w-8 h-8 text-blue-600" />
               </div>
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                이메일 찾기 완료
+                {t('auth.forgotPassword.findEmailComplete')}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                등록된 이메일 주소입니다
+                {t('auth.forgotPassword.registeredEmailAddress')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-slate-50 p-4 rounded-lg text-center">
-                <p className="text-sm text-slate-600 mb-2">등록된 이메일</p>
+                <p className="text-sm text-slate-600 mb-2">{t('auth.forgotPassword.registeredEmail')}</p>
                 <p className="text-lg font-semibold text-slate-900">{foundEmail}</p>
               </div>
               <div className="space-y-3">
@@ -187,14 +187,14 @@ export default function ForgotPasswordPage() {
                   }}
                   className="w-full bg-slate-900 hover:bg-slate-800 text-white"
                 >
-                  이 이메일로 비밀번호 찾기
+                  {t('auth.forgotPassword.findPasswordWithThisEmail')}
                 </Button>
                 <Button
                   onClick={() => router.push('/sign-in')}
                   variant="outline"
                   className="w-full"
                 >
-                  로그인 페이지로 돌아가기
+                  {t('auth.forgotPassword.backToLoginPage')}
                 </Button>
               </div>
             </CardContent>
@@ -212,22 +212,22 @@ export default function ForgotPasswordPage() {
           <Card className="w-full max-w-md bg-white border shadow-lg">
             <CardHeader className="text-center space-y-4 pb-6">
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                {activeTab === 'find-email' ? '이메일 찾기' : '비밀번호 재설정'}
+                {activeTab === 'find-email' ? t('auth.forgotPassword.findEmailTitle') : t('auth.forgotPassword.resetPasswordTitle')}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                {phoneNumber}로 전송된 인증코드를 입력해주세요.
+                {t('auth.forgotPassword.enterCodeSentTo', { phoneNumber })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <form onSubmit={handleVerifyCode} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="code" className="text-sm font-medium text-slate-700">
-                    인증코드
+                    {t('auth.forgotPassword.verificationCodeLabel')}
                   </Label>
                   <Input
                     id="code"
                     type="text"
-                    placeholder="6자리 인증코드"
+                    placeholder={t('auth.forgotPassword.verificationCodePlaceholder')}
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     className="border-slate-200 focus:border-slate-400 focus:ring-slate-400 text-center text-2xl tracking-widest"
@@ -243,10 +243,10 @@ export default function ForgotPasswordPage() {
                   {isVerifying ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      확인 중...
+                      {t('auth.forgotPassword.confirming')}
                     </div>
                   ) : (
-                    '확인'
+                    t('auth.forgotPassword.confirm')
                   )}
                 </Button>
                 <Button
@@ -258,7 +258,7 @@ export default function ForgotPasswordPage() {
                     setVerificationCode('')
                   }}
                 >
-                  다시 보내기
+                  {t('auth.forgotPassword.resend')}
                 </Button>
               </form>
             </CardContent>
@@ -346,7 +346,7 @@ export default function ForgotPasswordPage() {
                 }`}
               >
                 <Mail className="inline-block w-4 h-4 mr-2" />
-                이메일로 찾기
+                {t('auth.forgotPassword.findByEmail')}
               </button>
               <button
                 type="button"
@@ -363,7 +363,7 @@ export default function ForgotPasswordPage() {
                 }`}
               >
                 <Phone className="inline-block w-4 h-4 mr-2" />
-                전화번호로 찾기
+                {t('auth.forgotPassword.findByPhone')}
               </button>
               <button
                 type="button"
@@ -380,7 +380,7 @@ export default function ForgotPasswordPage() {
                 }`}
               >
                 <Phone className="inline-block w-4 h-4 mr-2" />
-                이메일 찾기
+                {t('auth.forgotPassword.findEmail')}
               </button>
             </div>
 
@@ -425,7 +425,7 @@ export default function ForgotPasswordPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phoneNumber" className="text-sm font-medium text-slate-700">
-                      전화번호
+                      {t('auth.forgotPassword.phoneNumber')}
                     </Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -446,8 +446,8 @@ export default function ForgotPasswordPage() {
                     </div>
                     <p className="text-xs text-slate-500">
                       {countries.find(c => c.code === nationality)?.isKorean 
-                        ? '하이픈(-) 없이 입력해도 됩니다' 
-                        : '국가 코드를 포함한 전화번호를 입력하세요'}
+                        ? t('auth.forgotPassword.phoneHintKorean')
+                        : t('auth.forgotPassword.phoneHintInternational')}
                     </p>
                   </div>
                 </>
@@ -461,14 +461,12 @@ export default function ForgotPasswordPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    {activeTab === 'email' ? t('auth.forgotPassword.sending') : activeTab === 'find-email' ? 'SMS 발송 중...' : 'SMS 발송 중...'}
+                    {activeTab === 'email' ? t('auth.forgotPassword.sending') : t('auth.forgotPassword.sendingSMS')}
                   </div>
                 ) : (
                   activeTab === 'email' 
                     ? t('auth.forgotPassword.sendResetLink')
-                    : activeTab === 'find-email'
-                    ? 'SMS 인증코드 보내기'
-                    : 'SMS 인증코드 보내기'
+                    : t('auth.forgotPassword.sendSMSCode')
                 )}
               </Button>
             </form>

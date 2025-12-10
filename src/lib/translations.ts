@@ -266,7 +266,41 @@ export const translations = {
         checkSpam: '스팸 폴더도 확인해보세요.',
         tryAgain: '다시 시도',
         backToLogin: '로그인으로 돌아가기',
-        sending: '발송 중...'
+        sending: '발송 중...',
+        // 탭 레이블
+        findByEmail: '이메일로 찾기',
+        findByPhone: '전화번호로 찾기',
+        findEmail: '이메일 찾기',
+        // 입력 필드 레이블
+        country: '국가',
+        phoneNumber: '전화번호',
+        // 힌트 텍스트
+        phoneHintKorean: '하이픈(-) 없이 입력해도 됩니다',
+        phoneHintInternational: '국가 코드를 포함한 전화번호를 입력하세요',
+        // SMS 관련
+        sendSMSCode: 'SMS 인증코드 보내기',
+        sendingSMS: 'SMS 발송 중...',
+        verificationCode: '인증코드',
+        verificationCodePlaceholder: '6자리 인증코드',
+        verificationCodeLabel: '인증코드',
+        enterCodeSentTo: '{phoneNumber}로 전송된 인증코드를 입력해주세요.',
+        confirm: '확인',
+        confirming: '확인 중...',
+        resend: '다시 보내기',
+        // 이메일 찾기 완료
+        findEmailComplete: '이메일 찾기 완료',
+        registeredEmailAddress: '등록된 이메일 주소입니다',
+        registeredEmail: '등록된 이메일',
+        findPasswordWithThisEmail: '이 이메일로 비밀번호 찾기',
+        backToLoginPage: '로그인 페이지로 돌아가기',
+        // 에러 메시지
+        smsSendFailed: 'SMS 발송에 실패했습니다.',
+        invalidVerificationCode: '인증코드가 올바르지 않습니다.',
+        resetTokenNotReceived: '비밀번호 재설정 토큰을 받지 못했습니다.',
+        verificationFailed: '인증코드 확인에 실패했습니다.',
+        // SMS 인증 화면 타이틀
+        resetPasswordTitle: '비밀번호 재설정',
+        findEmailTitle: '이메일 찾기'
       },
       // 비밀번호 재설정
       resetPassword: {
@@ -3162,7 +3196,41 @@ export const translations = {
         checkSpam: 'También revisa tu carpeta de spam.',
         tryAgain: 'Intentar de nuevo',
         backToLogin: 'Volver al inicio de sesión',
-        sending: 'Enviando...'
+        sending: 'Enviando...',
+        // 탭 레이블
+        findByEmail: 'Buscar por correo',
+        findByPhone: 'Buscar por teléfono',
+        findEmail: 'Buscar correo',
+        // 입력 필드 레이블
+        country: 'País',
+        phoneNumber: 'Número de teléfono',
+        // 힌트 텍스트
+        phoneHintKorean: 'Puedes ingresar sin guiones (-)',
+        phoneHintInternational: 'Ingresa el número de teléfono incluyendo el código de país',
+        // SMS 관련
+        sendSMSCode: 'Enviar código de verificación por SMS',
+        sendingSMS: 'Enviando SMS...',
+        verificationCode: 'Código de verificación',
+        verificationCodePlaceholder: 'Código de 6 dígitos',
+        verificationCodeLabel: 'Código de verificación',
+        enterCodeSentTo: 'Por favor ingresa el código de verificación enviado a {phoneNumber}.',
+        confirm: 'Confirmar',
+        confirming: 'Verificando...',
+        resend: 'Reenviar',
+        // 이메일 찾기 완료
+        findEmailComplete: 'Búsqueda de correo completada',
+        registeredEmailAddress: 'Esta es tu dirección de correo electrónico registrada',
+        registeredEmail: 'Correo electrónico registrado',
+        findPasswordWithThisEmail: 'Buscar contraseña con este correo',
+        backToLoginPage: 'Volver a la página de inicio de sesión',
+        // 에러 메시지
+        smsSendFailed: 'Error al enviar SMS.',
+        invalidVerificationCode: 'El código de verificación no es correcto.',
+        resetTokenNotReceived: 'No se recibió el token de restablecimiento de contraseña.',
+        verificationFailed: 'Error al verificar el código de verificación.',
+        // SMS 인증 화면 타이틀
+        resetPasswordTitle: 'Restablecer contraseña',
+        findEmailTitle: 'Buscar correo'
       },
       // 비밀번호 재설정
       resetPassword: {
