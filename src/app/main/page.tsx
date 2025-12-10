@@ -14,6 +14,7 @@ import { useMainPageData } from '@/hooks/useMainPageData'
 import { appEngagementEvents, marketingEvents } from '@/lib/analytics'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Skeleton } from '@/components/ui/skeleton'
+import PushNotificationConsentModal from '@/components/notifications/PushNotificationConsentModal'
 
 // 지연 로딩 컴포넌트들
 const MeetTab = dynamic(() => import('@/components/main/app/meet/MeetTab'), {
@@ -524,6 +525,9 @@ function AppPageContent() {
         isVisible={pointsLoading} 
         message={pointsLoading ? t('common.loadingData') : ''}
       />
+      
+      {/* 푸시 알림 동의 모달 */}
+      <PushNotificationConsentModal />
     </div>
   )
 }
