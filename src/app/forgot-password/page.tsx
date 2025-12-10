@@ -10,7 +10,7 @@ import { ArrowLeft, Mail, CheckCircle, Phone } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { countries } from '@/constants/countries'
 
-type TabType = 'email' | 'phone'
+type TabType = 'email' | 'phone' | 'find-email'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
@@ -24,6 +24,7 @@ export default function ForgotPasswordPage() {
   const [isCodeSent, setIsCodeSent] = useState(false)
   const [verificationCode, setVerificationCode] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
+  const [foundEmail, setFoundEmail] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,9 +49,28 @@ export default function ForgotPasswordPage() {
         }
 
         setIsEmailSent(true)
-      } else {
+      } else if (activeTab === 'phone') {
         // 전화번호로 비밀번호 찾기 - SMS 인증코드 발송
         const response = await fetch('/api/auth/forgot-password-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            phoneNumber: phoneNumber,
+            nationality: nationality,
+            language: t('common.language') === 'Español' ? 'es' : 'ko'
+          })
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.error || 'SMS 발송에 실패했습니다.')
+        }
+
+        setIsCodeSent(true)
+      } else if (activeTab === 'find-email') {
+        // 전화번호로 이메일 찾기 - SMS 인증코드 발송
+        const response = await fetch('/api/auth/find-email-phone', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -81,27 +101,51 @@ export default function ForgotPasswordPage() {
     setIsVerifying(true)
 
     try {
-      const response = await fetch('/api/auth/forgot-password-phone/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phoneNumber: phoneNumber,
-          code: verificationCode,
-          nationality: nationality
+      if (activeTab === 'find-email') {
+        // 이메일 찾기 - 인증코드 확인 후 이메일 반환
+        const response = await fetch('/api/auth/find-email-phone/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            phoneNumber: phoneNumber,
+            code: verificationCode,
+            nationality: nationality
+          })
         })
-      })
 
-      const result = await response.json()
+        const result = await response.json()
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || '인증코드가 올바르지 않습니다.')
-      }
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || '인증코드가 올바르지 않습니다.')
+        }
 
-      // 인증 성공 시 비밀번호 재설정 페이지로 이동
-      if (result.resetToken) {
-        router.push(`/reset-password?token=${result.resetToken}`)
+        // 이메일 찾기 성공
+        setFoundEmail(result.email)
+        setIsCodeSent(false) // 인증코드 입력 화면 닫기
       } else {
-        throw new Error('비밀번호 재설정 토큰을 받지 못했습니다.')
+        // 비밀번호 재설정 - 인증코드 확인 후 비밀번호 재설정 페이지로 이동
+        const response = await fetch('/api/auth/forgot-password-phone/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            phoneNumber: phoneNumber,
+            code: verificationCode,
+            nationality: nationality
+          })
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || '인증코드가 올바르지 않습니다.')
+        }
+
+        // 인증 성공 시 비밀번호 재설정 페이지로 이동
+        if (result.resetToken) {
+          router.push(`/reset-password?token=${result.resetToken}`)
+        } else {
+          throw new Error('비밀번호 재설정 토큰을 받지 못했습니다.')
+        }
       }
     } catch (error) {
       console.error('인증코드 확인 오류:', error)
@@ -109,6 +153,55 @@ export default function ForgotPasswordPage() {
     } finally {
       setIsVerifying(false)
     }
+  }
+
+  // 이메일 찾기 성공 화면
+  if (foundEmail) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 pt-44">
+        <div className="flex justify-center">
+          <Card className="w-full max-w-md bg-white border shadow-lg">
+            <CardHeader className="text-center space-y-4 pb-6">
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <Mail className="w-8 h-8 text-blue-600" />
+              </div>
+              <CardTitle className="text-2xl font-semibold text-slate-900">
+                이메일 찾기 완료
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                등록된 이메일 주소입니다
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-slate-50 p-4 rounded-lg text-center">
+                <p className="text-sm text-slate-600 mb-2">등록된 이메일</p>
+                <p className="text-lg font-semibold text-slate-900">{foundEmail}</p>
+              </div>
+              <div className="space-y-3">
+                <Button
+                  onClick={() => {
+                    setEmail(foundEmail)
+                    setFoundEmail(null)
+                    setActiveTab('email')
+                    setIsCodeSent(false)
+                  }}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+                >
+                  이 이메일로 비밀번호 찾기
+                </Button>
+                <Button
+                  onClick={() => router.push('/sign-in')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  로그인 페이지로 돌아가기
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   // SMS 인증코드 입력 화면
@@ -119,7 +212,7 @@ export default function ForgotPasswordPage() {
           <Card className="w-full max-w-md bg-white border shadow-lg">
             <CardHeader className="text-center space-y-4 pb-6">
               <CardTitle className="text-2xl font-semibold text-slate-900">
-                인증코드 입력
+                {activeTab === 'find-email' ? '이메일 찾기' : '비밀번호 재설정'}
               </CardTitle>
               <CardDescription className="text-slate-600">
                 {phoneNumber}로 전송된 인증코드를 입력해주세요.
@@ -244,6 +337,7 @@ export default function ForgotPasswordPage() {
                   setActiveTab('email')
                   setPhoneNumber('')
                   setVerificationCode('')
+                  setFoundEmail(null)
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${
                   activeTab === 'email'
@@ -252,7 +346,7 @@ export default function ForgotPasswordPage() {
                 }`}
               >
                 <Mail className="inline-block w-4 h-4 mr-2" />
-                이메일
+                이메일로 찾기
               </button>
               <button
                 type="button"
@@ -260,6 +354,7 @@ export default function ForgotPasswordPage() {
                   setActiveTab('phone')
                   setEmail('')
                   setVerificationCode('')
+                  setFoundEmail(null)
                 }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${
                   activeTab === 'phone'
@@ -268,7 +363,24 @@ export default function ForgotPasswordPage() {
                 }`}
               >
                 <Phone className="inline-block w-4 h-4 mr-2" />
-                전화번호
+                전화번호로 찾기
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('find-email')
+                  setEmail('')
+                  setVerificationCode('')
+                  setFoundEmail(null)
+                }}
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'find-email'
+                    ? 'border-b-2 border-slate-900 text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Phone className="inline-block w-4 h-4 mr-2" />
+                이메일 찾기
               </button>
             </div>
 
@@ -292,7 +404,7 @@ export default function ForgotPasswordPage() {
                     />
                   </div>
                 </div>
-              ) : (
+              ) : activeTab === 'phone' || activeTab === 'find-email' ? (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="nationality" className="text-sm font-medium text-slate-700">
@@ -349,10 +461,14 @@ export default function ForgotPasswordPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    {activeTab === 'email' ? t('auth.forgotPassword.sending') : 'SMS 발송 중...'}
+                    {activeTab === 'email' ? t('auth.forgotPassword.sending') : activeTab === 'find-email' ? 'SMS 발송 중...' : 'SMS 발송 중...'}
                   </div>
                 ) : (
-                  activeTab === 'email' ? t('auth.forgotPassword.sendResetLink') : 'SMS 인증코드 보내기'
+                  activeTab === 'email' 
+                    ? t('auth.forgotPassword.sendResetLink')
+                    : activeTab === 'find-email'
+                    ? 'SMS 인증코드 보내기'
+                    : 'SMS 인증코드 보내기'
                 )}
               </Button>
             </form>
