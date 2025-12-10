@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Mail, CheckCircle, Phone } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { countries } from '@/constants/countries'
 
 type TabType = 'email' | 'phone'
 
@@ -303,9 +304,11 @@ export default function ForgotPasswordPage() {
                       onChange={(e) => setNationality(e.target.value)}
                       className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-400"
                     >
-                      <option value="KR">대한민국</option>
-                      <option value="MX">멕시코</option>
-                      <option value="US">미국</option>
+                      {countries.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.phoneCode} {t(`auth.countries.${country.code}`) || country.code}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -317,7 +320,11 @@ export default function ForgotPasswordPage() {
                       <Input
                         id="phoneNumber"
                         type="tel"
-                        placeholder={nationality === 'KR' ? '010-1234-5678' : '+52 55 1234 5678'}
+                        placeholder={
+                          countries.find(c => c.code === nationality)?.isKorean 
+                            ? '010-1234-5678' 
+                            : `${countries.find(c => c.code === nationality)?.phoneCode || '+1'} 123456789`
+                        }
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         className="border-slate-200 focus:border-slate-400 focus:ring-slate-400"
@@ -325,6 +332,11 @@ export default function ForgotPasswordPage() {
                         required
                       />
                     </div>
+                    <p className="text-xs text-slate-500">
+                      {countries.find(c => c.code === nationality)?.isKorean 
+                        ? '하이픈(-) 없이 입력해도 됩니다' 
+                        : '국가 코드를 포함한 전화번호를 입력하세요'}
+                    </p>
                   </div>
                 </>
               )}

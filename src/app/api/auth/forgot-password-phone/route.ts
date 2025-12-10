@@ -44,11 +44,40 @@ export async function POST(request: NextRequest) {
     console.log('[FORGOT_PASSWORD_PHONE] 전화번호 정규화:', { phoneNumber, normalizedPhone, nationality })
 
     // 사용자 정보 조회 (전화번호로)
-    // 여러 형식으로 검색 (원본, 정규화된 형식)
+    // 여러 형식으로 검색 (정규화된 형식, 원본, 숫자만 등)
     const searchVariants = [normalizedPhone]
+    
+    // 원본과 다르면 추가
     if (phoneNumber !== normalizedPhone) {
       searchVariants.push(phoneNumber)
     }
+    
+    // 한국 번호의 경우 여러 변형 추가
+    if (nationality === 'KR') {
+      const digitsOnly = phoneNumber.replace(/\D/g, '')
+      
+      // 01056892434 형식
+      if (digitsOnly.startsWith('010') || digitsOnly.startsWith('011') || 
+          digitsOnly.startsWith('016') || digitsOnly.startsWith('017') || 
+          digitsOnly.startsWith('018') || digitsOnly.startsWith('019')) {
+        // +821056892434 형식
+        const withPlus = `+82${digitsOnly.substring(1)}`
+        if (!searchVariants.includes(withPlus)) {
+          searchVariants.push(withPlus)
+        }
+        // 821056892434 형식 (플러스 없음)
+        const withoutPlus = `82${digitsOnly.substring(1)}`
+        if (!searchVariants.includes(withoutPlus)) {
+          searchVariants.push(withoutPlus)
+        }
+        // 원본 숫자만
+        if (!searchVariants.includes(digitsOnly)) {
+          searchVariants.push(digitsOnly)
+        }
+      }
+    }
+
+    console.log('[FORGOT_PASSWORD_PHONE] 검색할 전화번호 변형들:', searchVariants)
 
     let userData = null
     let userError = null
@@ -63,10 +92,49 @@ export async function POST(request: NextRequest) {
       if (!error && data) {
         userData = data
         userError = null
-        console.log('[FORGOT_PASSWORD_PHONE] 사용자 찾기 성공:', { searchPhone, userId: data.id })
+        console.log('[FORGOT_PASSWORD_PHONE] 사용자 찾기 성공:', { searchPhone, userId: data.id, storedPhone: data.phone })
         break
       }
+      if (error && error.code !== 'PGRST116') { // PGRST116은 "no rows" 에러
+        console.log('[FORGOT_PASSWORD_PHONE] 검색 시도 실패:', { searchPhone, error: error.message })
+      }
       userError = error
+    }
+    
+    // 정확히 일치하는 것을 찾지 못한 경우, LIKE 검색으로 시도 (한국 번호만)
+    if (!userData && nationality === 'KR') {
+      const digitsOnly = phoneNumber.replace(/\D/g, '')
+      if (digitsOnly.startsWith('010') || digitsOnly.startsWith('011') || 
+          digitsOnly.startsWith('016') || digitsOnly.startsWith('017') || 
+          digitsOnly.startsWith('018') || digitsOnly.startsWith('019')) {
+        
+        // 끝 4자리로 검색 (+821056892434, 01056892434 등 여러 형식 모두 매칭)
+        const last4Digits = digitsOnly.slice(-4)
+        const { data: likeData, error: likeError } = await supabaseServer
+          .from('users')
+          .select('id, email, phone, language')
+          .like('phone', `%${last4Digits}`)
+          .limit(5)
+        
+        if (!likeError && likeData && likeData.length > 0) {
+          // 여러 결과 중에서 전화번호가 실제로 일치하는 것 찾기
+          for (const candidate of likeData) {
+            const candidateDigits = candidate.phone?.replace(/\D/g, '') || ''
+            const inputDigits = digitsOnly
+            // 끝 8자리 이상이 일치하면 같은 번호로 간주
+            if (candidateDigits.length >= 8 && inputDigits.length >= 8) {
+              if (candidateDigits.slice(-8) === inputDigits.slice(-8)) {
+                userData = candidate
+                console.log('[FORGOT_PASSWORD_PHONE] LIKE 검색으로 사용자 찾기 성공:', { 
+                  candidatePhone: candidate.phone, 
+                  userId: candidate.id 
+                })
+                break
+              }
+            }
+          }
+        }
+      }
     }
 
     // 사용자가 존재하지 않는 경우에도 성공으로 처리 (보안상)

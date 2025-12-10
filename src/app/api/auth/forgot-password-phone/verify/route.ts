@@ -70,14 +70,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data: userData, error: userError } = await supabaseServer
-      .from('users')
-      .select('id, email, phone')
-      .eq('phone', normalizedPhone)
-      .single()
+    // 여러 형식으로 사용자 검색 (정규화된 형식, 원본 등)
+    const searchVariants = [normalizedPhone]
+    if (phoneNumber !== normalizedPhone) {
+      searchVariants.push(phoneNumber)
+    }
+    
+    // 한국 번호의 경우 여러 변형 추가
+    if (nationality === 'KR') {
+      const digitsOnly = phoneNumber.replace(/\D/g, '')
+      if (digitsOnly.startsWith('010') || digitsOnly.startsWith('011') || 
+          digitsOnly.startsWith('016') || digitsOnly.startsWith('017') || 
+          digitsOnly.startsWith('018') || digitsOnly.startsWith('019')) {
+        const withPlus = `+82${digitsOnly.substring(1)}`
+        if (!searchVariants.includes(withPlus)) {
+          searchVariants.push(withPlus)
+        }
+        const withoutPlus = `82${digitsOnly.substring(1)}`
+        if (!searchVariants.includes(withoutPlus)) {
+          searchVariants.push(withoutPlus)
+        }
+        if (!searchVariants.includes(digitsOnly)) {
+          searchVariants.push(digitsOnly)
+        }
+      }
+    }
+
+    let userData = null
+    let userError = null
+
+    for (const searchPhone of searchVariants) {
+      const { data, error } = await supabaseServer
+        .from('users')
+        .select('id, email, phone')
+        .eq('phone', searchPhone)
+        .single()
+
+      if (!error && data) {
+        userData = data
+        userError = null
+        console.log('[FORGOT_PASSWORD_PHONE_VERIFY] 사용자 찾기 성공:', { searchPhone, userId: data.id })
+        break
+      }
+      userError = error
+    }
 
     if (userError || !userData) {
-      console.error('[FORGOT_PASSWORD_PHONE_VERIFY] 사용자 찾기 실패:', userError)
+      console.error('[FORGOT_PASSWORD_PHONE_VERIFY] 사용자 찾기 실패:', { searchVariants, userError })
       return NextResponse.json(
         { success: false, error: '사용자를 찾을 수 없습니다.' },
         { status: 404 }
