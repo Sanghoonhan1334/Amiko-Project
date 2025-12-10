@@ -144,13 +144,34 @@ export async function POST(request: NextRequest) {
 
     if (!smsSent) {
       console.error('[FIND_EMAIL_PHONE] SMS 발송 실패')
+      
+      // 프로덕션 환경에서는 개발자 디버깅을 위해 인증코드를 로그에 출력 (임시)
+      if (process.env.NODE_ENV === 'production') {
+        console.error(`[FIND_EMAIL_PHONE] ⚠️  프로덕션 환경 - SMS 발송 실패, 디버깅용 인증코드: ${verificationCode}`)
+        console.error('[FIND_EMAIL_PHONE] 📱 수동으로 전달 가능 (임시 조치)')
+      }
+      
       return NextResponse.json(
-        { error: userLanguage === 'es' ? 'Error al enviar el SMS de verificación.' : 'SMS 발송에 실패했습니다.' },
+        { 
+          error: userLanguage === 'es' 
+            ? 'Error al enviar el SMS de verificación. Por favor, verifique la configuración de Twilio o intente nuevamente.' 
+            : 'SMS 발송에 실패했습니다. Twilio 설정을 확인하거나 잠시 후 다시 시도해주세요.',
+          debugInfo: process.env.NODE_ENV === 'development' ? {
+            code: verificationCode,
+            phone: normalizedPhone,
+            note: '개발 환경 - SMS 발송 실패. 인증코드는 로그를 확인하세요.'
+          } : undefined
+        },
         { status: 500 }
       )
     }
 
     console.log(`✅ [FIND_EMAIL_PHONE] ${userLanguage} 언어로 SMS 인증코드 발송 성공: ${normalizedPhone}`)
+    
+    // 프로덕션 환경에서도 디버깅을 위해 인증코드 로그 출력 (임시 - 나중에 제거 예정)
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`[FIND_EMAIL_PHONE] 📱 프로덕션 디버깅 - 발송된 인증코드: ${verificationCode} (전화번호: ${normalizedPhone})`)
+    }
 
     return NextResponse.json({
       success: true,

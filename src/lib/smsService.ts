@@ -245,10 +245,15 @@ export async function sendVerificationSMS(phoneNumber: string, code: string, lan
     console.warn(`받는 번호: ${phoneNumber}`)
     console.warn(`국가 코드: ${countryCode}`)
     console.warn(`언어: ${language}`)
-    console.warn(`인증코드: ${code}`)
+    console.warn(`인증코드: ${code} ⬅️ 테스트용 (실제 발송 안 됨)`)
     console.warn('⚠️  실제 SMS는 발송되지 않습니다. Twilio 설정이 필요합니다.')
     console.warn('='.repeat(60) + '\n')
     return false // 실패로 반환하여 사용자에게 알림
+  }
+  
+  // 프로덕션 환경에서도 디버깅을 위해 인증코드 로그 출력 (임시)
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`[SMS_VERIFICATION] 📱 프로덕션 디버깅 - 발송 시도 인증코드: ${code} (전화번호: ${phoneNumber})`)
   }
   
   try {
