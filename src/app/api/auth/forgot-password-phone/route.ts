@@ -125,9 +125,12 @@ export async function POST(request: NextRequest) {
             if (candidateDigits.length >= 8 && inputDigits.length >= 8) {
               if (candidateDigits.slice(-8) === inputDigits.slice(-8)) {
                 userData = candidate
+                userError = null // 사용자를 찾았으므로 에러 초기화
                 console.log('[FORGOT_PASSWORD_PHONE] LIKE 검색으로 사용자 찾기 성공:', { 
                   candidatePhone: candidate.phone, 
-                  userId: candidate.id 
+                  userId: candidate.id,
+                  storedPhone: candidate.phone,
+                  inputPhone: phoneNumber
                 })
                 break
               }
@@ -138,8 +141,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 사용자가 존재하지 않는 경우에도 성공으로 처리 (보안상)
-    if (userError || !userData) {
-      console.log('[FORGOT_PASSWORD_PHONE] 사용자 없음 (보안상 성공 응답):', { normalizedPhone })
+    // 주의: userData가 설정되었으면 userError와 관계없이 진행
+    if (!userData) {
+      console.log('[FORGOT_PASSWORD_PHONE] 사용자 없음 (보안상 성공 응답):', { 
+        normalizedPhone,
+        searchVariants: searchVariants.slice(0, 3) // 처음 3개만 로그
+      })
       return NextResponse.json({
         success: true,
         message: language === 'es' ? 'Se ha enviado un código de verificación por SMS.' : '인증코드가 전송되었습니다.'
