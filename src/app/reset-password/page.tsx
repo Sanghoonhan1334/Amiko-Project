@@ -14,8 +14,10 @@ function ResetPasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { t } = useLanguage()
+  const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -28,6 +30,7 @@ function ResetPasswordForm() {
     hasSpecial: false,
     noRepeated: false
   })
+  const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null)
 
   // Supabase 클라이언트 생성
   const supabase = createSupabaseBrowserClient()
@@ -143,8 +146,16 @@ function ResetPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setCurrentPasswordError(null)
 
     try {
+      // 현재 비밀번호 확인 (보안 강화)
+      if (!currentPassword) {
+        setCurrentPasswordError('현재 비밀번호를 입력해주세요.')
+        setIsLoading(false)
+        return
+      }
+
       if (password !== confirmPassword) {
         alert(t('auth.resetPassword.passwordMismatch'))
         setIsLoading(false)
@@ -161,13 +172,14 @@ function ResetPasswordForm() {
       const urlToken = searchParams.get('token')
       
       if (urlToken) {
-        // 커스텀 토큰 방식: API를 통해 비밀번호 재설정
-        console.log('🔄 커스텀 토큰 방식으로 비밀번호 재설정 시도')
+        // 커스텀 토큰 방식: API를 통해 비밀번호 재설정 (현재 비밀번호 포함)
+        console.log('🔄 커스텀 토큰 방식으로 비밀번호 재설정 시도 (현재 비밀번호 확인 포함)')
         const response = await fetch('/api/auth/reset-password/confirm', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             token: urlToken,
+            currentPassword: currentPassword,
             password: password
           })
         })
@@ -175,7 +187,14 @@ function ResetPasswordForm() {
         const result = await response.json()
 
         if (!response.ok || !result.success) {
-          throw new Error(result.error || t('auth.resetPassword.resetFailed'))
+          // 현재 비밀번호 오류인 경우
+          if (result.error && (result.error.includes('현재 비밀번호') || result.error.includes('current password') || result.error.includes('incorrect'))) {
+            setCurrentPasswordError(result.error)
+          } else {
+            throw new Error(result.error || t('auth.resetPassword.resetFailed'))
+          }
+          setIsLoading(false)
+          return
         }
 
         console.log('✅ 커스텀 토큰 방식 비밀번호 재설정 성공')
@@ -190,12 +209,26 @@ function ResetPasswordForm() {
 
       // 2. Supabase 해시 방식 (#access_token=...)
       // Supabase는 자동으로 세션을 설정하므로 직접 updateUser 호출
+      // 단, 현재 비밀번호 확인 필요 (보안 강화)
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session) {
         throw new Error('비밀번호 재설정 링크가 유효하지 않습니다. 세션이 없습니다.')
       }
 
+      // 현재 비밀번호 확인
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: session.user.email!,
+        password: currentPassword
+      })
+
+      if (verifyError) {
+        setCurrentPasswordError('현재 비밀번호가 올바르지 않습니다.')
+        setIsLoading(false)
+        return
+      }
+
+      // 현재 비밀번호 확인 후 새 비밀번호로 업데이트
       const { data, error } = await supabase.auth.updateUser({
         password: password
       })
@@ -323,6 +356,44 @@ function ResetPasswordForm() {
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* 현재 비밀번호 입력 */}
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword" className="text-sm font-medium text-slate-700">
+                  현재 비밀번호
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    id="currentPassword"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    placeholder="현재 비밀번호를 입력하세요"
+                    value={currentPassword}
+                    onChange={(e) => {
+                      setCurrentPassword(e.target.value)
+                      setCurrentPasswordError(null)
+                    }}
+                    className={`border-slate-200 focus:border-slate-400 focus:ring-slate-400 ${
+                      currentPasswordError ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                    }`}
+                    style={{ paddingLeft: '2.5rem', paddingRight: '0.75rem' }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {currentPasswordError && (
+                  <p className="text-xs text-red-500">{currentPasswordError}</p>
+                )}
+                <p className="text-xs text-slate-500">
+                  보안을 위해 현재 비밀번호를 입력해주세요.
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-slate-700">
                   {t('auth.resetPassword.newPassword')}

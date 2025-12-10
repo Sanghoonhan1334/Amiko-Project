@@ -7,13 +7,17 @@ export async function POST(request: NextRequest) {
     console.log('[RESET_PASSWORD_CONFIRM] 비밀번호 재설정 확인 시작')
 
     const body = await request.json()
-    const { token, password } = body
+    const { token, currentPassword, password } = body
 
-    console.log('[RESET_PASSWORD_CONFIRM] 요청 데이터:', { token: token ? 'present' : 'missing', password: password ? 'present' : 'missing' })
+    console.log('[RESET_PASSWORD_CONFIRM] 요청 데이터:', { 
+      token: token ? 'present' : 'missing', 
+      currentPassword: currentPassword ? 'present' : 'missing',
+      password: password ? 'present' : 'missing' 
+    })
 
-    if (!token || !password) {
+    if (!token || !currentPassword || !password) {
       return NextResponse.json(
-        { success: false, error: '토큰과 새 비밀번호가 필요합니다.' },
+        { success: false, error: '토큰, 현재 비밀번호, 새 비밀번호가 모두 필요합니다.' },
         { status: 400 }
       )
     }
@@ -115,6 +119,31 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[RESET_PASSWORD_CONFIRM] 사용자 찾기 성공:', { userId: user.id, email: user.email })
+
+    // 현재 비밀번호 확인 (보안 강화)
+    // Supabase Auth로 현재 비밀번호 검증
+    const testAuthSupabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    console.log('[RESET_PASSWORD_CONFIRM] 현재 비밀번호 검증 시도:', { email })
+    
+    // 이메일과 현재 비밀번호로 로그인 시도하여 검증
+    const { data: authData, error: authError } = await testAuthSupabase.auth.signInWithPassword({
+      email: email,
+      password: currentPassword
+    })
+
+    if (authError || !authData.user) {
+      console.error('[RESET_PASSWORD_CONFIRM] 현재 비밀번호 검증 실패:', authError?.message)
+      return NextResponse.json(
+        { success: false, error: '현재 비밀번호가 올바르지 않습니다.' },
+        { status: 401 }
+      )
+    }
+
+    console.log('[RESET_PASSWORD_CONFIRM] 현재 비밀번호 검증 성공')
 
     // Admin API로 비밀번호 업데이트
     const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
