@@ -74,7 +74,7 @@ function ResetPasswordForm() {
           
           if (tokenAge > maxAge) {
             setIsTokenValid(false)
-            setTokenError('비밀번호 재설정 링크가 만료되었습니다. 다시 요청해주세요.')
+            setTokenError(t('auth.resetPassword.linkExpired'))
             console.error('❌ 토큰 만료:', { tokenAge: Math.round(tokenAge / 1000 / 60) + '분' })
             return
           }
@@ -84,7 +84,7 @@ function ResetPasswordForm() {
           console.log('✅ 커스텀 토큰 유효:', { email: tokenEmail, tokenAge: Math.round(tokenAge / 1000 / 60) + '분 전' })
         } catch (error) {
           setIsTokenValid(false)
-          setTokenError('유효하지 않은 비밀번호 재설정 링크입니다.')
+          setTokenError(t('auth.resetPassword.linkInvalid'))
           console.error('❌ 토큰 디코딩 실패:', error)
           return
         }
@@ -109,7 +109,7 @@ function ResetPasswordForm() {
           if (error) {
             console.error('❌ 세션 설정 실패:', error)
             setIsTokenValid(false)
-            setTokenError('비밀번호 재설정 링크가 유효하지 않습니다.')
+            setTokenError(t('auth.resetPassword.linkInvalid'))
           } else {
             console.log('✅ 세션 설정 성공')
             setIsTokenValid(true)
@@ -123,7 +123,7 @@ function ResetPasswordForm() {
       // 토큰이 없는 경우
       else {
         setIsTokenValid(false)
-        setTokenError('비밀번호 재설정 링크가 없거나 유효하지 않습니다. 이메일에서 링크를 다시 확인해주세요.')
+        setTokenError(t('auth.resetPassword.linkNotFound'))
         console.error('❌ 토큰 없음')
       }
     }
@@ -151,7 +151,7 @@ function ResetPasswordForm() {
     try {
       // 현재 비밀번호 확인 (보안 강화)
       if (!currentPassword) {
-        setCurrentPasswordError('현재 비밀번호를 입력해주세요.')
+        setCurrentPasswordError(t('auth.resetPassword.currentPasswordRequired'))
         setIsLoading(false)
         return
       }
@@ -213,7 +213,7 @@ function ResetPasswordForm() {
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session) {
-        throw new Error('비밀번호 재설정 링크가 유효하지 않습니다. 세션이 없습니다.')
+        throw new Error(t('auth.resetPassword.linkSessionMissing'))
       }
 
       // 현재 비밀번호 확인
@@ -223,7 +223,7 @@ function ResetPasswordForm() {
       })
 
       if (verifyError) {
-        setCurrentPasswordError('현재 비밀번호가 올바르지 않습니다.')
+        setCurrentPasswordError(t('auth.resetPassword.currentPasswordIncorrect'))
         setIsLoading(false)
         return
       }
@@ -293,7 +293,7 @@ function ResetPasswordForm() {
                 {t('auth.resetPassword.setNewPassword')}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                링크 확인 중...
+                {t('auth.resetPassword.checkingLink')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -315,10 +315,10 @@ function ResetPasswordForm() {
           <Card className="w-full max-w-md bg-white border shadow-lg">
             <CardHeader className="text-center space-y-4 pb-6">
               <CardTitle className="text-2xl font-semibold text-red-600">
-                링크 오류
+                {t('auth.resetPassword.linkError')}
               </CardTitle>
               <CardDescription className="text-slate-600">
-                {tokenError || '비밀번호 재설정 링크가 유효하지 않습니다.'}
+                {tokenError || t('auth.resetPassword.linkInvalid')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -326,14 +326,14 @@ function ResetPasswordForm() {
                 onClick={() => router.push('/forgot-password')}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white"
               >
-                비밀번호 재설정 링크 다시 받기
+                {t('auth.resetPassword.requestNewLink')}
               </Button>
               <Button
                 onClick={() => router.push('/sign-in')}
                 variant="outline"
                 className="w-full"
               >
-                로그인 페이지로 돌아가기
+                {t('auth.resetPassword.backToLogin')}
               </Button>
             </CardContent>
           </Card>
@@ -359,14 +359,14 @@ function ResetPasswordForm() {
               {/* 현재 비밀번호 입력 */}
               <div className="space-y-2">
                 <Label htmlFor="currentPassword" className="text-sm font-medium text-slate-700">
-                  현재 비밀번호
+                  {t('auth.resetPassword.currentPassword')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="currentPassword"
                     type={showCurrentPassword ? 'text' : 'password'}
-                    placeholder="현재 비밀번호를 입력하세요"
+                    placeholder={t('auth.resetPassword.currentPasswordPlaceholder')}
                     value={currentPassword}
                     onChange={(e) => {
                       setCurrentPassword(e.target.value)
@@ -390,7 +390,7 @@ function ResetPasswordForm() {
                   <p className="text-xs text-red-500">{currentPasswordError}</p>
                 )}
                 <p className="text-xs text-slate-500">
-                  보안을 위해 현재 비밀번호를 입력해주세요.
+                  {t('auth.resetPassword.currentPasswordHint')}
                 </p>
               </div>
 

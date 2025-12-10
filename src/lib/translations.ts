@@ -322,7 +322,22 @@ export const translations = {
         minLength: '8자 이상',
         hasNumber: '숫자 포함',
         hasSpecial: '특수문자 포함',
-        noRepeated: '연속된 문자 없음'
+        noRepeated: '연속된 문자 없음',
+        // 현재 비밀번호 관련
+        currentPassword: '현재 비밀번호',
+        currentPasswordPlaceholder: '현재 비밀번호를 입력하세요',
+        currentPasswordRequired: '현재 비밀번호를 입력해주세요.',
+        currentPasswordIncorrect: '현재 비밀번호가 올바르지 않습니다.',
+        currentPasswordHint: '보안을 위해 현재 비밀번호를 입력해주세요.',
+        // 링크 관련
+        checkingLink: '링크 확인 중...',
+        linkError: '링크 오류',
+        linkInvalid: '비밀번호 재설정 링크가 유효하지 않습니다.',
+        linkExpired: '비밀번호 재설정 링크가 만료되었습니다. 다시 요청해주세요.',
+        linkNotFound: '비밀번호 재설정 링크가 없거나 유효하지 않습니다. 이메일에서 링크를 다시 확인해주세요.',
+        linkSessionMissing: '비밀번호 재설정 링크가 유효하지 않습니다. 세션이 없습니다.',
+        requestNewLink: '비밀번호 재설정 링크 다시 받기',
+        backToLogin: '로그인 페이지로 돌아가기'
       },
 
       // 사용자 프로필
@@ -3252,7 +3267,22 @@ export const translations = {
         minLength: 'Mínimo 8 caracteres',
         hasNumber: 'Incluir número',
         hasSpecial: 'Incluir carácter especial',
-        noRepeated: 'Sin caracteres repetidos'
+        noRepeated: 'Sin caracteres repetidos',
+        // 현재 비밀번호 관련
+        currentPassword: 'Contraseña actual',
+        currentPasswordPlaceholder: 'Ingresa tu contraseña actual',
+        currentPasswordRequired: 'Por favor ingresa tu contraseña actual.',
+        currentPasswordIncorrect: 'La contraseña actual no es correcta.',
+        currentPasswordHint: 'Por favor ingresa tu contraseña actual por seguridad.',
+        // 링크 관련
+        checkingLink: 'Verificando enlace...',
+        linkError: 'Error de enlace',
+        linkInvalid: 'El enlace de restablecimiento de contraseña no es válido.',
+        linkExpired: 'El enlace de restablecimiento de contraseña ha expirado. Por favor, solicítalo nuevamente.',
+        linkNotFound: 'El enlace de restablecimiento de contraseña no existe o no es válido. Por favor, verifica el enlace en tu correo electrónico nuevamente.',
+        linkSessionMissing: 'El enlace de restablecimiento de contraseña no es válido. No hay sesión.',
+        requestNewLink: 'Solicitar nuevo enlace de restablecimiento',
+        backToLogin: 'Volver a la página de inicio de sesión'
       },
 
       // 사용자 프로필
