@@ -83,24 +83,75 @@ export async function POST(request: NextRequest) {
       if (!error && data) {
         userData = data
         userError = null
-        console.log('[FIND_EMAIL_PHONE] 사용자 찾기 성공:', { searchPhone, userId: data.id })
+        console.log('[FIND_EMAIL_PHONE] 사용자 찾기 성공:', { searchPhone, userId: data.id, storedPhone: data.phone })
         break
       }
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== 'PGRST116') { // PGRST116은 "no rows" 에러
         console.log('[FIND_EMAIL_PHONE] 검색 시도 실패:', { searchPhone, error: error.message })
       }
       userError = error
     }
+    
+    // 정확히 일치하는 것을 찾지 못한 경우, LIKE 검색으로 시도 (한국 번호만)
+    if (!userData && nationality === 'KR') {
+      const digitsOnly = phoneNumber.replace(/\D/g, '')
+      if (digitsOnly.startsWith('010') || digitsOnly.startsWith('011') || 
+          digitsOnly.startsWith('016') || digitsOnly.startsWith('017') || 
+          digitsOnly.startsWith('018') || digitsOnly.startsWith('019')) {
+        
+        // 끝 4자리로 검색 (+821056892434, 01056892434 등 여러 형식 모두 매칭)
+        const last4Digits = digitsOnly.slice(-4)
+        const { data: likeData, error: likeError } = await supabaseServer
+          .from('users')
+          .select('id, email, phone, language')
+          .like('phone', `%${last4Digits}`)
+          .limit(5)
+        
+        if (!likeError && likeData && likeData.length > 0) {
+          // 여러 결과 중에서 전화번호가 실제로 일치하는 것 찾기
+          for (const candidate of likeData) {
+            const candidateDigits = candidate.phone?.replace(/\D/g, '') || ''
+            const inputDigits = digitsOnly
+            // 끝 8자리 이상이 일치하면 같은 번호로 간주
+            if (candidateDigits.length >= 8 && inputDigits.length >= 8) {
+              if (candidateDigits.slice(-8) === inputDigits.slice(-8)) {
+                userData = candidate
+                userError = null // 사용자를 찾았으므로 에러 초기화
+                console.log('[FIND_EMAIL_PHONE] LIKE 검색으로 사용자 찾기 성공:', { 
+                  candidatePhone: candidate.phone, 
+                  userId: candidate.id,
+                  storedPhoneFormat: candidate.phone,
+                  inputPhoneFormat: phoneNumber,
+                  normalizedPhone: normalizedPhone
+                })
+                break
+              }
+            }
+          }
+        }
+      }
+    }
 
     // 사용자가 존재하지 않는 경우 (보안상 사용자에게 알리지 않음)
-    if (userError || !userData) {
-      console.log('[FIND_EMAIL_PHONE] 사용자 없음 (보안상 성공 응답):', { normalizedPhone })
+    if (!userData) {
+      console.log('[FIND_EMAIL_PHONE] 사용자 없음 (보안상 성공 응답):', { 
+        normalizedPhone,
+        searchVariants: searchVariants.slice(0, 3) // 처음 3개만 로그
+      })
       // 보안을 위해 존재하지 않아도 성공으로 처리 (SMS 발송하지 않음)
       return NextResponse.json({
         success: true,
         message: language === 'es' ? 'Se ha enviado un código de verificación por SMS.' : '인증코드가 전송되었습니다.'
       })
     }
+    
+    console.log('[FIND_EMAIL_PHONE] ✅ 사용자 찾기 최종 확인:', {
+      userId: userData.id,
+      email: userData.email,
+      storedPhone: userData.phone,
+      inputPhone: phoneNumber,
+      normalizedPhone: normalizedPhone
+    })
 
     // 언어 결정: 전화번호 국가 코드 기반으로 결정 (전화번호가 가장 정확한 지표)
     // 한국 번호(+82)는 무조건 한국어
