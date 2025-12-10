@@ -109,7 +109,8 @@ export default function ForgotPasswordPage() {
           body: JSON.stringify({ 
             phoneNumber: phoneNumber,
             code: verificationCode,
-            nationality: nationality
+            nationality: nationality,
+            language: t('common.language') === 'Español' ? 'es' : 'ko'
           })
         })
 
