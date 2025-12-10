@@ -95,18 +95,20 @@ interface SMSOptions {
   countryCode?: string
 }
 
-// SMS 템플릿 생성
+// SMS 템플릿 생성 (최적화: 짧고 간결하게)
 export function createSMSTemplate(type: 'verification', data: Record<string, any>, language: 'ko' | 'es' = 'ko'): SMSTemplate {
   switch (type) {
     case 'verification':
       if (language === 'ko') {
+        // 한국어: 최대한 짧게 (약 35자)
         return {
-          message: `[Amiko] 인증코드: ${data.code}\n이 코드는 2분 후에 만료됩니다.\n타인에게 공유하지 마세요.`,
+          message: `[Amiko] 인증코드: ${data.code} (2분간 유효)`,
           language: 'ko'
         }
       } else {
+        // 스페인어: 최대한 짧게 (약 40자)
         return {
-          message: `[Amiko] Código de verificación: ${data.code}\nEste código expira en 2 minutos.\nNo compartas con otros.`,
+          message: `[Amiko] Codigo: ${data.code} (valido 2 min)`,
           language: 'es'
         }
       }

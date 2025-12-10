@@ -153,8 +153,17 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 사용자의 언어 설정 사용 (없으면 요청에서 받은 언어 사용)
-    const userLanguage = userData.language || language
+    // 언어 결정: 한국 번호(+82)는 무조건 한국어, 그 외는 사용자 언어 또는 요청 언어
+    // 한국 번호는 한국어로만 발송하여 메시지 분할 방지
+    const isKoreanNumber = normalizedPhone.startsWith('+82')
+    const userLanguage = isKoreanNumber ? 'ko' : (userData.language || language)
+    
+    if (isKoreanNumber && userLanguage !== 'ko') {
+      console.log('[FORGOT_PASSWORD_PHONE] 한국 번호이므로 한국어로 강제 변경:', {
+        originalLanguage: userData.language || language,
+        normalizedPhone
+      })
+    }
 
     // 인증코드 생성 (6자리)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
