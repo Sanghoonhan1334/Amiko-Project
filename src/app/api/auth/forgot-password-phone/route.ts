@@ -153,16 +153,50 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 언어 결정: 한국 번호(+82)는 무조건 한국어, 그 외는 사용자 언어 또는 요청 언어
-    // 한국 번호는 한국어로만 발송하여 메시지 분할 방지
+    // 언어 결정: 전화번호 국가 코드 기반으로 결정 (전화번호가 가장 정확한 지표)
+    // 한국 번호(+82)는 무조건 한국어
+    // 스페인어권 국가 번호는 무조건 스페인어
+    // 그 외는 사용자 언어 또는 요청 언어
     const isKoreanNumber = normalizedPhone.startsWith('+82')
-    const userLanguage = isKoreanNumber ? 'ko' : (userData.language || language)
     
-    if (isKoreanNumber && userLanguage !== 'ko') {
-      console.log('[FORGOT_PASSWORD_PHONE] 한국 번호이므로 한국어로 강제 변경:', {
-        originalLanguage: userData.language || language,
-        normalizedPhone
-      })
+    // 스페인어권 국가 코드 리스트
+    const spanishSpeakingCountryCodes = [
+      '+52', // 멕시코
+      '+57', // 콜롬비아
+      '+51', // 페루
+      '+54', // 아르헨티나
+      '+56', // 칠레
+      '+58', // 베네수엘라
+      '+593', // 에콰도르
+      '+502', // 과테말라
+      '+504', // 온두라스
+      '+505', // 니카라과
+      '+507', // 파나마
+      '+595', // 파라과이
+      '+598', // 우루과이
+      '+591', // 볼리비아
+      '+506', // 코스타리카
+      '+503', // 엘살바도르
+      '+53', // 쿠바
+      '+34', // 스페인
+      '+55', // 브라질 (포르투갈어지만 스페인어 템플릿 사용)
+      // +1 (미국, 캐나다, 도미니카, 푸에르토리코)는 스페인어권 포함
+    ]
+    
+    const isSpanishSpeakingNumber = spanishSpeakingCountryCodes.some(code => normalizedPhone.startsWith(code)) ||
+                                    (normalizedPhone.startsWith('+1') && (nationality === 'MX' || nationality === 'PR' || nationality === 'DO'))
+    
+    let userLanguage: 'ko' | 'es'
+    if (isKoreanNumber) {
+      userLanguage = 'ko'
+      console.log('[FORGOT_PASSWORD_PHONE] 한국 번호 → 한국어로 발송:', { normalizedPhone })
+    } else if (isSpanishSpeakingNumber) {
+      userLanguage = 'es'
+      console.log('[FORGOT_PASSWORD_PHONE] 스페인어권 번호 → 스페인어로 발송:', { normalizedPhone, nationality })
+    } else {
+      // 그 외는 사용자 언어 또는 요청 언어
+      userLanguage = (userData.language || language) as 'ko' | 'es'
+      console.log('[FORGOT_PASSWORD_PHONE] 사용자/요청 언어 사용:', { normalizedPhone, userLanguage, userDataLanguage: userData.language, requestedLanguage: language })
     }
 
     // 인증코드 생성 (6자리)
