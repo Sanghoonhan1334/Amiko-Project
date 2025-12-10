@@ -9,18 +9,18 @@
 
 ### 퍼널 1: 랜딩 → 관심 행동 퍼널
 - ✅ `page_view` - GA4 config에서 자동 처리 (Analytics.tsx)
-- ✅ `visit_home_tab` - `appEngagementEvents.visitHomeTab()` (main/page.tsx)
-- ✅ `visit_community_tab` - `appEngagementEvents.visitCommunityTab()` (main/page.tsx)
+- ✅ `view_home_tab` - `appEngagementEvents.visitHomeTab()` (main/page.tsx) [이벤트명 변경: visit_home_tab → view_home_tab]
+- ✅ `view_community_tab` - `appEngagementEvents.visitCommunityTab()` (main/page.tsx) [이벤트명 변경: visit_community_tab → view_community_tab]
 - ✅ `view_post` - `communityEvents.viewPost()` (PostDetail.tsx, CommunityMain.tsx)
 
 ### 퍼널 2: 커뮤니티 활동 퍼널
-- ✅ `visit_home_tab` - 기존 구현
-- ✅ `visit_community_tab` - 기존 구현
+- ✅ `view_home_tab` - 기존 구현 [이벤트명 변경: visit_home_tab → view_home_tab]
+- ✅ `view_community_tab` - 기존 구현 [이벤트명 변경: visit_community_tab → view_community_tab]
 - ✅ `view_post` - 기존 구현
 
 ### 퍼널 3: 재방문 퍼널
-- ✅ `visit_home_tab` - 기존 구현
-- ✅ `visit_community_tab` - 기존 구현
+- ✅ `view_home_tab` - 기존 구현 [이벤트명 변경: visit_home_tab → view_home_tab]
+- ✅ `view_community_tab` - 기존 구현 [이벤트명 변경: visit_community_tab → view_community_tab]
 - ✅ `view_post` - 기존 구현
 
 ### 퍼널 4: 글쓰기 퍼널
@@ -39,8 +39,8 @@
 - ✅ `sign_in_success` - `signInEvents.signInSuccess()` (sign-in/page.tsx)
 
 ### 퍼널 7: 커뮤니티 내 깊이 퍼널
-- ✅ `visit_home_tab` - 기존 구현
-- ✅ `visit_community_tab` - 기존 구현
+- ✅ `view_home_tab` - 기존 구현 [이벤트명 변경: visit_home_tab → view_home_tab]
+- ✅ `view_community_tab` - 기존 구현 [이벤트명 변경: visit_community_tab → view_community_tab]
 - ✅ `view_post` - 기존 구현
 
 ---
@@ -61,7 +61,7 @@
    - 통합: `src/app/main/page.tsx` (localStorage 기반 감지)
 
 ### 퍼널 2: 커뮤니티 활동 퍼널
-4. **`visit_category`** - 카테고리 방문
+4. **`view_category`** - 카테고리 방문 [이벤트명 변경: visit_category → view_category]
    - 위치: `src/lib/analytics.ts` (communityEvents.visitCategory)
    - 통합: 
      - `src/components/main/app/community/CommunityMain.tsx` (handleGallerySelect)
@@ -179,7 +179,7 @@
     - 통합: `src/app/sign-in/page.tsx` (handleSignIn 성공 시)
 
 ### 퍼널 7: 커뮤니티 내 깊이 퍼널
-36. **`visit_category`** - 기존 추가됨
+36. **`view_category`** - 기존 추가됨 [이벤트명 변경: visit_category → view_category]
 37. **`read_time`** - 읽기 시간
     - 위치: `src/lib/analytics.ts` (communityEvents.readTime)
     - 통합: `src/components/main/app/community/PostDetail.tsx` (useEffect, 30초마다)
@@ -215,7 +215,7 @@
 - `signInEvents.enterLoginPassword()` - 로그인 비밀번호 입력
 - `signInEvents.loginAttempt()` - 로그인 시도
 - `signInEvents.loginSuccess()` - 로그인 성공
-- `communityEvents.visitCategory()` - 카테고리 방문
+- `communityEvents.visitCategory()` - 카테고리 방문 [이벤트명: view_category]
 - `communityEvents.clickWritePost()` - 게시물 작성 버튼 클릭
 - `communityEvents.startPost()` - 게시물 작성 시작
 - `communityEvents.writeTitle()` - 제목 작성

@@ -45,6 +45,7 @@ import { communityItems } from './communityItems'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
+import { trackPostStart, trackPostSubmit, trackPostSuccess } from '@/lib/analytics'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from 'sonner'
 
@@ -649,6 +650,8 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       return
     }
 
+    // Standardized event: post_submit
+    trackPostSubmit()
     setWriteLoading(true)
     try {
       // 토큰 가져오기 - 여러 방법 시도
@@ -712,6 +715,12 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       })
 
       if (response.ok) {
+        const result = await response.json().catch(() => ({}))
+        const postId = result.data?.id || result.id || result.post?.id
+        
+        // Standardized event: post_success
+        trackPostSuccess(postId)
+        
         alert('게시글이 작성되었습니다!')
         setShowWriteModal(false)
         setWriteTitle('')
@@ -3590,7 +3599,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       {/* 글쓰기 모달 */}
       <Dialog open={showWriteModal} onOpenChange={(open) => {
         setShowWriteModal(open)
-        if (!open) {
+        if (open) {
+          // Standardized event: post_start (when modal opens)
+          trackPostStart()
+        } else {
           // 모달이 닫힐 때 상태 초기화
           setWriteTitle('')
           setWriteContent('')

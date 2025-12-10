@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
         brand_name: 'Amiko',
         landing_page: 'NO_PREFERENCE',
         user_action: 'PAY_NOW',
-        return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/payments/success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/payments/fail`,
+        return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://helloamiko.com'}/payments/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://helloamiko.com'}/payments/fail`,
       },
     };
 

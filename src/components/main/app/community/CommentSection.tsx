@@ -10,7 +10,7 @@ import { useAuth } from '@/context/AuthContext'
 import { TranslationService } from '@/lib/translation'
 import UserBadge from '@/components/common/UserBadge'
 import AuthorName from '@/components/common/AuthorName'
-import { communityEvents } from '@/lib/analytics'
+import { communityEvents, trackCommentStart, trackCommentSubmit, trackCommentSuccess } from '@/lib/analytics'
 
 interface Comment {
   id: string
@@ -236,6 +236,9 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       return
     }
 
+    // Standardized event: comment_submit
+    trackCommentSubmit(postId)
+
     try {
       setSubmitting(true)
       const response = await fetch(`/api/posts/${postId}/comments`, {
@@ -252,6 +255,11 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
 
       if (response.ok) {
         const data = await response.json()
+        const commentId = data.comment?.id || data.id
+        
+        // Standardized event: comment_success
+        trackCommentSuccess(commentId, postId)
+        
         setCommentContent('')
         await loadComments()
         
@@ -317,6 +325,11 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
 
       if (response.ok) {
         const data = await response.json()
+        const commentId = data.comment?.id || data.id
+        
+        // Standardized event: comment_success (for replies too)
+        trackCommentSuccess(commentId, postId)
+        
         setReplyContent('')
         setReplyingTo(null)
         await loadComments()
@@ -635,7 +648,13 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
               </p>
             </div>
           )}
-          <div className="flex space-x-3">
+          <div 
+            className="flex space-x-3"
+            onFocus={() => {
+              // Standardized event: comment_start (when user focuses on comment input)
+              trackCommentStart(postId)
+            }}
+          >
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium overflow-hidden">
               {currentUserProfile?.avatar ? (
                 <img 

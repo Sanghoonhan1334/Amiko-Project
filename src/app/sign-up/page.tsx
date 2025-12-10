@@ -11,7 +11,7 @@ import { ArrowRight, ArrowLeft, User, Mail, Lock, Phone, Globe } from 'lucide-re
 import { useLanguage } from '@/context/LanguageContext'
 import PhoneVerification from '@/components/auth/PhoneVerification'
 import { countries } from '@/constants/countries'
-import { signUpEvents, marketingEvents } from '@/lib/analytics'
+import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick } from '@/lib/analytics'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -53,6 +53,8 @@ export default function SignUpPage() {
   useEffect(() => {
     signUpEvents.startSignUp()
     signUpEvents.formStart()
+    // Standardized event
+    trackStartSignup()
   }, [])
 
   const calculateAge = (value: string) => {
@@ -129,12 +131,21 @@ export default function SignUpPage() {
       // 가입 퍼널 이벤트: 이메일 입력
       if (value.length > 0) {
         signUpEvents.enterEmail()
+        // Standardized event
+        trackSignupInput('email')
       }
     }
     
     // 가입 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
       signUpEvents.enterPassword()
+      // Standardized event
+      trackSignupInput('password')
+    }
+    
+    // Standardized events for other fields
+    if (value.length > 0 && ['name', 'phone', 'birthDate', 'country'].includes(field)) {
+      trackSignupInput(field)
     }
 
     if (field === 'birthDate') {
@@ -230,7 +241,8 @@ export default function SignUpPage() {
       ...prev,
       country: countryCode,
       isKorean: selectedCountry?.isKorean || false,
-      phone: '' // 국가 변경 시 전화번호 필드 초기화
+      // 전화번호는 유지 (국적과 독립적으로 입력 가능)
+      // phone: '' // 주석 처리: 국적 변경 시 전화번호 유지 (한국에 거주하는 외국인 지원)
     }))
   }
 
@@ -395,6 +407,9 @@ export default function SignUpPage() {
   const handleSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     setIsLoading(true)
+    
+    // Standardized event: signup_submit
+    trackSignupSubmit()
 
     try {
       if (!formData.birthDate) {
@@ -437,15 +452,20 @@ export default function SignUpPage() {
 
       console.log('회원가입 성공:', result)
       
+      const userId = result.data?.userId || result.user?.id
+      
       // 가입 퍼널 이벤트: 사용자 생성
-      signUpEvents.createUser(result.data?.userId || result.user?.id)
+      signUpEvents.createUser(userId)
       
       // 가입 퍼널 이벤트: 회원가입 완료
-      signUpEvents.completeSignUp(result.data?.userId || result.user?.id)
-      signUpEvents.signUpSuccess(result.data?.userId || result.user?.id)
+      signUpEvents.completeSignUp(userId)
+      signUpEvents.signUpSuccess(userId)
       
       // 마케팅 퍼널 이벤트: 회원가입 완료
-      marketingEvents.signUp(result.data?.userId || result.user?.id, 'email')
+      marketingEvents.signUp(userId, 'email')
+      
+      // Standardized events
+      trackSignupSuccess(userId)
       
       alert(t('auth.signUpSuccess'))
       
@@ -840,7 +860,11 @@ export default function SignUpPage() {
                 <div className="mt-6 text-center">
                   <p className="text-sm text-slate-600 dark:text-gray-400">
                     {t('auth.alreadyHaveAccount')}{' '}
-                    <a href="/sign-in" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium">
+                    <a 
+                      href="/sign-in" 
+                      onClick={() => trackCTAClick('signup_to_signin_link', window.location.href)}
+                      className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium"
+                    >
                       {t('auth.signIn')}
                     </a>
                   </p>

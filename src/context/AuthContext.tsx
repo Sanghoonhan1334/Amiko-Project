@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+import { trackRevisit } from '@/lib/analytics'
 
 interface ExtendedUser extends User {
   is_admin?: boolean
@@ -141,6 +142,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 user: sessionData.user,
                 expires_at: sessionData.expires_at
               } as Session)
+              
+              // Revisit tracking for returning users
+              trackRevisit(sessionData.user.id)
               
               // 백그라운드에서 Supabase 세션 확인 및 갱신
               setTimeout(async () => {
@@ -306,6 +310,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             expires_at: extendedExpiry,
             original_expires_at: session.expires_at
           }))
+          
+          // Revisit tracking for returning users
+          trackRevisit(session.user.id)
         } else {
           // 세션 정리
           setUser(null)
@@ -371,6 +378,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // 토큰도 별도로 저장 (verification 페이지에서 사용)
         localStorage.setItem('amiko_token', data.session.access_token);
+        
+        // Revisit tracking for returning users
+        trackRevisit(data.user.id);
         
         console.log('[AUTH] 세션과 토큰을 로컬 스토리지에 저장 완료 (30일 연장)');
       }

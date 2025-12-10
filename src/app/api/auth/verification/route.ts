@@ -187,16 +187,23 @@ export async function POST(request: NextRequest) {
     
     try {
     if (type === 'email' && email) {
-      // 언어 설정 (국가 코드 기반)
-      const language = nationality === 'KR' ? 'ko' : 'es'
+      // 언어 설정 (전화번호 국가코드 우선, 없으면 국적 기준)
+      // 전화번호가 있으면 전화번호 기준으로 언어 결정 (멕시코 국적 + 한국 전화번호 지원)
+      let language = 'es' // 기본값: 스페인어
+      if (phoneNumber) {
+        language = phoneNumber.startsWith('+82') ? 'ko' : 'es'
+      } else {
+        language = nationality === 'KR' ? 'ko' : 'es'
+      }
         if (process.env.NODE_ENV === 'development') {
-          console.log('[VERIFICATION] Attempting email send:', { language })
+          console.log('[VERIFICATION] Attempting email send:', { language, phoneNumber, nationality })
         }
       sendResult = await sendVerificationEmail(email, verificationCode, language)
       sendMethod = '이메일'
     } else if (type === 'sms' && phoneNumber) {
-      // 언어 설정 (국가 코드 기반)
-      const language = nationality === 'KR' ? 'ko' : 'es'
+      // 언어 설정 (전화번호 국가코드 기준, 국적과 독립적)
+      // 멕시코 국적 + 한국 전화번호 조합 허용
+      const language = phoneNumber.startsWith('+82') ? 'ko' : 'es'
         if (process.env.NODE_ENV === 'development') {
           console.log('[VERIFICATION] Attempting SMS send:', { language, nationality })
         }
@@ -207,8 +214,9 @@ export async function POST(request: NextRequest) {
           console.log('[VERIFICATION] SMS send result:', sendResult)
         }
     } else if (type === 'whatsapp' && phoneNumber) {
-      // 언어 설정 (국가 코드 기반)
-      const language = nationality === 'KR' ? 'ko' : 'es'
+      // 언어 설정 (전화번호 국가코드 기준, 국적과 독립적)
+      // 멕시코 국적 + 한국 전화번호 조합 허용
+      const language = normalizedPhoneNumber.startsWith('+82') ? 'ko' : 'es'
         if (process.env.NODE_ENV === 'development') {
           console.log('[VERIFICATION] Attempting WhatsApp send:', { language })
         }
@@ -277,18 +285,22 @@ export async function POST(request: NextRequest) {
       
       // 개발 환경에서는 발송 실패해도 인증코드는 DB에 저장되지만, 사용자에게는 실패를 명확히 알림
       if (process.env.NODE_ENV === 'development') {
-        // 더 명확한 에러 메시지 제공
-        const errorMessage = 'SMS send failed. Twilio phone number is not registered in the account. (Development environment)\n\nSolution:\n1. Check phone numbers in Twilio console (https://console.twilio.com/)\n2. Update TWILIO_PHONE_NUMBER in .env.local to a registered number\n3. Or purchase/register a phone number in Twilio console'
+        // 더 명확한 에러 메시지 제공 (SMS/WhatsApp 구분)
+        const isWhatsApp = type === 'whatsapp'
+        const phoneNumberVar = isWhatsApp ? 'TWILIO_WHATSAPP_FROM' : 'TWILIO_PHONE_NUMBER'
+        const errorMessage = isWhatsApp
+          ? 'WhatsApp send failed. Twilio WhatsApp phone number is not registered in the account. (Development environment)\n\nSolution:\n1. Check WhatsApp phone numbers in Twilio console (https://console.twilio.com/)\n2. Update TWILIO_WHATSAPP_FROM in .env.local to a registered WhatsApp number\n3. Or purchase/register a WhatsApp phone number in Twilio console'
+          : 'SMS send failed. Twilio phone number is not registered in the account. (Development environment)\n\nSolution:\n1. Check phone numbers in Twilio console (https://console.twilio.com/)\n2. Update TWILIO_PHONE_NUMBER in .env.local to a registered number\n3. Or purchase/register a phone number in Twilio console'
         
         return NextResponse.json({
           success: false,
           error: errorMessage,
           debug: {
             verificationCode: verificationCode, // 개발 환경에서만 인증코드 반환
-            message: 'Actual SMS was not sent. In development environment, check the verification code and enter it manually.',
+            message: `Actual ${isWhatsApp ? 'WhatsApp' : 'SMS'} was not sent. In development environment, check the verification code and enter it manually.`,
             troubleshooting: {
-              issue: 'Twilio phone number and account mismatch (error code 21660)',
-              solution: 'Check registered phone numbers in Twilio console and update TWILIO_PHONE_NUMBER in .env.local'
+              issue: `Twilio ${isWhatsApp ? 'WhatsApp' : 'SMS'} phone number and account mismatch (error code 21660)`,
+              solution: `Check registered ${isWhatsApp ? 'WhatsApp' : 'SMS'} phone numbers in Twilio console and update ${phoneNumberVar} in .env.local`
             }
           },
           timestamp: new Date().toISOString()

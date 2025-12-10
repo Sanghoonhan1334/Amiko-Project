@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseClient } from '@/lib/supabase'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { toE164 } from '@/lib/phoneUtils'
 
 // 로그인 처리
 export async function POST(request: NextRequest) {
@@ -39,21 +40,173 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // 전화번호로 사용자 찾기
-      const { data: userData, error: userError } = await supabaseServer
-        .from('users')
-        .select('email')
-        .eq('phone', identifier)
-        .single()
+      // 전화번호 정규화 시도 (E.164 형식)
+      let normalizedPhone = identifier
+      let userData = null
+      let userError = null
 
-      if (userError || !userData?.email) {
+      // 검색할 전화번호 변형 목록 생성
+      const searchVariants: string[] = [identifier] // 원본 포함
+      
+      // 1. 원본 형식으로 먼저 검색
+      console.log('[SIGNIN] 전화번호 로그인 시도 - 원본:', identifier)
+      
+      // 2. E.164 형식으로 정규화
+      try {
+        normalizedPhone = toE164(identifier)
+        if (normalizedPhone && normalizedPhone !== identifier && normalizedPhone.startsWith('+')) {
+          searchVariants.push(normalizedPhone)
+          console.log('[SIGNIN] E.164 정규화:', identifier, '→', normalizedPhone)
+        }
+      } catch (normalizeError) {
+        console.warn('[SIGNIN] 전화번호 정규화 실패:', normalizeError)
+      }
+
+      // 3. 하이픈 제거
+      const digitsOnly = identifier.replace(/\D/g, '')
+      if (digitsOnly !== identifier && digitsOnly.length > 0) {
+        searchVariants.push(digitsOnly)
+        console.log('[SIGNIN] 하이픈 제거:', digitsOnly)
+      }
+
+      // 4. 하이픈 제거 후 E.164 정규화
+      if (digitsOnly.length > 0) {
+        try {
+          const normalizedFromDigits = toE164(digitsOnly)
+          if (normalizedFromDigits && normalizedFromDigits.startsWith('+') && !searchVariants.includes(normalizedFromDigits)) {
+            searchVariants.push(normalizedFromDigits)
+            console.log('[SIGNIN] 하이픈 제거 후 E.164:', normalizedFromDigits)
+          }
+        } catch (error) {
+          console.warn('[SIGNIN] 하이픈 제거 후 정규화 실패:', error)
+        }
+      }
+
+      // 5. 한국 번호 특수 처리: +82010... → +8210... (0 제거)
+      if (identifier.startsWith('+82') && identifier.length > 4) {
+        const after82 = identifier.substring(3) // +82 이후 부분
+        if (after82.startsWith('0')) {
+          const corrected = '+82' + after82.substring(1) // 첫 번째 0 제거
+          if (!searchVariants.includes(corrected)) {
+            searchVariants.push(corrected)
+            console.log('[SIGNIN] 한국 번호 0 제거:', identifier, '→', corrected)
+          }
+        }
+      }
+
+      // 6. 숫자만 추출 후 한국 번호 처리 (010... → +8210...)
+      if (digitsOnly.length > 0) {
+        // 010으로 시작하는 경우
+        if (digitsOnly.startsWith('010')) {
+          const koreanFormat = '+82' + digitsOnly.substring(1) // 0 제거 후 +82 추가
+          if (!searchVariants.includes(koreanFormat)) {
+            searchVariants.push(koreanFormat)
+            console.log('[SIGNIN] 한국 번호 변환 (010 → +82):', koreanFormat)
+          }
+          
+          // 하이픈 포함 형식 추가 (010-XXXX-XXXX)
+          if (digitsOnly.length === 11) {
+            const withHyphens = `${digitsOnly.substring(0, 3)}-${digitsOnly.substring(3, 7)}-${digitsOnly.substring(7)}`
+            if (!searchVariants.includes(withHyphens)) {
+              searchVariants.push(withHyphens)
+              console.log('[SIGNIN] 하이픈 포함 형식 추가:', withHyphens)
+            }
+          }
+        }
+        // 82로 시작하는 경우 (국가번호만)
+        if (digitsOnly.startsWith('82') && digitsOnly.length > 2) {
+          const withPlus = '+' + digitsOnly
+          if (!searchVariants.includes(withPlus)) {
+            searchVariants.push(withPlus)
+            console.log('[SIGNIN] 국가번호 + 추가:', withPlus)
+          }
+        }
+      }
+      
+      // 7. E.164 형식에서 하이픈 포함 형식으로 변환 (+8210... → 010-XXXX-XXXX)
+      if (normalizedPhone && normalizedPhone.startsWith('+82') && normalizedPhone.length === 13) {
+        // +8210XXXXXXXX 형식을 010-XXXX-XXXX로 변환
+        const after82 = normalizedPhone.substring(3) // 10XXXXXXXX
+        if (after82.startsWith('10') && after82.length === 10) {
+          const withHyphens = `010-${after82.substring(2, 6)}-${after82.substring(6)}`
+          if (!searchVariants.includes(withHyphens)) {
+            searchVariants.push(withHyphens)
+            console.log('[SIGNIN] E.164 → 하이픈 형식 변환:', normalizedPhone, '→', withHyphens)
+          }
+        }
+      }
+
+      // 중복 제거
+      const uniqueVariants = [...new Set(searchVariants)]
+      console.log('[SIGNIN] 검색할 전화번호 변형 목록:', uniqueVariants)
+
+      // 각 변형으로 검색 시도
+      let result = null
+      for (const variant of uniqueVariants) {
+        if (!variant || variant.length === 0) continue
+        
+        console.log('[SIGNIN] 검색 시도:', variant)
+        result = await supabaseServer
+          .from('users')
+          .select('email, phone')
+          .eq('phone', variant)
+          .maybeSingle()
+
+        if (result.data) {
+          userData = result.data
+          console.log('[SIGNIN] ✅ 사용자 찾음:', {
+            검색형식: variant,
+            DB저장형식: userData.phone,
+            이메일: userData.email
+          })
+          break
+        } else if (result.error && result.error.code !== 'PGRST116') {
+          // PGRST116은 "not found" 에러이므로 무시, 다른 에러는 로깅
+          console.warn('[SIGNIN] 검색 중 에러:', variant, result.error)
+        }
+      }
+
+      if (!userData || !userData.email) {
+        console.error('[SIGNIN] 전화번호로 사용자를 찾을 수 없음:', {
+          입력값: identifier,
+          검색시도한_변형들: uniqueVariants,
+          마지막_검색_결과: result?.error || '사용자 없음',
+          디버깅_정보: {
+            '입력값_길이': identifier.length,
+            '입력값_형식': identifier.startsWith('+') ? 'E.164' : '일반',
+            '숫자만_추출': digitsOnly,
+            '정규화_시도': normalizedPhone
+          }
+        })
+        
+        // 디버깅: 실제 DB에 저장된 전화번호 형식 샘플 조회 (최근 5개)
+        try {
+          const { data: samplePhones } = await supabaseServer
+            .from('users')
+            .select('phone')
+            .not('phone', 'is', null)
+            .limit(5)
+          
+          console.log('[SIGNIN] DB에 저장된 전화번호 샘플 (최근 5개):', samplePhones)
+        } catch (sampleError) {
+          console.warn('[SIGNIN] 샘플 조회 실패:', sampleError)
+        }
+        
         return NextResponse.json(
-          { error: '이메일 또는 비밀번호가 올바르지 않습니다.' },
+          { 
+            error: '이메일 또는 비밀번호가 올바르지 않습니다.',
+            hint: '전화번호로 로그인하는 경우, 가입 시 입력한 전화번호 형식과 동일하게 입력해주세요. (예: +821012345678 또는 010-1234-5678)',
+            debug: process.env.NODE_ENV === 'development' ? {
+              입력값: identifier,
+              검색시도한_변형들: uniqueVariants
+            } : undefined
+          },
           { status: 401 }
         )
       }
 
       // 찾은 이메일로 로그인
+      console.log('[SIGNIN] 찾은 사용자 이메일로 로그인 시도:', userData.email)
       authResult = await supabase.auth.signInWithPassword({
         email: userData.email,
         password,

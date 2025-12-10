@@ -4,12 +4,16 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, ArrowRight } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { trackCTAClick } from '@/lib/analytics'
 
 export default function Hero() {
   const router = useRouter()
   const { t } = useLanguage()
 
-  const handleNavigation = (path: string) => {
+  const handleNavigation = (path: string, ctaType: string) => {
+    // Track CTA click
+    trackCTAClick(ctaType, window.location.href)
+    
     if (path.startsWith('#')) {
       const element = document.querySelector(path)
       if (element) {
@@ -38,7 +42,7 @@ export default function Hero() {
           <Button 
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl w-full sm:w-auto font-['Inter']"
-            onClick={() => handleNavigation('/booking/create')}
+            onClick={() => handleNavigation('/booking/create', 'hero_main_cta')}
           >
             {t('hero.cta')}
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
@@ -47,7 +51,7 @@ export default function Hero() {
             variant="outline"
             size="lg"
             className="border-2 border-gray-300 hover:border-blue-600 text-gray-700 hover:text-blue-600 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl w-full sm:w-auto font-['Inter']"
-            onClick={() => handleNavigation('#video')}
+            onClick={() => handleNavigation('#video', 'hero_video_cta')}
           >
             <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             {t('hero.video')}

@@ -279,7 +279,11 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
     const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
     const hasTemplateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID
     
-    if (hasTwilioConfig && hasTemplateSid) {
+    // 템플릿 방식은 일단 건너뛰고 일반 메시지 방식 사용 (템플릿 발송 시 번호 인식 문제 해결을 위해)
+    // 템플릿이 필요하면 나중에 다시 활성화
+    const useTemplate = false // hasTwilioConfig && hasTemplateSid
+    
+    if (useTemplate) {
       // 템플릿을 사용한 WhatsApp 발송 (직접 Twilio API 호출)
       try {
         // 정적 import로 이미 가져온 Twilio 사용
@@ -319,15 +323,34 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
         return true
         
       } catch (twilioError: any) {
-        console.error('[WHATSAPP_VERIFICATION] 템플릿 발송 오류:', twilioError)
+        console.error('[WHATSAPP_VERIFICATION] ========================================')
+        console.error('[WHATSAPP_VERIFICATION] ❌ 템플릿 발송 실패!')
         console.error('[WHATSAPP_VERIFICATION] 에러 코드:', twilioError?.code)
         console.error('[WHATSAPP_VERIFICATION] 에러 메시지:', twilioError?.message)
+        console.error('[WHATSAPP_VERIFICATION] 에러 상세:', {
+          status: twilioError?.status,
+          code: twilioError?.code,
+          moreInfo: twilioError?.moreInfo,
+          message: twilioError?.message
+        })
+        
+        // 에러 코드 21660: 발신번호가 계정에 등록되지 않음
+        if (twilioError?.code === 21660) {
+          console.error('[WHATSAPP_VERIFICATION] ⚠️  에러 21660: WhatsApp 발신번호가 계정에 등록되어 있지 않습니다.')
+          console.error('[WHATSAPP_VERIFICATION] 해결 방법:')
+          console.error('[WHATSAPP_VERIFICATION] 1. Twilio 콘솔에서 WhatsApp Sender로 등록되어 있는지 확인하세요')
+          console.error('[WHATSAPP_VERIFICATION] 2. .env.local의 TWILIO_WHATSAPP_NUMBER가 올바른지 확인하세요')
+          console.error('[WHATSAPP_VERIFICATION] 3. 번호 형식: whatsapp:+15557803562 또는 +15557803562')
+        }
+        console.error('[WHATSAPP_VERIFICATION] ========================================')
+        
         // 템플릿 발송 실패 시 기존 방식으로 fallback
+        console.log('[WHATSAPP_VERIFICATION] 템플릿 발송 실패 → 일반 메시지 방식으로 fallback 시도')
         return await fallbackToOldWhatsAppMethod(phoneNumber, code, language)
       }
     } else {
-      // 템플릿 SID가 없으면 기존 방식 사용
-      console.warn('[WHATSAPP_VERIFICATION] 템플릿 SID가 없어 기존 방식 사용')
+      // 템플릿 SID가 없거나 템플릿 사용 비활성화 시 일반 메시지 방식 사용
+      console.log('[WHATSAPP_VERIFICATION] 일반 메시지 방식 사용 (템플릿 사용 안 함)')
       return await fallbackToOldWhatsAppMethod(phoneNumber, code, language)
     }
     
@@ -350,17 +373,40 @@ async function fallbackToOldWhatsAppMethod(phoneNumber: string, code: string, la
       try {
         const { sendTwilioWhatsApp, formatPhoneNumber } = await import('./twilioService')
         const formattedNumber = formatPhoneNumber(phoneNumber)
+        console.log(`[WHATSAPP_SEND] WhatsApp 발송 시도:`, {
+          phoneNumber,
+          formattedNumber,
+          message: template.message.substring(0, 50) + '...'
+        })
+        
         const success = await sendTwilioWhatsApp(formattedNumber, template.message)
         
         if (success) {
-          console.log(`[WHATSAPP_SEND] Twilio로 실제 WhatsApp 발송 완료: ${formattedNumber}`)
+          console.log(`[WHATSAPP_SEND] ✅ Twilio로 실제 WhatsApp 발송 완료: ${formattedNumber}`)
           return true
         } else {
-          console.error('[WHATSAPP_SEND] Twilio WhatsApp 발송 실패')
+          console.error('[WHATSAPP_SEND] ❌ Twilio WhatsApp 발송 실패 (sendTwilioWhatsApp가 false 반환)')
+          console.error('[WHATSAPP_SEND] 서버 로그에서 [TWILIO_WHATSAPP]로 시작하는 로그를 확인하세요')
+          // 개발 환경에서는 실패해도 계속 진행 (콘솔 출력)
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[WHATSAPP_SEND] 개발 환경: 실제 발송 실패했지만 계속 진행')
+          }
           return false
         }
-      } catch (twilioError) {
-        console.error('[WHATSAPP_SEND] Twilio 연동 오류:', twilioError)
+      } catch (twilioError: any) {
+        console.error('[WHATSAPP_SEND] ========================================')
+        console.error('[WHATSAPP_SEND] ❌ Twilio 연동 오류 발생!')
+        console.error('[WHATSAPP_SEND] 에러 타입:', twilioError?.constructor?.name)
+        console.error('[WHATSAPP_SEND] 에러 메시지:', twilioError?.message)
+        console.error('[WHATSAPP_SEND] 에러 코드:', twilioError?.code)
+        console.error('[WHATSAPP_SEND] 에러 상세:', {
+          status: twilioError?.status,
+          code: twilioError?.code,
+          moreInfo: twilioError?.moreInfo,
+          message: twilioError?.message,
+          stack: twilioError?.stack
+        })
+        console.error('[WHATSAPP_SEND] ========================================')
         // Twilio 실패 시 개발 모드로 fallback
       }
     }
@@ -368,19 +414,24 @@ async function fallbackToOldWhatsAppMethod(phoneNumber: string, code: string, la
     // 개발 환경 또는 Twilio 설정이 없는 경우 콘솔 출력
     if (process.env.NODE_ENV === 'development' || !hasTwilioConfig) {
       console.log('\n' + '='.repeat(60))
-      console.log('💬 WhatsApp 발송 (개발 환경)')
+      console.log('💬 WhatsApp 발송 (개발 환경 - 실제 발송 실패)')
       console.log('='.repeat(60))
       console.log(`받는 번호: ${phoneNumber}`)
       console.log(`언어: ${template.language}`)
+      console.log(`인증코드: ${code}`)
       console.log('메시지:')
       console.log(template.message)
       if (!hasTwilioConfig) {
         console.log('⚠️  Twilio 설정이 없어 콘솔에만 출력됩니다.')
         console.log('   실제 WhatsApp 발송을 원한다면 .env.local에 Twilio 설정을 추가하세요.')
+      } else {
+        console.log('⚠️  Twilio API 호출이 실패했습니다.')
+        console.log('   서버 로그에서 [TWILIO_WHATSAPP] 또는 [WHATSAPP_SEND]로 시작하는 로그를 확인하세요.')
       }
       console.log('='.repeat(60) + '\n')
       
-      return true
+      // 개발 환경에서는 실패해도 false 반환 (API가 실패 응답을 보내도록)
+      return false
     }
     
     return false

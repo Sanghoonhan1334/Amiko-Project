@@ -9,8 +9,17 @@ export function toE164(phoneNumber: string, countryCode?: string): string {
   
   console.log('[PHONE_UTILS] toE164 호출:', { phoneNumber, countryCode })
   
-  // 이미 E.164 형식이면 그대로 반환
+  // 이미 E.164 형식이면 검증 후 반환
   if (phoneNumber.startsWith('+')) {
+    // 한국 번호 특수 처리: +82010... → +8210... (잘못된 형식 수정)
+    if (phoneNumber.startsWith('+82') && phoneNumber.length > 4) {
+      const after82 = phoneNumber.substring(3) // +82 이후 부분
+      if (after82.startsWith('0')) {
+        const corrected = '+82' + after82.substring(1) // 첫 번째 0 제거
+        console.log('[PHONE_UTILS] 한국 번호 0 제거 (잘못된 형식 수정):', phoneNumber, '→', corrected)
+        return corrected
+      }
+    }
     console.log('[PHONE_UTILS] 이미 E.164 형식:', phoneNumber)
     return phoneNumber
   }

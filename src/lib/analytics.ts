@@ -72,6 +72,14 @@ export function trackEvent(
 }
 
 /**
+ * Centralized GA4 event logging helper
+ * This is the single entry point for all GA4 events as per requirements
+ */
+export function logEvent(eventName: string, params?: object): void {
+  trackEvent(eventName, params as BaseEventParams)
+}
+
+/**
  * 페이지뷰 추적
  */
 export function trackPageView(path: string, title?: string): void {
@@ -83,17 +91,74 @@ export function trackPageView(path: string, title?: string): void {
   }
 
   try {
-    ;(window as any).gtag('config', process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '', {
+    const measurementId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || ''
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname.includes('localhost')
+    const debugMode = process.env.NODE_ENV === 'development' || isLocalhost
+
+    ;(window as any).gtag('config', measurementId, {
       page_path: path,
       page_title: title || document.title,
       language: typeof localStorage !== 'undefined' 
         ? localStorage.getItem('amiko-language') || localStorage.getItem('amiko_language') || 'es'
         : 'es',
-      device: getDeviceType()
+      device: getDeviceType(),
+      debug_mode: debugMode
     })
-    console.log(`[GA4] Page view: ${path}`)
+    // Also emit page_view event for consistency
+    logEvent('page_view', {
+      page_path: path,
+      page_title: title || document.title
+    })
+    console.log(`[GA4] Page view: ${path}`, { debugMode, hostname: window.location.hostname })
   } catch (error) {
     console.error('[GA4] Error tracking page view:', error)
+  }
+}
+
+// ==================== Standardized GA4 Events ====================
+
+/**
+ * Session start detection and tracking
+ * Should be called once per session
+ */
+export function trackSessionStart(): void {
+  if (typeof window === 'undefined') return
+  
+  const sessionKey = 'ga4_session_started'
+  const sessionStarted = sessionStorage.getItem(sessionKey)
+  
+  if (!sessionStarted) {
+    logEvent('session_start', {
+      timestamp: new Date().toISOString()
+    })
+    sessionStorage.setItem(sessionKey, 'true')
+  }
+}
+
+/**
+ * Revisit detection - checks if user has logged in previously
+ * Should be called when user logs in or when app initializes with existing session
+ */
+export function trackRevisit(userId?: string): void {
+  if (typeof window === 'undefined') return
+  
+  const revisitKey = 'ga4_revisit_tracked'
+  const revisitTracked = sessionStorage.getItem(revisitKey)
+  
+  // Check if user has logged in before (has stored session or user ID)
+  const hasPreviousSession = 
+    localStorage.getItem('amiko_session') || 
+    localStorage.getItem('amiko_user') ||
+    userId
+  
+  if (hasPreviousSession && !revisitTracked) {
+    logEvent('revisit', {
+      user_id: userId,
+      timestamp: new Date().toISOString()
+    })
+    sessionStorage.setItem(revisitKey, 'true')
   }
 }
 
@@ -402,42 +467,42 @@ export const appEngagementEvents = {
    * 홈 탭 방문
    */
   visitHomeTab: () => {
-    trackEvent('visit_home_tab', {})
+    trackEvent('view_home_tab', {})
   },
 
   /**
    * 만남 탭 방문
    */
   visitMeetTab: () => {
-    trackEvent('visit_meet_tab', {})
+    trackEvent('view_meet_tab', {})
   },
 
   /**
    * 커뮤니티 탭 방문
    */
   visitCommunityTab: () => {
-    trackEvent('visit_community_tab', {})
+    trackEvent('view_community_tab', {})
   },
 
   /**
    * 이벤트 탭 방문
    */
   visitEventTab: () => {
-    trackEvent('visit_event_tab', {})
+    trackEvent('view_event_tab', {})
   },
 
   /**
    * 충전 탭 방문
    */
   visitChargingTab: () => {
-    trackEvent('visit_charging_tab', {})
+    trackEvent('view_charging_tab', {})
   },
 
   /**
    * 프로필 탭 방문
    */
   visitProfileTab: () => {
-    trackEvent('visit_profile_tab', {})
+    trackEvent('view_profile_tab', {})
   }
 }
 
@@ -445,17 +510,18 @@ export const appEngagementEvents = {
 
 export const communityEvents = {
   /**
-   * 커뮤니티 탭 열기
+   * 커뮤니티 탭 열기 (view_community_tab과 동일하므로 중복 제거)
+   * @deprecated Use view_community_tab instead. This will be removed in future versions.
    */
   communityTabOpen: () => {
-    trackEvent('community_tab_open', {})
+    trackEvent('view_community_tab', {})
   },
 
   /**
    * 카테고리 방문
    */
   visitCategory: (categoryName?: string, categorySlug?: string) => {
-    trackEvent('visit_category', {
+    trackEvent('view_category', {
       category_name: categoryName,
       category_slug: categorySlug
     })
@@ -827,5 +893,92 @@ export const paymentEvents = {
       error_message: errorMessage
     })
   }
+}
+
+// ==================== Standardized Event Helpers ====================
+
+/**
+ * Standardized GA4 event helpers matching required event names
+ * These functions use the centralized logEvent helper
+ */
+
+// CTA Click
+export function trackCTAClick(ctaType: string, location?: string) {
+  logEvent('cta_click', {
+    cta_type: ctaType,
+    page_location: location || (typeof window !== 'undefined' ? window.location.href : '')
+  })
+}
+
+// Signup Flow
+export function trackStartSignup() {
+  logEvent('start_signup', {
+    page_location: typeof window !== 'undefined' ? window.location.href : ''
+  })
+}
+
+export function trackSignupInput(fieldName: string) {
+  logEvent('signup_input', {
+    field_name: fieldName
+  })
+}
+
+export function trackSignupSubmit() {
+  logEvent('signup_submit', {})
+}
+
+export function trackSignupSuccess(userId?: string) {
+  logEvent('signup_success', {
+    user_id: userId
+  })
+}
+
+// Login Flow
+export function trackLoginAttempt() {
+  logEvent('login_attempt', {})
+}
+
+export function trackLoginSuccess(userId?: string, method?: string) {
+  logEvent('login_success', {
+    user_id: userId,
+    login_method: method || 'email'
+  })
+}
+
+// Post Flow
+export function trackPostStart() {
+  logEvent('post_start', {
+    page_location: typeof window !== 'undefined' ? window.location.href : ''
+  })
+}
+
+export function trackPostSubmit() {
+  logEvent('post_submit', {})
+}
+
+export function trackPostSuccess(postId?: string) {
+  logEvent('post_success', {
+    post_id: postId
+  })
+}
+
+// Comment Flow
+export function trackCommentStart(postId?: string) {
+  logEvent('comment_start', {
+    post_id: postId
+  })
+}
+
+export function trackCommentSubmit(postId?: string) {
+  logEvent('comment_submit', {
+    post_id: postId
+  })
+}
+
+export function trackCommentSuccess(commentId?: string, postId?: string) {
+  logEvent('comment_success', {
+    comment_id: commentId,
+    post_id: postId
+  })
 }
 

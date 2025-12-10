@@ -456,17 +456,27 @@ export async function POST(request: NextRequest) {
         if (userId) {
           console.log(`[SIGNUP] users 테이블에 사용자 추가: ${userId}`)
           
-          // 한국인 여부 검증: 국적이 KR이고 전화번호가 +82로 시작해야 함
-          // 이렇게 하면 현지인이 "대한민국"을 선택해도 전화번호가 +82가 아니면 is_korean: false로 설정됨
-          const phoneCountryCode = formattedPhone.startsWith('+82') ? '82' : null
+          // 전화번호 국가코드 기반 언어 결정 (국적과 독립적)
+          // 멕시코 국적 + 한국 전화번호 조합 허용 (한국에 거주하는 외국인 지원)
+          const phoneCountryCode = formattedPhone.startsWith('+82') ? '82' : 
+                                  formattedPhone.startsWith('+52') ? '52' :
+                                  formattedPhone.startsWith('+1') ? '1' : null
+          
+          // 언어 결정: 전화번호 국가코드 기준 (한국 번호면 한국어, 아니면 스페인어)
+          // 이렇게 하면 국적과 상관없이 사용하는 전화번호에 맞춰 언어가 설정됨
+          const determinedLanguage = formattedPhone.startsWith('+82') ? 'ko' : 'es'
+          
+          // 한국인 여부: 국적이 KR이고 전화번호도 +82인 경우만
           const isActuallyKorean = country === 'KR' && phoneCountryCode === '82'
           
-          console.log(`[SIGNUP] 한국인 여부 검증:`, {
+          console.log(`[SIGNUP] 언어 및 한국인 여부 결정:`, {
             selectedCountry: country,
             phoneNumber: formattedPhone,
             phoneCountryCode: phoneCountryCode,
+            determinedLanguage: determinedLanguage,
             frontendIsKorean: isKorean,
-            actualIsKorean: isActuallyKorean
+            actualIsKorean: isActuallyKorean,
+            note: '언어는 전화번호 국가코드 기준으로 결정됩니다 (국적과 독립적)'
           })
           
           // users 테이블에 추가 또는 업데이트 (삭제된 계정 재가입 시)
@@ -477,7 +487,7 @@ export async function POST(request: NextRequest) {
             full_name: name,
             nickname: name, // full_name을 nickname으로 사용 (임시, 나중에 제거 예정)
             phone: formattedPhone, // 포맷팅된 전화번호 사용
-            language: country === 'KR' ? 'ko' : 'es', // 한국이 아니면 스페인어로 설정
+            language: determinedLanguage, // 전화번호 국가코드 기준 언어 (국적과 독립적)
             is_korean: isActuallyKorean, // 검증된 한국인 여부만 저장
             updated_at: new Date().toISOString()
           }

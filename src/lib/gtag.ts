@@ -17,8 +17,14 @@ declare global {
 // 페이지뷰 추적
 export const pageview = (url: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname.includes('localhost')
+    const debugMode = process.env.NODE_ENV === 'development' || isLocalhost
+    
     window.gtag('config', GA_MEASUREMENT_ID, {
       page_path: url,
+      debug_mode: debugMode
     })
   }
 }

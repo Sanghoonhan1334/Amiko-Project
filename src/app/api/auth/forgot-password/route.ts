@@ -50,8 +50,9 @@ export async function POST(request: NextRequest) {
     const userLanguage = userData.language || language
 
     // Supabase Auth로 비밀번호 재설정 토큰 생성
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://helloamiko.com'
     const { error } = await supabaseServer.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`,
+      redirectTo: `${baseUrl}/reset-password`,
     })
 
     if (error) {
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     // 커스텀 이메일 발송 (언어별)
     try {
-      const resetLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`
+      const resetLink = `${baseUrl}/reset-password`
       const emailTemplate = createEmailTemplate('passwordReset', { resetLink }, userLanguage as 'ko' | 'es')
       
       await sendEmail({

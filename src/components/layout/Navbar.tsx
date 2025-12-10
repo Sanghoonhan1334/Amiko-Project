@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { trackCTAClick } from '@/lib/analytics'
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -16,7 +17,8 @@ export default function Navbar() {
   }
 
   const handleLoginSignup = () => {
-          router.push('/sign-in')
+    trackCTAClick('navbar_login_signup', window.location.href)
+    router.push('/sign-in')
   }
 
   const handleLogout = async () => {
@@ -83,7 +85,10 @@ export default function Navbar() {
               )}
             </div>
             <button 
-              onClick={handleMentorSignup}
+              onClick={() => {
+                trackCTAClick('navbar_mentor_signup', window.location.href)
+                handleMentorSignup()
+              }}
               className="mentor-signup-btn"
             >
               소통멘토가입

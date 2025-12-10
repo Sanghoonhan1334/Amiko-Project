@@ -18,6 +18,14 @@ function getTwilioClient(): Twilio {
       throw new Error('Twilio 계정 정보가 설정되지 않았습니다. TWILIO_ACCOUNT_SID와 TWILIO_AUTH_TOKEN을 환경변수에 설정해주세요.')
     }
     
+    // 디버깅: 환경 변수 확인 (민감 정보 마스킹)
+    console.log('[TWILIO_CLIENT] Twilio 클라이언트 생성:', {
+      accountSid: accountSid ? `${accountSid.substring(0, 4)}...${accountSid.substring(accountSid.length - 4)}` : '없음',
+      authToken: authToken ? `${authToken.substring(0, 4)}...${authToken.substring(authToken.length - 4)}` : '없음',
+      accountSidLength: accountSid?.length || 0,
+      authTokenLength: authToken?.length || 0
+    })
+    
     twilioClient = new Twilio(accountSid, authToken)
   }
   
@@ -197,9 +205,53 @@ export async function sendTwilioWhatsApp(to: string, message: string): Promise<b
       return true
     }
 
+    console.log(`[TWILIO_WHATSAPP] ========================================`)
+    console.log(`[TWILIO_WHATSAPP] 🚀 WhatsApp 발송 시도 시작`)
+    console.log(`[TWILIO_WHATSAPP] 받는번호: ${to}`)
+    console.log(`[TWILIO_WHATSAPP] 메시지: ${message}`)
+    
     const client = getTwilioClient()
-    const whatsappFrom = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886' // Twilio 샌드박스 번호
+    
+    // 환경 변수에서 WhatsApp 번호 가져오기
+    const whatsappFromEnv = process.env.TWILIO_WHATSAPP_FROM || process.env.TWILIO_WHATSAPP_NUMBER
+    console.log(`[TWILIO_WHATSAPP] 환경변수 확인:`, {
+      TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM ? `설정됨 (${process.env.TWILIO_WHATSAPP_FROM})` : '없음',
+      TWILIO_WHATSAPP_NUMBER: process.env.TWILIO_WHATSAPP_NUMBER ? `설정됨 (${process.env.TWILIO_WHATSAPP_NUMBER})` : '없음',
+      사용할_값: whatsappFromEnv || '없음'
+    })
+    
+    // 디버깅: 실제 환경 변수 값 확인
+    console.log(`[TWILIO_WHATSAPP] 디버깅 - 환경 변수 원본 값:`, {
+      'process.env.TWILIO_WHATSAPP_FROM': process.env.TWILIO_WHATSAPP_FROM,
+      'process.env.TWILIO_WHATSAPP_NUMBER': process.env.TWILIO_WHATSAPP_NUMBER
+    })
+    
+    let whatsappFrom: string
+    
+    // 환경 변수 번호가 있으면 그대로 사용 (WhatsApp Sender는 별도로 등록되므로 직접 사용)
+    if (whatsappFromEnv) {
+      // whatsapp: 접두사 확인 및 추가
+      if (whatsappFromEnv.startsWith('whatsapp:')) {
+        whatsappFrom = whatsappFromEnv
+        console.log(`[TWILIO_WHATSAPP] ✅ 환경변수 번호 사용 (whatsapp: 접두사 포함): ${whatsappFrom}`)
+      } else {
+        whatsappFrom = `whatsapp:${whatsappFromEnv}`
+        console.log(`[TWILIO_WHATSAPP] ✅ 환경변수 번호 사용 (whatsapp: 접두사 추가): ${whatsappFrom}`)
+      }
+    } else {
+      // 환경변수 번호가 없으면 샌드박스 번호 사용 (테스트용)
+      whatsappFrom = 'whatsapp:+14155238886'
+      console.warn(`[TWILIO_WHATSAPP] ⚠️  환경변수 번호가 없어 샌드박스 번호 사용: ${whatsappFrom}`)
+      console.warn(`[TWILIO_WHATSAPP] 샌드박스 번호는 테스트용이며, 실제 발송을 위해서는 .env.local에 TWILIO_WHATSAPP_NUMBER를 설정하세요.`)
+    }
+    
     const whatsappTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`
+    
+    console.log(`[TWILIO_WHATSAPP] 발송 요청:`, {
+      from: whatsappFrom,
+      to: whatsappTo,
+      message: message
+    })
     
     const result = await client.messages.create({
       body: message,
@@ -211,11 +263,44 @@ export async function sendTwilioWhatsApp(to: string, message: string): Promise<b
     console.log(`[TWILIO_WHATSAPP] 받는 번호: ${whatsappTo}`)
     console.log(`[TWILIO_WHATSAPP] 메시지: ${message}`)
     console.log(`[TWILIO_WHATSAPP] 상태: ${result.status}`)
+    console.log(`[TWILIO_WHATSAPP] ========================================`)
     
     return true
     
-  } catch (error) {
-    console.error('[TWILIO_WHATSAPP] 발송 실패:', error)
+  } catch (error: any) {
+    console.error('[TWILIO_WHATSAPP] ========================================')
+    console.error('[TWILIO_WHATSAPP] ❌ 발송 실패!')
+    console.error('[TWILIO_WHATSAPP] 받는번호:', to)
+    console.error('[TWILIO_WHATSAPP] 에러 타입:', error?.constructor?.name)
+    console.error('[TWILIO_WHATSAPP] TwilioError 상세:', {
+      status: error?.status,
+      code: error?.code,
+      moreInfo: error?.moreInfo,
+      message: error?.message
+    })
+    
+    // 특정 에러 코드에 대한 명확한 안내
+    if (error?.code === 20003) {
+      console.error('[TWILIO_WHATSAPP] ⚠️  에러 20003: Twilio 인증 실패!')
+      console.error('[TWILIO_WHATSAPP] Account SID 또는 Auth Token이 잘못되었거나 만료되었습니다.')
+      console.error('[TWILIO_WHATSAPP] 해결 방법:')
+      console.error('[TWILIO_WHATSAPP] 1. Twilio 콘솔(https://console.twilio.com/)에서 Account SID와 Auth Token을 확인하세요.')
+      console.error('[TWILIO_WHATSAPP] 2. .env.local 파일의 TWILIO_ACCOUNT_SID와 TWILIO_AUTH_TOKEN을 업데이트하세요.')
+      console.error('[TWILIO_WHATSAPP] 3. Auth Token이 만료되었을 수 있으니 새로 생성하세요.')
+      console.error('[TWILIO_WHATSAPP] 4. 개발 서버를 재시작하세요.')
+    } else if (error?.code === 21660) {
+      console.error('[TWILIO_WHATSAPP] ⚠️  에러 21660: 발신번호와 계정이 일치하지 않습니다.')
+      console.error('[TWILIO_WHATSAPP] 해결 방법:')
+      console.error('[TWILIO_WHATSAPP] 1. Twilio 콘솔(https://console.twilio.com/)에서 현재 계정의 WhatsApp 전화번호를 확인하세요.')
+      console.error('[TWILIO_WHATSAPP] 2. .env.local의 TWILIO_WHATSAPP_FROM을 계정에 등록된 번호로 변경하세요.')
+      console.error('[TWILIO_WHATSAPP] 3. 또는 Twilio 콘솔에서 WhatsApp 전화번호를 구매/등록하세요.')
+    }
+    
+    console.error('[TWILIO_WHATSAPP] 에러 상세:', {
+      message: error instanceof Error ? error.message : '알 수 없는 오류',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    console.error('[TWILIO_WHATSAPP] ========================================')
     return false
   }
 }

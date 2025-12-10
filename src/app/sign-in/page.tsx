@@ -19,7 +19,7 @@ import { checkWebAuthnSupport, startBiometricRegistration, startBiometricAuthent
 import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '@/components/ui/dialog'
 import { Fingerprint } from 'lucide-react'
-import { signInEvents } from '@/lib/analytics'
+import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick } from '@/lib/analytics'
 
 export default function SignInPage() {
   const BIOMETRIC_ENABLED = process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true'
@@ -138,6 +138,8 @@ export default function SignInPage() {
     signInEvents.startSignIn()
     // 로그인 퍼널 이벤트: 로그인 시도
     signInEvents.loginAttempt()
+    // Standardized event
+    trackLoginAttempt()
     setIsLoading(true)
 
     try {
@@ -163,17 +165,29 @@ export default function SignInPage() {
       
       // 로그인 퍼널 이벤트: 로그인 성공
       const userId = result.data?.user?.id || result.user?.id
+      const userEmail = result.data?.user?.email || result.user?.email
       signInEvents.signInSuccess(userId, 'email')
       signInEvents.loginSuccess(userId, 'email')
+      // Standardized event
+      trackLoginSuccess(userId, 'email')
       
       // API 응답 구조: result.data.user.id (이미 위에서 추출됨)
       console.log('[SIGNIN] 추출된 사용자 ID:', userId)
+      console.log('[SIGNIN] 추출된 사용자 이메일:', userEmail)
       
       // API가 실제 인증을 수행하므로, 클라이언트에서 추가 인증 시도 필요 없음
-      // 세션은 서버에서 쿠키로 설정되었으므로, 클라이언트 세션도 업데이트하기 위해 signIn 호출 (에러 무시)
-      await signIn(formData.identifier, formData.password).catch(err => {
+      // 세션은 서버에서 쿠키로 설정되었으므로, 클라이언트 세션도 업데이트하기 위해 signIn 호출
+      // 전화번호로 로그인한 경우 백엔드에서 찾은 이메일을 사용해야 함
+      const emailForSignIn = userEmail || formData.identifier
+      console.log('[SIGNIN] 클라이언트 세션 업데이트 시도:', {
+        원본_identifier: formData.identifier,
+        사용할_이메일: emailForSignIn,
+        전화번호_로그인: !formData.identifier.includes('@')
+      })
+      
+      await signIn(emailForSignIn, formData.password).catch(err => {
         // 이미 서버에서 인증되었으므로, 클라이언트 인증 실패는 무시
-        console.log('[SIGNIN] 클라이언트 세션 업데이트 시도 (이미 서버에서 인증됨)')
+        console.log('[SIGNIN] 클라이언트 세션 업데이트 시도 (이미 서버에서 인증됨):', err)
       })
       
       // 마지막 로그인 사용자 ID 저장
@@ -521,7 +535,11 @@ export default function SignInPage() {
             
             <p className="text-sm text-slate-600 dark:text-gray-400">
               {t('auth.noAccount')}{' '}
-              <a href="/sign-up" className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium">
+              <a 
+                href="/sign-up" 
+                onClick={() => trackCTAClick('signin_to_signup_link', window.location.href)}
+                className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium"
+              >
                 {t('auth.signUp')}
               </a>
             </p>

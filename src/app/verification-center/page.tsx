@@ -392,10 +392,12 @@ export default function VerificationCenterPage() {
     setLoading(true)
     
     try {
+      // 언어는 기존 사용자 언어를 유지하거나, formData에 명시적으로 설정된 경우에만 변경
+      // is_korean 기반으로 자동 변경하지 않음 (멕시코 국적 + 한국 전화번호 사용자 지원)
       const dataToSubmit = {
         ...formData,
         is_korean: isKorean, // 실제 한국인 여부 사용 (null일 수 있음)
-        language: isKorean === true ? 'ko' : isKorean === false ? 'es' : undefined, // null이면 undefined
+        language: formData.language || undefined, // 기존 언어 유지 (자동 변경하지 않음)
         is_verified: true, // 인증 완료 상태
         verification_completed: true // 인증 완료 플래그
       }
