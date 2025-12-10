@@ -30,45 +30,57 @@ function ResetPasswordForm() {
   // Supabase 클라이언트 생성
   const supabase = createSupabaseBrowserClient()
 
-  // Supabase 비밀번호 재설정 세션 처리
+  // 비밀번호 재설정 토큰/세션 처리
   useEffect(() => {
     const handlePasswordReset = async () => {
-      // URL 해시 파라미터 확인
+      // 1. 쿼리 파라미터에서 커스텀 토큰 확인 (?token=...)
+      const urlToken = searchParams.get('token')
+      
+      // 2. URL 해시 파라미터에서 Supabase 토큰 확인 (#access_token=...)
       const hashParams = new URLSearchParams(window.location.hash.substring(1))
       const accessToken = hashParams.get('access_token')
       const type = hashParams.get('type')
       
-      console.log('🔍 URL 해시 파라미터:', {
+      console.log('🔍 비밀번호 재설정 토큰 확인:', {
+        hasUrlToken: !!urlToken,
         hasHash: !!window.location.hash,
-        hash: window.location.hash,
         accessToken: accessToken ? '있음' : '없음',
-        type
+        type,
+        mode: urlToken ? '커스텀 토큰' : accessToken ? 'Supabase 해시' : '토큰 없음'
       })
 
-      // 세션 확인
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      console.log('📝 현재 세션:', {
-        hasSession: !!session,
-        sessionError: sessionError?.message
-      })
-
-      if (!session && accessToken && type === 'recovery') {
-        console.log('🔄 세션 설정 시도 중...')
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: hashParams.get('refresh_token') || ''
+      // Supabase 해시 방식인 경우 세션 설정
+      if (!urlToken && accessToken && type === 'recovery') {
+        // 세션 확인
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        console.log('📝 현재 세션:', {
+          hasSession: !!session,
+          sessionError: sessionError?.message
         })
-        
-        if (error) {
-          console.error('❌ 세션 설정 실패:', error)
-        } else {
-          console.log('✅ 세션 설정 성공')
+
+        if (!session) {
+          console.log('🔄 Supabase 세션 설정 시도 중...')
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: hashParams.get('refresh_token') || ''
+          })
+          
+          if (error) {
+            console.error('❌ 세션 설정 실패:', error)
+          } else {
+            console.log('✅ 세션 설정 성공')
+          }
         }
+      }
+      
+      // 커스텀 토큰 방식인 경우 세션 불필요 (API 호출 시 토큰 사용)
+      if (urlToken) {
+        console.log('✅ 커스텀 토큰 방식 - 세션 불필요')
       }
     }
     
     handlePasswordReset()
-  }, [])
+  }, [searchParams])
 
   const validatePassword = (password: string) => {
     const checks = {
@@ -89,15 +101,55 @@ function ResetPasswordForm() {
     try {
       if (password !== confirmPassword) {
         alert(t('auth.resetPassword.passwordMismatch'))
+        setIsLoading(false)
         return
       }
 
       if (!isPasswordValid) {
         alert(t('auth.resetPassword.passwordRequirements'))
+        setIsLoading(false)
         return
       }
 
+      // 1. 커스텀 토큰 방식 확인 (?token=...)
+      const urlToken = searchParams.get('token')
+      
+      if (urlToken) {
+        // 커스텀 토큰 방식: API를 통해 비밀번호 재설정
+        console.log('🔄 커스텀 토큰 방식으로 비밀번호 재설정 시도')
+        const response = await fetch('/api/auth/reset-password/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: urlToken,
+            password: password
+          })
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || t('auth.resetPassword.resetFailed'))
+        }
+
+        console.log('✅ 커스텀 토큰 방식 비밀번호 재설정 성공')
+        setIsSuccess(true)
+        
+        // 성공 후 2초 뒤에 로그인 페이지로 자동 이동
+        setTimeout(() => {
+          router.push('/sign-in')
+        }, 2000)
+        return
+      }
+
+      // 2. Supabase 해시 방식 (#access_token=...)
       // Supabase는 자동으로 세션을 설정하므로 직접 updateUser 호출
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        throw new Error('Auth session missing! 비밀번호 재설정 링크가 유효하지 않습니다.')
+      }
+
       const { data, error } = await supabase.auth.updateUser({
         password: password
       })
@@ -106,7 +158,7 @@ function ResetPasswordForm() {
         throw new Error(error.message || t('auth.resetPassword.resetFailed'))
       }
 
-      console.log('✅ 비밀번호 재설정 성공:', data)
+      console.log('✅ Supabase 방식 비밀번호 재설정 성공:', data)
       setIsSuccess(true)
       
       // 성공 후 2초 뒤에 로그인 페이지로 자동 이동
