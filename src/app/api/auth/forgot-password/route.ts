@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
-import { sendEmail, createEmailTemplate } from '@/lib/emailService'
+import { sendPasswordResetEmail } from '@/lib/emailService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,35 +49,30 @@ export async function POST(request: NextRequest) {
     // 사용자의 언어 설정 사용 (없으면 요청에서 받은 언어 사용)
     const userLanguage = userData.language || language
 
-    // Supabase Auth로 비밀번호 재설정 토큰 생성
+    // 커스텀 비밀번호 재설정 토큰 생성 (Supabase Auth 완전 우회)
+    // Supabase의 resetPasswordForEmail을 호출하지 않음으로써 기본 이메일 발송 방지
+    const resetToken = Buffer.from(`${email}:${Date.now()}`).toString('base64')
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://helloamiko.com'
-    const { error } = await supabaseServer.auth.resetPasswordForEmail(email, {
-      redirectTo: `${baseUrl}/reset-password`,
+    const resetLink = `${baseUrl}/reset-password?token=${resetToken}`
+
+    console.log('[FORGOT_PASSWORD] 커스텀 비밀번호 재설정 토큰 생성 (Supabase 기본 이메일 우회):', { 
+      email,
+      resetLink,
+      language: userLanguage
     })
 
-    if (error) {
-      console.error('[FORGOT_PASSWORD] 비밀번호 재설정 실패:', error)
+    // 커스텀 이메일만 발송 (언어별) - Supabase 기본 이메일 완전 우회
+    const emailSent = await sendPasswordResetEmail(email, resetLink, userLanguage as 'ko' | 'es')
+
+    if (!emailSent) {
+      console.error('[FORGOT_PASSWORD] 커스텀 이메일 발송 실패')
       return NextResponse.json(
-        { error: language === 'es' ? 'Error al solicitar restablecimiento de contraseña.' : '비밀번호 재설정 요청에 실패했습니다.' },
+        { error: userLanguage === 'es' ? 'Error al enviar el email de restablecimiento de contraseña.' : '비밀번호 재설정 이메일 발송에 실패했습니다.' },
         { status: 500 }
       )
     }
 
-    // 커스텀 이메일 발송 (언어별)
-    try {
-      const resetLink = `${baseUrl}/reset-password`
-      const emailTemplate = createEmailTemplate('passwordReset', { resetLink }, userLanguage as 'ko' | 'es')
-      
-      await sendEmail({
-        to: email,
-        template: emailTemplate
-      })
-      
-      console.log(`✅ [FORGOT_PASSWORD] ${userLanguage} 언어로 비밀번호 재설정 이메일 발송 완료: ${email}`)
-    } catch (emailError) {
-      console.error('❌ [FORGOT_PASSWORD] 커스텀 이메일 발송 실패:', emailError)
-      // Supabase Auth 이메일은 이미 발송되었으므로 계속 진행
-    }
+    console.log(`✅ [FORGOT_PASSWORD] ${userLanguage} 언어로 커스텀 비밀번호 재설정 이메일 발송 성공 (Supabase 기본 이메일 우회): ${email}`)
 
     return NextResponse.json({
       success: true,
