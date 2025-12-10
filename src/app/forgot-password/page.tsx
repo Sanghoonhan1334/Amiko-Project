@@ -14,7 +14,7 @@ type TabType = 'email' | 'phone' | 'find-email'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [activeTab, setActiveTab] = useState<TabType>('email')
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -409,7 +409,7 @@ export default function ForgotPasswordPage() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="nationality" className="text-sm font-medium text-slate-700">
-                      국가
+                      {t('auth.forgotPassword.country')}
                     </Label>
                     <select
                       id="nationality"
