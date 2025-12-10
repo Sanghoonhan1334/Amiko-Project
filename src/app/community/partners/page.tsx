@@ -367,7 +367,7 @@ export default function PartnersPage() {
                                     href="https://www.instagram.com/_parafans_"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute left-[10%] top-[38%] w-[80%] h-[5%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    className="absolute left-[10%] top-[18%] w-[80%] h-[10%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
                                     title="Instagram: @_parafans_"
                                     onClick={(e) => e.stopPropagation()}
                                   />
@@ -377,7 +377,7 @@ export default function PartnersPage() {
                                     href="https://www.facebook.com/parafanscol"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute left-[10%] top-[44%] w-[80%] h-[5%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    className="absolute left-[10%] top-[30%] w-[80%] h-[10%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
                                     title="Facebook: parafanscol"
                                     onClick={(e) => e.stopPropagation()}
                                   />
@@ -387,7 +387,7 @@ export default function PartnersPage() {
                                     href="https://www.parafansk.com"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute left-[10%] top-[50%] w-[80%] h-[5%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    className="absolute left-[10%] top-[42%] w-[80%] h-[10%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
                                     title="Website: www.parafansk.com"
                                     onClick={(e) => e.stopPropagation()}
                                   />
