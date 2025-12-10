@@ -404,7 +404,7 @@ export default function ForgotPasswordPage() {
                     />
                   </div>
                 </div>
-              ) : activeTab === 'phone' || activeTab === 'find-email' ? (
+              ) : (activeTab === 'phone' || activeTab === 'find-email') ? (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="nationality" className="text-sm font-medium text-slate-700">
@@ -451,7 +451,7 @@ export default function ForgotPasswordPage() {
                     </p>
                   </div>
                 </>
-              )}
+              ) : null}
 
               <Button
                 type="submit"
