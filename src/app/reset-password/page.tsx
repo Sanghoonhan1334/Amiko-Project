@@ -20,6 +20,8 @@ function ResetPasswordForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null)
+  const [tokenError, setTokenError] = useState<string | null>(null)
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     hasNumber: false,
@@ -30,7 +32,7 @@ function ResetPasswordForm() {
   // Supabase 클라이언트 생성
   const supabase = createSupabaseBrowserClient()
 
-  // 비밀번호 재설정 토큰/세션 처리
+  // 비밀번호 재설정 토큰/세션 처리 및 유효성 검증
   useEffect(() => {
     const handlePasswordReset = async () => {
       // 1. 쿼리 파라미터에서 커스텀 토큰 확인 (?token=...)
@@ -49,8 +51,44 @@ function ResetPasswordForm() {
         mode: urlToken ? '커스텀 토큰' : accessToken ? 'Supabase 해시' : '토큰 없음'
       })
 
+      // 커스텀 토큰 방식인 경우 토큰 유효성 검증
+      if (urlToken) {
+        console.log('✅ 커스텀 토큰 방식 - 토큰 유효성 검증 중...')
+        try {
+          // 토큰 디코딩하여 형식 확인
+          const decodedToken = Buffer.from(urlToken, 'base64').toString('utf-8')
+          const [tokenEmail, timestamp] = decodedToken.split(':')
+          
+          if (!tokenEmail || !timestamp) {
+            throw new Error('Invalid token format')
+          }
+          
+          // 토큰 만료 확인 (24시간)
+          const tokenTime = parseInt(timestamp)
+          const now = Date.now()
+          const tokenAge = now - tokenTime
+          const maxAge = 24 * 60 * 60 * 1000 // 24시간
+          
+          if (tokenAge > maxAge) {
+            setIsTokenValid(false)
+            setTokenError('비밀번호 재설정 링크가 만료되었습니다. 다시 요청해주세요.')
+            console.error('❌ 토큰 만료:', { tokenAge: Math.round(tokenAge / 1000 / 60) + '분' })
+            return
+          }
+          
+          setIsTokenValid(true)
+          setTokenError(null)
+          console.log('✅ 커스텀 토큰 유효:', { email: tokenEmail, tokenAge: Math.round(tokenAge / 1000 / 60) + '분 전' })
+        } catch (error) {
+          setIsTokenValid(false)
+          setTokenError('유효하지 않은 비밀번호 재설정 링크입니다.')
+          console.error('❌ 토큰 디코딩 실패:', error)
+          return
+        }
+      }
       // Supabase 해시 방식인 경우 세션 설정
-      if (!urlToken && accessToken && type === 'recovery') {
+      else if (accessToken && type === 'recovery') {
+        console.log('🔄 Supabase 해시 방식 - 세션 설정 시도 중...')
         // 세션 확인
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         console.log('📝 현재 세션:', {
@@ -67,20 +105,28 @@ function ResetPasswordForm() {
           
           if (error) {
             console.error('❌ 세션 설정 실패:', error)
+            setIsTokenValid(false)
+            setTokenError('비밀번호 재설정 링크가 유효하지 않습니다.')
           } else {
             console.log('✅ 세션 설정 성공')
+            setIsTokenValid(true)
+            setTokenError(null)
           }
+        } else {
+          setIsTokenValid(true)
+          setTokenError(null)
         }
       }
-      
-      // 커스텀 토큰 방식인 경우 세션 불필요 (API 호출 시 토큰 사용)
-      if (urlToken) {
-        console.log('✅ 커스텀 토큰 방식 - 세션 불필요')
+      // 토큰이 없는 경우
+      else {
+        setIsTokenValid(false)
+        setTokenError('비밀번호 재설정 링크가 없거나 유효하지 않습니다. 이메일에서 링크를 다시 확인해주세요.')
+        console.error('❌ 토큰 없음')
       }
     }
     
     handlePasswordReset()
-  }, [searchParams])
+  }, [searchParams, supabase])
 
   const validatePassword = (password: string) => {
     const checks = {
@@ -147,7 +193,7 @@ function ResetPasswordForm() {
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session) {
-        throw new Error('Auth session missing! 비밀번호 재설정 링크가 유효하지 않습니다.')
+        throw new Error('비밀번호 재설정 링크가 유효하지 않습니다. 세션이 없습니다.')
       }
 
       const { data, error } = await supabase.auth.updateUser({
@@ -195,6 +241,66 @@ function ResetPasswordForm() {
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white"
               >
 {t('auth.resetPassword.login')}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  // 토큰 유효성 검증 중
+  if (isTokenValid === null) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 pt-44">
+        <div className="flex justify-center">
+          <Card className="w-full max-w-md bg-white border shadow-lg">
+            <CardHeader className="text-center space-y-4 pb-6">
+              <CardTitle className="text-2xl font-semibold text-slate-900">
+                {t('auth.resetPassword.setNewPassword')}
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                링크 확인 중...
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex justify-center">
+                <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  // 토큰이 유효하지 않은 경우
+  if (isTokenValid === false) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 pt-44">
+        <div className="flex justify-center">
+          <Card className="w-full max-w-md bg-white border shadow-lg">
+            <CardHeader className="text-center space-y-4 pb-6">
+              <CardTitle className="text-2xl font-semibold text-red-600">
+                링크 오류
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                {tokenError || '비밀번호 재설정 링크가 유효하지 않습니다.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Button
+                onClick={() => router.push('/forgot-password')}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+              >
+                비밀번호 재설정 링크 다시 받기
+              </Button>
+              <Button
+                onClick={() => router.push('/sign-in')}
+                variant="outline"
+                className="w-full"
+              >
+                로그인 페이지로 돌아가기
               </Button>
             </CardContent>
           </Card>
