@@ -34,9 +34,9 @@ function CheckoutContent() {
   const { user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const bookingId = searchParams.get('bookingId')
-  
+
   const [booking, setBooking] = useState<Booking | null>(null)
   const [consultant, setConsultant] = useState<Consultant | null>(null)
   const [loading, setLoading] = useState(true)
@@ -255,7 +255,7 @@ function CheckoutContent() {
               <p className="text-sm text-gray-600 mt-3">
                 결제 완료 후 예약이 확정됩니다.
               </p>
-              
+
               {/* 실제 결제 안내 */}
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center justify-center text-sm text-green-700">

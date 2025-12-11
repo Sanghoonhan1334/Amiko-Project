@@ -9,11 +9,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import SplashSequence from '@/components/splash/SplashSequence'
-import { 
-  Calendar, 
-  Users, 
-  TrendingUp, 
-  Eye, 
+import {
+  Calendar,
+  Users,
+  TrendingUp,
+  Eye,
   Clock,
   Heart,
   MessageSquare,
@@ -121,11 +121,11 @@ export default function HomeTab() {
   const { user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   // 스플래시 애니메이션 상태
   const [showSplash, setShowSplash] = useState(false)
   const [isClient, setIsClient] = useState(false)
-  
+
   const [currentEvents, setCurrentEvents] = useState<Event[]>([])
   const [hotPosts, setHotPosts] = useState<HotPost[]>([])
   const [popularTests, setPopularTests] = useState<PopularTest[]>([])
@@ -145,19 +145,19 @@ export default function HomeTab() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
   const [dragStartY, setDragStartY] = useState(0)
-  
+
   // 스토리 뷰어 상태
   const [showStoryViewer, setShowStoryViewer] = useState(false)
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0)
   const [viewerStories, setViewerStories] = useState<RecentStory[]>([])
-  
+
   // 스플래시 애니메이션 초기화
   useEffect(() => {
     setIsClient(true)
-    
+
     // URL에 splash=true가 있으면 스플래시 표시 (로고 클릭)
     const shouldShowSplash = searchParams.get('splash') === 'true'
-    
+
     if (shouldShowSplash) {
       setShowSplash(true)
       // URL에서 쿼리 파라미터 제거
@@ -166,14 +166,14 @@ export default function HomeTab() {
       // 초기 로드 시에만 스플래시 표시 (하루에 한 번만)
       const lastSplashDate = localStorage.getItem('amiko_last_splash_date')
       const today = new Date().toDateString()
-      
+
       if (lastSplashDate !== today) {
         setShowSplash(true)
         localStorage.setItem('amiko_last_splash_date', today)
       }
     }
   }, [searchParams, router])
-  
+
   // 스플래시 표시 시 body에 클래스 추가/제거
   useEffect(() => {
     if (showSplash) {
@@ -181,16 +181,16 @@ export default function HomeTab() {
     } else {
       document.body.classList.remove('splash-active')
     }
-    
+
     return () => {
       document.body.classList.remove('splash-active')
     }
   }, [showSplash])
-  
+
   const handleSplashComplete = () => {
     setShowSplash(false)
   }
-  
+
 
   // 이벤트 자동 슬라이드
   useEffect(() => {
@@ -217,17 +217,17 @@ export default function HomeTab() {
 
   const handleMouseUp = (e: React.MouseEvent) => {
     if (!isDragging) return
-    
+
     const deltaX = e.clientX - dragStartX
     const deltaY = Math.abs(e.clientY - dragStartY)
-    
+
     // 수직 드래그가 수평 드래그보다 크면 무시 (페이지 스크롤 방지)
     if (deltaY > Math.abs(deltaX)) {
       setIsDragging(false)
       setTimeout(() => setIsAutoSliding(true), 3000)
       return
     }
-    
+
     if (Math.abs(deltaX) > 50) { // 최소 드래그 거리
       if (deltaX > 0) {
         // 오른쪽으로 드래그 - 이전 이벤트
@@ -237,7 +237,7 @@ export default function HomeTab() {
         setCurrentEventIndex((prev) => (prev + 1) % currentEvents.length)
       }
     }
-    
+
     setIsDragging(false)
     setTimeout(() => setIsAutoSliding(true), 3000)
   }
@@ -254,13 +254,13 @@ export default function HomeTab() {
     const touch = e.changedTouches[0]
     const deltaX = touch.clientX - dragStartX
     const deltaY = Math.abs(touch.clientY - dragStartY)
-    
+
     // 수직 스와이프가 수평 스와이프보다 크면 무시
     if (deltaY > Math.abs(deltaX)) {
       setTimeout(() => setIsAutoSliding(true), 3000)
       return
     }
-    
+
     if (Math.abs(deltaX) > 50) { // 최소 스와이프 거리
       if (deltaX > 0) {
         // 오른쪽으로 스와이프 - 이전 이벤트
@@ -270,7 +270,7 @@ export default function HomeTab() {
         setCurrentEventIndex((prev) => (prev + 1) % currentEvents.length)
       }
     }
-    
+
     setTimeout(() => setIsAutoSliding(true), 3000)
   }
 
@@ -290,7 +290,7 @@ export default function HomeTab() {
           participants: 0
         }
       ]
-      
+
       setCurrentEvents(mockEvents)
     } catch (error) {
       console.error('이벤트 로딩 실패:', error)
@@ -301,19 +301,19 @@ export default function HomeTab() {
   const loadHotPosts = async () => {
     try {
       console.log('Loading hot posts from database...')
-      
+
       // 실제 데이터베이스에서 인기글(is_hot = true 또는 좋아요 많은 글) 가져오기
       const response = await fetch('/api/posts/popular?filter=hot&limit=5')
-      
+
       console.log('Response status:', response.status)
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch hot posts')
       }
-      
+
       const data = await response.json()
       console.log('API Response:', data)
-      
+
       console.log('[loadHotPosts] 🔍 API 응답 데이터 분석:', {
         hasPosts: !!data.posts,
         isArray: Array.isArray(data.posts),
@@ -324,7 +324,7 @@ export default function HomeTab() {
       if (data.posts && Array.isArray(data.posts)) {
         // 공지사항 제외 필터링
         const filteredPosts = data.posts.filter((post: any) => !post.is_notice)
-        
+
         // 데이터 포맷팅
         const formattedPosts = filteredPosts.map((post: any) => {
           console.log('[loadHotPosts] 📝 포스트 처리:', {
@@ -333,16 +333,16 @@ export default function HomeTab() {
             is_notice: post.is_notice,
             category: post.category
           })
-          
+
           // 카테고리 이름 설정
           let categoryName = post.category || (language === 'ko' ? '자유' : 'Libre')
-          
+
           // 작성자 이름 처리 ('익명' 번역)
           let authorName = post.user?.korean_name || post.user?.spanish_name || post.user?.full_name || (language === 'ko' ? '익명' : 'Anónimo')
           if (authorName === '익명') {
             authorName = language === 'ko' ? '익명' : 'Anónimo'
           }
-          
+
           return {
             id: post.id,
             title: post.title,
@@ -355,17 +355,17 @@ export default function HomeTab() {
             category: categoryName
           }
         })
-        
+
         console.log('[loadHotPosts] ✅ 포맷팅 완료 (공지사항 제외):', formattedPosts.length, '개')
         console.log('[loadHotPosts] 📋 첫 번째 포스트:', formattedPosts[0])
-        
+
         // 5개로 제한
         setHotPosts(formattedPosts.slice(0, 5))
       } else {
         console.log('[loadHotPosts] ❌ posts 배열 없음 또는 빈 배열')
         setHotPosts([])
       }
-      
+
     } catch (error) {
       console.error('핫 포스트 로딩 실패:', error)
       setHotPosts([])
@@ -391,7 +391,7 @@ export default function HomeTab() {
             }))
             // 참여자 순으로 정렬
             .sort((a: any, b: any) => b.participants - a.participants)
-          
+
           // 1줄(3개)만 표시
           setPopularTests(formattedTests.slice(0, 3))
         } else {
@@ -410,7 +410,7 @@ export default function HomeTab() {
     try {
       // 온라인 사용자 API 호출
       const response = await fetch('/api/users/online')
-      
+
       if (!response.ok) {
         console.error('온라인 사용자 API 응답 오류:', response.status)
         setOnlineUsers([])
@@ -422,7 +422,7 @@ export default function HomeTab() {
 
       // API에서 받은 실제 데이터 사용
       setOnlineUsers(users)
-      
+
       console.log('온라인 사용자 로딩 완료:', users)
     } catch (error) {
       console.error('온라인 사용자 로딩 실패:', error)
@@ -436,24 +436,24 @@ export default function HomeTab() {
       setRecentStories([])
       return
     }
-    
+
     try {
       console.log('Loading recent stories...')
-      
+
       const response = await fetch('/api/stories?isPublic=true&limit=6')
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch stories: ${response.status}`)
       }
-      
+
       const data = await response.json()
-      
+
       if (data.stories && data.stories.length > 0) {
         setRecentStories(data.stories)
       } else {
         setRecentStories([])
       }
-      
+
     } catch (error) {
       console.error('최근 스토리 로딩 실패:', error)
       setRecentStories([])
@@ -463,14 +463,14 @@ export default function HomeTab() {
   const loadNotices = async () => {
     try {
       const response = await fetch('/api/posts?is_notice=true&limit=10&sort=created_at')
-      
+
       if (!response.ok) {
         setNotices([])
         return
       }
-      
+
       const data = await response.json()
-      
+
       if (data.posts && data.posts.length > 0) {
         // 데이터 포맷팅
         const formattedNotices = data.posts.slice(0, 3).map((post: any) => {
@@ -479,7 +479,7 @@ export default function HomeTab() {
           if (authorName === '익명') {
             authorName = language === 'ko' ? '익명' : 'Anónimo'
           }
-          
+
           return {
             id: post.id,
             title: post.title,
@@ -492,12 +492,12 @@ export default function HomeTab() {
             category: post.category || '공지사항'
           }
         })
-        
+
         setNotices(formattedNotices)
       } else {
         setNotices([])
       }
-      
+
     } catch (error) {
       setNotices([])
     }
@@ -508,7 +508,7 @@ export default function HomeTab() {
     const date = new Date(dateString)
     const now = new Date()
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
-    
+
     if (diffInMinutes < 60) {
       return language === 'ko' ? `${diffInMinutes}분 전` : `hace ${diffInMinutes} min`
     } else if (diffInMinutes < 1440) {
@@ -569,14 +569,14 @@ export default function HomeTab() {
           const filteredRooms = chatRoomData.rooms.filter((room: any) => {
             const name = room.name?.toLowerCase() || ''
             const description = room.description?.toLowerCase() || ''
-            const isAmikoRoom = 
-              name.includes('amiko') || name.includes('아미코') || 
+            const isAmikoRoom =
+              name.includes('amiko') || name.includes('아미코') ||
               name.includes('equipo') || name.includes('administradores') ||
               description.includes('amiko') || description.includes('아미코') ||
               description.includes('administradores coreanos')
             return !isAmikoRoom && room.type === 'fanclub' && room.is_active !== false
           })
-          
+
           // 최근 업데이트된 순으로 정렬하고 최대 3개만 표시
           const sortedRooms = filteredRooms
             .sort((a: any, b: any) => {
@@ -585,7 +585,7 @@ export default function HomeTab() {
               return dateB - dateA
             })
             .slice(0, 3)
-          
+
           if (sortedRooms.length > 0) {
             const formattedChatRooms = sortedRooms.map((room: any) => ({
               id: room.id,
@@ -614,7 +614,7 @@ export default function HomeTab() {
               const imageUrl = poll.image_url || poll.options?.[0]?.image_url
               // placeholder 이미지는 null로 처리
               const validImageUrl = (imageUrl && !imageUrl.includes('placeholder')) ? imageUrl : null
-              
+
               return {
                 id: poll.id,
                 title: poll.question || poll.title,
@@ -634,10 +634,10 @@ export default function HomeTab() {
   const loadKNoticiaNews = async () => {
     try {
       const response = await fetch('/api/news?limit=5')
-      
+
       if (response.ok) {
         const data = await response.json()
-        
+
         if (data.success && data.newsItems && data.newsItems.length > 0) {
           const formattedNews = data.newsItems.map((news: any) => ({
             id: news.id,
@@ -683,7 +683,7 @@ export default function HomeTab() {
           url: 'https://www.youtube.com/watch?v=do4aDyGZmgM'
         }
       ]
-      
+
       setYoutubeVideos(videos)
       console.log('✅ YouTube 영상 로드 완료 (하드코딩):', videos.length, '개')
     } catch (error) {
@@ -731,7 +731,7 @@ export default function HomeTab() {
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
@@ -791,7 +791,7 @@ export default function HomeTab() {
           <Skeleton className="h-6 w-32" />
           <Skeleton className="h-32 w-full rounded-lg" />
         </div>
-        
+
         {/* 온라인 사용자 스켈레톤 */}
         <div className="space-y-3">
           <Skeleton className="h-6 w-24" />
@@ -801,7 +801,7 @@ export default function HomeTab() {
             ))}
           </div>
         </div>
-        
+
         {/* 핫 포스트 스켈레톤 */}
         <div className="space-y-3">
           <Skeleton className="h-6 w-28" />
@@ -809,7 +809,7 @@ export default function HomeTab() {
             <Skeleton key={i} className="h-20 w-full rounded-lg" />
           ))}
         </div>
-        
+
         {/* 인기 테스트 스켈레톤 */}
         <div className="space-y-3">
           <Skeleton className="h-6 w-32" />
@@ -827,7 +827,7 @@ export default function HomeTab() {
     <>
       {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 p-4">
-      
+
       {/* 공지사항 - 맨 위에 배치 */}
       {/* 현재 진행 이벤트 */}
       <div className="space-y-3">
@@ -837,11 +837,11 @@ export default function HomeTab() {
             {t('home.sections.currentEvents')}
           </h2>
         </div>
-        
+
         {currentEvents.length > 0 ? (
           <Card className="relative overflow-hidden rounded-lg">
             <CardContent className="p-0">
-              <div 
+              <div
                 id="event-container"
                 className="relative h-40 md:h-32 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                 onMouseDown={handleMouseDown}
@@ -851,7 +851,7 @@ export default function HomeTab() {
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
-                <div 
+                <div
                   className="flex transition-transform duration-700 ease-in-out"
                   style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                 >
@@ -880,7 +880,7 @@ export default function HomeTab() {
                   ))}
                 </div>
               </div>
-              
+
               {/* 이벤트 인디케이터 */}
               {currentEvents.length > 1 && (
                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
@@ -895,7 +895,7 @@ export default function HomeTab() {
                   ))}
                 </div>
               )}
-              
+
             </CardContent>
           </Card>
         ) : (
@@ -918,14 +918,14 @@ export default function HomeTab() {
             {t('home.sections.announcements')}
           </h2>
         </div>
-        
+
         {/* 공지사항 목록 - 실제 데이터 */}
         <div className="space-y-2">
           {notices.length > 0 ? (
             notices.map((notice) => (
-              <Card 
+              <Card
                 key={notice.id}
-                className="cursor-pointer hover:bg-gray-50 transition-colors" 
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => router.push(`/community/post/${notice.id}?from=home`)}
               >
                 <CardContent className="py-1 px-3">
@@ -989,14 +989,14 @@ export default function HomeTab() {
             {language === 'ko' ? '더 보기' : 'Ver Más'}
           </Button>
         </div>
-        
+
         {hotPosts.length > 0 ? (
           <Card className="border-l-4 border-l-red-500">
             <CardContent className="p-0">
               <div className="divide-y">
                 {hotPosts.map((post, index) => (
-                  <div 
-                    key={post.id} 
+                  <div
+                    key={post.id}
                     className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
                     onClick={() => router.push(`/community/post/${post.id}?from=home`)}
                   >
@@ -1056,12 +1056,12 @@ export default function HomeTab() {
             {language === 'ko' ? '더 보기' : 'Ver Más'}
           </Button>
         </div>
-        
+
         {popularTests.length > 0 ? (
           <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
             {popularTests.map((test) => (
-              <div 
-                key={test.id} 
+              <div
+                key={test.id}
                 className="cursor-pointer group"
                 onClick={() => router.push(test.route || '/community/tests')}
               >
@@ -1072,11 +1072,11 @@ export default function HomeTab() {
                     className="w-full h-32 md:h-48 lg:h-56 xl:h-64 object-contain rounded-lg"
                   />
                 </div>
-                
+
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
                   {test.title}
                 </h3>
-                
+
                 <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                   <Play className="w-3 h-3" />
                   <span>{formatNumber(test.participants)}{language === 'ko' ? '명' : ''}</span>
@@ -1102,16 +1102,16 @@ export default function HomeTab() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img 
-                src="/icons/Fan art.png" 
-                alt="팬아트" 
+              <img
+                src="/icons/Fan art.png"
+                alt="팬아트"
                 className="w-8 h-8 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.fanArt')}
               </h2>
             </div>
-            <button 
+            <button
               onClick={() => router.push('/community/fanart')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
@@ -1119,13 +1119,13 @@ export default function HomeTab() {
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          
+
           <Card>
             <CardContent className="p-2">
               <div className="grid grid-cols-2 gap-2">
                 {fanArtPosts.length > 0 ? (
                   fanArtPosts.slice(0, 4).map((post) => (
-                    <div 
+                    <div
                       key={post.id}
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/fanart/${post.id}?from=home`)}
@@ -1148,9 +1148,9 @@ export default function HomeTab() {
                   ))
                 ) : (
                   <div className="col-span-2 text-center py-4">
-                    <img 
-                      src="/icons/Fan art.png" 
-                      alt="팬아트" 
+                    <img
+                      src="/icons/Fan art.png"
+                      alt="팬아트"
                       className="w-8 h-8 mx-auto mb-2 opacity-40"
                     />
                     <p className="text-gray-500 text-xs">
@@ -1167,16 +1167,16 @@ export default function HomeTab() {
         <div className="space-y-2 pt-16 md:pt-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img 
-                src="/icons/Foto de idol.png" 
-                alt="아이돌 사진" 
+              <img
+                src="/icons/Foto de idol.png"
+                alt="아이돌 사진"
                 className="w-8 h-8 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.idolPhotos')}
               </h2>
             </div>
-            <button 
+            <button
               onClick={() => router.push('/community/idol-photos')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
@@ -1184,13 +1184,13 @@ export default function HomeTab() {
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          
+
           <Card>
             <CardContent className="p-2">
               <div className="grid grid-cols-2 gap-2">
                 {idolPhotoPosts.length > 0 ? (
                   idolPhotoPosts.slice(0, 4).map((post) => (
-                    <div 
+                    <div
                       key={post.id}
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/idol-photos/${post.id}?from=home`)}
@@ -1213,9 +1213,9 @@ export default function HomeTab() {
                   ))
                 ) : (
                   <div className="col-span-2 text-center py-4">
-                    <img 
-                      src="/icons/Foto de idol.png" 
-                      alt="아이돌 사진" 
+                    <img
+                      src="/icons/Foto de idol.png"
+                      alt="아이돌 사진"
                       className="w-8 h-8 mx-auto mb-2 opacity-40"
                     />
                     <p className="text-gray-500 text-xs">
@@ -1242,7 +1242,7 @@ export default function HomeTab() {
             {onlineUsers.length}{language === 'ko' ? '명' : ''}
           </Badge>
         </div>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3 overflow-x-auto">
@@ -1288,16 +1288,16 @@ export default function HomeTab() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img 
-                src="/icons/Zona de K-Cultura.png" 
-                alt="K-Culture Zone" 
+              <img
+                src="/icons/Zona de K-Cultura.png"
+                alt="K-Culture Zone"
                 className="w-5 h-5 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.hotChatRooms')}
               </h2>
             </div>
-            <button 
+            <button
               onClick={() => router.push('/community/k-chat')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
@@ -1305,13 +1305,13 @@ export default function HomeTab() {
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          
+
           <Card>
             <CardContent className="p-2">
               {hotChatRooms.length > 0 ? (
                 <div className="space-y-2">
                   {hotChatRooms.map((room) => (
-                    <div 
+                    <div
                       key={room.id}
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/k-chat/${room.id}?from=home`)}
@@ -1339,9 +1339,9 @@ export default function HomeTab() {
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <img 
-                    src="/icons/Zona de K-Cultura.png" 
-                    alt="K-Culture Zone" 
+                  <img
+                    src="/icons/Zona de K-Cultura.png"
+                    alt="K-Culture Zone"
                     className="w-8 h-8 mx-auto mb-2 opacity-40"
                   />
                   <p className="text-gray-500 text-xs">
@@ -1357,16 +1357,16 @@ export default function HomeTab() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img 
-                src="/icons/Zona de K-Cultura.png" 
-                alt="K-Culture Zone" 
+              <img
+                src="/icons/Zona de K-Cultura.png"
+                alt="K-Culture Zone"
                 className="w-5 h-5 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.currentPolls')}
               </h2>
             </div>
-            <button 
+            <button
               onClick={() => router.push('/community/polls')}
               className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
             >
@@ -1374,13 +1374,13 @@ export default function HomeTab() {
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          
+
           <Card>
             <CardContent className="p-2">
               <div className="grid grid-cols-2 gap-2">
                 {currentPolls.length > 0 ? (
                   currentPolls.slice(0, 4).map((poll) => (
-                    <div 
+                    <div
                       key={poll.id}
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/polls`)}
@@ -1413,9 +1413,9 @@ export default function HomeTab() {
                   ))
                 ) : (
                   <div className="col-span-2 text-center py-4">
-                    <img 
-                      src="/icons/Zona de K-Cultura.png" 
-                      alt="K-Culture Zone" 
+                    <img
+                      src="/icons/Zona de K-Cultura.png"
+                      alt="K-Culture Zone"
                       className="w-8 h-8 mx-auto mb-2 opacity-40"
                     />
                     <p className="text-gray-500 text-xs">
@@ -1434,9 +1434,9 @@ export default function HomeTab() {
       <div className="space-y-3 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Image 
-                src="/icons/k-magazine.png" 
-                alt="K-Noticia" 
+              <Image
+                src="/icons/k-magazine.png"
+                alt="K-Noticia"
                 width={20}
                 height={20}
                 className="object-contain mr-2"
@@ -1446,7 +1446,7 @@ export default function HomeTab() {
                 {t('home.sections.kNoticia')}
               </h2>
             </div>
-          <button 
+          <button
             onClick={() => router.push('/community/news')}
             className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
           >
@@ -1460,7 +1460,7 @@ export default function HomeTab() {
             <div className="divide-y">
               {kNoticiaNews.length > 0 ? (
                 kNoticiaNews.map((news) => (
-                  <div 
+                  <div
                     key={news.id}
                     className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
                     onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
@@ -1491,9 +1491,9 @@ export default function HomeTab() {
                 ))
               ) : (
                 <div className="text-center py-4">
-                  <Image 
-                    src="/icons/k-magazine.png" 
-                    alt="K-Noticia" 
+                  <Image
+                    src="/icons/k-magazine.png"
+                    alt="K-Noticia"
                     width={32}
                     height={32}
                     className="mx-auto mb-2 opacity-40"
@@ -1513,16 +1513,16 @@ export default function HomeTab() {
         <div className="space-y-3 md:hidden">
         <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <img 
-            src="/icons/story.png" 
-            alt="Stories" 
+          <img
+            src="/icons/story.png"
+            alt="Stories"
             className="w-5 h-5 object-contain mr-2"
           />
           <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
             {t('home.sections.recentStories')}
           </h2>
           </div>
-          <button 
+          <button
             onClick={() => router.push('/community/stories')}
             className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
           >
@@ -1536,7 +1536,7 @@ export default function HomeTab() {
             {recentStories.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
                 {recentStories.slice(0, 8).map((story, idx) => (
-                  <div 
+                  <div
                     key={story.id}
                     className="cursor-pointer group"
                     onClick={() => {
@@ -1577,9 +1577,9 @@ export default function HomeTab() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <img 
-                  src="/icons/story.png" 
-                  alt="Stories" 
+                <img
+                  src="/icons/story.png"
+                  alt="Stories"
                   className="w-8 h-8 mx-auto mb-2 opacity-40"
                 />
                 <p className="text-gray-500 text-xs">
@@ -1601,7 +1601,7 @@ export default function HomeTab() {
               {t('home.sections.recentVideos')}
             </h2>
           </div>
-          <button 
+          <button
             onClick={() => window.open('https://www.youtube.com/@AMIKO_Officialstudio', '_blank')}
             className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
           >
@@ -1615,7 +1615,7 @@ export default function HomeTab() {
             <div className="grid grid-cols-2 gap-3">
               {youtubeVideos.length > 0 ? (
                 youtubeVideos.slice(0, 2).map((video) => (
-                  <div 
+                  <div
                     key={video.id}
                     className="cursor-pointer group"
                     onClick={() => window.open(video.url, '_blank')}
@@ -1670,7 +1670,7 @@ export default function HomeTab() {
               {t('home.sections.partners')}
             </h2>
           </div>
-          <button 
+          <button
             onClick={() => router.push('/community/partners')}
             className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
           >
@@ -1682,7 +1682,7 @@ export default function HomeTab() {
         <Card>
           <CardContent className="p-3">
             <div className="grid grid-cols-3 gap-3">
-              <div 
+              <div
                 className="cursor-pointer group"
                 onClick={() => router.push('/community/partners')}
               >
@@ -1695,8 +1695,8 @@ export default function HomeTab() {
                   />
                 </div>
               </div>
-              
-              <div 
+
+              <div
                 className="cursor-pointer group"
                 onClick={() => router.push('/community/partners')}
               >
@@ -1710,7 +1710,7 @@ export default function HomeTab() {
                 </div>
               </div>
 
-              <div 
+              <div
                 className="cursor-pointer group"
                 onClick={() => router.push('/community/partners')}
               >
@@ -1732,7 +1732,7 @@ export default function HomeTab() {
         {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
         <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
           <div className="space-y-4">
-            
+
             {/* 공지사항 - 데스크톱 버전 */}
             {/* 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
             <div className="space-y-4">
@@ -1744,10 +1744,10 @@ export default function HomeTab() {
                   {t('home.sections.currentEvents')}
                 </h2>
               </div>
-              
+
               <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none rounded-lg">
                 <CardContent className="p-0 bg-transparent">
-                  <div 
+                  <div
                     id="event-container-desktop"
                     className="relative h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                     onMouseDown={handleMouseDown}
@@ -1758,7 +1758,7 @@ export default function HomeTab() {
                     onTouchEnd={handleTouchEnd}
                   >
                     {currentEvents.length > 0 ? (
-                      <div 
+                      <div
                         className="flex transition-transform duration-1000 ease-in-out"
                         style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                       >
@@ -1796,7 +1796,7 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* 공지사항 - 데스크톱 버전 */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -1807,7 +1807,7 @@ export default function HomeTab() {
                     {language === 'ko' ? '공지' : 'Anuncios'}
                   </h2>
                 </div>
-                
+
                 <Card>
                   <CardContent className="p-4">
                     {notices.length > 0 ? (
@@ -1860,14 +1860,14 @@ export default function HomeTab() {
                   {language === 'ko' ? '더 보기' : 'Ver Más'}
                 </Button>
               </div>
-              
+
               {hotPosts.length > 0 ? (
                 <Card className="border-l-4 border-l-red-500">
                   <CardContent className="p-0">
                     <div className="divide-y">
                       {hotPosts.map((post, index) => (
-                        <div 
-                          key={post.id} 
+                        <div
+                          key={post.id}
                           className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
                           onClick={() => router.push(`/community/post/${post.id}?from=home`)}
                         >
@@ -1935,13 +1935,13 @@ export default function HomeTab() {
                   {language === 'ko' ? '더 보기' : 'Ver Más'}
                 </Button>
               </div>
-              
+
               {popularTests.length > 0 ? (
                 <>
                   <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                     {popularTests.map((test) => (
-                      <div 
-                        key={test.id} 
+                      <div
+                        key={test.id}
                         className="cursor-pointer group"
                         onClick={() => router.push(test.route || '/community/tests')}
                       >
@@ -1952,11 +1952,11 @@ export default function HomeTab() {
                             className="w-full h-32 md:h-48 lg:h-56 xl:h-64 object-contain rounded-lg"
                           />
                         </div>
-                        
+
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
                           {test.title}
                         </h3>
-                        
+
                         <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                           <Play className="w-3 h-3" />
                           <span>{formatNumber(test.participants)}{language === 'ko' ? '명' : ''}</span>
@@ -1983,16 +1983,16 @@ export default function HomeTab() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img 
-                      src="/icons/Fan art.png" 
-                      alt="팬아트" 
+                    <img
+                      src="/icons/Fan art.png"
+                      alt="팬아트"
                       className="w-8 h-8 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       {language === 'ko' ? '팬아트' : 'Fan Art'}
                     </h2>
                   </div>
-                  <button 
+                  <button
                     onClick={() => router.push('/community/fanart')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
@@ -2000,13 +2000,13 @@ export default function HomeTab() {
                     <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
-                
+
                 <Card>
                   <CardContent className="p-2">
                     <div className="grid grid-cols-2 gap-2">
                       {fanArtPosts.length > 0 ? (
                         fanArtPosts.slice(0, 4).map((post) => (
-                          <div 
+                          <div
                             key={post.id}
                             className="cursor-pointer group"
                             onClick={() => router.push(`/community/fanart/${post.id}?from=home`)}
@@ -2029,9 +2029,9 @@ export default function HomeTab() {
                         ))
                       ) : (
                         <div className="col-span-2 text-center py-4">
-                          <img 
-                            src="/icons/Fan art.png" 
-                            alt="팬아트" 
+                          <img
+                            src="/icons/Fan art.png"
+                            alt="팬아트"
                             className="w-8 h-8 mx-auto mb-2 opacity-40"
                           />
                           <p className="text-gray-500 text-xs">
@@ -2048,16 +2048,16 @@ export default function HomeTab() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img 
-                      src="/icons/Foto de idol.png" 
-                      alt="아이돌 사진" 
+                    <img
+                      src="/icons/Foto de idol.png"
+                      alt="아이돌 사진"
                       className="w-8 h-8 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       {language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
                     </h2>
                   </div>
-                  <button 
+                  <button
                     onClick={() => router.push('/community/idol-photos')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
@@ -2065,13 +2065,13 @@ export default function HomeTab() {
                     <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
-                
+
                 <Card>
                   <CardContent className="p-2">
                     <div className="grid grid-cols-2 gap-2">
                       {idolPhotoPosts.length > 0 ? (
                         idolPhotoPosts.slice(0, 4).map((post) => (
-                          <div 
+                          <div
                             key={post.id}
                             className="cursor-pointer group"
                             onClick={() => router.push(`/community/idol-photos/${post.id}?from=home`)}
@@ -2094,9 +2094,9 @@ export default function HomeTab() {
                         ))
                       ) : (
                         <div className="col-span-2 text-center py-4">
-                          <img 
-                            src="/icons/Foto de idol.png" 
-                            alt="아이돌 사진" 
+                          <img
+                            src="/icons/Foto de idol.png"
+                            alt="아이돌 사진"
                             className="w-8 h-8 mx-auto mb-2 opacity-40"
                           />
                           <p className="text-gray-500 text-xs">
@@ -2131,7 +2131,7 @@ export default function HomeTab() {
                   {language === 'ko' ? '더 보기' : 'Ver Más'}
                 </Button>
               </div>
-              
+
               <Card className="shadow-md">
                 <CardContent className="p-4">
                   <div className="space-y-3">
@@ -2179,7 +2179,7 @@ export default function HomeTab() {
                       {language === 'ko' ? '지금 핫 한 채팅방!' : '¡Chats Calientes!'}
                     </h2>
                   </div>
-                  <button 
+                  <button
                     onClick={() => router.push('/community/k-chat')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
@@ -2187,13 +2187,13 @@ export default function HomeTab() {
                     <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
-                
+
                 <Card>
                   <CardContent className="p-2">
                     {hotChatRooms.length > 0 ? (
                       <div className="space-y-2">
                         {hotChatRooms.map((room) => (
-                          <div 
+                          <div
                             key={room.id}
                             className="cursor-pointer group"
                             onClick={() => router.push(`/community/k-chat/${room.id}?from=home`)}
@@ -2240,7 +2240,7 @@ export default function HomeTab() {
                       {language === 'ko' ? '지금 투표!' : '¡Vota Ahora!'}
                     </h2>
                   </div>
-                  <button 
+                  <button
                     onClick={() => router.push('/community/polls')}
                     className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
                   >
@@ -2248,13 +2248,13 @@ export default function HomeTab() {
                     <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
-                
+
                 <Card>
                   <CardContent className="p-2">
                     <div className="grid grid-cols-2 gap-2">
                       {currentPolls.length > 0 ? (
                         currentPolls.slice(0, 4).map((poll) => (
-                          <div 
+                          <div
                             key={poll.id}
                             className="cursor-pointer group"
                             onClick={() => router.push(`/main?tab=community&poll=${poll.id}`)}
@@ -2303,9 +2303,9 @@ export default function HomeTab() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Image 
-                    src="/icons/k-magazine.png" 
-                    alt="K-Noticia" 
+                  <Image
+                    src="/icons/k-magazine.png"
+                    alt="K-Noticia"
                     width={20}
                     height={20}
                     className="object-contain"
@@ -2315,7 +2315,7 @@ export default function HomeTab() {
                     {t('home.sections.kNoticia')}
                   </h2>
                 </div>
-                <button 
+                <button
                   onClick={() => router.push('/community/news')}
                   className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
                 >
@@ -2329,7 +2329,7 @@ export default function HomeTab() {
                   <div className="divide-y">
                     {kNoticiaNews.length > 0 ? (
                       kNoticiaNews.map((news) => (
-                        <div 
+                        <div
                           key={news.id}
                           className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
                           onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
@@ -2360,9 +2360,9 @@ export default function HomeTab() {
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <Image 
-                          src="/icons/k-magazine.png" 
-                          alt="K-Noticia" 
+                        <Image
+                          src="/icons/k-magazine.png"
+                          alt="K-Noticia"
                           width={48}
                           height={48}
                           className="mx-auto mb-3 opacity-40"
@@ -2382,16 +2382,16 @@ export default function HomeTab() {
               <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <img 
-                    src="/icons/story.png" 
-                    alt="Stories" 
+                  <img
+                    src="/icons/story.png"
+                    alt="Stories"
                     className="w-5 h-5 object-contain"
                   />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {t('home.sections.recentStories')}
                   </h2>
                 </div>
-                <button 
+                <button
                   onClick={() => router.push('/community/stories')}
                   className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
                 >
@@ -2405,7 +2405,7 @@ export default function HomeTab() {
                   {recentStories.length > 0 ? (
                     <div className="grid grid-cols-3 gap-3">
                       {recentStories.slice(0, 3).map((story) => (
-                        <div 
+                        <div
                           key={story.id}
                           className="cursor-pointer group"
                           onClick={() => {
@@ -2446,9 +2446,9 @@ export default function HomeTab() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <img 
-                        src="/icons/story.png" 
-                        alt="Stories" 
+                      <img
+                        src="/icons/story.png"
+                        alt="Stories"
                         className="w-12 h-12 mx-auto mb-3 opacity-40"
                       />
                       <p className="text-gray-500 text-sm">
@@ -2470,7 +2470,7 @@ export default function HomeTab() {
                     {t('home.sections.recentVideos')}
                   </h2>
                 </div>
-                <button 
+                <button
                   onClick={() => window.open('https://www.youtube.com/@AMIKO_Officialstudio', '_blank')}
                   className="flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
                 >
@@ -2484,7 +2484,7 @@ export default function HomeTab() {
                   <div className="grid grid-cols-2 gap-3">
                     {youtubeVideos.length > 0 ? (
                       youtubeVideos.slice(0, 2).map((video) => (
-                        <div 
+                        <div
                           key={video.id}
                           className="cursor-pointer group"
                           onClick={() => window.open(video.url, '_blank')}
@@ -2539,7 +2539,7 @@ export default function HomeTab() {
                     {language === 'ko' ? 'AMIKO 파트너' : 'Socios de AMIKO'}
                   </h2>
                 </div>
-                <button 
+                <button
                   onClick={() => router.push('/community/partners')}
                   className="flex items-center gap-1 text-blue-500 hover:text-blue-600 text-sm"
                 >
@@ -2551,7 +2551,7 @@ export default function HomeTab() {
               <Card>
                 <CardContent className="p-3">
                   <div className="grid grid-cols-3 gap-3">
-                    <div 
+                    <div
                       className="cursor-pointer group"
                       onClick={() => router.push('/community/partners')}
                     >
@@ -2564,8 +2564,8 @@ export default function HomeTab() {
                         />
                       </div>
                     </div>
-                    
-                    <div 
+
+                    <div
                       className="cursor-pointer group"
                       onClick={() => router.push('/community/partners')}
                     >
@@ -2579,7 +2579,7 @@ export default function HomeTab() {
                       </div>
                     </div>
 
-                    <div 
+                    <div
                       className="cursor-pointer group"
                       onClick={() => router.push('/community/partners')}
                     >
@@ -2636,7 +2636,7 @@ export default function HomeTab() {
                       alt={viewerStories[selectedStoryIndex].user_name}
                       className="w-full h-full object-cover"
                     />
-                    
+
                     {/* 사용자 정보 */}
                     <div className="absolute top-12 left-3 flex items-center gap-2 text-white">
                       <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
@@ -2658,7 +2658,7 @@ export default function HomeTab() {
                         <p className="font-bold text-sm">{viewerStories[selectedStoryIndex].user_name}</p>
                       </div>
                     </div>
-                    
+
                     {/* 텍스트 컨텐츠 */}
                     {viewerStories[selectedStoryIndex].text_content && (
                       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">

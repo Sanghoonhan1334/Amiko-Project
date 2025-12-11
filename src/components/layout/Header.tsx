@@ -24,28 +24,28 @@ function HeaderContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
   const [highlightMainButton, setHighlightMainButton] = useState(false)
-  
+
   // 문의/제휴 모달 상태
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false)
   const [isPartnershipModalOpen, setIsPartnershipModalOpen] = useState(false)
-  
+
   // 네비게이션 활성 상태 관리
   const [activeNavItem, setActiveNavItem] = useState(pathname)
 
   // 인증 상태 관리
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
-  
+
   // 포인트 상태 관리
   const [userPoints, setUserPoints] = useState(0)
-  
+
   // 운영진 상태 관리
   const [isAdmin, setIsAdmin] = useState(false)
-  
+
   // 시계 상태 관리
   const [koreanTime, setKoreanTime] = useState('')
   const [localTime, setLocalTime] = useState('')
   const [showTimeDetails, setShowTimeDetails] = useState(false)
-  
+
   // 두 번째 시간대 관리 (기본값: 멕시코)
   const [secondaryTimezone, setSecondaryTimezone] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -60,10 +60,10 @@ function HeaderContent() {
     }
     return { code: 'MEX', flag: '🇲🇽', name: 'México', timezone: 'America/Mexico_City' }
   })
-  
+
   // 언어 드롭다운 상태 관리
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
-  
+
   // 사용 가능한 시간대 목록
   const timezoneOptions = [
     { code: 'MEX', flag: '🇲🇽', name: language === 'ko' ? '멕시코' : 'México', timezone: 'America/Mexico_City', color: 'blue' },
@@ -74,7 +74,7 @@ function HeaderContent() {
   // 시계 업데이트 함수
   const updateClock = () => {
     const now = new Date()
-    
+
     // 한국 시간
     const koreanTimeStr = now.toLocaleString('ko-KR', {
       timeZone: 'Asia/Seoul',
@@ -82,7 +82,7 @@ function HeaderContent() {
       minute: '2-digit',
       hour12: false
     })
-    
+
     // 선택된 두 번째 시간대
     const secondaryTimeStr = now.toLocaleString('ko-KR', {
       timeZone: secondaryTimezone.timezone,
@@ -90,11 +90,11 @@ function HeaderContent() {
       minute: '2-digit',
       hour12: false
     })
-    
+
     setKoreanTime(koreanTimeStr)
     setLocalTime(secondaryTimeStr)
   }
-  
+
   // 두 번째 시간대 변경 함수
   const handleTimezoneChange = (timezoneInfo: any) => {
     setSecondaryTimezone(timezoneInfo)
@@ -109,22 +109,22 @@ function HeaderContent() {
 
     try {
       const response = await fetch(`/api/points?userId=${user.id}`)
-      
+
       if (response.ok) {
         const data = await response.json()
-        
+
         // 실제 데이터베이스 응답 구조에 맞게 수정
-        const points = data.totalPoints || 
-                      data.userPoints?.total_points || 
-                      data.availablePoints || 
-                      data.userPoints?.available_points || 
+        const points = data.totalPoints ||
+                      data.userPoints?.total_points ||
+                      data.availablePoints ||
+                      data.userPoints?.available_points ||
                       0
-        
+
         // 더미 데이터인 경우 로그 출력
         if (data.isDummy) {
           console.log('[HEADER POINTS] 더미 데이터 사용:', data.reason)
         }
-        
+
         console.log('포인트 로딩 성공:', { userId: user.id, points, isDummy: data.isDummy })
         setUserPoints(points)
       } else {
@@ -146,7 +146,7 @@ function HeaderContent() {
 
     try {
       const response = await fetch(`/api/admin/check?userId=${user.id}&email=${user.email}`)
-      
+
       if (response.ok) {
         const data = await response.json()
         setIsAdmin(data.isAdmin)
@@ -175,7 +175,7 @@ function HeaderContent() {
       'PER': { ko: '페루', es: 'Perú' },
       'COL': { ko: '콜롬비아', es: 'Colombia' },
     }
-    
+
     if (nameMap[secondaryTimezone.code]) {
       setSecondaryTimezone(prev => ({
         ...prev,
@@ -183,12 +183,12 @@ function HeaderContent() {
       }))
     }
   }, [language])
-  
+
   // 시계 초기화 및 주기적 업데이트
   useEffect(() => {
     updateClock() // 즉시 업데이트
     const timer = setInterval(updateClock, 1000) // 1초마다 업데이트
-    
+
     return () => clearInterval(timer)
   }, [secondaryTimezone])
 
@@ -196,11 +196,11 @@ function HeaderContent() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
-      
+
       if (showTimeDetails && !target.closest('.time-dropdown')) {
         setShowTimeDetails(false)
       }
-      
+
       if (showLanguageDropdown && !target.closest('.language-dropdown')) {
         setShowLanguageDropdown(false)
       }
@@ -294,7 +294,7 @@ function HeaderContent() {
             'Content-Type': 'application/json',
           },
         })
-        
+
         if (!profileResponse.ok) {
           // 404는 프로필이 없는 정상 케이스
           if (profileResponse.status === 404) {
@@ -305,9 +305,9 @@ function HeaderContent() {
           setVerificationStatus('unverified')
           return
         }
-        
+
         const profileResult = await profileResponse.json()
-        
+
         if (profileResult.user) {
           // 인증 상태 확인 - 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
           // 회원가입 시 입력한 정보만으로는 인증완료로 처리하지 않음
@@ -315,18 +315,18 @@ function HeaderContent() {
           const isVerified = !!(
             profileResult.user.is_verified ||  // 👈 인증센터에서 설정한 플래그
             profileResult.user.verification_completed ||  // 👈 인증 완료 플래그
-            profileResult.user.email_verified_at || 
-            profileResult.user.sms_verified_at || 
-            profileResult.user.kakao_linked_at || 
+            profileResult.user.email_verified_at ||
+            profileResult.user.sms_verified_at ||
+            profileResult.user.kakao_linked_at ||
             profileResult.user.wa_verified_at ||
             (profileResult.user.korean_name) ||
             (profileResult.user.spanish_name) ||
             (userType === 'student' && profileResult.user.full_name && profileResult.user.university && profileResult.user.major) ||
             (userType === 'general' && profileResult.user.full_name && (profileResult.user.occupation || profileResult.user.company))
           )
-          
+
           setVerificationStatus(isVerified ? 'verified' : 'unverified')
-          
+
           console.log('[HEADER] 인증 상태 확인:', {
             is_verified: profileResult.user.is_verified,
             verification_completed: profileResult.user.verification_completed,
@@ -371,7 +371,7 @@ function HeaderContent() {
       if (justCompleted === 'true' && user?.id) {
         console.log('[HEADER] 인증 완료 플래그 감지, 인증 상태 다시 확인')
         localStorage.removeItem('verification_just_completed')
-        
+
         // 인증 상태 다시 확인
         const checkVerificationStatus = async () => {
           try {
@@ -382,7 +382,7 @@ function HeaderContent() {
                 'Content-Type': 'application/json',
               },
             })
-            
+
             if (profileResponse.ok) {
               const profileResult = await profileResponse.json()
               if (profileResult.user) {
@@ -390,9 +390,9 @@ function HeaderContent() {
                 const isVerified = !!(
                   profileResult.user.is_verified ||
                   profileResult.user.verification_completed ||
-                  profileResult.user.email_verified_at || 
-                  profileResult.user.sms_verified_at || 
-                  profileResult.user.kakao_linked_at || 
+                  profileResult.user.email_verified_at ||
+                  profileResult.user.sms_verified_at ||
+                  profileResult.user.kakao_linked_at ||
                   profileResult.user.wa_verified_at ||
                   (profileResult.user.korean_name && profileResult.user.nickname) ||
                   (profileResult.user.spanish_name && profileResult.user.nickname) ||
@@ -407,7 +407,7 @@ function HeaderContent() {
             console.error('[HEADER] 인증 상태 재확인 오류:', error)
           }
         }
-        
+
         checkVerificationStatus()
       }
     }
@@ -415,7 +415,7 @@ function HeaderContent() {
     // 주기적으로 플래그 확인 (인증 완료 후 즉시 반영)
     const interval = setInterval(checkVerificationJustCompleted, 1000)
     checkVerificationJustCompleted() // 즉시 한 번 확인
-    
+
     return () => clearInterval(interval)
   }, [user?.id])
 
@@ -435,30 +435,30 @@ function HeaderContent() {
     console.log('handleMainNavClick 호출됨:', tab)
     console.log('현재 사용자:', user)
     console.log('현재 경로:', pathname)
-    
+
     // 로그인하지 않은 상태에서 'me' 탭 클릭 시 로그인 페이지로 이동
     if (tab === 'me' && !user) {
       console.log('로그인 필요 - 로그인 페이지로 이동')
       router.push('/sign-in')
       return
     }
-    
+
     // 프로필 탭 클릭 시 인증 상태 확인
     if (tab === 'me' && user) {
       try {
         // 운영자 확인
         const adminCheck = await fetch(`/api/admin/check?userId=${user.id}`)
         const adminResult = await adminCheck.json()
-        
+
         if (adminResult.isAdmin) {
           console.log('운영자 확인됨, 인증 체크 스킵')
         } else {
           // 인증 상태 확인
           const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
-          
+
           if (profileResponse.ok) {
             const profileResult = await profileResponse.json()
-            
+
             if (profileResult.user) {
               // 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
               const isVerified = !!(
@@ -472,7 +472,7 @@ function HeaderContent() {
                 (profileResult.user.spanish_name && profileResult.user.nickname) ||
                 (profileResult.user.full_name && profileResult.user.university && profileResult.user.major)
               )
-              
+
               if (!isVerified) {
                 console.log('인증 필요 - 인증센터로 이동')
                 router.push('/verification-center')
@@ -498,10 +498,10 @@ function HeaderContent() {
         return
       }
     }
-    
+
     console.log('활성 탭 설정:', tab)
     setActiveMainTab(tab)
-    
+
     if (pathname === '/main') {
       console.log('메인 페이지에서 탭 변경')
       // 세션스토리지에 저장
@@ -509,10 +509,10 @@ function HeaderContent() {
         sessionStorage.setItem('lastActiveTab', tab)
         console.log('세션스토리지에 저장됨:', tab)
       }
-      
+
       // 커스텀 이벤트로 알림
-      window.dispatchEvent(new CustomEvent('mainTabChanged', { 
-        detail: { tab } 
+      window.dispatchEvent(new CustomEvent('mainTabChanged', {
+        detail: { tab }
       }))
       console.log('커스텀 이벤트 발송됨:', tab)
     } else {
@@ -537,7 +537,7 @@ function HeaderContent() {
   }
 
   // 상세 페이지 체크 (전체 헤더 숨김)
-  const isDetailPage = pathname.includes('/community/fanart/') || 
+  const isDetailPage = pathname.includes('/community/fanart/') ||
                        pathname.includes('/community/idol-photos/') ||
                        pathname.includes('/community/polls/') ||
                        pathname.includes('/community/news/') ||
@@ -574,7 +574,7 @@ function HeaderContent() {
                   </span>
                   <ChevronDown className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-500 dark:text-gray-400" />
                 </Button>
-                
+
                 {/* 언어 선택 드롭다운 */}
                 {showLanguageDropdown && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-[60]">
@@ -587,8 +587,8 @@ function HeaderContent() {
                           setShowLanguageDropdown(false)
                         }}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          language === 'ko' 
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
+                          language === 'ko'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
                             : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                         }`}
                       >
@@ -598,7 +598,7 @@ function HeaderContent() {
                           <div className="ml-auto w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
                         )}
                       </button>
-                      
+
                       <button
                         onClick={() => {
                           if (language !== 'es') {
@@ -607,8 +607,8 @@ function HeaderContent() {
                           setShowLanguageDropdown(false)
                         }}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          language === 'es' 
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
+                          language === 'es'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
                             : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                         }`}
                       >
@@ -622,18 +622,18 @@ function HeaderContent() {
                   </div>
                 )}
               </div>
-              
+
               {/* 시계 표시 - 언어 전환 버튼 아래에 */}
-              <div 
+              <div
                 className="relative cursor-pointer group time-dropdown"
                 onClick={() => setShowTimeDetails(!showTimeDetails)}
               >
                 <div className="flex items-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-0.5 sm:py-1.5 bg-blue-50 dark:bg-gray-700 rounded-lg border border-blue-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300">
                   <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-blue-600 dark:text-blue-400" />
                   <div className="flex flex-row gap-0.5 sm:gap-2 text-xs font-medium">
-                    <span 
-                      className="text-blue-700 dark:text-blue-300 whitespace-nowrap" 
-                      style={{ 
+                    <span
+                      className="text-blue-700 dark:text-blue-300 whitespace-nowrap"
+                      style={{
                         fontSize: '10px',
                         background: 'transparent !important',
                         filter: 'none !important',
@@ -643,9 +643,9 @@ function HeaderContent() {
                     >
                       🇰🇷 {koreanTime}
                     </span>
-                    <span 
-                      className="text-indigo-700 dark:text-indigo-300 whitespace-nowrap" 
-                      style={{ 
+                    <span
+                      className="text-indigo-700 dark:text-indigo-300 whitespace-nowrap"
+                      style={{
                         fontSize: '10px',
                         background: 'transparent !important',
                         filter: 'none !important',
@@ -657,14 +657,14 @@ function HeaderContent() {
                     </span>
                   </div>
                 </div>
-                
+
                 {/* 상세 시간 정보 드롭다운 */}
                 {showTimeDetails && (
                   <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-[60]">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">🌏 세계 시간</span>
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation()
                             setShowTimeDetails(false)
@@ -674,7 +674,7 @@ function HeaderContent() {
                           ✕
                         </button>
                       </div>
-                      
+
                       <div className="space-y-3">
                         {/* 한국 */}
                         <div className="relative overflow-hidden bg-red-50 dark:bg-gray-700 rounded-xl p-3 border border-red-100 dark:border-gray-600 transition-all duration-300">
@@ -691,14 +691,14 @@ function HeaderContent() {
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-mono font-bold text-red-700 dark:text-red-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'Asia/Seoul',
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
                               </div>
                               <div className="text-xs text-red-500 dark:text-red-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'Asia/Seoul',
                                   month: '2-digit',
                                   day: '2-digit',
@@ -708,7 +708,7 @@ function HeaderContent() {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* 멕시코 */}
                         <button
                           onClick={() => handleTimezoneChange({ code: 'MEX', flag: '🇲🇽', name: language === 'ko' ? '멕시코' : 'México', timezone: 'America/Mexico_City' })}
@@ -744,7 +744,7 @@ function HeaderContent() {
                             </div>
                           </div>
                         </button>
-                        
+
                         {/* 페루 */}
                         <button
                           onClick={() => handleTimezoneChange({ code: 'PER', flag: '🇵🇪', name: language === 'ko' ? '페루' : 'Perú', timezone: 'America/Lima' })}
@@ -763,14 +763,14 @@ function HeaderContent() {
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-mono font-bold text-green-700 dark:text-green-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'America/Lima',
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
                               </div>
                               <div className="text-xs text-green-500 dark:text-green-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'America/Lima',
                                   month: '2-digit',
                                   day: '2-digit',
@@ -780,7 +780,7 @@ function HeaderContent() {
                             </div>
                           </div>
                         </button>
-                        
+
                         {/* 콜롬비아 */}
                         <button
                           onClick={() => handleTimezoneChange({ code: 'COL', flag: '🇨🇴', name: language === 'ko' ? '콜롬비아' : 'Colombia', timezone: 'America/Bogota' })}
@@ -799,14 +799,14 @@ function HeaderContent() {
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-mono font-bold text-purple-700 dark:text-purple-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'America/Bogota',
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
                               </div>
                               <div className="text-xs text-purple-500 dark:text-purple-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
+                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
                                   timeZone: 'America/Bogota',
                                   month: '2-digit',
                                   day: '2-digit',
@@ -818,7 +818,7 @@ function HeaderContent() {
                         </button>
                       </div>
                     </div>
-                    
+
                     {/* 대표시간 바꾸기 버튼 */}
                     <div className="mt-3">
                       <button
@@ -868,13 +868,13 @@ function HeaderContent() {
                 {/* 클릭 히트영역 - 로고보다 작게 제한 */}
                 <div
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[60] dark:z-[40] bg-transparent"
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
+                  onClick={(e) => {
+                    e.stopPropagation();
                     router.push('/main?tab=home&splash=true');
                   }}
                 />
               </div>
-              
+
               {/* 네비게이션 */}
               <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 absolute top-full left-1/2 -translate-x-1/2 -mt-10 md:-mt-12 lg:-mt-14 z-[100] ml-[12px]">
                 {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership' || isDetailPage) ? (
@@ -883,7 +883,7 @@ function HeaderContent() {
                 ) : isMainPage ? (
                   // 메인페이지 네비게이션 (데스크톱에서만 표시)
                   <div className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6">
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
@@ -891,15 +891,15 @@ function HeaderContent() {
                         handleMainNavClick('home')
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'home' 
-                          ? 'text-purple-500' 
+                        activeMainTab === 'home'
+                          ? 'text-purple-500'
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('home.navigation.home')}
                     </button>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
@@ -907,15 +907,15 @@ function HeaderContent() {
                         handleMainNavClick('community')
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'community' 
-                          ? 'text-purple-500' 
+                        activeMainTab === 'community'
+                          ? 'text-purple-500'
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.community')}
                     </button>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
@@ -923,15 +923,15 @@ function HeaderContent() {
                         handleMainNavClick('meet')
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'meet' 
-                          ? 'text-purple-500' 
+                        activeMainTab === 'meet'
+                          ? 'text-purple-500'
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.videoCall')}
                     </button>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
@@ -939,13 +939,29 @@ function HeaderContent() {
                         handleMainNavClick('event')
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'event' 
-                          ? 'text-purple-500' 
+                        activeMainTab === 'event'
+                          ? 'text-purple-500'
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
                       {t('headerNav.event')}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Payments 버튼 클릭됨')
+                        handleMainNavClick('payments')
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
+                        activeMainTab === 'payments'
+                          ? 'text-purple-500'
+                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
+                      }`}
+                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
+                    >
+                      {t('headerNav.payments')}
                     </button>
                   </div>
                 ) : null}
@@ -956,7 +972,7 @@ function HeaderContent() {
             <div className="flex items-center space-x-0.5 sm:space-x-2 md:space-x-4 flex-shrink-0 w-16 sm:w-24 md:w-28 justify-end">
               {/* 로그인 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
               {isMainPage && !user && (
-                <button 
+                <button
                   onClick={() => router.push('/sign-in')}
                   className="hidden md:block font-semibold transition-all duration-300 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg whitespace-nowrap mt-5"
                 >
@@ -972,20 +988,20 @@ function HeaderContent() {
                     <span className="w-3 h-3 bg-blue-600 dark:bg-blue-400 text-white text-xs font-bold rounded-full flex items-center justify-center">P</span>
                     <span className="text-blue-700 dark:text-blue-300 text-xs font-bold">{userPoints.toLocaleString()}</span>
                   </div>
-                  
+
                   {/* 중간: 로그아웃, 알림, 프로필 버튼 */}
                   <div className="flex items-center gap-0.5 sm:gap-1">
                     {/* 로그아웃 버튼 */}
-                    <button 
+                    <button
                       onClick={() => handleLogout()}
                       className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 dark:text-gray-200 hover:text-red-500 whitespace-nowrap text-sm"
                     >
                       {t('headerNav.logout')}
                     </button>
-                    
+
                     {/* 알림 버튼 */}
                     <NotificationBell />
-                    
+
                     {/* 프로필 버튼 */}
                     <Button
                       variant="ghost"
@@ -999,23 +1015,23 @@ function HeaderContent() {
                       className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 cursor-pointer ${
                         activeMainTab === 'me' ? 'dark:bg-purple-900/30' : ''
                       }`}
-                      style={{ 
+                      style={{
                         pointerEvents: 'auto',
-                        ...(activeMainTab === 'me' ? { 
-                          backgroundColor: '#f5f0ff' 
+                        ...(activeMainTab === 'me' ? {
+                          backgroundColor: '#f5f0ff'
                         } : {})
                       }}
                     >
                       <Users className={`flex-shrink-0 transition-all duration-300 ${
-                        activeMainTab === 'me' 
-                          ? 'text-purple-700 dark:text-purple-400 w-5 h-5 sm:w-6 sm:h-6' 
+                        activeMainTab === 'me'
+                          ? 'text-purple-700 dark:text-purple-400 w-5 h-5 sm:w-6 sm:h-6'
                           : 'text-gray-600 dark:text-gray-300 w-4 h-4 sm:w-5 sm:h-5'
                       }`} style={{
                         ...(activeMainTab === 'me' ? { strokeWidth: 2.5 } : { strokeWidth: 2 })
                       }} />
                     </Button>
                   </div>
-                  
+
                   {/* 하단: 인증 상태 표시 */}
                   {isAdmin ? (
                     <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
@@ -1054,7 +1070,7 @@ function HeaderContent() {
                   ) : (
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
                   )}
-                  
+
                   {/* 알림 버튼 */}
                   <NotificationBell />
                 </div>
@@ -1089,7 +1105,7 @@ function HeaderContent() {
 
               {/* 시작하기 버튼 - 랜딩페이지 및 문의페이지에서 표시 (데스크톱에서만) */}
               {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership') && (
-                <button 
+                <button
                   onClick={(e) => {
                     e.preventDefault()
                     router.push('/main')
@@ -1110,13 +1126,13 @@ function HeaderContent() {
         isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         {/* 배경 오버레이 */}
-        <div 
+        <div
           className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-all duration-300 ${
             isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={toggleMobileMenu}
         />
-        
+
         {/* 메뉴 패널 */}
         <div className={`absolute left-0 top-14 sm:top-16 md:top-20 w-52 sm:w-56 md:w-64 max-h-80 sm:max-h-96 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-2xl border-r border-gray-200/50 dark:border-gray-700/50 rounded-r-2xl transition-all duration-300 transform ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
@@ -1125,7 +1141,7 @@ function HeaderContent() {
             {/* 메인 메뉴 */}
             <div className="space-y-1">
               {/* 홈으로 */}
-              <Link 
+              <Link
                 href="/"
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
                 onClick={toggleMobileMenu}
@@ -1135,7 +1151,7 @@ function HeaderContent() {
               </Link>
 
               {/* 도움말 / FAQ */}
-              <Link 
+              <Link
                 href="/faq"
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
                 onClick={toggleMobileMenu}
@@ -1168,7 +1184,7 @@ function HeaderContent() {
                 <span className="text-sm font-medium">{language === 'ko' ? '제휴문의' : 'Colaboración'}</span>
               </button>
             </div>
-            
+
             {/* 구분선 */}
             <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
 
@@ -1177,8 +1193,8 @@ function HeaderContent() {
               <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-2.5 mb-2">
                 {language === 'ko' ? 'SNS' : 'Redes Sociales'}
               </div>
-              
-              <a 
+
+              <a
                 href="https://www.tiktok.com/@amiko_latin"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1188,7 +1204,7 @@ function HeaderContent() {
                 <span className="text-sm font-medium">TikTok</span>
               </a>
 
-              <a 
+              <a
                 href="https://www.instagram.com/amiko_latin"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1198,7 +1214,7 @@ function HeaderContent() {
                 <span className="text-sm font-medium">Instagram</span>
               </a>
 
-              <a 
+              <a
                 href="https://www.youtube.com/@AMIKO_Officialstudio"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1214,7 +1230,7 @@ function HeaderContent() {
 
             {/* 앱 정보 */}
             <div className="space-y-1">
-              <Link 
+              <Link
                 href="/privacy"
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
                 onClick={toggleMobileMenu}
@@ -1223,7 +1239,7 @@ function HeaderContent() {
                 <span className="text-sm font-medium">{language === 'ko' ? '개인정보처리방침' : 'Privacidad'}</span>
               </Link>
 
-              <Link 
+              <Link
                 href="/terms"
                 className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
                 onClick={toggleMobileMenu}
@@ -1257,7 +1273,7 @@ function HeaderContent() {
             ) : (
               <>
                 <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
-                <Link 
+                <Link
                   href="/sign-in"
                   className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-all duration-300"
                   onClick={toggleMobileMenu}
@@ -1267,28 +1283,28 @@ function HeaderContent() {
                 </Link>
               </>
             )}
-            
+
             {/* 구분선 */}
             <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
-            
+
             {/* 푸터 내용 - 모바일에서만 표시 - SNS, 고객지원, 개인정보처리방침은 랜딩페이지 아코디언으로 이동됨 */}
-            
+
             {/* 구분선 */}
             <div className="border-t border-gray-200 my-3" />
           </div>
         </div>
       </div>
-      
+
       {/* 문의 모달 */}
-      <InquiryModal 
-        isOpen={isInquiryModalOpen} 
-        onClose={() => setIsInquiryModalOpen(false)} 
+      <InquiryModal
+        isOpen={isInquiryModalOpen}
+        onClose={() => setIsInquiryModalOpen(false)}
       />
-      
+
       {/* 제휴 모달 */}
-      <PartnershipModal 
-        isOpen={isPartnershipModalOpen} 
-        onClose={() => setIsPartnershipModalOpen(false)} 
+      <PartnershipModal
+        isOpen={isPartnershipModalOpen}
+        onClose={() => setIsPartnershipModalOpen(false)}
       />
     </>
   )
