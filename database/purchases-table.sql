@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.purchases (
     currency TEXT NOT NULL DEFAULT 'USD',
     country TEXT NOT NULL, -- 결제 국가
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'failed', 'canceled', 'refunded')),
-    product_type TEXT NOT NULL CHECK (product_type IN ('coupon', 'vip_subscription')),
+    product_type TEXT NOT NULL CHECK (product_type IN ('coupon', 'vip_subscription', 'lecture')),
     product_data JSONB DEFAULT '{}', -- 상품 상세 정보
     paypal_data JSONB, -- PayPal 응답 데이터
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -60,16 +60,16 @@ CREATE POLICY "System can update purchases" ON public.purchases
 CREATE POLICY "Admins can manage all purchases" ON public.purchases
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM public.users 
-            WHERE public.users.id = auth.uid() 
+            SELECT 1 FROM public.users
+            WHERE public.users.id = auth.uid()
             AND public.users.is_admin = true
         )
     );
 
 -- 5. 업데이트 시간 자동 갱신 트리거
-CREATE TRIGGER update_purchases_updated_at 
+CREATE TRIGGER update_purchases_updated_at
     BEFORE UPDATE ON public.purchases
-    FOR EACH ROW 
+    FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
 -- 6. 구매 성공 시 쿠폰 적립 함수
@@ -88,7 +88,7 @@ DECLARE
 BEGIN
     -- 쿠폰 분수 계산 (20분 = 1.99달러)
     coupon_minutes := (purchase_amount / 1.99)::INTEGER * 20;
-    
+
     -- 구매 기록 생성
     INSERT INTO public.purchases (
         user_id,
@@ -118,7 +118,7 @@ BEGIN
         ),
         paypal_data
     ) RETURNING id INTO purchase_id;
-    
+
     -- 쿠폰 테이블에 분수 추가
     INSERT INTO public.coupons (
         user_id,
@@ -135,7 +135,7 @@ BEGIN
         'purchase',
         NOW() + INTERVAL '1 year' -- 1년 후 만료
     );
-    
+
     -- 사용자에게 알림
     INSERT INTO public.notifications (
         user_id,
@@ -156,7 +156,7 @@ BEGIN
         ),
         'normal'
     );
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -175,20 +175,20 @@ BEGIN
     SELECT * INTO purchase_record
     FROM public.purchases
     WHERE payment_id = target_payment_id;
-    
+
     -- 구매 기록이 존재하지 않는 경우
     IF NOT FOUND THEN
         RAISE EXCEPTION '구매 기록을 찾을 수 없습니다.';
     END IF;
-    
+
     -- 상태 업데이트
     UPDATE public.purchases
-    SET 
+    SET
         status = new_status,
         paypal_data = COALESCE(paypal_data, public.purchases.paypal_data),
         updated_at = NOW()
     WHERE payment_id = target_payment_id;
-    
+
     -- 실패/취소 시 알림
     IF new_status IN ('failed', 'canceled') THEN
         INSERT INTO public.notifications (
@@ -210,7 +210,7 @@ BEGIN
             'normal'
         );
     END IF;
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -227,12 +227,12 @@ BEGIN
     IF user_uuid IS NULL THEN
         user_uuid := auth.uid();
     END IF;
-    
+
     RETURN QUERY
-    SELECT 
-        CASE 
-            WHEN COALESCE(SUM(c.minutes_remaining), 0) > 0 THEN true 
-            ELSE false 
+    SELECT
+        CASE
+            WHEN COALESCE(SUM(c.minutes_remaining), 0) > 0 THEN true
+            ELSE false
         END as has_coupon,
         COALESCE(SUM(c.minutes_remaining), 0)::INTEGER as total_minutes,
         COALESCE(SUM(c.amount - c.used_amount), 0)::INTEGER as available_coupons

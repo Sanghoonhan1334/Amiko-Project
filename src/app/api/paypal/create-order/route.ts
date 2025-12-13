@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Supabase environment variables are not configured')
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { 
-      amount, 
-      orderId, 
-      orderName, 
-      customerName, 
-      customerEmail, 
+    const {
+      amount,
+      orderId,
+      orderName,
+      customerName,
+      customerEmail,
+      userId,
       bookingId,
       productType,
       productData
     } = body;
 
     // 필수 필드 검증
-    if (!amount || !orderId || !orderName) {
+    if (!amount || !orderId || !orderName || !userId) {
       return NextResponse.json(
         { error: 'Required fields are missing' },
         { status: 400 }
@@ -71,18 +82,37 @@ export async function POST(request: NextRequest) {
     }
 
     // 구매 기록 생성 (pending 상태)
-    const purchaseData = {
-      orderId,
-      paymentId: paypalData.id,
-      amount: amount / 100,
-      productType: productType || 'coupon',
-      productData: productData || {},
-      paypalData: paypalData
-    };
+    const { data: purchase, error: purchaseError } = await supabase
+      .from('purchases')
+      .insert({
+        user_id: userId,
+        provider: 'paypal',
+        payment_id: paypalData.id,
+        order_id: orderId,
+        amount: amount / 100,
+        currency: 'USD',
+        country: 'US', // Default, can be updated later
+        status: 'pending',
+        product_type: productType || 'coupon',
+        product_data: productData || {},
+        paypal_data: paypalData
+      })
+      .select()
+      .single();
+
+    if (purchaseError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[PayPal] Failed to create purchase record:', purchaseError);
+      }
+      return NextResponse.json(
+        { error: 'Failed to create purchase record' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       orderId: paypalData.id,
-      purchaseData
+      purchaseId: purchase.id
     });
 
   } catch (error) {

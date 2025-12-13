@@ -49,56 +49,67 @@ export async function POST(request: NextRequest) {
 
     // 결제 정보 추출
     const purchaseUnit = paypalData.purchase_units[0];
-    const referenceId = purchaseUnit.reference_id;
-    const amount = parseFloat(purchaseUnit.payments.captures[0].amount.value) * 100; // Convert dollars to cents
-    const customId = purchaseUnit.custom_id;
+    const referenceId = purchaseUnit.reference_id; // This is our orderId
+    const amount = parseFloat(purchaseUnit.payments.captures[0].amount.value);
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('[PayPal] Payment completed:', { orderId, referenceId, amount, customId });
+      console.log('[PayPal] Payment completed:', { orderId, referenceId, amount });
     }
 
-    // 데이터베이스 업데이트
-    if (customId) {
-      const { error } = await supabase
-        .from('bookings')
-        .update({
-          status: 'confirmed',
-          payment_status: 'paid',
-          payment_method: 'paypal',
-          payment_id: orderId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', customId);
+    // Get purchase record to determine product type
+    const { data: purchase, error: purchaseError } = await supabase
+      .from('purchases')
+      .select('*')
+      .eq('order_id', referenceId)
+      .single();
 
-      if (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[PayPal] Failed to update booking status:', error);
-        }
-      }
-    }
-
-    // 결제 기록 저장
-    const { error: paymentError } = await supabase
-      .from('payments')
-      .insert({
-        order_id: referenceId,
-        payment_id: orderId,
-        amount: amount,
-        currency: 'USD',
-        status: 'completed',
-        payment_method: 'paypal',
-        paypal_data: paypalData,
-        created_at: new Date().toISOString(),
-      });
-
-    if (paymentError) {
+    if (purchaseError || !purchase) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('[PayPal] Failed to save payment record:', paymentError);
+        console.error('[PayPal] Purchase not found:', purchaseError);
       }
+      return NextResponse.json(
+        { error: 'Purchase record not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update purchase status to paid
+    const { error: updatePurchaseError } = await supabase
+      .from('purchases')
+      .update({
+        status: 'paid',
+        paypal_data: paypalData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', purchase.id);
+
+    if (updatePurchaseError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[PayPal] Failed to update purchase status:', updatePurchaseError);
+      }
+    }
+
+    // Handle different product types
+    switch (purchase.product_type) {
+      case 'coupon':
+        await handleCouponPurchase(purchase);
+        break;
+      case 'vip_subscription':
+        await handleVipSubscriptionPurchase(purchase);
+        break;
+      case 'lecture':
+        await handleLecturePurchase(purchase);
+        break;
+      default:
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[PayPal] Unknown product type:', purchase.product_type);
+        }
     }
 
     return NextResponse.json({
+      success: true,
       order: paypalData,
+      product_type: purchase.product_type
     });
 
   } catch (error) {
@@ -109,6 +120,106 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
+  }
+}
+
+// Handle coupon purchases
+async function handleCouponPurchase(purchase: any) {
+  const productData = purchase.product_data;
+  const couponMinutes = productData.coupon_minutes || 20;
+  const couponCount = productData.coupon_count || 1;
+
+  // Create coupon record
+  const { error } = await supabase
+    .from('coupons')
+    .insert({
+      user_id: purchase.user_id,
+      type: 'ako',
+      amount: couponCount,
+      source: 'purchase',
+      description: `${couponMinutes}분 쿠폰 ${couponCount}개`,
+      expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
+    });
+
+  if (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Failed to create coupon:', error);
+    }
+  }
+}
+
+// Handle VIP subscription purchases
+async function handleVipSubscriptionPurchase(purchase: any) {
+  const productData = purchase.product_data;
+  const planType = productData.plan_type;
+  const durationMonths = productData.duration_months;
+
+  let endDate = null;
+  if (durationMonths) {
+    endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+  }
+
+  // Create VIP subscription record
+  const { error } = await supabase
+    .from('vip_subscriptions')
+    .insert({
+      user_id: purchase.user_id,
+      plan_type: planType,
+      status: 'active',
+      start_date: new Date().toISOString(),
+      end_date: endDate ? endDate.toISOString() : null,
+      price: purchase.amount,
+      payment_method: 'paypal',
+    });
+
+  if (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Failed to create VIP subscription:', error);
+    }
+  }
+}
+
+// Handle lecture purchases
+async function handleLecturePurchase(purchase: any) {
+  const productData = purchase.product_data;
+  const lectureId = productData.lecture_id;
+
+  // Check if lecture exists and has available spots
+  const { data: lecture, error: lectureError } = await supabase
+    .from('lectures')
+    .select('*')
+    .eq('id', lectureId)
+    .single();
+
+  if (lectureError || !lecture) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Lecture not found:', lectureError);
+    }
+    return;
+  }
+
+  if (lecture.current_participants >= lecture.max_participants) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Lecture is full');
+    }
+    return;
+  }
+
+  // Create lecture enrollment
+  const { error } = await supabase
+    .from('lecture_enrollments')
+    .insert({
+      lecture_id: lectureId,
+      user_id: purchase.user_id,
+      purchase_id: purchase.id,
+      status: 'enrolled',
+    });
+
+  if (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[PayPal] Failed to create lecture enrollment:', error);
+    }
   }
 }
 
