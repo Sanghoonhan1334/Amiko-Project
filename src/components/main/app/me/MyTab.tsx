@@ -77,7 +77,7 @@ export default function MyTab() {
   const referralCode: string | null = null
   const [isPartnerRegistered, setIsPartnerRegistered] = useState(false)
   const [showPartnerForm, setShowPartnerForm] = useState(false)
-  const [dailyMissions, setDailyMissions] = useState<any>(null)
+  // const [dailyMissions, setDailyMissions] = useState<any>(null) // 출석체크 숨김 처리
   const [dailyEarnedPoints, setDailyEarnedPoints] = useState(0)
   const [isMissionsExpanded, setIsMissionsExpanded] = useState(true)
   const [copied, setCopied] = useState(false)
@@ -231,19 +231,19 @@ export default function MyTab() {
 
   // 추천인 코드 조회 비활성화
 
-  // 일일 미션 데이터 가져오기
-  useEffect(() => {
-    if (user?.id) {
-      fetchDailyMissions()
-    }
-  }, [user?.id])
+  // 일일 미션 데이터 가져오기 - 출석체크 숨김 처리
+  // useEffect(() => {
+  //   if (user?.id) {
+  //     fetchDailyMissions()
+  //   }
+  // }, [user?.id])
 
   // 포인트 업데이트 이벤트 리스너
   useEffect(() => {
     const handlePointsUpdate = () => {
       console.log('[MYTAB] pointsUpdated 이벤트 수신, 포인트 및 미션 리프레시')
       refetch() // 랭킹 및 월간/총 포인트 리프레시
-      fetchDailyMissions() // 일일 미션 리프레시
+      // fetchDailyMissions() // 일일 미션 리프레시 - 출석체크 숨김 처리
     }
 
     window.addEventListener('pointsUpdated', handlePointsUpdate)
@@ -252,19 +252,19 @@ export default function MyTab() {
     }
   }, [user?.id, refetch])
 
-  const fetchDailyMissions = async () => {
-    try {
-      const today = new Date().toISOString().split('T')[0]
-      const response = await fetch(`/api/points/daily-activity?userId=${user?.id}&date=${today}`)
-      if (response.ok) {
-        const data = await response.json()
-        setDailyMissions(data.missions)
-        setDailyEarnedPoints(data.earnedPoints)
-      }
-    } catch (error) {
-      console.error('일일 미션 데이터 가져오기 실패:', error)
-    }
-  }
+  // const fetchDailyMissions = async () => {
+  //   try {
+  //     const today = new Date().toISOString().split('T')[0]
+  //     const response = await fetch(`/api/points/daily-activity?userId=${user?.id}&date=${today}`)
+  //     if (response.ok) {
+  //       const data = await response.json()
+  //       setDailyMissions(data.missions)
+  //       setDailyEarnedPoints(data.earnedPoints)
+  //     }
+  //   } catch (error) {
+  //     console.error('일일 미션 데이터 가져오기 실패:', error)
+  //   }
+  // }
 
   // 체크마크 생성 헬퍼 함수
   const renderCheckmarks = (count: number, max: number) => {
@@ -2333,10 +2333,10 @@ export default function MyTab() {
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
 
-              {/* 포인트 현황 & 오늘의 미션 */}
+              {/* 포인트 현황 & 오늘의 미션 - 포인트 요약 숨김 처리 */}
               <div className="space-y-4 bg-white">
-                {/* 포인트 요약 */}
-                <div id="my-points" className="grid grid-cols-2 gap-3 scroll-mt-20">
+                {/* 포인트 요약 - 숨김 처리 */}
+                {/* <div id="my-points" className="grid grid-cols-2 gap-3 scroll-mt-20">
                   <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-3 sm:p-4 text-white shadow-sm">
                     <p className="text-xs sm:text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.monthlyPoints')}</p>
                     <p className="text-xl sm:text-2xl font-bold">{rankingData.userRank?.monthly_points || 0}</p>
@@ -2345,10 +2345,10 @@ export default function MyTab() {
                     <p className="text-xs sm:text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.totalPoints')}</p>
                     <p className="text-xl sm:text-2xl font-bold">{rankingData.userRank?.total_points || 0}</p>
                   </div>
-                </div>
+                </div> */}
 
-                {/* 내 등급 카드 - 총 포인트 아래 */}
-                <div id="my-level" className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4 scroll-mt-20">
+                {/* 내 등급 카드 - 총 포인트 아래 - 씨앗/레벨 숨김 처리 */}
+                {/* <div id="my-level" className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4 scroll-mt-20">
                   <div className="flex items-center gap-2 mb-2 sm:mb-3">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -2362,10 +2362,10 @@ export default function MyTab() {
                       <UserBadge totalPoints={rankingData.userRank?.total_points || 0} size="lg" />
                     )}
                   </div>
-                </div>
+                </div> */}
 
-                {/* 오늘의 미션 */}
-                {dailyMissions && (
+                {/* 오늘의 미션 - 출석체크 숨김 처리 */}
+                {false && dailyMissions && (
                   <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
                     <button 
                       onClick={() => setIsMissionsExpanded(!isMissionsExpanded)}

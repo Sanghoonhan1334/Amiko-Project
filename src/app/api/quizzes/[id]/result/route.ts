@@ -17,10 +17,44 @@ export async function GET(
     const { id: quizId } = await params
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+    const resultType = searchParams.get('type')
 
+    // type 파라미터가 있으면 직접 결과 조회 (userId 불필요)
+    if (resultType) {
+      console.log('[QUIZ_RESULT_API] 결과 타입으로 직접 조회:', { quizId, resultType })
+      
+      const { data: result, error: resultError } = await supabaseServer
+        .from('quiz_results')
+        .select('*')
+        .eq('quiz_id', quizId)
+        .eq('result_type', resultType)
+        .single()
+
+      if (resultError || !result) {
+        console.error('[QUIZ_RESULT_API] 결과 조회 실패:', resultError)
+        return NextResponse.json(
+          { error: '결과 정보를 찾을 수 없습니다.' },
+          { status: 404 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        result: {
+          result_type: result.result_type,
+          title: result.title,
+          description: result.description,
+          image_url: result.image_url,
+          characteristic: result.characteristic,
+          recommendation: result.recommendation
+        }
+      })
+    }
+
+    // 기존 로직: userId로 결과 계산
     if (!userId) {
       return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
+        { error: '사용자 ID 또는 결과 타입이 필요합니다.' },
         { status: 400 }
       )
     }

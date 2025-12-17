@@ -31,12 +31,7 @@ export async function GET(request: NextRequest) {
         is_hot,
         created_at,
         updated_at,
-        user:users!gallery_posts_user_id_fkey (
-          id,
-          full_name,
-          nickname,
-          avatar_url
-        ),
+        user_id,
         gallery:galleries!gallery_posts_gallery_id_fkey (
           id,
           slug,
@@ -70,12 +65,7 @@ export async function GET(request: NextRequest) {
             created_at,
             updated_at,
             category,
-            user:users!gallery_posts_user_id_fkey (
-              id,
-              full_name,
-              nickname,
-              avatar_url
-            ),
+            user_id,
             gallery:galleries!gallery_posts_gallery_id_fkey (
               id,
               slug,
@@ -93,10 +83,31 @@ export async function GET(request: NextRequest) {
         
         if (hotError) {
           console.error('[POPULAR_POSTS] 핫글 조회 에러:', hotError)
+          // 에러가 발생해도 계속 진행 (fallback)
         }
         
-        console.log('[POPULAR_POSTS] 1단계 핫글:', hotPosts?.length || 0, '개')
-        posts = hotPosts || []
+        // users 정보를 별도로 조회하여 추가
+        if (hotPosts && hotPosts.length > 0) {
+          const userIds = [...new Set(hotPosts.map(p => p.user_id).filter(Boolean))]
+          if (userIds.length > 0) {
+            const { data: usersData } = await supabaseServer
+              .from('users')
+              .select('id, full_name, nickname, avatar_url')
+              .in('id', userIds)
+            
+            const usersMap = new Map(usersData?.map(u => [u.id, u]) || [])
+            posts = hotPosts.map(post => ({
+              ...post,
+              user: usersMap.get(post.user_id) || null
+            }))
+          } else {
+            posts = hotPosts
+          }
+        } else {
+          posts = []
+        }
+        
+        console.log('[POPULAR_POSTS] 1단계 핫글:', posts.length, '개')
         
         // 2단계: 부족하면 최근 게시글로 채우기 (공지사항 제외, 조인 실패해도 반환)
         if (posts.length < limit) {

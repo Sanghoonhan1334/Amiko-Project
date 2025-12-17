@@ -370,17 +370,17 @@ export default function ChargingTab() {
           </div>
         </SwiperSlide>
 
-        {/* 슬라이드 3: 포인트 상점 */}
-        <SwiperSlide>
+        {/* 슬라이드 3: 포인트 상점 - 숨김 처리 */}
+        {/* <SwiperSlide>
           <div className="space-y-4 relative">
             {/* 공사중 팻말 */}
-            <div className="absolute top-0 right-0 z-10">
+            {/* <div className="absolute top-0 right-0 z-10">
               <div className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg transform rotate-12">
                 🚧 {t('storeTab.pointStore.comingSoon')}
               </div>
-            </div>
+            </div> */}
             
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('storeTab.pointStore.title')}</h3>
             </div>
@@ -424,7 +424,7 @@ export default function ChargingTab() {
               ))}
             </div>
           </div>
-        </SwiperSlide>
+        </SwiperSlide> */}
         </Swiper>
 
         {/* 좌우 화살표 네비게이션 버튼 */}
@@ -450,11 +450,11 @@ export default function ChargingTab() {
         </button>
       </div>
 
-      {/* 슬라이드 점들 */}
+      {/* 슬라이드 점들 - 포인트 상점 숨김으로 2개만 표시 */}
       <div className="flex items-center justify-center gap-2 mt-6">
         <div className={`w-2 h-2 rounded-full transition-colors ${currentSlide === 0 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
         <div className={`w-2 h-2 rounded-full transition-colors ${currentSlide === 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-        <div className={`w-2 h-2 rounded-full transition-colors ${currentSlide === 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+        {/* <div className={`w-2 h-2 rounded-full transition-colors ${currentSlide === 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div> */}
       </div>
 
       {/* 커스텀 스타일 */}

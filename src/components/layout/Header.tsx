@@ -35,8 +35,8 @@ function HeaderContent() {
   // 인증 상태 관리
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'verified' | 'unverified'>('loading')
   
-  // 포인트 상태 관리
-  const [userPoints, setUserPoints] = useState(0)
+  // 포인트 상태 관리 - 숨김 처리
+  // const [userPoints, setUserPoints] = useState(0)
   
   // 운영진 상태 관리
   const [isAdmin, setIsAdmin] = useState(false)
@@ -103,39 +103,39 @@ function HeaderContent() {
     updateClock()
   }
 
-  // 포인트 로딩 함수 - 실제 데이터베이스 연결
-  const loadUserPoints = async () => {
-    if (!user?.id) return
-
-    try {
-      const response = await fetch(`/api/points?userId=${user.id}`)
-      
-      if (response.ok) {
-        const data = await response.json()
-        
-        // 실제 데이터베이스 응답 구조에 맞게 수정
-        const points = data.totalPoints || 
-                      data.userPoints?.total_points || 
-                      data.availablePoints || 
-                      data.userPoints?.available_points || 
-                      0
-        
-        // 더미 데이터인 경우 로그 출력
-        if (data.isDummy) {
-          console.log('[HEADER POINTS] 더미 데이터 사용:', data.reason)
-        }
-        
-        console.log('포인트 로딩 성공:', { userId: user.id, points, isDummy: data.isDummy })
-        setUserPoints(points)
-      } else {
-        console.error('포인트 API 응답 오류:', response.status, response.statusText)
-        setUserPoints(0) // 오류 시 0으로 설정
-      }
-    } catch (error) {
-      console.error('포인트 로딩 실패:', error)
-      setUserPoints(0) // 오류 시 0으로 설정
-    }
-  }
+  // 포인트 로딩 함수 - 숨김 처리
+  // const loadUserPoints = async () => {
+  //   if (!user?.id) return
+  // 
+  //   try {
+  //     const response = await fetch(`/api/points?userId=${user.id}`)
+  //     
+  //     if (response.ok) {
+  //       const data = await response.json()
+  //       
+  //       // 실제 데이터베이스 응답 구조에 맞게 수정
+  //       const points = data.totalPoints || 
+  //                     data.userPoints?.total_points || 
+  //                     data.availablePoints || 
+  //                     data.userPoints?.available_points || 
+  //                     0
+  //       
+  //       // 더미 데이터인 경우 로그 출력
+  //       if (data.isDummy) {
+  //         console.log('[HEADER POINTS] 더미 데이터 사용:', data.reason)
+  //       }
+  //       
+  //       console.log('포인트 로딩 성공:', { userId: user.id, points, isDummy: data.isDummy })
+  //       setUserPoints(points)
+  //     } else {
+  //       console.error('포인트 API 응답 오류:', response.status, response.statusText)
+  //       setUserPoints(0) // 오류 시 0으로 설정
+  //     }
+  //   } catch (error) {
+  //     console.error('포인트 로딩 실패:', error)
+  //     setUserPoints(0) // 오류 시 0으로 설정
+  //   }
+  // }
 
   // 운영진 여부 확인 함수 - 로그 간소화
   const checkAdminStatus = async () => {
@@ -158,15 +158,16 @@ function HeaderContent() {
     }
   }
 
-  // 사용자 로그인 시 포인트 로딩
+  // 사용자 로그인 시 포인트 로딩 (한 번만 실행) - 포인트 숨김 처리
   useEffect(() => {
     if (user?.id) {
-      loadUserPoints()
+      // loadUserPoints() // 포인트 로딩 숨김 처리
       checkAdminStatus()
     } else {
       setIsAdmin(false)
     }
-  }, [user?.id, user?.email])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]) // user?.email 제거 - id만 확인
 
   // 언어 변경 시 secondaryTimezone 이름 업데이트
   useEffect(() => {
@@ -213,7 +214,7 @@ function HeaderContent() {
   // 포인트 업데이트 이벤트 리스너
   useEffect(() => {
     const handlePointsUpdate = () => {
-      loadUserPoints()
+      // loadUserPoints() // 포인트 로딩 숨김 처리
     }
 
     window.addEventListener('pointsUpdated', handlePointsUpdate)
@@ -436,6 +437,21 @@ function HeaderContent() {
     console.log('현재 사용자:', user)
     console.log('현재 경로:', pathname)
     
+    // 커뮤니티 탭 클릭 시 cTab 파라미터 제거하여 홈으로 이동
+    if (tab === 'community') {
+      const params = new URLSearchParams()
+      params.set('tab', 'community')
+      // cTab 파라미터는 제거 (커뮤니티 홈으로 이동)
+      router.push(`/main?${params.toString()}`)
+      // 커뮤니티 탭도 다른 탭과 동일하게 처리
+      setActiveMainTab(tab)
+      // 이벤트 디스패치로 메인 페이지에 알림
+      window.dispatchEvent(new CustomEvent('mainTabChanged', { 
+        detail: { tab } 
+      }))
+      return
+    }
+    
     // 로그인하지 않은 상태에서 'me' 탭 클릭 시 로그인 페이지로 이동
     if (tab === 'me' && !user) {
       console.log('로그인 필요 - 로그인 페이지로 이동')
@@ -502,28 +518,28 @@ function HeaderContent() {
     console.log('활성 탭 설정:', tab)
     setActiveMainTab(tab)
     
-    if (pathname === '/main') {
-      console.log('메인 페이지에서 탭 변경')
-      // 세션스토리지에 저장
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('lastActiveTab', tab)
-        console.log('세션스토리지에 저장됨:', tab)
-      }
-      
-      // 커스텀 이벤트로 알림
-      window.dispatchEvent(new CustomEvent('mainTabChanged', { 
-        detail: { tab } 
-      }))
-      console.log('커스텀 이벤트 발송됨:', tab)
-    } else {
-      console.log('메인 페이지가 아님 - 페이지 이동')
-      // 메인 페이지가 아닐 때는 해당 탭으로 이동
-      if (tab === 'community') {
-        router.push('/main?tab=community')
-      } else {
-        router.push(`/main?tab=${tab}`)
-      }
+    // URL 파라미터 정리 (커뮤니티 탭이 아닐 때는 cTab 제거)
+    const params = new URLSearchParams()
+    params.set('tab', tab)
+    // 커뮤니티 탭이 아닐 때는 cTab 파라미터 제거
+    if (tab !== 'community') {
+      // cTab은 자동으로 제거됨 (설정하지 않으면)
     }
+    
+    // URL 업데이트
+    router.push(`/main?${params.toString()}`)
+    
+    // 세션스토리지에 저장
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('lastActiveTab', tab)
+      console.log('세션스토리지에 저장됨:', tab)
+    }
+    
+    // 커스텀 이벤트로 알림
+    window.dispatchEvent(new CustomEvent('mainTabChanged', { 
+      detail: { tab } 
+    }))
+    console.log('커스텀 이벤트 발송됨:', tab)
   }
 
   // 로그아웃 처리
@@ -935,17 +951,17 @@ function HeaderContent() {
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        console.log('Event 버튼 클릭됨')
-                        handleMainNavClick('event')
+                        console.log('Educación 버튼 클릭됨')
+                        handleMainNavClick('educacion')
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'event' 
+                        activeMainTab === 'educacion' 
                           ? 'text-purple-500' 
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
-                      {t('headerNav.event')}
+                      {t('headerNav.educacion')}
                     </button>
                   </div>
                 ) : null}
@@ -967,11 +983,11 @@ function HeaderContent() {
               {/* 데스크톱용 버튼들 - 데스크톱에서만 표시 */}
               {isMainPage && user && (
                 <div className="hidden md:flex flex-col items-end gap-1">
-                  {/* 상단: 포인트 표시 */}
-                  <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
+                  {/* 상단: 포인트 표시 - 숨김 처리 */}
+                  {/* <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
                     <span className="w-3 h-3 bg-blue-600 dark:bg-blue-400 text-white text-xs font-bold rounded-full flex items-center justify-center">P</span>
                     <span className="text-blue-700 dark:text-blue-300 text-xs font-bold">{userPoints.toLocaleString()}</span>
-                  </div>
+                  </div> */}
                   
                   {/* 중간: 로그아웃, 알림, 프로필 버튼 */}
                   <div className="flex items-center gap-0.5 sm:gap-1">

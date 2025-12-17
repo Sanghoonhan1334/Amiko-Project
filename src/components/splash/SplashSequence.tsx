@@ -31,6 +31,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
   const locale = useLocale()
   const t = copy[locale]
   const [mounted, setMounted] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -93,7 +94,11 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
       initial="initial"
       exit="exit"
       className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-[99999]"
-      style={{ position: 'fixed', zIndex: 99999 }}
+      style={{ 
+        position: 'fixed', 
+        zIndex: 99999,
+        backgroundColor: 'white' // 명시적으로 배경색 설정
+      }}
     >
       {/* 로고와 텍스트 표시 */}
       <div className="flex flex-col items-center -mt-32 md:-mt-64">
@@ -117,6 +122,16 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
             width={500}
             height={500}
             className="block dark:hidden w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
+            priority
+            unoptimized={process.env.NODE_ENV === 'development'}
+            onLoad={() => {
+              setImageLoaded(true)
+              console.log('[Splash] 로고 이미지 로드 완료')
+            }}
+            onError={(e) => {
+              console.error('[Splash] 로고 이미지 로드 실패:', e)
+              setImageLoaded(true) // 에러가 나도 계속 진행
+            }}
           />
           {/* 다크 모드 로고 */}
           <Image
@@ -125,6 +140,16 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
             width={500}
             height={500}
             className="hidden dark:block w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
+            priority
+            unoptimized={process.env.NODE_ENV === 'development'}
+            onLoad={() => {
+              setImageLoaded(true)
+              console.log('[Splash] 다크 모드 로고 이미지 로드 완료')
+            }}
+            onError={(e) => {
+              console.error('[Splash] 다크 모드 로고 이미지 로드 실패:', e)
+              setImageLoaded(true) // 에러가 나도 계속 진행
+            }}
           />
         </motion.div>
 
@@ -157,7 +182,11 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
   )
 
   if (!mounted) {
-    return null
+    // mounted 전에도 배경은 표시
+    return createPortal(
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 z-[99999]" style={{ position: 'fixed', zIndex: 99999 }} />,
+      document.body
+    )
   }
 
   return createPortal(splashContent, document.body)

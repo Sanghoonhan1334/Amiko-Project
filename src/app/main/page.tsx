@@ -28,7 +28,10 @@ const MeetTab = dynamic(() => import('@/components/main/app/meet/MeetTab'), {
     </div>
   )
 })
-const CommunityTab = dynamic(() => import('@/components/main/app/community/CommunityTab'), {
+const CommunityTab = dynamic(() => import('@/components/main/app/community/CommunityTab').catch((error) => {
+  console.error('[CommunityTab] 로드 오류:', error)
+  return { default: () => <div className="p-4 text-red-500">커뮤니티 탭을 로드할 수 없습니다.</div> }
+}), {
   loading: () => (
     <div className="space-y-4 p-4">
       <Skeleton className="h-8 w-1/4" />
@@ -38,7 +41,8 @@ const CommunityTab = dynamic(() => import('@/components/main/app/community/Commu
         ))}
       </div>
     </div>
-  )
+  ),
+  ssr: false
 })
 const MyTab = dynamic(() => import('@/components/main/app/me/MyTab'), {
   loading: () => (
@@ -49,18 +53,6 @@ const MyTab = dynamic(() => import('@/components/main/app/me/MyTab'), {
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
-      </div>
-    </div>
-  )
-})
-const EventTab = dynamic(() => import('@/components/main/app/event/EventTab'), {
-  loading: () => (
-    <div className="space-y-4 p-4">
-      <Skeleton className="h-8 w-1/3" />
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-20 rounded-lg" />
-        ))}
       </div>
     </div>
   )
@@ -216,7 +208,7 @@ function AppPageContent() {
     
     let targetTab = 'home' // 기본값을 home으로 변경
     
-        if (tabParam && ['home', 'meet', 'community', 'me', 'event'].includes(tabParam)) {
+        if (tabParam && ['home', 'meet', 'community', 'me', 'educacion'].includes(tabParam)) {
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
@@ -255,12 +247,19 @@ function AppPageContent() {
     }
   }, [])
 
-  // 커뮤니티 탭으로 돌아올 때 communityView를 'home'으로 리셋
+  // 커뮤니티 탭으로 돌아올 때 communityView 설정 (URL 파라미터 확인)
   useEffect(() => {
     if (activeTab === 'community') {
-      setCommunityView('home')
+      const cTab = searchParams.get('cTab')
+      // cTab 파라미터가 있으면 그것을 사용, 없으면 'home'
+      if (cTab && ['news', 'qa', 'tests', 'events'].includes(cTab)) {
+        setCommunityView(cTab)
+      } else {
+        // cTab이 없거나 'home'이면 'home'으로 설정
+        setCommunityView('home')
+      }
     }
-  }, [activeTab])
+  }, [activeTab, searchParams])
 
   // 재방문 사용자 감지
   useEffect(() => {
@@ -294,9 +293,6 @@ function AppPageContent() {
         break
       case 'community':
         appEngagementEvents.visitCommunityTab()
-        break
-      case 'event':
-        appEngagementEvents.visitEventTab()
         break
       case 'charging':
         appEngagementEvents.visitChargingTab()
@@ -424,7 +420,7 @@ function AppPageContent() {
                         })()}
                       </h2>
                     </div>
-                    {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'qa') && (
+                    {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'qa' || communityView === 'events') && (
                       <button
                         onClick={() => {
                           setCommunityView('home')
@@ -447,6 +443,7 @@ function AppPageContent() {
                        communityView === 'news' ? t('community.koreanNewsDescription') :
                        communityView === 'qa' ? t('community.qaDescription') :
                        communityView === 'tests' ? t('tests.description') :
+                       communityView === 'events' ? t('community.eventsDesc') :
                        t('main.communityDescription')}
                     </p>
                   </div>
@@ -458,6 +455,36 @@ function AppPageContent() {
             {activeTab === 'community' && (
               <div className="block md:hidden pt-20">
                 <CommunityTab onViewChange={setCommunityView} />
+              </div>
+            )}
+
+            {activeTab === 'educacion' && (
+              <div className="pb-20 md:pb-8 pt-16 sm:pt-36">
+                {/* 웹: 섹션 카드로 감싸기 */}
+                <div className="hidden md:block">
+                  <div className="card dark:bg-gray-800 dark:border-gray-700 px-8 py-8 -mt-12 sm:mt-0">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
+                        <span className="text-3xl">📚</span>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('headerNav.educacion')}</h2>
+                      </div>
+                    </div>
+                    <div className="text-center py-12">
+                      <p className="text-gray-600 dark:text-gray-400">{t('main.educacionComingSoon')}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 모바일: 섹션 카드 없이 */}
+                <div className="block md:hidden pt-12">
+                  <div className="px-2 sm:px-4 pt-6">
+                    <div className="text-center py-12">
+                      <p className="text-gray-600 dark:text-gray-400">{t('main.educacionComingSoon')}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -482,37 +509,6 @@ function AppPageContent() {
             )}
 
 
-            {activeTab === 'event' && (
-              <div className="pb-20 md:pb-8 pt-16 sm:pt-36">
-                {/* 웹: 섹션 카드로 감싸기 */}
-                <div className="hidden md:block">
-                  <div className="card dark:bg-gray-800 dark:border-gray-700 px-8 py-8 -mt-12 sm:mt-0">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
-                        <img 
-                          src="/misc/event-title.png" 
-                          alt="이벤트" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('headerNav.event')}</h2>
-                      </div>
-                    </div>
-                    <div>
-                      <EventTab />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* 모바일: 섹션 카드 없이 */}
-                <div className="block md:hidden pt-12">
-                  <div className="px-2 sm:px-4 pt-6">
-                    <EventTab />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

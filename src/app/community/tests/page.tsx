@@ -452,12 +452,12 @@ function TestsPageContent() {
                   </div>
                   
                   {/* 제목 */}
-                  <h3 className="text-sm md:text-base font-medium text-gray-900 dark:text-gray-100 mb-1 line-clamp-2">
+                  <h3 className="text-sm md:text-base font-medium text-gray-900 dark:text-gray-100 mb-1 line-clamp-2 text-center px-1">
                     {quiz.title}
                   </h3>
                   
                   {/* 참여자 수 */}
-                  <div className="flex items-center gap-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center justify-center gap-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                     <Play className="w-3 h-3 md:w-4 md:h-4" />
                     <span>{quiz.participantCount || quiz.total_participants || 0}</span>
                   </div>

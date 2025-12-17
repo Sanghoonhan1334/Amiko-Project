@@ -69,13 +69,23 @@ export default function NotificationBell() {
     if (!user) return
 
     try {
-      const response = await fetch('/api/notifications/unread-count')
+      const response = await fetch('/api/notifications/unread-count', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store'
+      })
       if (response.ok) {
         const data = await response.json()
         setUnreadCount(data.count || 0)
+      } else {
+        console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
+        setUnreadCount(0)
       }
     } catch (error) {
-      console.error('알림 개수 조회 실패:', error)
+      console.error('[NotificationBell] 알림 개수 조회 오류:', error)
+      setUnreadCount(0)
     }
   }
 
@@ -193,11 +203,11 @@ export default function NotificationBell() {
       fetchNotifications()
       fetchUnreadCount()
       
-      // 60초마다 알림 개수만 업데이트 (2배 감소)
-      const interval = setInterval(fetchUnreadCount, 60000)
+      // 5분마다 알림 개수만 업데이트 (대폭 감소)
+      const interval = setInterval(fetchUnreadCount, 5 * 60 * 1000)
       return () => clearInterval(interval)
     }
-  }, [user])
+  }, [user?.id]) // user 객체 대신 user?.id만 의존성으로 사용
 
   return (
     <div className="relative">

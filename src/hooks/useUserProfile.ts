@@ -97,7 +97,7 @@ export function useUserPoints() {
       return response.json()
     },
     enabled: !!user?.id,
-    staleTime: 2 * 60 * 1000, // 2분간 캐시 유지
-    refetchInterval: 30 * 1000, // 30초마다 백그라운드에서 업데이트
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    refetchInterval: false, // 자동 refetch 비활성화 - 필요시 수동으로만
   })
 }

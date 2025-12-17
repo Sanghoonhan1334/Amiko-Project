@@ -10,14 +10,14 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    // ZEP 이벤트 조회
+    // 운영자 모임 이벤트 조회 (Zoom 또는 Zep)
     const { data, error } = await supabaseServer
       .from('events')
       .select('*')
-      .eq('type', 'zep')
+      .or('type.eq.zep,type.eq.zoom,platform.eq.zep,platform.eq.zoom')
       .order('start_date', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (error && error.code !== 'PGRST116') {
       console.error('[ZEP EVENT] 조회 실패:', error)
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     
     console.log('[ZEP EVENT] 관리자 확인:', adminUser.email)
     
-    const { start_date, title, description, max_participants, zep_link } = body
+    const { start_date, title, description, max_participants, zep_link, zoom_link, platform, week_number } = body
 
     if (!start_date) {
       return NextResponse.json(
@@ -101,24 +101,63 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 기존 ZEP 이벤트 삭제 (하나만 유지)
-    await supabaseServer
-      .from('events')
-      .delete()
-      .eq('type', 'zep')
+    // week_number가 2 또는 4인지 확인
+    if (week_number && week_number !== 2 && week_number !== 4) {
+      return NextResponse.json(
+        { error: 'week_number는 2 또는 4여야 합니다.' },
+        { status: 400 }
+      )
+    }
 
-    // 새 ZEP 이벤트 생성
+    // platform이 zoom 또는 zep인지 확인
+    if (platform && platform !== 'zoom' && platform !== 'zep') {
+      return NextResponse.json(
+        { error: 'platform은 zoom 또는 zep이어야 합니다.' },
+        { status: 400 }
+      )
+    }
+
+    // 기존 이벤트 삭제 (같은 week_number의 이벤트만)
+    if (week_number) {
+      await supabaseServer
+        .from('events')
+        .delete()
+        .eq('week_number', week_number)
+    } else {
+      // week_number가 없으면 기존 ZEP 이벤트 삭제 (하위 호환성)
+      await supabaseServer
+        .from('events')
+        .delete()
+        .eq('type', 'zep')
+    }
+
+    // 새 이벤트 생성
+    const eventData: any = {
+      type: platform === 'zoom' ? 'zoom' : 'zep',
+      title: title || (platform === 'zoom' ? 'Reunión con Operadores de Zoom' : 'Reunión con Operadores de ZEP'),
+      description: description || 'Tiempo para hablar directamente con los operadores una vez al mes',
+      start_date: start_date,
+      max_participants: max_participants || 30,
+      status: 'scheduled'
+    }
+
+    // 플랫폼별 링크 설정
+    if (platform === 'zoom') {
+      eventData.platform = 'zoom'
+      eventData.zoom_link = zoom_link || 'https://zoom.us/j/YOUR_ZOOM_MEETING_ID'
+    } else {
+      eventData.platform = 'zep'
+      eventData.zep_link = zep_link || 'https://zep.us/play/EgkBJz'
+    }
+
+    // week_number 설정
+    if (week_number) {
+      eventData.week_number = week_number
+    }
+
     const { data, error } = await supabaseServer
       .from('events')
-      .insert({
-        type: 'zep',
-        title: title || 'Reunión con Operadores de ZEP',
-        description: description || 'Tiempo para hablar directamente con los operadores una vez al mes',
-        start_date: start_date,
-        max_participants: max_participants || 30,
-        zep_link: zep_link || 'https://zep.us/play/EgkBJz',
-        status: 'scheduled'
-      })
+      .insert(eventData)
       .select()
       .single()
 

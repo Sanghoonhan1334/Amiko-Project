@@ -147,8 +147,8 @@ export function useMainPageData() {
       }
     },
     enabled: !!user?.id,
-    staleTime: 2 * 60 * 1000, // 2분간 캐시 유지 (연장)
-    refetchInterval: 60 * 1000, // 60초마다 업데이트 (2배 감소)
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지 (연장)
+    refetchInterval: false, // 자동 refetch 비활성화 - 필요시 수동으로만
     refetchIntervalInBackground: false, // 백그라운드에서는 폴링 안 함
     retry: 2,
   })

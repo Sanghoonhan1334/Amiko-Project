@@ -11,7 +11,8 @@ import {
   User, 
   Zap, 
   ShoppingBag,
-  Calendar 
+  Calendar,
+  GraduationCap
 } from 'lucide-react'
 
 export default function BottomTabNavigation() {
@@ -63,10 +64,10 @@ export default function BottomTabNavigation() {
       path: '/main?tab=home'
     },
     {
-      id: 'event',
-      label: t('headerNav.event'),
-      icon: Calendar,
-      path: '/main?tab=event'
+      id: 'educacion',
+      label: t('headerNav.educacion'),
+      icon: GraduationCap,
+      path: '/main?tab=educacion'
     },
     {
       id: 'me',
@@ -85,11 +86,19 @@ export default function BottomTabNavigation() {
     
     setActiveTab(tab.id)
     
-    // 커뮤니티 서브페이지에서 다른 탭 클릭 시 메인 페이지로 이동
-    if (pathname.startsWith('/community') && tab.id !== 'community') {
-      router.push(tab.path)
+    // 커뮤니티 탭 클릭 시 cTab 파라미터 제거하여 홈으로 이동
+    if (tab.id === 'community') {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('tab', 'community')
+      params.delete('cTab') // cTab 파라미터 제거
+      router.push(`/main?${params.toString()}`)
     } else {
-      router.push(tab.path)
+      // 커뮤니티 서브페이지에서 다른 탭 클릭 시 메인 페이지로 이동
+      if (pathname.startsWith('/community') && tab.id !== 'community') {
+        router.push(tab.path)
+      } else {
+        router.push(tab.path)
+      }
     }
     
     // 헤더 네비게이션과 동기화

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -42,6 +42,8 @@ import CommunityMain from './CommunityMain'
 import NewsDetail from './NewsDetail'
 import CommunityCard from './CommunityCard'
 import { communityItems } from './communityItems'
+// import EventsView from './EventsView' // 이벤트 카테고리 제거
+// import EventsNewView from './EventsNewView' // 이벤트 카테고리 제거
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
@@ -87,25 +89,25 @@ const categoryConfig: { [key: string]: { icon: string; color: string; bgColor: s
   }
 }
 
-// 포인트 시스템 정의
-const pointSystem = {
-  korean: {
-    question: 5,
-    answer: 5,
-    story: 5,
-    reaction: 2,
-    consultation: 30,
-    dailyLimit: 20
-  },
-  latin: {
-    question: 5,
-    answer: 5,
-    story: 5,
-    reaction: 2,
-    consultation: 30,
-    dailyLimit: 20
-  }
-}
+// 포인트 시스템 정의 - 제거됨 (숨김 처리)
+// const pointSystem = {
+//   korean: {
+//     question: 5,
+//     answer: 5,
+//     story: 5,
+//     reaction: 2,
+//     consultation: 30,
+//     dailyLimit: 20
+//   },
+//   latin: {
+//     question: 5,
+//     answer: 5,
+//     story: 5,
+//     reaction: 2,
+//     consultation: 30,
+//     dailyLimit: 20
+//   }
+// }
 
 // 카테고리 정의 함수
 const getCategories = (t: (key: string) => string, language: string) => [
@@ -137,6 +139,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isNavigating, setIsNavigating] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [closingSubmenu, setClosingSubmenu] = useState<string | null>(null)
@@ -358,7 +361,22 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   // AuthContext에서 이미 관리되고 있으므로 별도 상태 불필요
   
   // 뷰 상태 (먼저 선언해야 useEffect에서 사용 가능)
-  const [currentView, setCurrentView] = useState('home') // 'home', 'news', 'qa', 'tests'
+  // 초기값을 URL 파라미터에서 즉시 읽어서 설정 (클라이언트에서만)
+  const getInitialView = (): 'home' | 'news' | 'qa' | 'tests' => {
+    if (typeof window === 'undefined') return 'home'
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const cTab = params.get('cTab')
+      // events 관련 제거
+      if (cTab === 'qa') return 'qa'
+      if (cTab === 'news') return 'news'
+      if (cTab === 'tests') return 'tests'
+      return 'home'
+    } catch {
+      return 'home'
+    }
+  }
+  const [currentView, setCurrentView] = useState<'home' | 'news' | 'qa' | 'tests'>(getInitialView)
   
   // 실제 데이터 상태
   const [recentStories, setRecentStories] = useState<any[]>([])
@@ -442,7 +460,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
     category: 'fun',
     thumbnail_url: ''
   })
-  const searchParams = useSearchParams()
   
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState('story')
@@ -1007,13 +1024,46 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   // 실제 사용자 프로필 사용
   const currentProfile = user
 
-  // URL 파라미터와 탭 상태 동기화 (cTab = story|qa|news|tests)
-  useEffect(() => {
+  // URL 파라미터와 탭 상태 동기화 (cTab = story|qa|news|tests|events)
+  // useLayoutEffect를 사용하여 렌더링 전에 실행하여 스켈레톤 문제 해결
+  useLayoutEffect(() => {
     const tabParam = searchParams.get('cTab')
+    console.log('[CommunityTab] URL 파라미터 확인 (useLayoutEffect):', { tabParam, currentView })
+    
+    let newView: 'home' | 'news' | 'qa' | 'tests' = 'home'
+    
     if (tabParam && ['story', 'qa', 'news', 'tests'].includes(tabParam)) {
       setActiveTab(tabParam)
+      // events 관련 제거
+      if (tabParam === 'qa') {
+        newView = 'qa'
+      } else if (tabParam === 'news') {
+        newView = 'news'
+      } else if (tabParam === 'tests') {
+        newView = 'tests'
+      } else {
+        // story 등 다른 탭은 home으로
+        newView = 'home'
+      }
+    } else {
+      // cTab 파라미터가 없거나 유효하지 않으면 home으로 설정
+      newView = 'home'
     }
+    
+    // currentView가 변경되어야 할 때만 업데이트 (onViewChange는 useEffect에서 호출)
+    setCurrentView((prevView) => {
+      if (prevView !== newView) {
+        console.log('[CommunityTab] currentView 변경:', prevView, '->', newView)
+        return newView
+      }
+      return prevView
+    })
   }, [searchParams])
+  
+  // currentView 변경 시 부모 컴포넌트에 알림 (렌더링 후 실행)
+  useEffect(() => {
+    onViewChange?.(currentView)
+  }, [currentView, onViewChange])
 
   // 데이터 로딩 함수들
   const loadQuestions = useCallback(async () => {
@@ -1302,12 +1352,19 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       // 상위 컴포넌트의 communityView 변경을 감지하여 내부 currentView 동기화
       const handleParentViewChange = (event: CustomEvent) => {
         const newView = event.detail
-        console.log('CommunityTab: 외부 뷰 변경 감지:', newView)
+        console.log('[CommunityTab] 외부 뷰 변경 감지:', newView)
         if (newView === 'home') {
           setCurrentView('home')
         } else if (newView === 'tests') {
           setCurrentView('tests')
           setActiveTab('tests')
+        // events 관련 제거
+        } else if (newView === 'qa') {
+          setCurrentView('qa')
+          setActiveTab('qa')
+        } else if (newView === 'news') {
+          setCurrentView('news')
+          setActiveTab('news')
         }
       }
       
@@ -1318,13 +1375,19 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }
     }
   }, [onViewChange])
+  
 
   // 커뮤니티 홈으로 돌아가기
-  const goToHome = () => {
+  const goToHome = useCallback(() => {
     setCurrentView('home')
     setActiveTab('story')
+    // URL에서 cTab 파라미터 제거하여 커뮤니티 홈으로 이동
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('cTab')
+    params.set('tab', 'community')
+    router.push(`/main?${params.toString()}`, { scroll: false })
     onViewChange?.('home') // 상위 컴포넌트에 홈으로 돌아가기 알림
-  }
+  }, [searchParams, router, onViewChange])
 
   // 커뮤니티 홈으로 돌아가기 이벤트 리스너
   useEffect(() => {
@@ -1339,13 +1402,8 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     }
   }, [goToHome])
 
-  // 컴포넌트 마운트 시 currentView를 'home'으로 리셋 (URL 파라미터가 없을 때만)
-  useEffect(() => {
-    const tabParam = searchParams.get('cTab')
-    if (!tabParam) {
-      setCurrentView('home')
-    }
-  }, [searchParams])
+  // 이 useEffect는 위의 URL 파라미터 처리 useEffect와 중복되므로 제거
+  // URL 파라미터 처리 로직은 위의 useEffect에서 통합 처리됨
 
   // 컴포넌트 언마운트 시 스크롤 인터벌 및 abort controller 정리
   useEffect(() => {
@@ -1435,57 +1493,58 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       const result = await response.json()
       console.log('새 질문 작성:', result.question)
 
-      // 포인트 획득 시도
-      if (user?.id) {
-        console.log('포인트 획득 시도:', { userId: user.id, postId: result.question.id })
-        
-        const pointsResponse = await fetch('/api/community/points', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            activityType: 'question_post',
-            postId: result.post.id,
-            title: questionForm.title
-          })
-        })
+      // 포인트 획득 시도 - 제거됨 (숨김 처리)
+      // if (user?.id) {
+      //   console.log('포인트 획득 시도:', { userId: user.id, postId: result.question.id })
+      // 
+      //   const pointsResponse = await fetch('/api/community/points', {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify({
+      //       userId: user.id,
+      //       activityType: 'question_post',
+      //       postId: result.post.id,
+      //       title: questionForm.title
+      //     })
+      //   })
+      // 
+      //   console.log('포인트 API 응답:', { status: pointsResponse.status, statusText: pointsResponse.statusText })
+      // 
+      //   if (pointsResponse.ok) {
+      //     const pointsResult = await pointsResponse.json()
+      //     console.log('포인트 획득 성공:', pointsResult)
+      //     alert(`질문이 등록되었습니다! +${pointsResult.points}점 획득!`)
+      //     
+      //     // 질문 목록 새로고침
+      //     await loadQuestions()
+      //     
+      //     // 포인트 업데이트 이벤트 발생
+      //     window.dispatchEvent(new CustomEvent('pointsUpdated', {
+      //       detail: {
+      //         points: pointsResult.totalPoints,
+      //         dailyPoints: pointsResult.dailyPoints
+      //       }
+      //     }))
+      //   } else {
+      //     const errorData = await pointsResponse.json().catch(() => ({ error: 'Unknown error' }))
+      //     console.error('포인트 획득 실패:', errorData)
+      //     alert('질문이 등록되었습니다! (포인트 획득 실패)')
+      //     
+      //     // 포인트 획득 실패해도 질문은 등록되었으므로 목록 새로고침
+      //     await loadQuestions()
+      //   }
+      // } else {
+      //   console.log('사용자 ID가 없어서 포인트 획득 건너뜀')
+      // }
 
-        console.log('포인트 API 응답:', { status: pointsResponse.status, statusText: pointsResponse.statusText })
-
-        if (pointsResponse.ok) {
-          const pointsResult = await pointsResponse.json()
-          console.log('포인트 획득 성공:', pointsResult)
-          alert(`질문이 등록되었습니다! +${pointsResult.points}점 획득!`)
-          
-          // 질문 목록 새로고침
-          await loadQuestions()
-          
-          // 포인트 업데이트 이벤트 발생
-          window.dispatchEvent(new CustomEvent('pointsUpdated', {
-            detail: {
-              points: pointsResult.totalPoints,
-              dailyPoints: pointsResult.dailyPoints
-            }
-          }))
-        } else {
-          const errorData = await pointsResponse.json().catch(() => ({ error: 'Unknown error' }))
-          console.error('포인트 획득 실패:', errorData)
-          alert('질문이 등록되었습니다! (포인트 획득 실패)')
-          
-          // 포인트 획득 실패해도 질문은 등록되었으므로 목록 새로고침
-          await loadQuestions()
-        }
+      alert('질문이 등록되었습니다!')
+      console.log('질문 작성 후 목록 새로고침 시작')
+      // 토큰이 있으면 목록 새로고침
+      if (token) {
+        await loadQuestions()
+        console.log('질문 작성 후 목록 새로고침 완료')
       } else {
-        console.log('사용자 ID가 없어서 포인트 획득 건너뜀')
-        alert('질문이 등록되었습니다!')
-        console.log('질문 작성 후 목록 새로고침 시작')
-        // 토큰이 있으면 목록 새로고침
-        if (token) {
-          await loadQuestions()
-          console.log('질문 작성 후 목록 새로고침 완료')
-        } else {
-          console.log('토큰이 없어서 목록 새로고침 건너뜀')
-        }
+        console.log('토큰이 없어서 목록 새로고침 건너뜀')
       }
 
       // 폼 초기화
@@ -1697,16 +1756,16 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     }
   }
 
-  // 포인트 시스템 상태 관리
-  const [userPoints, setUserPoints] = useState(100) // 초기 포인트
-  const [dailyPoints, setDailyPoints] = useState(0) // 오늘 획득한 포인트
-  const [pointHistory, setPointHistory] = useState<Array<{
-    id: string
-    activity: string
-    points: number
-    timestamp: Date
-    description: string
-  }>>([])
+  // 포인트 시스템 상태 관리 - 제거됨 (숨김 처리)
+  // const [userPoints, setUserPoints] = useState(100) // 초기 포인트
+  // const [dailyPoints, setDailyPoints] = useState(0) // 오늘 획득한 포인트
+  // const [pointHistory, setPointHistory] = useState<Array<{
+  //   id: string
+  //   activity: string
+  //   points: number
+  //   timestamp: Date
+  //   description: string
+  // }>>([])
 
   // 답변 좋아요 토글 처리
   const handleAnswerLike = (answerId: number) => {
@@ -1737,52 +1796,52 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
         [answerId]: prevUpvotes[answerId] + 1
       }))
       
-      // 좋아요 시 포인트 획득
-      earnPoints('reaction')
+      // 좋아요 시 포인트 획득 - 제거됨 (숨김 처리)
+      // earnPoints('reaction')
     }
   }
 
-  // 포인트 획득 함수
-  const earnPoints = (activity: 'question' | 'answer' | 'story' | 'reaction' | 'consultation') => {
-    if (!currentProfile) return
-    const userType = (currentProfile as any).is_korean ? 'korean' : 'latin'
-    const points = pointSystem[userType][activity]
-    const dailyLimit = pointSystem[userType].dailyLimit
-    
-    if (dailyPoints + points <= dailyLimit) {
-      setUserPoints(prev => prev + points)
-      setDailyPoints(prev => prev + points)
-      
-      // 포인트 히스토리에 기록
-      const newHistoryItem = {
-        id: Date.now().toString(),
-        activity,
-        points,
-        timestamp: new Date(),
-        description: getActivityDescription(activity, points)
-      }
-      
-      setPointHistory(prev => [newHistoryItem, ...prev])
-      
-      console.log(`${getActivityDescription(activity, points)} +${points}점 획득!`)
-      return true
-    } else {
-      alert(`오늘 포인트 한도를 초과했습니다. (일일 최대 ${dailyLimit}점)`)
-      return false
-    }
-  }
+  // 포인트 획득 함수 - 제거됨 (숨김 처리)
+  // const earnPoints = (activity: 'question' | 'answer' | 'story' | 'reaction' | 'consultation') => {
+  //   if (!currentProfile) return
+  //   const userType = (currentProfile as any).is_korean ? 'korean' : 'latin'
+  //   const points = pointSystem[userType][activity]
+  //   const dailyLimit = pointSystem[userType].dailyLimit
+  //   
+  //   if (dailyPoints + points <= dailyLimit) {
+  //     setUserPoints(prev => prev + points)
+  //     setDailyPoints(prev => prev + points)
+  //     
+  //     // 포인트 히스토리에 기록
+  //     const newHistoryItem = {
+  //       id: Date.now().toString(),
+  //       activity,
+  //       points,
+  //       timestamp: new Date(),
+  //       description: getActivityDescription(activity, points)
+  //     }
+  //     
+  //     setPointHistory(prev => [newHistoryItem, ...prev])
+  //     
+  //     console.log(`${getActivityDescription(activity, points)} +${points}점 획득!`)
+  //     return true
+  //   } else {
+  //     alert(`오늘 포인트 한도를 초과했습니다. (일일 최대 ${dailyLimit}점)`)
+  //     return false
+  //   }
+  // }
 
-  // 활동 설명 생성 함수
-  const getActivityDescription = (activity: string, points: number) => {
-    const descriptions: Record<string, string> = {
-      question: '질문 작성',
-      answer: '답변 작성', 
-      story: '스토리 작성',
-      reaction: '좋아요/댓글',
-      consultation: '상담 참여'
-    }
-    return `${descriptions[activity] || '활동'} (+${points}점)`
-  }
+  // 활동 설명 생성 함수 - 제거됨 (숨김 처리)
+  // const getActivityDescription = (activity: string, points: number) => {
+  //   const descriptions: Record<string, string> = {
+  //     question: '질문 작성',
+  //     answer: '답변 작성', 
+  //     story: '스토리 작성',
+  //     reaction: '좋아요/댓글',
+  //     consultation: '상담 참여'
+  //   }
+  //   return `${descriptions[activity] || '활동'} (+${points}점)`
+  // }
 
   // 답변 등록 처리
   const handleSubmitAnswer = async () => {
@@ -1839,39 +1898,39 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       const result = await response.json()
       console.log('새 답변 작성:', result.comment)
 
-      // 포인트 획득 시도
-      if (user?.id) {
-        const pointsResponse = await fetch('/api/community/points', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            activityType: 'question_answer',
-            postId: result.comment.id,
-            title: `질문 "${selectedQuestion.title}"에 대한 답변`
-          })
-        })
-
-        if (pointsResponse.ok) {
-          const pointsResult = await pointsResponse.json()
-          alert(`답변이 등록되었습니다! +${pointsResult.points}점 획득!`)
-          
-          // 답변 목록 새로고침
-          await loadAnswers(selectedQuestion.id)
-          
-          // 포인트 업데이트 이벤트 발생
-          window.dispatchEvent(new CustomEvent('pointsUpdated', {
-            detail: {
-              points: pointsResult.totalPoints,
-              dailyPoints: pointsResult.dailyPoints
-            }
-          }))
-        }
-      } else {
+      // 포인트 획득 시도 - 제거됨 (숨김 처리)
+      // if (user?.id) {
+      //   const pointsResponse = await fetch('/api/community/points', {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify({
+      //       userId: user.id,
+      //       activityType: 'question_answer',
+      //       postId: result.comment.id,
+      //       title: `질문 "${selectedQuestion.title}"에 대한 답변`
+      //     })
+      //   })
+      // 
+      //   if (pointsResponse.ok) {
+      //     const pointsResult = await pointsResponse.json()
+      //     alert(`답변이 등록되었습니다! +${pointsResult.points}점 획득!`)
+      //     
+      //     // 답변 목록 새로고침
+      //     await loadAnswers(selectedQuestion.id)
+      //     
+      //     // 포인트 업데이트 이벤트 발생
+      //     window.dispatchEvent(new CustomEvent('pointsUpdated', {
+      //       detail: {
+      //         points: pointsResult.totalPoints,
+      //         dailyPoints: pointsResult.dailyPoints
+      //       }
+      //     }))
+      //   }
+      // } else {
         // 포인트 획득 실패해도 답변은 등록되었으므로 목록 새로고침
         alert('답변이 등록되었습니다!')
         await loadAnswers(selectedQuestion.id)
-      }
+      // }
 
       // 폼 초기화
       setAnswerForm({ content: '' })
@@ -4058,6 +4117,15 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Events 탭 제거 - 이벤트 카테고리 완전 제거 */}
+      
+      {/* 디버깅: currentView 상태 확인 (개발 환경에서만) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-20 right-4 bg-black/80 text-white text-xs p-2 rounded z-50 pointer-events-none">
+          currentView: {currentView} | cTab: {searchParams.get('cTab') || 'none'}
+        </div>
+      )}
 
       {/* Tests 탭 */}
       {currentView === 'tests' && (

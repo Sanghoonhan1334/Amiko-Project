@@ -828,8 +828,155 @@ export default function HomeTab() {
       {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 p-4">
       
-      {/* 공지사항 - 맨 위에 배치 */}
-      {/* 현재 진행 이벤트 */}
+      {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 */}
+      {/* 지금 커뮤니티에서 핫한 글 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-red-600" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              {t('home.sections.hotPosts')}
+            </h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/community/freeboard')}
+          >
+            {language === 'ko' ? '더 보기' : 'Ver Más'}
+          </Button>
+        </div>
+        
+        {hotPosts.length > 0 ? (
+          <Card className="border-l-4 border-l-red-500">
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {hotPosts.map((post, index) => (
+                  <div 
+                    key={post.id} 
+                    className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
+                    onClick={() => router.push(`/community/post/${post.id}?from=home`)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-gray-100 text-gray-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
+                        {shortenCategoryName(post.category || 'Libre')}
+                      </Badge>
+                      <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
+                        {post.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-[10px] text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-0.5">
+                          <Heart className="w-3 h-3 text-red-500" />
+                          <span>{post.likes}</span>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <MessageSquare className="w-3 h-3 text-blue-500" />
+                          <span>{post.comments}</span>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <Eye className="w-3 h-3" />
+                          <span>{formatNumber(post.views)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">
+                {language === 'ko' ? '핫한 게시글이 없습니다' : 'No hay posts populares'}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* 2. K-noticias - 오늘의 K-Noticia */}
+      {/* 오늘의 K-Noticia - 모바일 버전 */}
+      {/* K-Noticia 뉴스 섹션 */}
+      <div className="space-y-3 md:hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Image 
+                src="/icons/k-magazine.png" 
+                alt="K-Noticia" 
+                width={20}
+                height={20}
+                className="object-contain mr-2"
+                priority
+              />
+              <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
+                {t('home.sections.kNoticia')}
+              </h2>
+            </div>
+          <button 
+            onClick={() => router.push('/community/news')}
+            className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
+          >
+            <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+            <ChevronRight className="w-3 h-3" />
+          </button>
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {kNoticiaNews.length > 0 ? (
+                kNoticiaNews.map((news) => (
+                  <div 
+                    key={news.id}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
+                    onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-purple-100 text-purple-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
+                        {t('home.sections.news')}
+                      </Badge>
+                      <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
+                        {news.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-[10px] text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-0.5">
+                          <Heart className="w-3 h-3 text-red-500" />
+                          <span>{news.likes}</span>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <MessageSquare className="w-3 h-3 text-blue-500" />
+                          <span>{news.comments}</span>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <Eye className="w-3 h-3" />
+                          <span>{formatNumber(news.views)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <Image 
+                    src="/icons/k-magazine.png" 
+                    alt="K-Noticia" 
+                    width={32}
+                    height={32}
+                    className="mx-auto mb-2 opacity-40"
+                  />
+                  <p className="text-gray-500 text-xs">
+                    {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 3. Evento - 현재 진행 이벤트 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-blue-600" />
@@ -910,7 +1057,7 @@ export default function HomeTab() {
         )}
       </div>
 
-      {/* 공지사항 */}
+      {/* 4. Anuncio - 공지사항 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="text-green-500">📢</span>
@@ -970,73 +1117,6 @@ export default function HomeTab() {
             </Card>
           )}
         </div>
-      </div>
-
-      {/* 지금 커뮤니티에서 핫한 글 */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-red-600" />
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {t('home.sections.hotPosts')}
-            </h2>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/community/freeboard')}
-          >
-            {language === 'ko' ? '더 보기' : 'Ver Más'}
-          </Button>
-        </div>
-        
-        {hotPosts.length > 0 ? (
-          <Card className="border-l-4 border-l-red-500">
-            <CardContent className="p-0">
-              <div className="divide-y">
-                {hotPosts.map((post, index) => (
-                  <div 
-                    key={post.id} 
-                    className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
-                    onClick={() => router.push(`/community/post/${post.id}?from=home`)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-gray-100 text-gray-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
-                        {shortenCategoryName(post.category || 'Libre')}
-                      </Badge>
-                      <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                        {post.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-[10px] text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center gap-0.5">
-                          <Heart className="w-3 h-3 text-red-500" />
-                          <span>{post.likes}</span>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                          <MessageSquare className="w-3 h-3 text-blue-500" />
-                          <span>{post.comments}</span>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                          <Eye className="w-3 h-3" />
-                          <span>{formatNumber(post.views)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">
-                {language === 'ko' ? '핫한 게시글이 없습니다' : 'No hay posts populares'}
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* 인기 심리테스트 */}
@@ -1280,9 +1360,11 @@ export default function HomeTab() {
             </div>
           </CardContent>
         </Card>
-      </div> */}
+      </div>
+      )}
 
-      {/* 지금 핫 한 채팅방 & 지금 투표 */}
+      {/* 지금 핫 한 채팅방 & 지금 투표 - 숨김 처리 (당분간 사용 안 함) */}
+      {false && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* 지금 핫 한 채팅방 */}
         <div className="space-y-2">
@@ -1428,6 +1510,7 @@ export default function HomeTab() {
           </Card>
         </div>
       </div>
+      )}
 
       {/* 오늘의 K-Noticia - 모바일 버전 */}
       {/* K-Noticia 뉴스 섹션 */}
@@ -1733,113 +1816,7 @@ export default function HomeTab() {
         <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
           <div className="space-y-4">
             
-            {/* 공지사항 - 데스크톱 버전 */}
-            {/* 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {t('home.sections.currentEvents')}
-                </h2>
-              </div>
-              
-              <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none rounded-lg">
-                <CardContent className="p-0 bg-transparent">
-                  <div 
-                    id="event-container-desktop"
-                    className="relative h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={() => setIsDragging(false)}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                  >
-                    {currentEvents.length > 0 ? (
-                      <div 
-                        className="flex transition-transform duration-1000 ease-in-out"
-                        style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
-                      >
-                        {currentEvents.map((event, index) => (
-                          <div
-                            key={event.id}
-                            className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-6"
-                            style={{ height: '160px' }}
-                            onClick={() => {
-                              router.push('/main?tab=event&show=korean-meeting')
-                            }}
-                          >
-                            {/* 텍스트 기반 배너 */}
-                            <div className="text-center text-white">
-                              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-3">
-                                {event.title}
-                              </h3>
-                              <p className="text-base md:text-lg text-white/90 mb-2">
-                                {event.description}
-                              </p>
-                              <p className="text-sm md:text-base text-white/80">
-                                {event.date}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-40 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        <p className="text-gray-500 dark:text-gray-400">
-                          {language === 'ko' ? '진행 중인 이벤트가 없습니다' : 'No hay eventos en curso'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* 공지사항 - 데스크톱 버전 */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <Megaphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {language === 'ko' ? '공지' : 'Anuncios'}
-                  </h2>
-                </div>
-                
-                <Card>
-                  <CardContent className="p-4">
-                    {notices.length > 0 ? (
-                      <div className="space-y-3">
-                        {notices.slice(0, 3).map((announcement) => (
-                          <div
-                            key={announcement.id}
-                            className="cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                            onClick={() => router.push(`/community/freeboard/${announcement.id}`)}
-                          >
-                            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
-                              {announcement.title}
-                            </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {announcement.createdAt || new Date().toLocaleDateString()}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
+            {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1912,6 +1889,189 @@ export default function HomeTab() {
                   </CardContent>
                 </Card>
               )}
+            </div>
+
+            {/* 2. K-noticias - 오늘의 K-Noticia - 데스크톱 */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Image 
+                    src="/icons/k-magazine.png" 
+                    alt="K-Noticia" 
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                    priority
+                  />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.kNoticia')}
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => router.push('/community/news')}
+                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <Card>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {kNoticiaNews.length > 0 ? (
+                      kNoticiaNews.map((news) => (
+                        <div 
+                          key={news.id}
+                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
+                          onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Badge className="bg-purple-100 text-purple-700 border-0 px-2 py-0.5 font-medium text-xs whitespace-nowrap">
+                              {t('home.sections.news')}
+                            </Badge>
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
+                              {news.title}
+                            </h3>
+                            <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center gap-1">
+                                <Heart className="w-4 h-4 text-red-500" />
+                                <span>{news.likes}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MessageSquare className="w-4 h-4 text-blue-500" />
+                                <span>{news.comments}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Eye className="w-4 h-4" />
+                                <span>{formatNumber(news.views)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <Image 
+                          src="/icons/k-magazine.png" 
+                          alt="K-Noticia" 
+                          width={48}
+                          height={48}
+                          className="mx-auto mb-3 opacity-40"
+                        />
+                        <p className="text-gray-500 text-sm">
+                          {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 3. Evento - 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {t('home.sections.currentEvents')}
+                </h2>
+              </div>
+              
+              <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none rounded-lg">
+                <CardContent className="p-0 bg-transparent">
+                  <div 
+                    id="event-container-desktop"
+                    className="relative h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={() => setIsDragging(false)}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    {currentEvents.length > 0 ? (
+                      <div 
+                        className="flex transition-transform duration-1000 ease-in-out"
+                        style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
+                      >
+                        {currentEvents.map((event, index) => (
+                          <div
+                            key={event.id}
+                            className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-6"
+                            style={{ height: '160px' }}
+                            onClick={() => {
+                              router.push('/main?tab=event&show=korean-meeting')
+                            }}
+                          >
+                            {/* 텍스트 기반 배너 */}
+                            <div className="text-center text-white">
+                              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-3">
+                                {event.title}
+                              </h3>
+                              <p className="text-base md:text-lg text-white/90 mb-2">
+                                {event.description}
+                              </p>
+                              <p className="text-sm md:text-base text-white/80">
+                                {event.date}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-40 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <p className="text-gray-500 dark:text-gray-400">
+                          {language === 'ko' ? '진행 중인 이벤트가 없습니다' : 'No hay eventos en curso'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* 4. Anuncio - 공지사항 - 데스크톱 버전 */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <Megaphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {language === 'ko' ? '공지' : 'Anuncios'}
+                  </h2>
+                </div>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    {notices.length > 0 ? (
+                      <div className="space-y-3">
+                        {notices.slice(0, 3).map((announcement) => (
+                          <div
+                            key={announcement.id}
+                            className="cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            onClick={() => router.push(`/community/freeboard/${announcement.id}`)}
+                          >
+                            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
+                              {announcement.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {announcement.createdAt || new Date().toLocaleDateString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500 text-sm">
+                          {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
             {/* 인기 심리테스트 */}
@@ -2111,7 +2271,8 @@ export default function HomeTab() {
             </div>
 
             {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 - 미구현으로 숨김 */}
-            {/* <div className="space-y-4">
+            {false && (
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -2166,9 +2327,11 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-            </div> */}
+            </div>
+            )}
 
-            {/* 지금 핫 한 채팅방 & 지금 투표 - 데스크톱 */}
+            {/* 지금 핫 한 채팅방 & 지금 투표 - 데스크톱 - 숨김 처리 (당분간 사용 안 함) */}
+            {false && (
             <div className="grid grid-cols-2 gap-4">
               {/* 지금 핫 한 채팅방 */}
               <div className="space-y-2">
@@ -2298,84 +2461,7 @@ export default function HomeTab() {
                 </Card>
               </div>
             </div>
-
-            {/* 오늘의 K-Noticia - 데스크톱 */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Image 
-                    src="/icons/k-magazine.png" 
-                    alt="K-Noticia" 
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                    priority
-                  />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {t('home.sections.kNoticia')}
-                  </h2>
-                </div>
-                <button 
-                  onClick={() => router.push('/community/news')}
-                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
-                >
-                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <Card>
-                <CardContent className="p-0">
-                  <div className="divide-y">
-                    {kNoticiaNews.length > 0 ? (
-                      kNoticiaNews.map((news) => (
-                        <div 
-                          key={news.id}
-                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
-                          onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-100 text-purple-700 border-0 px-2 py-0.5 font-medium text-xs whitespace-nowrap">
-                              {t('home.sections.news')}
-                            </Badge>
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                              {news.title}
-                            </h3>
-                            <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-4 h-4 text-red-500" />
-                                <span>{news.likes}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MessageSquare className="w-4 h-4 text-blue-500" />
-                                <span>{news.comments}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                <span>{formatNumber(news.views)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <Image 
-                          src="/icons/k-magazine.png" 
-                          alt="K-Noticia" 
-                          width={48}
-                          height={48}
-                          className="mx-auto mb-3 opacity-40"
-                        />
-                        <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            )}
 
             {/* 최근 스토리 - 데스크톱 - 환경 변수로 제어 */}
             {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (

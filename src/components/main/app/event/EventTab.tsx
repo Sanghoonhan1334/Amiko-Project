@@ -2,18 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { 
   Gift, 
   Star, 
   Trophy, 
-  Zap,
-  CheckCircle,
-  Video,
-  Users
+  Zap
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -24,48 +19,14 @@ import { useTheme } from 'next-themes'
 import ZepEventCard from './ZepEventCard'
 import SeedIcon from '@/components/common/SeedIcon'
 
-interface AttendanceRecord {
-  date: string
-  streak: number
-  points: number
-  stamps: number
-}
-
-// getRewards 함수에서 language를 파라미터로 받도록 변경
-const getRewards = (language: string) => {
-    const consecutiveDaysText = (days: number) => {
-      if (language === 'es') {
-        return `${days} días consecutivos`
-      } else {
-        return `${days}일 연속`
-      }
-    }
-
-    return {
-      3: { points: 20, label: consecutiveDaysText(3) },
-      7: { points: 30, label: consecutiveDaysText(7) },
-      10: { points: 40, label: consecutiveDaysText(10) },
-      15: { points: 60, label: consecutiveDaysText(15) },
-      22: { points: 70, label: consecutiveDaysText(22) },
-      25: { points: 80, label: consecutiveDaysText(25) },
-      30: { points: 100, label: consecutiveDaysText(30) }
-    }
-  }
-
 export default function EventTab() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading, refreshUser } = useUser()
   const { t, language } = useLanguage()
   const { theme } = useTheme()
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
-  const [currentStreak, setCurrentStreak] = useState(0)
   // 핵심: 항상 중앙 context의 user?.points를 신뢰하게!
   const totalPoints = user?.points
-  const [isStampAnimating, setIsStampAnimating] = useState(false)
-  const [stampSize, setStampSize] = useState(1)
-  const [clickedDay, setClickedDay] = useState<number | null>(null)
-  const [userType, setUserType] = useState<'local' | 'korean'>('local') // 기본값: 현지인
   const refreshAttempted = useRef(false);
   const [refreshTryCount, setRefreshTryCount] = useState(0);
   const [showError, setShowError] = useState(false);
@@ -94,11 +55,6 @@ export default function EventTab() {
     return iconMap[level] || 'seed'
   }
   const levelIconValue = getLevelIcon(levelResult.level);
-  const rewards = getRewards(language);
-  const getNextReward = () => {
-    const milestones = Object.keys(rewards).map(Number).sort((a, b) => a - b)
-    return milestones.find(milestone => milestone > currentStreak) || null
-  }
   // points가 확정적으로 없거나 0일 때 자동 갱신 (최대 한 번만 시도)
   useEffect(() => {
     if (!refreshAttempted.current && (!loading && (totalPoints === undefined || totalPoints === 0)) && user?.id) {
@@ -110,22 +66,7 @@ export default function EventTab() {
   // URL 쿼리 파라미터로 특정 섹션으로 스크롤
   useEffect(() => {
     const showParam = searchParams?.get('show')
-    if (showParam === 'korean-meeting') {
-      // 한국어 모임 섹션으로 스크롤
-      setTimeout(() => {
-        const element = document.getElementById('korean-meeting-event')
-        if (element) {
-          const headerOffset = 100
-          const elementPosition = element.getBoundingClientRect().top
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          })
-        }
-      }, 100)
-    } else if (showParam === 'acu-point-sunscreen') {
+    if (showParam === 'acu-point-sunscreen') {
       // ACU-POINT 섹션으로 스크롤 - 숨김 처리로 인해 비활성화
       // setTimeout(() => {
       //   const element = document.getElementById('acu-point-event')
@@ -142,46 +83,6 @@ export default function EventTab() {
       // }, 100)
     }
   }, [searchParams]);
-
-  // 언어에 따른 요일 배열
-  const daysOfWeek = language === 'es' 
-    ? ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-    : ['일', '월', '화', '수', '목', '금', '토']
-
-  // 사용자 타입 감지 (실제로는 사용자 프로필에서 가져올 것)
-  const detectUserType = () => {
-    // 임시로 브라우저 언어 설정으로 판단 (실제로는 사용자 프로필 기반)
-    const browserLang = navigator.language.toLowerCase()
-    const isKorean = browserLang.includes('ko') || browserLang.includes('kr')
-    return isKorean ? 'korean' : 'local'
-  }
-
-  // 현재 날짜 정보
-  const today = new Date()
-  const currentYear = today.getFullYear()
-  const currentMonth = today.getMonth()
-  const currentDay = today.getDate()
-
-  // 출석체크 보상 시스템 (연속 출석 기준)
-  // const getRewards = () => {
-  //   const consecutiveDaysText = (days: number) => {
-  //     if (language === 'es') {
-  //       return `${days} días consecutivos`
-  //     } else {
-  //       return `${days}일 연속`
-  //     }
-  //   }
-
-  //   return {
-  //     3: { points: 20, label: consecutiveDaysText(3) },
-  //     7: { points: 30, label: consecutiveDaysText(7) },
-  //     10: { points: 40, label: consecutiveDaysText(10) },
-  //     15: { points: 60, label: consecutiveDaysText(15) },
-  //     22: { points: 70, label: consecutiveDaysText(22) },
-  //     25: { points: 80, label: consecutiveDaysText(25) },
-  //     30: { points: 100, label: consecutiveDaysText(30) }
-  //   }
-  // }
   
   // 최초 가입자 확인 및 쿠폰 지급 (로그인된 사용자만)
   const checkFirstTimeUser = () => {
@@ -205,200 +106,12 @@ export default function EventTab() {
     }
   }
 
-  const loadAttendanceData = () => {
-    // localStorage에서 실제 출석체크 기록 불러오기
-    const savedRecords = localStorage.getItem('attendanceRecords')
-    const savedPoints = localStorage.getItem('totalPoints')
-    
-    if (savedRecords) {
-      const records = JSON.parse(savedRecords)
-      setAttendanceRecords(records)
-      
-      // 실제 출석체크 기록을 기반으로 연속 일수 계산
-      const actualStreak = records.length
-      setCurrentStreak(actualStreak)
-      
-      // 연속 출석일수에 따른 도장 크기 계산
-      setStampSize(Math.min(1 + (actualStreak * 0.1), 2))
-    } else {
-      // 처음 사용하는 경우 빈 배열로 시작
-      setAttendanceRecords([])
-      setCurrentStreak(0)
-      setStampSize(1)
-    }
-    
-    if (savedPoints) {
-      // setTotalPoints(parseInt(savedPoints)) // 이제 중앙 context에서 관리
-    } else {
-      // setTotalPoints(0) // 이제 중앙 context에서 관리
-    }
-  }
-
   useEffect(() => {
-    loadAttendanceData()
-    // 🚀 최적화: loadPointsData 제거됨 (React Query로 대체)
     // 사용자가 로그인된 경우에만 쿠폰 지급 확인
     if (user?.id) {
       checkFirstTimeUser()
     }
   }, [user?.id])
-
-  // 🚀 최적화: 포인트 데이터 로드 함수 제거 (React Query에서 처리)
-
-  const handleDayClick = async (dayNumber: number) => {
-    if (isStampAnimating) return
-
-    // 해당 날짜의 출석체크 기록 확인
-    const now = new Date()
-    const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth()
-    const dayDate = new Date(currentYear, currentMonth, dayNumber).toISOString().split('T')[0]
-    const existingRecord = attendanceRecords.find(record => record.date === dayDate)
-    
-    if (existingRecord) {
-      return
-    }
-
-    setIsStampAnimating(true)
-    setClickedDay(dayNumber)
-    
-    // 도장 소리 효과 (웹 오디오 API)
-    playStampSound()
-    
-    // 진동 피드백 (모바일)
-    if ('vibrate' in navigator) {
-      navigator.vibrate([100, 50, 100])
-    }
-
-    // 도장 찍기 애니메이션
-    setTimeout(() => {
-      setIsStampAnimating(false)
-      setClickedDay(null)
-      
-      // 출석체크 완료 처리
-      const newRecord = {
-        day: dayNumber,
-        date: dayDate,
-        streak: attendanceRecords.length + 1,
-        points: 0, // 기본 출석 포인트는 0점 (연속 출석 보상만)
-        stamps: 1
-      }
-      
-      const updatedRecords = [...attendanceRecords, newRecord]
-      setAttendanceRecords(updatedRecords)
-      
-      // localStorage에 출석체크 기록 저장
-      localStorage.setItem('attendanceRecords', JSON.stringify(updatedRecords))
-      
-      // 실제 출석체크 기록을 기반으로 연속 일수 업데이트
-      const actualStreak = updatedRecords.length
-      setCurrentStreak(actualStreak)
-      
-      // 출석 체크 포인트 지급 (75점 체계)
-      if (user?.id) {
-        fetch('/api/community/points', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            activityType: 'attendance_check',
-            postId: null,
-            title: '출석 체크'
-          })
-        }).then(res => {
-          if (res.ok) {
-            console.log('[ATTENDANCE] 포인트 지급 성공: +10점')
-            // 포인트 업데이트 이벤트 발생
-            window.dispatchEvent(new CustomEvent('pointsUpdated'))
-          } else {
-            console.log('[ATTENDANCE] 포인트 지급 실패 (일일 한도 또는 중복)')
-          }
-        }).catch(err => {
-          console.error('[ATTENDANCE] 포인트 API 오류:', err)
-        })
-      }
-      
-      // 연속 출석 보상 확인 (기존 보상 시스템)
-      checkRewards(actualStreak)
-      
-    }, 200)
-  }
-
-  const handleAttendanceCheck = async () => {
-    await handleDayClick(currentDay)
-  }
-
-  const playStampSound = () => {
-    // 간단한 도장 소리 효과
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-    
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-    
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1)
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
-    
-    oscillator.start(audioContext.currentTime)
-    oscillator.stop(audioContext.currentTime + 0.1)
-  }
-
-  const checkRewards = (streak: number) => {
-    if (streak in rewards) {
-      const reward = rewards[streak as keyof typeof rewards]
-      
-      // 보상 지급 로직 (연속 출석 보상만)
-      // setTotalPoints(prev => prev + reward.points) // 이제 중앙 context에서 관리
-      // localStorage.setItem('totalPoints', (totalPoints + reward.points).toString()) // 이제 중앙 context에서 관리
-      
-      // 보상 알림
-      let rewardMessage = `🎉 ${t('eventTab.rewardAchieved')} ${reward.label}!\n`
-      rewardMessage += `${t('eventTab.pointsEarned')} +${reward.points}${t('eventTab.points')}`
-      
-      alert(rewardMessage)
-      console.log(`${t('eventTab.rewardObtained')} ${reward.label}: ${t('eventTab.points')} ${reward.points}${t('eventTab.points')}`)
-    }
-  }
-
-  // 각 날짜별 보상 아이템 생성
-  const getRewardItems = (dayNumber: number) => {
-    const rewardPatterns = [
-      ['💎', '⭐'], // 1일차
-      ['🍯', 'P'], // 2일차
-      ['🌹', '💎'], // 3일차
-      ['🥩', '⭐'], // 4일차
-      ['🍇', 'P'], // 5일차
-      ['🐒', '💎'], // 6일차
-      ['💎', '💎', '💎'], // 7일차
-      ['📜', '⭐'], // 8일차
-      ['🍩', 'P'], // 9일차
-      ['🌹', '💎'], // 10일차
-      ['🥩', '⭐'], // 11일차
-      ['🍇', 'P'], // 12일차
-      ['🐒', '🐒'], // 13일차
-      ['💎', '💎', '💎'], // 14일차
-      ['📜', '⭐'], // 15일차
-      ['🍩', 'P'], // 16일차
-      ['🌹', '💎'], // 17일차
-      ['🥩', '⭐'], // 18일차
-      ['🍇', 'P'], // 19일차
-      ['🐒', '🐒'], // 20일차
-      ['🎒', '💎'], // 21일차
-      ['📜', '⭐'], // 22일차
-      ['🍩', 'P'], // 23일차
-      ['🌹', '💎'], // 24일차
-      ['🥩', '⭐'], // 25일차
-      ['🍇', 'P'], // 26일차
-      ['🛡️', '💎'], // 27일차
-      ['📜', '⭐'], // 28일차
-    ]
-    
-    return rewardPatterns[(dayNumber - 1) % rewardPatterns.length] || ['⭐']
-  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto px-0 md:px-8 py-0 sm:py-2 md:py-6 -mt-8" data-tutorial="event-section">
@@ -549,7 +262,7 @@ export default function EventTab() {
           </div>
         </div> */}
 
-      {/* 구분선 - 특별 이벤트 섹션이 숨겨져서 제거 */}
+      {/* 구분선 - ACU-POINT 이벤트가 숨겨져서 제거 */}
       {/* <div className="border-t-2 border-gray-300 my-8"></div> */}
       
       {/* 포인트 시스템 제목 */}
@@ -791,69 +504,6 @@ export default function EventTab() {
           </CardContent>
         </Card>
       </div> */}
-
-      {/* 구분선 */}
-      <div className="border-t-2 border-gray-300 my-8"></div>
-
-      {/* 한국어 모임 이벤트 */}
-      <div id="korean-meeting-event" className="scroll-mt-20">
-        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-2">
-              <div className="text-xl sm:text-2xl">🇰🇷</div>
-              <CardTitle className="text-sm sm:text-base md:text-lg text-blue-700 dark:text-blue-300">
-                {language === 'ko' ? '한국어 모임' : 'Reunión de Coreano'}
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* 이벤트 설명 */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">📅</span>
-                <div className="flex-1">
-                  <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
-                    {language === 'ko' ? '일정' : 'Horario'}
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {language === 'ko' 
-                      ? '2주에 한번씩 정기적으로 한국어 모임을 진행합니다!' 
-                      : '¡Reunión de coreano cada 2 semanas!'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">💬</span>
-                <div className="flex-1">
-                  <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
-                    {language === 'ko' ? '내용' : 'Contenido'}
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {language === 'ko' 
-                      ? '한국어를 배우고 싶은 분들과 함께 대화하며 한국어 실력을 향상시킬 수 있는 모임입니다.' 
-                      : 'Una reunión donde puedes mejorar tu coreano conversando con personas que quieren aprender coreano.'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">👥</span>
-                <div className="flex-1">
-                  <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-1">
-                    {language === 'ko' ? '참여 방법' : 'Cómo Participar'}
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {language === 'ko' 
-                      ? '이벤트 탭에서 정기적으로 업데이트되는 일정을 확인하세요!' 
-                      : '¡Consulta el calendario actualizado regularmente en la pestaña de eventos!'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* 구분선 */}
       <div className="border-t-2 border-gray-300 my-8"></div>

@@ -127,7 +127,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener('pointsUpdated', handlePointsUpdate as EventListener)
     }
-  }, [user])
+  }, []) // user 의존성 제거 - 이벤트 리스너는 한 번만 등록
 
   return (
     <UserContext.Provider value={{

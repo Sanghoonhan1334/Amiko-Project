@@ -11,6 +11,27 @@ export default function PartnersPage() {
   const [closingPartner, setClosingPartner] = useState<number | null>(null)
   const paraFansImageRef = useRef<HTMLImageElement>(null)
   const [imageBounds, setImageBounds] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  
+  // 하이퍼링크 위치 (고정)
+  const linkPositions = (() => {
+    // localStorage에서 저장된 위치 불러오기
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('para-fans-link-positions')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch {
+          // 기본값 사용
+        }
+      }
+    }
+    // 기본 위치
+    return {
+      instagram: { top: 15, left: 10, width: 80, height: 12 },
+      facebook: { top: 28, left: 10, width: 80, height: 12 },
+      website: { top: 41, left: 10, width: 80, height: 12 }
+    }
+  })()
 
   const partners = [
     {
@@ -51,28 +72,9 @@ export default function PartnersPage() {
       description: language === 'ko'
         ? '"어떻게 인류를 아름답고 건강하게 할 수 있는가"라는 질문에서 출발한 기업으로, 지속적 연구와 혁신으로 더 나은 미래의 뷰티를 만들어가고 있습니다.'
         : 'Acu-Point es una empresa que comenzó con la pregunta "¿Cómo podemos hacer a la humanidad hermosa y saludable?" y está creando un mejor futuro de la belleza a través de investigación e innovación continuas.',
-      links: [
-        {
-          platform: 'Instagram',
-          url: '#',
-          icon: '📷',
-          label: 'Pendiente de anuncio'
-        },
-        {
-          platform: 'Facebook',
-          url: '#',
-          icon: '👥',
-          label: 'Pendiente de anuncio'
-        },
-        {
-          platform: 'Website',
-          url: '#',
-          icon: '🌐',
-          label: 'Pendiente de anuncio'
-        }
-      ],
-      location: 'Pendiente de anuncio',
-      phone: 'Pendiente de anuncio'
+      links: [],
+      location: '',
+      phone: ''
     },
     {
       name: '',
@@ -119,6 +121,9 @@ export default function PartnersPage() {
   // 파트너 카드 클릭 핸들러
   const handlePartnerClick = (index: number) => {
     if (!partners[index].name || !partners[index].id) return
+    
+    // Acu-Point는 상세 정보가 없으므로 클릭해도 아무 동작 안 함
+    if (partners[index].id === 'acu-point') return
     
     if (selectedPartner === index) {
       // 닫기
@@ -216,6 +221,7 @@ export default function PartnersPage() {
     }
   }, [selectedPartner, currentPartner])
 
+
   return (
     <>
       <style>{animationStyles}</style>
@@ -267,7 +273,7 @@ export default function PartnersPage() {
                 >
                   {/* Main Card */}
                   <div
-                    className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all flex flex-col ${partner.name && partner.id ? 'cursor-pointer' : ''}`}
+                    className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all flex flex-col ${partner.name && partner.id && partner.id !== 'acu-point' ? 'cursor-pointer' : ''}`}
                     style={{ aspectRatio: '1 / 1' }}
                     onClick={() => handlePartnerClick(index)}
                   >
@@ -304,7 +310,7 @@ export default function PartnersPage() {
                   </div>
 
                   {/* Expanded Detail Card - 흰색 오버레이 위에 표시 */}
-                  {(isSelected || closingPartner === index) && currentPartner && currentPartner.id === partners[index].id && (
+                  {(isSelected || closingPartner === index) && currentPartner && currentPartner.id === partners[index].id && currentPartner.id !== 'acu-point' && (
                     <div 
                       className={`absolute top-full mt-2 left-0 w-[280px] bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-300 dark:border-gray-500 shadow-xl z-[60] ${
                         closingPartner === index ? 'partner-detail-exit' : 'partner-detail-enter'
@@ -327,7 +333,7 @@ export default function PartnersPage() {
                         {currentPartner.id === 'para-fans' ? (
                           <div className="relative w-full h-full flex items-center justify-center p-4">
                             {/* Para Fans 상세 이미지 */}
-                            <div className="relative w-full h-full flex items-center justify-center">
+                            <div data-para-fans-container className="relative w-full h-full flex items-center justify-center">
                               <img 
                                 ref={paraFansImageRef}
                                 src="/logos/Para fans.png"
@@ -354,6 +360,7 @@ export default function PartnersPage() {
                               {/* 클릭 가능한 투명 영역들 - 이미지의 실제 위치에 맞춤 */}
                               {imageBounds && (
                                 <div 
+                                  data-para-fans-container
                                   className="absolute pointer-events-none"
                                   style={{
                                     left: `${imageBounds.left}px`,
@@ -367,7 +374,13 @@ export default function PartnersPage() {
                                     href="https://www.instagram.com/_parafans_"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute left-[10%] top-[15%] w-[80%] h-[12%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    className="absolute cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    style={{
+                                      left: `${linkPositions.instagram.left}%`,
+                                      top: `${linkPositions.instagram.top}%`,
+                                      width: `${linkPositions.instagram.width}%`,
+                                      height: `${linkPositions.instagram.height}%`
+                                    }}
                                     title="Instagram: @_parafans_"
                                     onClick={(e) => e.stopPropagation()}
                                   />
@@ -377,7 +390,13 @@ export default function PartnersPage() {
                                     href="https://www.facebook.com/parafanscol"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute left-[10%] top-[28%] w-[80%] h-[12%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    className="absolute cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    style={{
+                                      left: `${linkPositions.facebook.left}%`,
+                                      top: `${linkPositions.facebook.top}%`,
+                                      width: `${linkPositions.facebook.width}%`,
+                                      height: `${linkPositions.facebook.height}%`
+                                    }}
                                     title="Facebook: parafanscol"
                                     onClick={(e) => e.stopPropagation()}
                                   />
@@ -387,7 +406,13 @@ export default function PartnersPage() {
                                     href="https://www.parafansk.com"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute left-[10%] top-[41%] w-[80%] h-[12%] cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    className="absolute cursor-pointer hover:bg-blue-500/10 transition-colors rounded z-10 pointer-events-auto"
+                                    style={{
+                                      left: `${linkPositions.website.left}%`,
+                                      top: `${linkPositions.website.top}%`,
+                                      width: `${linkPositions.website.width}%`,
+                                      height: `${linkPositions.website.height}%`
+                                    }}
                                     title="Website: www.parafansk.com"
                                     onClick={(e) => e.stopPropagation()}
                                   />

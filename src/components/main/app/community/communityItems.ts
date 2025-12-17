@@ -54,14 +54,15 @@ export const communityItems: CommunityItem[] = [
     icon: '/icons/Zona de K-Cultura.png',
     accentColor: '#8B5CF6', // Purple
     subItems: [
-      {
-        id: 'k-chat',
-        title: 'K-Chat Zone',
-        titleKey: 'community.kChat',
-        route: '/community/k-chat',
-        icon: '/icons/Chat.png',
-        accentColor: '#F59E0B'
-      },
+      // K-Chat Zone - 숨김 처리 (당분간 사용 안 함)
+      // {
+      //   id: 'k-chat',
+      //   title: 'K-Chat Zone',
+      //   titleKey: 'community.kChat',
+      //   route: '/community/k-chat',
+      //   icon: '/icons/Chat.png',
+      //   accentColor: '#F59E0B'
+      // },
       {
         id: 'idol-memes',
         title: 'Fotos de Ídolos',
@@ -78,14 +79,15 @@ export const communityItems: CommunityItem[] = [
         icon: '/icons/Fan art.png',
         accentColor: '#EC4899'
       },
-      {
-        id: 'polls',
-        title: 'Encuestas',
-        titleKey: 'community.polls',
-        route: '/community/polls',
-        icon: '/icons/Encuestas.png',
-        accentColor: '#10B981'
-      },
+      // Encuestas (투표) - 숨김 처리 (당분간 사용 안 함)
+      // {
+      //   id: 'polls',
+      //   title: 'Encuestas',
+      //   titleKey: 'community.polls',
+      //   route: '/community/polls',
+      //   icon: '/icons/Encuestas.png',
+      //   accentColor: '#10B981'
+      // },
       {
         id: 'k-news',
         title: 'K-Noticia',

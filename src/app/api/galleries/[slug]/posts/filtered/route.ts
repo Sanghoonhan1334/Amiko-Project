@@ -68,7 +68,7 @@ export async function GET(
         is_hot,
         created_at,
         updated_at,
-        user:users!gallery_posts_user_id_fkey (
+        user:users (
           id,
           full_name,
           avatar_url

@@ -103,7 +103,7 @@ export default function PointsCard() {
         </svg>
         <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>{t('storeTab.pointCard.title')}</span>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <div className="text-center p-2 sm:p-3 bg-white dark:bg-gray-700 rounded-lg border border-blue-200 dark:border-blue-600">
           {pointsLoading ? (
             <div className="text-lg font-bold text-blue-600 dark:text-blue-400 animate-pulse">...</div>
@@ -112,14 +112,15 @@ export default function PointsCard() {
           )}
           <div className='text-xs text-gray-600 dark:text-gray-300 mt-1'>{t('storeTab.pointCard.availableAKO')}</div>
         </div>
-        <div className="text-center p-2 sm:p-3 bg-white dark:bg-gray-700 rounded-lg border border-purple-200 dark:border-purple-600">
+        {/* 현재 포인트 카드 - 숨김 처리 */}
+        {/* <div className="text-center p-2 sm:p-3 bg-white dark:bg-gray-700 rounded-lg border border-purple-200 dark:border-purple-600">
           {pointsLoading ? (
             <div className="text-lg font-bold text-purple-600 dark:text-purple-400 animate-pulse">...</div>
           ) : (
             <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{currentPoints}</div>
           )}
           <div className='text-xs text-gray-600 dark:text-gray-300 mt-1'>{t('storeTab.pointCard.currentPoints')}</div>
-        </div>
+        </div> */}
         <div className="text-center p-2 sm:p-3 bg-white dark:bg-gray-700 rounded-lg border border-orange-200 dark:border-orange-600 relative">
           {/* 왕관 아이콘 */}
           <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
