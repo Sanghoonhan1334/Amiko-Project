@@ -827,8 +827,8 @@ export default function HomeTab() {
     <>
       {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 p-4">
-<<<<<<< HEAD
-      
+
+
       {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 */}
       {/* 지금 커뮤니티에서 핫한 글 */}
       <div className="space-y-3">
@@ -847,14 +847,14 @@ export default function HomeTab() {
             {language === 'ko' ? '더 보기' : 'Ver Más'}
           </Button>
         </div>
-        
+
         {hotPosts.length > 0 ? (
           <Card className="border-l-4 border-l-red-500">
             <CardContent className="p-0">
               <div className="divide-y">
                 {hotPosts.map((post, index) => (
-                  <div 
-                    key={post.id} 
+                  <div
+                    key={post.id}
                     className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
                     onClick={() => router.push(`/community/post/${post.id}?from=home`)}
                   >
@@ -903,9 +903,9 @@ export default function HomeTab() {
       <div className="space-y-3 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Image 
-                src="/icons/k-magazine.png" 
-                alt="K-Noticia" 
+              <Image
+                src="/icons/k-magazine.png"
+                alt="K-Noticia"
                 width={20}
                 height={20}
                 className="object-contain mr-2"
@@ -915,7 +915,7 @@ export default function HomeTab() {
                 {t('home.sections.kNoticia')}
               </h2>
             </div>
-          <button 
+          <button
             onClick={() => router.push('/community/news')}
             className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
           >
@@ -929,7 +929,7 @@ export default function HomeTab() {
             <div className="divide-y">
               {kNoticiaNews.length > 0 ? (
                 kNoticiaNews.map((news) => (
-                  <div 
+                  <div
                     key={news.id}
                     className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
                     onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
@@ -960,9 +960,9 @@ export default function HomeTab() {
                 ))
               ) : (
                 <div className="text-center py-4">
-                  <Image 
-                    src="/icons/k-magazine.png" 
-                    alt="K-Noticia" 
+                  <Image
+                    src="/icons/k-magazine.png"
+                    alt="K-Noticia"
                     width={32}
                     height={32}
                     className="mx-auto mb-2 opacity-40"
@@ -1883,7 +1883,7 @@ export default function HomeTab() {
         {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
         <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
           <div className="space-y-4">
-            
+
             {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
             {/* 공지사항 - 데스크톱 버전 */}
             {/* 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
@@ -2070,9 +2070,9 @@ export default function HomeTab() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Image 
-                    src="/icons/k-magazine.png" 
-                    alt="K-Noticia" 
+                  <Image
+                    src="/icons/k-magazine.png"
+                    alt="K-Noticia"
                     width={20}
                     height={20}
                     className="object-contain"
@@ -2082,7 +2082,7 @@ export default function HomeTab() {
                     {t('home.sections.kNoticia')}
                   </h2>
                 </div>
-                <button 
+                <button
                   onClick={() => router.push('/community/news')}
                   className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
                 >
@@ -2096,7 +2096,7 @@ export default function HomeTab() {
                   <div className="divide-y">
                     {kNoticiaNews.length > 0 ? (
                       kNoticiaNews.map((news) => (
-                        <div 
+                        <div
                           key={news.id}
                           className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
                           onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
@@ -2127,9 +2127,9 @@ export default function HomeTab() {
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <Image 
-                          src="/icons/k-magazine.png" 
-                          alt="K-Noticia" 
+                        <Image
+                          src="/icons/k-magazine.png"
+                          alt="K-Noticia"
                           width={48}
                           height={48}
                           className="mx-auto mb-3 opacity-40"
@@ -2154,10 +2154,10 @@ export default function HomeTab() {
                   {t('home.sections.currentEvents')}
                 </h2>
               </div>
-              
+
               <Card className="relative shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden bg-transparent border-none rounded-lg">
                 <CardContent className="p-0 bg-transparent">
-                  <div 
+                  <div
                     id="event-container-desktop"
                     className="relative h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                     onMouseDown={handleMouseDown}
@@ -2168,7 +2168,7 @@ export default function HomeTab() {
                     onTouchEnd={handleTouchEnd}
                   >
                     {currentEvents.length > 0 ? (
-                      <div 
+                      <div
                         className="flex transition-transform duration-1000 ease-in-out"
                         style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                       >
@@ -2206,7 +2206,7 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* 4. Anuncio - 공지사항 - 데스크톱 버전 */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -2217,7 +2217,7 @@ export default function HomeTab() {
                     {language === 'ko' ? '공지' : 'Anuncios'}
                   </h2>
                 </div>
-                
+
                 <Card>
                   <CardContent className="p-4">
                     {notices.length > 0 ? (
@@ -2715,7 +2715,6 @@ export default function HomeTab() {
                 </CardContent>
               </Card>
             </div>
->>>>>>> ea7c29bd98426757ef35789b182ae1dc8dbe8654
 
             {/* 최근 스토리 - 데스크톱 - 환경 변수로 제어 */}
             {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
