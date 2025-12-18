@@ -10,7 +10,10 @@ interface PayPalPaymentButtonProps {
   orderName: string;
   customerName: string;
   customerEmail: string;
+  userId: string;
   bookingId?: string;
+  productType?: string;
+  productData?: any;
   className?: string;
   disabled?: boolean;
 }
@@ -21,7 +24,10 @@ export default function PayPalPaymentButton({
   orderName,
   customerName,
   customerEmail,
+  userId,
   bookingId,
+  productType,
+  productData,
   className = "",
   disabled = false
 }: PayPalPaymentButtonProps) {
@@ -42,7 +48,10 @@ export default function PayPalPaymentButton({
           orderName,
           customerName,
           customerEmail,
+          userId,
           bookingId,
+          productType,
+          productData,
         }),
       });
 

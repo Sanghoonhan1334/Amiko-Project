@@ -1,3 +1,5 @@
+import PaymentsPage from "@/app/payments/page"
+
 export const translations = {
   ko: {
     // 헤더
@@ -58,7 +60,7 @@ export const translations = {
       button: '라운지 가기',
       message: '매주 토요일 저녁, 여러분을 기다리고 있어요!'
     },
-    
+
     // 공통
     common: {
       loading: '로딩중...',
@@ -68,33 +70,74 @@ export const translations = {
       loadingContent: '콘텐츠를 불러오는 중'
     },
 
-    // 공통 버튼
-    buttons: {
-      upload: '업로드',
-      register: '등록',
-      write: '작성',
-      delete: '삭제',
-      confirm: '확인',
-      cancel: '취소',
-      close: '닫기',
-      save: '저장',
-      edit: '편집',
-      submit: '제출',
-      loading: '로딩 중...',
-      login: '로그인',
-      uploading: '업로드 중...',
-      saving: '저장 중...',
-      writing: '작성 중...',
-      deleting: '삭제 중...',
-      retry: '다시 시도',
-      required: '필수',
-      back: '이전',
-      backToList: '목록으로',
-      next: '다음',
-      previous: '이전',
-      complete: '완료',
-      skip: '건너뛰기',
-      start: '시작하기'
+    // 결제 시스템
+    payments: {
+      title: '결제',
+      subtitle: '원하는 서비스를 선택하여 결제하세요',
+      couponSystem: '쿠폰 시스템',
+      vipSubscription: 'VIP 구독',
+      courses: '강의',
+      paymentHistory: '결제 내역',
+      paymentHistoryEmpty: '결제 내역이 없습니다',
+      viewFullHistory: '전체 내역 보기',
+      loginRequired: '로그인이 필요합니다',
+      loginRequiredDescription: '결제를 진행하려면 먼저 로그인해주세요',
+      selectOption: '옵션 선택',
+      selectCoupon: '쿠폰 선택',
+      selectVip: 'VIP 플랜 선택',
+      selectCourse: '강의 선택',
+      coupon20min: '20분 쿠폰',
+      coupon20minDesc: '20분 화상 통화 쿠폰',
+      coupon100min: '100분 쿠폰',
+      coupon100minDesc: '100분 화상 통화 쿠폰',
+      coupon200min: '200분 쿠폰',
+      coupon200minDesc: '200분 화상 통화 쿠폰',
+      coupon400min: '400분 쿠폰',
+      coupon400minDesc: '400분 화상 통화 쿠폰',
+      vipMonthly: 'VIP 월간',
+      vipMonthlyDesc: '월간 VIP 구독 (30일)',
+      vipYearly: 'VIP 연간',
+      vipYearlyDesc: '연간 VIP 구독 (365일)',
+      vipLifetime: 'VIP 평생',
+      vipLifetimeDesc: '평생 VIP 구독',
+      course1: '한국 문화 기초',
+      course1Desc: '한국 문화 기초 강의 (최대 10명)',
+      course2: '고급 한국어',
+      course2Desc: '고급 한국어 실력 향상 (최대 8명)',
+      course3: 'K-Pop & 엔터테인먼트',
+      course3Desc: 'K-Pop과 엔터테인먼트 문화 (최대 12명)',
+      statusPaid: '완료',
+      statusPending: '처리중',
+      minuteCoupon: '분 쿠폰',
+      koreanCultureBasic: '한국 문화 기초 강의',
+      // Payment Success Page
+      processingPayment: '결제를 처리하고 있습니다...',
+      pleaseWait: '잠시만 기다려주세요',
+      paymentFailed: '결제 처리 실패',
+      paymentFailedDescription: '결제 처리에 실패했습니다. 관리자에게 문의하거나 다시 시도해주세요.',
+      tryAgain: '다시 시도',
+      paymentCompleted: '결제가 완료되었습니다!',
+      bookingConfirmed: '상담 예약이 성공적으로 확정되었습니다.',
+      paymentInfo: '결제 정보',
+      orderNumber: '주문 번호:',
+      paymentAmount: '결제 금액:',
+      bookingInfo: '예약 정보',
+      bookingProcessing: '예약 정보 처리 중',
+      bookingProcessingDescription: '예약 정보를 불러오는 중입니다. 웹훅 처리 후 자동으로 업데이트됩니다.',
+      paymentCompletedBadge: '결제 완료',
+      reminderMessage: '상담 시작 1시간 전에 알림을 보내드립니다.',
+      contactMessage: '상담 관련 문의사항이 있으시면 언제든 연락주세요.',
+      paypalNote: '💡 결제 처리는 PayPal로 완료되었습니다.',
+      viewBookings: '예약 목록 보기',
+      backToHome: '홈으로 돌아가기',
+      consultant: '상담사:',
+      bookingDateTime: '상담 일시:',
+      bookingDuration: '상담 시간:',
+      bookingTopic: '상담 주제:',
+      reminderNotification: '상담 시작 1시간 전에 알림을 보내드립니다.',
+      contactSupport: '상담 관련 문의사항이 있으시면 언제든 연락주세요.',
+      paypalProcessingComplete: '💡 결제 처리는 PayPal로 완료되었습니다.',
+      returnHome: '홈으로 돌아가기'
     },
 
     // 테마 관련
@@ -112,6 +155,7 @@ export const translations = {
         videoCall: '화상채팅',
         chargingStation: '충전소',
         event: '이벤트',
+        payments: '결제',
         me: '마이'
       },
       // 홈 탭 섹션
@@ -209,6 +253,44 @@ export const translations = {
           commentedOnNews: '뉴스에 댓글을 남겼습니다'
         }
       }
+    },
+
+    // 결제 관련
+    payments: {
+      loginRequired: '로그인이 필요합니다',
+      loginRequiredDescription: '결제를 위해 로그인을 해주세요',
+      title: '결제',
+      subtitle: '프리미엄 서비스를 이용해보세요',
+      // Sistema de Cupones
+      coupon20min: '쿠폰 시스템 - 20분',
+      coupon20minDesc: '20분 화상채팅 쿠폰',
+      coupon100min: '쿠폰 시스템 - 100분',
+      coupon100minDesc: '100분 화상채팅 쿠폰',
+      coupon200min: '쿠폰 시스템 - 200분',
+      coupon200minDesc: '200분 화상채팅 쿠폰',
+      coupon400min: '쿠폰 시스템 - 400분',
+      coupon400minDesc: '400분 화상채팅 쿠폰',
+      // VIP Subscription
+      vipMonthly: 'VIP 월간 구독',
+      vipMonthlyDesc: '월간 VIP 혜택',
+      vipYearly: 'VIP 연간 구독',
+      vipYearlyDesc: '연간 VIP 혜택',
+      vipLifetime: 'VIP 평생 구독',
+      vipLifetimeDesc: '평생 VIP 혜택',
+      // Courses
+      course1: '강의 1 - 한국 문화 기초',
+      course1Desc: '한국 문화와 언어의 기초를 배우는 종합 강의',
+      course2: '강의 2 - 고급 한국어 실력 향상',
+      course2Desc: '한국어 실력을 한 단계 높이는 고급 강의',
+      course3: '강의 3 - K-Pop & 엔터테인먼트 문화',
+      course3Desc: 'K-Pop 산업과 한국 엔터테인먼트 문화를 탐구',
+      // Section Headers
+      couponSystem: '쿠폰 시스템',
+      vipSubscription: 'VIP 구독',
+      courses: '강의',
+      paymentHistory: '결제 내역',
+      paymentHistoryEmpty: '결제 내역이 여기에 표시됩니다',
+      viewFullHistory: '전체 내역 보기'
     },
 
     // 튜토리얼 관련
@@ -420,13 +502,13 @@ export const translations = {
       passwordHasSpecial: '특수문자 포함',
       passwordNoRepeated: '연속된 문자 없음',
       passwordMismatch: '비밀번호가 일치하지 않습니다',
-      
+
       // 닉네임 규칙
       nicknameLength: '3-20자 사이',
       nicknameCharacters: '알파벳, 숫자, 특수문자만 사용 가능',
       nicknameAvailable: '사용 가능한 닉네임',
       nicknameUnavailable: '이미 사용 중인 닉네임',
-      
+
       signUpSuccess: '회원가입이 완료되었습니다! 로그인 아이디는 이메일 또는 전화번호입니다.',
       signUpFailed: '회원가입에 실패했습니다',
       signUpError: '회원가입 중 오류가 발생했습니다',
@@ -437,7 +519,7 @@ export const translations = {
       pleaseWait: '잠시만 기다려주세요.',
       checkingVerificationStatus: '인증 상태를 확인하는 중...',
       verificationStatusError: '인증 상태를 확인하는 중 오류가 발생했습니다.',
-      
+
       // 이메일/SMS 인증
       emailVerification: '이메일 인증',
       verificationCode: '인증코드',
@@ -448,7 +530,7 @@ export const translations = {
       codeExpired: '인증코드가 만료되었습니다',
       invalidCode: '잘못된 인증코드입니다',
       verificationSuccess: '인증이 완료되었습니다',
-      
+
       // 이메일 인증 상세 텍스트
       emailSendDescription: '로 인증코드를 발송해주세요',
       emailSentDescription: '로 인증코드를 발송했습니다',
@@ -461,7 +543,7 @@ export const translations = {
       emailGuideSpam: '스팸 폴더도 확인해보세요',
       emailGuideResend: '이메일이 도착하지 않으면 재발송 버튼을 눌러주세요',
       emailGuideServices: 'Gmail, Outlook 등 모든 이메일 서비스에서 확인 가능합니다',
-      
+
       // 전화번호 인증
       phoneVerification: '전화번호 인증',
       phoneVerificationNeeded: '게시판 참여을 위해 전화번호 인증이 필요합니다',
@@ -506,7 +588,7 @@ export const translations = {
       whatsappAuthAlert: 'WhatsApp 인증은 준비 중입니다.\n현재는 SMS 인증을 이용해주세요.',
       comingSoon: '준비중',
       kakaoComingSoon: '2월 이후 적용',
-      
+
       // 알림 메시지
       smsSendFailed: 'SMS 발송에 실패했습니다.',
       whatsappSendFailed: 'WhatsApp 발송에 실패했습니다.',
@@ -550,7 +632,7 @@ export const translations = {
       confirmDeleteQuestion: '정말로 이 질문을 삭제하시겠습니까?',
       confirmDeleteComment: '댓글을 삭제하시겠습니까?',
       kakaoAuthNotReady: '카카오 인증 기능은 준비 중입니다!',
-      
+
       // 지문 인증
       biometricLogin: '지문으로 빠른 로그인',
       biometricSetup: '지문 인증 설정',
@@ -559,7 +641,7 @@ export const translations = {
       biometricSkip: '나중에 설정',
       biometricEnable: '지문 인증 설정',
       biometricNotSupported: '이 디바이스는 지문 인증을 지원하지 않습니다',
-      
+
       // 검증 절차 설명
       verificationNeeded: '왜 검증 절차가 필요한가요?',
       verificationReason1: '서로를 지켜주기 위해서: 검증된 사용자만이 커뮤니티에 참여할 수 있어 안전한 환경을 유지합니다',
@@ -572,7 +654,7 @@ export const translations = {
       step2Desc: 'SMS로 인증코드를 발송하여 실제 사용자임을 확인합니다',
       step3Title: '프로필 완성',
       step3Desc: '자기소개와 관심사를 작성하여 커뮤니티에 참여합니다',
-      
+
       // 세션 관련
       sessionUpdateFailed: '세션 업데이트에 실패했습니다',
       sessionExpired: '세션이 만료되었습니다',
@@ -695,6 +777,7 @@ export const translations = {
       chargingStationShort: '충전소',
       event: '이벤트',
       educacion: '교육',
+      payments: '결제내역',
       logout: '로그아웃',
       store: '상점',
       storeShort: '상점',
@@ -1255,7 +1338,7 @@ export const translations = {
           }
         }
       },
-      
+
       // 포인트 시스템
       pointSystem: {
         title: '포인트 시스템 안내',
@@ -2495,7 +2578,7 @@ export const translations = {
       loginButton: '로그인하기',
       title: '상세 인증',
       subtitle: '더 많은 기능을 이용하기 위해 추가 정보를 입력해주세요.',
-      
+
       // 필드명
       name: '이름',
       namePlaceholder: '이름을 입력해주세요',
@@ -2949,7 +3032,7 @@ export const translations = {
       }
     }
   },
-  
+
   es: {
     // 헤더
     landingPage: 'Página de Inicio',
@@ -3009,7 +3092,7 @@ export const translations = {
       message: '¡Te esperamos todos los sábados por la noche!'
     },
     language: 'es',
-    
+
     // 공통
     common: {
       loading: 'Cargando...',
@@ -3160,6 +3243,80 @@ export const translations = {
           commentedOnNews: 'comentó en las noticias'
         }
       }
+    },
+
+    // 결제 관련
+    payments: {
+      loginRequired: 'Inicio de Sesión Requerido',
+      loginRequiredDescription: 'Por favor inicia sesión para realizar pagos',
+      title: 'Pagos',
+      subtitle: 'Disfruta de servicios premium',
+      // Sistema de Cupones
+      coupon20min: 'Sistema de Cupones - 20 min',
+      coupon20minDesc: 'Cupón de 20 minutos para videollamadas',
+      coupon100min: 'Sistema de Cupones - 100 min',
+      coupon100minDesc: 'Cupón de 100 minutos para videollamadas',
+      coupon200min: 'Sistema de Cupones - 200 min',
+      coupon200minDesc: 'Cupón de 200 minutos para videollamadas',
+      coupon400min: 'Sistema de Cupones - 400 min',
+      coupon400minDesc: 'Cupón de 400 minutos para videollamadas',
+      // VIP Subscription
+      vipMonthly: 'Suscripción Mensual VIP',
+      vipMonthlyDesc: 'Beneficios Mensuales VIP',
+      vipYearly: 'Suscripción Anual VIP',
+      vipYearlyDesc: 'Beneficios Anuales VIP',
+      vipLifetime: 'Suscripción Vitalicia VIP',
+      vipLifetimeDesc: 'Beneficios Vitalicios VIP',
+      // Courses
+      course1: 'Curso 1',
+      course1Desc: 'Curso integral de cultura y lenguaje coreano básico',
+      course2: 'Curso 2',
+      course2Desc: 'Curso avanzado para mejorar el nivel de coreano',
+      course3: 'Curso 3',
+      course3Desc: 'Exploración profunda de la industria K-Pop y cultura del entretenimiento coreano',
+      statusPaid: 'Completado',
+      statusPending: 'Pendiente',
+      minuteCoupon: 'Cupón de minutos',
+      koreanCultureBasic: 'Curso básico de cultura coreana',
+      // Section Headers
+      couponSystem: 'Sistema de Cupones',
+      vipSubscription: 'Suscripción VIP',
+      courses: 'Cursos',
+      paymentHistory: 'Historial de Pagos',
+      paymentHistoryEmpty: 'El historial de pagos se mostrará aquí',
+      viewFullHistory: 'Ver Historial Completo',
+      selectOption: 'Seleccionar opción',
+      selectCoupon: 'Seleccionar cupón',
+      selectVip: 'Seleccionar plan VIP',
+      selectCourse: 'Seleccionar curso',
+      // Payment Success Page
+      processingPayment: 'Procesando el pago...',
+      pleaseWait: 'Por favor espere',
+      paymentFailed: 'Error en el procesamiento del pago',
+      paymentFailedDescription: 'Ha fallado el procesamiento del pago. Contacte al administrador o inténtelo de nuevo.',
+      tryAgain: 'Intentar de nuevo',
+      paymentCompleted: '¡El pago se ha completado!',
+      bookingConfirmed: 'La reserva de consulta se ha confirmado exitosamente.',
+      paymentInfo: 'Información del pago',
+      orderNumber: 'Número de orden:',
+      paymentAmount: 'Monto del pago:',
+      bookingInfo: 'Información de la reserva',
+      bookingProcessing: 'Procesando información de la reserva',
+      bookingProcessingDescription: 'Cargando información de la reserva. Se actualizará automáticamente después del procesamiento del webhook.',
+      paymentCompletedBadge: 'Pago completado',
+      reminderMessage: 'Le enviaremos un recordatorio 1 hora antes del inicio de la consulta.',
+      contactMessage: 'Si tiene alguna pregunta sobre la consulta, contáctenos en cualquier momento.',
+      paypalNote: '💡 El procesamiento del pago se completó con PayPal.',
+      viewBookings: 'Ver lista de reservas',
+      backToHome: 'Volver al inicio',
+      consultant: 'Consultor:',
+      bookingDateTime: 'Fecha y hora de la consulta:',
+      bookingDuration: 'Duración de la consulta:',
+      bookingTopic: 'Tema de la consulta:',
+      reminderNotification: 'Le enviaremos un recordatorio 1 hora antes del inicio de la consulta.',
+      contactSupport: 'Si tiene alguna pregunta sobre la consulta, contáctenos en cualquier momento.',
+      paypalProcessingComplete: '💡 El procesamiento del pago se completó con PayPal.',
+      returnHome: 'Volver al inicio'
     },
 
     // 튜토리얼 관련
@@ -3371,13 +3528,13 @@ export const translations = {
       passwordHasSpecial: 'Incluir caracteres especiales',
       passwordNoRepeated: 'Sin caracteres repetidos',
       passwordMismatch: 'Las contraseñas no coinciden',
-      
+
       // 닉네임 규칙
       nicknameLength: 'Entre 3 y 20 caracteres',
       nicknameCharacters: 'Solo se pueden usar letras, números y caracteres especiales',
       nicknameAvailable: 'Apodo disponible',
       nicknameUnavailable: 'Apodo ya en uso',
-      
+
       signUpSuccess: '¡Registro completado exitosamente! Tu ID de inicio de sesión es tu correo electrónico o número de teléfono.',
       signUpFailed: 'El registro falló',
       signUpError: 'Ocurrió un error durante el registro',
@@ -3388,7 +3545,7 @@ export const translations = {
       pleaseWait: 'Por favor espere.',
       checkingVerificationStatus: 'Verificando estado de autenticación...',
       verificationStatusError: 'Ocurrió un error al verificar el estado de autenticación.',
-      
+
       // 이메일/SMS 인증
       emailVerification: 'Verificación por correo electrónico',
       verificationCode: 'Código de verificación',
@@ -3399,7 +3556,7 @@ export const translations = {
       codeExpired: 'El código de verificación ha expirado',
       invalidCode: 'Código de verificación inválido',
       verificationSuccess: 'Verificación completada',
-      
+
       // 이메일 인증 상세 텍스트
       emailSendDescription: ' para enviar el código de verificación',
       emailSentDescription: ' se ha enviado el código de verificación',
@@ -3412,7 +3569,7 @@ export const translations = {
       emailGuideSpam: 'Revisa también tu carpeta de spam',
       emailGuideResend: 'Si no recibes el correo, presiona el botón de reenvío',
       emailGuideServices: 'Disponible en Gmail, Outlook y todos los servicios de correo electrónico',
-      
+
       // 전화번호 인증
       phoneVerification: 'Verificación de teléfono',
       phoneVerificationNeeded: 'Se requiere verificación de teléfono para participar en el foro',
@@ -3457,7 +3614,7 @@ export const translations = {
       whatsappAuthAlert: 'La verificación por WhatsApp está en preparación.\nPor favor usa la verificación SMS por ahora.',
       comingSoon: 'Próximamente',
       kakaoComingSoon: 'Disponible en Feb',
-      
+
       // 알림 메시지
       smsSendFailed: 'Falló el envío de SMS.',
       whatsappSendFailed: 'Falló el envío de WhatsApp.',
@@ -3501,7 +3658,7 @@ export const translations = {
       confirmDeleteQuestion: '¿Realmente quieres eliminar esta pregunta?',
       confirmDeleteComment: '¿Quieres eliminar el comentario?',
       kakaoAuthNotReady: '¡La función de autenticación Kakao está en preparación!',
-      
+
       // 지문 인증
       biometricLogin: 'Inicio de sesión rápido con huella dactilar',
       biometricSetup: 'Configurar autenticación biométrica',
@@ -3510,7 +3667,7 @@ export const translations = {
       biometricSkip: 'Configurar más tarde',
       biometricEnable: 'Configurar autenticación biométrica',
       biometricNotSupported: 'Este dispositivo no soporta autenticación biométrica',
-      
+
       // 검증 절차 설명
       verificationNeeded: '¿Por qué es necesario el proceso de verificación?',
       verificationReason1: 'Para protegernos mutuamente: Solo usuarios verificados pueden participar en la comunidad, manteniendo un entorno seguro',
@@ -3523,7 +3680,7 @@ export const translations = {
       step2Desc: 'Enviamos un código de verificación por SMS para confirmar que eres un usuario real',
       step3Title: 'Completar perfil',
       step3Desc: 'Escribe tu presentación e intereses para participar en la comunidad',
-      
+
       // 세션 관련
       sessionUpdateFailed: 'Error al actualizar la sesión',
       sessionExpired: 'La sesión ha expirado',
@@ -3646,6 +3803,7 @@ export const translations = {
       chargingStationShort: 'Carga',
       event: 'Eventos',
       educacion: 'Educación',
+      payments: 'Pagos',
       logout: 'Cerrar Sesión',
       store: 'Tienda',
       storeShort: 'Tienda',
@@ -4213,7 +4371,7 @@ export const translations = {
           }
         }
       },
-      
+
       // 포인트 시스템
       pointSystem: {
         title: 'Guía del Sistema de Puntos',
@@ -5451,7 +5609,7 @@ export const translations = {
       loginButton: 'Iniciar sesión',
       title: 'Verificación Detallada',
       subtitle: 'Por favor ingrese información adicional para usar más funciones.',
-      
+
       // 필드명
       name: 'Nombre',
       namePlaceholder: 'Ingrese su nombre',

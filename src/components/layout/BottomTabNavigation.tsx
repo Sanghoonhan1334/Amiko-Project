@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { 
+import {
   Home,
-  Video, 
-  MessageSquare, 
-  User, 
-  Zap, 
+  Video,
+  MessageSquare,
+  User,
+  Zap,
   ShoppingBag,
   Calendar,
   GraduationCap
@@ -70,11 +70,17 @@ export default function BottomTabNavigation() {
       path: '/main?tab=educacion'
     },
     {
-      id: 'me',
-      label: t('main.myPage'),
-      icon: User,
-      path: '/main?tab=me'
-    }
+      id: 'payments',
+      label: t('headerNav.payments'),
+      icon: ShoppingBag,
+      path: '/main?tab=payments'
+    },
+    // {
+    //   id: 'me',
+    //   label: t('main.myPage'),
+    //   icon: User,
+    //   path: '/main?tab=me'
+    // }
   ]
 
   const handleTabClick = (tab: typeof tabs[0]) => {
@@ -83,9 +89,9 @@ export default function BottomTabNavigation() {
       router.push('/sign-in')
       return
     }
-    
+
     setActiveTab(tab.id)
-    
+
     // 커뮤니티 탭 클릭 시 cTab 파라미터 제거하여 홈으로 이동
     if (tab.id === 'community') {
       const params = new URLSearchParams(searchParams.toString())
@@ -100,10 +106,10 @@ export default function BottomTabNavigation() {
         router.push(tab.path)
       }
     }
-    
+
     // 헤더 네비게이션과 동기화
-    window.dispatchEvent(new CustomEvent('mainTabChanged', { 
-      detail: { tab: tab.id } 
+    window.dispatchEvent(new CustomEvent('mainTabChanged', {
+      detail: { tab: tab.id }
     }))
   }
 
@@ -114,19 +120,19 @@ export default function BottomTabNavigation() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 dark:bg-gray-800 border-t-2 border-blue-200 dark:border-gray-700 shadow-2xl md:hidden">
-      
+
       <div className="grid grid-cols-5 py-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
-          
+
           return (
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
               className={`relative flex flex-col items-center justify-center p-2 transition-all duration-200 active:scale-95 ${
-                isActive 
-                  ? 'text-purple-600 dark:text-purple-400' 
+                isActive
+                  ? 'text-purple-600 dark:text-purple-400'
                   : 'text-blue-600 dark:text-blue-400'
               }`}
             >
