@@ -41,6 +41,8 @@ import {
 import CommunityMain from './CommunityMain'
 import NewsDetail from './NewsDetail'
 import CommunityCard from './CommunityCard'
+import NewsCard from './ui/NewsCard'
+import NewsSection from './sections/NewsSection'
 import { communityItems } from './communityItems'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -136,6 +138,10 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
   const router = useRouter()
+  
+  // 디자인 작업용 - 모든 UI 요소 표시
+  const isAdmin = true
+  
   const [isNavigating, setIsNavigating] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [closingSubmenu, setClosingSubmenu] = useState<string | null>(null)
@@ -2819,303 +2825,49 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
       {currentView === 'news' && (
-        <div className="w-full">
-          {showNewsDetail && selectedNews ? (
-            // 뉴스 상세 내용 (전체 영역)
-            <div className="space-y-4">
-              {/* 목록으로 돌아가기 버튼 */}
-              <div className="flex items-center">
-                <button
-                  onClick={() => {
-                    setShowNewsDetail(false)
-                    setSelectedNews(null)
-                    onViewChange?.('news')
-                  }}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 text-xs md:text-sm"
-                >
-                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  <span className="font-medium">{t('freeboard.backToList')}</span>
-                </button>
-              </div>
-            <NewsDetail 
-              news={selectedNews} 
-              onBack={() => {
-                setShowNewsDetail(false)
-                setSelectedNews(null)
-                onViewChange?.('news')
-              }}
-              showSpanish={showSpanishNews}
-              isAdmin={isAdmin}
-              onEdit={(news) => {
-                setShowNewsDetail(false)
-                setSelectedNews(null)
-                onViewChange?.('news')
-                setEditingNews(news)
-                setShowNewsEditModal(true)
-                // 편집 폼에 기존 데이터 설정
-                setNewsWriteForm({
-                  title: news.title || '',
-                  title_es: news.title_es || '',
-                  content: news.content || '',
-                  content_es: news.content_es || '',
-                  source: news.source || '',
-                  author: news.author || '',
-                  date: news.date || '',
-                  category: news.category || 'entertainment'
-                })
-                setSelectedThumbnail(news.thumbnail || '')
-              }}
-              onDelete={(newsId) => {
-                // 뉴스 목록에서 삭제된 뉴스 제거
-                setNewsData(prev => prev.filter(news => news.id !== newsId))
-                toast.success('뉴스가 삭제되었습니다.')
-              }}
-              onPin={(newsId, isPinned) => {
-                // 뉴스 목록에서 고정 상태 업데이트
-                setNewsData(prev => prev.map(news => 
-                  news.id === newsId ? { ...news, is_pinned: isPinned } : news
-                ))
-              }}
-            />
-            </div>
-          ) : (
-            // 뉴스 목록
-            <div className="space-y-6">
-              <div className="flex items-center justify-end">
-                  {/* 운영진 전용 버튼들 */}
-                  {isAdmin && (
-                    <Button 
-                      size="sm" 
-                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                      onClick={() => setShowNewsWriteModal(true)}
-                    >
-                      ➕ 뉴스 작성
-                    </Button>
-                  )}
-              </div>
-                  
-                {/* 뉴스 목록 */}
-                <div className="space-y-0">
-                  {newsLoading ? (
-                    // 뉴스 로딩 중
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((index) => (
-                        <div key={index} className="flex items-start gap-4 p-4 border-b border-gray-200">
-                          <div className="w-20 h-20 bg-gray-200 rounded-lg animate-pulse flex-shrink-0"></div>
-                          <div className="flex-1 min-w-0">
-                            <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4 mb-2"></div>
-                            <div className="flex items-center gap-3">
-                              <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
-                              <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
-                              <div className="h-3 bg-gray-200 rounded animate-pulse w-12"></div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="text-center py-4">
-                        <div className="inline-flex items-center gap-2 text-purple-600">
-                          <span className="animate-spin">📰</span>
-                          <span>{t('community.loadingNews')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : newsError ? (
-                    // 뉴스 로딩 오류
-                    <div className="text-center py-8">
-                      <div className="text-red-500 mb-4">
-                        <span className="text-2xl">⚠️</span>
-                        <p className="mt-2">{newsError}</p>
-                      </div>
-                      <Button onClick={fetchRealNews} variant="outline">
-                        다시 시도
-                      </Button>
-                    </div>
-                  ) : isTranslating ? (
-                    // 번역 중 스켈레톤 로딩
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((index) => (
-                        <div key={index} className="flex items-start gap-4 p-4 border-b border-gray-200">
-                          <div className="w-20 h-20 bg-gray-200 rounded-lg animate-pulse flex-shrink-0"></div>
-                          <div className="flex-1 min-w-0">
-                            <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4 mb-2"></div>
-                            <div className="flex items-center gap-3">
-                              <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
-                              <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
-                              <div className="h-3 bg-gray-200 rounded animate-pulse w-12"></div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="text-center py-4">
-                        <div className="inline-flex items-center gap-2 text-purple-600">
-                          <span className="animate-spin">⏳</span>
-                          <span>번역 중...</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {newsData.map((news, index) => (
-                        <div 
-                          key={news.id}
-                          className="flex items-start gap-4 p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={(e) => handleNewsClick(news, e)}
-                        >
-                          <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                            {news.thumbnail ? (
-                              <img 
-                                src={news.thumbnail} 
-                                alt="뉴스 썸네일" 
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                                <div className="text-center">
-                                  <div className="text-2xl mb-1">📰</div>
-                                  <span className="text-blue-600 text-xs font-medium">뉴스</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-bold text-gray-900 text-base leading-tight line-clamp-2">
-                                {showSpanishNews && news.title_es ? news.title_es : news.title}
-                              </h4>
-                              {news.is_pinned && (
-                                <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex-shrink-0">
-                                  📌 고정
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3 text-xs text-gray-500">
-                                <span>{news.source}</span>
-                                <span>{news.date}</span>
-                                <span>댓글 {news.comments}</span>
-                              </div>
-                              
-                              {/* 운영진 전용 버튼들 */}
-                              {isAdmin && (
-                                <div className="flex items-center gap-1">
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="h-6 px-2 text-xs text-blue-600 border-blue-300 hover:bg-blue-50"
-                                    onClick={(e) => {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      setEditingNews(news)
-                                      setShowNewsEditModal(true)
-                                      // 편집 폼에 기존 데이터 설정
-                                      setNewsWriteForm({
-                                        title: news.title || '',
-                                        title_es: news.title_es || '',
-                                        content: news.content || '',
-                                        content_es: news.content_es || '',
-                                        source: news.source || '',
-                                        author: news.author || '',
-                                        date: news.date || '',
-                                        category: news.category || 'entertainment'
-                                      })
-                                      setSelectedThumbnail(news.thumbnail || '')
-                                    }}
-                                  >
-                                    ✏️
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className={`h-6 px-2 text-xs ${
-                                      news.is_pinned 
-                                        ? 'text-yellow-600 border-yellow-400 bg-yellow-50 hover:bg-yellow-100' 
-                                        : 'text-orange-600 border-orange-300 hover:bg-orange-50'
-                                    }`}
-                                    onClick={async (e) => {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      try {
-                                        const response = await fetch('/api/news', {
-                                          method: 'PUT',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({
-                                            id: news.id,
-                                            is_pinned: !news.is_pinned
-                                          })
-                                        })
-                                        if (response.ok) {
-                                          toast.success(news.is_pinned ? '고정이 해제되었습니다.' : '뉴스가 고정되었습니다.')
-                                          // 뉴스 목록에서 고정 상태 업데이트
-                                          setNewsData(prev => prev.map(n => 
-                                            n.id === news.id ? { ...n, is_pinned: !news.is_pinned } : n
-                                          ))
-                                        } else {
-                                          const errorData = await response.json().catch(() => ({}))
-                                          console.error('고정 상태 변경 실패:', errorData)
-                                          toast.error(errorData.error || '고정 상태 변경에 실패했습니다.')
-                                        }
-                                      } catch (error) {
-                                        console.error('뉴스 고정 오류:', error)
-                                        toast.error('고정 상태 변경 중 오류가 발생했습니다.')
-                                      }
-                                    }}
-                                  >
-                                    {news.is_pinned ? '🔒' : '📌'}
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="h-6 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50"
-                                    onClick={async (e) => {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      if (!confirm('정말로 이 뉴스를 삭제하시겠습니까?')) {
-                                        return
-                                      }
-                                      try {
-                                        const response = await fetch(`/api/news?id=${news.id}`, {
-                                          method: 'DELETE'
-                                        })
-                                        if (response.ok) {
-                                          toast.success('뉴스가 삭제되었습니다.')
-                                          // 뉴스 목록에서 삭제된 뉴스 제거
-                                          setNewsData(prev => prev.filter(n => n.id !== news.id))
-                                        } else {
-                                          toast.error('뉴스 삭제에 실패했습니다.')
-                                        }
-                                      } catch (error) {
-                                        console.error('뉴스 삭제 오류:', error)
-                                        toast.error('뉴스 삭제 중 오류가 발생했습니다.')
-                                      }
-                                    }}
-                                  >
-                                    🗑️
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* 더 많은 뉴스 보기 버튼 */}
-                      <div className="text-center pt-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <Button variant="outline" className="bg-white hover:bg-gray-50">
-                            {t('community.viewMoreNews')}
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-            </div>
-          )}
-        </div>
+        <NewsSection
+          newsData={newsData}
+          newsLoading={newsLoading}
+          showSpanishNews={showSpanishNews}
+          showNewsDetail={showNewsDetail}
+          selectedNews={selectedNews}
+          isAdmin={isAdmin}
+          onNewsClick={handleNewsClick}
+          onBack={() => {
+            setShowNewsDetail(false)
+            setSelectedNews(null)
+            onViewChange?.('news')
+          }}
+          onShowWriteModal={() => setShowNewsWriteModal(true)}
+          onEdit={(news) => {
+            setShowNewsDetail(false)
+            setSelectedNews(null)
+            onViewChange?.('news')
+            setEditingNews(news)
+            setShowNewsEditModal(true)
+            setNewsWriteForm({
+              title: news.title || '',
+              title_es: news.title_es || '',
+              content: news.content || '',
+              content_es: news.content_es || '',
+              source: news.source || '',
+              author: news.author || '',
+              date: news.date || '',
+              category: news.category || 'entertainment'
+            })
+            setSelectedThumbnail(news.thumbnail || '')
+          }}
+          onDelete={(newsId) => {
+            setNewsData(prev => prev.filter(news => news.id !== newsId))
+          }}
+          onPin={(newsId, isPinned) => {
+            setNewsData(prev => prev.map(news => 
+              news.id === newsId ? { ...news, is_pinned: isPinned } : news
+            ))
+          }}
+          setNewsData={setNewsData}
+          t={t}
+        />
       )}
 
 
