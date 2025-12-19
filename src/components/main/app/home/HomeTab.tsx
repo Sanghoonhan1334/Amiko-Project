@@ -2515,7 +2515,6 @@ export default function HomeTab() {
               </Card>
             </div>
           </div>
-        </div>
 
         {/* 스토리 뷰어 모달 */}
         <Dialog open={showStoryViewer} onOpenChange={setShowStoryViewer}>
