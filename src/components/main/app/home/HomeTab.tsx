@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import SplashSequence from '@/components/splash/SplashSequence'
+import GalleryCarousel from '@/components/common/GalleryCarousel'
 import { 
   Calendar, 
   Users, 
@@ -152,12 +153,16 @@ export default function HomeTab() {
     { id: '2', title: 'Concert Vibes', image: '/sample-images/galleries/kpop-fanart-2.png', likes: 203, createdAt: '2일 전' },
     { id: '3', title: 'K-Drama Scene', image: '/sample-images/galleries/kdrama-scene.png', likes: 178, createdAt: '3일 전' },
     { id: '4', title: 'Korean Culture', image: '/sample-images/galleries/korean-culture.png', likes: 145, createdAt: '4일 전' },
+    { id: '5', title: 'Fashion Style', image: '/sample-images/galleries/fashion-beauty.png', likes: 192, createdAt: '5일 전' },
+    { id: '6', title: 'Street Art', image: '/sample-images/galleries/kpop-fanart-1.png', likes: 167, createdAt: '6일 전' },
   ])
   const [idolPhotoPosts, setIdolPhotoPosts] = useState<GalleryPost[]>([
     { id: '1', title: 'Delicious Bibimbap', image: '/sample-images/galleries/food-1.png', likes: 234, createdAt: '1일 전' },
     { id: '2', title: 'Tteokbokki Love', image: '/sample-images/galleries/food-2.png', likes: 198, createdAt: '2일 전' },
     { id: '3', title: 'K-Beauty', image: '/sample-images/galleries/fashion-beauty.png', likes: 189, createdAt: '3일 전' },
     { id: '4', title: 'Korean Street', image: '/sample-images/galleries/korean-culture.png', likes: 167, createdAt: '4일 전' },
+    { id: '5', title: 'Seoul Night', image: '/sample-images/galleries/kdrama-scene.png', likes: 211, createdAt: '5일 전' },
+    { id: '6', title: 'K-Culture', image: '/sample-images/galleries/kpop-fanart-2.png', likes: 178, createdAt: '6일 전' },
   ])
   const [hotChatRooms, setHotChatRooms] = useState<ChatRoom[]>([
     { id: '1', title: 'BTS 팬클럽', image: '/sample-images/galleries/kpop-fanart-1.png', memberCount: 234 },
@@ -178,6 +183,8 @@ export default function HomeTab() {
   const [youtubeLoading, setYoutubeLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
+  const [currentFanArtIndex, setCurrentFanArtIndex] = useState(0)
+  const [currentIdolPhotoIndex, setCurrentIdolPhotoIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
@@ -1814,110 +1821,11 @@ export default function HomeTab() {
             
             {/* 공지사항 - 데스크톱 버전 */}
             {/* 현재 진행 이벤트 - 갤러리 스타일 캐러셀 */}
-            <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-8">
-              <div className="mx-auto px-4" style={{ maxWidth: '1420px' }}>
-                {/* 타이틀 제거 - 배너만 표시 */}
-                
-                {currentEvents.length > 0 && (
-                  <div className="relative">
-                    {/* 이전/다음 버튼 */}
-                    {currentEvents.length > 6 && (
-                      <>
-                        <button
-                          onClick={() => {
-                            const newIndex = currentEventIndex === 0 ? Math.max(0, currentEvents.length - 6) : Math.max(0, currentEventIndex - 6)
-                            setCurrentEventIndex(newIndex)
-                          }}
-                          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 p-3 rounded-full shadow-lg transition-all"
-                          aria-label="Previous"
-                        >
-                          <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => {
-                            const newIndex = currentEventIndex + 6 >= currentEvents.length ? 0 : currentEventIndex + 6
-                            setCurrentEventIndex(newIndex)
-                          }}
-                          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 p-3 rounded-full shadow-lg transition-all"
-                          aria-label="Next"
-                        >
-                          <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                      </>
-                    )}
-
-                    {/* 갤러리 그리드 */}
-                    <div className="overflow-hidden">
-                      <div 
-                        className="flex gap-4 transition-transform duration-700 ease-in-out"
-                        style={{
-                          transform: `translateX(-${Math.floor(currentEventIndex / 6) * 100}%)`
-                        }}
-                      >
-                        {currentEvents.map((event, index) => (
-                          <div
-                            key={event.id}
-                            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
-                            onClick={() => router.push('/main?tab=event&show=korean-meeting')}
-                            style={{ width: '200px', height: '325px' }}
-                          >
-                            {/* 배너 이미지 또는 그라데이션 배경 */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
-                              {event.image && (
-                                <img
-                                  src={event.image}
-                                  alt={event.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              )}
-                            </div>
-
-                            {/* 항상 표시되는 정보 오버레이 */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
-                              <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                                <h3 className="text-sm font-bold mb-1 line-clamp-2">
-                                  {event.title}
-                                </h3>
-                                <p className="text-xs text-white/90 mb-1 line-clamp-2">
-                                  {event.description}
-                                </p>
-                                <p className="text-xs text-white/80">
-                                  {event.date}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* 호버 시 추가 효과 */}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 인디케이터 */}
-                    {currentEvents.length > 6 && (
-                      <div className="flex justify-center gap-2 mt-4">
-                        {Array.from({ length: Math.ceil(currentEvents.length / 6) }).map((_, pageIndex) => (
-                          <button
-                            key={pageIndex}
-                            onClick={() => setCurrentEventIndex(pageIndex * 6)}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                              Math.floor(currentEventIndex / 6) === pageIndex
-                                ? 'bg-purple-600 w-8'
-                                : 'bg-gray-300 dark:bg-gray-600'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            <GalleryCarousel 
+              items={currentEvents}
+              onItemClick={() => router.push('/main?tab=event&show=korean-meeting')}
+              autoSlide={isAutoSliding}
+            />
               
               {/* 공지사항 - 데스크톱 버전 */}
               <div className="space-y-4">
@@ -2099,9 +2007,24 @@ export default function HomeTab() {
               )}
             </div>
 
-            {/* 팬아트 & 아이돌 사진 - 데스크톱 */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* 팬아트 */}
+            {/* 팬아트 & 아이돌 사진 - 갤러리 캐러셀 */}
+            
+            {/* 팬아트 */}
+            <GalleryCarousel 
+              items={fanArtPosts}
+              onItemClick={(item) => router.push(`/community/fanart/${item.id}?from=home`)}
+              autoSlide={isAutoSliding}
+            />
+
+            {/* 아이돌 사진 */}
+            <GalleryCarousel 
+              items={idolPhotoPosts}
+              onItemClick={(item) => router.push(`/community/idol-photos/${item.id}?from=home`)}
+              autoSlide={isAutoSliding}
+            />
+
+
+            {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 - 미구현으로 숨김 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
