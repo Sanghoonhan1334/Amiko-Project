@@ -99,7 +99,8 @@ export default function HeroEventCarousel({
                 className="relative group cursor-pointer overflow-hidden flex-shrink-0 w-full"
                 onClick={() => onItemClick?.(item)}
                 style={{ 
-                  aspectRatio: '10 / 6' // 10:6 와이드 비율
+                  maxHeight: '350px',
+                  height: 'auto'
                 }}
               >
                 {/* 배너 이미지 또는 그라데이션 배경 */}
