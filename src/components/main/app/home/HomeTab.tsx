@@ -1834,7 +1834,7 @@ export default function HomeTab() {
     </div>
 
         {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
-        <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
+        <div className="hidden md:block max-w-4xl mx-auto p-6 pb-4">
           <div className="space-y-4">
             {/* 현재 진행 이벤트 - 갤러리 스타일 캐러셀 */}
             <GalleryCarousel 
