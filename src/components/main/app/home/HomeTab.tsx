@@ -1830,6 +1830,10 @@ export default function HomeTab() {
             {/* 현재 진행 이벤트 - 갤러리 스타일 캐러셀 */}
             <GalleryCarousel 
               items={currentEvents}
+              title={language === 'ko' ? '현재 진행 이벤트' : 'Eventos Actuales'}
+              icon={<Calendar className="w-6 h-6 text-purple-600" />}
+              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
+              onMoreClick={() => router.push('/main?tab=event')}
               onItemClick={() => router.push('/main?tab=event&show=korean-meeting')}
               autoSlide={isAutoSliding}
             />
@@ -2019,6 +2023,10 @@ export default function HomeTab() {
             {/* 팬아트 */}
             <GalleryCarousel 
               items={fanArtPosts}
+              title={language === 'ko' ? '팬아트' : 'Fan Art'}
+              icon={<img src="/icons/Fan art.png" alt="팬아트" className="w-6 h-6 object-contain" />}
+              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
+              onMoreClick={() => router.push('/community/fanart')}
               onItemClick={(item) => router.push(`/community/fanart/${item.id}?from=home`)}
               autoSlide={isAutoSliding}
             />
@@ -2026,6 +2034,10 @@ export default function HomeTab() {
             {/* 아이돌 사진 */}
             <GalleryCarousel 
               items={idolPhotoPosts}
+              title={language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
+              icon={<img src="/icons/Foto de idol.png" alt="아이돌 사진" className="w-6 h-6 object-contain" />}
+              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
+              onMoreClick={() => router.push('/community/idol-photos')}
               onItemClick={(item) => router.push(`/community/idol-photos/${item.id}?from=home`)}
               autoSlide={isAutoSliding}
             />
@@ -2104,6 +2116,10 @@ export default function HomeTab() {
                 description: `${room.memberCount} members`,
                 createdAt: room.lastMessageAt || '지금'
               }))}
+              title={language === 'ko' ? '지금 핫 한 채팅방!' : '¡Chats Calientes!'}
+              icon={<MessageCircle className="w-6 h-6 text-purple-600" />}
+              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
+              onMoreClick={() => router.push('/community/k-chat')}
               onItemClick={(item) => router.push(`/community/k-chat/${item.id}?from=home`)}
               autoSlide={isAutoSliding}
             />
@@ -2117,11 +2133,16 @@ export default function HomeTab() {
                 description: `${poll.totalVotes} votes`,
                 createdAt: poll.createdAt
               }))}
+              title={language === 'ko' ? '지금 투표!' : '¡Vota Ahora!'}
+              icon={<Activity className="w-6 h-6 text-orange-600" />}
+              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
+              onMoreClick={() => router.push('/community/polls')}
               onItemClick={(item) => router.push(`/main?tab=community&poll=${item.id}`)}
               autoSlide={isAutoSliding}
             />
-            <div className="grid grid-cols-2 gap-4">
-              {/* 지금 핫 한 채팅방 */}
+
+
+            {/* 오늘의 K-Noticia - 데스크톱 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

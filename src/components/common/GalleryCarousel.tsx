@@ -15,13 +15,21 @@ interface GalleryItem {
 
 interface GalleryCarouselProps {
   items: GalleryItem[]
+  title?: string
+  icon?: React.ReactNode
+  moreText?: string
+  onMoreClick?: () => void
   onItemClick?: (item: GalleryItem) => void
   autoSlide?: boolean
   slideInterval?: number
 }
 
 export default function GalleryCarousel({ 
-  items, 
+  items,
+  title,
+  icon,
+  moreText,
+  onMoreClick,
   onItemClick,
   autoSlide = true,
   slideInterval = 5000
@@ -65,6 +73,29 @@ export default function GalleryCarousel({
   return (
     <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-8">
       <div className="mx-auto px-4" style={{ maxWidth: '1420px' }}>
+        {/* 타이틀 섹션 */}
+        {title && (
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              {icon}
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {title}
+              </h2>
+            </div>
+            {moreText && onMoreClick && (
+              <button
+                onClick={onMoreClick}
+                className="flex items-center gap-1 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 text-sm font-medium transition-colors"
+              >
+                <span>{moreText}</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
+        
         <div className="relative">
           {/* 이전/다음 버튼 */}
           {items.length > 6 && (
