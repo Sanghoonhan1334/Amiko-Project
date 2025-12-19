@@ -126,12 +126,24 @@ export default function HomeTab() {
   const [showSplash, setShowSplash] = useState(false)
   const [isClient, setIsClient] = useState(false)
   
-  const [currentEvents, setCurrentEvents] = useState<Event[]>([])
-  const [hotPosts, setHotPosts] = useState<HotPost[]>([])
+  const [currentEvents, setCurrentEvents] = useState<Event[]>([
+    { id: '1', title: '한국어 모임', description: '2주에 한번씩 한국어 모임을 진행합니다!', date: '2024.12.25', image: '/sample-images/banners/korean-meetup.png', participants: 45 },
+    { id: '2', title: 'K-POP Concert Night', description: 'K-POP 콘서트 나이트에 참여하세요!', date: '2024.12.30', image: '/sample-images/banners/kpop-concert.png', participants: 120 },
+    { id: '3', title: 'K-Drama Watch Party', description: 'K-드라마 시청 파티', date: '2025.01.05', image: '/sample-images/banners/kdrama-party.png', participants: 78 },
+  ])
+  const [hotPosts, setHotPosts] = useState<HotPost[]>([
+    { id: '1', title: '한국 화장품 브랜드 추천해주세요', content: '한국에 처음 와서 화장품을 사려고 하는데...', author: 'María González', category: 'beauty', likes: 45, comments: 12, views: 234, createdAt: '2시간 전' },
+    { id: '2', title: 'K-pop 콘서트 갔다온 후기', content: '드디어 꿈에 그리던 콘서트에...', author: 'Carlos Silva', category: 'culture', likes: 89, comments: 23, views: 456, createdAt: '5시간 전' },
+    { id: '3', title: '서울 맛집 추천', content: '명동에서 먹은 비빔밥이 정말 맛있었어요!', author: '김민지', category: 'food', likes: 34, comments: 8, views: 189, createdAt: '1일 전' },
+    { id: '4', title: '한국 패션 트렌드 2024', content: '올해 한국에서 유행하는 패션 아이템이나...', author: 'Sofía Rodríguez', category: 'fashion', likes: 56, comments: 15, views: 312, createdAt: '3시간 전' },
+  ])
   const [popularTests, setPopularTests] = useState<PopularTest[]>([])
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
   const [recentStories, setRecentStories] = useState<RecentStory[]>([])
-  const [notices, setNotices] = useState<HotPost[]>([])
+  const [notices, setNotices] = useState<HotPost[]>([
+    { id: '1', title: '커뮤니티 이용 규칙 안내', content: '안녕하세요! Amiko 커뮤니티를 이용해주셔서 감사합니다...', author: 'Amiko', category: 'notice', likes: 45, comments: 0, views: 567, createdAt: '1일 전' },
+    { id: '2', title: '새로운 기능 업데이트 안내', content: '이번 업데이트에서 새로운 기능들이 추가되었습니다...', author: 'Amiko', category: 'notice', likes: 32, comments: 5, views: 423, createdAt: '2일 전' },
+  ])
   const [fanArtPosts, setFanArtPosts] = useState<GalleryPost[]>([
     { id: '1', title: 'K-POP Fan Art', image: '/sample-images/galleries/kpop-fanart-1.png', likes: 156, createdAt: '1일 전' },
     { id: '2', title: 'Concert Vibes', image: '/sample-images/galleries/kpop-fanart-2.png', likes: 203, createdAt: '2일 전' },
@@ -144,9 +156,21 @@ export default function HomeTab() {
     { id: '3', title: 'K-Beauty', image: '/sample-images/galleries/fashion-beauty.png', likes: 189, createdAt: '3일 전' },
     { id: '4', title: 'Korean Street', image: '/sample-images/galleries/korean-culture.png', likes: 167, createdAt: '4일 전' },
   ])
-  const [hotChatRooms, setHotChatRooms] = useState<ChatRoom[]>([])
-  const [currentPolls, setCurrentPolls] = useState<Poll[]>([])
-  const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([])
+  const [hotChatRooms, setHotChatRooms] = useState<ChatRoom[]>([
+    { id: '1', title: 'BTS 팬클럽', image: '/sample-images/galleries/kpop-fanart-1.png', memberCount: 234 },
+    { id: '2', title: '한국어 공부방', image: '/sample-images/galleries/korean-culture.png', memberCount: 156 },
+    { id: '3', title: 'K-Drama 토론방', image: '/sample-images/galleries/kdrama-scene.png', memberCount: 189 },
+  ])
+  const [currentPolls, setCurrentPolls] = useState<Poll[]>([
+    { id: '1', title: '가장 좋아하는 K-POP 그룹은?', image: '/sample-images/galleries/kpop-fanart-1.png', totalVotes: 593, createdAt: '2일 전' },
+    { id: '2', title: '어떤 K-드라마 장르를 좋아하세요?', image: '/sample-images/galleries/kdrama-scene.png', totalVotes: 477, createdAt: '1일 전' },
+  ])
+  const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([
+    { id: '1', title: 'K-POP 최신 소식', likes: 234, comments: 45, views: 1234, createdAt: '2시간 전' },
+    { id: '2', title: 'K-드라마 신작 공개', likes: 189, comments: 32, views: 987, createdAt: '5시간 전' },
+    { id: '3', title: '한국 문화 축제 개최', likes: 156, comments: 28, views: 756, createdAt: '1일 전' },
+    { id: '4', title: 'K-뷰티 트렌드 2024', likes: 267, comments: 51, views: 1456, createdAt: '3시간 전' },
+  ])
   const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([])
   const [youtubeLoading, setYoutubeLoading] = useState(true)
   const [loading, setLoading] = useState(true)
