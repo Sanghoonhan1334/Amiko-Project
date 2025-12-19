@@ -1876,13 +1876,13 @@ export default function HomeTab() {
                               )}
                             </div>
 
-                            {/* 호버 오버레이 */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                <h3 className="text-lg font-bold mb-1 line-clamp-2">
+                            {/* 항상 표시되는 정보 오버레이 */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
+                              <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                                <h3 className="text-sm font-bold mb-1 line-clamp-2">
                                   {event.title}
                                 </h3>
-                                <p className="text-sm text-white/90 mb-1 line-clamp-2">
+                                <p className="text-xs text-white/90 mb-1 line-clamp-2">
                                   {event.description}
                                 </p>
                                 <p className="text-xs text-white/80">
@@ -1891,12 +1891,8 @@ export default function HomeTab() {
                               </div>
                             </div>
 
-                            {/* 기본 타이틀 (항상 표시) */}
-                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
-                              <h3 className="text-white font-semibold text-sm line-clamp-1">
-                                {event.title}
-                              </h3>
-                            </div>
+                            {/* 호버 시 추가 효과 */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
                           </div>
                         ))}
                       </div>
