@@ -226,12 +226,15 @@ export default function HomeTab() {
   }
   
 
-  // 이벤트 자동 슬라이드
+  // 이벤트 자동 슬라이드 (6개씩)
   useEffect(() => {
-    if (currentEvents.length > 1 && isAutoSliding) {
+    if (currentEvents.length > 6 && isAutoSliding) {
       const interval = setInterval(() => {
-        setCurrentEventIndex((prev) => (prev + 1) % currentEvents.length)
-      }, 5000)
+        setCurrentEventIndex((prev) => {
+          const nextIndex = prev + 6
+          return nextIndex >= currentEvents.length ? 0 : nextIndex
+        })
+      }, 5000) // 5초마다 자동 롤링
       return () => clearInterval(interval)
     }
   }, [currentEvents.length, isAutoSliding])
@@ -1807,7 +1810,116 @@ export default function HomeTab() {
           <div className="space-y-4">
             
             {/* 공지사항 - 데스크톱 버전 */}
-            {/* 현재 진행 이벤트 - 데스크톱 전용 대형 슬라이드 */}
+            {/* 현재 진행 이벤트 - 갤러리 스타일 캐러셀 */}
+            <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-8">
+              <div className="mx-auto px-4" style={{ maxWidth: '1420px' }}>
+                {/* 타이틀 제거 - 배너만 표시 */}
+                
+                {currentEvents.length > 0 && (
+                  <div className="relative">
+                    {/* 이전/다음 버튼 */}
+                    {currentEvents.length > 6 && (
+                      <>
+                        <button
+                          onClick={() => {
+                            const newIndex = currentEventIndex === 0 ? Math.max(0, currentEvents.length - 6) : Math.max(0, currentEventIndex - 6)
+                            setCurrentEventIndex(newIndex)
+                          }}
+                          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 p-3 rounded-full shadow-lg transition-all"
+                          aria-label="Previous"
+                        >
+                          <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const newIndex = currentEventIndex + 6 >= currentEvents.length ? 0 : currentEventIndex + 6
+                            setCurrentEventIndex(newIndex)
+                          }}
+                          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 p-3 rounded-full shadow-lg transition-all"
+                          aria-label="Next"
+                        >
+                          <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+
+                    {/* 갤러리 그리드 */}
+                    <div className="overflow-hidden">
+                      <div 
+                        className="grid gap-4 transition-transform duration-700 ease-in-out"
+                        style={{
+                          gridTemplateColumns: `repeat(${Math.min(currentEvents.length, 6)}, 1fr)`,
+                          transform: `translateX(-${Math.floor(currentEventIndex / 6) * 100}%)`
+                        }}
+                      >
+                        {currentEvents.map((event, index) => (
+                          <div
+                            key={event.id}
+                            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                            onClick={() => router.push('/main?tab=event&show=korean-meeting')}
+                            style={{ aspectRatio: '8/13' }}
+                          >
+                            {/* 배너 이미지 또는 그라데이션 배경 */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+                              {event.image && (
+                                <img
+                                  src={event.image}
+                                  alt={event.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+
+                            {/* 호버 오버레이 */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                                <h3 className="text-lg font-bold mb-1 line-clamp-2">
+                                  {event.title}
+                                </h3>
+                                <p className="text-sm text-white/90 mb-1 line-clamp-2">
+                                  {event.description}
+                                </p>
+                                <p className="text-xs text-white/80">
+                                  {event.date}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* 기본 타이틀 (항상 표시) */}
+                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                              <h3 className="text-white font-semibold text-sm line-clamp-1">
+                                {event.title}
+                              </h3>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 인디케이터 */}
+                    {currentEvents.length > 6 && (
+                      <div className="flex justify-center gap-2 mt-4">
+                        {Array.from({ length: Math.ceil(currentEvents.length / 6) }).map((_, pageIndex) => (
+                          <button
+                            key={pageIndex}
+                            onClick={() => setCurrentEventIndex(pageIndex * 6)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              Math.floor(currentEventIndex / 6) === pageIndex
+                                ? 'bg-purple-600 w-8'
+                                : 'bg-gray-300 dark:bg-gray-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
