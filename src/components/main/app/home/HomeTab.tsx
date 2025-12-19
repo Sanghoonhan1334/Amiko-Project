@@ -860,7 +860,7 @@ export default function HomeTab() {
   return (
     <>
       {/* 히어로 섹션 - 통합 검색 */}
-      <div className="w-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400" style={{ maxHeight: '350px' }}>
+      <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400" style={{ maxHeight: '350px' }}>
         <div className="mx-auto px-4 py-12 md:py-16" style={{ maxWidth: '1420px' }}>
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
