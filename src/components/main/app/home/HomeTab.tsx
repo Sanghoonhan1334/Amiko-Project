@@ -2145,8 +2145,7 @@ export default function HomeTab() {
 
 
             {/* 오늘의 K-Noticia - 데스크톱 */}
-                    <MessageCircle className="w-5 h-5 text-purple-600" />
-                    <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
+            <div className="space-y-4">
                       {language === 'ko' ? '지금 핫 한 채팅방!' : '¡Chats Calientes!'}
                     </h2>
                   </div>
