@@ -827,8 +827,6 @@ export default function HomeTab() {
     <>
       {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 p-4">
-<<<<<<< HEAD
-      
       {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 */}
       {/* 지금 커뮤니티에서 핫한 글 */}
       <div className="space-y-3">
@@ -2715,7 +2713,6 @@ export default function HomeTab() {
                 </CardContent>
               </Card>
             </div>
->>>>>>> ea7c29bd98426757ef35789b182ae1dc8dbe8654
 
             {/* 최근 스토리 - 데스크톱 - 환경 변수로 제어 */}
             {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
