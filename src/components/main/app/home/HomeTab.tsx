@@ -130,6 +130,9 @@ export default function HomeTab() {
     { id: '1', title: '한국어 모임', description: '2주에 한번씩 한국어 모임을 진행합니다!', date: '2024.12.25', image: '/sample-images/banners/korean-meetup.png', participants: 45 },
     { id: '2', title: 'K-POP Concert Night', description: 'K-POP 콘서트 나이트에 참여하세요!', date: '2024.12.30', image: '/sample-images/banners/kpop-concert.png', participants: 120 },
     { id: '3', title: 'K-Drama Watch Party', description: 'K-드라마 시청 파티', date: '2025.01.05', image: '/sample-images/banners/kdrama-party.png', participants: 78 },
+    { id: '4', title: '한국 요리 클래스', description: '비빔밥과 김치찌개 만들기', date: '2025.01.10', image: '/sample-images/banners/korean-meetup.png', participants: 35 },
+    { id: '5', title: 'K-Beauty Workshop', description: '한국 뷰티 트렌드 체험', date: '2025.01.15', image: '/sample-images/banners/kpop-concert.png', participants: 92 },
+    { id: '6', title: '한글 캘리그라피', description: '한글의 아름다움을 배워요', date: '2025.01.20', image: '/sample-images/banners/kdrama-party.png', participants: 56 },
   ])
   const [hotPosts, setHotPosts] = useState<HotPost[]>([
     { id: '1', title: '한국 화장품 브랜드 추천해주세요', content: '한국에 처음 와서 화장품을 사려고 하는데...', author: 'María González', category: 'beauty', likes: 45, comments: 12, views: 234, createdAt: '2시간 전' },
@@ -1850,18 +1853,17 @@ export default function HomeTab() {
                     {/* 갤러리 그리드 */}
                     <div className="overflow-hidden">
                       <div 
-                        className="grid gap-4 transition-transform duration-700 ease-in-out"
+                        className="flex gap-4 transition-transform duration-700 ease-in-out"
                         style={{
-                          gridTemplateColumns: `repeat(${Math.min(currentEvents.length, 6)}, 1fr)`,
                           transform: `translateX(-${Math.floor(currentEventIndex / 6) * 100}%)`
                         }}
                       >
                         {currentEvents.map((event, index) => (
                           <div
                             key={event.id}
-                            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                            className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
                             onClick={() => router.push('/main?tab=event&show=korean-meeting')}
-                            style={{ aspectRatio: '8/13' }}
+                            style={{ width: '200px', height: '325px' }}
                           >
                             {/* 배너 이미지 또는 그라데이션 배경 */}
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
