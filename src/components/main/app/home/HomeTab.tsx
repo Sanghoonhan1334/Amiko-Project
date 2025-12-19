@@ -155,6 +155,7 @@ export default function HomeTab() {
   const [notices, setNotices] = useState<HotPost[]>([
     { id: '1', title: '커뮤니티 이용 규칙 안내', content: '안녕하세요! Amiko 커뮤니티를 이용해주셔서 감사합니다...', author: 'Amiko', category: 'notice', likes: 45, comments: 0, views: 567, createdAt: '1일 전' },
     { id: '2', title: '새로운 기능 업데이트 안내', content: '이번 업데이트에서 새로운 기능들이 추가되었습니다...', author: 'Amiko', category: 'notice', likes: 32, comments: 5, views: 423, createdAt: '2일 전' },
+    { id: '3', title: '서버 점검 안내 (12/25)', content: '12월 25일 오전 2시부터 4시까지 서버 점검이 있습니다...', author: 'Amiko', category: 'notice', likes: 28, comments: 3, views: 389, createdAt: '3일 전' },
   ])
   const [fanArtPosts, setFanArtPosts] = useState<GalleryPost[]>([
     { id: '1', title: 'K-POP Fan Art', image: '/sample-images/galleries/kpop-fanart-1.png', likes: 156, createdAt: '1일 전' },
@@ -189,10 +190,12 @@ export default function HomeTab() {
     { id: '6', title: '다음 시즌 기대되는 드라마는?', image: '/sample-images/galleries/kdrama-scene.png', totalVotes: 445, createdAt: '6일 전' },
   ])
   const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([
-    { id: '1', title: 'K-POP 최신 소식', likes: 234, comments: 45, views: 1234, createdAt: '2시간 전' },
-    { id: '2', title: 'K-드라마 신작 공개', likes: 189, comments: 32, views: 987, createdAt: '5시간 전' },
-    { id: '3', title: '한국 문화 축제 개최', likes: 156, comments: 28, views: 756, createdAt: '1일 전' },
-    { id: '4', title: 'K-뷰티 트렌드 2024', likes: 267, comments: 51, views: 1456, createdAt: '3시간 전' },
+    { id: '1', title: 'K-POP 최신 소식: 새로운 그룹 데뷔 예정', likes: 234, comments: 45, views: 1234, createdAt: '2시간 전' },
+    { id: '2', title: 'K-드라마 신작 공개: 로맨스 장르 인기', likes: 189, comments: 32, views: 987, createdAt: '5시간 전' },
+    { id: '3', title: '한국 문화 축제 개최: 서울에서 대규모 행사', likes: 156, comments: 28, views: 756, createdAt: '1일 전' },
+    { id: '4', title: 'K-뷰티 트렌드 2024: 글로우 메이크업 인기', likes: 267, comments: 51, views: 1456, createdAt: '3시간 전' },
+    { id: '5', title: '한국 요리 세계화: 미슐린 스타 레스토랑 증가', likes: 198, comments: 38, views: 1123, createdAt: '6시간 전' },
+    { id: '6', title: 'K-패션 트렌드: 한복 리메이크 열풍', likes: 223, comments: 42, views: 1089, createdAt: '8시간 전' },
   ])
   const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([])
   const [youtubeLoading, setYoutubeLoading] = useState(true)
