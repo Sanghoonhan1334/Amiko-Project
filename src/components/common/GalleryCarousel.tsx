@@ -134,7 +134,10 @@ export default function GalleryCarousel({
                   key={item.id}
                   className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
                   onClick={() => onItemClick?.(item)}
-                  style={{ width: '200px', height: '325px' }}
+                  style={{ 
+                    width: 'calc((100% - 5 * 1rem) / 6)', // 6개 카드 + 5개 gap (1rem = 16px)
+                    aspectRatio: '8 / 13' // 8:13 비율 유지
+                  }}
                 >
                   {/* 배너 이미지 또는 그라데이션 배경 */}
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
