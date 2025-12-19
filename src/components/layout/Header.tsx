@@ -870,7 +870,7 @@ function HeaderContent() {
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[60] dark:z-[40] bg-transparent"
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    router.push('/main?tab=home&splash=true');
+                    router.push('/main?tab=home');
                   }}
                 />
               </div>

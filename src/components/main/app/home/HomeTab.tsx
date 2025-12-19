@@ -913,7 +913,7 @@ export default function HomeTab() {
       {/* 공지사항 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <span className="text-green-500">📢</span>
+          <Megaphone className="w-5 h-5 text-green-600" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {t('home.sections.announcements')}
           </h2>
@@ -1130,19 +1130,22 @@ export default function HomeTab() {
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/fanart/${post.id}?from=home`)}
                     >
-                      <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
+                      <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: '8/13' }}>
                         <img
                           src={post.image}
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
-                        {post.title}
-                      </p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Heart className="w-3 h-3" />
-                        <span>{post.likes} · {post.createdAt}</span>
+                        {/* Title overlay at bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                          <p className="text-xs text-white font-medium line-clamp-1">
+                            {post.title}
+                          </p>
+                          <div className="flex items-center gap-1 text-xs text-white/90 mt-0.5">
+                            <Heart className="w-3 h-3" />
+                            <span>{post.likes} · {post.createdAt}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -1195,19 +1198,22 @@ export default function HomeTab() {
                       className="cursor-pointer group"
                       onClick={() => router.push(`/community/idol-photos/${post.id}?from=home`)}
                     >
-                      <div className="relative aspect-square overflow-hidden rounded-lg mb-1">
+                      <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: '8/13' }}>
                         <img
                           src={post.image}
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
-                        {post.title}
-                      </p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Heart className="w-3 h-3" />
-                        <span>{post.likes} · {post.createdAt}</span>
+                        {/* Title overlay at bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                          <p className="text-xs text-white font-medium line-clamp-1">
+                            {post.title}
+                          </p>
+                          <div className="flex items-center gap-1 text-xs text-white/90 mt-0.5">
+                            <Heart className="w-3 h-3" />
+                            <span>{post.likes} · {post.createdAt}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))
