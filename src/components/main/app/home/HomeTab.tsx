@@ -860,7 +860,7 @@ export default function HomeTab() {
   return (
     <>
       {/* 히어로 섹션 - 통합 검색 */}
-      <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]" style={{ maxHeight: '350px' }}>
+      <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
         <div className="mx-auto px-4 py-8 md:py-12" style={{ maxWidth: '1420px' }}>
           {/* 검색바 */}
           <div className="max-w-3xl mx-auto">
