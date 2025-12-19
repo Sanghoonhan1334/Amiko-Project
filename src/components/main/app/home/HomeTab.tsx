@@ -60,11 +60,12 @@ interface HotPost {
 interface PopularTest {
   id: string
   title: string
-  description: string
+  description?: string
   participants: number
   image: string
-  category: string
+  category?: string
   route?: string
+  createdAt?: string
 }
 
 interface OnlineUser {
@@ -141,7 +142,14 @@ export default function HomeTab() {
     { id: '3', title: '서울 맛집 추천', content: '명동에서 먹은 비빔밥이 정말 맛있었어요!', author: '김민지', category: 'food', likes: 34, comments: 8, views: 189, createdAt: '1일 전' },
     { id: '4', title: '한국 패션 트렌드 2024', content: '올해 한국에서 유행하는 패션 아이템이나...', author: 'Sofía Rodríguez', category: 'fashion', likes: 56, comments: 15, views: 312, createdAt: '3시간 전' },
   ])
-  const [popularTests, setPopularTests] = useState<PopularTest[]>([])
+  const [popularTests, setPopularTests] = useState<PopularTest[]>([
+    { id: '1', title: '나의 K-POP 스타일은?', image: '/sample-images/galleries/kpop-fanart-1.png', participants: 1234, createdAt: '1일 전' },
+    { id: '2', title: '어떤 K-드라마 주인공?', image: '/sample-images/galleries/kdrama-scene.png', participants: 987, createdAt: '2일 전' },
+    { id: '3', title: '나와 어울리는 한국 음식은?', image: '/sample-images/galleries/food-1.png', participants: 1456, createdAt: '3일 전' },
+    { id: '4', title: '한국 여행 스타일 테스트', image: '/sample-images/galleries/korean-culture.png', participants: 876, createdAt: '4일 전' },
+    { id: '5', title: 'K-뷰티 타입 찾기', image: '/sample-images/galleries/fashion-beauty.png', participants: 1123, createdAt: '5일 전' },
+    { id: '6', title: '나의 한국어 실력은?', image: '/sample-images/galleries/kpop-fanart-2.png', participants: 2345, createdAt: '6일 전' },
+  ])
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
   const [recentStories, setRecentStories] = useState<RecentStory[]>([])
   const [notices, setNotices] = useState<HotPost[]>([
@@ -1825,8 +1833,6 @@ export default function HomeTab() {
         {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
         <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
           <div className="space-y-4">
-            
-            {/* 공지사항 - 데스크톱 버전 */}
             {/* 현재 진행 이벤트 - 갤러리 스타일 캐러셀 */}
             <GalleryCarousel 
               items={currentEvents}
@@ -1837,8 +1843,10 @@ export default function HomeTab() {
               onItemClick={() => router.push('/main?tab=event&show=korean-meeting')}
               autoSlide={isAutoSliding}
             />
-              
-              {/* 공지사항 - 데스크톱 버전 */}
+
+            {/* 공지사항 & 핫한 글 - 2열 레이아웃 */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* 공지사항 */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
@@ -1878,10 +1886,9 @@ export default function HomeTab() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
 
-            {/* 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
-            <div className="space-y-4">
+              {/* 지금 커뮤니티에서 핫한 글 */}
+              <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
@@ -1953,70 +1960,25 @@ export default function HomeTab() {
                   </CardContent>
                 </Card>
               )}
+              </div>
             </div>
 
-            {/* 인기 심리테스트 */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                    <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {t('home.sections.popularTests')}
-                  </h2>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                  onClick={() => router.push('/community/tests')}
-                >
-                  <Brain className="w-5 h-5 mr-2" />
-                  {language === 'ko' ? '더 보기' : 'Ver Más'}
-                </Button>
-              </div>
-              
-              {popularTests.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-                    {popularTests.map((test) => (
-                      <div 
-                        key={test.id} 
-                        className="cursor-pointer group"
-                        onClick={() => router.push(test.route || '/community/tests')}
-                      >
-                        <div className="relative mb-3">
-                          <img
-                            src={test.image}
-                            alt={test.title}
-                            className="w-full h-32 md:h-48 lg:h-56 xl:h-64 object-contain rounded-lg"
-                          />
-                        </div>
-                        
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
-                          {test.title}
-                        </h3>
-                        
-                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                          <Play className="w-3 h-3" />
-                          <span>{formatNumber(test.participants)}{language === 'ko' ? '명' : ''}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <Card className="shadow-2xl">
-                  <CardContent className="p-8 text-center">
-                    <Brain className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg">
-                      {language === 'ko' ? '인기 테스트가 없습니다' : 'No hay tests populares'}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            {/* 인기 심리테스트 - GalleryCarousel */}
+            <GalleryCarousel 
+              items={popularTests.map(test => ({
+                id: test.id,
+                title: test.title,
+                image: test.image,
+                description: `${test.participants} ${language === 'ko' ? '명 참여' : 'participants'}`,
+                createdAt: test.createdAt
+              }))}
+              title={t('home.sections.popularTests')}
+              icon={<Brain className="w-6 h-6 text-purple-600" />}
+              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
+              onMoreClick={() => router.push('/community/tests')}
+              onItemClick={(item) => router.push(`/community/tests/${item.id}`)}
+              autoSlide={isAutoSliding}
+            />
 
             {/* 팬아트 & 아이돌 사진 - 갤러리 캐러셀 */}
             
@@ -2443,6 +2405,7 @@ export default function HomeTab() {
               </Card>
             </div>
           </div>
+        </div>
 
         {/* 스토리 뷰어 모달 */}
         <Dialog open={showStoryViewer} onOpenChange={setShowStoryViewer}>
