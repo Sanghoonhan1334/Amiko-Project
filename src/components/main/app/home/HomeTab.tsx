@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import SplashSequence from '@/components/splash/SplashSequence'
 import GalleryCarousel from '@/components/common/GalleryCarousel'
+import HeroEventCarousel from '@/components/common/HeroEventCarousel'
 import { 
   Calendar, 
   Users, 
@@ -1836,12 +1837,11 @@ export default function HomeTab() {
         {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
         <div className="hidden md:block max-w-4xl mx-auto p-6 pb-4">
           <div className="space-y-4">
-            {/* 현재 진행 이벤트 - 갤러리 스타일 캐러셀 */}
-            <GalleryCarousel 
+            {/* 현재 진행 이벤트 - 히어로 스타일 캐러셀 */}
+            <HeroEventCarousel 
               items={currentEvents}
               onItemClick={() => router.push('/main?tab=event&show=korean-meeting')}
               autoSlide={isAutoSliding}
-              itemsPerRow={3}
             />
 
             {/* 공지사항 & 핫한 글 - 2열 레이아웃 */}

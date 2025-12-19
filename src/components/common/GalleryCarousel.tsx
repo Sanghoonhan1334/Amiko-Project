@@ -23,6 +23,7 @@ interface GalleryCarouselProps {
   autoSlide?: boolean
   slideInterval?: number
   itemsPerRow?: number // 한 번에 표시할 아이템 개수 (기본값: 6)
+  aspectRatio?: string // 카드 비율 (기본값: '8 / 13')
 }
 
 export default function GalleryCarousel({ 
@@ -34,7 +35,8 @@ export default function GalleryCarousel({
   onItemClick,
   autoSlide = true,
   slideInterval = 5000,
-  itemsPerRow = 6
+  itemsPerRow = 6,
+  aspectRatio = '8 / 13'
 }: GalleryCarouselProps) {
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -138,7 +140,7 @@ export default function GalleryCarousel({
                   onClick={() => onItemClick?.(item)}
                   style={{ 
                     width: `calc((100% - ${itemsPerRow - 1} * 1rem) / ${itemsPerRow})`, // 동적 카드 너비
-                    aspectRatio: '8 / 13' // 8:13 비율 유지
+                    aspectRatio: aspectRatio // 동적 비율
                   }}
                 >
                   {/* 배너 이미지 또는 그라데이션 배경 */}
