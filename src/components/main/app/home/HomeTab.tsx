@@ -1834,8 +1834,8 @@ export default function HomeTab() {
       </div>
     </div>
 
-        {/* 현재 진행 이벤트 - 히어로 스타일 캐러셀 (전체 너비) */}
-        <div className="hidden md:block w-full">
+        {/* 현재 진행 이벤트 - 히어로 스타일 캐러셀 (전체 브라우저 너비) */}
+        <div className="hidden md:block w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
           <HeroEventCarousel 
             items={currentEvents}
             onItemClick={() => router.push('/main?tab=event&show=korean-meeting')}
