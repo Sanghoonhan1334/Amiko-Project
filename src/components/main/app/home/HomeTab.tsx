@@ -860,13 +860,13 @@ export default function HomeTab() {
   return (
     <>
       {/* 히어로 섹션 - 통합 검색 */}
-      <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400" style={{ maxHeight: '350px' }}>
+      <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]" style={{ maxHeight: '350px' }}>
         <div className="mx-auto px-4 py-12 md:py-16" style={{ maxWidth: '1420px' }}>
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
               {language === 'ko' ? 'Amiko에서 찾아보세요' : 'Busca en Amiko'}
             </h1>
-            <p className="text-white/90 text-sm md:text-base">
+            <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
               {language === 'ko' ? '게시글, 갤러리, 뉴스 등 모든 콘텐츠를 검색할 수 있습니다' : 'Busca publicaciones, galerías, noticias y más'}
             </p>
           </div>
@@ -877,7 +877,7 @@ export default function HomeTab() {
               <input
                 type="text"
                 placeholder={language === 'ko' ? '검색어를 입력하세요...' : 'Escribe para buscar...'}
-                className="w-full px-6 py-4 pr-14 rounded-full text-lg shadow-2xl focus:outline-none focus:ring-4 focus:ring-white/30 transition-all"
+                className="w-full px-6 py-4 pr-14 rounded-full text-lg border-2 border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 transition-all"
               />
               <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -891,11 +891,12 @@ export default function HomeTab() {
               {['전체', '게시글', '팬아트', '갤러리', '뉴스', '사용자'].map((category) => (
                 <button
                   key={category}
-                  className="px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-full backdrop-blur-sm transition-all"
+                  className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-900 text-gray-700 dark:text-gray-300 text-sm rounded-full transition-all"
                 >
                   {category}
                 </button>
               ))}
+            </div>
             </div>
           </div>
         </div>
