@@ -22,6 +22,7 @@ interface GalleryCarouselProps {
   onItemClick?: (item: GalleryItem) => void
   autoSlide?: boolean
   slideInterval?: number
+  itemsPerRow?: number // 한 번에 표시할 아이템 개수 (기본값: 6)
 }
 
 export default function GalleryCarousel({ 
@@ -32,39 +33,40 @@ export default function GalleryCarousel({
   onMoreClick,
   onItemClick,
   autoSlide = true,
-  slideInterval = 5000
+  slideInterval = 5000,
+  itemsPerRow = 6
 }: GalleryCarouselProps) {
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(autoSlide)
 
-  // 자동 롤링 (6개씩)
+  // 자동 롤링 (itemsPerRow개씩)
   useEffect(() => {
-    if (items.length > 6 && isAutoSliding) {
+    if (items.length > itemsPerRow && isAutoSliding) {
       const interval = setInterval(() => {
         setCurrentIndex((prev) => {
-          const nextIndex = prev + 6
+          const nextIndex = prev + itemsPerRow
           return nextIndex >= items.length ? 0 : nextIndex
         })
       }, slideInterval)
       return () => clearInterval(interval)
     }
-  }, [items.length, isAutoSliding, slideInterval])
+  }, [items.length, isAutoSliding, slideInterval, itemsPerRow])
 
   const handlePrevious = () => {
-    const newIndex = currentIndex === 0 ? Math.max(0, items.length - 6) : Math.max(0, currentIndex - 6)
+    const newIndex = currentIndex === 0 ? Math.max(0, items.length - itemsPerRow) : Math.max(0, currentIndex - itemsPerRow)
     setCurrentIndex(newIndex)
     setIsAutoSliding(false)
   }
 
   const handleNext = () => {
-    const newIndex = currentIndex + 6 >= items.length ? 0 : currentIndex + 6
+    const newIndex = currentIndex + itemsPerRow >= items.length ? 0 : currentIndex + itemsPerRow
     setCurrentIndex(newIndex)
     setIsAutoSliding(false)
   }
 
   const handlePageClick = (pageIndex: number) => {
-    setCurrentIndex(pageIndex * 6)
+    setCurrentIndex(pageIndex * itemsPerRow)
     setIsAutoSliding(false)
   }
 
@@ -98,7 +100,7 @@ export default function GalleryCarousel({
         
         <div className="relative">
           {/* 이전/다음 버튼 */}
-          {items.length > 6 && (
+          {items.length > itemsPerRow && (
             <>
               <button
                 onClick={handlePrevious}
@@ -126,7 +128,7 @@ export default function GalleryCarousel({
             <div 
               className="flex gap-4 transition-transform duration-700 ease-in-out"
               style={{
-                transform: `translateX(-${Math.floor(currentIndex / 6) * 100}%)`
+                transform: `translateX(-${Math.floor(currentIndex / itemsPerRow) * 100}%)`
               }}
             >
               {items.map((item) => (
@@ -135,7 +137,7 @@ export default function GalleryCarousel({
                   className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
                   onClick={() => onItemClick?.(item)}
                   style={{ 
-                    width: 'calc((100% - 5 * 1rem) / 6)', // 6개 카드 + 5개 gap (1rem = 16px)
+                    width: `calc((100% - ${itemsPerRow - 1} * 1rem) / ${itemsPerRow})`, // 동적 카드 너비
                     aspectRatio: '8 / 13' // 8:13 비율 유지
                   }}
                 >
@@ -173,14 +175,14 @@ export default function GalleryCarousel({
           </div>
 
           {/* 인디케이터 */}
-          {items.length > 6 && (
+          {items.length > itemsPerRow && (
             <div className="flex justify-center gap-2 mt-4">
-              {Array.from({ length: Math.ceil(items.length / 6) }).map((_, pageIndex) => (
+              {Array.from({ length: Math.ceil(items.length / itemsPerRow) }).map((_, pageIndex) => (
                 <button
                   key={pageIndex}
                   onClick={() => handlePageClick(pageIndex)}
                   className={`w-2 h-2 rounded-full transition-all ${
-                    Math.floor(currentIndex / 6) === pageIndex
+                    Math.floor(currentIndex / itemsPerRow) === pageIndex
                       ? 'bg-purple-600 w-8'
                       : 'bg-gray-300 dark:bg-gray-600'
                   }`}

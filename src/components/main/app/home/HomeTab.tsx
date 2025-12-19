@@ -1839,12 +1839,9 @@ export default function HomeTab() {
             {/* 현재 진행 이벤트 - 갤러리 스타일 캐러셀 */}
             <GalleryCarousel 
               items={currentEvents}
-              title={language === 'ko' ? '현재 진행 이벤트' : 'Eventos Actuales'}
-              icon={<Calendar className="w-6 h-6 text-purple-600" />}
-              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
-              onMoreClick={() => router.push('/main?tab=event')}
               onItemClick={() => router.push('/main?tab=event&show=korean-meeting')}
               autoSlide={isAutoSliding}
+              itemsPerRow={3}
             />
 
             {/* 공지사항 & 핫한 글 - 2열 레이아웃 */}
