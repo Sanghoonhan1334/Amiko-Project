@@ -99,8 +99,7 @@ export default function HeroEventCarousel({
                 className="relative group cursor-pointer overflow-hidden flex-shrink-0 w-full"
                 onClick={() => onItemClick?.(item)}
                 style={{ 
-                  maxHeight: '350px',
-                  height: 'auto'
+                  height: '350px'
                 }}
               >
                 {/* 배너 이미지 또는 그라데이션 배경 */}
