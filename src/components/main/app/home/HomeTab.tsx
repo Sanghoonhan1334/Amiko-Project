@@ -132,8 +132,18 @@ export default function HomeTab() {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
   const [recentStories, setRecentStories] = useState<RecentStory[]>([])
   const [notices, setNotices] = useState<HotPost[]>([])
-  const [fanArtPosts, setFanArtPosts] = useState<GalleryPost[]>([])
-  const [idolPhotoPosts, setIdolPhotoPosts] = useState<GalleryPost[]>([])
+  const [fanArtPosts, setFanArtPosts] = useState<GalleryPost[]>([
+    { id: '1', title: 'K-POP Fan Art', image: '/sample-images/galleries/kpop-fanart-1.png', likes: 156, createdAt: '1일 전' },
+    { id: '2', title: 'Concert Vibes', image: '/sample-images/galleries/kpop-fanart-2.png', likes: 203, createdAt: '2일 전' },
+    { id: '3', title: 'K-Drama Scene', image: '/sample-images/galleries/kdrama-scene.png', likes: 178, createdAt: '3일 전' },
+    { id: '4', title: 'Korean Culture', image: '/sample-images/galleries/korean-culture.png', likes: 145, createdAt: '4일 전' },
+  ])
+  const [idolPhotoPosts, setIdolPhotoPosts] = useState<GalleryPost[]>([
+    { id: '1', title: 'Delicious Bibimbap', image: '/sample-images/galleries/food-1.png', likes: 234, createdAt: '1일 전' },
+    { id: '2', title: 'Tteokbokki Love', image: '/sample-images/galleries/food-2.png', likes: 198, createdAt: '2일 전' },
+    { id: '3', title: 'K-Beauty', image: '/sample-images/galleries/fashion-beauty.png', likes: 189, createdAt: '3일 전' },
+    { id: '4', title: 'Korean Street', image: '/sample-images/galleries/korean-culture.png', likes: 167, createdAt: '4일 전' },
+  ])
   const [hotChatRooms, setHotChatRooms] = useState<ChatRoom[]>([])
   const [currentPolls, setCurrentPolls] = useState<Poll[]>([])
   const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([])

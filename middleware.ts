@@ -124,6 +124,13 @@ export async function middleware(request: NextRequest) {
     isProtectedApiPath
   })
 
+  // 🎨 디자인 모드: 인증 우회 (개발 중에만 사용)
+  const isDesignMode = process.env.NEXT_PUBLIC_DESIGN_MODE === 'true'
+  if (isDesignMode) {
+    console.log('[MIDDLEWARE] 🎨 디자인 모드 활성화 - 인증 우회')
+    return response
+  }
+
   // 공개 경로는 인증 상태와 관계없이 통과
   if (isPublicPath) {
     console.log('[MIDDLEWARE] 공개 경로 통과:', pathname)
