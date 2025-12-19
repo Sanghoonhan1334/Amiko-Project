@@ -859,6 +859,48 @@ export default function HomeTab() {
 
   return (
     <>
+      {/* 히어로 섹션 - 통합 검색 */}
+      <div className="w-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400" style={{ maxHeight: '350px' }}>
+        <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+              {language === 'ko' ? 'Amiko에서 찾아보세요' : 'Busca en Amiko'}
+            </h1>
+            <p className="text-white/90 text-sm md:text-base">
+              {language === 'ko' ? '게시글, 갤러리, 뉴스 등 모든 콘텐츠를 검색할 수 있습니다' : 'Busca publicaciones, galerías, noticias y más'}
+            </p>
+          </div>
+          
+          {/* 검색바 */}
+          <div className="max-w-3xl mx-auto">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={language === 'ko' ? '검색어를 입력하세요...' : 'Escribe para buscar...'}
+                className="w-full px-6 py-4 pr-14 rounded-full text-lg shadow-2xl focus:outline-none focus:ring-4 focus:ring-white/30 transition-all"
+              />
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* 검색 카테고리 */}
+            <div className="flex gap-2 mt-4 justify-center flex-wrap">
+              {['전체', '게시글', '팬아트', '갤러리', '뉴스', '사용자'].map((category) => (
+                <button
+                  key={category}
+                  className="px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-full backdrop-blur-sm transition-all"
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 p-4">
       
