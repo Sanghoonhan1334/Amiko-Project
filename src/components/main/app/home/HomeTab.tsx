@@ -168,10 +168,17 @@ export default function HomeTab() {
     { id: '1', title: 'BTS 팬클럽', image: '/sample-images/galleries/kpop-fanart-1.png', memberCount: 234 },
     { id: '2', title: '한국어 공부방', image: '/sample-images/galleries/korean-culture.png', memberCount: 156 },
     { id: '3', title: 'K-Drama 토론방', image: '/sample-images/galleries/kdrama-scene.png', memberCount: 189 },
+    { id: '4', title: 'K-POP 댄스 커버', image: '/sample-images/galleries/kpop-fanart-2.png', memberCount: 142 },
+    { id: '5', title: '한식 레시피', image: '/sample-images/galleries/food-1.png', memberCount: 198 },
+    { id: '6', title: 'K-뷰티 팁', image: '/sample-images/galleries/fashion-beauty.png', memberCount: 167 },
   ])
   const [currentPolls, setCurrentPolls] = useState<Poll[]>([
     { id: '1', title: '가장 좋아하는 K-POP 그룹은?', image: '/sample-images/galleries/kpop-fanart-1.png', totalVotes: 593, createdAt: '2일 전' },
     { id: '2', title: '어떤 K-드라마 장르를 좋아하세요?', image: '/sample-images/galleries/kdrama-scene.png', totalVotes: 477, createdAt: '1일 전' },
+    { id: '3', title: '좋아하는 한식은?', image: '/sample-images/galleries/food-1.png', totalVotes: 521, createdAt: '3일 전' },
+    { id: '4', title: '추천하고 싶은 K-뷰티 브랜드는?', image: '/sample-images/galleries/fashion-beauty.png', totalVotes: 389, createdAt: '4일 전' },
+    { id: '5', title: '가보고 싶은 한국 도시는?', image: '/sample-images/galleries/korean-culture.png', totalVotes: 612, createdAt: '5일 전' },
+    { id: '6', title: '다음 시즌 기대되는 드라마는?', image: '/sample-images/galleries/kdrama-scene.png', totalVotes: 445, createdAt: '6일 전' },
   ])
   const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([
     { id: '1', title: 'K-POP 최신 소식', likes: 234, comments: 45, views: 1234, createdAt: '2시간 전' },
@@ -2086,7 +2093,33 @@ export default function HomeTab() {
               </Card>
             </div> */}
 
-            {/* 지금 핫 한 채팅방 & 지금 투표 - 데스크톱 */}
+            {/* 지금 핫 한 채팅방 & 지금 투표 - 갤러리 캐러셀 */}
+            
+            {/* 지금 핫 한 채팅방 */}
+            <GalleryCarousel 
+              items={hotChatRooms.map(room => ({
+                id: room.id,
+                title: room.title,
+                image: room.image,
+                description: `${room.memberCount} members`,
+                createdAt: room.lastMessageAt || '지금'
+              }))}
+              onItemClick={(item) => router.push(`/community/k-chat/${item.id}?from=home`)}
+              autoSlide={isAutoSliding}
+            />
+
+            {/* 지금 투표 */}
+            <GalleryCarousel 
+              items={currentPolls.map(poll => ({
+                id: poll.id,
+                title: poll.title,
+                image: poll.image,
+                description: `${poll.totalVotes} votes`,
+                createdAt: poll.createdAt
+              }))}
+              onItemClick={(item) => router.push(`/main?tab=community&poll=${item.id}`)}
+              autoSlide={isAutoSliding}
+            />
             <div className="grid grid-cols-2 gap-4">
               {/* 지금 핫 한 채팅방 */}
               <div className="space-y-2">
