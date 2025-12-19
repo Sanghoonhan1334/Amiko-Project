@@ -2146,7 +2146,7 @@ export default function HomeTab() {
 
             {/* 오늘의 K-Noticia - 데스크톱 */}
             <div className="space-y-4">
-                      {language === 'ko' ? '지금 핫 한 채팅방!' : '¡Chats Calientes!'}
+              <div className="flex items-center justify-between">
                     </h2>
                   </div>
                   <button 
