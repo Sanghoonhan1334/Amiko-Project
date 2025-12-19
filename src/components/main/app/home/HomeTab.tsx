@@ -764,15 +764,15 @@ export default function HomeTab() {
     setLoading(true)
     try {
       await Promise.all([
-        loadCurrentEvents(),
-        loadHotPosts(),
-        loadPopularTests(),
-        loadOnlineUsers(),
-        loadRecentStories(),
-        loadNotices(),
-        loadGalleryPosts(),
-        loadHotChatRoomsAndPolls(),
-        loadKNoticiaNews(),
+        // loadCurrentEvents(), // 샘플 데이터 사용
+        // loadHotPosts(), // 샘플 데이터 사용
+        // loadPopularTests(), // 샘플 데이터 사용
+        // loadOnlineUsers(),
+        // loadRecentStories(),
+        // loadNotices(), // 샘플 데이터 사용
+        // loadGalleryPosts(), // 샘플 데이터 사용
+        // loadHotChatRoomsAndPolls(), // 샘플 데이터 사용
+        // loadKNoticiaNews(), // 샘플 데이터 사용
         loadYoutubeVideos()
       ])
     } finally {
