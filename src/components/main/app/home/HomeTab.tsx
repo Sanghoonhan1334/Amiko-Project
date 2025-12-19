@@ -861,16 +861,7 @@ export default function HomeTab() {
     <>
       {/* 히어로 섹션 - 통합 검색 */}
       <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]" style={{ maxHeight: '350px' }}>
-        <div className="mx-auto px-4 py-12 md:py-16" style={{ maxWidth: '1420px' }}>
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-              {language === 'ko' ? 'Amiko에서 찾아보세요' : 'Busca en Amiko'}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-              {language === 'ko' ? '게시글, 갤러리, 뉴스 등 모든 콘텐츠를 검색할 수 있습니다' : 'Busca publicaciones, galerías, noticias y más'}
-            </p>
-          </div>
-          
+        <div className="mx-auto px-4 py-8 md:py-12" style={{ maxWidth: '1420px' }}>
           {/* 검색바 */}
           <div className="max-w-3xl mx-auto">
             <div className="relative">
@@ -896,7 +887,6 @@ export default function HomeTab() {
                   {category}
                 </button>
               ))}
-            </div>
             </div>
           </div>
         </div>
