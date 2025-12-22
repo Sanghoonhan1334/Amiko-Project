@@ -140,6 +140,7 @@ export default function HomeTab() {
   const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([])
   const [youtubeLoading, setYoutubeLoading] = useState(true)
   const [loading, setLoading] = useState(true)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
@@ -189,6 +190,30 @@ export default function HomeTab() {
 
   const handleSplashComplete = () => {
     setShowSplash(false)
+  }
+
+  // Mostrar modal de privacidad cuando termine el loading (si no se ha leído ya)
+  useEffect(() => {
+    if (!isClient) return
+    if (!loading) {
+      try {
+        const read = localStorage.getItem('amiko_privacy_readed')
+        if (!read) {
+          setShowPrivacyModal(true)
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [loading, isClient])
+
+  const handleAcceptPrivacy = () => {
+    try {
+      localStorage.setItem('amiko_privacy_readed', 'true')
+    } catch (e) {
+      // ignore
+    }
+    setShowPrivacyModal(false)
   }
 
 
@@ -2935,6 +2960,29 @@ export default function HomeTab() {
             </div>
           </div>
         </div>
+
+        {/* Privacy modal shown after loading if not yet accepted */}
+        <Dialog open={showPrivacyModal} onOpenChange={setShowPrivacyModal}>
+          <DialogContent className="max-w-sm w-[340px] bg-white dark:bg-gray-900 rounded-2xl p-4">
+            <DialogTitle className="text-lg font-bold">
+              {language === 'ko' ? '개인정보 처리방침' : 'Política de Privacidad'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+              {language === 'ko'
+                ? '앱 사용 전 개인정보 처리방침을 확인해 주세요. 자세한 내용은 전체 정책에서 볼 수 있습니다.'
+                : 'Por favor revisa la Política de Privacidad antes de usar la app. Puedes ver el texto completo en la página de privacidad.'}
+            </DialogDescription>
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <Button variant="ghost" onClick={() => window.open('/privacy', '_blank')}>
+                {language === 'ko' ? 'Ver' : 'Ver'}
+              </Button>
+              <Button onClick={handleAcceptPrivacy}>
+                {language === 'ko' ? '읽음' : 'He leído'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* 스토리 뷰어 모달 */}
         <Dialog open={showStoryViewer} onOpenChange={setShowStoryViewer}>
