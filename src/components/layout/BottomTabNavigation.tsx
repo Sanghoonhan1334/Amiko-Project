@@ -31,6 +31,9 @@ export default function BottomTabNavigation() {
     } else if (pathname.startsWith('/community')) {
       // 커뮤니티 서브페이지에서는 커뮤니티 탭을 활성화
       setActiveTab('community')
+    } else if (pathname.startsWith('/quiz')) {
+      // 퀴즈 페이지에서는 홈 탭을 활성화 (또는 적절한 탭)
+      setActiveTab('home')
     }
   }, [pathname, searchParams])
 
@@ -113,8 +116,36 @@ export default function BottomTabNavigation() {
     }))
   }
 
-  // 메인 페이지나 커뮤니티 서브페이지가 아닐 때는 숨김
-  if (!pathname.startsWith('/main') && !pathname.startsWith('/community')) {
+  // 모바일에서 네비게이션을 숨길 페이지 목록
+  const hiddenPaths = [
+    '/', // 랜딩 페이지
+    '/sign-in',
+    '/sign-up',
+    '/forgot-password',
+    '/reset-password',
+    '/verification',
+    '/verification-simple',
+    '/verification-center',
+    '/splash',
+    '/inquiry',
+    '/partnership',
+    '/about',
+    '/terms',
+    '/privacy',
+    '/cookies',
+    '/contact',
+    '/help',
+    '/faq',
+    '/admin', // 관리자 페이지
+  ]
+
+  // 숨길 페이지인지 확인
+  const shouldHide = hiddenPaths.some(hiddenPath => 
+    pathname === hiddenPath || pathname.startsWith(hiddenPath + '/')
+  )
+
+  // 숨길 페이지이거나 관리자 페이지인 경우 숨김
+  if (shouldHide || pathname.startsWith('/admin')) {
     return null
   }
 

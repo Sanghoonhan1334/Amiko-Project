@@ -44,6 +44,15 @@ export default function SignInPage() {
   useEffect(() => {
     signInEvents.visitLogin()
     
+    // 히스토리 초기화 - 모바일 뒤로가기 방지
+    if (typeof window !== 'undefined') {
+      // 히스토리가 비어있으면 랜딩 페이지를 히스토리에 추가
+      if (window.history.state === null) {
+        window.history.replaceState({ index: 0 }, '', '/')
+        window.history.pushState({ index: 1 }, '', '/sign-in')
+      }
+    }
+    
     // accountDeleted 쿼리 파라미터 확인
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)

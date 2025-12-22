@@ -816,8 +816,8 @@ function QAPageContent() {
         </DrawerContent>
       </Drawer>
       
-      {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
-      {/* <BottomTabNavigation /> */}
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }

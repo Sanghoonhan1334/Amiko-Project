@@ -45,8 +45,8 @@ function FreeBoardPageContent() {
         )}
       </div>
       
-      {/* 모바일 하단 네비게이션 - 주제별 게시판에서는 숨김 */}
-      {/* <BottomTabNavigation /> */}
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 
 interface Quiz {
   id: string
@@ -476,8 +477,8 @@ function TestsPageContent() {
         )}
       </div>
       
-      {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
-      {/* <BottomTabNavigation /> */}
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
       
     </div>
   )

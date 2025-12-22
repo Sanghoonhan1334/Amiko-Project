@@ -648,6 +648,13 @@ function RedirectToMain() {
   const router = useRouter()
   
   useEffect(() => {
+    // 히스토리 초기화 - 모바일 뒤로가기 방지
+    if (typeof window !== 'undefined') {
+      if (window.history.state === null) {
+        window.history.replaceState({ index: 0 }, '', '/')
+      }
+    }
+
     // 스플래시는 유지하되, 바로 메인으로 이동
     const searchParams = new URLSearchParams(window.location.search)
     const shouldShowSplash = searchParams.get('splash') === 'true'

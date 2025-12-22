@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import ScrollToTop from '@/components/common/ScrollToTop'
 import CustomBanner from '@/components/layout/CustomBanner'
 import GlobalChatButton from '@/components/common/GlobalChatButton'
+import HistoryManager from '@/components/common/HistoryManager'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { UserProvider } from '@/context/UserContext'
@@ -153,7 +154,10 @@ export default function RootLayout({
                 <UserProvider>
                   <CustomBanner />
                   <HeaderWrapper />
-                  <main>{children}</main>
+                  <main>
+                    <HistoryManager />
+                    {children}
+                  </main>
                   <Footer />
                   <ScrollToTop />
                   <GlobalChatButton />
