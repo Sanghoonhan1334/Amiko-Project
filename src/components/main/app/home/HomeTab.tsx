@@ -167,12 +167,12 @@ export default function HomeTab() {
     { id: '6', title: 'Street Art', image: '/sample-images/galleries/kpop-fanart-1.png', likes: 167, createdAt: '6일 전' },
   ])
   const [idolPhotoPosts, setIdolPhotoPosts] = useState<GalleryPost[]>([
-    { id: '1', title: 'Delicious Bibimbap', image: '/sample-images/galleries/food-1.png', likes: 234, createdAt: '1일 전' },
-    { id: '2', title: 'Tteokbokki Love', image: '/sample-images/galleries/food-2.png', likes: 198, createdAt: '2일 전' },
-    { id: '3', title: 'K-Beauty', image: '/sample-images/galleries/fashion-beauty.png', likes: 189, createdAt: '3일 전' },
-    { id: '4', title: 'Korean Street', image: '/sample-images/galleries/korean-culture.png', likes: 167, createdAt: '4일 전' },
-    { id: '5', title: 'Seoul Night', image: '/sample-images/galleries/kdrama-scene.png', likes: 211, createdAt: '5일 전' },
-    { id: '6', title: 'K-Culture', image: '/sample-images/galleries/kpop-fanart-2.png', likes: 178, createdAt: '6일 전' },
+    { id: '1', title: 'K-POP Fan Art', image: '/sample-images/galleries/kpop-fanart-1.png', likes: 234, createdAt: '1일 전' },
+    { id: '2', title: 'Concert Vibes', image: '/sample-images/galleries/kpop-fanart-2.png', likes: 198, createdAt: '2일 전' },
+    { id: '3', title: 'K-Drama Scene', image: '/sample-images/galleries/kdrama-scene.png', likes: 189, createdAt: '3일 전' },
+    { id: '4', title: 'Korean Culture', image: '/sample-images/galleries/korean-culture.png', likes: 167, createdAt: '4일 전' },
+    { id: '5', title: 'Fashion & Beauty', image: '/sample-images/galleries/fashion-beauty.png', likes: 211, createdAt: '5일 전' },
+    { id: '6', title: 'Korean Food', image: '/sample-images/galleries/food-1.png', likes: 178, createdAt: '6일 전' },
   ])
   const [hotChatRooms, setHotChatRooms] = useState<ChatRoom[]>([
     { id: '1', title: 'BTS 팬클럽', image: '/sample-images/galleries/kpop-fanart-1.png', memberCount: 234 },
@@ -214,27 +214,11 @@ export default function HomeTab() {
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0)
   const [viewerStories, setViewerStories] = useState<RecentStory[]>([])
   
-  // 스플래시 애니메이션 초기화
+  // 스플래시 애니메이션 비활성화
   useEffect(() => {
     setIsClient(true)
-    
-    // URL에 splash=true가 있으면 스플래시 표시 (로고 클릭)
-    const shouldShowSplash = searchParams.get('splash') === 'true'
-    
-    if (shouldShowSplash) {
-      setShowSplash(true)
-      // URL에서 쿼리 파라미터 제거
-      router.replace('/main?tab=home', { scroll: false })
-    } else {
-      // 초기 로드 시에만 스플래시 표시 (하루에 한 번만)
-      const lastSplashDate = localStorage.getItem('amiko_last_splash_date')
-      const today = new Date().toDateString()
-      
-      if (lastSplashDate !== today) {
-        setShowSplash(true)
-        localStorage.setItem('amiko_last_splash_date', today)
-      }
-    }
+    // 스플래시 애니메이션 완전 비활성화
+    setShowSplash(false)
   }, [searchParams, router])
   
   // 스플래시 표시 시 body에 클래스 추가/제거
@@ -425,8 +409,8 @@ export default function HomeTab() {
         console.log('[loadHotPosts] ✅ 포맷팅 완료 (공지사항 제외):', formattedPosts.length, '개')
         console.log('[loadHotPosts] 📋 첫 번째 포스트:', formattedPosts[0])
         
-        // 5개로 제한
-        setHotPosts(formattedPosts.slice(0, 5))
+        // 3개로 제한
+        setHotPosts(formattedPosts.slice(0, 3))
       } else {
         console.log('[loadHotPosts] ❌ posts 배열 없음 또는 빈 배열')
         setHotPosts([])
@@ -538,7 +522,7 @@ export default function HomeTab() {
       const data = await response.json()
       
       if (data.posts && data.posts.length > 0) {
-        // 데이터 포맷팅
+        // 데이터 포맷팅 - 3개만 표시
         const formattedNotices = data.posts.slice(0, 3).map((post: any) => {
           let authorName = post.author?.korean_name || post.author?.spanish_name || post.author?.full_name || (language === 'ko' ? '관리자' : 'Administrador')
           // '익명'을 언어에 맞게 변환
@@ -699,7 +683,7 @@ export default function HomeTab() {
 
   const loadKNoticiaNews = async () => {
     try {
-      const response = await fetch('/api/news?limit=5')
+      const response = await fetch('/api/news?limit=3')
       
       if (response.ok) {
         const data = await response.json()
@@ -771,7 +755,7 @@ export default function HomeTab() {
         // loadOnlineUsers(),
         // loadRecentStories(),
         // loadNotices(), // 샘플 데이터 사용
-        // loadGalleryPosts(), // 샘플 데이터 사용
+        // loadGalleryPosts(), // 샘플 데이터 사용 (자체 이미지)
         // loadHotChatRoomsAndPolls(), // 샘플 데이터 사용
         // loadKNoticiaNews(), // 샘플 데이터 사용
         loadYoutubeVideos()
@@ -845,9 +829,10 @@ export default function HomeTab() {
     )
   }
 
-  if (showSplash) {
-    return <SplashSequence onComplete={handleSplashComplete} />
-  }
+  // 스플래시 비활성화됨
+  // if (showSplash) {
+  //   return <SplashSequence onComplete={handleSplashComplete} />
+  // }
 
   if (loading) {
     return (
@@ -891,41 +876,8 @@ export default function HomeTab() {
 
   return (
     <>
-      {/* 히어로 섹션 - 통합 검색 */}
-      <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
-        <div className="mx-auto px-4 py-8 md:py-12" style={{ maxWidth: '1420px' }}>
-          {/* 검색바 */}
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={language === 'ko' ? '검색어를 입력하세요...' : 'Escribe para buscar...'}
-                className="w-full px-6 py-4 pr-14 rounded-full text-lg border-2 border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 transition-all"
-              />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* 검색 카테고리 */}
-            <div className="flex gap-2 mt-4 justify-center flex-wrap">
-              {['전체', '게시글', '팬아트', '갤러리', '뉴스', '사용자'].map((category) => (
-                <button
-                  key={category}
-                  className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-900 text-gray-700 dark:text-gray-300 text-sm rounded-full transition-all"
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 모바일 버전 - 기존 그대로 */}
-      <div className="md:hidden space-y-6 p-4">
+      {/* 모바일 버전 - 임시 숨김 (나중에 완전 삭제 예정) */}
+      <div className="hidden space-y-6 p-4">
       
       {/* 공지사항 - 맨 위에 배치 */}
       {/* 현재 진행 이벤트 */}
@@ -1564,10 +1516,10 @@ export default function HomeTab() {
           <CardContent className="p-0">
             <div className="divide-y">
               {kNoticiaNews.length > 0 ? (
-                kNoticiaNews.map((news) => (
+                kNoticiaNews.slice(0, 3).map((news) => (
                   <div 
                     key={news.id}
-                    className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
+                    className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-2"
                     onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
                   >
                     <div className="flex items-center gap-2">
@@ -1835,7 +1787,7 @@ export default function HomeTab() {
     </div>
 
         {/* 현재 진행 이벤트 - 히어로 스타일 캐러셀 (전체 브라우저 너비) */}
-        <div className="hidden md:block w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+        <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
           <HeroEventCarousel 
             items={currentEvents}
             onItemClick={() => router.push('/main?tab=event&show=korean-meeting')}
@@ -1843,55 +1795,66 @@ export default function HomeTab() {
           />
         </div>
 
-        {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
-        <div className="hidden md:block max-w-4xl mx-auto p-6 pb-4">
-          <div className="space-y-4">
+        {/* 반응형 버전 - 3열 게시판 - 전체 너비 */}
+        <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-4 md:py-8 bg-white dark:bg-gray-800/50">
+          <div className="max-w-[1420px] mx-auto px-4">
 
-            {/* 공지사항 & 핫한 글 - 2열 레이아웃 */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* 공지사항 & 핫한 글 & K-Noticia - 반응형 레이아웃 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* 공지사항 */}
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <Megaphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    <Megaphone className="w-5 h-5 text-red-600 dark:text-red-400" />
                   </div>
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {language === 'ko' ? '공지' : 'Anuncios'}
                   </h2>
                 </div>
-                
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={() => router.push('/community/freeboard')}
+                >
+                  <Megaphone className="w-5 h-5 mr-2" />
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
+              </div>
+              
+              {notices.length > 0 ? (
                 <Card>
-                  <CardContent className="p-4">
-                    {notices.length > 0 ? (
-                      <div className="space-y-3">
-                        {notices.slice(0, 3).map((announcement) => (
-                          <div
-                            key={announcement.id}
-                            className="cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                            onClick={() => router.push(`/community/freeboard/${announcement.id}`)}
-                          >
-                            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
-                              {announcement.title}
-                            </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {announcement.createdAt || new Date().toLocaleDateString()}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
-                        </p>
-                      </div>
-                    )}
+                  <CardContent className="p-0">
+                    <div className="divide-y">
+                      {notices.slice(0, 3).map((announcement) => (
+                        <div
+                          key={announcement.id}
+                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-3 py-2"
+                          onClick={() => router.push(`/community/freeboard/${announcement.id}`)}
+                        >
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">
+                            {announcement.title}
+                          </h3>
+                        </div>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
+              ) : (
+                <Card className="shadow-md">
+                  <CardContent className="p-12 text-center">
+                    <Megaphone className="w-24 h-24 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-xl">
+                      {language === 'ko' ? '공지사항이 없습니다' : 'No hay anuncios'}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
               </div>
 
               {/* 지금 커뮤니티에서 핫한 글 */}
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
@@ -1913,41 +1876,18 @@ export default function HomeTab() {
               </div>
               
               {hotPosts.length > 0 ? (
-                <Card className="border-l-4 border-l-red-500">
+                <Card>
                   <CardContent className="p-0">
                     <div className="divide-y">
-                      {hotPosts.map((post, index) => (
+                      {hotPosts.slice(0, 3).map((post, index) => (
                         <div 
                           key={post.id} 
-                          className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
+                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-3 py-2"
                           onClick={() => router.push(`/community/post/${post.id}?from=home`)}
                         >
-                          <div className="flex items-center gap-3">
-                            <Badge className="bg-gray-100 text-gray-700 border-0 px-2 py-0.5 font-medium text-xs">
-                              {shortenCategoryName(post.category || (language === 'ko' ? '자유' : 'Libre'))}
-                            </Badge>
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                              {post.title}
-                            </h3>
-                            <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-4 h-4 text-red-500" />
-                                <span>{post.likes}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MessageSquare className="w-4 h-4 text-blue-500" />
-                                <span>{post.comments}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                <span>{formatNumber(post.views)}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                <span className="text-gray-500">{post.createdAt}</span>
-                              </div>
-                            </div>
-                          </div>
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">
+                            {post.title}
+                          </h3>
                         </div>
                       ))}
                     </div>
@@ -1964,48 +1904,218 @@ export default function HomeTab() {
                 </Card>
               )}
               </div>
+
+              {/* 오늘의 K-Noticia */}
+              <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    <Newspaper className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.kNoticia')}
+                  </h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={() => router.push('/community/news')}
+                >
+                  <Newspaper className="w-5 h-5 mr-2" />
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
+              </div>
+
+              {kNoticiaNews.length > 0 ? (
+                <Card>
+                  <CardContent className="p-0">
+                    <div className="divide-y">
+                      {kNoticiaNews.slice(0, 3).map((news) => (
+                        <div 
+                          key={news.id}
+                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-3 py-2"
+                          onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
+                        >
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">
+                            {news.title}
+                          </h3>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="shadow-md">
+                  <CardContent className="p-12 text-center">
+                    <Newspaper className="w-24 h-24 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-xl">
+                      {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 나머지 섹션들을 위한 컨테이너 */}
+        <div className="w-full">
+          <div className="max-w-[1420px] mx-auto px-4 space-y-3 md:space-y-4">
+
+            {/* 인기 심리테스트 - Responsive Grid */}
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 md:w-6 h-5 md:h-6 text-purple-600" />
+                  <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {t('home.sections.popularTests')}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => router.push('/community/tests')}
+                  className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                {popularTests.slice(0, 6).map((test) => (
+                  <div
+                    key={test.id}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                    onClick={() => router.push(`/community/tests/${test.id}`)}
+                    style={{ aspectRatio: '8 / 13' }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+                      <img
+                        src={test.image}
+                        alt={test.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 text-white">
+                        <h3 className="text-xs md:text-sm font-bold line-clamp-2 mb-1">
+                          {test.title}
+                        </h3>
+                        <p className="text-xs text-white/90">
+                          {test.participants} {language === 'ko' ? '명 참여' : 'participants'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* 인기 심리테스트 - GalleryCarousel */}
-            <GalleryCarousel 
-              items={popularTests.map(test => ({
-                id: test.id,
-                title: test.title,
-                image: test.image,
-                description: `${test.participants} ${language === 'ko' ? '명 참여' : 'participants'}`,
-                createdAt: test.createdAt
-              }))}
-              title={t('home.sections.popularTests')}
-              icon={<Brain className="w-6 h-6 text-purple-600" />}
-              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
-              onMoreClick={() => router.push('/community/tests')}
-              onItemClick={(item) => router.push(`/community/tests/${item.id}`)}
-              autoSlide={isAutoSliding}
-            />
+            {/* 팬아트 - Responsive Grid */}
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img src="/icons/Fan art.png" alt="팬아트" className="w-5 md:w-6 h-5 md:h-6 object-contain" />
+                  <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {language === 'ko' ? '팬아트' : 'Fan Art'}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => router.push('/community/fanart')}
+                  className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                {fanArtPosts.slice(0, 6).map((post) => (
+                  <div
+                    key={post.id}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                    onClick={() => router.push(`/community/fanart/${post.id}?from=home`)}
+                    style={{ aspectRatio: '8 / 13' }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (target.src !== '/misc/placeholder.png') {
+                            target.src = '/misc/placeholder.png';
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 text-white">
+                        <h3 className="text-xs md:text-sm font-bold line-clamp-2 mb-1">
+                          {post.title}
+                        </h3>
+                        <p className="text-xs text-white/90">
+                          {post.likes} likes · {new Date(post.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            {/* 팬아트 & 아이돌 사진 - 갤러리 캐러셀 */}
-            
-            {/* 팬아트 */}
-            <GalleryCarousel 
-              items={fanArtPosts}
-              title={language === 'ko' ? '팬아트' : 'Fan Art'}
-              icon={<img src="/icons/Fan art.png" alt="팬아트" className="w-6 h-6 object-contain" />}
-              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
-              onMoreClick={() => router.push('/community/fanart')}
-              onItemClick={(item) => router.push(`/community/fanart/${item.id}?from=home`)}
-              autoSlide={isAutoSliding}
-            />
-
-            {/* 아이돌 사진 */}
-            <GalleryCarousel 
-              items={idolPhotoPosts}
-              title={language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
-              icon={<img src="/icons/Foto de idol.png" alt="아이돌 사진" className="w-6 h-6 object-contain" />}
-              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
-              onMoreClick={() => router.push('/community/idol-photos')}
-              onItemClick={(item) => router.push(`/community/idol-photos/${item.id}?from=home`)}
-              autoSlide={isAutoSliding}
-            />
+            {/* 아이돌 사진 - Responsive Grid */}
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img src="/icons/Foto de idol.png" alt="아이돌 사진" className="w-5 md:w-6 h-5 md:h-6 object-contain" />
+                  <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => router.push('/community/idol-photos')}
+                  className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                {idolPhotoPosts.slice(0, 6).map((post) => (
+                  <div
+                    key={post.id}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                    onClick={() => router.push(`/community/idol-photos/${post.id}?from=home`)}
+                    style={{ aspectRatio: '8 / 13' }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (target.src !== '/misc/placeholder.png') {
+                            target.src = '/misc/placeholder.png';
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 text-white">
+                        <h3 className="text-xs md:text-sm font-bold line-clamp-2 mb-1">
+                          {post.title}
+                        </h3>
+                        <p className="text-xs text-white/90">
+                          {post.likes} likes · {new Date(post.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
 
 
@@ -2070,127 +2180,102 @@ export default function HomeTab() {
               </Card>
             </div> */}
 
-            {/* 지금 핫 한 채팅방 & 지금 투표 - 갤러리 캐러셀 */}
-            
-            {/* 지금 핫 한 채팅방 */}
-            <GalleryCarousel 
-              items={hotChatRooms.map(room => ({
-                id: room.id,
-                title: room.title,
-                image: room.image,
-                description: `${room.memberCount} members`,
-                createdAt: room.lastMessageAt || '지금'
-              }))}
-              title={language === 'ko' ? '지금 핫 한 채팅방!' : '¡Chats Calientes!'}
-              icon={<MessageCircle className="w-6 h-6 text-purple-600" />}
-              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
-              onMoreClick={() => router.push('/community/k-chat')}
-              onItemClick={(item) => router.push(`/community/k-chat/${item.id}?from=home`)}
-              autoSlide={isAutoSliding}
-            />
-
-            {/* 지금 투표 */}
-            <GalleryCarousel 
-              items={currentPolls.map(poll => ({
-                id: poll.id,
-                title: poll.title,
-                image: poll.image,
-                description: `${poll.totalVotes} votes`,
-                createdAt: poll.createdAt
-              }))}
-              title={language === 'ko' ? '지금 투표!' : '¡Vota Ahora!'}
-              icon={<Activity className="w-6 h-6 text-orange-600" />}
-              moreText={language === 'ko' ? '더 보기' : 'Ver Más'}
-              onMoreClick={() => router.push('/community/polls')}
-              onItemClick={(item) => router.push(`/main?tab=community&poll=${item.id}`)}
-              autoSlide={isAutoSliding}
-            />
-
-
-
-
-
-            {/* 오늘의 K-Noticia - 데스크톱 */}
-            <div className="space-y-4">
+            {/* 지금 핫 한 채팅방 - Responsive Grid */}
+            <div className="space-y-3 md:space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Image 
-                    src="/icons/k-magazine.png" 
-                    alt="K-Noticia" 
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                    priority
-                  />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {t('home.sections.kNoticia')}
+                  <MessageCircle className="w-5 md:w-6 h-5 md:h-6 text-purple-600" />
+                  <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {language === 'ko' ? '지금 핫 한 채팅방!' : '¡Chats Calientes!'}
                   </h2>
                 </div>
-                <button 
-                  onClick={() => router.push('/community/news')}
-                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
+                <button
+                  onClick={() => router.push('/community/k-chat')}
+                  className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium"
                 >
                   <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-
-              <Card>
-                <CardContent className="p-0">
-                  <div className="divide-y">
-                    {kNoticiaNews.length > 0 ? (
-                      kNoticiaNews.map((news) => (
-                        <div 
-                          key={news.id}
-                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
-                          onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-100 text-purple-700 border-0 px-2 py-0.5 font-medium text-xs whitespace-nowrap">
-                              {t('home.sections.news')}
-                            </Badge>
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                              {news.title}
-                            </h3>
-                            <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-4 h-4 text-red-500" />
-                                <span>{news.likes}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MessageSquare className="w-4 h-4 text-blue-500" />
-                                <span>{news.comments}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                <span>{formatNumber(news.views)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <Image 
-                          src="/icons/k-magazine.png" 
-                          alt="K-Noticia" 
-                          width={48}
-                          height={48}
-                          className="mx-auto mb-3 opacity-40"
-                        />
-                        <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                {hotChatRooms.slice(0, 6).map((room) => (
+                  <div
+                    key={room.id}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                    onClick={() => router.push(`/community/k-chat/${room.id}?from=home`)}
+                    style={{ aspectRatio: '8 / 13' }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+                      <img
+                        src={room.image}
+                        alt={room.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 text-white">
+                        <h3 className="text-xs md:text-sm font-bold line-clamp-2 mb-1">
+                          {room.title}
+                        </h3>
+                        <p className="text-xs text-white/90">
+                          {room.memberCount} members
                         </p>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                ))}
+              </div>
             </div>
 
-            {/* 최근 스토리 - 데스크톱 - 환경 변수로 제어 */}
+            {/* 지금 투표 - Responsive Grid */}
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 md:w-6 h-5 md:h-6 text-orange-600" />
+                  <h2 className="text-base md:text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {language === 'ko' ? '지금 투표!' : '¡Vota Ahora!'}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => router.push('/community/polls')}
+                  className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 font-medium"
+                >
+                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                {currentPolls.slice(0, 6).map((poll) => (
+                  <div
+                    key={poll.id}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                    onClick={() => router.push(`/main?tab=community&poll=${poll.id}`)}
+                    style={{ aspectRatio: '8 / 13' }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-red-500 to-pink-400">
+                      <img
+                        src={poll.image}
+                        alt={poll.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 text-white">
+                        <h3 className="text-xs md:text-sm font-bold line-clamp-2 mb-1">
+                          {poll.title}
+                        </h3>
+                        <p className="text-xs text-white/90">
+                          {poll.totalVotes} votes
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* 최근 스토리 - 반응형 - 환경 변수로 제어 */}
             {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <img 
@@ -2212,9 +2297,9 @@ export default function HomeTab() {
               </div>
 
               <Card>
-                <CardContent className="p-3">
+                <CardContent className="p-2 md:p-3">
                   {recentStories.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                       {recentStories.slice(0, 3).map((story) => (
                         <div 
                           key={story.id}
@@ -2271,144 +2356,75 @@ export default function HomeTab() {
               </Card>
               </div>
             )}
+            </div>
+          </div>
 
-            {/* AMIKO 최근 영상 - 데스크톱 */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+          {/* AMIKO 최근 영상 - 반응형 - 전체 너비 */}
+          <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-4 md:py-8 bg-gray-50 dark:bg-gray-900/50">
+            <div className="max-w-[1420px] mx-auto px-4">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
                 <div className="flex items-center gap-2">
-                  <Play className="w-5 h-5 text-red-600" />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  <Play className="w-6 h-6 text-red-600" />
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                     {t('home.sections.recentVideos')}
                   </h2>
                 </div>
                 <button 
                   onClick={() => window.open('https://www.youtube.com/@AMIKO_Officialstudio', '_blank')}
-                  className="flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
+                  className="flex items-center gap-1 text-red-500 hover:text-red-600 text-sm font-medium"
                 >
                   <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
 
-              <Card>
-                <CardContent className="p-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    {youtubeVideos.length > 0 ? (
-                      youtubeVideos.slice(0, 2).map((video) => (
-                        <div 
-                          key={video.id}
-                          className="cursor-pointer group"
-                          onClick={() => window.open(video.url, '_blank')}
-                        >
-                          <div className="relative aspect-video overflow-hidden rounded-lg mb-2 bg-gray-100">
-                            <img
-                              src={video.thumbnail}
-                              alt={video.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            />
-                            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
-                              {video.duration}
-                            </div>
-                            {/* YouTube 재생 아이콘 */}
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
-                                <Play className="w-8 h-8 text-white fill-white" />
-                              </div>
-                            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                {youtubeVideos.length > 0 ? (
+                  youtubeVideos.slice(0, 2).map((video) => (
+                    <div 
+                      key={video.id}
+                      className="cursor-pointer group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
+                      onClick={() => window.open(video.url, '_blank')}
+                    >
+                      <div className="relative aspect-video overflow-hidden bg-gray-100">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
+                          {video.duration}
+                        </div>
+                        {/* YouTube 재생 아이콘 */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
+                            <Play className="w-8 h-8 text-white fill-white" />
                           </div>
                         </div>
-                      ))
-                    ) : youtubeLoading ? (
-                      <div className="col-span-2 text-center py-6">
-                        <Play className="w-12 h-12 text-gray-400 mx-auto mb-2 animate-pulse" />
-                        <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
-                        </p>
                       </div>
-                    ) : (
-                      <div className="col-span-2 text-center py-6">
-                        <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '영상을 불러올 수 없습니다.' : 'No se pueden cargar los videos.'}
-                        </p>
-                        <p className="text-gray-400 text-xs mt-1">
-                          {language === 'ko' ? 'YouTube API 설정을 확인해주세요.' : 'Verifica la configuración de la API de YouTube.'}
-                        </p>
-                      </div>
-                    )}
+                    </div>
+                  ))
+                ) : youtubeLoading ? (
+                  <div className="col-span-2 text-center py-12">
+                    <Play className="w-12 h-12 text-gray-400 mx-auto mb-2 animate-pulse" />
+                    <p className="text-gray-500 text-sm">
+                      {language === 'ko' ? '영상을 불러오는 중...' : 'Cargando videos...'}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Socios de AMIKO - 데스크톱 */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {language === 'ko' ? 'AMIKO 파트너' : 'Socios de AMIKO'}
-                  </h2>
-                </div>
-                <button 
-                  onClick={() => router.push('/community/partners')}
-                  className="flex items-center gap-1 text-blue-500 hover:text-blue-600 text-sm"
-                >
-                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                ) : (
+                  <div className="col-span-2 text-center py-12">
+                    <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">
+                      {language === 'ko' ? '영상을 불러올 수 없습니다.' : 'No se pueden cargar los videos.'}
+                    </p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      {language === 'ko' ? 'YouTube API 설정을 확인해주세요.' : 'Verifica la configuración de la API de YouTube.'}
+                    </p>
+                  </div>
+                )}
               </div>
-
-              <Card>
-                <CardContent className="p-3">
-                  <div className="grid grid-cols-3 gap-3">
-                    <div 
-                      className="cursor-pointer group"
-                      onClick={() => router.push('/community/partners')}
-                    >
-                      <div className="relative aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center">
-                        <img
-                          src="/logos/para-fans-logo.jpg"
-                          alt="Para Fans"
-                          className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
-                          draggable={false}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div 
-                      className="cursor-pointer group"
-                      onClick={() => router.push('/community/partners')}
-                    >
-                      <div className="relative aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center">
-                        <img
-                          src="/logos/acu-point-logo.jpg"
-                          alt="Acu-Point"
-                          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
-                          draggable={false}
-                        />
-                      </div>
-                    </div>
-
-                    <div 
-                      className="cursor-pointer group"
-                      onClick={() => router.push('/community/partners')}
-                    >
-                      <div className="relative aspect-square overflow-hidden rounded-lg bg-white border border-gray-200 flex items-center justify-center">
-                        <img
-                          src="/logos/socios-placeholder.jpg"
-                          alt="Partner"
-                          className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
-                          draggable={false}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
-        </div>
 
         {/* 스토리 뷰어 모달 */}
         <Dialog open={showStoryViewer} onOpenChange={setShowStoryViewer}>

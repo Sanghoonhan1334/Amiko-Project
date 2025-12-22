@@ -556,486 +556,182 @@ function HeaderContent() {
         {/* Background layer with high z-index */}
         <div className="header-background absolute inset-0 bg-white dark:bg-gray-900 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95 z-0" />
         <div className="relative w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto z-10">
-          <div className="flex justify-between items-center h-16 sm:h-20 md:h-28 lg:h-28 xl:h-28 2xl:h-28 3xl:h-28 relative">
-            {/* 좌측: 언어 전환 버튼 및 시계 */}
-            <div className="flex flex-col items-start gap-0.5 sm:gap-2 flex-shrink-0 w-16 sm:w-24 md:w-28">
-              {/* 언어 드롭다운 - 시계 위에 */}
-              <div className="relative language-dropdown">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                  className="px-1 py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 flex items-center gap-0.5 sm:gap-1"
-                  title={t('selectLanguage')}
-                >
-                  <Globe className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-300" />
-                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {language === 'ko' ? '한국어' : 'Español'}
-                  </span>
-                  <ChevronDown className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-500 dark:text-gray-400" />
-                </Button>
-                
-                {/* 언어 선택 드롭다운 */}
-                {showLanguageDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-[60]">
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => {
-                          if (language !== 'ko') {
-                            toggleLanguage()
-                          }
-                          setShowLanguageDropdown(false)
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          language === 'ko' 
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
-                            : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
-                        }`}
-                      >
-                        <span className="text-base">🇰🇷</span>
-                        <span>한국어</span>
-                        {language === 'ko' && (
-                          <div className="ml-auto w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-                        )}
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          if (language !== 'es') {
-                            toggleLanguage()
-                          }
-                          setShowLanguageDropdown(false)
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          language === 'es' 
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
-                            : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
-                        }`}
-                      >
-                        <span className="text-base">🇪🇸</span>
-                        <span>Español</span>
-                        {language === 'es' && (
-                          <div className="ml-auto w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* 시계 표시 - 언어 전환 버튼 아래에 */}
+          <div className="flex justify-between items-center h-16 sm:h-20 md:h-24 relative">
+            {/* 좌측: 로고 */}
+            <div className="flex items-center flex-shrink-0">
               <div 
-                className="relative cursor-pointer group time-dropdown"
-                onClick={() => setShowTimeDetails(!showTimeDetails)}
+                className="cursor-pointer flex items-center"
+                onClick={() => router.push('/main?tab=home')}
               >
-                <div className="flex items-center gap-0.5 sm:gap-2 px-1 sm:px-3 py-0.5 sm:py-1.5 bg-blue-50 dark:bg-gray-700 rounded-lg border border-blue-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300">
-                  <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-blue-600 dark:text-blue-400" />
-                  <div className="flex flex-row gap-0.5 sm:gap-2 text-xs font-medium">
-                    <span 
-                      className="text-blue-700 dark:text-blue-300 whitespace-nowrap" 
-                      style={{ 
-                        fontSize: '10px',
-                        background: 'transparent !important',
-                        filter: 'none !important',
-                        textShadow: 'none !important',
-                        mixBlendMode: 'normal' as any
-                      }}
-                    >
-                      🇰🇷 {koreanTime}
-                    </span>
-                    <span 
-                      className="text-indigo-700 dark:text-indigo-300 whitespace-nowrap" 
-                      style={{ 
-                        fontSize: '10px',
-                        background: 'transparent !important',
-                        filter: 'none !important',
-                        textShadow: 'none !important',
-                        mixBlendMode: 'normal' as any
-                      }}
-                    >
-                      {secondaryTimezone.flag} {localTime}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* 상세 시간 정보 드롭다운 */}
-                {showTimeDetails && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-[60]">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">🌏 세계 시간</span>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setShowTimeDetails(false)
-                          }}
-                          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {/* 한국 */}
-                        <div className="relative overflow-hidden bg-red-50 dark:bg-gray-700 rounded-xl p-3 border border-red-100 dark:border-gray-600 transition-all duration-300">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-500 dark:from-red-500 dark:to-pink-600 rounded-full flex items-center justify-center shadow-sm">
-                                <span className="text-sm">🇰🇷</span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-red-800 dark:text-red-300">
-                                  {language === 'ko' ? '한국' : 'Corea del Sur'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-red-700 dark:text-red-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
-                                  timeZone: 'Asia/Seoul',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                              <div className="text-xs text-red-500 dark:text-red-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
-                                  timeZone: 'Asia/Seoul',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  weekday: 'short'
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* 멕시코 */}
-                        <button
-                          onClick={() => handleTimezoneChange({ code: 'MEX', flag: '🇲🇽', name: language === 'ko' ? '멕시코' : 'México', timezone: 'America/Mexico_City' })}
-                          className="w-full relative overflow-hidden bg-blue-50 dark:bg-gray-700 rounded-xl p-3 border border-blue-100 dark:border-gray-600 transition-all duration-300 hover:bg-blue-100 dark:hover:bg-gray-600"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 dark:from-blue-500 dark:to-cyan-600 rounded-full flex items-center justify-center shadow-sm">
-                                <span className="text-sm">🇲🇽</span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                                  {language === 'ko' ? '멕시코' : 'México'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-blue-700 dark:text-blue-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
-                                  timeZone: 'America/Mexico_City',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                              <div className="text-xs text-blue-500 dark:text-blue-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', {
-                                  timeZone: 'America/Mexico_City',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  weekday: 'short'
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                        
-                        {/* 페루 */}
-                        <button
-                          onClick={() => handleTimezoneChange({ code: 'PER', flag: '🇵🇪', name: language === 'ko' ? '페루' : 'Perú', timezone: 'America/Lima' })}
-                          className="w-full relative overflow-hidden bg-green-50 dark:bg-gray-700 rounded-xl p-3 border border-green-100 dark:border-gray-600 transition-all duration-300 hover:bg-green-100 dark:hover:bg-gray-600"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 dark:from-green-500 dark:to-emerald-600 rounded-full flex items-center justify-center shadow-sm">
-                                <span className="text-sm">🇵🇪</span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-green-800 dark:text-green-300">
-                                  {language === 'ko' ? '페루' : 'Perú'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-green-700 dark:text-green-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
-                                  timeZone: 'America/Lima',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                              <div className="text-xs text-green-500 dark:text-green-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
-                                  timeZone: 'America/Lima',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  weekday: 'short'
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                        
-                        {/* 콜롬비아 */}
-                        <button
-                          onClick={() => handleTimezoneChange({ code: 'COL', flag: '🇨🇴', name: language === 'ko' ? '콜롬비아' : 'Colombia', timezone: 'America/Bogota' })}
-                          className="w-full relative overflow-hidden bg-purple-50 dark:bg-gray-700 rounded-xl p-3 border border-purple-100 dark:border-gray-600 transition-all duration-300 hover:bg-purple-100 dark:hover:bg-gray-600"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-violet-500 dark:from-purple-500 dark:to-violet-600 rounded-full flex items-center justify-center shadow-sm">
-                                <span className="text-sm">🇨🇴</span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-purple-800 dark:text-purple-300">
-                                  {language === 'ko' ? '콜롬비아' : 'Colombia'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-mono font-bold text-purple-700 dark:text-purple-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
-                                  timeZone: 'America/Bogota',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                              <div className="text-xs text-purple-500 dark:text-purple-400">
-                                {new Date().toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES', { 
-                                  timeZone: 'America/Bogota',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  weekday: 'short'
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* 대표시간 바꾸기 버튼 */}
-                    <div className="mt-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setShowTimeDetails(false)
-                          // 프로필 설정 페이지로 이동
-                          window.location.href = '/profile/settings'
-                        }}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg transition-colors duration-200"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                        </svg>
-                        <span className="text-sm font-medium">
-                          {t('timezone.changeMainTime')}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 중앙: 로고와 네비게이션 */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-0 z-[100] flex flex-col items-center justify-start h-full">
-              {/* 로고 */}
-              <div className="relative logo-container z-[100] dark:z-[50] overflow-hidden -mt-4 sm:-mt-5 md:-mt-6 lg:-mt-8">
                 {/* 라이트 모드 */}
                 <img
                   src="/logos/amiko-logo.png"
                   alt="Amiko"
-                  width={192}
-                  height={64}
-                  className="block dark:hidden h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none"
+                  className="block dark:hidden h-32 sm:h-36 md:h-40 w-auto object-contain select-none"
                 />
-                {/* 다크 모드(흰색 필터 적용) - 네비게이션 뒤로 */}
+                {/* 다크 모드 */}
                 <img
                   src="/logos/amiko-logo-dark.png"
                   alt="Amiko"
-                  width={192}
-                  height={64}
-                  className="hidden dark:block h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none
-                             brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.3)] relative z-[50]"  // 네비게이션(z-[80]) 뒤로
-                />
-
-                {/* 클릭 히트영역 - 로고보다 작게 제한 */}
-                <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-18 h-12 sm:h-14 md:h-16 lg:h-18 cursor-pointer z-[60] dark:z-[40] bg-transparent"
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    router.push('/main?tab=home');
-                  }}
+                  className="hidden dark:block h-32 sm:h-36 md:h-40 w-auto object-contain select-none brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"
                 />
               </div>
-              
-              {/* 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6 absolute top-full left-1/2 -translate-x-1/2 -mt-10 md:-mt-12 lg:-mt-14 z-[100] ml-[12px]">
-                {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership' || isDetailPage) ? (
-                  // 랜딩페이지 및 상세 페이지에서는 네비게이션 제거
-                  <></>
-                ) : isMainPage ? (
-                  // 메인페이지 네비게이션 (데스크톱에서만 표시)
-                  <div className="hidden md:flex items-center space-x-6 lg:space-x-6 xl:space-x-6">
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Home 버튼 클릭됨')
-                        handleMainNavClick('home')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'home' 
-                          ? 'text-purple-500' 
-                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
-                      }`}
-                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
-                    >
-                      {t('home.navigation.home')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Community 버튼 클릭됨')
-                        handleMainNavClick('community')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'community' 
-                          ? 'text-purple-500' 
-                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
-                      }`}
-                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
-                    >
-                      {t('headerNav.community')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Meet 버튼 클릭됨')
-                        handleMainNavClick('meet')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'meet' 
-                          ? 'text-purple-500' 
-                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
-                      }`}
-                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
-                    >
-                      {t('headerNav.videoCall')}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Event 버튼 클릭됨')
-                        handleMainNavClick('event')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'event' 
-                          ? 'text-purple-500' 
-                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
-                      }`}
-                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
-                    >
-                      {t('headerNav.event')}
-                    </button>
-                  </div>
-                ) : null}
-              </nav>
             </div>
 
-            {/* 우측: 시작하기 버튼, 알림, 프로필, 모바일 메뉴 */}
-            <div className="flex items-center space-x-0.5 sm:space-x-2 md:space-x-4 flex-shrink-0 w-16 sm:w-24 md:w-28 justify-end">
+            {/* 중앙: 네비게이션 메뉴 */}
+            <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 absolute left-1/2 -translate-x-1/2">
+              {(isLandingPage || pathname === '/inquiry' || pathname === '/partnership' || isDetailPage) ? (
+                // 랜딩페이지 및 상세 페이지에서는 네비게이션 제거
+                <></>
+              ) : isMainPage ? (
+                // 메인페이지 네비게이션 (데스크톱에서만 표시)
+                <>
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleMainNavClick('home')
+                    }}
+                    className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap ${
+                      activeMainTab === 'home' 
+                        ? 'text-purple-500' 
+                        : 'text-gray-800 dark:text-white hover:text-purple-500'
+                    }`}
+                  >
+                    {t('home.navigation.home')}
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleMainNavClick('community')
+                    }}
+                    className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap ${
+                      activeMainTab === 'community' 
+                        ? 'text-purple-500' 
+                        : 'text-gray-800 dark:text-white hover:text-purple-500'
+                    }`}
+                  >
+                    {t('headerNav.community')}
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleMainNavClick('meet')
+                    }}
+                    className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap ${
+                      activeMainTab === 'meet' 
+                        ? 'text-purple-500' 
+                        : 'text-gray-800 dark:text-white hover:text-purple-500'
+                    }`}
+                  >
+                    {t('headerNav.videoCall')}
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleMainNavClick('event')
+                    }}
+                    className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap ${
+                      activeMainTab === 'event' 
+                        ? 'text-purple-500' 
+                        : 'text-gray-800 dark:text-white hover:text-purple-500'
+                    }`}
+                  >
+                    {t('headerNav.event')}
+                  </button>
+                </>
+              ) : null}
+            </nav>
+
+            {/* 우측: 검색, 로그인/사용자 정보 */}
+            <div className="flex items-center space-x-2 md:space-x-3 flex-shrink-0 justify-end">
+              {/* 검색 인풋 - 메인페이지에서만 표시 */}
+              {isMainPage && (
+                <div className="hidden md:block relative">
+                  <input
+                    type="text"
+                    placeholder={language === 'ko' ? '검색...' : 'Buscar...'}
+                    className="w-40 lg:w-48 px-3 py-1.5 pr-8 rounded-full text-sm border border-gray-200 dark:border-gray-500 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                  />
+                  <button className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-500 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
               {/* 로그인 버튼 - 메인페이지에서만 표시 (데스크톱에서만) */}
               {isMainPage && !user && (
                 <button 
                   onClick={() => router.push('/sign-in')}
-                  className="hidden md:block font-semibold transition-all duration-300 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg whitespace-nowrap mt-5"
+                  className="hidden md:block font-semibold transition-all duration-300 px-4 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg whitespace-nowrap text-sm"
                 >
                   {t('buttons.login')}
                 </button>
               )}
 
-              {/* 데스크톱용 버튼들 - 데스크톱에서만 표시 */}
+              {/* 데스크톱용 사용자 정보 - 데스크톱에서만 표시 */}
               {isMainPage && user && (
-                <div className="hidden md:flex flex-col items-end gap-1">
-                  {/* 상단: 포인트 표시 */}
-                  <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
+                <div className="hidden md:flex items-center gap-2">
+                  {/* 포인트 표시 */}
+                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
                     <span className="w-3 h-3 bg-blue-600 dark:bg-blue-400 text-white text-xs font-bold rounded-full flex items-center justify-center">P</span>
                     <span className="text-blue-700 dark:text-blue-300 text-xs font-bold">{userPoints.toLocaleString()}</span>
                   </div>
                   
-                  {/* 중간: 로그아웃, 알림, 프로필 버튼 */}
-                  <div className="flex items-center gap-0.5 sm:gap-1">
-                    {/* 로그아웃 버튼 */}
-                    <button 
-                      onClick={() => handleLogout()}
-                      className="font-semibold transition-all duration-300 drop-shadow-lg text-gray-800 dark:text-gray-200 hover:text-red-500 whitespace-nowrap text-sm"
-                    >
-                      {t('headerNav.logout')}
-                    </button>
-                    
-                    {/* 알림 버튼 */}
-                    <NotificationBell />
-                    
-                    {/* 프로필 버튼 */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Profile 버튼 클릭됨')
-                        handleMainNavClick('me')
-                      }}
-                      className={`p-1 sm:p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 cursor-pointer ${
-                        activeMainTab === 'me' ? 'dark:bg-purple-900/30' : ''
-                      }`}
-                      style={{ 
-                        pointerEvents: 'auto',
-                        ...(activeMainTab === 'me' ? { 
-                          backgroundColor: '#f5f0ff' 
-                        } : {})
-                      }}
-                    >
-                      <Users className={`flex-shrink-0 transition-all duration-300 ${
-                        activeMainTab === 'me' 
-                          ? 'text-purple-700 dark:text-purple-400 w-5 h-5 sm:w-6 sm:h-6' 
-                          : 'text-gray-600 dark:text-gray-300 w-4 h-4 sm:w-5 sm:h-5'
-                      }`} style={{
-                        ...(activeMainTab === 'me' ? { strokeWidth: 2.5 } : { strokeWidth: 2 })
-                      }} />
-                    </Button>
-                  </div>
+                  {/* 로그아웃 버튼 */}
+                  <button 
+                    onClick={() => handleLogout()}
+                    className="font-semibold transition-all duration-300 text-gray-800 dark:text-gray-200 hover:text-red-500 whitespace-nowrap text-sm px-2"
+                  >
+                    {t('headerNav.logout')}
+                  </button>
                   
-                  {/* 하단: 인증 상태 표시 */}
+                  {/* 알림 버튼 */}
+                  <NotificationBell />
+                  
+                  {/* 프로필 버튼 */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleMainNavClick('me')
+                    }}
+                    className={`p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 cursor-pointer ${
+                      activeMainTab === 'me' ? 'bg-purple-100 dark:bg-purple-900/30' : ''
+                    }`}
+                  >
+                    <Users className={`flex-shrink-0 transition-all duration-300 ${
+                      activeMainTab === 'me' 
+                        ? 'text-purple-700 dark:text-purple-400 w-5 h-5' 
+                        : 'text-gray-600 dark:text-gray-300 w-4 h-4'
+                    }`} style={{
+                      ...(activeMainTab === 'me' ? { strokeWidth: 2.5 } : { strokeWidth: 2 })
+                    }} />
+                  </Button>
+                  
+                  {/* 인증 상태 표시 */}
                   {isAdmin ? (
                     <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <span className="text-purple-600 dark:text-purple-400 text-sm">👑</span>
-                      <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">운영자</span>
+                      <span className="text-purple-600 dark:text-purple-400 text-xs">👑</span>
                     </div>
                   ) : verificationStatus === 'verified' ? (
                     <div className="flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <span className="text-green-600 dark:text-green-400 text-sm">✅</span>
-                      <span className="text-green-700 dark:text-green-300 text-sm font-medium">{t('notifications.verified')}</span>
+                      <span className="text-green-600 dark:text-green-400 text-xs">✅</span>
                     </div>
                   ) : verificationStatus === 'unverified' ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
                       <span className="text-amber-600 dark:text-amber-400 text-xs">⚠️</span>
-                      <span className="text-amber-700 dark:text-amber-300 text-xs font-medium">{t('notifications.unverified')}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <span className="text-gray-600 dark:text-gray-400 text-sm animate-pulse">⏳</span>
-                      <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t('notifications.checking')}</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-xs animate-pulse">⏳</span>
                     </div>
                   )}
                 </div>

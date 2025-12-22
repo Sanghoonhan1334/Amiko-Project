@@ -376,6 +376,11 @@ link[rel="shortcut icon"] img {
     background: transparent;
     mix-blend-mode: screen;
   } */
+  .w-inside {
+    width: 100%;
+    max-width: 1420px;
+    margin: 0 auto;
+  }
   
   /* 스크롤바 숨기기 */
   .scrollbar-hide {
@@ -1878,4 +1883,22 @@ body.splash-active [class*="footer"] {
   .mobile-chat-small .space-y-4 > * + * {
     margin-top: 0.5rem !important;
   }
+}
+
+/* 파트너 로고 자동 스크롤 애니메이션 */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
 }

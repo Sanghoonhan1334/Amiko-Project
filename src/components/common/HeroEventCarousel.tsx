@@ -99,7 +99,7 @@ export default function HeroEventCarousel({
                 className="relative group cursor-pointer overflow-hidden flex-shrink-0 w-full"
                 onClick={() => onItemClick?.(item)}
                 style={{ 
-                  height: '350px'
+                  height: 'max(400px, 40vh)'
                 }}
               >
                 {/* 배너 이미지 또는 그라데이션 배경 */}
@@ -117,33 +117,35 @@ export default function HeroEventCarousel({
                 {/* 오버레이 그라데이션 */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
-                {/* 텍스트 콘텐츠 */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
-                  <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 line-clamp-2">
-                    {item.title}
-                  </h3>
-                  {item.description && (
-                    <p className="text-sm md:text-base text-white/90 mb-3 line-clamp-2">
-                      {item.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-4 text-sm md:text-base text-white/80">
-                    {item.date && (
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {item.date}
-                      </span>
+                {/* 텍스트 콘텐츠 - 왼쪽 중앙 배치 */}
+                <div className="absolute inset-y-0 left-0 flex items-center p-6 md:p-8 lg:p-12 text-white max-w-2xl">
+                  <div>
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 md:mb-4 line-clamp-3">
+                      {item.title}
+                    </h3>
+                    {item.description && (
+                      <p className="text-sm md:text-base lg:text-lg text-white/90 mb-4 md:mb-6 line-clamp-3">
+                        {item.description}
+                      </p>
                     )}
-                    {item.participants && (
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {item.participants}명 참여
-                      </span>
-                    )}
+                    <div className="flex items-center gap-4 text-sm md:text-base text-white/80">
+                      {item.date && (
+                        <span className="flex items-center gap-1">
+                          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {item.date}
+                        </span>
+                      )}
+                      {item.participants && (
+                        <span className="flex items-center gap-1">
+                          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          {item.participants}명 참여
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -41,19 +41,28 @@ export default function GalleryCarousel({
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoSliding, setIsAutoSliding] = useState(autoSlide)
+  const [isTransitioning, setIsTransitioning] = useState(true)
 
-  // 자동 롤링 (itemsPerRow개씩)
+  // 자동 롤링 - 우측에서 왼쪽으로 부드럽게 이동
   useEffect(() => {
     if (items.length > itemsPerRow && isAutoSliding) {
       const interval = setInterval(() => {
-        setCurrentIndex((prev) => {
-          const nextIndex = prev + itemsPerRow
-          return nextIndex >= items.length ? 0 : nextIndex
-        })
+        setIsTransitioning(true)
+        setCurrentIndex((prev) => prev + 1)
       }, slideInterval)
       return () => clearInterval(interval)
     }
   }, [items.length, isAutoSliding, slideInterval, itemsPerRow])
+
+  // 무한 루프를 위한 인덱스 리셋
+  useEffect(() => {
+    if (currentIndex >= items.length) {
+      setTimeout(() => {
+        setIsTransitioning(false)
+        setCurrentIndex(0)
+      }, 700) // transition duration과 일치
+    }
+  }, [currentIndex, items.length])
 
   const handlePrevious = () => {
     const newIndex = currentIndex === 0 ? Math.max(0, items.length - itemsPerRow) : Math.max(0, currentIndex - itemsPerRow)
@@ -75,8 +84,8 @@ export default function GalleryCarousel({
   if (items.length === 0) return null
 
   return (
-    <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-8">
-      <div className="mx-auto px-4" style={{ maxWidth: '1420px' }}>
+    <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-4 md:py-8 bg-gray-50 dark:bg-gray-900/50">
+      <div className="max-w-[1420px] mx-auto px-4">
         {/* 타이틀 섹션 */}
         {title && (
           <div className="flex items-center justify-between mb-6">
@@ -128,19 +137,21 @@ export default function GalleryCarousel({
           {/* 갤러리 그리드 */}
           <div className="overflow-hidden">
             <div 
-              className="flex gap-4 transition-transform duration-700 ease-in-out"
+              className={`flex gap-4 md:gap-6 ${isTransitioning ? 'transition-transform duration-700 ease-linear' : ''}`}
               style={{
-                transform: `translateX(-${Math.floor(currentIndex / itemsPerRow) * 100}%)`
+                transform: `translateX(-${(currentIndex * (100 / itemsPerRow))}%)`
               }}
             >
-              {items.map((item) => (
+              {/* 원본 아이템 */}
+              {items.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={`original-${item.id}-${index}`}
                   className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
                   onClick={() => onItemClick?.(item)}
                   style={{ 
-                    width: `calc((100% - ${itemsPerRow - 1} * 1rem) / ${itemsPerRow})`, // 동적 카드 너비
-                    aspectRatio: aspectRatio // 동적 비율
+                    width: `calc((100% - ${itemsPerRow - 1} * 1.5rem) / ${itemsPerRow})`,
+                    minWidth: '200px',
+                    aspectRatio: aspectRatio
                   }}
                 >
                   {/* 배너 이미지 또는 그라데이션 배경 */}
@@ -170,6 +181,46 @@ export default function GalleryCarousel({
                   </div>
 
                   {/* 호버 시 추가 효과 */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
+                </div>
+              ))}
+              
+              {/* 무한 루프를 위한 복제 아이템 (6개 이상일 때만) */}
+              {items.length > itemsPerRow && items.slice(0, itemsPerRow).map((item, index) => (
+                <div
+                  key={`duplicate-${item.id}-${index}`}
+                  className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
+                  onClick={() => onItemClick?.(item)}
+                  style={{ 
+                    width: `calc((100% - ${itemsPerRow - 1} * 1.5rem) / ${itemsPerRow})`,
+                    minWidth: '200px',
+                    aspectRatio: aspectRatio
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
+                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                      <h3 className="text-sm font-bold mb-1 line-clamp-2">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-white/90 mb-1 line-clamp-2">
+                        {item.description || (item.likes ? `${item.likes} likes` : '')}
+                      </p>
+                      <p className="text-xs text-white/80">
+                        {item.date || item.createdAt || ''}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
                 </div>
               ))}
