@@ -85,10 +85,10 @@ export default function GalleryCarousel({
 
   return (
     <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-4 md:py-8 bg-gray-50 dark:bg-gray-900/50">
-      <div className="max-w-[1420px] mx-auto px-4">
-        {/* 타이틀 섹션 */}
-        {title && (
-          <div className="flex items-center justify-between mb-6">
+      {/* 타이틀 섹션 */}
+      {title && (
+        <div className="w-inside mx-auto px-2 mb-6">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {icon}
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -107,11 +107,13 @@ export default function GalleryCarousel({
               </button>
             )}
           </div>
-        )}
-        
-        <div className="relative">
-          {/* 이전/다음 버튼 */}
-          {items.length > itemsPerRow && (
+        </div>
+      )}
+
+      {/* 갤러리 그리드 - 브라우저 전체 너비 */}
+      <div className="relative">
+        {/* 이전/다음 버튼 */}
+        {items.length > itemsPerRow && (
             <>
               <button
                 onClick={handlePrevious}
@@ -149,8 +151,7 @@ export default function GalleryCarousel({
                   className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
                   onClick={() => onItemClick?.(item)}
                   style={{ 
-                    width: `calc((100% - ${itemsPerRow - 1} * 1.5rem) / ${itemsPerRow})`,
-                    minWidth: '200px',
+                    minWidth: '300px',
                     aspectRatio: aspectRatio
                   }}
                 >
@@ -192,8 +193,7 @@ export default function GalleryCarousel({
                   className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0"
                   onClick={() => onItemClick?.(item)}
                   style={{ 
-                    width: `calc((100% - ${itemsPerRow - 1} * 1.5rem) / ${itemsPerRow})`,
-                    minWidth: '200px',
+                    minWidth: '300px',
                     aspectRatio: aspectRatio
                   }}
                 >
@@ -243,7 +243,6 @@ export default function GalleryCarousel({
               ))}
             </div>
           )}
-        </div>
       </div>
     </div>
   )

@@ -53,7 +53,7 @@ export default function ChargingTab() {
       name: t('storeTab.pointStore.items.pointShop'),
       description: t('storeTab.pointStore.descriptions.pointShop'),
       price: 0,
-      icon: '🛍️',
+      icon: '',
       available: false
     },
     {
@@ -61,7 +61,7 @@ export default function ChargingTab() {
       name: t('storeTab.pointStore.items.specialFeatures'),
       description: t('storeTab.pointStore.descriptions.specialFeatures'),
       price: 0,
-      icon: '✨',
+      icon: '',
       available: false
     },
     {
@@ -69,7 +69,7 @@ export default function ChargingTab() {
       name: t('storeTab.pointStore.items.premiumItems'),
       description: t('storeTab.pointStore.descriptions.premiumItems'),
       price: 0,
-      icon: '👑',
+      icon: '',
       available: false
     },
     {
@@ -77,7 +77,7 @@ export default function ChargingTab() {
       name: t('storeTab.pointStore.items.newFeatures'),
       description: t('storeTab.pointStore.descriptions.newFeatures'),
       price: 0,
-      icon: '🚀',
+      icon: '',
       available: false
     }
   ]
@@ -362,7 +362,7 @@ export default function ChargingTab() {
               <div className="flex items-start gap-3">
                 <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-blue-800 dark:text-gray-200">
-                  <p className="font-medium mb-1">💡 {t('storeTab.charging.freeAkoTitle')}</p>
+                  <p className="font-medium mb-1">{t('storeTab.charging.freeAkoTitle')}</p>
                   <p dangerouslySetInnerHTML={{ __html: t('storeTab.charging.freeAkoDescription') }}></p>
                 </div>
               </div>
@@ -376,7 +376,7 @@ export default function ChargingTab() {
             {/* 공사중 팻말 */}
             <div className="absolute top-0 right-0 z-10">
               <div className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg transform rotate-12">
-                🚧 {t('storeTab.pointStore.comingSoon')}
+                {t('storeTab.pointStore.comingSoon')}
               </div>
             </div>
             

@@ -733,24 +733,24 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                       <button
                         onClick={() => handleVote(comment.id, 'like')}
                         className={`flex items-center space-x-1 text-xs md:text-sm ${
-                          comment.user_vote === 'like' 
-                            ? 'text-blue-500' 
+                          comment.user_vote === 'like'
+                            ? 'text-blue-500'
                             : 'text-gray-500 hover:text-blue-500'
                         }`}
                       >
-                        <span>👍</span>
+                        <span>Like</span>
                         <span>{comment.like_count}</span>
                       </button>
-                      
+
                       <button
                         onClick={() => handleVote(comment.id, 'dislike')}
                         className={`flex items-center space-x-1 text-xs md:text-sm ${
-                          comment.user_vote === 'dislike' 
-                            ? 'text-red-500' 
+                          comment.user_vote === 'dislike'
+                            ? 'text-red-500'
                             : 'text-gray-500 hover:text-red-500'
                         }`}
                       >
-                        <span>👎</span>
+                        <span>Dislike</span>
                         <span>{comment.dislike_count}</span>
                       </button>
                       

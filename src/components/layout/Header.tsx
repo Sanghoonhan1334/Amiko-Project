@@ -551,11 +551,23 @@ function HeaderContent() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 border-b shadow-sm"
+        className="fixed top-0 left-0 right-0 z-50"
       >
-        {/* Background layer with high z-index */}
-        <div className="header-background absolute inset-0 bg-white dark:bg-gray-900 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95 z-0" />
-        <div className="relative w-full px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 lg:max-w-6xl lg:mx-auto z-10">
+        {/* Background layer - Light mode */}
+        <div 
+          className="absolute inset-0 z-0 dark:hidden" 
+          style={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+        />
+        {/* Background layer - Dark mode */}
+        <div 
+          className="absolute inset-0 z-0 hidden dark:block" 
+          style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        />
+        <div className="relative w-inside mx-auto z-10">
           <div className="flex justify-between items-center h-16 sm:h-20 md:h-24 relative">
             {/* 좌측: 로고 */}
             <div className="flex items-center flex-shrink-0">

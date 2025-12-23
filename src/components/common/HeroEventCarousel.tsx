@@ -99,27 +99,35 @@ export default function HeroEventCarousel({
                 className="relative group cursor-pointer overflow-hidden flex-shrink-0 w-full"
                 onClick={() => onItemClick?.(item)}
                 style={{ 
-                  height: 'max(400px, 40vh)'
+                  height: 'max(550px, 50vh)'
                 }}
               >
-                {/* 배너 이미지 또는 그라데이션 배경 */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
-                  {item.image && (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                    />
-                  )}
+                {/* YouTube 배경 영상 */}
+                <div className="absolute inset-0 bg-black overflow-hidden">
+                  <iframe
+                    className="pointer-events-none"
+                    src="https://www.youtube.com/embed/cZxLM4-mSrw?autoplay=1&mute=1&loop=1&playlist=cZxLM4-mSrw&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1"
+                    title="Hero Background Video"
+                    allow="autoplay; encrypted-media"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      width: '177.77777778vh', // 16:9 비율 유지
+                      height: '56.25vw', // 16:9 비율 유지
+                      minWidth: '100%',
+                      minHeight: '100%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  />
                 </div>
 
                 {/* 오버레이 그라데이션 */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
-                {/* 텍스트 콘텐츠 - 왼쪽 중앙 배치 */}
-                <div className="absolute inset-y-0 left-0 flex items-center p-6 md:p-8 lg:p-12 text-white max-w-2xl">
-                  <div>
+                {/* 텍스트 콘텐츠 - 반응형 패딩 */}
+                <div className="absolute bottom-8 left-0 right-0 px-5 md:px-10 lg:px-[10rem] flex text-white">
+                  <div className="max-w-2xl">
                     <h3 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 md:mb-4 line-clamp-3">
                       {item.title}
                     </h3>

@@ -322,8 +322,9 @@ link[rel="shortcut icon"] img {
   
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-inter);
-    font-weight: 700;
-    line-height: 1.2;
+    font-weight: 500;
+    line-height: 1.8;
+    padding-left: 2px;
   }
   
   /* 모든 스크롤 가능한 요소에 터치 스크롤 최적화 적용 */
@@ -380,6 +381,7 @@ link[rel="shortcut icon"] img {
     width: 100%;
     max-width: 1420px;
     margin: 0 auto;
+    padding: 0 15px;
   }
   
   /* 스크롤바 숨기기 */

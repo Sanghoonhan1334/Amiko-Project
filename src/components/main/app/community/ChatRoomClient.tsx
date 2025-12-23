@@ -519,7 +519,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       
       processedMessageIds.current = new Set(messagesWithProfiles.map(m => m.id))
       setMessages(messagesWithProfiles)
-      console.log('📨 초기 메시지 로드:', messagesWithProfiles.length, '개')
+      console.log('초기 메시지 로드:', messagesWithProfiles.length, '개')
     } catch (error) {
       console.error('❌ Error fetching messages:', error)
     } finally {
@@ -532,7 +532,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       clearInterval(pollingIntervalRef.current)
     }
     
-    console.log('🔄 Polling started (1.5초 간격)')
+    console.log('Polling started (1.5초 간격)')
     pollingIntervalRef.current = setInterval(() => {
       fetchNewMessages()
     }, 1500)
@@ -560,7 +560,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       if (error) throw error
 
       if (data && data.length > 0) {
-        console.log('🔄 Polling: 새 메시지', data.length, '개 발견')
+        console.log('Polling: 새 메시지', data.length, '개 발견')
         
         const messagesWithProfiles = await Promise.all(
           data.map(async (msg) => {
@@ -597,11 +597,11 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
   const subscribeToMessages = () => {
     if (channelRef.current) {
-      console.log('🗑️ Removing existing channel')
+      console.log('Removing existing channel')
       authSupabase.removeChannel(channelRef.current)
     }
 
-    console.log('📡 Starting Realtime subscription for room:', roomId)
+    console.log('Starting Realtime subscription for room:', roomId)
 
     const channel = authSupabase
       .channel(`room-${roomId}-${Date.now()}`)
@@ -627,9 +627,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         }
       )
       .subscribe((status) => {
-        console.log('🔔 Realtime Subscription status:', status)
+        console.log('Realtime Subscription status:', status)
         if (status === 'SUBSCRIBED') {
-          console.log('🎉 Realtime 연결 성공! 즉시 메시지 수신 가능')
+          console.log('Realtime 연결 성공! 즉시 메시지 수신 가능')
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Realtime 연결 실패 - Polling으로 전환됩니다')
         } else if (status === 'TIMED_OUT') {
@@ -890,7 +890,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         status: 'sending' // 전송 중 상태
       }
       
-      console.log('🚀 Optimistic UI: 메시지 즉시 표시')
+      console.log('Optimistic UI: 메시지 즉시 표시')
       setMessages(prev => [...prev, tempMessage!])
       
       // 입력 필드 즉시 비우기

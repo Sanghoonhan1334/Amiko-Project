@@ -54,13 +54,13 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-muted/60 dark:bg-gray-800/90 border-t-2 border-border">
-      <div className="w-full px-3 sm:px-4 py-4 sm:py-6 lg:max-w-6xl lg:mx-auto">
+    <footer className="w-screen mt-10 bg-muted/60 dark:bg-gray-800/90 border-t-2 border-border">
+      <div className="w-inside px-3 sm:px-4 pt-10 pb-4 sm:pb-6">
         {/* 메인 푸터 콘텐츠 - 모바일 최적화 */}
         <div className="space-y-6 md:grid md:grid-cols-3 md:gap-4 md:space-y-0 mb-4">
           {/* 모바일: SNS 섹션을 맨 위로 */}
           <div className="md:order-2 space-y-3">
-            <h5 className="text-sm md:text-base font-bold text-gray-900 dark:text-gray-100 text-center">{t('footer.officialSns')}</h5>
+            <h5 className="text-base md:text-base font-bold text-gray-900 dark:text-gray-100 text-center">{t('footer.officialSns')}</h5>
             <div className="flex items-center justify-center gap-3">
               {/* TikTok */}
               <a 
@@ -108,10 +108,10 @@ export default function Footer() {
 
           {/* 모바일: 저작권 및 정책 */}
           <div className="md:order-1 space-y-2 text-center md:text-left">
-            <div className="text-gray-900 dark:text-gray-100 text-xs md:text-sm font-['Inter'] font-medium">
+            <div className="text-gray-900 dark:text-gray-100 text-sm md:text-base font-['Inter'] font-medium">
               © 2025 Amiko. All rights reserved.
             </div>
-            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-300 font-['Inter'] font-medium">
+            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-300 font-['Inter'] font-medium">
               <Link href="/privacy" className="hover:text-primary hover:underline transition-all duration-300">
                 {t('footer.privacy')}
               </Link>
@@ -128,29 +128,29 @@ export default function Footer() {
           <div className="md:order-3 space-y-2 text-center md:text-right">
             {/* 데스크톱: 기존 레이아웃 */}
             <div className="hidden md:block">
-              <h4 className="font-bold text-gray-900 dark:text-gray-100 text-sm font-['Inter']">{t('footer.support')}</h4>
+              <h4 className="font-bold text-gray-900 dark:text-gray-100 text-base font-['Inter']">{t('footer.support')}</h4>
               <div className="space-y-1 text-right">
                 <Link 
                   href="/help" 
-                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium"
                 >
                   {t('footer.help')}
                 </Link>
                 <Link 
                   href="/faq" 
-                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium"
                 >
                   {t('footer.faq')}
                 </Link>
                 <Link 
                   href="/contact" 
-                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium"
                 >
                   {t('footer.contact')}
                 </Link>
                 <Link 
                   href="/feedback" 
-                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-xs font-['Inter'] font-medium"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium"
                 >
                   {t('footer.feedback')}
                 </Link>
@@ -163,7 +163,7 @@ export default function Footer() {
                 onClick={() => setIsSupportMenuOpen(!isSupportMenuOpen)}
                 className="flex items-center justify-center gap-2 mx-auto bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-md hover:shadow-lg transition-shadow duration-300"
               >
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 font-['Inter']">{t('footer.support')}</span>
+                <span className="text-base font-bold text-gray-900 dark:text-gray-100 font-['Inter']">{t('footer.support')}</span>
                 {isSupportMenuOpen ? (
                   <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 ) : (
@@ -176,28 +176,28 @@ export default function Footer() {
                 <div className="mt-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-3 space-y-2">
                   <Link 
                     href="/help" 
-                    className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-purple-400 hover:underline transition-all duration-300 text-base font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.help')}
                   </Link>
                   <Link 
                     href="/faq" 
-                    className="block text-foreground/80 hover:text-primary hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-foreground/80 hover:text-primary hover:underline transition-all duration-300 text-base font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.faq')}
                   </Link>
                   <Link 
                     href="/contact" 
-                    className="block text-foreground/80 hover:text-primary hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-foreground/80 hover:text-primary hover:underline transition-all duration-300 text-base font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.contact')}
                   </Link>
                   <Link 
                     href="/feedback" 
-                    className="block text-foreground/80 hover:text-primary hover:underline transition-all duration-300 text-sm font-['Inter'] font-medium py-1"
+                    className="block text-foreground/80 hover:text-primary hover:underline transition-all duration-300 text-base font-['Inter'] font-medium py-1"
                     onClick={() => setIsSupportMenuOpen(false)}
                   >
                     {t('footer.feedback')}
@@ -209,13 +209,13 @@ export default function Footer() {
         </div>
 
         {/* 파트너 로고 섹션 - 최하단 바로 위 */}
-        <div className="mt-6 pt-6 border-t border-border/50">
+        <div className="mt-6 pt-6">
           {/* 로고 그리드 - 반응형 표시 */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 md:gap-4">
-            {partnerLogos.slice(0, 6).map((partner) => (
+          <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2 md:gap-4">
+            {partnerLogos.slice(0, 8).map((partner) => (
               <div
                 key={partner.id}
-                className="h-24 md:h-48 flex items-center justify-center"
+                className="h-12 md:h-24 flex items-center justify-center"
               >
                 <img
                   src={partner.logo}
@@ -237,9 +237,9 @@ export default function Footer() {
         </div>
 
         {/* 추가 정보 */}
-        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-border/50">
+        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4">
           <div className="text-center">
-            <p className="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-['Inter'] font-bold">
+            <p className="text-base sm:text-base text-gray-900 dark:text-gray-100 font-['Inter'] font-bold">
               {t('footer.bridgeDescription')}
             </p>
           </div>
