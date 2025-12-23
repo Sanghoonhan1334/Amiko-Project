@@ -24,8 +24,7 @@ import {
   Palette,
   Image as ImageIcon,
   ChevronRight,
-  MessageCircle,
-  Megaphone
+  MessageCircle
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -393,7 +392,7 @@ export default function HomeTab() {
             .sort((a: any, b: any) => b.participants - a.participants)
 
           // 1줄(3개)만 표시
-          setPopularTests(formattedTests.slice(0, 3))
+          setPopularTests(formattedTests.slice(0, 4))
         } else {
           setPopularTests([])
         }
@@ -841,6 +840,7 @@ export default function HomeTab() {
             variant="ghost"
             size="sm"
             onClick={() => router.push('/community/freeboard')}
+            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
           >
             {language === 'ko' ? '더 보기' : 'Ver Más'}
           </Button>
@@ -902,7 +902,7 @@ export default function HomeTab() {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Image
-                src="/icons/k-magazine.png"
+                src="/icons/home-news.png"
                 alt="K-Noticia"
                 width={20}
                 height={20}
@@ -913,13 +913,14 @@ export default function HomeTab() {
                 {t('home.sections.kNoticia')}
               </h2>
             </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push('/community/news')}
-            className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
+            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
           >
-            <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
+            {language === 'ko' ? '더 보기' : 'Ver Más'}
+          </Button>
         </div>
 
         <Card>
@@ -959,7 +960,7 @@ export default function HomeTab() {
               ) : (
                 <div className="text-center py-4">
                   <Image
-                    src="/icons/k-magazine.png"
+                    src="/icons/home-news.png"
                     alt="K-Noticia"
                     width={32}
                     height={32}
@@ -1059,7 +1060,14 @@ export default function HomeTab() {
       {/* 4. Anuncio - 공지사항 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <span className="text-green-500">📢</span>
+          <Image
+            src="/icons/home-notice.png"
+            alt="공지사항"
+            width={20}
+            height={20}
+            className="object-contain"
+            priority
+          />
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {t('home.sections.announcements')}
           </h2>
@@ -1131,6 +1139,7 @@ export default function HomeTab() {
             variant="ghost"
             size="sm"
             onClick={() => router.push('/community/freeboard')}
+            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
           >
             {language === 'ko' ? '더 보기' : 'Ver Más'}
           </Button>
@@ -1198,13 +1207,14 @@ export default function HomeTab() {
             variant="ghost"
             size="sm"
             onClick={() => router.push('/community/tests')}
+            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
           >
             {language === 'ko' ? '더 보기' : 'Ver Más'}
           </Button>
         </div>
 
         {popularTests.length > 0 ? (
-          <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
             {popularTests.map((test) => (
               <div
                 key={test.id}
@@ -1249,7 +1259,7 @@ export default function HomeTab() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img
-                src="/icons/Fan art.png"
+                src="/icons/home-fanart.png"
                 alt="팬아트"
                 className="w-8 h-8 object-contain"
               />
@@ -1257,13 +1267,14 @@ export default function HomeTab() {
                 {t('home.sections.fanArt')}
               </h2>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => router.push('/community/fanart')}
-              className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+              className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
             >
-              <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
+              {language === 'ko' ? '더 보기' : 'Ver Más'}
+            </Button>
           </div>
 
           <Card>
@@ -1295,7 +1306,7 @@ export default function HomeTab() {
                 ) : (
                   <div className="col-span-2 text-center py-4">
                     <img
-                      src="/icons/Fan art.png"
+                      src="/icons/home-fanart.png"
                       alt="팬아트"
                       className="w-8 h-8 mx-auto mb-2 opacity-40"
                     />
@@ -1314,7 +1325,7 @@ export default function HomeTab() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img
-                src="/icons/Foto de idol.png"
+                src="/icons/home-idol.png"
                 alt="아이돌 사진"
                 className="w-8 h-8 object-contain"
               />
@@ -1322,13 +1333,14 @@ export default function HomeTab() {
                 {t('home.sections.idolPhotos')}
               </h2>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => router.push('/community/idol-photos')}
-              className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+              className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
             >
-              <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
+              {language === 'ko' ? '더 보기' : 'Ver Más'}
+            </Button>
           </div>
 
           <Card>
@@ -1360,7 +1372,7 @@ export default function HomeTab() {
                 ) : (
                   <div className="col-span-2 text-center py-4">
                     <img
-                      src="/icons/Foto de idol.png"
+                      src="/icons/home-idol.png"
                       alt="아이돌 사진"
                       className="w-8 h-8 mx-auto mb-2 opacity-40"
                     />
@@ -1445,13 +1457,14 @@ export default function HomeTab() {
                 {t('home.sections.hotChatRooms')}
               </h2>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => router.push('/community/k-chat')}
-              className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+              className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
             >
-              <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
+              {language === 'ko' ? '더 보기' : 'Ver Más'}
+            </Button>
           </div>
 
           <Card>
@@ -1514,13 +1527,14 @@ export default function HomeTab() {
                 {t('home.sections.currentPolls')}
               </h2>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => router.push('/community/polls')}
-              className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+              className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
             >
-              <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
+              {language === 'ko' ? '더 보기' : 'Ver Más'}
+            </Button>
           </div>
 
           <Card>
@@ -1578,85 +1592,6 @@ export default function HomeTab() {
       </div>
       )}
 
-      {/* 오늘의 K-Noticia - 모바일 버전 */}
-      {/* K-Noticia 뉴스 섹션 */}
-      <div className="space-y-3 md:hidden">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Image
-                src="/icons/k-magazine.png"
-                alt="K-Noticia"
-                width={20}
-                height={20}
-                className="object-contain mr-2"
-                priority
-              />
-              <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
-                {t('home.sections.kNoticia')}
-              </h2>
-            </div>
-          <button
-            onClick={() => router.push('/community/news')}
-            className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
-          >
-            <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
-        </div>
-
-        <Card>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {kNoticiaNews.length > 0 ? (
-                kNoticiaNews.map((news) => (
-                  <div
-                    key={news.id}
-                    className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
-                    onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-purple-100 text-purple-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
-                        {t('home.sections.news')}
-                      </Badge>
-                      <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                        {news.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-[10px] text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center gap-0.5">
-                          <Heart className="w-3 h-3 text-red-500" />
-                          <span>{news.likes}</span>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                          <MessageSquare className="w-3 h-3 text-blue-500" />
-                          <span>{news.comments}</span>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                          <Eye className="w-3 h-3" />
-                          <span>{formatNumber(news.views)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-4">
-                  <Image
-                    src="/icons/k-magazine.png"
-                    alt="K-Noticia"
-                    width={32}
-                    height={32}
-                    className="mx-auto mb-2 opacity-40"
-                  />
-                  <p className="text-gray-500 text-xs">
-                    {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* 최근 스토리 - 그리드 레이아웃 - 환경 변수로 제어 */}
       {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
         <div className="space-y-3 md:hidden">
@@ -1671,13 +1606,14 @@ export default function HomeTab() {
             {t('home.sections.recentStories')}
           </h2>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push('/community/stories')}
-            className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-xs"
+            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
           >
-            <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
+            {language === 'ko' ? '더 보기' : 'Ver Más'}
+          </Button>
         </div>
 
         <Card>
@@ -1750,13 +1686,14 @@ export default function HomeTab() {
               {t('home.sections.recentVideos')}
             </h2>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => window.open('https://www.youtube.com/@AMIKO_Officialstudio', '_blank')}
-            className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
           >
-            <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
+            {language === 'ko' ? '더 보기' : 'Ver Más'}
+          </Button>
         </div>
 
         <Card>
@@ -1819,13 +1756,14 @@ export default function HomeTab() {
               {t('home.sections.partners')}
             </h2>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push('/community/partners')}
-            className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
           >
-            <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
+            {language === 'ko' ? '더 보기' : 'Ver Más'}
+          </Button>
         </div>
 
         <Card>
@@ -1950,9 +1888,14 @@ export default function HomeTab() {
               {/* 공지사항 - 데스크톱 버전 */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <Megaphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  </div>
+                  <Image
+                    src="/icons/home-notice.png"
+                    alt="공지사항"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                    priority
+                  />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {language === 'ko' ? '공지' : 'Anuncios'}
                   </h2>
@@ -2002,11 +1945,10 @@ export default function HomeTab() {
                 </div>
                 <Button
                   variant="ghost"
-                  size="lg"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  size="sm"
                   onClick={() => router.push('/community/freeboard')}
+                  className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                 >
-                  <TrendingUp className="w-5 h-5 mr-2" />
                   {language === 'ko' ? '더 보기' : 'Ver Más'}
                 </Button>
               </div>
@@ -2069,7 +2011,7 @@ export default function HomeTab() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Image
-                    src="/icons/k-magazine.png"
+                    src="/icons/home-news.png"
                     alt="K-Noticia"
                     width={20}
                     height={20}
@@ -2080,13 +2022,14 @@ export default function HomeTab() {
                     {t('home.sections.kNoticia')}
                   </h2>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => router.push('/community/news')}
-                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
+                  className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                 >
-                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
               </div>
 
               <Card>
@@ -2126,7 +2069,7 @@ export default function HomeTab() {
                     ) : (
                       <div className="text-center py-8">
                         <Image
-                          src="/icons/k-magazine.png"
+                          src="/icons/home-news.png"
                           alt="K-Noticia"
                           width={48}
                           height={48}
@@ -2208,9 +2151,14 @@ export default function HomeTab() {
               {/* 4. Anuncio - 공지사항 - 데스크톱 버전 */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <Megaphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  </div>
+                  <Image
+                    src="/icons/home-notice.png"
+                    alt="공지사항"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                    priority
+                  />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {language === 'ko' ? '공지' : 'Anuncios'}
                   </h2>
@@ -2260,11 +2208,10 @@ export default function HomeTab() {
                 </div>
                 <Button
                   variant="ghost"
-                  size="lg"
-                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  size="sm"
                   onClick={() => router.push('/community/tests')}
+                  className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                 >
-                  <Brain className="w-5 h-5 mr-2" />
                   {language === 'ko' ? '더 보기' : 'Ver Más'}
                 </Button>
               </div>
@@ -2317,7 +2264,7 @@ export default function HomeTab() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <img
-                      src="/icons/Fan art.png"
+                      src="/icons/home-fanart.png"
                       alt="팬아트"
                       className="w-8 h-8 object-contain"
                     />
@@ -2325,13 +2272,14 @@ export default function HomeTab() {
                       {language === 'ko' ? '팬아트' : 'Fan Art'}
                     </h2>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => router.push('/community/fanart')}
-                    className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+                    className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                   >
-                    <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
+                    {language === 'ko' ? '더 보기' : 'Ver Más'}
+                  </Button>
                 </div>
 
                 <Card>
@@ -2363,7 +2311,7 @@ export default function HomeTab() {
                       ) : (
                         <div className="col-span-2 text-center py-4">
                           <img
-                            src="/icons/Fan art.png"
+                            src="/icons/home-fanart.png"
                             alt="팬아트"
                             className="w-8 h-8 mx-auto mb-2 opacity-40"
                           />
@@ -2382,7 +2330,7 @@ export default function HomeTab() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <img
-                      src="/icons/Foto de idol.png"
+                      src="/icons/home-idol.png"
                       alt="아이돌 사진"
                       className="w-8 h-8 object-contain"
                     />
@@ -2390,13 +2338,14 @@ export default function HomeTab() {
                       {language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
                     </h2>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => router.push('/community/idol-photos')}
-                    className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+                    className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                   >
-                    <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
+                    {language === 'ko' ? '더 보기' : 'Ver Más'}
+                  </Button>
                 </div>
 
                 <Card>
@@ -2428,7 +2377,7 @@ export default function HomeTab() {
                       ) : (
                         <div className="col-span-2 text-center py-4">
                           <img
-                            src="/icons/Foto de idol.png"
+                            src="/icons/home-idol.png"
                             alt="아이돌 사진"
                             className="w-8 h-8 mx-auto mb-2 opacity-40"
                           />
@@ -2515,13 +2464,14 @@ export default function HomeTab() {
                       {language === 'ko' ? '지금 핫 한 채팅방!' : '¡Chats Calientes!'}
                     </h2>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => router.push('/community/k-chat')}
-                    className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+                    className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                   >
-                    <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
+                    {language === 'ko' ? '더 보기' : 'Ver Más'}
+                  </Button>
                 </div>
 
                 <Card>
@@ -2576,13 +2526,14 @@ export default function HomeTab() {
                       {language === 'ko' ? '지금 투표!' : '¡Vota Ahora!'}
                     </h2>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => router.push('/community/polls')}
-                    className="flex items-center gap-1 text-red-500 hover:text-red-600 text-xs"
+                    className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                   >
-                    <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
+                    {language === 'ko' ? '더 보기' : 'Ver Más'}
+                  </Button>
                 </div>
 
                 <Card>
@@ -2636,83 +2587,6 @@ export default function HomeTab() {
             </div>
             )}
 
-            {/* 오늘의 K-Noticia - 데스크톱 */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Image
-                    src="/icons/k-magazine.png"
-                    alt="K-Noticia"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                    priority
-                  />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    {t('home.sections.kNoticia')}
-                  </h2>
-                </div>
-                <button
-                  onClick={() => router.push('/community/news')}
-                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
-                >
-                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <Card>
-                <CardContent className="p-0">
-                  <div className="divide-y">
-                    {kNoticiaNews.length > 0 ? (
-                      kNoticiaNews.map((news) => (
-                        <div
-                          key={news.id}
-                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-4 py-3"
-                          onClick={() => router.push(`/community/news?id=${news.id}&from=home`)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-100 text-purple-700 border-0 px-2 py-0.5 font-medium text-xs whitespace-nowrap">
-                              {t('home.sections.news')}
-                            </Badge>
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                              {news.title}
-                            </h3>
-                            <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-4 h-4 text-red-500" />
-                                <span>{news.likes}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MessageSquare className="w-4 h-4 text-blue-500" />
-                                <span>{news.comments}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                <span>{formatNumber(news.views)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <Image
-                          src="/icons/k-magazine.png"
-                          alt="K-Noticia"
-                          width={48}
-                          height={48}
-                          className="mx-auto mb-3 opacity-40"
-                        />
-                        <p className="text-gray-500 text-sm">
-                          {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
 
             {/* 최근 스토리 - 데스크톱 - 환경 변수로 제어 */}
             {process.env.NEXT_PUBLIC_ENABLE_STORIES === 'true' && (
@@ -2728,13 +2602,14 @@ export default function HomeTab() {
                     {t('home.sections.recentStories')}
                   </h2>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => router.push('/community/stories')}
-                  className="flex items-center gap-1 text-purple-500 hover:text-purple-600 text-sm"
+                  className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                 >
-                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
               </div>
 
               <Card>
@@ -2807,13 +2682,14 @@ export default function HomeTab() {
                     {t('home.sections.recentVideos')}
                   </h2>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => window.open('https://www.youtube.com/@AMIKO_Officialstudio', '_blank')}
-                  className="flex items-center gap-1 text-red-500 hover:text-red-600 text-sm"
+                  className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                 >
-                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
               </div>
 
               <Card>
@@ -2876,13 +2752,14 @@ export default function HomeTab() {
                     {language === 'ko' ? 'AMIKO 파트너' : 'Socios de AMIKO'}
                   </h2>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => router.push('/community/partners')}
-                  className="flex items-center gap-1 text-blue-500 hover:text-blue-600 text-sm"
+                  className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
                 >
-                  <span>{language === 'ko' ? '더 보기' : 'Ver Más'}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                  {language === 'ko' ? '더 보기' : 'Ver Más'}
+                </Button>
               </div>
 
               <Card>

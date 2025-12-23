@@ -1096,7 +1096,11 @@ function NewsPageContent() {
                     <span className="text-[10px]">{selectedNews.views || 0}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <MessageCircle className="w-3 h-3" />
+                    <ThumbsUp className="w-3 h-3 text-red-500" />
+                    <span className="text-[10px]">{selectedNews.likes || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MessageCircle className="w-3 h-3 text-blue-500" />
                     <span className="text-[10px]">{selectedNews.comments || 0}</span>
                   </div>
                 </div>
@@ -1602,11 +1606,11 @@ function NewsPageContent() {
                                 </div>
                                 <div className="flex items-center gap-4">
                                   <div className="flex items-center gap-1">
-                                    <ThumbsUp className="w-4 h-4" />
+                                    <ThumbsUp className="w-4 h-4 text-red-500" />
                                     <span>{item.likes || 0}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <MessageCircle className="w-4 h-4" />
+                                    <MessageCircle className="w-4 h-4 text-blue-500" />
                                     <span>{item.comments || 0}</span>
                                   </div>
                                 </div>
@@ -1813,11 +1817,11 @@ function NewsPageContent() {
                           
                           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                             <div className="flex items-center gap-1">
-                              <ThumbsUp className="w-3 h-3" />
+                              <ThumbsUp className="w-3 h-3 text-red-500" />
                               <span>{item.likes || 0}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <MessageCircle className="w-3 h-3" />
+                              <MessageCircle className="w-3 h-3 text-blue-500" />
                               <span>{item.comments || 0}</span>
                             </div>
                           </div>

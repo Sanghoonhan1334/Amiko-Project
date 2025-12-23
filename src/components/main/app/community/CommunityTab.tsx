@@ -161,6 +161,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
 
   // 드래그 중인 아이템 추적
   const [draggingItem, setDraggingItem] = useState<{ itemId: string; subIndex: number } | null>(null)
+  const [animationCompleted, setAnimationCompleted] = useState<Record<string, boolean>>({})
   
   // 서브메뉴 위치 조정 state (모바일/데스크톱 별도 관리)
   const [submenuPositions, setSubmenuPositions] = useState<Record<string, { x: number; y: number }>>(() => {
@@ -2509,12 +2510,31 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                   onDragEnd={handleDragEnd}
                                   
                                   data-original-index={subItemIdx}
-                                  className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border-2 focus:outline-none relative group ${
+                                  onAnimationEnd={() => {
+                                    // Animation 완료 표시
+                                    const key = `${item.id}-${subItem.id}`
+                                    setAnimationCompleted(prev => ({ ...prev, [key]: true }))
+                                  }}
+                                  className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border-2 focus:outline-none relative group transition-all duration-200 ${
                                     draggingItem?.itemId === item.id && draggingItem?.subIndex === subIndex
                                       ? 'opacity-50 border-purple-500 ring-2 ring-purple-300'
-                                      : 'border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500'
-                                  } bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md cursor-grab active:cursor-grabbing`}
+                                      : 'border-gray-300 dark:border-gray-500 md:hover:border-purple-400 md:dark:hover:border-purple-500 md:hover:scale-105 md:hover:shadow-lg md:hover:-translate-y-0.5'
+                                  } bg-white dark:bg-gray-800 shadow-md cursor-pointer md:cursor-pointer active:cursor-grabbing overflow-hidden`}
                                    style={{
+                                    ...(() => {
+                                      const key = `${item.id}-${subItem.id}`
+                                      const isAnimDone = animationCompleted[key]
+                                      
+                                      // Animation이 완료되었고 closing 중이 아니면 기본 스타일만
+                                      if (isAnimDone && !isClosing) {
+                                        return {
+                                          position: 'relative',
+                                          zIndex: 10
+                                        }
+                                      }
+                                      
+                                      // Animation 진행 중
+                                      return {
                                      opacity: isClosing ? 1 : 0,
                                      transform: isClosing ? 'translateY(0)' : 'translateY(-20px)',
                                      animationName: animationType,
@@ -2523,11 +2543,17 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                      animationFillMode: 'forwards',
                                      animationDelay: itemDelay,
                                      transition: 'none',
-                                     cursor: 'default',
                                      position: 'relative',
                                      zIndex: 10
+                                      }
+                                    })()
                                    }}
                                  >
+                                   {/* Hover 시 연보라색 레이어 (z-index로 위에 올림) */}
+                                   <div className="absolute inset-0 bg-purple-50 dark:bg-purple-900/20 rounded-lg opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-0" />
+                                   
+                                   {/* 콘텐츠 (z-index로 위에) */}
+                                   <div className="relative z-10 flex items-center gap-2 md:gap-3 w-full">
                                    {subItem.icon.startsWith('/') ? (
                                      <img 
                                        src={subItem.icon} 
@@ -2540,6 +2566,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                    )}
                                    <div className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap select-none pointer-events-none">
                                      {subItem.title}
+                                     </div>
                                    </div>
                                  </button>
                               )

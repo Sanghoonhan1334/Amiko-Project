@@ -662,6 +662,35 @@ export const translations = {
       sessionRefreshFailed: '세션 갱신에 실패했습니다'
     },
 
+    // 공통 버튼
+    buttons: {
+      upload: '업로드',
+      register: '등록',
+      write: '작성',
+      delete: '삭제',
+      confirm: '확인',
+      cancel: '취소',
+      close: '닫기',
+      save: '저장',
+      edit: '수정',
+      submit: '제출',
+      loading: '로딩 중...',
+      login: '로그인',
+      uploading: '업로드 중...',
+      saving: '저장 중...',
+      writing: '작성 중...',
+      deleting: '삭제 중...',
+      retry: '다시 시도',
+      required: '필수',
+      back: '뒤로가기',
+      backToList: '목록으로 돌아가기',
+      next: '다음',
+      previous: '이전',
+      complete: '완료',
+      skip: '건너뛰기',
+      start: '시작'
+    },
+
     // Hero 슬라이드
     heroSlides: {
       slide1: {

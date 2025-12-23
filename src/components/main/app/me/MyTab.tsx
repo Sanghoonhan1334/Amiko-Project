@@ -61,6 +61,7 @@ import { isAndroidDevice } from '@/lib/share-utils'
 import ChargingTab from '../charging/ChargingTab'
 import PointsCard from './PointsCard'
 import ChargingHeader from './ChargingHeader'
+import PaymentsTab from '../payments/PaymentsTab'
 // 🚀 최적화: React Query hook 추가
 import { useEventPoints } from '@/hooks/useEventPoints'
 import UserBadge from '@/components/common/UserBadge'
@@ -1362,19 +1363,13 @@ export default function MyTab() {
                     <CreditCard className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">결제 관리</h3>
-                    <p className="text-sm text-gray-600">결제 내역 및 환불 관리</p>
+                    <h3 className="font-bold text-lg text-gray-900">{t('headerNav.payments') || '결제 관리'}</h3>
+                    <p className="text-sm text-gray-600">{language === 'ko' ? 'VIP 구독 및 결제 내역' : 'Suscripción VIP e historial de pagos'}</p>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
-                <div className="text-center py-8 text-gray-500">
-                  결제 관리 기능은 별도 페이지로 이동합니다.
-                  <br />
-                  <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/admin/payments'}>
-                    결제 관리 페이지로 이동
-                  </Button>
-                </div>
+                <PaymentsTab />
               </AccordionContent>
             </AccordionItem>
 

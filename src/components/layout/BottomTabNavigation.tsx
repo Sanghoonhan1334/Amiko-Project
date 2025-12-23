@@ -73,17 +73,11 @@ export default function BottomTabNavigation() {
       path: '/main?tab=educacion'
     },
     {
-      id: 'payments',
-      label: t('headerNav.payments'),
-      icon: ShoppingBag,
-      path: '/main?tab=payments'
-    },
-    // {
-    //   id: 'me',
-    //   label: t('main.myPage'),
-    //   icon: User,
-    //   path: '/main?tab=me'
-    // }
+      id: 'me',
+      label: t('main.myPage'),
+      icon: User,
+      path: '/main?tab=me'
+    }
   ]
 
   const handleTabClick = (tab: typeof tabs[0]) => {

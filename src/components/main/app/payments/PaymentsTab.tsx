@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CreditCard, Receipt, DollarSign, Calendar, Package } from 'lucide-react'
+import { CreditCard, Receipt, DollarSign, Calendar, Package, GraduationCap, ArrowRight } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import PayPalPaymentButton from '@/components/payments/PayPalPaymentButton'
@@ -21,9 +22,9 @@ import {
 export default function PaymentsTab() {
   const { user } = useAuth()
   const { t } = useLanguage()
+  const router = useRouter()
   const [selectedCoupon, setSelectedCoupon] = useState('')
   const [selectedVip, setSelectedVip] = useState('')
-  const [selectedCourse, setSelectedCourse] = useState('')
 
   // Debug: Log user ID
   // console.log('PaymentsTab - Render cycle. User ID:', user?.id)
@@ -404,64 +405,29 @@ export default function PaymentsTab() {
           </CardContent>
         </Card>
 
-        {/* Courses */}
+        {/* Courses - Redirect to Education Tab */}
         <Card className="relative">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-blue-500" />
+              <GraduationCap className="w-5 h-5 text-blue-500" />
               {t('payments.courses')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('payments.selectOption')}
-              </label>
-              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('payments.selectCourse')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {courseOptions.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Description - always visible with consistent height */}
-              <div className="min-h-[3rem] flex items-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {selectedCourse
-                    ? courseOptions.find(opt => opt.id === selectedCourse)?.description
-                    : "Selecciona un curso en línea para aprender y mejorar tus habilidades."
-                  }
+            <div className="text-center py-6">
+              <GraduationCap className="w-16 h-16 mx-auto mb-4 text-blue-500 opacity-50" />
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+                {t('payments.coursesDescription') || "Selecciona un curso en línea para aprender y mejorar tus habilidades."}
                 </p>
-              </div>
-
-              {selectedCourse && (
-                <div className="flex items-center justify-center">
-                  <Badge variant="secondary" className="text-lg font-bold px-4 py-2">
-                    ${courseOptions.find(opt => opt.id === selectedCourse)?.amount}
-                  </Badge>
-                </div>
-              )}
+              <Button
+                onClick={() => router.push('/main?tab=educacion')}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <GraduationCap className="w-4 h-4 mr-2" />
+                {t('payments.goToEducation') || 'Ir a Educación'}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
-
-            {selectedCourse && (
-              <PayPalPaymentButton
-                amount={courseOptions.find(opt => opt.id === selectedCourse)?.amount || 0}
-                orderId={courseOptions.find(opt => opt.id === selectedCourse)?.orderId || ''}
-                orderName={courseOptions.find(opt => opt.id === selectedCourse)?.orderName || ''}
-                customerName={user?.user_metadata?.full_name || user?.email || ''}
-                customerEmail={user?.email || ''}
-                userId={user?.id || ''}
-                productType={courseOptions.find(opt => opt.id === selectedCourse)?.productType || ''}
-                productData={courseOptions.find(opt => opt.id === selectedCourse)?.productData || {}}
-                className="w-full"
-              />
-            )}
           </CardContent>
         </Card>
       </div>

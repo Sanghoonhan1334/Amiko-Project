@@ -1381,11 +1381,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                         <span>{formatNumber(post.views)}</span>
                       </span>
                       <span className="flex items-center gap-1">
-                        <ThumbsUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <ThumbsUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500" />
                         <span>{formatNumber(post.likes)}</span>
                       </span>
                       <span className="flex items-center gap-1">
-                        <MessageSquare className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <MessageSquare className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500" />
                         <span>{formatNumber(post.comments_count)}</span>
                       </span>
                     </div>

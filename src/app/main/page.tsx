@@ -8,7 +8,7 @@ import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import HomeTab from '@/components/main/app/home/HomeTab'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { Video, CreditCard } from 'lucide-react'
+import { Video } from 'lucide-react'
 // 🚀 최적화: React Query hook 추가
 import { useMainPageData } from '@/hooks/useMainPageData'
 import { appEngagementEvents, marketingEvents } from '@/lib/analytics'
@@ -58,18 +58,6 @@ const MyTab = dynamic(() => import('@/components/main/app/me/MyTab'), {
   )
 })
 const EventTab = dynamic(() => import('@/components/main/app/event/EventTab'), {
-  loading: () => (
-    <div className="space-y-4 p-4">
-      <Skeleton className="h-8 w-1/3" />
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-20 rounded-lg" />
-        ))}
-      </div>
-    </div>
-  )
-})
-const PaymentsTab = dynamic(() => import('@/components/main/app/payments/PaymentsTab'), {
   loading: () => (
     <div className="space-y-4 p-4">
       <Skeleton className="h-8 w-1/3" />
@@ -232,7 +220,12 @@ function AppPageContent() {
 
     let targetTab = 'home' // 기본값을 home으로 변경
 
-    if (tabParam && ['home', 'meet', 'community', 'me', 'educacion', 'event', 'payments'].includes(tabParam)) {
+    if (tabParam && ['home', 'meet', 'community', 'me', 'educacion', 'event'].includes(tabParam)) {
+      // payments를 me로 리다이렉트 (하위 호환성)
+      if (tabParam === 'payments') {
+        router.replace('/main?tab=me')
+        return
+      }
       // URL 파라미터가 있으면 그것을 사용
       targetTab = tabParam
       console.log('MainPage: using URL param:', targetTab)
@@ -387,7 +380,7 @@ function AppPageContent() {
           {/* 콘텐츠 */}
           <div className="space-y-2 sm:space-y-8">
             {activeTab === 'home' && (
-              <div className="pt-20">
+              <div className="pt-12 md:pt-20">
                 <HomeTab />
               </div>
             )}
@@ -570,33 +563,6 @@ function AppPageContent() {
               </div>
             )}
 
-            {activeTab === 'payments' && (
-              <div className="pb-20 md:pb-8 pt-16 sm:pt-36">
-                {/* 웹: 섹션 카드로 감싸기 */}
-                <div className="hidden md:block">
-                  <div className="card dark:bg-gray-800 dark:border-gray-700 px-8 py-8 -mt-12 sm:mt-0">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden bg-blue-100 dark:bg-blue-900">
-                        <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('headerNav.payments')}</h2>
-                      </div>
-                    </div>
-                    <div>
-                      <PaymentsTab />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 모바일: 섹션 카드 없이 */}
-                <div className="block md:hidden pt-12">
-                  <div className="px-2 sm:px-4 pt-6">
-                    <PaymentsTab />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

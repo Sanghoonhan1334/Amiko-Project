@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { Moon, Sun, Plus, TrendingUp, Clock, ArrowLeft } from 'lucide-react'
+import { Plus, TrendingUp, Clock, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import IdolMemesPost from './IdolMemesPost'
 import IdolMemesUploadModal from './IdolMemesUploadModal'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 
 interface Post {
   id: string
@@ -27,13 +28,14 @@ interface Post {
   is_liked?: boolean
 }
 
-type Theme = 'day' | 'night'
 type SortType = 'popular' | 'recent'
 
 export default function IdolMemesBoard() {
   const { user, token } = useAuth()
   const router = useRouter()
-  const [theme, setTheme] = useState<Theme>('day')
+  const { theme: globalTheme } = useTheme()
+  // 전역 다크 모드와 동기화
+  const theme = globalTheme === 'dark' ? 'night' : 'day'
   const [sortBy, setSortBy] = useState<SortType>('popular')
   const [category, setCategory] = useState<string>('all')
   const [posts, setPosts] = useState<Post[]>([])
@@ -135,9 +137,9 @@ export default function IdolMemesBoard() {
                 <div className="px-4 py-2 mb-3 rounded-lg bg-primary/10 border border-primary/20">
                   <h2 className="font-semibold text-sm text-foreground">📌 Importante</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="space-y-4">
                   {pinnedPosts.map(post => (
-                    <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} />
+                    <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} listView={true} />
                   ))}
                 </div>
               </div>
@@ -145,9 +147,9 @@ export default function IdolMemesBoard() {
 
             {/* Regular Posts */}
             {regularPosts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="space-y-4">
                 {regularPosts.map(post => (
-                  <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} />
+                  <IdolMemesPost key={post.id} post={post} theme={theme} onDelete={fetchPosts} listView={true} />
                 ))}
               </div>
             ) : (
@@ -176,14 +178,14 @@ export default function IdolMemesBoard() {
         )}
       </div>
 
-      {/* Upload Button */}
+      {/* Upload Button - Mobile Only, 다크 모드 토글 위에 배치 */}
       {user && (
         <Button
           size="lg"
-          className="fixed bottom-8 right-8 rounded-full shadow-2xl h-16 w-16 p-0 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white z-50 transition-all duration-300 hover:scale-110"
+          className="fixed bottom-64 right-2 z-50 md:hidden w-11 h-11 sm:h-14 sm:w-14 rounded-full shadow-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white transition-all duration-200 hover:scale-105 active:scale-95 sm:bottom-52 sm:right-8"
           onClick={() => setShowUploadModal(true)}
         >
-          <Plus className="w-10 h-10 drop-shadow-lg stroke-[3]" />
+          <Plus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm stroke-[3]" />
         </Button>
       )}
 

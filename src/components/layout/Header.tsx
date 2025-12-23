@@ -961,22 +961,6 @@ function HeaderContent() {
                     >
                       {t('headerNav.educacion')}
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('Payments 버튼 클릭됨')
-                        handleMainNavClick('payments')
-                      }}
-                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'payments'
-                          ? 'text-purple-500'
-                          : 'text-gray-800 dark:!text-white hover:text-purple-500'
-                      }`}
-                      style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
-                    >
-                      {t('headerNav.payments')}
-                    </button>
                   </div>
                 ) : null}
               </nav>
