@@ -3837,50 +3837,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                   <ArrowLeft className="w-3 h-3" />
                   이전
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="whitespace-nowrap"
-                  onClick={async () => {
-                    try {
-                      // 간단한 샘플 테스트 데이터 생성 (임시로)
-                      const sampleQuiz = {
-                        id: 'embedded-mbti-' + Date.now(),
-                        title: '🎯 간단 MBTI 테스트',
-                        description: '당신의 성격 유형을 간단히 알아보세요',
-                        category: 'personality',
-                        thumbnail_url: null,
-                        total_questions: 4,
-                        total_participants: 0,
-                        is_active: true,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                      };
-                      
-                      // 기존 퀴즈 목록에 추가
-                      setQuizzes(prev => [...prev, sampleQuiz]);
-                      toast.success('샘플 테스트가 성공적으로 생성되었습니다!');
-                      
-                      // 실제 API 호출도 시도해보긴...
-                      try {
-                        const response = await fetch('/api/admin/create-sample-test-simple', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' }
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                          console.log('API로도 생성 완료');
-                        }
-                      } catch (apiError) {
-                        console.log('API 생성 실패했지만 로컬 데이터로 표시:', apiError);
-                      }
-                    } catch (error) {
-                      toast.error('샘플 테스트 생성에 실패했습니다.');
-                    }
-                  }}
-                >
-                  📋 샘플 테스트 생성
-                </Button>
                 {isAdmin && (
                   <Button 
                     size="sm" 
