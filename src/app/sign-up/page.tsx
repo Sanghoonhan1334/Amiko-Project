@@ -26,16 +26,17 @@ export default function SignUpPage() {
     phone: '',
     country: '',
     isKorean: false,
-    birthDate: ''
+    birthDate: '',
+    privacyAccepted: false
   })
-  
+
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     hasNumber: false,
     hasSpecial: false,
     noRepeated: false
   })
-  
+
   const [authData, setAuthData] = useState({
     email: '',
     phoneNumber: '',
@@ -55,7 +56,7 @@ export default function SignUpPage() {
     signUpEvents.formStart()
     // Standardized event
     trackStartSignup()
-    
+
     // 히스토리 초기화 - 모바일 뒤로가기 방지
     if (typeof window !== 'undefined') {
       // 히스토리가 비어있으면 랜딩 페이지를 히스토리에 추가
@@ -83,12 +84,12 @@ export default function SignUpPage() {
     // 전화번호 입력 시 국가별 형식으로 변환
     if (field === 'phone') {
       const selectedCountry = countries.find(c => c.code === formData.country)
-      
+
       // 한국인 경우에만 010- 형식 적용
       if (selectedCountry?.isKorean) {
         // 숫자만 추출
         const digits = value.replace(/\D/g, '')
-        
+
         // 숫자가 없으면 완전히 빈 문자열
         if (digits.length === 0) {
           value = ''
@@ -102,7 +103,7 @@ export default function SignUpPage() {
               phoneDigits = '010' + digits
             }
           }
-          
+
           // 하이픈 추가 (010-XXXX-XXXX)
           if (phoneDigits.length >= 7) {
             value = phoneDigits.substring(0, 3) + '-' + phoneDigits.substring(3, 7) + '-' + phoneDigits.substring(7, 11)
@@ -112,7 +113,7 @@ export default function SignUpPage() {
             value = phoneDigits
           }
         }
-        
+
         // 최대 13자리 (010-1234-5678)
         if (value.length > 13) {
           value = value.substring(0, 13)
@@ -123,17 +124,17 @@ export default function SignUpPage() {
         value = digits
       }
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
-    
+
     // 비밀번호 검증
     if (field === 'password') {
       validatePassword(value)
     }
-    
+
     // 이메일 검증 (오타 감지)
     if (field === 'email') {
       validateEmail(value)
@@ -144,14 +145,14 @@ export default function SignUpPage() {
         trackSignupInput('email')
       }
     }
-    
+
     // 가입 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
       signUpEvents.enterPassword()
       // Standardized event
       trackSignupInput('password')
     }
-    
+
     // Standardized events for other fields
     if (value.length > 0 && ['name', 'phone', 'birthDate', 'country'].includes(field)) {
       trackSignupInput(field)
@@ -173,13 +174,13 @@ export default function SignUpPage() {
         signUpEvents.birthdayOk()
       }
     }
-    
+
     // 가입 퍼널 이벤트: 휴대폰 번호 입력
     if (field === 'phone' && value.length > 0) {
       signUpEvents.enterPhone()
     }
   }
-  
+
   const validatePassword = (password: string) => {
     const checks = {
       length: password.length >= 8,
@@ -188,30 +189,30 @@ export default function SignUpPage() {
       noRepeated: !/(.)\1{2,}/.test(password) // 3개 이상 연속된 문자 방지
     }
     setPasswordChecks(checks)
-    
+
     // 비밀번호 검증 통과 시 이벤트
     if (Object.values(checks).every(check => check)) {
       signUpEvents.passwordOk()
     }
   }
-  
-  
+
+
   const validateEmail = (email: string) => {
     if (!email || email.length === 0) {
       setEmailError(null)
       return
     }
-    
+
     // 기본 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       setEmailError(language === 'ko' ? '올바른 이메일 형식이 아닙니다.' : 'Formato de correo electrónico inválido.')
       return
     }
-    
+
     // 도메인 추출
     const domain = email.split('@')[1]?.toLowerCase() || ''
-    
+
     // 일반적인 이메일 도메인 오타 패턴
     const commonTypos: Record<string, string[]> = {
       'gmail.com': ['gamil.com', 'gmai.com', 'gmaill.com', 'gmal.com', 'gmial.com', 'gmaol.com'],
@@ -224,24 +225,24 @@ export default function SignUpPage() {
       'icloud.com': ['icloud.co', 'icloudd.com'],
       'live.com': ['live.co', 'livve.com']
     }
-    
+
     // 오타 감지
     for (const [correctDomain, typos] of Object.entries(commonTypos)) {
       if (typos.includes(domain)) {
         const suggestion = correctDomain
         setEmailError(
-          language === 'ko' 
+          language === 'ko'
             ? `이메일 도메인에 오타가 있는 것 같습니다. "${suggestion}"를 확인해주세요.`
             : `Parece que hay un error tipográfico en el dominio del correo. Por favor verifica "${suggestion}".`
         )
         return
       }
     }
-    
+
     // 오타가 없으면 에러 제거
     setEmailError(null)
   }
-  
+
   const isPasswordValid = Object.values(passwordChecks).every(check => check)
 
   const handleCountryChange = (countryCode: string) => {
@@ -274,16 +275,16 @@ export default function SignUpPage() {
   const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       const selectedCountry = countries.find(c => c.code === formData.country)
-      
+
       if (selectedCountry?.isKorean && formData.phone) {
         // 한국인 경우: 백스페이스 시 하이픈과 함께 삭제
         const currentValue = formData.phone
         const digits = currentValue.replace(/\D/g, '')
-        
+
         if (digits.length > 0) {
           // 마지막 숫자 하나 삭제
           const newDigits = digits.slice(0, -1)
-          
+
           if (newDigits.length === 0) {
             // 모든 숫자가 삭제되면 빈 문자열
             setFormData(prev => ({ ...prev, phone: '' }))
@@ -299,7 +300,7 @@ export default function SignUpPage() {
                 phoneDigits = '010' + newDigits
               }
             }
-            
+
             let newValue = ''
             if (phoneDigits.length >= 7) {
               newValue = phoneDigits.substring(0, 3) + '-' + phoneDigits.substring(3, 7) + '-' + phoneDigits.substring(7, 11)
@@ -308,7 +309,7 @@ export default function SignUpPage() {
             } else {
               newValue = phoneDigits
             }
-            
+
             setFormData(prev => ({ ...prev, phone: newValue }))
             e.preventDefault()
           }
@@ -326,17 +327,17 @@ export default function SignUpPage() {
       phoneNumber: formData.phone,
       nationality: formData.country
     })
-    
+
     setIsLoading(true)
     try {
-      const requestBody = { 
-        phoneNumber: formData.phone, 
+      const requestBody = {
+        phoneNumber: formData.phone,
         type: method,
         nationality: formData.country
       }
-      
+
       console.log('📤 [DEBUG] API 요청 데이터:', requestBody)
-      
+
       const response = await fetch('/api/auth/verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -345,7 +346,7 @@ export default function SignUpPage() {
 
       const result = await response.json()
       console.log('📥 [DEBUG] API 응답:', JSON.stringify(result, null, 2))
-      
+
       // 응답이 실패했거나 success가 false인 경우 에러 처리
       if (!response.ok || !result.success) {
         const errorMessage = result.error || result.message || '인증코드 발송에 실패했습니다.'
@@ -376,9 +377,9 @@ export default function SignUpPage() {
       const response = await fetch('/api/auth/verification/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phoneNumber: authData.phoneNumber, 
-          code, 
+        body: JSON.stringify({
+          phoneNumber: authData.phoneNumber,
+          code,
           type: 'sms',
           nationality: authData.nationality || 'KR'
         })
@@ -387,7 +388,7 @@ export default function SignUpPage() {
       const result = await response.json()
       if (!response.ok) {
         // 서버 응답의 reason에 따른 명확한 에러 메시지
-        const errorMessage = result.reason === 'NOT_FOUND' 
+        const errorMessage = result.reason === 'NOT_FOUND'
           ? '인증코드를 찾을 수 없습니다. 다시 발송해주세요.'
           : result.reason === 'EXPIRED'
           ? '인증코드가 만료되었습니다. 새로운 코드를 발송해주세요.'
@@ -396,7 +397,7 @@ export default function SignUpPage() {
           : result.reason === 'MISMATCH'
           ? '인증코드가 일치하지 않습니다.'
           : result.detail || result.error || '인증에 실패했습니다.'
-        
+
         throw new Error(errorMessage)
       }
 
@@ -416,7 +417,7 @@ export default function SignUpPage() {
   const handleSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     setIsLoading(true)
-    
+
     // Standardized event: signup_submit
     trackSignupSubmit()
 
@@ -448,8 +449,9 @@ export default function SignUpPage() {
           isKorean: selectedCountry?.isKorean || false,
           birthDate: formData.birthDate,
           emailVerified: authData.isEmailVerified,
-          phoneVerified: authData.isSMSVerified,
-          biometricEnabled: authData.biometricEnabled
+            phoneVerified: authData.isSMSVerified,
+            biometricEnabled: authData.biometricEnabled,
+            privacyAccepted: formData.privacyAccepted
         })
       })
 
@@ -460,37 +462,37 @@ export default function SignUpPage() {
       }
 
       console.log('회원가입 성공:', result)
-      
+
       const userId = result.data?.userId || result.user?.id
-      
+
       // 가입 퍼널 이벤트: 사용자 생성
       signUpEvents.createUser(userId)
-      
+
       // 가입 퍼널 이벤트: 회원가입 완료
       signUpEvents.completeSignUp(userId)
       signUpEvents.signUpSuccess(userId)
-      
+
       // 마케팅 퍼널 이벤트: 회원가입 완료
       marketingEvents.signUp(userId, 'email')
-      
+
       // Standardized events
       trackSignupSuccess(userId)
-      
+
       alert(t('auth.signUpSuccess'))
-      
+
       // 회원가입 성공 후 로그인 페이지로 이동
       router.push('/sign-in')
-      
+
     } catch (error) {
       console.error('회원가입 오류:', error)
-      
+
       // 중복 이메일 에러 처리
       if (error instanceof Error && error.message.includes('이미 가입된 이메일')) {
         alert(t('auth.emailAlreadyExists'))
         setCurrentStep('form') // 폼으로 돌아가기
         return
       }
-      
+
       alert(error instanceof Error ? error.message : t('auth.signUpError'))
     } finally {
       setIsLoading(false)
@@ -499,10 +501,10 @@ export default function SignUpPage() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // 가입 퍼널 이벤트: 회원가입 버튼 클릭
     signUpEvents.registerClick()
-    
+
     if (!isPasswordValid || formData.password !== formData.confirmPassword) {
       return
     }
@@ -523,11 +525,18 @@ export default function SignUpPage() {
       return
     }
 
+    // 개인정보처리방침 동의 확인
+    if (!formData.privacyAccepted) {
+      setIsLoading(false)
+      alert(language === 'ko' ? '개인정보처리방침에 동의해주세요.' : 'Por favor acepta la Política de Privacidad.')
+      return
+    }
+
     // 가입 퍼널 이벤트: 회원가입 제출
     signUpEvents.submitRegister()
 
     setIsLoading(true)
-    
+
     try {
       // 중복 이메일 체크
       const emailResponse = await fetch('/api/auth/check-email', {
@@ -535,13 +544,13 @@ export default function SignUpPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email })
       })
-      
+
       const emailResult = await emailResponse.json()
-      
+
       if (!emailResponse.ok) {
         throw new Error(emailResult.error || '이메일 확인 중 오류가 발생했습니다.')
       }
-      
+
       if (emailResult.exists) {
         alert(t('auth.emailAlreadyExists'))
         return
@@ -553,18 +562,18 @@ export default function SignUpPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: formData.phone })
       })
-      
+
       const phoneResult = await phoneResponse.json()
-      
+
       if (!phoneResponse.ok) {
         throw new Error(phoneResult.error || '전화번호 확인 중 오류가 발생했습니다.')
       }
-      
+
       if (phoneResult.exists) {
         alert(t('auth.phoneAlreadyExists'))
         return
       }
-      
+
       // 중복이 아닌 경우 폼 데이터를 authData에 저장하고 다음 단계로
       setAuthData(prev => ({
         ...prev,
@@ -574,10 +583,10 @@ export default function SignUpPage() {
         name: formData.name,
         country: formData.country
       }))
-      
+
       // 이메일 인증 단계는 제거하고 SMS 인증으로 바로 진행
       setCurrentStep('sms')
-      
+
     } catch (error) {
       console.error('중복 체크 오류:', error)
       alert(error instanceof Error ? error.message : t('auth.checkError'))
@@ -612,7 +621,7 @@ export default function SignUpPage() {
             />
           </div>
         )
-      
+
       default:
         return (
           <form onSubmit={handleFormSubmit} className="space-y-3 sm:space-y-4">
@@ -709,7 +718,7 @@ export default function SignUpPage() {
                   required
                 />
               </div>
-              
+
               {/* 비밀번호 강도 표시 */}
               {formData.password && (
                 <div className="space-y-1 text-xs">
@@ -815,6 +824,30 @@ export default function SignUpPage() {
               </div>
             </div>
 
+            {/* 개인정보처리방침 동의 */}
+            <div className="flex items-start gap-2 py-2">
+              <input
+                id="privacyAccepted"
+                type="checkbox"
+                checked={formData.privacyAccepted}
+                onChange={(e) => setFormData(prev => ({ ...prev, privacyAccepted: e.target.checked }))}
+                className="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="privacyAccepted" className="text-sm text-slate-700 dark:text-gray-300">
+                {language === 'ko' ? (
+                  <>
+                    <span>개인정보처리방침에 동의합니다. </span>
+                    <a href="/privacy" className="text-slate-900 dark:text-gray-100 underline">{t('privacy.title')}</a>
+                  </>
+                ) : (
+                  <>
+                    <span>Acepto la Política de Privacidad. </span>
+                    <a href="/privacy" className="text-slate-900 dark:text-gray-100 underline">{t('privacy.title')}</a>
+                  </>
+                )}
+              </label>
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-slate-900 dark:bg-gray-700 hover:bg-slate-800 dark:hover:bg-gray-600 text-white py-3 text-lg font-medium transition-colors"
@@ -827,6 +860,7 @@ export default function SignUpPage() {
                 !formData.phone ||
                 !formData.country ||
                 !formData.birthDate ||
+                !formData.privacyAccepted ||
                 !isPasswordValid ||
                 formData.password !== formData.confirmPassword ||
                 !!ageError ||
@@ -869,8 +903,8 @@ export default function SignUpPage() {
                 <div className="mt-6 text-center">
                   <p className="text-sm text-slate-600 dark:text-gray-400">
                     {t('auth.alreadyHaveAccount')}{' '}
-                    <a 
-                      href="/sign-in" 
+                    <a
+                      href="/sign-in"
                       onClick={() => trackCTAClick('signup_to_signin_link', window.location.href)}
                       className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium"
                     >
@@ -881,7 +915,7 @@ export default function SignUpPage() {
               </CardContent>
             </>
           )}
-          
+
           {currentStep !== 'form' && (
             <CardContent className="p-6">
               {renderStep()}
