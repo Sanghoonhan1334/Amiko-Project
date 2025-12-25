@@ -491,11 +491,11 @@ export async function POST(request: NextRequest) {
                 }
               } catch (cleanupError) {
                 console.error('[SIGNUP] 삭제된 계정 정리 중 오류:', cleanupError)
-              return NextResponse.json(
-                { error: '계정 정리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
-                { status: 500 }
-              )
-            }
+                return NextResponse.json(
+                  { error: '계정 정리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
+                  { status: 500 }
+                )
+              }
           } else {
             // 기타 Auth 에러
             return NextResponse.json(
