@@ -141,10 +141,9 @@
 
 ## Elementos Necesarios para Migración
 
-Se deben ejecutar los siguientes scripts SQL en Supabase:
-
-1. `database/add-community-notification-settings.sql` - Agregar campos de configuración de notificaciones
-2. `database/fix-verification-codes-type-constraint.sql` - Agregar tipo WhatsApp (posiblemente ya ejecutado)
+**Nota:** Los cambios de base de datos ya fueron aplicados. Los siguientes scripts SQL fueron ejecutados previamente:
+- `database/add-community-notification-settings.sql` ✅
+- `database/fix-verification-codes-type-constraint.sql` ✅
 
 ## Recomendaciones para Pruebas
 
