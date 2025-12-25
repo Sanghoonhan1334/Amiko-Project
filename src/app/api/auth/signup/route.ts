@@ -696,6 +696,7 @@ export async function POST(request: NextRequest) {
             { status: 500 }
           )
         }
+        }
       } catch (error: any) {
         console.error('[SIGNUP] Supabase 사용자 생성 중 오류:', error)
         console.error('[SIGNUP] 에러 상세:', {
