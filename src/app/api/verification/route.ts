@@ -197,12 +197,38 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Level 2 인증 완성 여부 체크 및 뱃지 부여
+    let hasLevel2Badge = false
+    try {
+      // Level 2 인증 조건 확인
+      const hasSMS = !!user.sms_verified_at
+      const hasEmail = !!user.email_verified_at
+      const hasRealName = !!(user.full_name && user.full_name.includes(' ') && user.full_name.length >= 3)
+      const hasProfilePhoto = !!(user.profile_image && !user.profile_image.includes('default') && !user.profile_image.includes('avatar-placeholder'))
+      const bio = user.one_line_intro || user.introduction || ''
+      const hasBio = bio.length >= 20
+
+      // 모든 조건 충족 시 Level 2 인증 완성
+      if (hasSMS && hasEmail && hasRealName && hasProfilePhoto && hasBio) {
+        hasLevel2Badge = true
+        
+        // users 테이블에 verified_badge 업데이트
+        await supabaseServer
+          .from('users')
+          .update({ verified_badge: true })
+          .eq('id', userId)
+      }
+    } catch (error) {
+      console.error('[VERIFICATION] 뱃지 부여 오류:', error)
+    }
+
     return NextResponse.json({
       success: true,
       message: '인증 정보가 성공적으로 제출되었습니다.',
       user,
       preferences,
-      userDetails
+      userDetails,
+      hasLevel2Badge
     })
 
   } catch (error) {

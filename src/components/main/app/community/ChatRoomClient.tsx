@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import UserBadge from '@/components/common/UserBadge'
+import { checkLevel2Auth, checkLevel2AuthAndRedirect } from '@/lib/auth-utils'
 
 interface Message {
   id: string
@@ -676,7 +677,33 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       return
     }
 
-    if (!user) {
+    if (!user || !user.id) {
+      return
+    }
+
+    // Level 2 인증 체크 (실시간 채팅용)
+    const checkAuth = async () => {
+      try {
+        const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
+        if (profileResponse.ok) {
+          const profileResult = await profileResponse.json()
+          const userProfile = profileResult.user
+          
+          const { canAccess } = checkLevel2Auth(userProfile)
+          
+          if (!canAccess) {
+            console.log('❌ Level 2 인증 미완성 - 인증센터로 이동')
+            router.push('/verification-center')
+            return
+          }
+        } else {
+          // 프로필 조회 실패 시 인증센터로 이동
+          router.push('/verification-center')
+          return
+        }
+      } catch (error) {
+        console.error('인증 상태 확인 실패:', error)
+        router.push('/verification-center')
       return
     }
 
@@ -701,7 +728,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         pollingIntervalRef.current = null
       }
     }
-  }, [roomId, user, authSupabase, authLoading, refreshSession])
+    }
+
+    checkAuth()
+  }, [roomId, user, authSupabase, authLoading, refreshSession, router])
   
   // ⚠️ 강화: 인증 체크 - user, user.id, isAuthenticated 모두 확인
   // ⚠️ 중요: early return은 모든 hooks 호출 이후에만 수행
@@ -834,6 +864,27 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     if (!user || !user.id) {
       alert(t('auth.loginRequired'))
       router.push('/sign-in?redirect=/community/k-chat')
+      return
+    }
+    
+    // Level 2 인증 체크 (실시간 채팅용)
+    try {
+      const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
+      if (profileResponse.ok) {
+        const profileResult = await profileResponse.json()
+        const userProfile = profileResult.user
+        
+        if (!checkLevel2AuthAndRedirect(userProfile, router, '실시간 채팅 메시지 전송')) {
+          return
+        }
+      } else {
+        // 프로필 조회 실패 시 인증센터로 이동
+        router.push('/verification-center')
+        return
+      }
+    } catch (error) {
+      console.error('인증 상태 확인 실패:', error)
+      router.push('/verification-center')
       return
     }
     

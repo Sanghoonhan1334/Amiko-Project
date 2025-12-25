@@ -6,6 +6,7 @@ import { ArrowLeft, Heart, MessageCircle, Eye, Share2, Send, Download } from 'lu
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Post {
   id: string
@@ -13,6 +14,7 @@ interface Post {
   content?: string
   image_url: string
   author_name?: string
+  author_id?: string
   views: number
   likes_count: number
   comments_count: number
@@ -399,7 +401,10 @@ export default function FanartDetailPage() {
           <div className="max-w-4xl mx-auto px-4 py-3">
             <h1 className="text-lg font-semibold mb-2">{post.title}</h1>
             <div className="flex items-center gap-3 text-xs text-gray-600">
-              <span>{post.author_name || 'Usuario'}</span>
+              <AuthorName
+                userId={post.author_id}
+                name={post.author_name || 'Usuario'}
+              />
               <span>•</span>
               <span>{likesCount}</span>
               <span>•</span>
@@ -496,9 +501,11 @@ export default function FanartDetailPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="font-semibold text-sm">
-                          {comment.user_profiles?.display_name || 'Usuario'}
-                        </span>
+                        <AuthorName
+                          userId={comment.user_id}
+                          name={comment.user_profiles?.display_name || 'Usuario'}
+                          className="font-semibold text-sm"
+                        />
                         <span className="text-xs text-gray-500">
                           {getTimeAgo(comment.created_at)}
                         </span>
@@ -564,9 +571,11 @@ export default function FanartDetailPage() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-semibold text-sm">
-                                {reply.user_profiles?.display_name || 'Usuario'}
-                              </span>
+                              <AuthorName
+                                userId={reply.user_id}
+                                name={reply.user_profiles?.display_name || 'Usuario'}
+                                className="font-semibold text-sm"
+                              />
                               <span className="text-xs text-gray-500">
                                 {getTimeAgo(reply.created_at)}
                               </span>

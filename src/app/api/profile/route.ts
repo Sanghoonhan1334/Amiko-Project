@@ -47,7 +47,9 @@ async function handleProfileUpdate(request: NextRequest) {
       verification_completed, // 인증 완료 플래그
       korean_level,          // 한국어 수준
       spanish_level,         // 스페인어 수준
-      english_level          // 영어 수준
+      english_level,         // 영어 수준
+      academic_info_public,  // 학업 정보 공개 설정
+      job_info_public        // 직업 정보 공개 설정
     } = body
 
     // Authorization 헤더에서 토큰 추출
@@ -140,8 +142,22 @@ async function handleProfileUpdate(request: NextRequest) {
     if (korean_level !== undefined) updateData.korean_level = korean_level
     if (spanish_level !== undefined) updateData.spanish_level = spanish_level
     if (english_level !== undefined) updateData.english_level = english_level
-    if (is_verified !== undefined) updateData.is_verified = is_verified
-    if (verification_completed !== undefined) updateData.verification_completed = verification_completed
+    if (is_verified !== undefined) {
+      updateData.is_verified = is_verified
+      console.log('[PROFILE] is_verified 설정:', { is_verified, type: typeof is_verified })
+    }
+    if (verification_completed !== undefined) {
+      updateData.verification_completed = verification_completed
+      console.log('[PROFILE] verification_completed 설정:', { verification_completed, type: typeof verification_completed })
+    }
+    if (academic_info_public !== undefined) {
+      updateData.academic_info_public = academic_info_public
+    }
+    if (job_info_public !== undefined) {
+      updateData.job_info_public = job_info_public
+    }
+    
+    console.log('[PROFILE] 최종 updateData:', JSON.stringify(updateData, null, 2))
 
     // 프로필 사진이 있으면 추가
     if (profile_image) {
@@ -210,6 +226,8 @@ async function handleProfileUpdate(request: NextRequest) {
       }
       user = updatedUser
       console.log('[PROFILE] 사용자 업데이트 성공:', updatedUser)
+      console.log('[PROFILE] 업데이트된 is_verified:', updatedUser?.is_verified)
+      console.log('[PROFILE] 업데이트된 verification_completed:', updatedUser?.verification_completed)
     }
 
     // 모든 정보가 users 테이블에 통합되어 있으므로 별도 업데이트 불필요
@@ -233,11 +251,86 @@ async function handleProfileUpdate(request: NextRequest) {
     console.log('[PROFILE] 최종 사용자 데이터:', finalUser)
     console.log('[PROFILE] 최종 사용자 데이터 타입:', typeof finalUser)
     console.log('[PROFILE] 최종 사용자 데이터 키들:', finalUser ? Object.keys(finalUser) : 'null')
+    console.log('[PROFILE] 최종 is_verified:', finalUser?.is_verified, '타입:', typeof finalUser?.is_verified)
+    console.log('[PROFILE] 최종 verification_completed:', finalUser?.verification_completed, '타입:', typeof finalUser?.verification_completed)
+
+    // Level 2 인증 체크 및 뱃지 부여
+    let hasLevel2Badge = false
+    try {
+      const { checkLevel2Auth } = await import('@/lib/auth-utils')
+      const { canAccess, hasBadge } = checkLevel2Auth(finalUser as any)
+      
+      // 인증센터에서 인증 완료한 경우 또는 Level 2 인증 완료한 경우
+      const isVerifiedByCenter = finalUser?.is_verified === true || finalUser?.verification_completed === true
+      const shouldRegisterPartner = isVerifiedByCenter || (hasBadge && !finalUser?.verified_badge)
+      
+      if (shouldRegisterPartner && !finalUser?.verified_badge) {
+        hasLevel2Badge = true
+        
+        // users 테이블에 verified_badge 업데이트
+        await supabaseServer
+          .from('users')
+          .update({ verified_badge: true })
+          .eq('id', userId)
+        
+        console.log('[PROFILE] 인증 완료 - verified_badge 설정:', {
+          isVerifiedByCenter,
+          hasBadge,
+          is_verified: finalUser?.is_verified,
+          verification_completed: finalUser?.verification_completed
+        })
+        
+        // finalUser도 업데이트
+        finalUser = { ...finalUser, verified_badge: true }
+
+        // 한국인인 경우 화상 채팅 파트너로 자동 등록
+        const isKorean = finalUser.is_korean === true || finalUser.country === 'KR'
+        if (isKorean) {
+          try {
+            // 이미 등록되어 있는지 확인
+            const { data: existingPartner } = await supabaseServer
+              .from('conversation_partners')
+              .select('id')
+              .eq('user_id', userId)
+              .single()
+
+            if (!existingPartner) {
+              // 파트너로 등록
+              const { error: partnerError } = await supabaseServer
+                .from('conversation_partners')
+                .insert({
+                  user_id: userId,
+                  name: finalUser.korean_name || finalUser.full_name || finalUser.email?.split('@')[0] || '사용자',
+                  language_level: '중급',
+                  country: '대한민국',
+                  status: 'online',
+                  interests: finalUser.interests || [],
+                  bio: finalUser.one_line_intro || finalUser.introduction || '',
+                  avatar_url: finalUser.profile_image || finalUser.avatar_url || null
+                })
+
+              if (partnerError) {
+                console.error('[PROFILE] 화상 채팅 파트너 자동 등록 실패:', partnerError)
+              } else {
+                console.log('[PROFILE] 인증 완료 - 화상 채팅 파트너 자동 등록 완료')
+              }
+            } else {
+              console.log('[PROFILE] 이미 화상 채팅 파트너로 등록되어 있음')
+            }
+          } catch (partnerError) {
+            console.error('[PROFILE] 화상 채팅 파트너 자동 등록 오류:', partnerError)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[PROFILE] Level 2 인증 체크 오류:', error)
+    }
 
     const responseData = {
       success: true,
       user: finalUser,
-      message: '프로필이 성공적으로 업데이트되었습니다.'
+      message: '프로필이 성공적으로 업데이트되었습니다.',
+      hasLevel2Badge
     }
     
     console.log('[PROFILE] 응답 데이터:', responseData)
@@ -458,11 +551,10 @@ export async function GET(request: NextRequest) {
     
     // 회원가입 시 입력한 국적 (user_metadata.country) 우선 사용
     const signupCountry = userMetadata?.country
+    const userCountry = (user as any).country || signupCountry
     
-    // 전화번호 국가 코드로 한국인 판별 (+82만 한국인으로 인정)
-    const userPhone = (user as any).phone || ''
-    const phoneCountryDigits = userPhone.replace(/\D/g, '')
-    const isKoreanByPhone = phoneCountryDigits.startsWith('82')
+    // 한국인 판별: 국적 기준 (is_korean 또는 country === 'KR')
+    const isKoreanUser = (user as any).is_korean === true || userCountry === 'KR'
     
     return NextResponse.json({
       current_points: points.current_points,
@@ -479,7 +571,7 @@ export async function GET(request: NextRequest) {
         one_line_intro: (user as any).one_line_intro,
         introduction: (user as any).introduction,
         language: (user as any).language,
-        country: signupCountry || (user as any).country, // 회원가입 시 입력한 국적 우선
+        country: userCountry, // 국적 (users 테이블 또는 user_metadata)
         avatar_url: (user as any).avatar_url,
         profile_image: (user as any).profile_image,
         profile_images: (user as any).profile_images,
@@ -497,12 +589,17 @@ export async function GET(request: NextRequest) {
         english_level: (user as any).english_level,        // 영어 수준
         is_verified: (user as any).is_verified,            // 인증 완료 여부
         verification_completed: (user as any).verification_completed, // 인증 완료 플래그
+        verified_badge: (user as any).verified_badge || false, // Level 2 인증 뱃지
+        sms_verified_at: (user as any).sms_verified_at,
+        email_verified_at: (user as any).email_verified_at,
         join_date: (user as any).join_date,
         is_admin: (user as any).is_admin,
-        is_korean: isKoreanByPhone,
+        is_korean: isKoreanUser,
         created_at: (user as any).created_at,
         updated_at: (user as any).updated_at,
-        user_metadata: userMetadata // auth.users의 metadata (회원가입 시 입력한 국적 포함)
+        user_metadata: userMetadata, // auth.users의 metadata (회원가입 시 입력한 국적 포함)
+        academic_info_public: (user as any).academic_info_public ?? false, // 학업 정보 공개 설정
+        job_info_public: (user as any).job_info_public ?? false // 직업 정보 공개 설정
       },
       profile: {
         user_id: userId,
@@ -528,7 +625,9 @@ export async function GET(request: NextRequest) {
         kakao_linked_at: null,
         wa_verified_at: null,
         sms_verified_at: null,
-        email_verified_at: (user as any).email_verified_at
+        email_verified_at: (user as any).email_verified_at,
+        academic_info_public: (user as any).academic_info_public ?? false, // 학업 정보 공개 설정
+        job_info_public: (user as any).job_info_public ?? false // 직업 정보 공개 설정
       },
       points: points || {
         total_points: 0,

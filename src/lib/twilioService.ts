@@ -263,7 +263,43 @@ export async function sendTwilioWhatsApp(to: string, message: string): Promise<b
     console.log(`[TWILIO_WHATSAPP] 받는 번호: ${whatsappTo}`)
     console.log(`[TWILIO_WHATSAPP] 메시지: ${message}`)
     console.log(`[TWILIO_WHATSAPP] 상태: ${result.status}`)
+    console.log(`[TWILIO_WHATSAPP] 에러 코드: ${result.errorCode || '없음'}`)
+    console.log(`[TWILIO_WHATSAPP] 에러 메시지: ${result.errorMessage || '없음'}`)
+    console.log(`[TWILIO_WHATSAPP] 메시지 상세 확인: https://console.twilio.com/us1/monitor/logs/messages/${result.sid}`)
+    
+    // 상태가 queued인 경우 경고
+    if (result.status === 'queued') {
+      console.warn(`[TWILIO_WHATSAPP] ⚠️  메시지가 큐에 들어갔습니다. 실제 전송 여부는 Twilio 콘솔에서 확인하세요.`)
+      console.warn(`[TWILIO_WHATSAPP] ⚠️  Sandbox 모드인 경우 수신 번호가 Sandbox에 등록되어 있어야 합니다.`)
+      console.warn(`[TWILIO_WHATSAPP] ⚠️  Sandbox 등록: https://console.twilio.com/us1/develop/sms/sandbox`)
+    }
+    
+    // 에러 코드가 있는 경우 경고
+    if (result.errorCode) {
+      console.error(`[TWILIO_WHATSAPP] ❌ 에러 코드: ${result.errorCode}`)
+      console.error(`[TWILIO_WHATSAPP] ❌ 에러 메시지: ${result.errorMessage}`)
+      
+      // 에러 코드별 안내
+      if (result.errorCode === 63007) {
+        console.error(`[TWILIO_WHATSAPP] ❌ 에러 63007: 수신 번호가 Sandbox에 등록되지 않았습니다.`)
+        console.error(`[TWILIO_WHATSAPP] 해결 방법:`)
+        console.error(`[TWILIO_WHATSAPP] 1. Twilio 콘솔에서 Sandbox 설정 확인: https://console.twilio.com/us1/develop/sms/sandbox`)
+        console.error(`[TWILIO_WHATSAPP] 2. 수신 번호 ${whatsappTo.replace('whatsapp:', '')}를 Sandbox에 등록하세요.`)
+        console.error(`[TWILIO_WHATSAPP] 3. 또는 프로덕션 WhatsApp Business API로 전환하세요.`)
+      } else if (result.errorCode === 63016) {
+        console.error(`[TWILIO_WHATSAPP] ❌ 에러 63016: 24시간 이내에 사용자가 메시지를 보내지 않았습니다.`)
+        console.error(`[TWILIO_WHATSAPP] 해결 방법:`)
+        console.error(`[TWILIO_WHATSAPP] 1. 사용자가 먼저 WhatsApp으로 메시지를 보내야 합니다.`)
+        console.error(`[TWILIO_WHATSAPP] 2. 또는 프로덕션 WhatsApp Business API로 전환하세요.`)
+      }
+    }
+    
     console.log(`[TWILIO_WHATSAPP] ========================================`)
+    
+    // 에러 코드가 있으면 false 반환
+    if (result.errorCode) {
+      return false
+    }
     
     return true
     

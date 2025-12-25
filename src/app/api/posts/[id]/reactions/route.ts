@@ -46,10 +46,10 @@ export async function POST(
       )
     }
 
-    // 게시글 존재 확인
+    // 게시글 존재 확인 및 작성자 정보 가져오기
     const { data: post, error: postError } = await supabaseServer
       .from('posts')
-      .select('id')
+      .select('id, user_id, title')
       .eq('id', postId)
       .eq('status', 'published')
       .single()
@@ -60,6 +60,8 @@ export async function POST(
         { status: 404 }
       )
     }
+
+    const postAuthorId = (post as any).user_id
 
     // 기존 반응 확인
     const { data: existingReaction, error: reactionError } = await supabaseServer
@@ -178,6 +180,54 @@ export async function POST(
         dislike_count: actualDislikeCount
       })
       .eq('id', postId)
+
+    // 좋아요가 추가되었고, 본인 게시글이 아닌 경우 알림 발송
+    if (action === 'added' && reaction_type === 'like' && postAuthorId !== user.id) {
+      try {
+        // 알림 설정 확인
+        const { data: notificationSettings } = await supabaseServer
+          .from('notification_settings')
+          .select('like_notifications_enabled, push_enabled')
+          .eq('user_id', postAuthorId)
+          .single()
+
+        // 알림 설정이 켜져있고 푸시가 활성화된 경우에만 발송
+        if (notificationSettings?.like_notifications_enabled !== false && notificationSettings?.push_enabled !== false) {
+          // 좋아요를 누른 사용자 이름 가져오기
+          const { data: likerUser } = await supabaseServer
+            .from('users')
+            .select('korean_name, spanish_name, full_name')
+            .eq('id', user.id)
+            .single()
+
+          const likerName = likerUser?.korean_name || likerUser?.spanish_name || likerUser?.full_name || '누군가'
+
+          // 푸시 알림 발송 (비동기, 실패해도 좋아요는 성공 처리)
+          fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: postAuthorId,
+              title: '새로운 좋아요',
+              body: `${likerName}님이 내 글에 좋아요를 달았습니다`,
+              data: {
+                type: 'post_liked',
+                postId: postId,
+                postTitle: (post as any).title || '',
+                url: `/community/posts/${postId}`
+              },
+              tag: `post_liked_${postId}`
+            })
+          }).catch(err => {
+            console.error('[POST_REACTION] 푸시 알림 발송 실패:', err)
+            // 알림 실패는 무시하고 계속 진행
+          })
+        }
+      } catch (notificationError) {
+        console.error('[POST_REACTION] 알림 처리 중 오류:', notificationError)
+        // 알림 오류는 무시하고 계속 진행
+      }
+    }
 
     return NextResponse.json({
       message: `반응이 ${action === 'removed' ? '제거' : action === 'updated' ? '변경' : '추가'}되었습니다.`,

@@ -26,5 +26,11 @@
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/notifications/daily-digest",
+      "schedule": "30 14 * * *"
+    }
   ]
 }

@@ -62,6 +62,15 @@ export async function POST(request: NextRequest) {
     const { error: deleteError } = await supabaseServer.auth.admin.deleteUser(userId, true)
 
     if (deleteError) {
+      // 사용자가 이미 삭제된 경우 (user_not_found)는 성공으로 처리
+      if (deleteError.code === 'user_not_found' || deleteError.status === 404) {
+        console.log('[CLEANUP_ORPHANED] auth.users에서 사용자가 이미 삭제됨 (정리 완료):', userId)
+        return NextResponse.json({
+          success: true,
+          message: 'User already deleted, cleanup completed'
+        })
+      }
+      
       console.error('[CLEANUP_ORPHANED] auth.users 삭제 실패 (force 옵션 사용):', deleteError)
       return NextResponse.json(
         { 

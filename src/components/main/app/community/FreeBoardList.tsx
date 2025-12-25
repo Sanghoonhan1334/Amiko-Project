@@ -32,6 +32,7 @@ import {
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import AuthorName from '@/components/common/AuthorName'
+import { checkLevel1Auth } from '@/lib/auth-utils'
 
 interface Post {
   id: string
@@ -154,11 +155,35 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   }, [])
 
   // 글쓰기 모달 열기
-  const handleOpenPostModal = () => {
+  const handleOpenPostModal = async () => {
     if (!user) {
       router.push('/sign-in')
       return
     }
+
+    // Level 1 인증 체크 (SMS 인증만)
+    try {
+      const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
+      if (profileResponse.ok) {
+        const profileResult = await profileResponse.json()
+        const userProfile = profileResult.user
+        
+        const { canAccess, missingRequirements } = checkLevel1Auth(userProfile)
+        
+        if (!canAccess) {
+          toast.error(
+            language === 'ko' 
+              ? `게시글 작성을 위해 ${missingRequirements.join(', ')}이(가) 필요합니다.`
+              : `Se requiere ${missingRequirements.join(', ')} para crear publicaciones.`
+          )
+          router.push('/verification-center')
+          return
+        }
+      }
+    } catch (error) {
+      console.error('인증 상태 확인 실패:', error)
+    }
+
     setShowPostModal(true)
     setIsFabExpanded(false)
   }
@@ -1014,24 +1039,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   </Select>
                   
                   <Button 
-                    onClick={async () => {
-                      try {
-                        if (!user && !token) {
-                          setShowAuthDialog(true)
-                          return
-                        }
-                        
-                        if (!user) {
-                          setShowAuthDialog(true)
-                          return
-                        }
-                        
-                        router.push('/community/post/create')
-                      } catch (error) {
-                        console.error('인증 상태 확인 오류:', error)
-                        setShowAuthDialog(true)
-                      }
-                    }} 
+                    onClick={handleOpenPostModal}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Plus className="w-4 h-4 mr-1" />

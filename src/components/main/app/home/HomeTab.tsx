@@ -2087,7 +2087,7 @@ export default function HomeTab() {
               {popularTests.length > 0 ? (
                 <>
                   <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-                    {popularTests.map((test) => (
+                    {popularTests.slice(0, 3).map((test) => (
                       <div
                         key={test.id}
                         className="cursor-pointer group"

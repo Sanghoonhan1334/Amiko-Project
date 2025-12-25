@@ -15,6 +15,7 @@ import Header from '@/components/layout/Header'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Story {
   id: string
@@ -1901,9 +1902,11 @@ function StoriesPageContent() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="font-semibold text-sm">
-                            {comment.author?.full_name || t('freeboard.anonymous')}
-                          </span>
+                          <AuthorName
+                            userId={comment.user_id}
+                            name={comment.author?.full_name || t('freeboard.anonymous')}
+                            className="font-semibold text-sm"
+                          />
                           <span className="text-xs text-gray-500">
                             {new Date(comment.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'ko-KR')}
                           </span>
@@ -1945,9 +1948,11 @@ function StoriesPageContent() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-semibold text-xs">
-                                  {reply.author?.full_name || t('freeboard.anonymous')}
-                                </span>
+                                <AuthorName
+                                  userId={reply.user_id}
+                                  name={reply.author?.full_name || t('freeboard.anonymous')}
+                                  className="font-semibold text-xs"
+                                />
                                 <span className="text-xs text-gray-500">
                                   {new Date(reply.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'ko-KR')}
                                 </span>

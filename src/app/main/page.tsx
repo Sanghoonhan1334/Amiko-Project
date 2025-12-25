@@ -170,28 +170,7 @@ function AppPageContent() {
           // 포인트 업데이트 이벤트 발생
           window.dispatchEvent(new CustomEvent('pointsUpdated'))
 
-          // 환영 메시지 표시 (언어별)
-          const welcomeMessage = language === 'ko'
-            ? '환영합니다! ✅ 출석 체크 완료 (+10점)'
-            : '¡Bienvenido! ✅ Asistencia registrada (+10 puntos)'
-
-          if (typeof window !== 'undefined' && (window as any).toast) {
-            (window as any).toast.success(welcomeMessage, {
-              duration: 4000,
-              position: 'top-center',
-              style: {
-                background: '#10B981',
-                color: '#fff',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                padding: '16px 24px',
-                borderRadius: '12px'
-              }
-            })
-          } else {
-            // toast가 없으면 alert로 대체
-            alert(welcomeMessage)
-          }
+          // 출석체크 alert 메시지 제거됨 (점수 제도 미사용)
         } else {
           const errorData = await response.json()
           console.log('[AUTO_ATTENDANCE] 출석 체크 실패:', errorData.error)
@@ -269,7 +248,7 @@ function AppPageContent() {
     if (activeTab === 'community') {
       const cTab = searchParams.get('cTab')
       // cTab 파라미터가 있으면 그것을 사용, 없으면 'home'
-      if (cTab && ['news', 'qa', 'tests', 'events'].includes(cTab)) {
+      if (cTab && ['news', 'tests', 'events'].includes(cTab)) {
         setCommunityView(cTab)
       } else {
         // cTab이 없거나 'home'이면 'home'으로 설정
@@ -435,7 +414,6 @@ function AppPageContent() {
                           const title = communityView === 'home' ? t('main.community') :
                                        communityView === 'freeboard' ? t('community.freeBoard') :
                                        (communityView === 'news' || communityView === 'news-detail') ? t('community.koreanNews') :
-                                       communityView === 'qa' ? t('community.qa') :
                                        communityView === 'tests' ? t('tests.title') :
                                        t('main.community')
                           console.log('헤더 제목 디버그:', { communityView, title, koreanNews: t('community.koreanNews') })
@@ -443,7 +421,7 @@ function AppPageContent() {
                         })()}
                       </h2>
                     </div>
-                    {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'qa' || communityView === 'events') && (
+                    {(communityView === 'news' || communityView === 'freeboard' || communityView === 'tests' || communityView === 'events') && (
                       <button
                         onClick={() => {
                           setCommunityView('home')
@@ -464,7 +442,6 @@ function AppPageContent() {
                       {communityView === 'home' ? t('main.communityDescription') :
                        communityView === 'freeboard' ? t('community.freeBoardDescription') :
                        communityView === 'news' ? t('community.koreanNewsDescription') :
-                       communityView === 'qa' ? t('community.qaDescription') :
                        communityView === 'tests' ? t('tests.description') :
                        communityView === 'events' ? t('community.eventsDesc') :
                        t('main.communityDescription')}
