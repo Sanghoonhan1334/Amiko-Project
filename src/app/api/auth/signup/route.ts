@@ -274,13 +274,13 @@ export async function POST(request: NextRequest) {
           })
 
           if (!authError && authData?.user) {
-          // 정상적인 createUser 성공
-          userId = authData.user.id
-          console.log(`[SIGNUP] Supabase Auth 사용자 생성 성공: ${userId}`)
-          // 이메일을 전역 변수에 저장 (중복 검증용)
-          global.registeredEmails!.add(email)
-          console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
-        } else if (authError) {
+            // 정상적인 createUser 성공
+            userId = authData.user.id
+            console.log(`[SIGNUP] Supabase Auth 사용자 생성 성공: ${userId}`)
+            // 이메일을 전역 변수에 저장 (중복 검증용)
+            global.registeredEmails!.add(email)
+            console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
+          } else if (authError) {
           console.error('[SIGNUP] Supabase Auth 사용자 생성 실패:', authError)
           
           // 이메일 중복 에러 처리
