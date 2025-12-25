@@ -281,17 +281,17 @@ export async function POST(request: NextRequest) {
             global.registeredEmails!.add(email)
             console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
           } else if (authError) {
-          console.error('[SIGNUP] Supabase Auth 사용자 생성 실패:', authError)
-          
-          // 이메일 중복 에러 처리
-          if (authError.message?.includes('already registered') || 
-              authError.message?.includes('already exists') ||
-              authError.message?.includes('User already registered') ||
-              authError.message?.includes('email address is already registered')) {
+            console.error('[SIGNUP] Supabase Auth 사용자 생성 실패:', authError)
             
-            // Supabase Auth에서 이메일로 사용자 찾기
-            try {
-              const { data: authUsers, error: listError } = await supabaseServer.auth.admin.listUsers()
+            // 이메일 중복 에러 처리
+            if (authError.message?.includes('already registered') || 
+                authError.message?.includes('already exists') ||
+                authError.message?.includes('User already registered') ||
+                authError.message?.includes('email address is already registered')) {
+              
+              // Supabase Auth에서 이메일로 사용자 찾기
+              try {
+                const { data: authUsers, error: listError } = await supabaseServer.auth.admin.listUsers()
               
               if (!listError && authUsers) {
                 const emailLower = email.toLowerCase()
