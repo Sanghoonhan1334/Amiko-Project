@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { extractCountryCodeFromPhone } from '@/lib/timezone-converter'
 
 // 화상 채팅 파트너 등록
 export async function POST(request: NextRequest) {
@@ -8,33 +7,29 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const supabase = createClient()
 
-    // 한국인 판정: (1) 인증센터 is_korean OR (2) 전화번호 국가번호 +82 OR (3) 관리자 승인 플래그
+    // 한국인 판정: (1) 인증센터 is_korean OR (2) users 테이블 is_korean OR (3) country === 'KR' OR (4) 관리자 승인 플래그
     let isKoreanAllowed = Boolean(body.is_korean)
 
     try {
-      // users 테이블에서 전화번호/플래그 조회
+      // users 테이블에서 국적/플래그 조회
       const { data: userRow } = await supabase
         .from('users')
-        .select('phone, phone_country, is_korean, admin_partner_override')
+        .select('is_korean, country, admin_partner_override')
         .eq('id', body.user_id)
         .single()
 
-      const phone = body.phone || userRow?.phone || null
-      const phoneCountryField = (userRow as any)?.phone_country || null
-      const phoneCodeParsed = extractCountryCodeFromPhone(phone)
-      const effectiveCode = phoneCountryField || phoneCodeParsed || null
-      const byPhone = effectiveCode === '82'
       const adminOverride = Boolean(userRow?.admin_partner_override)
       const isKoreanProfile = Boolean(userRow?.is_korean)
+      const isKoreanByCountry = userRow?.country === 'KR'
 
-      isKoreanAllowed = Boolean(isKoreanAllowed || isKoreanProfile || byPhone || adminOverride)
+      isKoreanAllowed = Boolean(isKoreanAllowed || isKoreanProfile || isKoreanByCountry || adminOverride)
     } catch (e) {
       // 조회 실패 시 기존 body 기준만 사용
     }
 
     if (!isKoreanAllowed) {
       return NextResponse.json(
-        { error: '한국(+82) 번호 또는 관리자 승인/한국인 인증이 필요합니다.' },
+        { error: '한국인 인증 또는 관리자 승인이 필요합니다.' },
         { status: 403 }
       )
     }

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Phone, MessageSquare, Smartphone, Clock, RefreshCw, CheckCircle } from 'lucide-react'
+import { Phone, MessageSquare, Smartphone, Clock, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
 
 // 카카오톡, 토스, SMS 아이콘 컴포넌트
 const KakaoIcon = () => (
@@ -53,6 +53,8 @@ export default function PhoneVerification({
   const [codeSent, setCodeSent] = useState(false)
   const [isWaitingForCode, setIsWaitingForCode] = useState(false)
   const [hasAutoSent, setHasAutoSent] = useState(false) // 자동 발송 여부
+  const [isSending, setIsSending] = useState(false) // 인증코드 발송 중 상태 (중복 클릭 방지)
+  const [isVerifying, setIsVerifying] = useState(false) // 인증 확인 중 상태 (중복 클릭 방지)
 
   // 국적별 인증 방식 정의
   const getAuthMethods = (nationality: string): AuthMethod[] => {
@@ -128,6 +130,12 @@ export default function PhoneVerification({
   }
 
   const handleSendCode = async () => {
+    // 중복 클릭 방지: 이미 발송 중이면 무시
+    if (isSending || isLoading) {
+      console.log('🔍 [DEBUG] 이미 발송 중이므로 무시')
+      return
+    }
+    
     console.log('🔍 [DEBUG] handleSendCode 호출됨:', {
       selectedMethod,
       phoneNumber,
@@ -135,6 +143,7 @@ export default function PhoneVerification({
     })
     
     if (selectedMethod) {
+      setIsSending(true) // 발송 시작 - 버튼 비활성화
       setIsWaitingForCode(true)
       setTimeLeft(120) // 2분 타이머 시작
       
@@ -146,17 +155,51 @@ export default function PhoneVerification({
         await onResend(selectedMethod)
         setHasAutoSent(true)
         console.log('✅ [DEBUG] 인증코드 발송 완료')
+        
+        // 최소 2초 대기 (중복 클릭 방지)
+        await new Promise(resolve => setTimeout(resolve, 2000))
       } catch (error) {
         console.error('❌ [DEBUG] 인증코드 발송 실패:', error)
+        // Rate limit 에러인 경우에도 사용자가 코드를 받았을 수 있으므로
+        // 입력 상태는 유지 (hasAutoSent는 false로 유지)
+        if (error instanceof Error && error.message === 'RATE_LIMIT_EXCEEDED') {
+          // Rate limit 에러는 이미 alert를 표시했으므로
+          // 사용자가 코드를 받았을 수 있다는 것을 알려줌
+          // 입력 상태는 유지하되, 타이머는 리셋하지 않음
+        } else {
         setIsWaitingForCode(false)
         setTimeLeft(0)
+      }
+        
+        // 최소 2초 대기 (중복 클릭 방지)
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      } finally {
+        setIsSending(false) // 발송 완료 - 버튼 활성화
       }
     }
   }
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
+    // 중복 클릭 방지: 이미 인증 중이면 무시
+    if (isVerifying || isLoading || verificationCode.length !== 6 || timeLeft === 0) {
+      console.log('🔍 [DEBUG] 인증 중이거나 조건 불만족, 무시')
+      return
+    }
+    
     if (verificationCode.length === 6) {
-      onVerify(verificationCode)
+      setIsVerifying(true) // 인증 시작 - 버튼 비활성화
+      
+      try {
+        await onVerify(verificationCode)
+        // 인증 성공 시 최소 1초 대기 (중복 클릭 방지)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      } catch (error) {
+        console.error('❌ [DEBUG] 인증 실패:', error)
+        // 인증 실패 시에도 최소 1초 대기
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      } finally {
+        setIsVerifying(false) // 인증 완료 - 버튼 활성화
+      }
     }
   }
 
@@ -178,14 +221,11 @@ export default function PhoneVerification({
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="relative inline-block mb-3">
-          <div className="absolute inset-0 bg-blue-100 rounded-full blur-xl opacity-50"></div>
-          <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-full shadow-lg">
-            <Phone className="w-12 h-12 text-white" />
-          </div>
-        </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-1">{t('phoneVerification.title')}</h3>
-        <p className="text-gray-600">
+        <h3 className="text-lg font-bold text-gray-800 mb-1 flex items-center justify-center gap-2">
+          <Phone className="w-5 h-5 text-blue-600" />
+          {t('phoneVerification.title')}
+        </h3>
+        <p className="text-gray-600 whitespace-nowrap">
           <strong className="text-blue-600">{phoneNumber}</strong>{t('phoneVerification.proceedWith')}
         </p>
         <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-blue-50 rounded-full">
@@ -265,11 +305,11 @@ export default function PhoneVerification({
             // 인증코드 보내기 버튼
             <Button 
               onClick={handleSendCode}
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              disabled={isLoading || isSending}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               size="lg"
             >
-              {isLoading ? (
+              {(isLoading || isSending) ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   {t('phoneVerification.sending')}
@@ -302,6 +342,10 @@ export default function PhoneVerification({
                   maxLength={6}
                   value={verificationCode}
                   onChange={(e) => {
+                    // 만료된 경우 입력 불가
+                    if (timeLeft === 0) {
+                      return
+                    }
                     const value = e.target.value.replace(/\D/g, '')
                     setVerificationCode(value)
                     // 6자리 입력 시 대기 상태 해제
@@ -309,10 +353,23 @@ export default function PhoneVerification({
                       setIsWaitingForCode(false)
                     }
                   }}
-                  className="text-center text-xl font-bold tracking-widest border-2 border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 py-3 h-12"
+                  disabled={timeLeft === 0}
+                  className={`text-center text-xl font-bold tracking-widest border-2 py-3 h-12 ${
+                    timeLeft === 0 
+                      ? 'border-red-300 bg-gray-100 cursor-not-allowed opacity-60' 
+                      : 'border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+                  }`}
                   autoComplete="one-time-code"
                 />
-                {verificationCode.length === 6 && (
+                {timeLeft === 0 && (
+                  <div className="mt-1 text-center">
+                    <span className="inline-flex items-center gap-1 text-red-600 text-xs font-medium">
+                      <AlertCircle className="w-3 h-3" />
+                      {t('phoneVerification.codeExpired')} - {t('phoneVerification.resendCode')}
+                    </span>
+                  </div>
+                )}
+                {verificationCode.length === 6 && timeLeft > 0 && (
                   <div className="mt-1 text-center">
                     <span className="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
                       <CheckCircle className="w-3 h-3" />
@@ -378,17 +435,26 @@ export default function PhoneVerification({
                   </div>
                 </Button>
               ) : (
-                // 3단계: 인증하기 버튼 (6자리 입력 후 활성화)
+                // 3단계: 인증하기 버튼 (6자리 입력 후 활성화, 만료 시 비활성화)
                 <Button 
                   onClick={handleVerify}
-                  disabled={verificationCode.length !== 6 || isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  disabled={verificationCode.length !== 6 || isLoading || isVerifying || timeLeft === 0}
+                  className={`w-full font-semibold py-2.5 text-base shadow-lg transition-all duration-200 ${
+                    timeLeft === 0 || isVerifying
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl transform hover:scale-105'
+                  } disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
                   size="lg"
                 >
-                  {isLoading ? (
+                  {(isLoading || isVerifying) ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       {t('phoneVerification.verifying')}
+                    </div>
+                  ) : timeLeft === 0 ? (
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      {t('phoneVerification.codeExpired')}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">

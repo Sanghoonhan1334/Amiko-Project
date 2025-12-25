@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Paintbrush } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { trackEvent } from '@/lib/analytics'
@@ -13,6 +14,7 @@ const STORAGE_KEY = 'amiko-palette'
 export default function PaletteSwitcher() {
   const [mounted, setMounted] = useState(false)
   const [palette, setPalette] = useState<PaletteKey>('default')
+  const pathname = usePathname()
 
   // Read initial palette early on mount
   useEffect(() => {
@@ -32,6 +34,11 @@ export default function PaletteSwitcher() {
     const nextIdx = (idx + 1) % PALETTES.length
     return PALETTES[nextIdx]
   }, [palette])
+  
+  // 인증센터 페이지에서는 플로팅 버튼 숨김
+  if (pathname?.startsWith('/verification')) {
+    return null
+  }
 
   function applyPalette(p: PaletteKey) {
     if (typeof document === 'undefined') return

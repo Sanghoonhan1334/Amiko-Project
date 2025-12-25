@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.verification_codes (
     email TEXT,
     phone_number TEXT,
     code TEXT NOT NULL,
-    type TEXT NOT NULL CHECK (type IN ('email', 'sms')),
+    type TEXT NOT NULL CHECK (type IN ('email', 'sms', 'wa')),
     verified BOOLEAN DEFAULT FALSE,
     verified_at TIMESTAMP WITH TIME ZONE,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,

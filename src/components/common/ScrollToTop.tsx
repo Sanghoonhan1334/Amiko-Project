@@ -1,14 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ChevronUp } from 'lucide-react'
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false)
+  const pathname = usePathname()
 
   // 스크롤 위치 감지
   useEffect(() => {
+    // 인증센터 페이지에서는 스크롤 이벤트 리스너 등록하지 않음
+    if (pathname?.startsWith('/verification')) {
+      return
+    }
+
     const toggleVisibility = () => {
       // 페이지 상단에서 100px 이상 스크롤했을 때 버튼 표시 (더 쉽게 보이도록)
       if (window.pageYOffset > 100) {
@@ -26,7 +33,12 @@ export default function ScrollToTop() {
     return () => {
       window.removeEventListener('scroll', toggleVisibility)
     }
-  }, [])
+  }, [pathname])
+  
+  // 인증센터 페이지에서는 플로팅 버튼 숨김
+  if (pathname?.startsWith('/verification')) {
+    return null
+  }
 
   // 맨 위로 스크롤
   const scrollToTop = () => {

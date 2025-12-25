@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { extractCountryCodeFromPhone } from '@/lib/timezone-converter'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -45,7 +44,8 @@ import {
   ChevronDown,
   Fingerprint,
   Smartphone,
-  Lock
+  Lock,
+  ArrowRight
 } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
@@ -55,7 +55,7 @@ import StorySettings from './StorySettings'
 import { KoreanUserProfile, LatinUserProfile } from '@/types/user'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
+import { checkAuthAndRedirect, checkLevel2Auth } from '@/lib/auth-utils'
 import { checkWebAuthnSupport, getBiometricAuthStatus, startBiometricRegistration, deleteBiometricCredential, checkPlatformAuthenticatorAvailable } from '@/lib/webauthnClient'
 import { isAndroidDevice } from '@/lib/share-utils'
 import ChargingTab from '../charging/ChargingTab'
@@ -77,7 +77,6 @@ export default function MyTab() {
   // 추천인 기능 비활성화: 코드/복사 상태 제거
   const referralCode: string | null = null
   const [isPartnerRegistered, setIsPartnerRegistered] = useState(false)
-  const [showPartnerForm, setShowPartnerForm] = useState(false)
   // const [dailyMissions, setDailyMissions] = useState<any>(null) // 출석체크 숨김 처리
   const [dailyEarnedPoints, setDailyEarnedPoints] = useState(0)
   const [isMissionsExpanded, setIsMissionsExpanded] = useState(true)
@@ -107,87 +106,11 @@ export default function MyTab() {
   useEffect(() => {
     if (user) {
       // 사용자 프로필 정보를 가져와서 인증 상태 확인
-      const checkVerificationStatus = async () => {
-        try {
-          // 방금 인증 완료한 사용자는 체크 스킵 (무한 루프 방지)
-          const justCompleted = localStorage.getItem('verification_just_completed')
-          if (justCompleted === 'true') {
-            console.log('[MYTAB] 방금 인증 완료한 사용자, 인증 체크 스킵')
-            localStorage.removeItem('verification_just_completed')
-            return
-          }
-          
-          // 먼저 운영자 확인
-          const adminCheck = await fetch(`/api/admin/check?userId=${user.id}`)
-          const adminResult = await adminCheck.json()
-          
-          if (adminResult.isAdmin) {
-            console.log('운영자 확인됨, 인증 체크 스킵')
-            return
-          }
-          
-          const response = await fetch(`/api/profile?userId=${user.id}`)
-          const result = await response.json()
-          
-          if (response.ok && result.user) {
-            // 프로필 있음 → 인증 상태 확인 (실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시)
-            // 회원가입 시 입력한 정보만으로는 인증완료로 처리하지 않음
-            const isVerified = !!(
-              result.user.is_verified ||  // 👈 인증센터에서 설정한 플래그
-              result.user.verification_completed ||  // 👈 인증 완료 플래그
-              result.user.email_verified_at || 
-              result.user.sms_verified_at || 
-              result.user.kakao_linked_at || 
-              result.user.wa_verified_at ||
-              (result.user.korean_name) ||
-              (result.user.spanish_name) ||
-              // full_name && phone 조건 제거 - 회원가입 시 자동으로 true가 되어 인증완료로 표시되는 문제 방지
-              (result.user.full_name && result.user.university && result.user.major)
-            )
-            
-            console.log('인증 상태 확인:', {
-              is_verified: result.user.is_verified,
-              verification_completed: result.user.verification_completed,
-              email_verified_at: result.user.email_verified_at,
-              sms_verified_at: result.user.sms_verified_at,
-              full_name: result.user.full_name,
-              phone: result.user.phone,
-              university: result.user.university,
-              major: result.user.major,
-              korean_name: result.user.korean_name,
-              spanish_name: result.user.spanish_name,
-              isVerified: isVerified
-            })
-            
-            if (!isVerified) {
-              console.log('사용자가 인증되지 않음, 인증 다이얼로그 표시')
-              // 현재 경로가 이미 verification-center가 아닌 경우에만 다이얼로그 표시
-              if (window.location.pathname !== '/verification-center') {
-                setShowAuthDialog(true)
-              }
-            }
-          } else {
-            // 프로필 없음 또는 API 실패 → 인증 다이얼로그 표시
-            console.log('프로필이 없거나 API 실패, 인증 다이얼로그 표시')
-            if (window.location.pathname !== '/verification-center') {
-              setShowAuthDialog(true)
-            }
-          }
-        } catch (error) {
-          console.error('인증 상태 확인 실패:', error)
-          // 오류 발생 시에도 인증 다이얼로그 표시 (신규 가입자일 가능성)
-          if (window.location.pathname !== '/verification-center') {
-            console.log('오류 발생으로 인증 다이얼로그 표시')
-            setShowAuthDialog(true)
-          }
-        }
-      }
-      
-      // 1초 딜레이를 두어 무한 루프 방지
-      const timeoutId = setTimeout(checkVerificationStatus, 1000)
-      return () => clearTimeout(timeoutId)
+      // 인증 상태는 checkVerificationStatus 함수에서 확인하되, 다이얼로그는 자동으로 표시하지 않음
+      // 사용자가 배너를 클릭했을 때만 인증센터로 이동하도록 함
+      checkVerificationStatus()
     }
-  }, [user, router])
+  }, [user, token])
 
   // URL 해시로 레벨 또는 포인트 섹션으로 스크롤
   useEffect(() => {
@@ -298,7 +221,9 @@ export default function MyTab() {
     company: '',
     career: '',
     interests: [] as string[],
-    profile_images: [] as string[]
+    profile_images: [] as string[],
+    academic_info_public: false,
+    job_info_public: false
   })
   const [newInterest, setNewInterest] = useState('')
 
@@ -333,48 +258,7 @@ export default function MyTab() {
     checkPartnerStatus()
   }, [user])
 
-  // 파트너 등록
-  const registerAsPartner = async () => {
-    if (!user || !profile) return
-
-    // 한국인인지 확인 (인증센터에서 확인된 정보)
-    const isKoreanUser = !!(profile.is_korean || profileUser?.is_korean)
-
-    if (!isKoreanUser) {
-      alert('한국인만 화상 채팅 파트너로 등록할 수 있습니다.')
-      return
-    }
-
-    try {
-      const response = await fetch('/api/conversation-partners/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          name: profile.korean_name || profile.full_name || user.email.split('@')[0],
-          language_level: '중급', // 기본값
-          country: '대한민국',
-          status: 'online',
-          interests: profile.interests || [],
-          bio: profile.one_line_intro || profile.introduction || '',
-          avatar_url: profile.avatar_url,
-          is_korean: true // 인증센터에서 확인된 한국인
-        })
-      })
-
-      if (response.ok) {
-        setIsPartnerRegistered(true)
-        setShowPartnerForm(false)
-        alert('화상 채팅 파트너로 등록되었습니다!')
-      } else {
-        const result = await response.json()
-        alert(result.error || '파트너 등록에 실패했습니다.')
-      }
-    } catch (error) {
-      console.error('파트너 등록 실패:', error)
-      alert('파트너 등록에 실패했습니다.')
-    }
-  }
+  // 파트너 등록은 인증 완료 시 자동으로 처리됨 (api/profile에서)
 
   const [showInterestSelector, setShowInterestSelector] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -496,15 +380,20 @@ export default function MyTab() {
     isVerified: boolean
     status: 'none' | 'email' | 'sms' | 'full'
     message: string
+    missingRequirements?: string[]
   }>({
     isVerified: false,
     status: 'none',
-    message: '인증이 필요합니다'
+    message: '인증이 필요합니다',
+    missingRequirements: []
   })
   const [notificationSettings, setNotificationSettings] = useState({
     webPush: true,
     email: false,
-    marketing: false
+    marketing: false,
+    likeNotifications: true,
+    postNotifications: true,
+    dailyDigest: true
   })
   
   // 보안 설정 상태
@@ -515,23 +404,15 @@ export default function MyTab() {
   // 문의 모달 상태
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false)
 
-  // 파트너 섹션 노출 여부 계산 및 디버깅 로그 (verificationStatus 선언 이후)
-  // 국가 코드 우선: users.phone_country → 없으면 전화번호에서 추론
-  const phoneCountryField = (profile as any)?.phone_country || (profileUser as any)?.phone_country || null
-  const phoneFromAny = profile?.phone || profileUser?.phone || user?.user_metadata?.phone || null
-  const parsedCountryCode = extractCountryCodeFromPhone(phoneFromAny)
-  const effectiveCountryCode = phoneCountryField || parsedCountryCode || null
-  const isByKoreanPhone = effectiveCountryCode === '82'
+  // 파트너 섹션 노출 여부 계산 (국적 기준)
+  const userCountry = (profile as any)?.country || (profileUser as any)?.country || user?.user_metadata?.country
+  const isKoreanByNationality = isKorean || (profileUser as any)?.is_korean === true || userCountry === 'KR'
   const adminOverride = Boolean((profile as any)?.admin_partner_override)
 
-  // 최종 표시 조건(국가코드 기반): (+82 전화) OR (관리자 오버라이드)
+  // 최종 표시 조건(국적 기준): (한국인) OR (관리자 오버라이드)
   const showPartnerSection = Boolean(
-    isByKoreanPhone || adminOverride
+    isKoreanByNationality || adminOverride
   )
-
-  // 해외 거주 한국인 감지: 국적이 한국인데 전화번호가 +82가 아닌 경우
-  const isKoreanByNationality = isKorean || (profile as any)?.country === 'KR' || (profileUser as any)?.country === 'KR'
-  const isOverseasKorean = isKoreanByNationality && !isByKoreanPhone && effectiveCountryCode !== null
 
   // 디버그 로그/표시는 비활성화 (안정화 완료)
 
@@ -558,8 +439,43 @@ export default function MyTab() {
       company: profileData?.company || '',
       career: profileData?.career || '',
       interests: profileData?.interests || [],
-      profile_images: profileData?.profileImages?.map((img: any) => img.src) || profileData?.profile_images || []
+      profile_images: profileData?.profileImages?.map((img: any) => img.src) || profileData?.profile_images || [],
+      academic_info_public: profileData?.academic_info_public ?? false,
+      job_info_public: profileData?.job_info_public ?? false
     })
+  }
+
+  // 공개 설정만 업데이트하는 함수
+  const handleUpdatePrivacy = async (field: 'academic_info_public' | 'job_info_public', value: boolean) => {
+    if (!user || !token) {
+      alert(language === 'ko' ? '로그인이 필요합니다.' : 'Se requiere inicio de sesión.')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          [field]: value
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setProfile(data.user)
+        // editForm도 업데이트
+        setEditForm(prev => ({ ...prev, [field]: value }))
+      } else {
+        throw new Error('공개 설정 업데이트 실패')
+      }
+    } catch (error) {
+      console.error('공개 설정 업데이트 오류:', error)
+      alert(language === 'ko' ? '공개 설정 업데이트에 실패했습니다. 다시 시도해주세요.' : 'Error al actualizar la configuración de privacidad. Inténtelo de nuevo.')
+    }
   }
 
   // 프로필 저장
@@ -789,7 +705,7 @@ export default function MyTab() {
     loadProfile()
   }, [user, token])
 
-  // 인증 상태 확인
+  // 인증 상태 확인 (Level 2 기준)
   const checkVerificationStatus = async () => {
     if (!user || !token) {
       setVerificationStatus({
@@ -801,7 +717,8 @@ export default function MyTab() {
         }
         
     try {
-      const response = await fetch(`/api/verification?userId=${user.id}`, {
+      // /api/profile을 사용해서 사용자 정보 가져오기
+      const response = await fetch(`/api/profile?userId=${user.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -810,12 +727,34 @@ export default function MyTab() {
 
       if (response.ok) {
         const data = await response.json()
-        const verification = data.verification
+        const userProfile = data.user
+        
+        // Level 2 인증 기준으로 확인
+        const { canAccess, hasBadge, missingRequirements } = checkLevel2Auth(userProfile)
+        
+        // 디버깅: 어떤 조건이 누락되었는지 로그 출력
+        console.log('[MYTAB] 인증 상태 상세 체크:', {
+          canAccess,
+          hasBadge,
+          verified_badge: userProfile.verified_badge,
+          is_verified: userProfile.is_verified,
+          is_verified_type: typeof userProfile.is_verified,
+          verification_completed: userProfile.verification_completed,
+          verification_completed_type: typeof userProfile.verification_completed,
+          missingRequirements,
+          sms_verified_at: userProfile.sms_verified_at,
+          full_name: userProfile.full_name,
+          profile_image: userProfile.profile_image || userProfile.avatar_url,
+          one_line_intro: userProfile.one_line_intro,
+          one_line_intro_length: (userProfile.one_line_intro || '').length,
+          created_at: userProfile.created_at
+        })
         
         setVerificationStatus({
-          isVerified: verification.status === 'approved',
-          status: verification.status === 'approved' ? 'full' : 'none',
-          message: verification.message
+          isVerified: canAccess || !!userProfile.verified_badge,
+          status: canAccess ? 'full' : 'none',
+          message: canAccess ? '인증 완료' : '인증이 필요합니다',
+          missingRequirements: canAccess ? [] : missingRequirements
         })
       } else {
         setVerificationStatus({
@@ -849,12 +788,146 @@ export default function MyTab() {
     checkVerificationStatus()
   }, [user, token])
 
+  // 인증 완료 플래그 확인 (인증센터에서 인증 완료 후 자동으로 상태 업데이트)
+  useEffect(() => {
+    const checkVerificationJustCompleted = async () => {
+      const justCompleted = localStorage.getItem('verification_just_completed')
+      if (justCompleted === 'true' && user?.id) {
+        console.log('[MYTAB] 인증 완료 플래그 감지, 인증 상태 다시 확인')
+        localStorage.removeItem('verification_just_completed')
+        
+        // 데이터베이스 업데이트가 완료될 시간을 주기 위해 더 긴 딜레이
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        
+        // 인증 상태 강제로 다시 확인 (캐시 무시)
+        if (token) {
+          try {
+            // 캐시를 무시하고 최신 데이터 가져오기
+            const response = await fetch(`/api/profile?userId=${user.id}&_t=${Date.now()}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+              }
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              const userProfile = data.user
+              
+              // Level 2 인증 기준으로 확인
+              const { canAccess, hasBadge, missingRequirements } = checkLevel2Auth(userProfile)
+              
+              console.log('[MYTAB] 인증 완료 후 상태 재확인:', {
+                canAccess,
+                hasBadge,
+                verified_badge: userProfile.verified_badge,
+                missingRequirements
+              })
+              
+              setVerificationStatus({
+                isVerified: canAccess || !!userProfile.verified_badge,
+                status: canAccess ? 'full' : 'none',
+                message: canAccess ? '인증 완료' : '인증이 필요합니다',
+                missingRequirements: canAccess ? [] : missingRequirements
+              })
+            }
+          } catch (error) {
+            console.error('[MYTAB] 인증 완료 후 상태 확인 실패:', error)
+            // 실패해도 일반 체크 함수 호출
+            checkVerificationStatus()
+          }
+        } else {
+          // 토큰이 없으면 일반 체크 함수 호출
+          checkVerificationStatus()
+        }
+      }
+    }
+
+    checkVerificationJustCompleted()
+    
+    // 주기적으로 플래그 확인 (인증 완료 후 페이지 이동 시)
+    const interval = setInterval(() => {
+      checkVerificationJustCompleted()
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [user?.id, token])
+
+  // 알림 설정 로드
+  useEffect(() => {
+    const loadNotificationSettings = async () => {
+      if (!user?.id || !token) return
+
+      try {
+        const response = await fetch('/api/notifications/settings', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.settings) {
+            setNotificationSettings({
+              webPush: data.settings.push_enabled ?? true,
+              email: data.settings.email_enabled ?? false,
+              marketing: data.settings.marketing_emails ?? false,
+              likeNotifications: data.settings.like_notifications_enabled ?? true,
+              postNotifications: data.settings.post_notifications_enabled ?? true,
+              dailyDigest: data.settings.daily_digest_enabled ?? true
+            })
+          }
+        }
+      } catch (error) {
+        console.error('알림 설정 로드 실패:', error)
+      }
+    }
+
+    loadNotificationSettings()
+  }, [user?.id, token])
+
   // 알림 설정 변경 핸들러
-  const handleNotificationChange = (key: string, value: boolean) => {
+  const handleNotificationChange = async (key: string, value: boolean) => {
     setNotificationSettings(prev => ({
       ...prev,
       [key]: value
     }))
+
+    // 데이터베이스에 저장
+    if (!user?.id || !token) return
+
+    try {
+      const updateData: any = {}
+      
+      // 키 매핑
+      if (key === 'webPush') updateData.push_enabled = value
+      else if (key === 'email') updateData.email_enabled = value
+      else if (key === 'marketing') updateData.marketing_emails = value
+      else if (key === 'likeNotifications') updateData.like_notifications_enabled = value
+      else if (key === 'postNotifications') updateData.post_notifications_enabled = value
+      else if (key === 'dailyDigest') updateData.daily_digest_enabled = value
+
+      await fetch('/api/notifications/settings', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          ...updateData
+        })
+      })
+    } catch (error) {
+      console.error('알림 설정 저장 실패:', error)
+      // 실패 시 롤백
+      setNotificationSettings(prev => ({
+        ...prev,
+        [key]: !value
+      }))
+    }
   }
 
   // 지문 인증 상태 확인
@@ -1403,7 +1476,8 @@ export default function MyTab() {
       {/* 틴더 스타일 풀스크린 컨테이너 */}
       <div className="w-full">
         
-        {/* 프로필 헤더 섹션 - 1:1 비율 정사각형 */}
+        {/* 프로필 헤더 섹션 - 1:1 비율 정사각형 - 인증 완료 후에만 표시 */}
+        {verificationStatus.isVerified && (
         <div className="relative flex justify-center">
           {/* 프로필 사진 스와이프 영역 - 최대 400px, 1:1 비율 */}
           <div 
@@ -1597,10 +1671,12 @@ export default function MyTab() {
             </div>
           )}
         </div>
+        )}
 
         {/* 프로필 정보 오버레이 제거 - 깔끔한 사진만 표시 */}
 
-        {/* 편집 버튼 (모바일) */}
+        {/* 편집 버튼 (모바일) - 인증 완료 후에만 표시 */}
+        {verificationStatus.isVerified && (
         <div className="px-4 py-2 bg-white md:hidden">
           <div className="flex items-center justify-between">
             <h1 className="text-base sm:text-lg font-semibold text-gray-800">{t('profile.myProfile')}</h1>
@@ -1638,33 +1714,49 @@ export default function MyTab() {
             </div>
               </div>
             </div>
+        )}
 
-        {/* 해외 거주 한국인 안내 메시지 */}
-        {isOverseasKorean && (
-          <div className="px-4 py-3 bg-yellow-50 border-l-4 border-yellow-400">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-yellow-800 mb-1">
-                  {language === 'ko' ? '해외 거주 한국인 인증' : 'Verificación de coreano en el extranjero'}
+        {/* 인증 필요 배너 - 인증 미완료 시 표시 */}
+        {!verificationStatus.isVerified && (
+          <div className="mx-4 mt-4 mb-4">
+            <button
+              onClick={() => router.push('/verification-center')}
+              className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg p-4 shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-base">
+                      {language === 'ko' ? '인증이 필요합니다' : 'Se requiere autenticación'}
+                    </p>
+                    <p className="text-sm text-white/90 mt-0.5">
+                      {language === 'ko' ? '인증센터에서 프로필을 완성해주세요' : 'Completa tu perfil en el centro de autenticación'}
                 </p>
-                <p className="text-xs text-yellow-700 mb-2">
+                    {verificationStatus.missingRequirements && verificationStatus.missingRequirements.length > 0 && (
+                      <p className="text-xs text-white/80 mt-1">
                   {language === 'ko' 
-                    ? '국적이 한국인데 해외 전화번호를 사용 중이시군요. 해외 거주 한국인 인증을 원하시면 문의를 남겨주세요.'
-                    : 'Detectamos que eres coreano pero usas un número de teléfono extranjero. Si deseas verificar tu estado como coreano en el extranjero, por favor deja una consulta.'}
-                </p>
-                <button
-                  onClick={() => setIsInquiryModalOpen(true)}
-                  className="text-xs text-yellow-800 underline hover:text-yellow-900 font-medium"
-                >
-                  {language === 'ko' ? '문의하기 →' : 'Dejar consulta →'}
-                </button>
+                          ? `누락된 항목: ${verificationStatus.missingRequirements.join(', ')}`
+                          : `Faltan: ${verificationStatus.missingRequirements.join(', ')}`}
+                      </p>
+                    )}
               </div>
             </div>
+                <div className="flex items-center gap-1 text-white/90">
+                  <span className="text-sm font-medium">
+                    {language === 'ko' ? '이동' : 'Ir'}
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </button>
           </div>
         )}
 
-        {/* 관심사 섹션 */}
+        {/* 관심사 섹션 - 인증 완료 후에만 표시 */}
+        {verificationStatus.isVerified && (
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -2100,7 +2192,10 @@ export default function MyTab() {
               </div>
             )}
         </div>
-        {/* 기본 정보 섹션 */}
+        )}
+
+        {/* 기본 정보 섹션 (학업/직업 정보) - 인증 완료 후에만 표시 */}
+        {verificationStatus.isVerified && (
         <div className="px-4 py-4 bg-gray-50">
           <div className="flex items-center gap-2 mb-3">
             <User className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
@@ -2212,6 +2307,49 @@ export default function MyTab() {
                   </>
                 )}
                 
+                {/* 공개 설정 토글 */}
+                {editForm.user_type === 'student' ? (
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-gray-700 block mb-1">
+                        {language === 'ko' ? '학업 정보 공개' : 'Información académica pública'}
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        {language === 'ko' 
+                          ? '대학교, 전공, 학년 정보를 다른 사용자에게 공개합니다' 
+                          : 'Comparte tu universidad, carrera y año de estudio con otros usuarios'}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={editForm.academic_info_public ?? false}
+                      onCheckedChange={(checked) => 
+                        setEditForm(prev => ({ ...prev, academic_info_public: checked }))
+                      }
+                      className={compactSwitchClass}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-gray-700 block mb-1">
+                        {language === 'ko' ? '직업 정보 공개' : 'Información profesional pública'}
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        {language === 'ko' 
+                          ? '직업, 회사, 경력 정보를 다른 사용자에게 공개합니다' 
+                          : 'Comparte tu ocupación, empresa y experiencia con otros usuarios'}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={editForm.job_info_public ?? false}
+                      onCheckedChange={(checked) => 
+                        setEditForm(prev => ({ ...prev, job_info_public: checked }))
+                      }
+                      className={compactSwitchClass}
+                    />
+                  </div>
+                )}
+                
                 <div>
                   <label className="text-gray-600 text-sm block mb-1">{t('profile.selfIntroduction')}</label>
                 <Textarea
@@ -2232,10 +2370,6 @@ export default function MyTab() {
                   {profile?.korean_name || (language === 'ko' ? '없음' : 'Sin nombre coreano')}
                 </span>
             </div>
-
-              {/* 구분선 */}
-              <div className="border-t border-gray-200"></div>
-
 
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
@@ -2288,7 +2422,7 @@ export default function MyTab() {
                   <div className="flex items-center justify-between">
                     <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.occupation')}</span>
                     <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
-                      {profile?.occupation || t('profile.occupation') + ' 없음'}
+                      {profile?.occupation || t('profile.noOccupation')}
                     </span>
             </div>
             
@@ -2298,7 +2432,7 @@ export default function MyTab() {
                   <div className="flex items-center justify-between">
                     <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.company')}</span>
                     <span className="text-gray-800 text-xs sm:text-sm font-medium truncate max-w-[60%] text-right">
-                      {profile?.company || t('profile.company') + ' 없음'}
+                      {profile?.company || t('profile.noCompany')}
                     </span>
           </div>
 
@@ -2317,6 +2451,55 @@ export default function MyTab() {
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
 
+              {/* 공개 설정 토글 (편집 모드가 아닐 때) */}
+              {!isEditing && (
+                <>
+                  {profile?.userType === 'student' || profile?.user_type === 'student' ? (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                          {language === 'ko' ? '학업 정보 공개' : 'Información académica pública'}
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          {language === 'ko' 
+                            ? '대학교, 전공, 학년 정보를 다른 사용자에게 공개합니다' 
+                            : 'Comparte tu universidad, carrera y año de estudio con otros usuarios'}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={profile?.academic_info_public ?? false}
+                        onCheckedChange={(checked) => 
+                          handleUpdatePrivacy('academic_info_public', checked)
+                        }
+                        className={compactSwitchClass}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                          {language === 'ko' ? '직업 정보 공개' : 'Información profesional pública'}
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          {language === 'ko' 
+                            ? '직업, 회사, 경력 정보를 다른 사용자에게 공개합니다' 
+                            : 'Comparte tu ocupación, empresa y experiencia con otros usuarios'}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={profile?.job_info_public ?? false}
+                        onCheckedChange={(checked) => 
+                          handleUpdatePrivacy('job_info_public', checked)
+                        }
+                        className={compactSwitchClass}
+                      />
+                    </div>
+                  )}
+                  {/* 구분선 */}
+                  <div className="border-t border-gray-200 mt-3"></div>
+                </>
+              )}
+
               {/* 자기소개 */}
               <div className="flex items-start justify-between">
                 <span className='text-gray-600 text-xs sm:text-sm'>{t('profile.selfIntroduction')}</span>
@@ -2328,266 +2511,9 @@ export default function MyTab() {
               {/* 구분선 */}
               <div className="border-t border-gray-200"></div>
 
-              {/* 포인트 현황 & 오늘의 미션 - 포인트 요약 숨김 처리 */}
-              <div className="space-y-4 bg-white">
-                {/* 포인트 요약 - 숨김 처리 */}
-                {/* <div id="my-points" className="grid grid-cols-2 gap-3 scroll-mt-20">
-                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-3 sm:p-4 text-white shadow-sm">
-                    <p className="text-xs sm:text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.monthlyPoints')}</p>
-                    <p className="text-xl sm:text-2xl font-bold">{rankingData.userRank?.monthly_points || 0}</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-3 sm:p-4 text-white shadow-sm">
-                    <p className="text-xs sm:text-sm font-semibold mb-1">{t('eventTab.pointSystem.pointsSummary.totalPoints')}</p>
-                    <p className="text-xl sm:text-2xl font-bold">{rankingData.userRank?.total_points || 0}</p>
-                  </div>
-                </div> */}
-
-                {/* 내 등급 카드 - 총 포인트 아래 - 씨앗/레벨 숨김 처리 */}
-                {/* <div id="my-level" className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4 scroll-mt-20">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    <span className="text-xs sm:text-sm font-medium text-purple-800 dark:text-purple-300">{t('myTab.myLevel')}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-purple-600">
-                    {pointsLoading ? (
-                      <div className="text-base sm:text-lg font-bold text-purple-600 dark:text-purple-400 animate-pulse">...</div>
-                    ) : (
-                      <UserBadge totalPoints={rankingData.userRank?.total_points || 0} size="lg" />
-                    )}
-                  </div>
-                </div> */}
-
-                {/* 오늘의 미션 - 출석체크 숨김 처리 */}
-                {false && dailyMissions && (
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
-                    <button 
-                      onClick={() => setIsMissionsExpanded(!isMissionsExpanded)}
-                      className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
-                    >
-                      <span className="text-lg">🎯</span>
-                      <div className="flex-1 text-left">
-                        <h3 className="text-sm font-bold text-gray-800">{t('eventTab.pointSystem.dailyMission.title')}</h3>
-                        <p className="text-xs text-gray-600">{t('eventTab.pointSystem.dailyMission.subtitle')}</p>
-                      </div>
-                      <div className={`transition-transform duration-300 ${isMissionsExpanded ? 'rotate-180' : ''}`}>
-                        <ChevronDown className="w-4 h-4 text-gray-600" />
-                      </div>
-                    </button>
-
-                    {/* 오늘 획득 포인트 - 항상 보임 */}
-                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200">
-                      <div className="flex justify-between mb-2">
-                        <span className="text-xs sm:text-sm text-gray-600">{t('eventTab.pointSystem.dailyMission.todayEarned')}</span>
-                        <span className="text-xs sm:text-sm font-bold text-blue-600">{dailyEarnedPoints} / 75</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all" 
-                          style={{ width: `${Math.min((dailyEarnedPoints / 75) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* 미션 목록 - 접으면 숨김 */}
-                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isMissionsExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                      <div className="space-y-1 text-xs sm:text-sm">
-                      {/* 출석체크 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.attendance.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.attendance.title')}
-                        </span>
-                        <span className="text-xs text-green-600 font-bold">+{dailyMissions.attendance.points}</span>
-                      </div>
-                      
-                      {/* 댓글 작성 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.comments.count, dailyMissions.comments.max)} {t('eventTab.pointSystem.dailyMission.missions.comments.title')} ({dailyMissions.comments.count}/{dailyMissions.comments.max})
-                        </span>
-                        <span className="text-xs text-blue-600 font-bold">+{dailyMissions.comments.points}</span>
-                      </div>
-                      
-                      {/* 좋아요 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.likes.count, dailyMissions.likes.max)} {t('eventTab.pointSystem.dailyMission.missions.likes.title')} ({dailyMissions.likes.count}/{dailyMissions.likes.max})
-                        </span>
-                        <span className="text-xs text-pink-600 font-bold">+{dailyMissions.likes.points}</span>
-                      </div>
-                      
-                      {/* 자유게시판 작성 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.freeboardPost.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.freeboardPost.title')}
-                        </span>
-                        <span className="text-xs text-indigo-600 font-bold">+{dailyMissions.freeboardPost.points}</span>
-                      </div>
-                      
-                      {/* 스토리 작성 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.storyPost.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.storyPost.title')}
-                        </span>
-                        <span className="text-xs text-purple-600 font-bold">+{dailyMissions.storyPost.points}</span>
-                      </div>
-                      
-                      {/* 팬아트 업로드 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.fanartUpload.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.fanartUpload.title')}
-                        </span>
-                        <span className="text-xs text-pink-600 font-bold">+{dailyMissions.fanartUpload.points}</span>
-                      </div>
-                      
-                      {/* 아이돌 사진 업로드 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.idolPhotoUpload.count, 1)} {t('eventTab.pointSystem.dailyMission.missions.idolPhotoUpload.title')}
-                        </span>
-                        <span className="text-xs text-amber-600 font-bold">+{dailyMissions.idolPhotoUpload.points}</span>
-                      </div>
-                      
-                      {/* 팬아트 좋아요 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.fanartLikes.count, dailyMissions.fanartLikes.max)} {t('eventTab.pointSystem.dailyMission.missions.fanartLikes.title')} ({dailyMissions.fanartLikes.count}/{dailyMissions.fanartLikes.max})
-                        </span>
-                        <span className="text-xs text-pink-600 font-bold">+{dailyMissions.fanartLikes.points}</span>
-                      </div>
-                      
-                      {/* 아이돌 사진 좋아요 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.idolPhotoLikes.count, dailyMissions.idolPhotoLikes.max)} {t('eventTab.pointSystem.dailyMission.missions.idolPhotoLikes.title')} ({dailyMissions.idolPhotoLikes.count}/{dailyMissions.idolPhotoLikes.max})
-                        </span>
-                        <span className="text-xs text-amber-600 font-bold">+{dailyMissions.idolPhotoLikes.points}</span>
-                      </div>
-                      
-                      {/* 투표 참여 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.pollVote.count, dailyMissions.pollVote.max)} {t('eventTab.pointSystem.dailyMission.missions.pollVotes.title')} ({dailyMissions.pollVote.count}/{dailyMissions.pollVote.max})
-                        </span>
-                        <span className="text-xs text-cyan-600 font-bold">+{dailyMissions.pollVote.points}</span>
-                      </div>
-                      
-                      {/* 뉴스 댓글 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.newsComment.count, dailyMissions.newsComment.max)} {t('eventTab.pointSystem.dailyMission.missions.newsComments.title')} ({dailyMissions.newsComment.count}/{dailyMissions.newsComment.max})
-                        </span>
-                        <span className="text-xs text-blue-600 font-bold">+{dailyMissions.newsComment.points}</span>
-                      </div>
-                      
-                      {/* 공유 */}
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-700 flex items-center gap-2">
-                          {renderCheckmarks(dailyMissions.share.count, dailyMissions.share.max)} {t('eventTab.pointSystem.dailyMission.missions.share.title')} ({dailyMissions.share.count}/{dailyMissions.share.max})
-                        </span>
-                        <span className="text-xs text-orange-600 font-bold">+{dailyMissions.share.points}</span>
-                      </div>
-                    </div>
-                  </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 구분선 */}
-              <div className="border-t border-gray-200"></div>
-
-              {/* 추천인 코드 - 눈에 띄게 */}
-              {referralCode && (
-                <>
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Gift className="w-5 h-5 text-purple-600" />
-                        <span className='text-gray-700 font-semibold'>{t('profile.myReferralCode')}</span>
-                      </div>
-                      <Button
-                        onClick={copyReferralCode}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="w-4 h-4 text-green-600" />
-                            <span className="text-green-600 text-xs ml-1">{t('profile.copied')}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            <span className="text-xs ml-1">{t('profile.copy')}</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="bg-white border-2 border-purple-300 rounded-lg p-3">
-                      <code className="text-2xl font-mono font-bold text-purple-700 tracking-wider">
-                        {referralCode}
-                      </code>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      {t('profile.shareReferralMessage')}
-                    </p>
-                  </div>
-                  {/* 구분선 */}
-                  <div className="border-t border-gray-200"></div>
-                </>
-              )}
-
-              {/* 내 추천인 현황 */}
-              {referralCode && (
-                <>
-                  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-indigo-600" />
-                      <span className='text-gray-700 font-semibold'>{t('eventTab.attendanceCheck.specialEvents.referralEvents.myStatus.title')}</span>
-                    </div>
-
-                    {/* 총 추천인 수 */}
-                    <div className="flex items-center justify-between bg-white border border-indigo-200 rounded-lg p-3">
-                      <span className="text-sm text-gray-600">{t('eventTab.attendanceCheck.specialEvents.referralEvents.myStatus.description')}</span>
-                      <Badge className="bg-indigo-500 text-white">0명</Badge>
-                    </div>
-
-                    {/* 추천인 목록 */}
-                    <div className="text-center py-8 text-gray-500">
-                      <p className="text-sm">{t('eventTab.attendanceCheck.specialEvents.referralEvents.myStatus.noReferrals')}</p>
-                    </div>
-                  </div>
-                  
-                  {/* 구분선 */}
-                  <div className="border-t border-gray-200"></div>
-                </>
-              )}
-
-              {/* 접근 조건을 만족하지 못하는 경우 안내 배너 */}
-              {!showPartnerSection && (
-                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-                  <div className="space-y-1">
-                    <p className="font-medium">라틴아메리카에 거주하는 한국이시면 국적 인증이 필요합니다.</p>
-                    <p className="font-medium">Si eres coreano residente en Latinoamérica, necesitas verificar tu nacionalidad.</p>
-                  </div>
-                  <div className="mt-2 flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-                      {language === 'ko' ? '전화번호 수정' : 'Editar número'}
-                    </Button>
-                    <Button size="sm" onClick={() => router.push('/verification')}>
-                      {language === 'ko' ? '국적 인증하기' : 'Verificar nacionalidad'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* 화상 채팅 파트너 등록 (한국인만, 인증 완료 또는 KR 국가)
-                  추가 안전장치: 국가 코드가 KR인 경우만 허용
-                  디버깅 로그는 컴포넌트 상단 useEffect에서 출력 */}
+              {/* 화상 채팅 파트너 상태 표시 (한국인 인증 완료 시 자동 등록됨) */}
               {showPartnerSection && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Video className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
@@ -2598,57 +2524,25 @@ export default function MyTab() {
                         등록됨
                       </span>
                     ) : (
-                      <Button
-                        onClick={() => setShowPartnerForm(!showPartnerForm)}
-                        variant="outline"
-                        size="sm"
-                        className="h-8"
-                      >
-                        {showPartnerForm ? (
-                          <>
-                            <X className="w-4 h-4 mr-1" />
-                            취소
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="w-4 h-4 mr-1" />
-                            등록하기
-                          </>
-                        )}
-                      </Button>
+                      <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-gray-100 text-gray-600 rounded-full text-xs sm:text-sm font-medium">
+                        인증 대기 중
+                      </span>
                     )}
                   </div>
-
-                  {showPartnerForm && !isPartnerRegistered && (
-                    <div className="bg-white rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3 border border-blue-200">
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        화상 채팅 파트너로 등록하면 다른 사용자들과 언어교환을 할 수 있습니다.
-                      </p>
-                      <Button
-                        onClick={registerAsPartner}
-                        className="w-full bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Check className="w-4 h-4 mr-2" />
-                        파트너로 등록하기
-                      </Button>
-                    </div>
-                  )}
-
                   {isPartnerRegistered && (
-                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-green-200">
-                      <p className="text-xs sm:text-sm text-green-700 font-medium">
-                        ✅ 화상 채팅 파트너로 등록되어 있습니다!
+                    <p className="text-xs text-gray-600 mt-2">
+                      한국인 인증이 완료되어 화상 채팅 파트너로 자동 등록되었습니다.
                       </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        화상 채팅 페이지에서 다른 사용자들이 찾을 수 있습니다.
-                      </p>
-                    </div>
                   )}
                 </div>
               )}
             </div>
           )}
                   </div>
+        )}
+
+        {/* 화상채팅 파트너와 설정 사이 여백 */}
+        <div className="h-6"></div>
 
         {/* 설정 섹션 */}
         <div className="px-4 pb-4">
@@ -2680,7 +2574,8 @@ export default function MyTab() {
             </div>
 
             <Accordion type="multiple" value={settingsExpanded} onValueChange={setSettingsExpanded}>
-              <AccordionItem value="stories" className="border-b border-gray-100">
+              {/* 스토리 기능 숨김 처리 (미래 사용을 위해 주석 처리) */}
+              {/* <AccordionItem value="stories" className="border-b border-gray-100">
                 <AccordionTrigger className="px-5 py-4 hover:no-underline">
                   <div className="flex items-center gap-3 text-left">
                     <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-500 flex items-center justify-center">
@@ -2701,7 +2596,7 @@ export default function MyTab() {
                 <AccordionContent className="px-5 pb-5">
                   <StorySettings />
                 </AccordionContent>
-              </AccordionItem>
+              </AccordionItem> */}
 
               {process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true' && (
               <AccordionItem value="security" className="border-b border-gray-100">
@@ -2838,6 +2733,72 @@ export default function MyTab() {
                       className={compactSwitchClass}
                       checked={notificationSettings.marketing}
                       onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
+                    />
+                  </div>
+
+                  {/* 좋아요 알림 */}
+                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <div className="font-medium text-gray-800 text-xs">
+                          {language === 'ko' ? '좋아요 알림' : 'Notificaciones de me gusta'}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'ko' 
+                            ? '내 글에 좋아요가 달리면 즉시 알림을 받습니다' 
+                            : 'Recibe notificaciones cuando alguien le da me gusta a tus publicaciones'}
+                        </div>
+                      </div>
+                    </div>
+                    <Switch
+                      className={compactSwitchClass}
+                      checked={notificationSettings.likeNotifications}
+                      onCheckedChange={(checked) => handleNotificationChange('likeNotifications', checked)}
+                    />
+                  </div>
+
+                  {/* 게시물 알림 */}
+                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="flex items-center gap-2">
+                      <Newspaper className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <div className="font-medium text-gray-800 text-xs">
+                          {language === 'ko' ? '게시물 알림' : 'Notificaciones de publicaciones'}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'ko' 
+                            ? '새로운 게시물이 올라오면 하루 요약으로 알림을 받습니다' 
+                            : 'Recibe un resumen diario de nuevas publicaciones'}
+                        </div>
+                      </div>
+                    </div>
+                    <Switch
+                      className={compactSwitchClass}
+                      checked={notificationSettings.postNotifications}
+                      onCheckedChange={(checked) => handleNotificationChange('postNotifications', checked)}
+                    />
+                  </div>
+
+                  {/* 하루 요약 알림 */}
+                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <div className="font-medium text-gray-800 text-xs">
+                          {language === 'ko' ? '하루 요약 알림' : 'Resumen diario'}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'ko' 
+                            ? '매일 오전 8:30에 새로운 소식을 요약해서 알려드립니다' 
+                            : 'Recibe un resumen diario de nuevas actividades a las 8:30 AM'}
+                        </div>
+                      </div>
+                    </div>
+                    <Switch
+                      className={compactSwitchClass}
+                      checked={notificationSettings.dailyDigest}
+                      onCheckedChange={(checked) => handleNotificationChange('dailyDigest', checked)}
                     />
                   </div>
                 </AccordionContent>

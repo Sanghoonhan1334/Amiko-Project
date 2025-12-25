@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext'
 import Header from '@/components/layout/Header'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { toast } from 'sonner'
+import AuthorName from '@/components/common/AuthorName'
 
 // 댓글 관련 타입 정의
 interface Comment {
@@ -1199,9 +1200,11 @@ function NewsPageContent() {
                   <div key={comment.id} className="border-b border-gray-100 pb-1 md:pb-4 last:border-b-0">
                     <div className="flex items-start justify-between mb-1 md:mb-2">
                       <div className="flex items-center gap-1 md:gap-2">
-                        <span className="font-semibold text-[10px] md:text-sm text-gray-800">
-                          {comment.users?.korean_name || comment.users?.spanish_name || comment.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
-                        </span>
+                        <AuthorName
+                          userId={comment.author_id}
+                          name={comment.users?.korean_name || comment.users?.spanish_name || comment.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                          className="font-semibold text-[10px] md:text-sm text-gray-800"
+                        />
                         <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
                       </div>
                       {/* 수정 버튼만 상단에 표시 */}

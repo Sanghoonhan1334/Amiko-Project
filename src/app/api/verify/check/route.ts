@@ -65,8 +65,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 사용자 인증 상태 업데이트 (이메일인 경우)
+    // 사용자 인증 상태 업데이트
     if (channel === 'email') {
+      // 이메일로 사용자 찾기
+      const { data: userData, error: userFindError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', target)
+        .maybeSingle()
+
+      if (!userFindError && userData?.id) {
+        // email_verified_at 직접 업데이트
+        const { error: updateUserError } = await supabase
+          .from('users')
+          .update({ 
+            email_verified_at: new Date().toISOString()
+          })
+          .eq('id', userData.id)
+
+        if (updateUserError) {
+          console.error('이메일 인증 시간 업데이트 실패:', updateUserError)
+        } else {
+          console.log('이메일 인증 시간 업데이트 성공:', userData.id)
+        }
+      } else {
+        // RPC 함수로도 시도 (fallback)
       const { error: authStatusError } = await supabase
         .rpc('update_user_auth_status', {
           p_user_id: verificationData.user_id || null,
@@ -75,7 +98,45 @@ export async function POST(request: NextRequest) {
 
       if (authStatusError) {
         console.error('사용자 인증 상태 업데이트 실패:', authStatusError)
-        // 인증코드는 이미 verified로 처리되었으므로 계속 진행
+        }
+      }
+    } else if (channel === 'sms' || channel === 'wa') {
+      // SMS 또는 WhatsApp 인증 완료 시 sms_verified_at 업데이트
+      // 전화번호로 사용자 찾기 (하이픈 제거 후 비교)
+      const cleanPhone = target.replace(/\D/g, '')
+      
+      // verificationData.user_id가 있으면 직접 사용
+      let userId = verificationData.user_id
+      
+      // user_id가 없으면 전화번호로 찾기
+      if (!userId) {
+        const { data: userData, error: userFindError } = await supabase
+          .from('users')
+          .select('id, phone')
+          .or(`phone.eq.${target},phone.eq.${cleanPhone}`)
+          .maybeSingle()
+
+        if (!userFindError && userData?.id) {
+          userId = userData.id
+        }
+      }
+
+      if (userId) {
+        // sms_verified_at 직접 업데이트
+        const { error: updateUserError } = await supabase
+          .from('users')
+          .update({ 
+            sms_verified_at: new Date().toISOString()
+          })
+          .eq('id', userId)
+
+        if (updateUserError) {
+          console.error('SMS 인증 시간 업데이트 실패:', updateUserError)
+        } else {
+          console.log('SMS 인증 시간 업데이트 성공:', userId)
+        }
+      } else {
+        console.warn('SMS 인증 완료했지만 사용자를 찾을 수 없음:', { target, cleanPhone, verificationId: verificationData.id })
       }
     }
 

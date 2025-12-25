@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import InquiryModal from '@/components/common/InquiryModal'
 import PartnershipModal from '@/components/common/PartnershipModal'
+import { checkLevel2Auth } from '@/lib/auth-utils'
 
 function HeaderContent() {
   const router = useRouter()
@@ -309,37 +310,20 @@ function HeaderContent() {
         const profileResult = await profileResponse.json()
 
         if (profileResult.user) {
-          // 인증 상태 확인 - 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
-          // 회원가입 시 입력한 정보만으로는 인증완료로 처리하지 않음
-          const userType = profileResult.user.user_type || 'student'
-          const isVerified = !!(
-            profileResult.user.is_verified ||  // 👈 인증센터에서 설정한 플래그
-            profileResult.user.verification_completed ||  // 👈 인증 완료 플래그
-            profileResult.user.email_verified_at ||
-            profileResult.user.sms_verified_at ||
-            profileResult.user.kakao_linked_at ||
-            profileResult.user.wa_verified_at ||
-            (profileResult.user.korean_name) ||
-            (profileResult.user.spanish_name) ||
-            (userType === 'student' && profileResult.user.full_name && profileResult.user.university && profileResult.user.major) ||
-            (userType === 'general' && profileResult.user.full_name && (profileResult.user.occupation || profileResult.user.company))
-          )
+          // Level 2 인증 기준으로 확인 (실시간 채팅, 화상통화용 인증)
+          // SMS + 이메일 + 실명 + 프로필 사진 + 자기소개(20자)
+          const { canAccess: isLevel2Verified, hasBadge } = checkLevel2Auth(profileResult.user)
+          
+          // Level 2 인증 완료 또는 verified_badge가 있으면 인증완료로 표시
+          const isVerified = isLevel2Verified || !!profileResult.user.verified_badge
 
           setVerificationStatus(isVerified ? 'verified' : 'unverified')
 
-          console.log('[HEADER] 인증 상태 확인:', {
-            is_verified: profileResult.user.is_verified,
-            verification_completed: profileResult.user.verification_completed,
-            korean_name: profileResult.user.korean_name,
-            spanish_name: profileResult.user.spanish_name,
-            full_name: profileResult.user.full_name,
-            phone: profileResult.user.phone,
-            university: profileResult.user.university,
-            major: profileResult.user.major,
-            user_type: profileResult.user.user_type,
-            occupation: profileResult.user.occupation,
-            company: profileResult.user.company,
-            isVerified: isVerified
+          console.log('[HEADER] 인증 상태 확인 (Level 2 기준):', {
+            isLevel2Verified,
+            verified_badge: profileResult.user.verified_badge,
+            hasBadge,
+            isVerified
           })
         } else {
           setVerificationStatus('unverified')
@@ -386,21 +370,12 @@ function HeaderContent() {
             if (profileResponse.ok) {
               const profileResult = await profileResponse.json()
               if (profileResult.user) {
-                const userType = profileResult.user.user_type || 'student'
-                const isVerified = !!(
-                  profileResult.user.is_verified ||
-                  profileResult.user.verification_completed ||
-                  profileResult.user.email_verified_at ||
-                  profileResult.user.sms_verified_at ||
-                  profileResult.user.kakao_linked_at ||
-                  profileResult.user.wa_verified_at ||
-                  (profileResult.user.korean_name && profileResult.user.nickname) ||
-                  (profileResult.user.spanish_name && profileResult.user.nickname) ||
-                  (userType === 'student' && profileResult.user.full_name && profileResult.user.university && profileResult.user.major) ||
-                  (userType === 'general' && profileResult.user.full_name && (profileResult.user.occupation || profileResult.user.company))
-                )
+                // Level 2 인증 기준으로 확인
+                const { canAccess: isLevel2Verified } = checkLevel2Auth(profileResult.user)
+                const isVerified = isLevel2Verified || !!profileResult.user.verified_badge
+                
                 setVerificationStatus(isVerified ? 'verified' : 'unverified')
-                console.log('[HEADER] 인증 상태 업데이트 완료:', isVerified)
+                console.log('[HEADER] 인증 상태 업데이트 완료 (Level 2 기준):', isVerified)
               }
             }
           } catch (error) {
@@ -457,60 +432,11 @@ function HeaderContent() {
       return
     }
 
-    // 프로필 탭 클릭 시 인증 상태 확인
+    // 프로필 탭 클릭 시 - MyTab에서 인증 상태를 체크하고 배너를 표시하도록 함
     if (tab === 'me' && user) {
-      try {
-        // 운영자 확인
-        const adminCheck = await fetch(`/api/admin/check?userId=${user.id}`)
-        const adminResult = await adminCheck.json()
-
-        if (adminResult.isAdmin) {
-          console.log('운영자 확인됨, 인증 체크 스킵')
-        } else {
-          // 인증 상태 확인
-          const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
-
-          if (profileResponse.ok) {
-            const profileResult = await profileResponse.json()
-
-            if (profileResult.user) {
-              // 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
-              const isVerified = !!(
-                profileResult.user.is_verified ||
-                profileResult.user.verification_completed ||
-                profileResult.user.email_verified_at ||
-                profileResult.user.sms_verified_at ||
-                profileResult.user.kakao_linked_at ||
-                profileResult.user.wa_verified_at ||
-                (profileResult.user.korean_name && profileResult.user.nickname) ||
-                (profileResult.user.spanish_name && profileResult.user.nickname) ||
-                (profileResult.user.full_name && profileResult.user.university && profileResult.user.major)
-              )
-
-              if (!isVerified) {
-                console.log('인증 필요 - 인증센터로 이동')
-                router.push('/verification-center')
+      // 바로 프로필 페이지로 이동 (MyTab에서 인증 배너를 표시)
+      router.push(`/main?tab=${tab}`)
                 return
-              }
-            } else {
-              // 프로필이 없으면 인증센터로 이동
-              console.log('프로필 없음 - 인증센터로 이동')
-              router.push('/verification-center')
-              return
-            }
-          } else if (profileResponse.status === 404) {
-            // 프로필이 없으면 인증센터로 이동
-            console.log('프로필 없음 (404) - 인증센터로 이동')
-            router.push('/verification-center')
-            return
-          }
-        }
-      } catch (error) {
-        console.error('인증 상태 확인 실패:', error)
-        // 오류 발생 시에도 인증센터로 이동 (안전하게 처리)
-        router.push('/verification-center')
-        return
-      }
     }
 
     console.log('활성 탭 설정:', tab)
@@ -1041,10 +967,13 @@ function HeaderContent() {
                       <span className="text-green-700 dark:text-green-300 text-sm font-medium">{t('notifications.verified')}</span>
                     </div>
                   ) : verificationStatus === 'unverified' ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                    <button
+                      onClick={() => router.push('/verification-center')}
+                      className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors cursor-pointer"
+                    >
                       <span className="text-amber-600 dark:text-amber-400 text-xs">⚠️</span>
                       <span className="text-amber-700 dark:text-amber-300 text-xs font-medium">{t('notifications.unverified')}</span>
-                    </div>
+                    </button>
                   ) : (
                     <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                       <span className="text-gray-600 dark:text-gray-400 text-sm animate-pulse">⏳</span>
@@ -1054,25 +983,26 @@ function HeaderContent() {
                 </div>
               )}
 
-              {/* 모바일용 알림 및 인증 표시 - 모바일에서만 표시 */}
+              {/* 모바일용 알림 및 메뉴 - 모바일에서만 표시 */}
               {isMainPage && user && (
                 <div className="md:hidden flex items-center gap-2">
-                  {/* 간단한 인증 표시 */}
-                  {isAdmin ? (
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  ) : verificationStatus === 'verified' ? (
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  ) : verificationStatus === 'unverified' ? (
-                    <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                  ) : (
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                  )}
-
-                  {/* 알림 버튼 */}
                   <NotificationBell />
+                  {!isLandingPage && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleMobileMenu}
+                      className="p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 [&_svg]:!size-5"
+                    >
+                      {isMobileMenuOpen ? (
+                        <X className="text-gray-600" />
+                  ) : (
+                        <Menu className="text-gray-600" />
+                  )}
+                    </Button>
+                  )}
                 </div>
               )}
-
 
               {/* 모바일 시작하기 버튼 - 랜딩페이지에서만 표시 */}
               {isLandingPage && (
@@ -1084,8 +1014,8 @@ function HeaderContent() {
                 </Button>
               )}
 
-              {/* 모바일 메뉴 버튼 - 랜딩페이지에서는 숨김 */}
-              {!isLandingPage && (
+              {/* 모바일 메뉴 버튼 - 랜딩페이지에서는 숨김 (위에서 이미 처리됨) */}
+              {!isMainPage && !isLandingPage && (
                 <Button
                   variant="ghost"
                   size="sm"

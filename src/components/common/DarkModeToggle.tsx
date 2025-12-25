@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Sun, Moon } from 'lucide-react'
@@ -10,10 +11,16 @@ export default function DarkModeToggle() {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
   const { t } = useLanguage()
+  const pathname = usePathname()
 
   useEffect(() => {
     setMounted(true)
   }, [])
+  
+  // 인증센터 페이지에서는 플로팅 버튼 숨김
+  if (pathname?.startsWith('/verification')) {
+    return null
+  }
 
   if (!mounted) {
     return (

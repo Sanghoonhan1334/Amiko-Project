@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { checkAuthAndRedirect } from '@/lib/auth-utils'
+import { checkLevel2AuthAndRedirect } from '@/lib/auth-utils'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -125,8 +125,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
       return
     }
 
-    // 인증 체크 - 화상채팅 참여는 인증이 필요
-    if (!checkAuthAndRedirect(user, router, '화상채팅 참여')) {
+    // Level 2 인증 체크 - 화상채팅 참여는 Level 2 인증이 필요
+    if (!checkLevel2AuthAndRedirect(user, router, '화상채팅 참여')) {
       return
     }
     
@@ -572,8 +572,8 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
                   return
                 }
                 
-                // 인증 체크 - 화상채팅 시작은 인증이 필요
-                if (!checkAuthAndRedirect(user, router, '화상채팅 시작')) {
+                // Level 2 인증 체크 - 화상채팅 시작은 Level 2 인증이 필요
+                if (!checkLevel2AuthAndRedirect(user, router, '화상채팅 시작')) {
                   return
                 }
                 

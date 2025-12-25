@@ -7,17 +7,16 @@ export async function POST(request: NextRequest) {
     console.log('[RESET_PASSWORD_CONFIRM] 비밀번호 재설정 확인 시작')
 
     const body = await request.json()
-    const { token, currentPassword, password } = body
+    const { token, password } = body
 
     console.log('[RESET_PASSWORD_CONFIRM] 요청 데이터:', { 
       token: token ? 'present' : 'missing', 
-      currentPassword: currentPassword ? 'present' : 'missing',
       password: password ? 'present' : 'missing' 
     })
 
-    if (!token || !currentPassword || !password) {
+    if (!token || !password) {
       return NextResponse.json(
-        { success: false, error: '토큰, 현재 비밀번호, 새 비밀번호가 모두 필요합니다.' },
+        { success: false, error: '토큰과 새 비밀번호가 필요합니다.' },
         { status: 400 }
       )
     }
@@ -120,49 +119,86 @@ export async function POST(request: NextRequest) {
 
     console.log('[RESET_PASSWORD_CONFIRM] 사용자 찾기 성공:', { userId: user.id, email: user.email })
 
-    // 현재 비밀번호 확인 (보안 강화)
-    // Supabase Auth로 현재 비밀번호 검증
-    const testAuthSupabase = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // 이메일 링크를 통한 비밀번호 재설정은 토큰이 유효하면 바로 비밀번호 변경
+    // (현재 비밀번호 확인 불필요 - 비밀번호를 잊어버린 경우를 위한 기능)
+    console.log('[RESET_PASSWORD_CONFIRM] 토큰 기반 비밀번호 재설정 - 현재 비밀번호 확인 생략')
 
-    console.log('[RESET_PASSWORD_CONFIRM] 현재 비밀번호 검증 시도:', { email })
+    // Admin API로 비밀번호 업데이트 및 이메일 인증 상태 확인
+    console.log('[RESET_PASSWORD_CONFIRM] 비밀번호 업데이트 시도:', { userId: user.id, email: user.email })
     
-    // 이메일과 현재 비밀번호로 로그인 시도하여 검증
-    const { data: authData, error: authError } = await testAuthSupabase.auth.signInWithPassword({
-      email: email,
-      password: currentPassword
+    // 이메일 인증 상태 확인
+    const isEmailConfirmed = user.email_confirmed_at !== null && user.email_confirmed_at !== undefined
+    console.log('[RESET_PASSWORD_CONFIRM] 이메일 인증 상태:', { 
+      isEmailConfirmed, 
+      email_confirmed_at: user.email_confirmed_at 
     })
-
-    if (authError || !authData.user) {
-      console.error('[RESET_PASSWORD_CONFIRM] 현재 비밀번호 검증 실패:', authError?.message)
-      return NextResponse.json(
-        { success: false, error: '현재 비밀번호가 올바르지 않습니다.' },
-        { status: 401 }
-      )
-    }
-
-    console.log('[RESET_PASSWORD_CONFIRM] 현재 비밀번호 검증 성공')
-
-    // Admin API로 비밀번호 업데이트
-    const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
+    
+    // 비밀번호 업데이트와 함께 이메일 인증도 완료 처리
+    // (비밀번호 재설정 링크를 받았다는 것은 이메일 소유권이 확인된 것이므로)
+    const updateData: any = {
       password: password
-    })
+    }
+    
+    // 이메일 인증이 안 되어 있으면 인증 완료 처리
+    if (!isEmailConfirmed) {
+      // Supabase Admin API에서 이메일 인증 완료 처리
+      updateData.email_confirm = true
+      // 또는 email_confirmed_at을 직접 설정
+      updateData.email_confirmed_at = new Date().toISOString()
+      console.log('[RESET_PASSWORD_CONFIRM] 이메일 인증 미완료 상태 - 인증 완료 처리')
+    }
+    
+    const { data: updatedUser, error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, updateData)
 
     if (updateError) {
       console.error('[RESET_PASSWORD_CONFIRM] 비밀번호 업데이트 실패:', updateError)
       return NextResponse.json(
-        { success: false, error: '비밀번호 업데이트에 실패했습니다.' },
+        { success: false, error: '비밀번호 업데이트에 실패했습니다.', details: updateError.message },
         { status: 500 }
       )
     }
 
-    console.log('[RESET_PASSWORD_CONFIRM] 비밀번호 업데이트 성공:', { userId: user.id })
+    console.log('[RESET_PASSWORD_CONFIRM] 비밀번호 업데이트 성공:', { 
+      userId: user.id, 
+      email: user.email,
+      updatedAt: updatedUser?.user?.updated_at 
+    })
+
+    // 비밀번호 업데이트 확인을 위해 사용자 정보 다시 조회
+    const { data: verifyUser, error: verifyError } = await adminSupabase.auth.admin.getUserById(user.id)
+    if (verifyError) {
+      console.warn('[RESET_PASSWORD_CONFIRM] 업데이트 확인 실패 (무시하고 계속 진행):', verifyError)
+    } else {
+      console.log('[RESET_PASSWORD_CONFIRM] 비밀번호 업데이트 확인 완료:', { 
+        userId: verifyUser.user.id,
+        email: verifyUser.user.email,
+        emailConfirmed: !!verifyUser.user.email_confirmed_at,
+        emailConfirmedAt: verifyUser.user.email_confirmed_at,
+        lastSignInAt: verifyUser.user.last_sign_in_at,
+        updatedAt: verifyUser.user.updated_at
+      })
+      
+      // 이메일 인증이 여전히 안 되어 있으면 경고
+      if (!verifyUser.user.email_confirmed_at && !isEmailConfirmed) {
+        console.warn('[RESET_PASSWORD_CONFIRM] ⚠️ 이메일 인증 상태 업데이트가 반영되지 않았을 수 있습니다. 로그인 시 문제가 발생할 수 있습니다.')
+      }
+    }
+
+    // 모든 기존 세션 무효화 (보안상 중요)
+    try {
+      const { error: signOutError } = await adminSupabase.auth.admin.signOut(user.id, 'global')
+      if (signOutError) {
+        console.warn('[RESET_PASSWORD_CONFIRM] 기존 세션 무효화 실패 (무시하고 계속 진행):', signOutError)
+      } else {
+        console.log('[RESET_PASSWORD_CONFIRM] 모든 기존 세션 무효화 완료')
+      }
+    } catch (signOutException) {
+      console.warn('[RESET_PASSWORD_CONFIRM] 세션 무효화 중 예외 (무시하고 계속 진행):', signOutException)
+    }
 
     return NextResponse.json({
       success: true,
-      message: '비밀번호가 성공적으로 변경되었습니다.'
+      message: '비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.'
     })
 
   } catch (error: any) {
