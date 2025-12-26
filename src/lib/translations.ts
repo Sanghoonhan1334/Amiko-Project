@@ -334,6 +334,9 @@ export const translations = {
       checkingAuth: '인증 확인 중...',
       sessionExpired: '세션이 만료되었습니다. 다시 로그인해주세요.',
       authCheckFailed: '인증 확인에 실패했습니다. 다시 로그인해주세요.',
+      privacyAcceptLabel: '개인정보 처리방침에 동의합니다.',
+      privacyView: '전체 보기',
+      privacyRequired: '개인정보 처리방침에 동의해주세요.',
       forgotPassword: {
         title: '비밀번호 찾기',
         description: '가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.',
@@ -3392,6 +3395,9 @@ export const translations = {
       checkingAuth: 'Verificando autenticación...',
       sessionExpired: 'La sesión ha expirado. Por favor, inicia sesión nuevamente.',
       authCheckFailed: 'Error al verificar la autenticación. Por favor, inicia sesión nuevamente.',
+      privacyAcceptLabel: 'Acepto la Política de Privacidad.',
+      privacyView: 'Ver política',
+      privacyRequired: 'Por favor acepta la Política de Privacidad.',
       forgotPassword: {
         title: 'Recuperar contraseña',
         description: 'Ingresa tu dirección de correo electrónico registrada y te enviaremos un enlace para restablecer tu contraseña.',

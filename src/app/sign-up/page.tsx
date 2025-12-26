@@ -30,14 +30,14 @@ export default function SignUpPage() {
     isKorean: false,
     birthDate: ''
   })
-  
+
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     hasNumber: false,
     hasSpecial: false,
     noRepeated: false
   })
-  
+
   const [authData, setAuthData] = useState({
     email: '',
     nationality: '',
@@ -47,6 +47,8 @@ export default function SignUpPage() {
 
   const [ageError, setAgeError] = useState<string | null>(null)
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  const [privacyError, setPrivacyError] = useState<string | null>(null)
 
   // 가입 퍼널 이벤트: 회원가입 시작
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function SignUpPage() {
     signUpEvents.formStart()
     // Standardized event
     trackStartSignup()
-    
+
     // 히스토리 초기화 - 모바일 뒤로가기 방지
     if (typeof window !== 'undefined') {
       // 히스토리가 비어있으면 랜딩 페이지를 히스토리에 추가
@@ -83,12 +85,12 @@ export default function SignUpPage() {
       ...prev,
       [field]: value
     }))
-    
+
     // 비밀번호 검증
     if (field === 'password') {
       validatePassword(value)
     }
-    
+
     // 이메일 검증 (오타 감지)
     if (field === 'email') {
       validateEmail(value)
@@ -99,14 +101,14 @@ export default function SignUpPage() {
         trackSignupInput('email')
       }
     }
-    
+
     // 가입 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
       signUpEvents.enterPassword()
       // Standardized event
       trackSignupInput('password')
     }
-    
+
     // Standardized events for other fields
     if (value.length > 0 && ['name', 'birthDate', 'country'].includes(field)) {
       trackSignupInput(field)
@@ -129,7 +131,7 @@ export default function SignUpPage() {
       }
     }
   }
-  
+
   const validatePassword = (password: string) => {
     const checks = {
       length: password.length >= 8,
@@ -138,30 +140,30 @@ export default function SignUpPage() {
       noRepeated: !/(.)\1{2,}/.test(password) // 3개 이상 연속된 문자 방지
     }
     setPasswordChecks(checks)
-    
+
     // 비밀번호 검증 통과 시 이벤트
     if (Object.values(checks).every(check => check)) {
       signUpEvents.passwordOk()
     }
   }
-  
-  
+
+
   const validateEmail = (email: string) => {
     if (!email || email.length === 0) {
       setEmailError(null)
       return
     }
-    
+
     // 기본 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       setEmailError(language === 'ko' ? '올바른 이메일 형식이 아닙니다.' : 'Formato de correo electrónico inválido.')
       return
     }
-    
+
     // 도메인 추출
     const domain = email.split('@')[1]?.toLowerCase() || ''
-    
+
     // 일반적인 이메일 도메인 오타 패턴
     const commonTypos: Record<string, string[]> = {
       'gmail.com': ['gamil.com', 'gmai.com', 'gmaill.com', 'gmal.com', 'gmial.com', 'gmaol.com'],
@@ -174,24 +176,24 @@ export default function SignUpPage() {
       'icloud.com': ['icloud.co', 'icloudd.com'],
       'live.com': ['live.co', 'livve.com']
     }
-    
+
     // 오타 감지
     for (const [correctDomain, typos] of Object.entries(commonTypos)) {
       if (typos.includes(domain)) {
         const suggestion = correctDomain
         setEmailError(
-          language === 'ko' 
+          language === 'ko'
             ? `이메일 도메인에 오타가 있는 것 같습니다. "${suggestion}"를 확인해주세요.`
             : `Parece que hay un error tipográfico en el dominio del correo. Por favor verifica "${suggestion}".`
         )
         return
       }
     }
-    
+
     // 오타가 없으면 에러 제거
     setEmailError(null)
   }
-  
+
   const isPasswordValid = Object.values(passwordChecks).every(check => check)
 
   const handleCountryChange = (countryCode: string) => {
@@ -221,7 +223,7 @@ export default function SignUpPage() {
   // 이메일 인증 코드 발송
   const handleSendEmailCode = useCallback(async () => {
     if (!formData.email) return
-    
+
     setIsEmailVerifying(true)
     try {
       const response = await fetch('/api/verify/start', {
@@ -260,7 +262,7 @@ export default function SignUpPage() {
       const response = await fetch('/api/verify/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           channel: 'email',
           target: formData.email,
           code: code
@@ -277,7 +279,7 @@ export default function SignUpPage() {
       setEmailVerified(true)
       setAuthData(prev => ({ ...prev, isEmailVerified: true }))
       alert(language === 'ko' ? '이메일 인증이 완료되었습니다.' : 'Verificación de correo electrónico completada.')
-      
+
       // 회원가입 진행
       await handleSignUp()
     } catch (error) {
@@ -299,7 +301,7 @@ export default function SignUpPage() {
   const handleSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     setIsLoading(true)
-    
+
     // Standardized event: signup_submit
     trackSignupSubmit()
 
@@ -341,37 +343,37 @@ export default function SignUpPage() {
       }
 
       console.log('회원가입 성공:', result)
-      
+
       const userId = result.data?.userId || result.user?.id
-      
+
       // 가입 퍼널 이벤트: 사용자 생성
       signUpEvents.createUser(userId)
-      
+
       // 가입 퍼널 이벤트: 회원가입 완료
       signUpEvents.completeSignUp(userId)
       signUpEvents.signUpSuccess(userId)
-      
+
       // 마케팅 퍼널 이벤트: 회원가입 완료
       marketingEvents.signUp(userId, 'email')
-      
+
       // Standardized events
       trackSignupSuccess(userId)
-      
+
       alert(t('auth.signUpSuccess'))
-      
+
       // 회원가입 성공 후 로그인 페이지로 이동
       router.push('/sign-in')
-      
+
     } catch (error) {
       console.error('회원가입 오류:', error)
-      
+
       // 중복 이메일 에러 처리
       if (error instanceof Error && error.message.includes('이미 가입된 이메일')) {
         alert(t('auth.emailAlreadyExists'))
         setCurrentStep('form') // 폼으로 돌아가기
         return
       }
-      
+
       alert(error instanceof Error ? error.message : t('auth.signUpError'))
     } finally {
       setIsLoading(false)
@@ -380,10 +382,10 @@ export default function SignUpPage() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // 가입 퍼널 이벤트: 회원가입 버튼 클릭
     signUpEvents.registerClick()
-    
+
     if (!isPasswordValid || formData.password !== formData.confirmPassword) {
       return
     }
@@ -404,11 +406,17 @@ export default function SignUpPage() {
       return
     }
 
+    // Privacy policy acceptance required
+    if (!privacyAccepted) {
+      setPrivacyError(t('auth.privacyRequired'))
+      return
+    }
+
     // 가입 퍼널 이벤트: 회원가입 제출
     signUpEvents.submitRegister()
 
     setIsLoading(true)
-    
+
     try {
       // 중복 이메일 체크
       const emailResponse = await fetch('/api/auth/check-email', {
@@ -416,13 +424,13 @@ export default function SignUpPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email })
       })
-      
+
       const emailResult = await emailResponse.json()
-      
+
       if (!emailResponse.ok) {
         throw new Error(emailResult.error || '이메일 확인 중 오류가 발생했습니다.')
       }
-      
+
       if (emailResult.exists) {
         alert(t('auth.emailAlreadyExists'))
         return
@@ -430,7 +438,7 @@ export default function SignUpPage() {
 
       // 중복이 아닌 경우 이메일 인증 단계로 이동
       setCurrentStep('email')
-      
+
     } catch (error) {
       console.error('중복 체크 오류:', error)
       alert(error instanceof Error ? error.message : t('auth.checkError'))
@@ -558,7 +566,7 @@ export default function SignUpPage() {
                   required
                 />
               </div>
-              
+
               {/* 비밀번호 강도 표시 */}
               {formData.password && (
                 <div className="space-y-1 text-xs">
@@ -627,6 +635,28 @@ export default function SignUpPage() {
               </div>
             </div>
 
+              <div className="flex items-start gap-2">
+                <input
+                  id="privacy"
+                  type="checkbox"
+                  checked={privacyAccepted}
+                  onChange={(e) => {
+                    setPrivacyAccepted(e.target.checked)
+                    if (e.target.checked) setPrivacyError(null)
+                  }}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-slate-900 focus:ring-slate-400"
+                />
+                <div className="text-sm text-slate-700 dark:text-gray-300">
+                  <label htmlFor="privacy" className="select-none">
+                    {t('auth.privacyAcceptLabel')}
+                  </label>
+                  <a href="/privacy" className="text-slate-900 dark:text-gray-100 underline ml-1" target="_blank" rel="noreferrer">
+                      {t('auth.privacyView')}
+                    </a>
+                  {privacyError && <p className="text-xs text-red-500 mt-1">{privacyError}</p>}
+                </div>
+              </div>
+
             <Button
               type="submit"
               className="w-full bg-slate-900 dark:bg-gray-700 hover:bg-slate-800 dark:hover:bg-gray-600 text-white py-3 text-lg font-medium transition-colors"
@@ -642,6 +672,7 @@ export default function SignUpPage() {
                 formData.password !== formData.confirmPassword ||
                 !!ageError ||
                 !!emailError
+                || !privacyAccepted
               }
             >
               {isLoading ? (
@@ -687,7 +718,7 @@ export default function SignUpPage() {
                         try {
                           setIsLoading(true)
                           const supabase = createSupabaseBrowserClient()
-                          
+
                           const { error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
@@ -755,8 +786,8 @@ export default function SignUpPage() {
                 <div className="mt-6 text-center">
                   <p className="text-sm text-slate-600 dark:text-gray-400">
                     {t('auth.alreadyHaveAccount')}{' '}
-                    <a 
-                      href="/sign-in" 
+                    <a
+                      href="/sign-in"
                       onClick={() => trackCTAClick('signup_to_signin_link', window.location.href)}
                       className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium"
                     >
@@ -767,7 +798,7 @@ export default function SignUpPage() {
               </CardContent>
             </>
           )}
-          
+
           {currentStep === 'email' && (
             <>
               <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
@@ -783,7 +814,7 @@ export default function SignUpPage() {
               </CardContent>
             </>
           )}
-          
+
           {currentStep === 'complete' && (
             <CardContent className="p-6">
               {renderStep()}
