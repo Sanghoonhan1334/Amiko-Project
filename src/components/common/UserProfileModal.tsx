@@ -935,7 +935,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
               </h3>
               
               {/* 공개 설정 확인 */}
-              {profile.user_type === 'student' ? (
+                {profile.user_type === 'student' ? (
                 profile.academic_info_public ? (
                   <div className="space-y-1 md:space-y-2">
                     {profile.university && (
@@ -983,8 +983,8 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                         <span className="text-gray-600">{t('profileModal.career')}:</span>
                         <span className="font-medium">{getFieldValue('work_experience', profile.work_experience)}</span>
                       </div>
-                    )}
-                  </div>
+                )}
+              </div>
                 ) : (
                   <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
                     <Lock className="w-4 h-4" />

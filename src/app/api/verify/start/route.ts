@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-    
+
     console.log('[VERIFY_START] 인증코드 저장 성공:', {
       id: verificationData.id,
       channel,

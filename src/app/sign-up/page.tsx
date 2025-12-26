@@ -12,6 +12,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { countries } from '@/constants/countries'
 import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick } from '@/lib/analytics'
 import EmailVerification from '@/components/auth/EmailVerification'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -682,10 +683,35 @@ export default function SignUpPage() {
                       type="button"
                       variant="outline"
                       className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors"
-                      onClick={() => {
-                        // TODO: 구글 OAuth 구현
-                        alert(language === 'ko' ? '구글 로그인 기능은 곧 오픈됩니다.' : 'La función de inicio de sesión con Google se abrirá pronto.')
+                      onClick={async () => {
+                        try {
+                          setIsLoading(true)
+                          const supabase = createSupabaseBrowserClient()
+                          
+                          const { error } = await supabase.auth.signInWithOAuth({
+                            provider: 'google',
+                            options: {
+                              redirectTo: `${window.location.origin}/auth/callback?next=/main`,
+                              queryParams: {
+                                access_type: 'offline',
+                                prompt: 'consent',
+                              },
+                            },
+                          })
+
+                          if (error) {
+                            console.error('[SIGNUP] Google 로그인 실패:', error)
+                            alert(language === 'ko' ? '구글 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
+                            setIsLoading(false)
+                          }
+                          // 성공하면 자동으로 Google로 리다이렉트되므로 여기서는 아무것도 하지 않음
+                        } catch (error) {
+                          console.error('[SIGNUP] Google 로그인 오류:', error)
+                          alert(language === 'ko' ? '구글 로그인 중 오류가 발생했습니다.' : 'Error al iniciar sesión con Google')
+                          setIsLoading(false)
+                        }
                       }}
+                      disabled={isLoading}
                     >
                       <div className="flex items-center justify-center gap-3">
                         {/* 구글 아이콘 SVG */}

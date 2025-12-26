@@ -2465,7 +2465,7 @@ export default function MyTab() {
                             ? '대학교, 전공, 학년 정보를 다른 사용자에게 공개합니다' 
                             : 'Comparte tu universidad, carrera y año de estudio con otros usuarios'}
                         </p>
-                      </div>
+          </div>
                       <Switch
                         checked={profile?.academic_info_public ?? false}
                         onCheckedChange={(checked) => 
@@ -2473,7 +2473,7 @@ export default function MyTab() {
                         }
                         className={compactSwitchClass}
                       />
-                    </div>
+                  </div>
                   ) : (
                     <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="flex-1">
@@ -2485,7 +2485,7 @@ export default function MyTab() {
                             ? '직업, 회사, 경력 정보를 다른 사용자에게 공개합니다' 
                             : 'Comparte tu ocupación, empresa y experiencia con otros usuarios'}
                         </p>
-                      </div>
+                  </div>
                       <Switch
                         checked={profile?.job_info_public ?? false}
                         onCheckedChange={(checked) => 
@@ -2493,9 +2493,9 @@ export default function MyTab() {
                         }
                         className={compactSwitchClass}
                       />
-                    </div>
-                  )}
-                  {/* 구분선 */}
+                  </div>
+                )}
+              {/* 구분선 */}
                   <div className="border-t border-gray-200 mt-3"></div>
                 </>
               )}
@@ -2506,10 +2506,10 @@ export default function MyTab() {
                 <span className="text-gray-800 text-xs sm:text-sm font-medium text-right max-w-[60%]">
                   {profile?.introduction || t('profile.noSelfIntroduction')}
                 </span>
-          </div>
-
-              {/* 구분선 */}
-              <div className="border-t border-gray-200"></div>
+                  </div>
+                  
+                  {/* 구분선 */}
+                  <div className="border-t border-gray-200"></div>
 
               {/* 화상 채팅 파트너 상태 표시 (한국인 인증 완료 시 자동 등록됨) */}
               {showPartnerSection && (

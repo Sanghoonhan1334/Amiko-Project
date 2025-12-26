@@ -259,61 +259,61 @@ export async function POST(request: NextRequest) {
       try {
         // userId가 이미 설정되었는지 확인 (비밀번호 업데이트 성공한 경우)
         if (!userId) {
-          console.log(`[SIGNUP] Supabase Auth를 사용하여 사용자 생성 시도`)
-          
-          // Supabase Auth로 사용자 생성 (전화번호는 인증센터에서 입력)
-          // 이메일 인증은 회원가입 단계에서 완료되므로 email_confirm은 false로 설정
-          const { data: authData, error: authError } = await supabaseServer.auth.admin.createUser({
-            email: email,
-            password: password,
-            user_metadata: {
-              name: name,
-              country: country
-            },
-            email_confirm: emailVerified // 실제 이메일 인증 완료 여부에 따라 설정
-          })
+        console.log(`[SIGNUP] Supabase Auth를 사용하여 사용자 생성 시도`)
+        
+        // Supabase Auth로 사용자 생성 (전화번호는 인증센터에서 입력)
+        // 이메일 인증은 회원가입 단계에서 완료되므로 email_confirm은 false로 설정
+        const { data: authData, error: authError } = await supabaseServer.auth.admin.createUser({
+          email: email,
+          password: password,
+          user_metadata: {
+            name: name,
+            country: country
+          },
+          email_confirm: emailVerified // 실제 이메일 인증 완료 여부에 따라 설정
+        })
 
-          if (!authError && authData?.user) {
-            // 정상적인 createUser 성공
-            userId = authData.user.id
-            console.log(`[SIGNUP] Supabase Auth 사용자 생성 성공: ${userId}`)
-            // 이메일을 전역 변수에 저장 (중복 검증용)
-            global.registeredEmails!.add(email)
-            console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
-          } else if (authError) {
-            console.error('[SIGNUP] Supabase Auth 사용자 생성 실패:', authError)
+        if (!authError && authData?.user) {
+          // 정상적인 createUser 성공
+          userId = authData.user.id
+          console.log(`[SIGNUP] Supabase Auth 사용자 생성 성공: ${userId}`)
+          // 이메일을 전역 변수에 저장 (중복 검증용)
+          global.registeredEmails!.add(email)
+          console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
+        } else if (authError) {
+          console.error('[SIGNUP] Supabase Auth 사용자 생성 실패:', authError)
+          
+          // 이메일 중복 에러 처리
+          if (authError.message?.includes('already registered') || 
+              authError.message?.includes('already exists') ||
+              authError.message?.includes('User already registered') ||
+              authError.message?.includes('email address is already registered')) {
             
-            // 이메일 중복 에러 처리
-            if (authError.message?.includes('already registered') || 
-                authError.message?.includes('already exists') ||
-                authError.message?.includes('User already registered') ||
-                authError.message?.includes('email address is already registered')) {
-              
-              // Supabase Auth에서 이메일로 사용자 찾기
-              try {
-                const { data: authUsers, error: listError } = await supabaseServer.auth.admin.listUsers()
+            // Supabase Auth에서 이메일로 사용자 찾기
+            try {
+              const { data: authUsers, error: listError } = await supabaseServer.auth.admin.listUsers()
               
               if (!listError && authUsers) {
-                    const emailLower = email.toLowerCase()
-                    const existingAuthUser = authUsers.users.find(u => u.email?.toLowerCase() === emailLower)
+                const emailLower = email.toLowerCase()
+                const existingAuthUser = authUsers.users.find(u => u.email?.toLowerCase() === emailLower)
+                
+                if (existingAuthUser) {
+                  // users 테이블에서 해당 사용자가 삭제된 계정인지 확인
+                  const { data: userRecord } = await supabaseServer
+                    .from('users')
+                    .select('id, deleted_at')
+                    .eq('id', existingAuthUser.id)
+                    .single()
                   
-                    if (existingAuthUser) {
-                    // users 테이블에서 해당 사용자가 삭제된 계정인지 확인
-                    const { data: userRecord } = await supabaseServer
-                      .from('users')
-                      .select('id, deleted_at')
-                      .eq('id', existingAuthUser.id)
-                      .single()
-                  
-                    // 삭제된 계정이면 강제로 삭제 후 재가입 허용
-                    if (userRecord && userRecord.deleted_at) {
-                      console.log(`[SIGNUP] 삭제된 계정 감지 (${existingAuthUser.id}), Supabase Auth에서 강제 삭제 시도`)
+                  // 삭제된 계정이면 강제로 삭제 후 재가입 허용
+                  if (userRecord && userRecord.deleted_at) {
+                    console.log(`[SIGNUP] 삭제된 계정 감지 (${existingAuthUser.id}), Supabase Auth에서 강제 삭제 시도`)
                     
-                      // Supabase Auth에서 강제 삭제
-                      const { error: forceDeleteError } = await supabaseServer.auth.admin.deleteUser(existingAuthUser.id)
+                    // Supabase Auth에서 강제 삭제
+                    const { error: forceDeleteError } = await supabaseServer.auth.admin.deleteUser(existingAuthUser.id)
                     
-                      if (forceDeleteError) {
-                        console.error('[SIGNUP] 강제 삭제 실패:', forceDeleteError)
+                    if (forceDeleteError) {
+                      console.error('[SIGNUP] 강제 삭제 실패:', forceDeleteError)
                         // 삭제 실패 시 기존 사용자의 비밀번호를 새 비밀번호로 업데이트
                         console.log(`[SIGNUP] 삭제 실패, 기존 사용자의 비밀번호 업데이트 시도`)
                         try {
@@ -344,19 +344,38 @@ export async function POST(request: NextRequest) {
                           console.error('[SIGNUP] 비밀번호 업데이트 중 예외:', updateException)
                           // 업데이트 실패해도 재시도
                         }
-                        // 삭제 실패해도 재시도 (auth.users에서 이미 삭제되었을 수 있음)
-                        console.warn('[SIGNUP] 삭제 실패했지만 재시도 진행')
-                      } else {
-                        console.log(`[SIGNUP] 삭제된 계정의 Auth 사용자 강제 삭제 완료: ${existingAuthUser.id}`)
-                      }
+                      // 삭제 실패해도 재시도 (auth.users에서 이미 삭제되었을 수 있음)
+                      console.warn('[SIGNUP] 삭제 실패했지만 재시도 진행')
+                    } else {
+                      console.log(`[SIGNUP] 삭제된 계정의 Auth 사용자 강제 삭제 완료: ${existingAuthUser.id}`)
+                    }
                     
                       // userId가 설정되지 않았을 때만 createUser 시도
                       if (!userId) {
-                        // 삭제 후 충분한 대기 시간 (Supabase가 완전히 처리할 시간)
-                        await new Promise(resolve => setTimeout(resolve, 2000)) // 2초 대기
+                    // 삭제 후 충분한 대기 시간 (Supabase가 완전히 처리할 시간)
+                    await new Promise(resolve => setTimeout(resolve, 2000)) // 2초 대기
+                    
+                    // 다시 사용자 생성 시도
+                    const { data: retryAuthData, error: retryAuthError } = await supabaseServer.auth.admin.createUser({
+                      email: email,
+                      password: password,
+                      user_metadata: {
+                        name: name,
+                        country: country
+                      },
+                      email_confirm: emailVerified
+                    })
+                    
+                    if (retryAuthError) {
+                      console.error('[SIGNUP] 재시도 후에도 사용자 생성 실패:', retryAuthError)
                       
-                        // 다시 사용자 생성 시도
-                        const { data: retryAuthData, error: retryAuthError } = await supabaseServer.auth.admin.createUser({
+                      // 여전히 중복 에러면 한 번 더 시도
+                      if (retryAuthError.message?.includes('already registered') || 
+                          retryAuthError.message?.includes('already exists')) {
+                        console.log('[SIGNUP] 여전히 중복 에러, 추가 대기 후 재시도')
+                        await new Promise(resolve => setTimeout(resolve, 3000)) // 3초 더 대기
+                        
+                        const { data: finalRetryData, error: finalRetryError } = await supabaseServer.auth.admin.createUser({
                           email: email,
                           password: password,
                           user_metadata: {
@@ -365,53 +384,34 @@ export async function POST(request: NextRequest) {
                           },
                           email_confirm: emailVerified
                         })
-                      
-                        if (retryAuthError) {
-                          console.error('[SIGNUP] 재시도 후에도 사용자 생성 실패:', retryAuthError)
                         
-                          // 여전히 중복 에러면 한 번 더 시도
-                          if (retryAuthError.message?.includes('already registered') || 
-                              retryAuthError.message?.includes('already exists')) {
-                            console.log('[SIGNUP] 여전히 중복 에러, 추가 대기 후 재시도')
-                            await new Promise(resolve => setTimeout(resolve, 3000)) // 3초 더 대기
-                          
-                            const { data: finalRetryData, error: finalRetryError } = await supabaseServer.auth.admin.createUser({
-                              email: email,
-                              password: password,
-                              user_metadata: {
-                                name: name,
-                                country: country
-                              },
-                              email_confirm: emailVerified
-                            })
-                          
-                            if (finalRetryError) {
-                              return NextResponse.json(
-                                { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
-                                { status: 500 }
-                              )
-                            }
-                          
-                            userId = finalRetryData.user.id
-                            console.log(`[SIGNUP] 최종 재시도 후 사용자 생성 성공: ${userId}`)
-                            // 이메일을 전역 변수에 저장 (중복 검증용)
-                            global.registeredEmails!.add(email)
-                            console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
-                          } else {
-                            return NextResponse.json(
-                              { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
-                              { status: 500 }
-                            )
-                          }
-                        } else {
-                          userId = retryAuthData.user.id
-                          console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
-                          // 이메일을 전역 변수에 저장 (중복 검증용)
-                          global.registeredEmails!.add(email)
-                          console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
+                        if (finalRetryError) {
+                          return NextResponse.json(
+                            { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
+                            { status: 500 }
+                          )
                         }
+                        
+                        userId = finalRetryData.user.id
+                        console.log(`[SIGNUP] 최종 재시도 후 사용자 생성 성공: ${userId}`)
+                        // 이메일을 전역 변수에 저장 (중복 검증용)
+                        global.registeredEmails!.add(email)
+                        console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
+                      } else {
+                        return NextResponse.json(
+                          { error: '계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.' },
+                          { status: 500 }
+                        )
                       }
-                      // users 테이블 삽입은 아래 공통 로직으로 진행
+                    } else {
+                      userId = retryAuthData.user.id
+                      console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
+                      // 이메일을 전역 변수에 저장 (중복 검증용)
+                      global.registeredEmails!.add(email)
+                      console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
+                        }
+                    }
+                    // users 테이블 삽입은 아래 공통 로직으로 진행
                     } else if (!userRecord) {
                       // public.users에 없는 경우 (삭제된 계정이지만 deleted_at이 null인 경우)
                       // 기존 사용자의 비밀번호를 업데이트
@@ -448,54 +448,54 @@ export async function POST(request: NextRequest) {
                           { status: 500 }
                         )
                       }
-                    } else {
-                      // 삭제되지 않은 활성 계정
-                      return NextResponse.json(
-                        { error: '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.' },
-                        { status: 409 }
-                      )
-                    }
                   } else {
-                    // Auth에 사용자가 없는데 에러가 발생한 경우 (드문 경우)
-                    console.warn('[SIGNUP] Auth에 사용자가 없는데 중복 에러 발생, 재시도')
-                    // 재시도
-                    const { data: retryAuthData, error: retryAuthError } = await supabaseServer.auth.admin.createUser({
-                      email: email,
-                      password: password,
-                      user_metadata: {
-                        name: name,
-                        country: country
-                      },
-                      email_confirm: emailVerified
-                    })
-                  
-                    if (retryAuthError) {
-                      return NextResponse.json(
-                        { error: '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.' },
-                        { status: 409 }
-                      )
-                    }
-                  
-                    userId = retryAuthData.user.id
-                    console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
-                    // 이메일을 전역 변수에 저장 (중복 검증용)
-                    global.registeredEmails!.add(email)
-                    console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
-                    // users 테이블 삽입은 아래 공통 로직으로 진행
+                    // 삭제되지 않은 활성 계정
+                    return NextResponse.json(
+                      { error: '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.' },
+                      { status: 409 }
+                    )
                   }
                 } else {
-                  return NextResponse.json(
-                    { error: '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.' },
-                    { status: 409 }
-                  )
+                  // Auth에 사용자가 없는데 에러가 발생한 경우 (드문 경우)
+                  console.warn('[SIGNUP] Auth에 사용자가 없는데 중복 에러 발생, 재시도')
+                  // 재시도
+                  const { data: retryAuthData, error: retryAuthError } = await supabaseServer.auth.admin.createUser({
+                    email: email,
+                    password: password,
+                    user_metadata: {
+                      name: name,
+                      country: country
+                    },
+                    email_confirm: emailVerified
+                  })
+                  
+                  if (retryAuthError) {
+                    return NextResponse.json(
+                      { error: '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.' },
+                      { status: 409 }
+                    )
+                  }
+                  
+                  userId = retryAuthData.user.id
+                  console.log(`[SIGNUP] 재시도 후 사용자 생성 성공: ${userId}`)
+                  // 이메일을 전역 변수에 저장 (중복 검증용)
+                  global.registeredEmails!.add(email)
+                  console.log(`[SIGNUP] global.registeredEmails에 추가: ${email}`)
+                  // users 테이블 삽입은 아래 공통 로직으로 진행
                 }
-              } catch (cleanupError) {
-                console.error('[SIGNUP] 삭제된 계정 정리 중 오류:', cleanupError)
+              } else {
                 return NextResponse.json(
-                  { error: '계정 정리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
-                  { status: 500 }
+                  { error: '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.' },
+                  { status: 409 }
                 )
               }
+            } catch (cleanupError) {
+              console.error('[SIGNUP] 삭제된 계정 정리 중 오류:', cleanupError)
+              return NextResponse.json(
+                { error: '계정 정리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
+                { status: 500 }
+              )
+            }
           } else {
             // 기타 Auth 에러
             return NextResponse.json(

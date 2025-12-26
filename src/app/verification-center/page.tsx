@@ -936,20 +936,20 @@ export default function VerificationCenterPage() {
                     
                     {/* 전화번호 입력 */}
                     <div className="relative flex-1">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
                         onChange={(e) => {
                           handleInputChange('phone', e.target.value)
                           setFieldErrors(prev => ({ ...prev, phone: undefined }))
                         }}
-                        placeholder={isKorean ? "010-1234-5678" : "123456789"}
+                      placeholder={isKorean ? "010-1234-5678" : "123456789"}
                         className={`!pl-10 ${fieldErrors.phone ? 'border-red-500' : ''}`}
-                        disabled={phoneVerified}
-                      />
-                    </div>
+                      disabled={phoneVerified}
+                    />
+                  </div>
                   </div>
                   {fieldErrors.phone && (
                     <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
@@ -1264,8 +1264,8 @@ export default function VerificationCenterPage() {
                         formData.occupation === 'Trabajador independiente' ||
                         formData.occupation === '프리랜서' ||
                         formData.occupation === 'Freelancer') && (
-                        <div>
-                          <Label htmlFor="company">
+                      <div>
+                        <Label htmlFor="company">
                             {language === 'ko' 
                               ? (formData.occupation === '자영업' || formData.occupation === 'Trabajador independiente' 
                                   ? '사업명/상호' 
@@ -1278,11 +1278,11 @@ export default function VerificationCenterPage() {
                                   ? 'Área principal de actividad'
                                   : 'Empresa/Organización')
                             }
-                          </Label>
-                          <Input
-                            id="company"
-                            value={formData.company}
-                            onChange={(e) => handleInputChange('company', e.target.value)}
+                        </Label>
+                        <Input
+                          id="company"
+                          value={formData.company}
+                          onChange={(e) => handleInputChange('company', e.target.value)}
                             placeholder={
                               language === 'ko' 
                                 ? (formData.occupation === '자영업' || formData.occupation === 'Trabajador independiente'
@@ -1296,13 +1296,13 @@ export default function VerificationCenterPage() {
                                     ? 'Ingrese su área principal de actividad (ej: diseño, traducción, etc.)'
                                     : 'Ingrese el nombre de su empresa u organización (opcional)')
                             }
-                          />
-                          <p className="text-sm text-gray-500 mt-1">
-                            {language === 'ko' 
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                          {language === 'ko' 
                               ? '생략 가능합니다.'
                               : 'Puede omitir este campo.'}
-                          </p>
-                        </div>
+                        </p>
+                      </div>
                       )}
                     </div>
                   )}

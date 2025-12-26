@@ -143,30 +143,30 @@ export default function RootLayout({
           <Analytics />
         </Suspense>
         <Suspense fallback={null}>
-          <QueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange={false}
-            >
-              <AuthProvider>
-                <LanguageProvider>
-                  <UserProvider>
-                    <CustomBanner />
-                    <HeaderWrapper />
-                    <main>
-                      <HistoryManager />
-                      {children}
-                    </main>
-                    <Footer />
-                    <ScrollToTop />
-                    <GlobalChatButton />
-                  </UserProvider>
-                </LanguageProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </QueryProvider>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange={false}
+          >
+            <AuthProvider>
+              <LanguageProvider>
+                <UserProvider>
+                  <CustomBanner />
+                  <HeaderWrapper />
+                  <main>
+                    <HistoryManager />
+                    {children}
+                  </main>
+                  <Footer />
+                  <ScrollToTop />
+                  <GlobalChatButton />
+                </UserProvider>
+              </LanguageProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryProvider>
         </Suspense>
         <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
         {/* 카카오톡 링크 미리보기용 추가 메타 태그 */}
