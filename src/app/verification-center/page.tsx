@@ -144,19 +144,71 @@ export default function VerificationCenterPage() {
         }
 
         // 사용자 프로필에서 한국인 여부 확인
+        // 최신 데이터를 확실히 가져오기 위해 Supabase에서 직접 조회
         try {
-          const token = localStorage.getItem('amiko_token')
-          if (token && user?.id) {
-            const profileResponse = await fetch(`/api/profile?userId=${user.id}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+          if (user?.id && !isKoreanDetermined) {
+            // 먼저 Supabase에서 직접 is_korean과 country 조회 (최신 데이터 보장)
+            try {
+              const supabase = createSupabaseBrowserClient()
+              const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('is_korean, country')
+                .eq('id', user.id)
+                .maybeSingle()
+              
+              if (!userError && userData) {
+                const userIsKorean = userData.is_korean === true
+                const userCountry = userData.country
+                
+                console.log('[VERIFICATION_CENTER] Supabase에서 직접 조회:', {
+                  is_korean: userData.is_korean,
+                  country: userCountry,
+                  isKorean: userIsKorean
+                })
+                
+                setIsKorean(userIsKorean)
+                setIsKoreanDetermined(true)
+                
+                // 한국인이면 한국인 전용 페이지로 리다이렉트
+                if (userIsKorean === true) {
+                  console.log('[VERIFICATION_CENTER] 한국인 감지 - 한국인 전용 페이지로 리다이렉트')
+                  router.push('/verification')
+                  return
+                }
+              } else {
+                console.warn('[VERIFICATION_CENTER] Supabase 조회 실패:', userError)
               }
-            })
+            } catch (supabaseError) {
+              console.error('[VERIFICATION_CENTER] Supabase 조회 오류:', supabaseError)
+            }
+            
+            // Supabase 조회가 실패했거나 결과가 없으면 API로 조회 시도
+            const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
             
             if (profileResponse.ok) {
               const profileData = await profileResponse.json()
-              const userProfile = profileData.user || profileData.profile
+              const userProfile = profileData.user || profileData.profile || profileData
+              
+              // API에서 가져온 is_korean 값 확인 (Supabase 조회가 실패한 경우에만 사용)
+              if (!isKoreanDetermined && userProfile) {
+                const apiIsKorean = userProfile.is_korean === true
+                
+                console.log('[VERIFICATION_CENTER] API에서 조회:', {
+                  is_korean: userProfile.is_korean,
+                  country: userProfile.country,
+                  isKorean: apiIsKorean
+                })
+                
+                setIsKorean(apiIsKorean)
+                setIsKoreanDetermined(true)
+                
+                // 한국인이면 한국인 전용 페이지로 리다이렉트
+                if (apiIsKorean === true) {
+                  console.log('[VERIFICATION_CENTER] 한국인 감지 (API) - 한국인 전용 페이지로 리다이렉트')
+                  router.push('/verification')
+                  return
+                }
+              }
               
               // 인증 완료 여부 확인 - 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
               // 회원가입 시 입력한 정보만으로는 인증완료로 처리하지 않음
@@ -212,82 +264,24 @@ export default function VerificationCenterPage() {
                   console.log('[VERIFICATION] 인증 미완료 사용자 - 부분 저장 데이터 복구')
                 }
               }
-              
-              // 한국인 여부 확인 - users 테이블의 is_korean 값 사용
-              const finalIsKorean = userProfile?.is_korean === true
-              
-              console.log('[VERIFICATION] 사용자 타입 확인:', { 
-                isKorean: finalIsKorean,
-                is_korean_from_profile: userProfile?.is_korean,
-                phone: userProfile?.phone,
-                email: user?.email
-              })
-              
-              // 디버깅: isKorean 상태 변경 추적
-              console.log('[VERIFICATION] isKorean 상태 변경:', {
-                from: '기존값',
-                to: finalIsKorean,
-                reason: 'users 테이블의 is_korean 값',
-                alreadyDetermined: isKoreanDetermined
-              })
-              
-              // 이미 결정되지 않은 경우에만 설정
-              if (!isKoreanDetermined) {
-                setIsKorean(finalIsKorean)
-                setIsKoreanDetermined(true)
-                
-                // 한국인이면 한국인 전용 페이지로 리다이렉트
-                if (finalIsKorean === true) {
-                  console.log('[VERIFICATION_CENTER] 한국인 감지 - 한국인 전용 페이지로 리다이렉트')
-                  router.push('/verification')
-                  return
-                }
-              }
             } else if (profileResponse.status === 404) {
-              // 프로필이 설정되지 않은 경우 - users 테이블에서 is_korean 확인
-              console.log('[VERIFICATION] 프로필 미설정 - users 테이블에서 is_korean 확인')
+              // 프로필이 설정되지 않은 경우 - 이미 Supabase에서 조회했으므로 추가 처리 불필요
+              console.log('[VERIFICATION_CENTER] 프로필 미설정 - Supabase 조회 결과 사용')
               
-              try {
-                const supabase = createSupabaseBrowserClient()
-                const { data: userData, error: userError } = await supabase
-                  .from('users')
-                  .select('is_korean')
-                  .eq('id', user.id)
-                  .maybeSingle()
-                
-                if (!userError && userData && !isKoreanDetermined) {
-                  console.log('[VERIFICATION] users 테이블에서 is_korean 확인:', userData.is_korean)
-                  const userIsKorean = userData.is_korean ?? false
-                  setIsKorean(userIsKorean)
-                  setIsKoreanDetermined(true)
-                  
-                  // 한국인이면 한국인 전용 페이지로 리다이렉트
-                  if (userIsKorean === true) {
-                    console.log('[VERIFICATION_CENTER] 한국인 감지 - 한국인 전용 페이지로 리다이렉트')
-                    router.push('/verification')
-                    return
-                  }
-                } else if (!isKoreanDetermined) {
-                  // users 테이블 조회 실패 시 기본값 (현지인)
-                  console.log('[VERIFICATION] users 조회 실패 - 기본값(현지인) 설정', userError)
-                  setIsKorean(false)
-                  setIsKoreanDetermined(true)
-                }
-              } catch (e) {
-                console.error('[VERIFICATION] users 테이블 조회 오류:', e)
-                if (!isKoreanDetermined) {
-                  setIsKorean(false)
-                  setIsKoreanDetermined(true)
-                }
+              // isKoreanDetermined가 false면 기본값(현지인)으로 설정
+              if (!isKoreanDetermined) {
+                console.log('[VERIFICATION_CENTER] 기본값(현지인) 설정')
+                setIsKorean(false)
+                setIsKoreanDetermined(true)
               }
             }
           }
         } catch (profileError) {
-          console.error('[VERIFICATION] 프로필 확인 실패:', profileError)
+          console.error('[VERIFICATION_CENTER] 프로필 확인 실패:', profileError)
           // is_korean은 회원가입 시 저장되므로 users 테이블에는 항상 존재해야 함
           // 에러 발생 시 기본값(false: 현지인)으로 fallback
           if (!isKoreanDetermined) {
-            console.log('[VERIFICATION] 에러 fallback - 현지인으로 설정')
+            console.log('[VERIFICATION_CENTER] 에러 fallback - 현지인으로 설정')
             setIsKorean(false)
             setIsKoreanDetermined(true)
           }

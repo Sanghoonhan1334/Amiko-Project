@@ -59,10 +59,10 @@ export async function GET(request: NextRequest) {
     // Google OAuth로 가입한 경우, 사용자 프로필이 없을 수 있으므로 확인 및 생성
     if (data.user.app_metadata?.provider === 'google' && supabaseServer) {
       try {
-        // public.users에 사용자 정보가 있는지 확인
+        // public.users에 사용자 정보가 있는지 확인 (생년월일, 국가 포함)
         const { data: userProfile, error: profileError } = await supabaseServer
           .from('users')
-          .select('id')
+          .select('id, birth_date, country')
           .eq('id', data.user.id)
           .single()
 
@@ -70,28 +70,54 @@ export async function GET(request: NextRequest) {
         if (profileError || !userProfile) {
           console.log('[AUTH_CALLBACK] Google OAuth 사용자 프로필 생성 중...')
           
+          // nickname 생성: 이름 + 타임스탬프로 고유한 닉네임 생성
+          const userName = data.user.user_metadata?.full_name || data.user.user_metadata?.name || ''
+          const timestamp = Date.now()
+          const uniqueNickname = userName 
+            ? `${userName.replace(/\s+/g, '_')}_${timestamp}` 
+            : `user_${timestamp}`
+          
           const { error: insertError } = await supabaseServer
             .from('users')
             .insert({
               id: data.user.id,
               email: data.user.email,
-              name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || '',
+              name: userName,
+              nickname: uniqueNickname, // 고유한 nickname 생성
               avatar_url: data.user.user_metadata?.avatar_url || null,
-              email_verified: true, // Google OAuth는 이메일이 이미 인증됨
+              email_verified_at: new Date().toISOString(), // Google OAuth는 이메일이 이미 인증됨
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
 
           if (insertError) {
             console.error('[AUTH_CALLBACK] 사용자 프로필 생성 실패:', insertError)
-            // 프로필 생성 실패해도 로그인은 진행 (나중에 프로필 완성하도록)
+            // 프로필 생성 실패 시에도 추가 정보 입력 페이지로 리다이렉트
+            return NextResponse.redirect(
+              new URL('/auth/complete-profile', requestUrl.origin)
+            )
           } else {
             console.log('[AUTH_CALLBACK] Google OAuth 사용자 프로필 생성 완료')
+            // 프로필이 생성되었지만 생년월일/국가가 없으면 추가 정보 입력 페이지로 리다이렉트
+            return NextResponse.redirect(
+              new URL('/auth/complete-profile', requestUrl.origin)
+            )
+          }
+        } else {
+          // 프로필이 있지만 생년월일 또는 국가가 없으면 추가 정보 입력 페이지로 리다이렉트
+          if (!userProfile.birth_date || !userProfile.country) {
+            console.log('[AUTH_CALLBACK] 추가 정보 필요 - 생년월일 또는 국가가 없음')
+            return NextResponse.redirect(
+              new URL('/auth/complete-profile', requestUrl.origin)
+            )
           }
         }
       } catch (profileError) {
         console.error('[AUTH_CALLBACK] 프로필 확인 중 오류:', profileError)
-        // 프로필 확인 실패해도 로그인은 진행
+        // 프로필 확인 실패 시에도 추가 정보 입력 페이지로 리다이렉트
+        return NextResponse.redirect(
+          new URL('/auth/complete-profile', requestUrl.origin)
+        )
       }
     }
 
