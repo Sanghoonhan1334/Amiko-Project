@@ -171,6 +171,14 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     )
   }, [token])
   
+  // 로그인하지 않은 사용자도 메시지를 볼 수 있도록 anon 클라이언트 생성
+  const anonSupabase = useMemo(() => {
+    return createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }, [])
+  
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -429,14 +437,18 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   // 채팅 초기화 함수들 - early return 이전에 정의
   const fetchRoom = async (retryCount = 0) => {
     try {
-      const { data, error } = await authSupabase
+      // 로그인한 사용자는 authSupabase, 로그인하지 않은 사용자는 anonSupabase 사용
+      const supabaseClient = user && user.id ? authSupabase : anonSupabase
+      
+      const { data, error } = await supabaseClient
         .from('chat_rooms')
         .select('*')
         .eq('id', roomId)
         .single()
 
       if (error) {
-        if (error.message?.includes('JWT') || error.message?.includes('expired') || error.code === 'PGRST301') {
+        // 로그인한 사용자만 세션 갱신 시도
+        if (user && user.id && (error.message?.includes('JWT') || error.message?.includes('expired') || error.code === 'PGRST301')) {
           console.log('[CHAT] 인증 에러 감지, 세션 갱신 시도...')
           if (retryCount < 2 && refreshSession) {
             const refreshed = await refreshSession()
@@ -451,7 +463,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       setRoom(data)
       
-      if (user) {
+      // 로그인한 사용자만 참가자 정보 조회
+      if (user && user.id) {
         const { data: participant } = await authSupabase
           .from('chat_room_participants')
           .select('role')
@@ -470,7 +483,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
   const fetchMessages = async (retryCount = 0) => {
     try {
-      const { data, error } = await authSupabase
+      // 로그인한 사용자는 authSupabase, 로그인하지 않은 사용자는 anonSupabase 사용
+      const supabaseClient = user && user.id ? authSupabase : anonSupabase
+      
+      const { data, error } = await supabaseClient
         .from('chat_messages')
         .select('*')
         .eq('room_id', roomId)
@@ -479,7 +495,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       if (error) {
         console.error('❌ Error fetching messages:', error)
         
-        if (error.message?.includes('JWT') || error.message?.includes('expired') || error.code === 'PGRST301') {
+        // 로그인한 사용자만 세션 갱신 시도
+        if (user && user.id && (error.message?.includes('JWT') || error.message?.includes('expired') || error.code === 'PGRST301')) {
           console.log('[CHAT] 메시지 로드 인증 에러 감지, 세션 갱신 시도...')
           if (retryCount < 2 && refreshSession) {
             const refreshed = await refreshSession()
@@ -500,7 +517,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           // users 테이블에서 실제 이름 가져오기
           let userInfo = null
           try {
-            const { data: userData } = await authSupabase
+            const supabaseClient = user && user.id ? authSupabase : anonSupabase
+            const { data: userData } = await supabaseClient
               .from('users')
               .select('full_name, korean_name, spanish_name')
               .eq('id', msg.user_id)
@@ -551,7 +569,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       const lastMessage = messages[messages.length - 1]
       const lastMessageTime = lastMessage?.created_at || new Date(0).toISOString()
 
-      const { data, error } = await authSupabase
+      // 로그인한 사용자는 authSupabase, 로그인하지 않은 사용자는 anonSupabase 사용
+      const supabaseClient = user && user.id ? authSupabase : anonSupabase
+
+      const { data, error } = await supabaseClient
         .from('chat_messages')
         .select('*')
         .eq('room_id', roomId)
@@ -569,7 +590,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             // users 테이블에서 실제 이름 가져오기
             let userInfo = null
             try {
-              const { data: userData } = await authSupabase
+              const supabaseClient = user && user.id ? authSupabase : anonSupabase
+              const { data: userData } = await supabaseClient
                 .from('users')
                 .select('full_name, korean_name, spanish_name')
                 .eq('id', msg.user_id)
@@ -599,12 +621,16 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const subscribeToMessages = () => {
     if (channelRef.current) {
       console.log('🗑️ Removing existing channel')
-      authSupabase.removeChannel(channelRef.current)
+      const supabaseClient = user && user.id ? authSupabase : anonSupabase
+      supabaseClient.removeChannel(channelRef.current)
     }
 
     console.log('📡 Starting Realtime subscription for room:', roomId)
 
-    const channel = authSupabase
+    // 로그인한 사용자는 authSupabase, 로그인하지 않은 사용자는 anonSupabase 사용
+    const supabaseClient = user && user.id ? authSupabase : anonSupabase
+
+    const channel = supabaseClient
       .channel(`room-${roomId}-${Date.now()}`)
       .on(
         'postgres_changes',
@@ -672,55 +698,37 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   }
   
   // 채팅 초기화 useEffect - early return 이전에 배치
+  // 메시지 조회는 인증 없이도 가능, 참여(메시지 전송)만 Level 2 인증 필요
   useEffect(() => {
     if (authLoading) {
       return
     }
 
-    if (!user || !user.id) {
-      return
-    }
-
-    // Level 2 인증 체크 (실시간 채팅용)
-    const checkAuth = async () => {
-      try {
-        const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
-        if (profileResponse.ok) {
-          const profileResult = await profileResponse.json()
-          const userProfile = profileResult.user
-          
-          const { canAccess } = checkLevel2Auth(userProfile)
-          
-          if (!canAccess) {
-            console.log('❌ Level 2 인증 미완성 - 인증센터로 이동')
-            router.push('/verification-center')
-            return
-          }
-        } else {
-          // 프로필 조회 실패 시 인증센터로 이동
-          router.push('/verification-center')
-          return
-        }
-      } catch (error) {
-        console.error('인증 상태 확인 실패:', error)
-        router.push('/verification-center')
-      return
-    }
-
+    // 로그인 여부와 관계없이 메시지를 볼 수 있도록 변경
+    // 메시지 전송은 sendMessage 함수에서 Level 2 인증 체크
     const timeoutId = setTimeout(() => {
-      console.log('✅ 사용자 인증 완료 - 채팅 시작')
+      console.log('✅ 채팅방 로드 시작 (읽기 전용 가능)')
 
       fetchRoom()
       fetchMessages()
-      joinRoom()
+      
+      // 참가자 등록은 메시지 전송 시에만 수행 (sendMessage 함수 내부)
+      // 메시지 조회는 인증 없이도 가능
       subscribeToMessages()
       startPolling()
+      
+      // 로그인한 사용자만 참가자로 등록 (선택적)
+      if (user && user.id) {
+        // 참가자 정보만 조회 (등록은 메시지 전송 시)
+        fetchRoom()
+      }
     }, 1000)
 
     return () => {
       clearTimeout(timeoutId)
       if (channelRef.current) {
-        authSupabase.removeChannel(channelRef.current)
+        const supabaseClient = user && user.id ? authSupabase : anonSupabase
+        supabaseClient.removeChannel(channelRef.current)
         channelRef.current = null
       }
       if (pollingIntervalRef.current) {
@@ -728,10 +736,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         pollingIntervalRef.current = null
       }
     }
-    }
-
-    checkAuth()
-  }, [roomId, user, authSupabase, authLoading, refreshSession, router])
+  }, [roomId, user, authSupabase, anonSupabase, authLoading, refreshSession, router])
   
   // ⚠️ 강화: 인증 체크 - user, user.id, isAuthenticated 모두 확인
   // ⚠️ 중요: early return은 모든 hooks 호출 이후에만 수행
@@ -746,41 +751,11 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     )
   }
   
-  // ⚠️ 로그인 안 한 경우
-  if (!user || !user.id || !isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{t('auth.loginRequired')}</p>
-          <button
-            onClick={() => router.push('/sign-in?redirect=/community/k-chat')}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            {t('auth.loginButton')}
-          </button>
-        </div>
-      </div>
-    )
-  }
+  // ⚠️ 로그인 안 한 경우도 메시지를 볼 수 있도록 변경
+  // 메시지 전송만 로그인 및 인증 필요
   
-  // ⚠️ 로그인은 했지만 인증(verification)이 안 된 경우
-  if (!isVerified) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {language === 'ko' ? '인증이 필요합니다.' : 'Se requiere verificación.'}
-          </p>
-          <button
-            onClick={() => router.push('/verification-center')}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            {language === 'ko' ? '인증하기' : 'Verificar'}
-          </button>
-        </div>
-      </div>
-    )
-  }
+  // ⚠️ 인증되지 않은 사용자도 메시지를 볼 수 있도록 변경
+  // 메시지 전송만 인증이 필요함 (sendMessage 함수에서 체크)
 
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -902,6 +877,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       router.push('/sign-in?redirect=/community/k-chat')
       return
     }
+    
+    // 인증 통과 후 참가자로 등록
+    await joinRoom()
     
     if ((!newMessage.trim() && !selectedImage) || uploading) return
 
@@ -1671,9 +1649,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         </div>
       </div>
 
-      {/* Input - 로딩 중이거나 인증되지 않은 사용자는 숨김 */}
-      {/* ⚠️ 강화: user와 user.id가 반드시 있어야만 입력 필드 표시 */}
-      {!(authLoading || loading) && user && user.id && (
+      {/* Input - 인증되지 않은 사용자도 입력창은 보이지만 비활성화 */}
+      {!(authLoading || loading) && (
       <div className="border-t border-gray-200" style={{ backgroundColor: palette.inputBg } as React.CSSProperties}>
         <div 
           style={isDragging ? {
@@ -1717,12 +1694,26 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                 onChange={handleImageSelect}
                 className="hidden"
               />
+              {/* 인증 안내 메시지 */}
+              {(!user || !user.id || !isVerified) && (
+                <div className="w-full mb-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm text-yellow-800 dark:text-yellow-200">
+                  {language === 'ko' 
+                    ? '💬 메시지를 보내려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
+                    : '💬 Se requiere verificación para enviar mensajes. Por favor complete la verificación en el centro de verificación.'}
+                  <button
+                    onClick={() => router.push('/verification-center')}
+                    className="ml-2 text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                  >
+                    {language === 'ko' ? '인증하기' : 'Verificar'}
+                  </button>
+                </div>
+              )}
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={!user || uploading}
+                disabled={!user || !user.id || !isVerified || uploading}
                 style={{
                   backgroundColor: palette.imageBg,
                   borderColor: palette.imageBg,
@@ -1743,7 +1734,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Escribe un mensaje..."
+                placeholder={language === 'ko' 
+                  ? (!user || !user.id ? '로그인이 필요합니다...' : !isVerified ? '인증이 필요합니다...' : '메시지를 입력하세요...')
+                  : (!user || !user.id ? 'Se requiere inicio de sesión...' : !isVerified ? 'Se requiere verificación...' : 'Escribe un mensaje...')}
                 className="flex-1 border rounded-lg px-4 py-2 focus:outline-none"
                 style={{
                   backgroundColor: palette.messageBg,
@@ -1751,18 +1744,20 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                   focusRingColor: palette.avatarBg
                 } as React.CSSProperties}
                 onFocus={(e) => {
-                  e.target.style.borderColor = palette.avatarBg
-                  e.target.style.boxShadow = `0 0 0 2px ${palette.avatarBg}`
+                  if (!e.target.disabled) {
+                    e.target.style.borderColor = palette.avatarBg
+                    e.target.style.boxShadow = `0 0 0 2px ${palette.avatarBg}`
+                  }
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = palette.avatarBg
                   e.target.style.boxShadow = 'none'
                 }}
-                disabled={!user || uploading}
+                disabled={!user || !user.id || !isVerified || uploading}
               />
               <Button
                 type="submit"
-                disabled={!user || (!newMessage.trim() && !selectedImage) || uploading}
+                disabled={!user || !user.id || !isVerified || (!newMessage.trim() && !selectedImage) || uploading}
                 className="px-6"
                 style={{
                   backgroundColor: palette.otherMessageBg,
