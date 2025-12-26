@@ -64,7 +64,7 @@ export async function PUT(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    const settingsData = {
+    const settingsData: any = {
       user_id: userId,
       email_enabled: settings.email_enabled ?? true,
       push_enabled: settings.push_enabled ?? true,
@@ -73,6 +73,23 @@ export async function PUT(request: Request) {
       push_types: settings.push_types ?? ['payment_confirmed', 'consultation_reminder'],
       in_app_types: settings.in_app_types ?? ['booking_created', 'payment_confirmed', 'consultation_reminder', 'system'],
       updated_at: new Date().toISOString()
+    }
+
+    // 커뮤니티 알림 설정 필드 추가
+    if (settings.like_notifications_enabled !== undefined) {
+      settingsData.like_notifications_enabled = settings.like_notifications_enabled
+    }
+    if (settings.post_notifications_enabled !== undefined) {
+      settingsData.post_notifications_enabled = settings.post_notifications_enabled
+    }
+    if (settings.daily_digest_enabled !== undefined) {
+      settingsData.daily_digest_enabled = settings.daily_digest_enabled
+    }
+    if (settings.daily_digest_time !== undefined) {
+      settingsData.daily_digest_time = settings.daily_digest_time
+    }
+    if (settings.marketing_emails !== undefined) {
+      settingsData.marketing_emails = settings.marketing_emails
     }
 
     // upsert를 사용하여 설정이 없으면 생성하고, 있으면 업데이트
@@ -101,9 +118,19 @@ export async function PUT(request: Request) {
       throw error
     }
 
+    // 반환 데이터에 모든 필드 포함
+    const responseData = {
+      ...data,
+      like_notifications_enabled: data.like_notifications_enabled ?? true,
+      post_notifications_enabled: data.post_notifications_enabled ?? true,
+      daily_digest_enabled: data.daily_digest_enabled ?? true,
+      daily_digest_time: data.daily_digest_time ?? '08:30:00',
+      marketing_emails: data.marketing_emails ?? false
+    }
+
     return NextResponse.json({
       success: true,
-      settings: data,
+      settings: responseData,
       message: '알림 설정이 저장되었습니다.'
     })
 

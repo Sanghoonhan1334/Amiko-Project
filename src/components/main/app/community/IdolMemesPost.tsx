@@ -28,9 +28,10 @@ interface IdolMemesPostProps {
   post: Post
   theme: 'day' | 'night'
   onDelete?: () => void
+  listView?: boolean
 }
 
-export default function IdolMemesPost({ post, theme, onDelete }: IdolMemesPostProps) {
+export default function IdolMemesPost({ post, theme, onDelete, listView = false }: IdolMemesPostProps) {
   const router = useRouter()
   const { user, token } = useAuth()
   const [isLiked, setIsLiked] = useState(post.is_liked || false)
@@ -102,6 +103,119 @@ export default function IdolMemesPost({ post, theme, onDelete }: IdolMemesPostPr
   const isDark = theme === 'night'
   const timeAgo = getTimeAgo(post.created_at)
 
+  // 목록 뷰 (K-매거진 스타일)
+  if (listView) {
+    return (
+      <div
+        onClick={handleClick}
+        className={`group relative overflow-hidden border rounded-lg p-4 ${
+          isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'
+        } hover:shadow-lg transition-all cursor-pointer`}
+      >
+        {/* 삭제 버튼 (관리자 전용) */}
+        {user?.is_admin && (
+          <button
+            onClick={handleDelete}
+            className="absolute top-2 right-2 z-10 p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 shadow-md transition-all"
+            title="게시물 삭제 (관리자)"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+
+        <div className="flex gap-4">
+          {/* 작은 썸네일 */}
+          <div 
+            className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer overflow-hidden"
+            onClick={handleClick}
+          >
+            {post.media_url ? (
+              post.media_type === 'video' ? (
+                <video
+                  src={post.media_url}
+                  poster={post.thumbnail_url}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={post.media_url}
+                  alt={post.title}
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              )
+            ) : (
+              <div className="w-full h-full bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center text-gray-400 dark:text-gray-500 text-2xl">
+                📸
+              </div>
+            )}
+          </div>
+
+          {/* 제목 및 정보 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-1">
+              <h3 
+                className={`font-semibold text-sm line-clamp-2 cursor-pointer flex-1 mr-4 ${
+                  isDark ? 'text-white' : 'text-gray-800'
+                }`}
+                onClick={handleClick}
+              >
+                {post.title}
+              </h3>
+            </div>
+
+            {/* Meta Info */}
+            <div className={`flex items-center gap-2 text-xs mb-2 ${
+              isDark ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              <AuthorName
+                userId={post.author_id}
+                name={post.author_name}
+                className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}
+                disableLink={!post.author_id}
+              />
+              <span>•</span>
+              <span>{timeAgo}</span>
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-center gap-4 text-xs">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-1 transition-colors ${
+                  isLiked
+                    ? 'text-red-500'
+                    : isDark
+                    ? 'text-gray-400 hover:text-red-500'
+                    : 'text-gray-600 hover:text-red-500'
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current text-red-500' : ''}`} />
+                {likesCount}
+              </button>
+
+              <div className={`flex items-center gap-1 ${
+                isDark ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                <MessageCircle className="w-3.5 h-3.5 text-blue-500" />
+                {post.comments_count}
+              </div>
+
+              <div className={`flex items-center gap-1 ${
+                isDark ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                <Eye className="w-3.5 h-3.5" />
+                {post.views}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 기존 그리드 뷰 (상세 페이지에서 사용)
   return (
     <div
       onClick={handleClick}

@@ -13,8 +13,218 @@ export interface EmailOptions {
 }
 
 // 이메일 템플릿 생성
-export function createEmailTemplate(type: 'verification' | 'passwordReset' | 'new_inquiry' | 'new_partnership_inquiry', data: Record<string, any>, language: 'ko' | 'es' = 'ko'): EmailTemplate {
+export function createEmailTemplate(type: 'verification' | 'passwordReset' | 'passwordResetVerification' | 'new_inquiry' | 'new_partnership_inquiry', data: Record<string, any>, language: 'ko' | 'es' = 'ko'): EmailTemplate {
   switch (type) {
+    case 'passwordResetVerification':
+      if (language === 'es') {
+        return {
+          subject: `[Amiko] Código de verificación para restablecer contraseña`,
+          html: `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Restablecer Contraseña - Amiko</title>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+                .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+                .header h1 { margin: 0; font-size: 28px; font-weight: 300; }
+                .content { padding: 40px 30px; }
+                .verification-code { text-align: center; margin: 30px 0; }
+                .verification-code .code { font-size: 64px; font-weight: 900; color: #000000; letter-spacing: 10px; margin: 20px 0; font-family: Arial, sans-serif; }
+                .verification-code .expires { color: #666666; font-size: 18px; margin-top: 15px; font-weight: bold; }
+                .info { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+                .info h3 { margin: 0 0 10px 0; color: #856404; font-size: 16px; }
+                .info p { margin: 0; color: #856404; font-size: 14px; line-height: 1.5; }
+                .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+                .footer a { color: #667eea; text-decoration: none; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <p>El comienzo del intercambio cultural entre Corea y Centroamérica</p>
+                </div>
+                
+                <div class="content">
+                  <h2>Restablecer Contraseña</h2>
+                  
+                  <p>Hola,</p>
+                  
+                  <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de <strong>Amiko</strong>.</p>
+                  
+                  <p>Para restablecer tu contraseña, por favor ingresa el código de verificación a continuación:</p>
+                  
+                  <div class="verification-code">
+                    <div class="code">${data.code}</div>
+                    <div class="expires">⏰ Este código expira en 5 minutos</div>
+                  </div>
+                  
+                  <div class="info">
+                    <h3>🔒 Información de Seguridad</h3>
+                    <p>• Este código de verificación es solo para tu uso personal</p>
+                    <p>• No lo compartas con otros</p>
+                    <p>• Si no solicitaste este cambio, puedes ignorar este email</p>
+                    <p>• Tu contraseña no cambiará hasta que ingreses este código</p>
+                  </div>
+                  
+                  <p>Si no solicitaste restablecer tu contraseña, puedes ignorar este email de forma segura.</p>
+                </div>
+                
+                <div class="footer">
+                  <p><strong>Equipo Amiko</strong></p>
+                  <p>Plataforma de intercambio cultural que conecta Corea y Centroamérica</p>
+                  <p>Email: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
+                  <p>Sitio web: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
+                  <p>Este email fue enviado automáticamente para restablecer tu contraseña.</p>
+                  <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
+                  <p>© 2025 Amiko. Todos los derechos reservados.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `
+Restablecer Contraseña
+
+Hola,
+
+Recibimos una solicitud para restablecer la contraseña de tu cuenta de Amiko.
+
+Para restablecer tu contraseña, por favor ingresa el código de verificación a continuación:
+
+═══════════════════════════════════════
+    🔐 CÓDIGO DE VERIFICACIÓN: ${data.code}
+═══════════════════════════════════════
+Tiempo de expiración: 5 minutos
+
+Información de Seguridad:
+- Este código de verificación es solo para tu uso personal
+- No lo compartas con otros
+- Si no solicitaste este cambio, puedes ignorar este email
+- Tu contraseña no cambiará hasta que ingreses este código
+
+Si no solicitaste restablecer tu contraseña, puedes ignorar este email de forma segura.
+
+Equipo Amiko
+Plataforma de intercambio cultural que conecta Corea y Centroamérica
+Email: info@helloamiko.com
+Sitio web: https://helloamiko.com
+
+Este email fue enviado automáticamente para restablecer tu contraseña.
+Si tienes alguna pregunta, no dudes en contactarnos.
+
+© 2025 Amiko. Todos los derechos reservados.
+          `
+        }
+      } else {
+        return {
+          subject: `[Amiko] 비밀번호 재설정을 위한 인증코드`,
+          html: `
+            <!DOCTYPE html>
+            <html lang="ko">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>비밀번호 재설정 - Amiko</title>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+                .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+                .header h1 { margin: 0; font-size: 28px; font-weight: 300; }
+                .content { padding: 40px 30px; }
+                .verification-code { text-align: center; margin: 30px 0; }
+                .verification-code .code { font-size: 64px; font-weight: 900; color: #000000; letter-spacing: 10px; margin: 20px 0; font-family: Arial, sans-serif; }
+                .verification-code .expires { color: #666666; font-size: 18px; margin-top: 15px; font-weight: bold; }
+                .info { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+                .info h3 { margin: 0 0 10px 0; color: #856404; font-size: 16px; }
+                .info p { margin: 0; color: #856404; font-size: 14px; line-height: 1.5; }
+                .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+                .footer a { color: #667eea; text-decoration: none; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <p>한국과 중남미간의 문화교류의 시작</p>
+                </div>
+                
+                <div class="content">
+                  <h2>비밀번호 재설정</h2>
+                  
+                  <p>안녕하세요,</p>
+                  
+                  <p><strong>Amiko</strong> 계정의 비밀번호 재설정을 요청하셨습니다.</p>
+                  
+                  <p>비밀번호를 재설정하려면 아래 인증코드를 입력해 주세요:</p>
+                  
+                  <div class="verification-code">
+                    <div class="code">${data.code}</div>
+                    <div class="expires">⏰ 이 코드는 5분 후에 만료됩니다</div>
+                  </div>
+                  
+                  <div class="info">
+                    <h3>🔒 보안 안내</h3>
+                    <p>• 이 인증코드는 본인만 사용할 수 있습니다</p>
+                    <p>• 타인에게 공유하지 마세요</p>
+                    <p>• 비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다</p>
+                    <p>• 이 코드를 입력하기 전까지는 비밀번호가 변경되지 않습니다</p>
+                  </div>
+                  
+                  <p>비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 안전하게 무시하셔도 됩니다.</p>
+                </div>
+                
+                <div class="footer">
+                  <p><strong>Amiko 팀</strong></p>
+                  <p>한국과 중남미를 연결하는 문화교류 플랫폼</p>
+                  <p>이메일: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
+                  <p>웹사이트: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
+                  <p>이 이메일은 비밀번호 재설정을 위해 자동으로 발송되었습니다.</p>
+                  <p>문의사항이 있으시면 언제든지 연락해 주세요.</p>
+                  <p>© 2025 Amiko. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `
+비밀번호 재설정
+
+안녕하세요,
+
+Amiko 계정의 비밀번호 재설정을 요청하셨습니다.
+
+비밀번호를 재설정하려면 아래 인증코드를 입력해 주세요:
+
+═══════════════════════════════════════
+    🔐 인증코드: ${data.code}
+═══════════════════════════════════════
+만료시간: 5분
+
+보안 안내:
+- 이 인증코드는 본인만 사용할 수 있습니다
+- 타인에게 공유하지 마세요
+- 비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다
+- 이 코드를 입력하기 전까지는 비밀번호가 변경되지 않습니다
+
+비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 안전하게 무시하셔도 됩니다.
+
+Amiko 팀
+한국과 중남미를 연결하는 문화교류 플랫폼
+이메일: info@helloamiko.com
+웹사이트: https://helloamiko.com
+
+이 이메일은 비밀번호 재설정을 위해 자동으로 발송되었습니다.
+문의사항이 있으시면 언제든지 연락해 주세요.
+
+© 2025 Amiko. All rights reserved.
+          `
+        }
+      }
     case 'verification':
       if (language === 'es') {
         return {
@@ -591,8 +801,9 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 }
 
 // 이메일 인증 발송
-export async function sendVerificationEmail(email: string, code: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
-  const template = createEmailTemplate('verification', { code }, language)
+export async function sendVerificationEmail(email: string, code: string, language: 'ko' | 'es' = 'ko', purpose: 'signup' | 'passwordReset' = 'signup'): Promise<boolean> {
+  const templateType = purpose === 'passwordReset' ? 'passwordResetVerification' : 'verification'
+  const template = createEmailTemplate(templateType, { code }, language)
   
   return await sendEmail({
     to: email,

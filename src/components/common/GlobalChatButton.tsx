@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { MessageSquare, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import ChatRoomClient from '@/components/main/app/community/ChatRoomClient'
 
@@ -27,9 +27,14 @@ export default function GlobalChatButton() {
   const { user, loading: authLoading } = useAuth()
   const { t, language } = useLanguage()
   const router = useRouter()
+  const pathname = usePathname()
 
   // 아미코 채팅방 ID 가져오기
   useEffect(() => {
+    // 인증센터 페이지에서는 채팅방 정보 가져오지 않음
+    if (pathname?.startsWith('/verification')) {
+      return
+    }
     const fetchAmikoRoom = async () => {
       if (!user) return
       
@@ -105,6 +110,11 @@ export default function GlobalChatButton() {
       setIsOpen(false)
       setIsClosing(false)
     }, 300)
+  }
+
+  // 인증센터 페이지에서는 플로팅 버튼 숨김
+  if (pathname?.startsWith('/verification')) {
+    return null
   }
 
   if (!user) {

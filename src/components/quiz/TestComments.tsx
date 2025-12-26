@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply, Trash2 } from 'lucide-react'
 import UserBadge from '@/components/common/UserBadge'
+import AuthorName from '@/components/common/AuthorName'
 
 interface Comment {
   id: string
@@ -590,10 +591,12 @@ export default function TestComments({ testId }: TestCommentsProps) {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900 text-sm md:text-base">
-                        {userNicknames[comment.user_id] || comment.user_name}
+                      <AuthorName
+                        userId={comment.user_id}
+                        name={userNicknames[comment.user_id] || comment.user_name}
+                        className="font-medium text-gray-900 text-sm md:text-base"
+                      />
                         <UserBadge totalPoints={0} isVip={false} small />
-                      </span>
                       <span className="text-xs md:text-sm text-gray-500">
                         {formatTime(comment.created_at)}
                       </span>
@@ -695,9 +698,11 @@ export default function TestComments({ testId }: TestCommentsProps) {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-gray-900 text-xs">
-                                  {userNicknames[reply.user_id] || reply.user_name}
-                                </span>
+                                <AuthorName
+                                  userId={reply.user_id}
+                                  name={userNicknames[reply.user_id] || reply.user_name}
+                                  className="font-medium text-gray-900 text-xs"
+                                />
                                 <span className="text-xs text-gray-500">
                                   {formatTime(reply.created_at)}
                                 </span>

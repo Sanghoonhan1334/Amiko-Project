@@ -286,9 +286,9 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
     const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
     const hasTemplateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID
     
-    // 템플릿 방식은 일단 건너뛰고 일반 메시지 방식 사용 (템플릿 발송 시 번호 인식 문제 해결을 위해)
-    // 템플릿이 필요하면 나중에 다시 활성화
-    const useTemplate = false // hasTwilioConfig && hasTemplateSid
+    // WhatsApp Business API는 24시간 윈도우 정책 때문에 템플릿을 사용해야 함
+    // 템플릿이 있으면 사용, 없으면 일반 메시지 시도 (에러 발생 가능)
+    const useTemplate = hasTwilioConfig && hasTemplateSid
     
     if (useTemplate) {
       // 템플릿을 사용한 WhatsApp 발송 (직접 Twilio API 호출)
@@ -327,6 +327,15 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
         console.log(`[WHATSAPP_VERIFICATION] 템플릿을 사용한 WhatsApp 발송 완료: ${phoneNumber}`)
         console.log(`[WHATSAPP_VERIFICATION] 메시지 SID: ${result.sid}`)
         console.log(`[WHATSAPP_VERIFICATION] 상태: ${result.status}`)
+        console.log(`[WHATSAPP_VERIFICATION] 에러 코드: ${result.errorCode || '없음'}`)
+        console.log(`[WHATSAPP_VERIFICATION] 에러 메시지: ${result.errorMessage || '없음'}`)
+        
+        // 에러 코드가 있으면 false 반환
+        if (result.errorCode) {
+          console.error(`[WHATSAPP_VERIFICATION] ❌ 템플릿 발송 실패: ${result.errorCode} - ${result.errorMessage}`)
+          return false
+        }
+        
         return true
         
       } catch (twilioError: any) {
@@ -351,13 +360,15 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
         }
         console.error('[WHATSAPP_VERIFICATION] ========================================')
         
-        // 템플릿 발송 실패 시 기존 방식으로 fallback
-        console.log('[WHATSAPP_VERIFICATION] 템플릿 발송 실패 → 일반 메시지 방식으로 fallback 시도')
+        // 템플릿 발송 실패 시 기존 방식으로 fallback (하지만 24시간 윈도우 문제로 실패할 가능성 높음)
+        console.warn('[WHATSAPP_VERIFICATION] ⚠️  템플릿 발송 실패 → 일반 메시지 방식으로 fallback 시도')
+        console.warn('[WHATSAPP_VERIFICATION] ⚠️  일반 메시지는 24시간 윈도우 정책 때문에 실패할 수 있습니다.')
+        console.warn('[WHATSAPP_VERIFICATION] ⚠️  해결 방법: Twilio 콘솔에서 Message Template을 승인받고 사용하세요.')
         return await fallbackToOldWhatsAppMethod(phoneNumber, code, language)
       }
     } else {
       // 템플릿 SID가 없거나 템플릿 사용 비활성화 시 일반 메시지 방식 사용
-      console.log('[WHATSAPP_VERIFICATION] 일반 메시지 방식 사용 (템플릿 사용 안 함)')
+      // 하지만 24시간 윈도우 정책 때문에 실패할 가능성이 높음
       return await fallbackToOldWhatsAppMethod(phoneNumber, code, language)
     }
     

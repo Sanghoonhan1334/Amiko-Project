@@ -26,7 +26,8 @@ import {
   X,
   Languages,
   Loader2,
-  Flag
+  Flag,
+  Lock
 } from 'lucide-react'
 
 interface UserProfile {
@@ -57,6 +58,8 @@ interface UserProfile {
   join_date?: string
   total_points?: number
   is_vip?: boolean
+  academic_info_public?: boolean
+  job_info_public?: boolean
 }
 
 interface UserProfileModalProps {
@@ -931,9 +934,10 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 )}
               </h3>
               
-              <div className="space-y-1 md:space-y-2">
+              {/* 공개 설정 확인 */}
                 {profile.user_type === 'student' ? (
-                  <>
+                profile.academic_info_public ? (
+                  <div className="space-y-1 md:space-y-2">
                     {profile.university && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">{t('profileModal.university')}:</span>
@@ -952,9 +956,16 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                         <span className="font-medium">{profile.grade}</span>
                       </div>
                     )}
-                  </>
+                  </div>
                 ) : (
-                  <>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                    <Lock className="w-4 h-4" />
+                    <span>{language === 'ko' ? '이 정보는 비공개로 설정되어 있습니다.' : 'Esta información está configurada como privada.'}</span>
+                  </div>
+                )
+              ) : (
+                profile.job_info_public ? (
+                  <div className="space-y-1 md:space-y-2">
                     {profile.occupation && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">{t('profileModal.occupation')}:</span>
@@ -972,10 +983,15 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                         <span className="text-gray-600">{t('profileModal.career')}:</span>
                         <span className="font-medium">{getFieldValue('work_experience', profile.work_experience)}</span>
                       </div>
-                    )}
-                  </>
                 )}
               </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                    <Lock className="w-4 h-4" />
+                    <span>{language === 'ko' ? '이 정보는 비공개로 설정되어 있습니다.' : 'Esta información está configurada como privada.'}</span>
+                  </div>
+                )
+              )}
             </Card>
 
             {/* 언어 수준 */}

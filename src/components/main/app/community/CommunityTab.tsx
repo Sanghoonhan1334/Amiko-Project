@@ -133,7 +133,6 @@ interface CommunityTabProps {
 // 뷰 시스템 매핑:
 // 'home' → 홈 화면 (큰 버튼 4개)
 // 'news' → 뉴스 시스템
-// 'qa' → Q&A 시스템  
 // 'tests' → 퀴즈 시스템
 export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const { t, language } = useLanguage()
@@ -161,6 +160,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
 
   // 드래그 중인 아이템 추적
   const [draggingItem, setDraggingItem] = useState<{ itemId: string; subIndex: number } | null>(null)
+  const [animationCompleted, setAnimationCompleted] = useState<Record<string, boolean>>({})
   
   // 서브메뉴 위치 조정 state (모바일/데스크톱 별도 관리)
   const [submenuPositions, setSubmenuPositions] = useState<Record<string, { x: number; y: number }>>(() => {
@@ -362,13 +362,11 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   
   // 뷰 상태 (먼저 선언해야 useEffect에서 사용 가능)
   // 초기값을 URL 파라미터에서 즉시 읽어서 설정 (클라이언트에서만)
-  const getInitialView = (): 'home' | 'news' | 'qa' | 'tests' => {
+  const getInitialView = (): 'home' | 'news' | 'tests' => {
     if (typeof window === 'undefined') return 'home'
     try {
       const params = new URLSearchParams(window.location.search)
       const cTab = params.get('cTab')
-      // events 관련 제거
-      if (cTab === 'qa') return 'qa'
       if (cTab === 'news') return 'news'
       if (cTab === 'tests') return 'tests'
       return 'home'
@@ -376,7 +374,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
       return 'home'
     }
   }
-  const [currentView, setCurrentView] = useState<'home' | 'news' | 'qa' | 'tests'>(getInitialView)
+  const [currentView, setCurrentView] = useState<'home' | 'news' | 'tests'>(getInitialView)
   
   // 실제 데이터 상태
   const [recentStories, setRecentStories] = useState<any[]>([])
@@ -465,10 +463,6 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
   const [activeTab, setActiveTab] = useState('story')
   // 내부 커뮤니티 탭 URL 파라미터 (cTab) 사용
   const [activeCategory, setActiveCategory] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedQuestion, setSelectedQuestion] = useState<any>(null)
-  const [showQuestionModal, setShowQuestionModal] = useState(false)
-  const [showAnswerDrawer, setShowAnswerDrawer] = useState(false)
   const [selectedNews, setSelectedNews] = useState<any>(null)
   const [showNewsDetail, setShowNewsDetail] = useState(false)
   const [showSpanishNews, setShowSpanishNews] = useState(false) // 뉴스 번역 상태
@@ -996,48 +990,27 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   }
   
   // 데이터 상태 관리
-  const [questions, setQuestions] = useState<any[]>([])
-  const [questionsLoading, setQuestionsLoading] = useState<boolean>(true)
-  const [answers, setAnswers] = useState<any[]>([])
   const [stories, setStories] = useState<any[]>([])
   const [storiesLoading, setStoriesLoading] = useState<boolean | null>(true)
   const [newsLoading, setNewsLoading] = useState(false)
   const [newsError, setNewsError] = useState<string | null>(null)
   const [newsData, setNewsData] = useState<any[]>([])
   
-  // 좋아요 상태 관리
-  const [likedAnswers, setLikedAnswers] = useState<Set<number>>(new Set())
-  
-  // 질문 작성 폼 상태
-  const [questionForm, setQuestionForm] = useState({
-    title: '',
-    content: '',
-    category: 'free',
-    tags: ''
-  })
-
-  // 답변 작성 폼 상태
-  const [answerForm, setAnswerForm] = useState({
-    content: ''
-  })
 
   // 실제 사용자 프로필 사용
   const currentProfile = user
 
-  // URL 파라미터와 탭 상태 동기화 (cTab = story|qa|news|tests|events)
+  // URL 파라미터와 탭 상태 동기화 (cTab = story|news|tests|events)
   // useLayoutEffect를 사용하여 렌더링 전에 실행하여 스켈레톤 문제 해결
   useLayoutEffect(() => {
     const tabParam = searchParams.get('cTab')
     console.log('[CommunityTab] URL 파라미터 확인 (useLayoutEffect):', { tabParam, currentView })
     
-    let newView: 'home' | 'news' | 'qa' | 'tests' = 'home'
+    let newView: 'home' | 'news' | 'tests' = 'home'
     
-    if (tabParam && ['story', 'qa', 'news', 'tests'].includes(tabParam)) {
+    if (tabParam && ['story', 'news', 'tests'].includes(tabParam)) {
       setActiveTab(tabParam)
-      // events 관련 제거
-      if (tabParam === 'qa') {
-        newView = 'qa'
-      } else if (tabParam === 'news') {
+      if (tabParam === 'news') {
         newView = 'news'
       } else if (tabParam === 'tests') {
         newView = 'tests'
@@ -1066,78 +1039,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   }, [currentView, onViewChange])
 
   // 데이터 로딩 함수들
-  const loadQuestions = useCallback(async () => {
-    console.log('loadQuestions 호출됨 - 실제 API 호출')
-    setQuestionsLoading(true)
-    
-    try {
-      const response = await fetch('/api/questions', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token || ''}`
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: 질문을 불러오는데 실패했습니다`)
-      }
-      
-      const data = await response.json()
-      console.log('질문 데이터 로딩 성공:', data.questions?.length || 0, '개')
-      
-      // API 응답을 프론트엔드 형식으로 변환
-      const transformedQuestions = (data.questions || []).map((q: any) => ({
-        ...q,
-        createdAt: new Date(q.created_at),
-        upvotes: q.like_count || 0,
-        answers: q.comment_count || 0,
-        views: q.view_count || 0,
-        authorType: 'korean', // 기본값으로 설정 (실제로는 사용자 정보에서 판단해야 함)
-        isSolved: false, // 기본값
-        preview: q.content?.substring(0, 100) + (q.content?.length > 100 ? '...' : ''),
-        category: 'all' // 기본 카테고리
-      }))
-      
-      console.log('변환된 질문 데이터:', transformedQuestions)
-      console.log('🔥 setQuestions 호출 전 - questionsLoading:', questionsLoading)
-      setQuestions(transformedQuestions)
-      console.log('🔥 setQuestions 호출 후 - 질문 데이터 설정 완료')
-    } catch (error) {
-      console.error('질문 로딩 오류:', error)
-      setQuestions([])
-      console.log('오류 발생, 로딩 상태 해제')
-    } finally {
-      console.log('🔥 finally 블록 시작 - questionsLoading을 false로 설정')
-      setQuestionsLoading(false)
-      console.log('🔥 questionsLoading을 false로 설정 완료')
-    }
-  }, [token])
-
-  const loadAnswers = async (questionId: string) => {
-    console.log('loadAnswers 호출됨 - 실제 API 호출:', questionId)
-    
-    try {
-      const response = await fetch(`/api/questions/${questionId}/answers`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token || ''}`
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: 답변을 불러오는데 실패했습니다`)
-      }
-      
-      const data = await response.json()
-      console.log('답변 데이터 로딩 성공:', data.answers?.length || 0, '개')
-      setAnswers(data.answers || [])
-    } catch (error) {
-      console.error('답변 로딩 오류:', error)
-      setAnswers([])
-    }
-  }
 
   // 스토리 로딩 함수 (실제 API 호출)
   const loadStories = async () => {
@@ -1255,67 +1156,9 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   }
 
 
-  // 답변 작성 함수
-  const handleAnswerSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!user || !selectedQuestion) return
-    
-    // 🚀 최적화: 로딩 상태 제거 (불필요한 상태 관리 방지)
-    
-    try {
-      const token = localStorage.getItem('amiko_session')
-      if (!token) {
-        throw new Error('인증 토큰이 없습니다.')
-      }
-
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(JSON.parse(token).access_token)}`
-        },
-        body: JSON.stringify({
-          postId: selectedQuestion.id,
-          content: answerForm.content,
-          language: t('language')
-        })
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.error || '답변 작성에 실패했습니다.')
-      }
-
-      // 성공 시 폼 초기화 및 답변 목록 새로고침
-      setAnswerForm({ content: '' })
-      await loadAnswers(selectedQuestion.id)
-      
-      toast.success('답변이 성공적으로 작성되었습니다!')
-    } catch (err) {
-      console.error('답변 작성 실패:', err)
-      toast.error(err instanceof Error ? err.message : '답변 작성에 실패했습니다.')
-    } finally {
-      // 🚀 최적화: 로딩 상태 제거
-    }
-  }
-
-  // 질문 클릭 시 답변 로딩
-  const handleQuestionClick = async (question: any) => {
-    setSelectedQuestion(question)
-    setShowAnswerDrawer(true)
-    await loadAnswers(question.id)
-  }
 
   // 초기 데이터 로딩
   useEffect(() => {
-    console.log('초기 데이터 로딩 useEffect:', { user: !!user, token: !!token, activeTab })
-    if ((user || token) && activeTab === 'qa') {
-      console.log('초기 데이터 로딩 시작')
-      loadQuestions()
-    }
-    
     // 스토리 로딩 시도 (커뮤니티 홈에서 항상 표시되므로 항상 로딩)
     console.log('커뮤니티 홈 로딩, 스토리 로딩 시작')
     loadStories().catch((error) => {
@@ -1324,7 +1167,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       setStories([])
       setStoriesLoading(false) // 에러 시에도 로딩 상태 해제
     })
-  }, [user, token, activeTab, loadQuestions])
+  }, [])
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: string) => {
@@ -1359,9 +1202,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
           setCurrentView('tests')
           setActiveTab('tests')
         // events 관련 제거
-        } else if (newView === 'qa') {
-          setCurrentView('qa')
-          setActiveTab('qa')
         } else if (newView === 'news') {
           setCurrentView('news')
           setActiveTab('news')
@@ -1418,167 +1258,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
     }
   }, [])
 
-  // 필터링된 질문 목록
-  const filteredQuestions = questions.filter(question => {
-    const matchesCategory = activeCategory === 'all' || question.category === activeCategory
-    const matchesSearch = question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         question.content.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    return matchesCategory && matchesSearch
-  })
-
-  // 디버그 로그 제거 (성능 최적화)
-
-  // 질문 작성 처리
-  const handleSubmitQuestion = async () => {
-    
-    if (!questionForm.title.trim() || !questionForm.content.trim()) {
-      alert('제목과 내용을 모두 입력해주세요.')
-      return
-    }
-
-    try {
-      // 토큰 확인 및 가져오기
-      let currentToken = token
-      
-      if (!currentToken) {
-        // localStorage에서 토큰 가져오기 시도
-        try {
-          const storedSession = localStorage.getItem('amiko_session')
-          if (storedSession) {
-            const sessionData = JSON.parse(storedSession)
-            currentToken = sessionData.access_token
-          }
-        } catch (error) {
-          console.error('토큰 파싱 실패:', error)
-        }
-      }
-      
-      if (!currentToken) {
-        alert('로그인이 필요합니다.')
-        return
-      }
-
-      console.log('질문 작성 시도:', { title: questionForm.title, token: !!currentToken })
-
-      // Q&A 질문 생성 API 호출
-      const response = await fetch('/api/questions', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
-        },
-        body: JSON.stringify({
-          title: questionForm.title,
-          content: questionForm.content
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('게시물 생성 API 오류:', response.status, errorData)
-        
-        // 데이터베이스 연결 문제인 경우 사용자 친화적인 메시지 표시
-        if (response.status === 500) {
-          // 빈 객체이거나 데이터베이스 관련 에러인 경우
-          if (!errorData.error || errorData.error.includes('데이터베이스') || errorData.error.includes('연결')) {
-            alert('시스템 점검 중입니다. 잠시 후 다시 시도해주세요.')
-            return
-          }
-        }
-        
-        throw new Error(`게시물 생성에 실패했습니다. (${response.status}: ${errorData.error || 'Unknown error'})`)
-      }
-
-      const result = await response.json()
-      console.log('새 질문 작성:', result.question)
-
-      // 포인트 획득 시도 - 제거됨 (숨김 처리)
-      // if (user?.id) {
-      //   console.log('포인트 획득 시도:', { userId: user.id, postId: result.question.id })
-      // 
-      //   const pointsResponse = await fetch('/api/community/points', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({
-      //       userId: user.id,
-      //       activityType: 'question_post',
-      //       postId: result.post.id,
-      //       title: questionForm.title
-      //     })
-      //   })
-      // 
-      //   console.log('포인트 API 응답:', { status: pointsResponse.status, statusText: pointsResponse.statusText })
-      // 
-      //   if (pointsResponse.ok) {
-      //     const pointsResult = await pointsResponse.json()
-      //     console.log('포인트 획득 성공:', pointsResult)
-      //     alert(`질문이 등록되었습니다! +${pointsResult.points}점 획득!`)
-      //     
-      //     // 질문 목록 새로고침
-      //     await loadQuestions()
-      //     
-      //     // 포인트 업데이트 이벤트 발생
-      //     window.dispatchEvent(new CustomEvent('pointsUpdated', {
-      //       detail: {
-      //         points: pointsResult.totalPoints,
-      //         dailyPoints: pointsResult.dailyPoints
-      //       }
-      //     }))
-      //   } else {
-      //     const errorData = await pointsResponse.json().catch(() => ({ error: 'Unknown error' }))
-      //     console.error('포인트 획득 실패:', errorData)
-      //     alert('질문이 등록되었습니다! (포인트 획득 실패)')
-      //     
-      //     // 포인트 획득 실패해도 질문은 등록되었으므로 목록 새로고침
-      //     await loadQuestions()
-      //   }
-      // } else {
-      //   console.log('사용자 ID가 없어서 포인트 획득 건너뜀')
-      // }
-
-      alert('질문이 등록되었습니다!')
-      console.log('질문 작성 후 목록 새로고침 시작')
-      // 토큰이 있으면 목록 새로고침
-      if (token) {
-        await loadQuestions()
-        console.log('질문 작성 후 목록 새로고침 완료')
-      } else {
-        console.log('토큰이 없어서 목록 새로고침 건너뜀')
-      }
-
-      // 폼 초기화
-      setQuestionForm({
-        title: '',
-        content: '',
-        category: 'free',
-        tags: ''
-      })
-      
-      setShowQuestionModal(false)
-      
-    } catch (error) {
-      console.error('질문 작성 실패:', error)
-      alert('질문 작성에 실패했습니다.')
-    }
-  }
-
-  // 질문 선택 및 답변 drawer 열기 (이미 위에서 정의됨)
-  // const handleQuestionClick = async (question: any) => {
-  //   setSelectedQuestion(question)
-  //   setShowAnswerDrawer(true)
-  //   await loadAnswers(question.id)
-  // }
-
-  // 업보트 처리
-  const handleUpvote = (questionId: number) => {
-    // 여기서 실제 API 호출
-    console.log('업보트:', questionId)
-    alert('업보트가 반영되었습니다!')
-  }
-
-  // 답변 좋아요 숫자 관리
-  const [answerUpvotes, setAnswerUpvotes] = useState<{ [key: number]: number }>({})
 
   // 이미지 파일 선택 핸들러
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1767,39 +1446,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   //   description: string
   // }>>([])
 
-  // 답변 좋아요 토글 처리
-  const handleAnswerLike = (answerId: number) => {
-    const isCurrentlyLiked = likedAnswers.has(answerId)
-    
-    if (isCurrentlyLiked) {
-      // 좋아요 취소
-      setLikedAnswers(prev => {
-        const newLiked = new Set(prev)
-        newLiked.delete(answerId)
-        return newLiked
-      })
-      
-      setAnswerUpvotes(prevUpvotes => ({
-        ...prevUpvotes,
-        [answerId]: Math.max(0, prevUpvotes[answerId] - 1)
-      }))
-    } else {
-      // 좋아요 추가
-      setLikedAnswers(prev => {
-        const newLiked = new Set(prev)
-        newLiked.add(answerId)
-        return newLiked
-      })
-      
-      setAnswerUpvotes(prevUpvotes => ({
-        ...prevUpvotes,
-        [answerId]: prevUpvotes[answerId] + 1
-      }))
-      
-      // 좋아요 시 포인트 획득 - 제거됨 (숨김 처리)
-      // earnPoints('reaction')
-    }
-  }
 
   // 포인트 획득 함수 - 제거됨 (숨김 처리)
   // const earnPoints = (activity: 'question' | 'answer' | 'story' | 'reaction' | 'consultation') => {
@@ -1843,103 +1489,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
   //   return `${descriptions[activity] || '활동'} (+${points}점)`
   // }
 
-  // 답변 등록 처리
-  const handleSubmitAnswer = async () => {
-    if (!answerForm.content.trim()) {
-      alert('답변 내용을 입력해주세요.')
-      return
-    }
-
-    if (!selectedQuestion) {
-      alert('질문이 선택되지 않았습니다.')
-      return
-    }
-
-    try {
-      // 토큰 확인 및 가져오기
-      let currentToken = token
-      
-      if (!currentToken) {
-        // localStorage에서 토큰 가져오기 시도
-        try {
-          const storedSession = localStorage.getItem('amiko_session')
-          if (storedSession) {
-            const sessionData = JSON.parse(storedSession)
-            currentToken = sessionData.access_token
-          }
-        } catch (error) {
-          console.error('토큰 파싱 실패:', error)
-        }
-      }
-      
-      if (!currentToken) {
-        alert('로그인이 필요합니다.')
-        return
-      }
-
-      console.log('답변 작성 시도:', { questionId: selectedQuestion.id, token: !!currentToken })
-
-      // 댓글 생성 API 호출
-      const response = await fetch(`/api/posts/${selectedQuestion.id}/comments`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
-        },
-        body: JSON.stringify({
-          content: answerForm.content
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('답변 생성에 실패했습니다.')
-      }
-
-      const result = await response.json()
-      console.log('새 답변 작성:', result.comment)
-
-      // 포인트 획득 시도 - 제거됨 (숨김 처리)
-      // if (user?.id) {
-      //   const pointsResponse = await fetch('/api/community/points', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({
-      //       userId: user.id,
-      //       activityType: 'question_answer',
-      //       postId: result.comment.id,
-      //       title: `질문 "${selectedQuestion.title}"에 대한 답변`
-      //     })
-      //   })
-      // 
-      //   if (pointsResponse.ok) {
-      //     const pointsResult = await pointsResponse.json()
-      //     alert(`답변이 등록되었습니다! +${pointsResult.points}점 획득!`)
-      //     
-      //     // 답변 목록 새로고침
-      //     await loadAnswers(selectedQuestion.id)
-      //     
-      //     // 포인트 업데이트 이벤트 발생
-      //     window.dispatchEvent(new CustomEvent('pointsUpdated', {
-      //       detail: {
-      //         points: pointsResult.totalPoints,
-      //         dailyPoints: pointsResult.dailyPoints
-      //       }
-      //     }))
-      //   }
-      // } else {
-        // 포인트 획득 실패해도 답변은 등록되었으므로 목록 새로고침
-        alert('답변이 등록되었습니다!')
-        await loadAnswers(selectedQuestion.id)
-      // }
-
-      // 폼 초기화
-      setAnswerForm({ content: '' })
-      
-    } catch (error) {
-      console.error('답변 작성 실패:', error)
-      alert('답변 작성에 실패했습니다.')
-    }
-  }
 
   // 시간 포맷팅
   const formatTime = (dateString: string) => {
@@ -2509,12 +2058,31 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                   onDragEnd={handleDragEnd}
                                   
                                   data-original-index={subItemIdx}
-                                  className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border-2 focus:outline-none relative group ${
+                                  onAnimationEnd={() => {
+                                    // Animation 완료 표시
+                                    const key = `${item.id}-${subItem.id}`
+                                    setAnimationCompleted(prev => ({ ...prev, [key]: true }))
+                                  }}
+                                  className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border-2 focus:outline-none relative group transition-all duration-200 ${
                                     draggingItem?.itemId === item.id && draggingItem?.subIndex === subIndex
                                       ? 'opacity-50 border-purple-500 ring-2 ring-purple-300'
-                                      : 'border-gray-300 dark:border-gray-500 hover:border-purple-400 dark:hover:border-purple-500'
-                                  } bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md cursor-grab active:cursor-grabbing`}
+                                      : 'border-gray-300 dark:border-gray-500 md:hover:border-purple-400 md:dark:hover:border-purple-500 md:hover:scale-105 md:hover:shadow-lg md:hover:-translate-y-0.5'
+                                  } bg-white dark:bg-gray-800 shadow-md cursor-pointer md:cursor-pointer active:cursor-grabbing overflow-hidden`}
                                    style={{
+                                    ...(() => {
+                                      const key = `${item.id}-${subItem.id}`
+                                      const isAnimDone = animationCompleted[key]
+                                      
+                                      // Animation이 완료되었고 closing 중이 아니면 기본 스타일만
+                                      if (isAnimDone && !isClosing) {
+                                        return {
+                                          position: 'relative',
+                                          zIndex: 10
+                                        }
+                                      }
+                                      
+                                      // Animation 진행 중
+                                      return {
                                      opacity: isClosing ? 1 : 0,
                                      transform: isClosing ? 'translateY(0)' : 'translateY(-20px)',
                                      animationName: animationType,
@@ -2523,11 +2091,17 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                      animationFillMode: 'forwards',
                                      animationDelay: itemDelay,
                                      transition: 'none',
-                                     cursor: 'default',
                                      position: 'relative',
                                      zIndex: 10
+                                      }
+                                    })()
                                    }}
                                  >
+                                   {/* Hover 시 연보라색 레이어 (z-index로 위에 올림) */}
+                                   <div className="absolute inset-0 bg-purple-50 dark:bg-purple-900/20 rounded-lg opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-0" />
+                                   
+                                   {/* 콘텐츠 (z-index로 위에) */}
+                                   <div className="relative z-10 flex items-center gap-2 md:gap-3 w-full">
                                    {subItem.icon.startsWith('/') ? (
                                      <img 
                                        src={subItem.icon} 
@@ -2540,6 +2114,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                                    )}
                                    <div className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap select-none pointer-events-none">
                                      {subItem.title}
+                                     </div>
                                    </div>
                                  </button>
                               )
@@ -2556,334 +2131,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       )}
 
       {/* 탭 컨텐츠 */}
-      {currentView === 'qa' && (
-        <div className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-4 md:p-6">
-
-
-
-
-
-      {/* 상단 컨트롤 */}
-      <div className="flex items-center justify-between gap-2 pt-4 md:pt-0">
-        <div className="relative flex-1">
-          <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
-          <Input
-            placeholder={t('communityTab.searchQuestions')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 sm:pl-20 w-full bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-          />
-        </div>
-        
-        {/* 질문하기 버튼 - 오른쪽 끝 */}
-        <Dialog open={showQuestionModal} onOpenChange={setShowQuestionModal}>
-          <DialogTrigger asChild>
-            <Button className="bg-purple-500 hover:bg-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 text-white whitespace-nowrap">
-              <Plus className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">{t('communityTab.askQuestion')}</span>
-            </Button>
-          </DialogTrigger>
-            
-            <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-xl">
-              <DialogHeader className="pb-4 border-b border-gray-200">
-                <DialogTitle className="text-xl font-semibold text-gray-900">{t('communityTab.newQuestion')}</DialogTitle>
-                <DialogDescription className="sr-only">새로운 질문을 작성하는 모달입니다.</DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.title')}</label>
-                  <Input
-                    placeholder={t('communityTab.titlePlaceholder')}
-                    value={questionForm.title}
-                    onChange={(e) => setQuestionForm({ ...questionForm, title: e.target.value })}
-                    className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.category')}</label>
-                  <select
-                    value={questionForm.category}
-                    onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
-                    className="w-full p-3 border-2 border-gray-300 rounded-md focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white"
-                  >
-                    {getCategories(t, language).map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.icon} {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.tags')}</label>
-                  <Input
-                    placeholder={t('communityTab.tagsPlaceholder')}
-                    value={questionForm.tags}
-                    onChange={(e) => setQuestionForm({ ...questionForm, tags: e.target.value })}
-                    className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">{t('communityTab.questionContent')}</label>
-                  <Textarea
-                    placeholder={t('communityTab.questionContentPlaceholder')}
-                    value={questionForm.content}
-                    onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
-                    rows={6}
-                    className="border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none"
-                  />
-                </div>
-                
-                <div className="flex gap-3 justify-end">
-                  <Button variant="outline" onClick={() => setShowQuestionModal(false)}>
-                    {t('buttons.cancel')}
-                  </Button>
-                  <Button onClick={handleSubmitQuestion}>
-                    {t('communityTab.registerQuestion')}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-      </div>
-
-      {/* 질문 목록 */}
-      <div className="mt-8">
-          {questionsLoading ? (
-            // 로딩 중 스켈레톤
-            <div className="space-y-8">
-              {[1, 2, 3].map((index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6 shadow-lg">
-                    <div className="flex items-start gap-4">
-                      <div className="flex flex-col items-center gap-2 min-w-[60px]">
-                        <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                        <div className="h-6 w-8 bg-gray-200 rounded"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="h-6 bg-gray-200 rounded mb-2 w-3/4"></div>
-                        <div className="h-4 bg-gray-200 rounded mb-3 w-full"></div>
-                        <div className="h-4 bg-gray-200 rounded mb-2 w-2/3"></div>
-                        <div className="flex items-center gap-4 mt-4">
-                          <div className="h-4 bg-gray-200 rounded w-20"></div>
-                          <div className="h-4 bg-gray-200 rounded w-16"></div>
-                          <div className="h-4 bg-gray-200 rounded w-12"></div>
-                          <div className="h-4 bg-gray-200 rounded w-16"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div className="text-center py-4">
-                <div className="inline-flex items-center gap-2 text-purple-600 mb-4">
-                  <span className="animate-spin">❓</span>
-                  <span>질문을 불러오는 중...</span>
-                </div>
-                <Button 
-                  onClick={() => {
-                    console.log('🚨 강제 로딩 해제 버튼 클릭')
-                    setQuestionsLoading(false)
-                  }}
-                  variant="outline"
-                  className="text-sm"
-                >
-                  🚨 강제로 로딩 해제 (버전 2)
-                </Button>
-              </div>
-            </div>
-          ) : (
-            // 질문 카드 리스트
-            <div className="space-y-8">
-              {filteredQuestions.map((question, index) => (
-              <div key={question.id}>
-                {/* 데스크톱: 카드 스타일 */}
-                <Card 
-                  className="hidden md:block p-4 sm:p-6 shadow-lg border border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-700 hover:bg-purple-50/30 dark:hover:bg-purple-900/20 cursor-pointer !opacity-100 !transform-none"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    handleQuestionClick(question)
-                  }}
-                >
-                  <div className="flex items-start gap-4">
-                    {/* 업보트 영역 */}
-                    <div className="flex flex-col items-center gap-2 min-w-[60px]">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 hover:bg-purple-50"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleUpvote(question.id)
-                        }}
-                      >
-                        <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
-                      </Button>
-                      <span className="text-lg font-semibold text-purple-600">{question.upvotes}</span>
-                    </div>
-                    
-                    {/* 질문 내용 */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-800 truncate">{question.title}</h3>
-                        {question.isSolved && (
-                          <Badge className="bg-green-100 text-green-700 border-green-300">
-                            <Target className="w-3 h-3 mr-1" />
-                            해결됨
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <p className="text-gray-600 mb-3 line-clamp-2">{question.preview}</p>
-                      
-                      {/* 메타 정보 */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <User className="w-4 h-4" />
-                            <AuthorName
-                              userId={(question.author as any)?.id}
-                              name={question.author?.full_name || question.author || (language === 'ko' ? '익명' : 'Anónimo')}
-                              disableLink={!((question.author as any)?.id)}
-                              className="text-sm text-gray-600 dark:text-gray-300"
-                            />
-                            <Badge className={`ml-2 text-xs ${
-                              question.authorType === 'korean' 
-                                ? 'bg-purple-100 text-purple-700 border-purple-300' 
-                                : 'bg-pink-100 text-pink-700 border-pink-300'
-                            }`}>
-                              {question.authorType === 'korean' ? '한국인' : '라틴'}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MessageSquare className="w-4 h-4" />
-                            <span>{question.answers} 답변</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Eye className="w-4 h-4" />
-                            <span>{question.views} 조회</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            <span>{formatTime(question.createdAt)}</span>
-                          </div>
-                        </div>
-                        
-                        {/* 운영자 전용 버튼들 */}
-                        {isAdmin && (
-                          <div className="flex items-center gap-1">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-6 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                if (confirm('정말로 이 질문을 삭제하시겠습니까?')) {
-                                  // 질문 삭제 로직 (나중에 구현)
-                                  console.log('질문 삭제:', question.id)
-                                  toast.success('질문이 삭제되었습니다.')
-                                }
-                              }}
-                            >
-                              🗑️
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* 모바일: 리스트 스타일 */}
-                <div 
-                  className="block md:hidden py-3 px-4 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-all duration-300 shadow-md"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    handleQuestionClick(question)
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 truncate flex-1 mr-2">{question.title}</h3>
-                    <div className="flex items-center gap-1 text-purple-600">
-                      <ThumbsUp className="w-3 h-3" />
-                      <span className="text-sm font-medium">{question.upvotes}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center gap-2">
-                      <AuthorName
-                        userId={(question.author as any)?.id}
-                        name={question.author?.full_name || question.author || (language === 'ko' ? '익명' : 'Anónimo')}
-                        disableLink={!((question.author as any)?.id)}
-                        className="text-sm"
-                      />
-                      <Badge className={`text-xs px-1 py-0 ${
-                        question.authorType === 'korean' 
-                          ? 'bg-purple-100 text-purple-700' 
-                          : 'bg-pink-100 text-pink-700'
-                      }`}>
-                        {question.authorType === 'korean' ? '한국인' : '라틴'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>{question.answers} 답변</span>
-                      <span>{formatTime(question.createdAt)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-              
-              {/* 결과 없음 */}
-              {filteredQuestions.length === 0 && (
-            <Card className="p-12 text-center shadow-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
-              {questions.length === 0 ? (
-                // 질문이 아예 없는 경우
-                <>
-                  <div className="text-4xl mb-4">❓</div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">아직 질문이 없습니다</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    궁금한 점이 있으시면 첫 번째 질문을 작성해보세요!
-                  </p>
-                  <Button 
-                    onClick={() => setQuestionForm(prev => ({ ...prev, show: true }))}
-                    className="bg-purple-500 hover:bg-purple-600 text-white"
-                  >
-                    질문 작성하기
-                  </Button>
-                </>
-              ) : (
-                // 검색/필터 결과가 없는 경우
-                <>
-                  <div className="text-4xl mb-4">🔍</div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">검색 결과가 없습니다</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    다른 키워드나 카테고리로 검색해보세요
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setSearchTerm('')
-                      setActiveCategory('all')
-                    }}
-                  >
-                    필터 초기화
-                  </Button>
-                </>
-              )}
-            </Card>
-          )}
-            </div>
-          )}
-      </div>
-        </div>
-      )}
 
 
       {currentView === 'news' && (
@@ -3199,105 +2446,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
 
 
 
-      {/* 답변 보기 Drawer */}
-      <Drawer open={showAnswerDrawer} onOpenChange={setShowAnswerDrawer}>
-        <DrawerContent className="!opacity-100 !bg-white">
-          <div className="mx-auto w-full max-w-2xl">
-            <DrawerHeader>
-              <DrawerTitle className="text-left">
-                {selectedQuestion?.title}
-              </DrawerTitle>
-            </DrawerHeader>
-            
-            <div className="p-6 space-y-6">
-              {/* 질문 상세 */}
-              {selectedQuestion && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg !opacity-100">
-                    <p className="text-gray-700 mb-3">{selectedQuestion.preview}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <AuthorName
-                        userId={selectedQuestion.author?.id}
-                        name={selectedQuestion.author?.full_name || selectedQuestion.author || (language === 'ko' ? '익명' : 'Anónimo')}
-                        disableLink={!selectedQuestion.author?.id}
-                      />
-                      <span>{formatTime(selectedQuestion.createdAt)}</span>
-                      <span>{selectedQuestion.views} 조회</span>
-                    </div>
-                  </div>
-                  
-                  {/* 답변 목록 */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      답변 ({answers.length})
-                    </h4>
-                    
-                    {answers.map((answer) => (
-                        <Card key={answer.id} className="p-4 !opacity-100 !bg-white dark:!bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-600">
-                          <div className="flex items-start gap-3">
-                            <div className="flex flex-col items-center gap-1 min-w-[50px]">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-purple-50"
-                                onClick={() => handleAnswerLike(answer.id)}
-                              >
-                                <ThumbsUp className={`w-3 h-3 ${likedAnswers.has(answer.id) ? 'text-red-500 fill-current' : 'text-purple-500'}`} />
-                              </Button>
-                              <span className="text-sm font-medium text-purple-600">
-                                {answerUpvotes[answer.id] !== undefined ? answerUpvotes[answer.id] : answer.upvotes}
-                              </span>
-                            </div>
-                            
-                            <div className="flex-1">
-                              <p className="text-gray-700 mb-2">{answer.content}</p>
-                              <div className="flex items-center gap-3 text-sm text-gray-500">
-                                <AuthorName
-                                  userId={(answer.author as any)?.id}
-                                  name={
-                                    (answer.author as any)?.full_name ||
-                                    (typeof answer.author === 'string' ? answer.author : null) ||
-                                    (language === 'ko' ? '익명' : 'Anónimo')
-                                  }
-                                  disableLink={!((answer.author as any)?.id)}
-                                />
-                                <span>{formatTime(answer.createdAt)}</span>
-                                {answer.isAccepted && (
-                                  <Badge className="bg-green-100 text-green-700 border-green-300">
-                                    채택됨
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                  </div>
-                  
-                  {/* 답변 작성 */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-800">답변 작성</h4>
-                    <Textarea
-                      placeholder="답변을 입력하세요..."
-                      rows={4}
-                      className="w-full"
-                      value={answerForm.content}
-                      onChange={(e) => setAnswerForm({ content: e.target.value })}
-                    />
-                    <div className="flex gap-3 justify-end">
-                      <Button variant="outline" onClick={() => setShowAnswerDrawer(false)}>
-                        취소
-                      </Button>
-                      <Button onClick={handleSubmitAnswer}>답변 등록</Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
 
         {/* 추후 연동 포인트 주석 */}
         {/* 

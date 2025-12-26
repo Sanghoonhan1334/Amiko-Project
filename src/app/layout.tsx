@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import ScrollToTop from '@/components/common/ScrollToTop'
 import CustomBanner from '@/components/layout/CustomBanner'
 import GlobalChatButton from '@/components/common/GlobalChatButton'
+import HistoryManager from '@/components/common/HistoryManager'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { UserProvider } from '@/context/UserContext'
@@ -141,6 +142,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <Analytics />
         </Suspense>
+        <Suspense fallback={null}>
         <QueryProvider>
           <ThemeProvider
             attribute="class"
@@ -153,7 +155,10 @@ export default function RootLayout({
                 <UserProvider>
                   <CustomBanner />
                   <HeaderWrapper />
-                  <main>{children}</main>
+                  <main>
+                    <HistoryManager />
+                    {children}
+                  </main>
                   <Footer />
                   <ScrollToTop />
                   <GlobalChatButton />
@@ -162,6 +167,7 @@ export default function RootLayout({
             </AuthProvider>
           </ThemeProvider>
         </QueryProvider>
+        </Suspense>
         <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
         {/* 카카오톡 링크 미리보기용 추가 메타 태그 */}
         <Script

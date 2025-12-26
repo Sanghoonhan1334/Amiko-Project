@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { 
+import {
   Home,
-  Video, 
-  MessageSquare, 
-  User, 
-  Zap, 
+  Video,
+  MessageSquare,
+  User,
+  Zap,
   ShoppingBag,
   Calendar,
   GraduationCap
@@ -31,6 +31,9 @@ export default function BottomTabNavigation() {
     } else if (pathname.startsWith('/community')) {
       // 커뮤니티 서브페이지에서는 커뮤니티 탭을 활성화
       setActiveTab('community')
+    } else if (pathname.startsWith('/quiz')) {
+      // 퀴즈 페이지에서는 홈 탭을 활성화 (또는 적절한 탭)
+      setActiveTab('home')
     }
   }, [pathname, searchParams])
 
@@ -83,9 +86,9 @@ export default function BottomTabNavigation() {
       router.push('/sign-in')
       return
     }
-    
+
     setActiveTab(tab.id)
-    
+
     // 커뮤니티 탭 클릭 시 cTab 파라미터 제거하여 홈으로 이동
     if (tab.id === 'community') {
       const params = new URLSearchParams(searchParams.toString())
@@ -100,33 +103,61 @@ export default function BottomTabNavigation() {
         router.push(tab.path)
       }
     }
-    
+
     // 헤더 네비게이션과 동기화
-    window.dispatchEvent(new CustomEvent('mainTabChanged', { 
-      detail: { tab: tab.id } 
+    window.dispatchEvent(new CustomEvent('mainTabChanged', {
+      detail: { tab: tab.id }
     }))
   }
 
-  // 메인 페이지나 커뮤니티 서브페이지가 아닐 때는 숨김
-  if (!pathname.startsWith('/main') && !pathname.startsWith('/community')) {
+  // 모바일에서 네비게이션을 숨길 페이지 목록
+  const hiddenPaths = [
+    '/', // 랜딩 페이지
+    '/sign-in',
+    '/sign-up',
+    '/forgot-password',
+    '/reset-password',
+    '/verification',
+    '/verification-simple',
+    '/verification-center',
+    '/splash',
+    '/inquiry',
+    '/partnership',
+    '/about',
+    '/terms',
+    '/privacy',
+    '/cookies',
+    '/contact',
+    '/help',
+    '/faq',
+    '/admin', // 관리자 페이지
+  ]
+
+  // 숨길 페이지인지 확인
+  const shouldHide = hiddenPaths.some(hiddenPath => 
+    pathname === hiddenPath || pathname.startsWith(hiddenPath + '/')
+  )
+
+  // 숨길 페이지이거나 관리자 페이지인 경우 숨김
+  if (shouldHide || pathname.startsWith('/admin')) {
     return null
   }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 dark:bg-gray-800 border-t-2 border-blue-200 dark:border-gray-700 shadow-2xl md:hidden">
-      
+
       <div className="grid grid-cols-5 py-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
-          
+
           return (
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
               className={`relative flex flex-col items-center justify-center p-2 transition-all duration-200 active:scale-95 ${
-                isActive 
-                  ? 'text-purple-600 dark:text-purple-400' 
+                isActive
+                  ? 'text-purple-600 dark:text-purple-400'
                   : 'text-blue-600 dark:text-blue-400'
               }`}
             >

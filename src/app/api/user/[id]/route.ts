@@ -108,7 +108,9 @@ export async function GET(
       createdAt: user.created_at,
       updatedAt: user.updated_at,
       total_points: totalPoints,
-      is_vip: isVip
+      is_vip: isVip,
+      academic_info_public: (user as any).academic_info_public ?? false,
+      job_info_public: (user as any).job_info_public ?? false
     }
 
     return NextResponse.json({ profile })

@@ -1,29 +1,31 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowRight, ArrowLeft, User, Mail, Lock, Phone, Globe } from 'lucide-react'
+import { ArrowRight, ArrowLeft, User, Mail, Lock, Globe } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
-import PhoneVerification from '@/components/auth/PhoneVerification'
 import { countries } from '@/constants/countries'
 import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick } from '@/lib/analytics'
+import EmailVerification from '@/components/auth/EmailVerification'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 export default function SignUpPage() {
   const router = useRouter()
   const { t, language } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
-  const [currentStep, setCurrentStep] = useState<'form' | 'sms' | 'complete'>('form')
+  const [currentStep, setCurrentStep] = useState<'form' | 'email' | 'complete'>('form')
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [isEmailVerifying, setIsEmailVerifying] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    phone: '',
     country: '',
     isKorean: false,
     birthDate: ''
@@ -38,11 +40,8 @@ export default function SignUpPage() {
   
   const [authData, setAuthData] = useState({
     email: '',
-    phoneNumber: '',
     nationality: '',
-    verificationCode: '',
-    isEmailVerified: true,
-    isSMSVerified: false,
+    isEmailVerified: false, // 이메일 인증은 실제로 완료해야 함
     biometricEnabled: false
   })
 
@@ -55,6 +54,15 @@ export default function SignUpPage() {
     signUpEvents.formStart()
     // Standardized event
     trackStartSignup()
+    
+    // 히스토리 초기화 - 모바일 뒤로가기 방지
+    if (typeof window !== 'undefined') {
+      // 히스토리가 비어있으면 랜딩 페이지를 히스토리에 추가
+      if (window.history.state === null) {
+        window.history.replaceState({ index: 0 }, '', '/')
+        window.history.pushState({ index: 1 }, '', '/sign-up')
+      }
+    }
   }, [])
 
   const calculateAge = (value: string) => {
@@ -71,50 +79,6 @@ export default function SignUpPage() {
   }
 
   const handleInputChange = (field: string, value: string) => {
-    // 전화번호 입력 시 국가별 형식으로 변환
-    if (field === 'phone') {
-      const selectedCountry = countries.find(c => c.code === formData.country)
-      
-      // 한국인 경우에만 010- 형식 적용
-      if (selectedCountry?.isKorean) {
-        // 숫자만 추출
-        const digits = value.replace(/\D/g, '')
-        
-        // 숫자가 없으면 완전히 빈 문자열
-        if (digits.length === 0) {
-          value = ''
-        } else {
-          // 010으로 시작하지 않으면 010 추가
-          let phoneDigits = digits
-          if (!digits.startsWith('010')) {
-            if (digits.startsWith('10')) {
-              phoneDigits = '010' + digits.substring(2)
-            } else {
-              phoneDigits = '010' + digits
-            }
-          }
-          
-          // 하이픈 추가 (010-XXXX-XXXX)
-          if (phoneDigits.length >= 7) {
-            value = phoneDigits.substring(0, 3) + '-' + phoneDigits.substring(3, 7) + '-' + phoneDigits.substring(7, 11)
-          } else if (phoneDigits.length >= 3) {
-            value = phoneDigits.substring(0, 3) + '-' + phoneDigits.substring(3)
-          } else {
-            value = phoneDigits
-          }
-        }
-        
-        // 최대 13자리 (010-1234-5678)
-        if (value.length > 13) {
-          value = value.substring(0, 13)
-        }
-      } else {
-        // 한국이 아닌 경우 숫자만 허용하고 특별한 포맷팅 없음
-        const digits = value.replace(/\D/g, '')
-        value = digits
-      }
-    }
-    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -144,7 +108,7 @@ export default function SignUpPage() {
     }
     
     // Standardized events for other fields
-    if (value.length > 0 && ['name', 'phone', 'birthDate', 'country'].includes(field)) {
+    if (value.length > 0 && ['name', 'birthDate', 'country'].includes(field)) {
       trackSignupInput(field)
     }
 
@@ -163,11 +127,6 @@ export default function SignUpPage() {
         signUpEvents.enterBirthday()
         signUpEvents.birthdayOk()
       }
-    }
-    
-    // 가입 퍼널 이벤트: 휴대폰 번호 입력
-    if (field === 'phone' && value.length > 0) {
-      signUpEvents.enterPhone()
     }
   }
   
@@ -241,19 +200,17 @@ export default function SignUpPage() {
       ...prev,
       country: countryCode,
       isKorean: selectedCountry?.isKorean || false,
-      // 전화번호는 유지 (국적과 독립적으로 입력 가능)
-      // phone: '' // 주석 처리: 국적 변경 시 전화번호 유지 (한국에 거주하는 외국인 지원)
     }))
   }
 
   // 뒤로가기 함수
   const handleGoBack = () => {
     switch (currentStep) {
-      case 'sms':
+      case 'email':
         setCurrentStep('form')
         break
       case 'complete':
-        setCurrentStep('sms')
+        setCurrentStep('form')
         break
       default:
         // form 단계에서는 메인 페이지로 이동
@@ -261,148 +218,83 @@ export default function SignUpPage() {
     }
   }
 
-  // 전화번호 백스페이스 처리
-  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace') {
-      const selectedCountry = countries.find(c => c.code === formData.country)
-      
-      if (selectedCountry?.isKorean && formData.phone) {
-        // 한국인 경우: 백스페이스 시 하이픈과 함께 삭제
-        const currentValue = formData.phone
-        const digits = currentValue.replace(/\D/g, '')
-        
-        if (digits.length > 0) {
-          // 마지막 숫자 하나 삭제
-          const newDigits = digits.slice(0, -1)
-          
-          if (newDigits.length === 0) {
-            // 모든 숫자가 삭제되면 빈 문자열
-            setFormData(prev => ({ ...prev, phone: '' }))
-            e.preventDefault()
-          } else {
-            // 하이픈 다시 적용
-            let phoneDigits = newDigits
-            if (!newDigits.startsWith('010')) {
-              if (newDigits.startsWith('10')) {
-                phoneDigits = '010' + newDigits.substring(2)
-              } else if (newDigits.length > 0 && !newDigits.startsWith('01') && !newDigits.startsWith('0')) {
-                // 01, 0으로 시작하는 경우는 010 추가하지 않음
-                phoneDigits = '010' + newDigits
-              }
-            }
-            
-            let newValue = ''
-            if (phoneDigits.length >= 7) {
-              newValue = phoneDigits.substring(0, 3) + '-' + phoneDigits.substring(3, 7) + '-' + phoneDigits.substring(7, 11)
-            } else if (phoneDigits.length >= 3) {
-              newValue = phoneDigits.substring(0, 3) + '-' + phoneDigits.substring(3)
-            } else {
-              newValue = phoneDigits
-            }
-            
-            setFormData(prev => ({ ...prev, phone: newValue }))
-            e.preventDefault()
-          }
-        }
-      }
-    }
-  }
-
-  // 인증 관련 함수들 (이메일 단계 제거됨)
-
-  // 인증 방식별 발송 함수
-  const handlePhoneAuth = async (method: string) => {
-    console.log('🔍 [DEBUG] handlePhoneAuth 호출됨:', {
-      method,
-      phoneNumber: formData.phone,
-      nationality: formData.country
-    })
+  // 이메일 인증 코드 발송
+  const handleSendEmailCode = useCallback(async () => {
+    if (!formData.email) return
     
-    setIsLoading(true)
+    setIsEmailVerifying(true)
     try {
-      const requestBody = { 
-        phoneNumber: formData.phone, 
-        type: method,
-        nationality: formData.country
-      }
-      
-      console.log('📤 [DEBUG] API 요청 데이터:', requestBody)
-      
-      const response = await fetch('/api/auth/verification', {
+      const response = await fetch('/api/verify/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      })
-
-      const result = await response.json()
-      console.log('📥 [DEBUG] API 응답:', JSON.stringify(result, null, 2))
-      
-      // 응답이 실패했거나 success가 false인 경우 에러 처리
-      if (!response.ok || !result.success) {
-        const errorMessage = result.error || result.message || '인증코드 발송에 실패했습니다.'
-        console.error('❌ [DEBUG] 발송 실패:', errorMessage)
-        // 개발 환경에서 debug 정보가 있으면 포함
-        if (result.debug) {
-          console.warn('⚠️ [DEBUG] 개발 환경 - 인증코드:', result.debug.verificationCode)
-          throw new Error(`${errorMessage}\n(개발 환경: 인증코드는 ${result.debug.verificationCode})`)
-        }
-        throw new Error(errorMessage)
-      }
-
-      setAuthData(prev => ({ ...prev, phoneNumber: formData.phone, nationality: formData.country }))
-      console.log(`✅ ${method} 인증코드 발송 성공:`, result)
-      return result
-    } catch (error) {
-      console.error(`❌ ${method} 인증 발송 실패:`, error)
-      alert(t(`auth.${method}VerificationCodeSendFailed`))
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSMSVerify = async (code: string) => {
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/auth/verification/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phoneNumber: authData.phoneNumber, 
-          code, 
-          type: 'sms',
-          nationality: authData.nationality || 'KR'
+        body: JSON.stringify({
+          channel: 'email',
+          target: formData.email
         })
       })
 
       const result = await response.json()
-      if (!response.ok) {
-        // 서버 응답의 reason에 따른 명확한 에러 메시지
-        const errorMessage = result.reason === 'NOT_FOUND' 
-          ? '인증코드를 찾을 수 없습니다. 다시 발송해주세요.'
-          : result.reason === 'EXPIRED'
-          ? '인증코드가 만료되었습니다. 새로운 코드를 발송해주세요.'
-          : result.reason === 'REPLACED_OR_USED'
-          ? '이미 사용되었거나 교체된 인증코드입니다.'
-          : result.reason === 'MISMATCH'
-          ? '인증코드가 일치하지 않습니다.'
-          : result.detail || result.error || '인증에 실패했습니다.'
-        
-        throw new Error(errorMessage)
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || result.message || '인증코드 발송에 실패했습니다.')
       }
 
-      setAuthData(prev => ({ ...prev, isSMSVerified: true }))
-      // 가입 퍼널 이벤트: 휴대폰 인증 완료
-      signUpEvents.verifyPhone('sms')
-      // SMS 인증 완료 후 회원가입 처리
-      handleSignUp()
+      // 자동 발송 시에는 알림을 표시하지 않음 (사용자가 버튼을 눌렀을 때만 표시)
+      if (currentStep === 'email') {
+        // 이메일 인증 단계에서는 조용히 발송
+      } else {
+        alert(language === 'ko' ? '이메일로 인증코드가 발송되었습니다.' : 'Se ha enviado el código de verificación por correo electrónico.')
+      }
     } catch (error) {
-      console.error('SMS 인증 실패:', error)
-      alert(error instanceof Error ? error.message : t('auth.verificationCodeIncorrect'))
+      console.error('이메일 인증코드 발송 실패:', error)
+      alert(error instanceof Error ? error.message : (language === 'ko' ? '인증코드 발송에 실패했습니다.' : 'Error al enviar el código de verificación.'))
     } finally {
-      setIsLoading(false)
+      setIsEmailVerifying(false)
+    }
+  }, [formData.email, language, currentStep])
+
+  // 이메일 인증 코드 확인
+  const handleVerifyEmailCode = async (code: string) => {
+    setIsEmailVerifying(true)
+    try {
+      const response = await fetch('/api/verify/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          channel: 'email',
+          target: formData.email,
+          code: code
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || result.message || '인증코드가 올바르지 않습니다.')
+      }
+
+      // 이메일 인증 완료
+      setEmailVerified(true)
+      setAuthData(prev => ({ ...prev, isEmailVerified: true }))
+      alert(language === 'ko' ? '이메일 인증이 완료되었습니다.' : 'Verificación de correo electrónico completada.')
+      
+      // 회원가입 진행
+      await handleSignUp()
+    } catch (error) {
+      console.error('이메일 인증 실패:', error)
+      alert(error instanceof Error ? error.message : (language === 'ko' ? '인증코드가 올바르지 않습니다.' : 'El código de verificación es incorrecto.'))
+    } finally {
+      setIsEmailVerifying(false)
     }
   }
+
+  // 이메일 인증 단계로 이동 시 자동으로 코드 발송
+  useEffect(() => {
+    if (currentStep === 'email' && formData.email && !emailVerified) {
+      handleSendEmailCode()
+    }
+  }, [currentStep, formData.email, emailVerified, handleSendEmailCode])
+
 
   const handleSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -434,12 +326,10 @@ export default function SignUpPage() {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          phone: formData.phone,
           country: formData.country,
           isKorean: selectedCountry?.isKorean || false,
           birthDate: formData.birthDate,
           emailVerified: authData.isEmailVerified,
-          phoneVerified: authData.isSMSVerified,
           biometricEnabled: authData.biometricEnabled
         })
       })
@@ -538,36 +428,8 @@ export default function SignUpPage() {
         return
       }
 
-      // 중복 전화번호 체크
-      const phoneResponse = await fetch('/api/auth/check-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: formData.phone })
-      })
-      
-      const phoneResult = await phoneResponse.json()
-      
-      if (!phoneResponse.ok) {
-        throw new Error(phoneResult.error || '전화번호 확인 중 오류가 발생했습니다.')
-      }
-      
-      if (phoneResult.exists) {
-        alert(t('auth.phoneAlreadyExists'))
-        return
-      }
-      
-      // 중복이 아닌 경우 폼 데이터를 authData에 저장하고 다음 단계로
-      setAuthData(prev => ({
-        ...prev,
-        email: formData.email,
-        phoneNumber: formData.phone,
-        nationality: formData.country,
-        name: formData.name,
-        country: formData.country
-      }))
-      
-      // 이메일 인증 단계는 제거하고 SMS 인증으로 바로 진행
-      setCurrentStep('sms')
+      // 중복이 아닌 경우 이메일 인증 단계로 이동
+      setCurrentStep('email')
       
     } catch (error) {
       console.error('중복 체크 오류:', error)
@@ -580,30 +442,26 @@ export default function SignUpPage() {
   // 단계별 렌더링
   const renderStep = () => {
     switch (currentStep) {
-      case 'sms':
+      case 'email':
         return (
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleGoBack}
-                className="flex items-center gap-2 text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-700"
-              >
-                <ArrowLeft className="w-4 h-4" />
-{t('auth.back')}
-              </Button>
-            </div>
-            <PhoneVerification
-              phoneNumber={formData.phone}
-              nationality={formData.country}
-              onVerify={handleSMSVerify}
-              onResend={handlePhoneAuth}
-              isLoading={isLoading}
+            <EmailVerification
+              email={formData.email}
+              onVerify={handleVerifyEmailCode}
+              onResend={handleSendEmailCode}
+              isLoading={isEmailVerifying}
             />
+              <Button
+              type="button"
+              variant="outline"
+                onClick={handleGoBack}
+              className="w-full"
+              >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {language === 'ko' ? '뒤로' : 'Atrás'}
+              </Button>
           </div>
         )
-      
       default:
         return (
           <form onSubmit={handleFormSubmit} className="space-y-3 sm:space-y-4">
@@ -749,43 +607,6 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-gray-300">
-                {t('auth.phone')}
-              </Label>
-              <div className="flex gap-2">
-                <Select value={formData.country} onValueChange={handleCountryChange} required>
-                  <SelectTrigger className="w-32 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100">
-                    <SelectValue placeholder={t('auth.countryCode')} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                    {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100">
-                        {country.phoneCode} {t(`auth.countries.${country.code}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="relative flex-1">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-500" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder={countries.find(c => c.code === formData.country)?.isKorean ? "10-1234-5678" : "123456789"}
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    onKeyDown={handlePhoneKeyDown}
-                    className="pl-10 border-slate-200 dark:border-gray-600 focus:border-slate-400 dark:focus:border-gray-400 focus:ring-slate-400 dark:focus:ring-gray-400 bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100"
-                    style={{ paddingLeft: '2.5rem' }}
-                    required
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-gray-400">
-                {t('auth.phoneLoginIdInfo')}
-              </p>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="country" className="text-sm font-medium text-slate-700 dark:text-gray-300">
                 {t('auth.nationality')}
               </Label>
@@ -815,7 +636,6 @@ export default function SignUpPage() {
                 !formData.email ||
                 !formData.password ||
                 !formData.confirmPassword ||
-                !formData.phone ||
                 !formData.country ||
                 !formData.birthDate ||
                 !isPasswordValid ||
@@ -856,6 +676,81 @@ export default function SignUpPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* 구글 로그인 버튼 */}
+                {currentStep === 'form' && (
+                  <div className="mb-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors"
+                      onClick={async () => {
+                        try {
+                          setIsLoading(true)
+                          const supabase = createSupabaseBrowserClient()
+                          
+                          const { error } = await supabase.auth.signInWithOAuth({
+                            provider: 'google',
+                            options: {
+                              redirectTo: `${window.location.origin}/auth/callback?next=/main`,
+                              queryParams: {
+                                access_type: 'offline',
+                                prompt: 'consent',
+                              },
+                            },
+                          })
+
+                          if (error) {
+                            console.error('[SIGNUP] Google 로그인 실패:', error)
+                            alert(language === 'ko' ? '구글 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
+                            setIsLoading(false)
+                          }
+                          // 성공하면 자동으로 Google로 리다이렉트되므로 여기서는 아무것도 하지 않음
+                        } catch (error) {
+                          console.error('[SIGNUP] Google 로그인 오류:', error)
+                          alert(language === 'ko' ? '구글 로그인 중 오류가 발생했습니다.' : 'Error al iniciar sesión con Google')
+                          setIsLoading(false)
+                        }
+                      }}
+                      disabled={isLoading}
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        {/* 구글 아이콘 SVG */}
+                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                          <path
+                            fill="#4285F4"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          />
+                          <path
+                            fill="#34A853"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          />
+                          <path
+                            fill="#FBBC05"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          />
+                          <path
+                            fill="#EA4335"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          />
+                        </svg>
+                        <span>
+                          {language === 'ko' ? 'Google로 계속하기' : 'Continuar con Google'}
+                        </span>
+                      </div>
+                    </Button>
+                    {/* 구분선 */}
+                    <div className="relative my-6">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-300 dark:border-gray-600"></div>
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-white dark:bg-gray-800 px-2 text-slate-500 dark:text-gray-400">
+                          {language === 'ko' ? '또는' : 'o'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {renderStep()}
                 <div className="mt-6 text-center">
                   <p className="text-sm text-slate-600 dark:text-gray-400">
@@ -873,7 +768,23 @@ export default function SignUpPage() {
             </>
           )}
           
-          {currentStep !== 'form' && (
+          {currentStep === 'email' && (
+            <>
+              <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-gray-100">
+                  {t('auth.emailVerification')}
+                </CardTitle>
+                <CardDescription className="text-sm sm:text-base text-slate-600 dark:text-gray-400">
+                  {language === 'ko' ? '이메일로 발송된 인증코드를 입력해주세요.' : 'Ingrese el código de verificación enviado por correo electrónico.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {renderStep()}
+              </CardContent>
+            </>
+          )}
+          
+          {currentStep === 'complete' && (
             <CardContent className="p-6">
               {renderStep()}
             </CardContent>

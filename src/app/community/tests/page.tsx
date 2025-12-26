@@ -9,6 +9,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 
 interface Quiz {
   id: string
@@ -392,10 +393,10 @@ function TestsPageContent() {
               variant="outline"
               size="sm"
               onClick={handleBack}
-              className="flex items-center gap-0.5 sm:gap-1 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border-0 sm:border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-transparent sm:bg-white dark:bg-transparent sm:dark:bg-gray-700 text-[9px] sm:text-[10px] px-1 py-1 h-5 sm:h-6"
+              className="flex items-center gap-1 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border-0 sm:border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-transparent sm:bg-white dark:bg-transparent sm:dark:bg-gray-700 text-xs sm:text-sm px-2 py-1 h-7 sm:h-8"
             >
-              <ArrowLeft className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
-              <span className="hidden xs:inline">{language === 'ko' ? '이전' : 'Atrás'}</span>
+              <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>{language === 'ko' ? '뒤로' : 'Atrás'}</span>
             </Button>
           </div>
         </div>
@@ -476,8 +477,8 @@ function TestsPageContent() {
         )}
       </div>
       
-      {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
-      {/* <BottomTabNavigation /> */}
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
       
     </div>
   )

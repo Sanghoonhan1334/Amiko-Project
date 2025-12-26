@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext'
 import Header from '@/components/layout/Header'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { toast } from 'sonner'
+import AuthorName from '@/components/common/AuthorName'
 
 // 댓글 관련 타입 정의
 interface Comment {
@@ -1096,7 +1097,11 @@ function NewsPageContent() {
                     <span className="text-[10px]">{selectedNews.views || 0}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <MessageCircle className="w-3 h-3" />
+                    <ThumbsUp className="w-3 h-3 text-red-500" />
+                    <span className="text-[10px]">{selectedNews.likes || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MessageCircle className="w-3 h-3 text-blue-500" />
                     <span className="text-[10px]">{selectedNews.comments || 0}</span>
                   </div>
                 </div>
@@ -1195,9 +1200,11 @@ function NewsPageContent() {
                   <div key={comment.id} className="border-b border-gray-100 pb-1 md:pb-4 last:border-b-0">
                     <div className="flex items-start justify-between mb-1 md:mb-2">
                       <div className="flex items-center gap-1 md:gap-2">
-                        <span className="font-semibold text-[10px] md:text-sm text-gray-800">
-                          {comment.users?.korean_name || comment.users?.spanish_name || comment.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
-                        </span>
+                        <AuthorName
+                          userId={comment.author_id}
+                          name={comment.users?.korean_name || comment.users?.spanish_name || comment.users?.full_name || (language === 'ko' ? '익명' : 'Anónimo')}
+                          className="font-semibold text-[10px] md:text-sm text-gray-800"
+                        />
                         <span className="text-[9px] md:text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
                       </div>
                       {/* 수정 버튼만 상단에 표시 */}
@@ -1602,11 +1609,11 @@ function NewsPageContent() {
                                 </div>
                                 <div className="flex items-center gap-4">
                                   <div className="flex items-center gap-1">
-                                    <ThumbsUp className="w-4 h-4" />
+                                    <ThumbsUp className="w-4 h-4 text-red-500" />
                                     <span>{item.likes || 0}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <MessageCircle className="w-4 h-4" />
+                                    <MessageCircle className="w-4 h-4 text-blue-500" />
                                     <span>{item.comments || 0}</span>
                                   </div>
                                 </div>
@@ -1813,11 +1820,11 @@ function NewsPageContent() {
                           
                           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                             <div className="flex items-center gap-1">
-                              <ThumbsUp className="w-3 h-3" />
+                              <ThumbsUp className="w-3 h-3 text-red-500" />
                               <span>{item.likes || 0}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <MessageCircle className="w-3 h-3" />
+                              <MessageCircle className="w-3 h-3 text-blue-500" />
                               <span>{item.comments || 0}</span>
                             </div>
                           </div>
@@ -2212,8 +2219,8 @@ function NewsPageContent() {
         </DialogContent>
       </Dialog>
 
-      {/* 모바일 하단 네비게이션 - 커뮤니티 페이지에서는 숨김 */}
-      {/* <BottomTabNavigation /> */}
+      {/* 모바일 하단 네비게이션 */}
+      <BottomTabNavigation />
     </div>
   )
 }
