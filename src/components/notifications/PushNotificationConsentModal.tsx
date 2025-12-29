@@ -18,29 +18,37 @@ export default function PushNotificationConsentModal() {
     if (!user) return
 
     // 이미 동의했는지 확인
-    const hasConsented = localStorage.getItem('amiko-push-consent')
+    const hasConsented = localStorage.getItem('amiko-push-consent') === 'accepted'
+    
+    // 브라우저 알림 권한이 이미 허용된 경우도 동의한 것으로 간주
+    const browserPermissionGranted = typeof window !== 'undefined' && 
+      'Notification' in window && 
+      Notification.permission === 'granted'
+    
+    // 이미 동의했거나 브라우저 권한이 허용된 경우 모달 표시 안 함
+    if (hasConsented || browserPermissionGranted) {
+      return
+    }
+
     const consentDeclinedDate = localStorage.getItem('amiko-push-consent-declined-date')
     
-    // 동의하지 않았으면 모달 표시
-    if (!hasConsented) {
-      // 거부한 경우, 7일 후에 다시 물어보기
-      if (consentDeclinedDate) {
-        const declinedDate = new Date(consentDeclinedDate)
-        const daysSinceDeclined = (Date.now() - declinedDate.getTime()) / (1000 * 60 * 60 * 24)
-        
-        if (daysSinceDeclined < 7) {
-          // 7일이 안 지났으면 표시 안 함
-          return
-        }
+    // 거부한 경우, 7일 후에 다시 물어보기
+    if (consentDeclinedDate) {
+      const declinedDate = new Date(consentDeclinedDate)
+      const daysSinceDeclined = (Date.now() - declinedDate.getTime()) / (1000 * 60 * 60 * 24)
+      
+      if (daysSinceDeclined < 7) {
+        // 7일이 안 지났으면 표시 안 함
+        return
       }
-      
-      // 로그인 후 2초 뒤에 표시 (사용자가 페이지를 볼 시간을 줌)
-      const timer = setTimeout(() => {
-        setIsOpen(true)
-      }, 2000)
-      
-      return () => clearTimeout(timer)
     }
+    
+    // 로그인 후 2초 뒤에 표시 (사용자가 페이지를 볼 시간을 줌)
+    const timer = setTimeout(() => {
+      setIsOpen(true)
+    }, 2000)
+    
+    return () => clearTimeout(timer)
   }, [user])
 
   const handleAccept = async () => {
@@ -59,15 +67,35 @@ export default function PushNotificationConsentModal() {
         localStorage.removeItem('amiko-push-consent-declined-date')
         setIsOpen(false)
       } else {
-        // 권한 거부된 경우
-        localStorage.setItem('amiko-push-consent', 'declined')
-        localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
-        setIsOpen(false)
+        // 브라우저 권한이 이미 허용된 경우에도 동의한 것으로 간주
+        if (typeof window !== 'undefined' && 
+            'Notification' in window && 
+            Notification.permission === 'granted') {
+          localStorage.setItem('amiko-push-consent', 'accepted')
+          localStorage.setItem('amiko-push-subscribed', 'true')
+          localStorage.removeItem('amiko-push-consent-declined-date')
+          setIsOpen(false)
+        } else {
+          // 권한 거부된 경우
+          localStorage.setItem('amiko-push-consent', 'declined')
+          localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
+          setIsOpen(false)
+        }
       }
     } catch (error) {
       console.error('푸시 알림 구독 실패:', error)
-      localStorage.setItem('amiko-push-consent', 'declined')
-      localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
+      
+      // 브라우저 권한이 이미 허용된 경우에도 동의한 것으로 간주
+      if (typeof window !== 'undefined' && 
+          'Notification' in window && 
+          Notification.permission === 'granted') {
+        localStorage.setItem('amiko-push-consent', 'accepted')
+        localStorage.setItem('amiko-push-subscribed', 'true')
+        localStorage.removeItem('amiko-push-consent-declined-date')
+      } else {
+        localStorage.setItem('amiko-push-consent', 'declined')
+        localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
+      }
       setIsOpen(false)
     } finally {
       setIsLoading(false)
