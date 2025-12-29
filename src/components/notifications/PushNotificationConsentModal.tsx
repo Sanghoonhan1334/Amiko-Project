@@ -67,35 +67,19 @@ export default function PushNotificationConsentModal() {
         localStorage.removeItem('amiko-push-consent-declined-date')
         setIsOpen(false)
       } else {
-        // 브라우저 권한이 이미 허용된 경우에도 동의한 것으로 간주
-        if (typeof window !== 'undefined' && 
-            'Notification' in window && 
-            Notification.permission === 'granted') {
-          localStorage.setItem('amiko-push-consent', 'accepted')
-          localStorage.setItem('amiko-push-subscribed', 'true')
-          localStorage.removeItem('amiko-push-consent-declined-date')
-          setIsOpen(false)
-        } else {
-          // 권한 거부된 경우
-          localStorage.setItem('amiko-push-consent', 'declined')
-          localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
-          setIsOpen(false)
-        }
+        // 구독 실패 - 브라우저 권한 상태와 관계없이 구독이 실패했으므로 declined 처리
+        localStorage.setItem('amiko-push-consent', 'declined')
+        localStorage.setItem('amiko-push-subscribed', 'false')
+        localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
+        setIsOpen(false)
       }
     } catch (error) {
       console.error('푸시 알림 구독 실패:', error)
       
-      // 브라우저 권한이 이미 허용된 경우에도 동의한 것으로 간주
-      if (typeof window !== 'undefined' && 
-          'Notification' in window && 
-          Notification.permission === 'granted') {
-        localStorage.setItem('amiko-push-consent', 'accepted')
-        localStorage.setItem('amiko-push-subscribed', 'true')
-        localStorage.removeItem('amiko-push-consent-declined-date')
-      } else {
-        localStorage.setItem('amiko-push-consent', 'declined')
-        localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
-      }
+      // 에러 발생 - 구독이 실패했으므로 declined 처리
+      localStorage.setItem('amiko-push-consent', 'declined')
+      localStorage.setItem('amiko-push-subscribed', 'false')
+      localStorage.setItem('amiko-push-consent-declined-date', new Date().toISOString())
       setIsOpen(false)
     } finally {
       setIsLoading(false)
