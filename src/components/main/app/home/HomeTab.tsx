@@ -926,13 +926,10 @@ export default function HomeTab() {
       <div className="space-y-3 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Image
+              <img
                 src="/icons/home-news.png"
                 alt="K-Noticia"
-                width={20}
-                height={20}
-                className="object-contain mr-2"
-                priority
+                className="w-8 h-8 object-contain mr-2"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.kNoticia')}
@@ -984,12 +981,10 @@ export default function HomeTab() {
                 ))
               ) : (
                 <div className="text-center py-4">
-                  <Image
+                  <img
                     src="/icons/home-news.png"
                     alt="K-Noticia"
-                    width={32}
-                    height={32}
-                    className="mx-auto mb-2 opacity-40"
+                    className="w-8 h-8 mx-auto mb-2 opacity-40"
                   />
                   <p className="text-gray-500 text-xs">
                     {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
@@ -1924,13 +1919,10 @@ export default function HomeTab() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Image
+                  <img
                     src="/icons/home-news.png"
                     alt="K-Noticia"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                    priority
+                    className="w-8 h-8 object-contain"
                   />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {t('home.sections.kNoticia')}
@@ -1982,12 +1974,10 @@ export default function HomeTab() {
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <Image
+                        <img
                           src="/icons/home-news.png"
                           alt="K-Noticia"
-                          width={48}
-                          height={48}
-                          className="mx-auto mb-3 opacity-40"
+                          className="w-12 h-12 mx-auto mb-3 opacity-40"
                         />
                         <p className="text-gray-500 text-sm">
                           {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}

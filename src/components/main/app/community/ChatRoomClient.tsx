@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import UserBadge from '@/components/common/UserBadge'
-import { checkLevel2Auth, checkLevel2AuthAndRedirect } from '@/lib/auth-utils'
 
 interface Message {
   id: string
@@ -25,6 +24,9 @@ interface Message {
   }
   users?: {
     email?: string
+    full_name?: string
+    korean_name?: string
+    spanish_name?: string
     user_metadata?: {
       name?: string
     }
@@ -150,10 +152,6 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const { user, token, loading: authLoading, refreshSession } = useAuth()
   const router = useRouter()
   const { t, language } = useLanguage()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [checkingAuth, setCheckingAuth] = useState(true)
-  const [isVerified, setIsVerified] = useState(false) // 인증(verification) 상태
-  const [checkingVerification, setCheckingVerification] = useState(true) // 인증 상태 확인 중
   
   // Create authenticated Supabase client with useMemo to prevent multiple instances
   // ⚠️ 중요: 모든 hooks는 early return 이전에 호출되어야 함
@@ -205,124 +203,6 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     return selectedPalette
   }, [roomId])
   
-  // ⚠️ 강화: 실시간 인증 상태 확인 - user 객체가 있으면 로그인 상태로 간주
-  useEffect(() => {
-    const verifyAuth = async () => {
-      // 로딩 중일 때는 대기
-      if (authLoading) {
-        setCheckingAuth(true)
-        return
-      }
-      
-      // ⚠️ 수정: user와 user.id가 있으면 로그인 상태로 간주 (세션 확인은 선택적)
-      if (user && user.id) {
-        // user 객체가 있으면 일단 로그인은 한 것으로 간주
-        setIsAuthenticated(true)
-        setCheckingAuth(false)
-        
-        // 세션 확인은 백그라운드에서만 수행 (실패해도 로그인 상태는 유지)
-        try {
-          const { data: { session }, error } = await authSupabase.auth.getSession()
-          if (error || !session || !session.user) {
-            console.log('⚠️ 세션 확인 실패 (하지만 user 객체는 존재):', error)
-            // user 객체가 있으면 로그인 상태는 유지
-          }
-        } catch (error) {
-          console.error('세션 확인 중 오류 (하지만 user 객체는 존재):', error)
-          // user 객체가 있으면 로그인 상태는 유지
-        }
-        return
-      }
-      
-      // user가 없거나 user.id가 없고 로딩도 완료되었으면 인증되지 않은 것으로 판단
-      if ((!user || !user.id) && !authLoading) {
-        // 세션 복구 시도
-        if (refreshSession) {
-          const refreshed = await refreshSession()
-          if (refreshed) {
-            setIsAuthenticated(true)
-            setCheckingAuth(false)
-            return
-          }
-        }
-        
-        setIsAuthenticated(false)
-        setCheckingAuth(false)
-        return
-      }
-    }
-    
-    verifyAuth()
-    
-    // 주기적으로 인증 상태 확인 (30초마다)
-    const interval = setInterval(() => {
-      if (!authLoading && user && user.id) {
-        verifyAuth()
-      }
-    }, 30000)
-    
-    return () => clearInterval(interval)
-  }, [user, token, authLoading, refreshSession, authSupabase])
-  
-  // ⚠️ 인증(verification) 상태 확인 - 로그인은 했지만 인증이 안 된 경우 구분
-  useEffect(() => {
-    const checkVerificationStatus = async () => {
-      if (!user || !user.id) {
-        setCheckingVerification(false)
-        setIsVerified(false)
-        return
-      }
-
-      try {
-        const response = await fetch(`/api/profile?userId=${user.id}`)
-        const result = await response.json()
-        
-        if (response.ok && result.user) {
-          // 인증 상태 확인 - 실제 인증센터에서 인증을 완료한 경우만 인증완료로 표시
-          // ⚠️ 수정: 대학교를 안 나온 사람들도 인증 가능하도록 user_type에 따라 조건 분기
-          const userType = result.user.user_type || 'student'
-          
-          // 기본 인증 방법 (이메일, SMS, 카카오, WhatsApp 등)
-          const hasBasicVerification = !!(
-            result.user.is_verified ||
-            result.user.verification_completed ||
-            result.user.email_verified_at ||
-            result.user.sms_verified_at ||
-            result.user.kakao_linked_at ||
-            result.user.wa_verified_at ||
-            (result.user.korean_name) ||
-            (result.user.spanish_name)
-          )
-          
-          // 프로필 완성도 확인
-          // 대학생: full_name + university + major
-          // 일반인: full_name + occupation (또는 company)
-          const hasCompleteProfile = userType === 'student'
-            ? !!(result.user.full_name && result.user.university && result.user.major)
-            : !!(result.user.full_name && (result.user.occupation || result.user.company))
-          
-          const verified = hasBasicVerification || hasCompleteProfile
-          
-          setIsVerified(verified)
-          setCheckingVerification(false)
-        } else {
-          setIsVerified(false)
-          setCheckingVerification(false)
-        }
-      } catch (error) {
-        console.error('인증 상태 확인 실패:', error)
-        setIsVerified(false)
-        setCheckingVerification(false)
-      }
-    }
-
-    if (!authLoading && user && user.id) {
-      checkVerificationStatus()
-    } else if (!authLoading && !user) {
-      setCheckingVerification(false)
-      setIsVerified(false)
-    }
-  }, [user, authLoading])
   
   // 메시지 스크롤 useEffect - early return 이전에 배치
   useEffect(() => {
@@ -619,9 +499,23 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           const rawMessage = payload.new as Message
           
           const userProfile = await fetchUserProfile(rawMessage.user_id)
+          // users 테이블에서 실제 이름 가져오기
+          let userInfo = null
+          try {
+            const { data: userData } = await authSupabase
+              .from('users')
+              .select('full_name, korean_name, spanish_name')
+              .eq('id', rawMessage.user_id)
+              .single()
+            userInfo = userData
+          } catch (error) {
+            console.error('Error fetching user info:', error)
+          }
+          
           const newMessage = {
             ...rawMessage,
-            user_profiles: userProfile
+            user_profiles: userProfile,
+            users: userInfo
           }
           
           addMessageSafely(newMessage)
@@ -681,44 +575,16 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       return
     }
 
-    // Level 2 인증 체크 (실시간 채팅용)
-    const checkAuth = async () => {
-      try {
-        const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
-        if (profileResponse.ok) {
-          const profileResult = await profileResponse.json()
-          const userProfile = profileResult.user
-          
-          const { canAccess } = checkLevel2Auth(userProfile)
-          
-          if (!canAccess) {
-            console.log('❌ Level 2 인증 미완성 - 인증센터로 이동')
-            router.push('/verification-center')
-            return
-          }
-        } else {
-          // 프로필 조회 실패 시 인증센터로 이동
-          router.push('/verification-center')
-          return
-        }
-      } catch (error) {
-        console.error('인증 상태 확인 실패:', error)
-        router.push('/verification-center')
-      return
-    }
+    // 회원가입한 모든 사용자가 채팅 사용 가능 - 로그인 여부만 확인
+    console.log('✅ 사용자 로그인 확인 완료 - 채팅 시작')
 
-    const timeoutId = setTimeout(() => {
-      console.log('✅ 사용자 인증 완료 - 채팅 시작')
-
-      fetchRoom()
-      fetchMessages()
-      joinRoom()
-      subscribeToMessages()
-      startPolling()
-    }, 1000)
+    fetchRoom()
+    fetchMessages()
+    joinRoom()
+    subscribeToMessages()
+    startPolling()
 
     return () => {
-      clearTimeout(timeoutId)
       if (channelRef.current) {
         authSupabase.removeChannel(channelRef.current)
         channelRef.current = null
@@ -728,14 +594,11 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         pollingIntervalRef.current = null
       }
     }
-    }
-
-    checkAuth()
   }, [roomId, user, authSupabase, authLoading, refreshSession, router])
   
-  // ⚠️ 강화: 인증 체크 - user, user.id, isAuthenticated 모두 확인
-  // ⚠️ 중요: early return은 모든 hooks 호출 이후에만 수행
-  if (checkingAuth || authLoading || checkingVerification) {
+  // 로딩 중일 때 표시
+  if (authLoading) {
+    console.log('[ChatRoomClient] 로딩 중...')
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center">
@@ -746,8 +609,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     )
   }
   
-  // ⚠️ 로그인 안 한 경우
-  if (!user || !user.id || !isAuthenticated) {
+  // 로그인 안 한 경우
+  if (!user || !user.id) {
+    console.log('[ChatRoomClient] ❌ 로그인 안 함:', { user, userId: user?.id })
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center">
@@ -763,24 +627,6 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     )
   }
   
-  // ⚠️ 로그인은 했지만 인증(verification)이 안 된 경우
-  if (!isVerified) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {language === 'ko' ? '인증이 필요합니다.' : 'Se requiere verificación.'}
-          </p>
-          <button
-            onClick={() => router.push('/verification-center')}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            {language === 'ko' ? '인증하기' : 'Verificar'}
-          </button>
-        </div>
-      </div>
-    )
-  }
 
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -860,44 +706,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // ⚠️ 강화: 인증 체크 - user와 user.id 모두 확인
+    // 회원가입한 모든 사용자가 채팅 사용 가능 - 로그인 여부만 확인
     if (!user || !user.id) {
-      alert(t('auth.loginRequired'))
-      router.push('/sign-in?redirect=/community/k-chat')
-      return
-    }
-    
-    // Level 2 인증 체크 (실시간 채팅용)
-    try {
-      const profileResponse = await fetch(`/api/profile?userId=${user.id}`)
-      if (profileResponse.ok) {
-        const profileResult = await profileResponse.json()
-        const userProfile = profileResult.user
-        
-        if (!checkLevel2AuthAndRedirect(userProfile, router, '실시간 채팅 메시지 전송')) {
-          return
-        }
-      } else {
-        // 프로필 조회 실패 시 인증센터로 이동
-        router.push('/verification-center')
-        return
-      }
-    } catch (error) {
-      console.error('인증 상태 확인 실패:', error)
-      router.push('/verification-center')
-      return
-    }
-    
-    // ⚠️ 추가 체크: authSupabase 세션 확인
-    try {
-      const { data: { session } } = await authSupabase.auth.getSession()
-      if (!session || !session.user) {
-        alert(t('auth.loginRequired'))
-        router.push('/sign-in?redirect=/community/k-chat')
-        return
-      }
-    } catch (error) {
-      console.error('세션 확인 실패:', error)
       alert(t('auth.loginRequired'))
       router.push('/sign-in?redirect=/community/k-chat')
       return
@@ -931,6 +741,22 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         messageData.image_url = imageUrl
       }
 
+      // 현재 사용자의 실명 정보 가져오기 (Optimistic UI용)
+      let currentUserInfo = null
+      try {
+        const { data: userData } = await authSupabase
+          .from('users')
+          .select('full_name, korean_name, spanish_name')
+          .eq('id', user.id)
+          .single()
+        currentUserInfo = userData
+      } catch (error) {
+        console.error('Error fetching current user info:', error)
+      }
+      
+      // user_profiles 정보도 가져오기
+      const currentUserProfile = await fetchUserProfile(user.id)
+      
       // ⚡ Optimistic UI: DB에 insert하기 전에 먼저 UI에 추가
       tempMessage = {
         id: `temp-${Date.now()}`, // 임시 ID
@@ -938,7 +764,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         image_url: imageUrl || undefined,
         user_id: user.id,
         created_at: new Date().toISOString(),
-        status: 'sending' // 전송 중 상태
+        status: 'sending', // 전송 중 상태
+        users: currentUserInfo,
+        user_profiles: currentUserProfile
       }
       
       console.log('🚀 Optimistic UI: 메시지 즉시 표시')
@@ -988,10 +816,31 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       console.log('✅ DB에 메시지 저장 완료:', data.id)
       
-      // 임시 메시지를 실제 메시지로 교체 (상태: sent)
+      // 현재 사용자의 실명 정보 가져오기
+      let userInfo = null
+      try {
+        const { data: userData } = await authSupabase
+          .from('users')
+          .select('full_name, korean_name, spanish_name')
+          .eq('id', user.id)
+          .single()
+        userInfo = userData
+      } catch (error) {
+        console.error('Error fetching user info:', error)
+      }
+      
+      // user_profiles 정보도 가져오기
+      const userProfile = await fetchUserProfile(user.id)
+      
+      // 임시 메시지를 실제 메시지로 교체 (상태: sent, users 정보 포함)
       if (data && tempMessage) {
         setMessages(prev => prev.map(msg => 
-          msg.id === tempMessage!.id ? { ...data, status: 'sent' as const } : msg
+          msg.id === tempMessage!.id ? { 
+            ...data, 
+            status: 'sent' as const,
+            users: userInfo,
+            user_profiles: userProfile
+          } : msg
         ))
       }
       

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { toE164 } from '@/lib/phoneUtils'
 
 // OTP 코드 검증 API
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { channel, target, code } = body
+    const { channel, target, code, nationality } = body
 
     // 입력 검증
     if (!channel || !target || !code) {
@@ -24,13 +25,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 전화번호인 경우 정규화 (verification_codes 테이블에는 정규화된 형식으로 저장되므로)
+    let normalizedTarget = target
+    if (channel !== 'email') {
+      // 이미 E.164 형식인지 확인
+      if (target.startsWith('+')) {
+        normalizedTarget = target
+      } else if (nationality) {
+        // nationality가 있으면 정규화 시도
+        normalizedTarget = toE164(target, nationality)
+        
+        // 정규화 실패 시 원본 사용 (하위 호환성)
+        if (!normalizedTarget.startsWith('+')) {
+          console.warn('[VERIFY_CHECK] 전화번호 정규화 실패, 원본 사용:', { target, nationality, normalizedTarget })
+          normalizedTarget = target
+        } else {
+          console.log('[VERIFY_CHECK] 전화번호 정규화 성공:', { target, nationality, normalizedTarget })
+        }
+      }
+      // nationality가 없고 E.164 형식도 아니면 원본 사용 (하위 호환성)
+    }
+
     const supabase = createClient()
 
-    // 인증코드 검증
+    // 인증코드 검증 (정규화된 전화번호 또는 원본 전화번호로 검색)
     const { data: verificationData, error: verificationError } = await supabase
       .from('verification_codes')
       .select('*')
-      .eq(channel === 'email' ? 'email' : 'phone_number', target)
+      .eq(channel === 'email' ? 'email' : 'phone_number', normalizedTarget)
       .eq('type', channel)
       .eq('code', code)
       .eq('verified', false)

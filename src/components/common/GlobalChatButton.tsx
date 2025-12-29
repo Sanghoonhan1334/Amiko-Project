@@ -117,6 +117,12 @@ export default function GlobalChatButton() {
     return null
   }
 
+  // 로딩 중일 때는 플로팅 버튼을 표시하지 않음 (또는 로딩 표시)
+  // 로딩이 완료된 후에만 사용자 체크
+  if (authLoading) {
+    return null
+  }
+
   if (!user) {
     return null // 인증되지 않은 사용자에게는 플로팅 버튼 숨김
   }
@@ -141,7 +147,7 @@ export default function GlobalChatButton() {
       </button>
 
       {/* 채팅 모달/사이드바 - 인증된 사용자만 */}
-      {(isOpen || isClosing || isOpening) && user && (
+      {(isOpen || isClosing || isOpening) && !authLoading && user && (
         <div className={`fixed top-16 bottom-0 right-0 left-0 sm:left-auto sm:right-0 sm:top-0 sm:bottom-0 sm:w-96 z-[60] bg-white shadow-2xl flex flex-col rounded-t-xl sm:rounded-l-2xl sm:rounded-r-none sm:rounded-t-none overflow-hidden ${
           isClosing 
             ? 'animate-[slideDownMobile_0.3s_ease-out_forwards] sm:animate-[slideOutRight_0.3s_ease-out_forwards]'
@@ -166,19 +172,11 @@ export default function GlobalChatButton() {
 
             {/* 채팅 내용 */}
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-              {!user ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <p className="text-gray-600 text-xs sm:text-sm mb-4">{language === 'ko' ? '로그인이 필요합니다.' : 'Inicio de sesión requerido.'}</p>
-                    <button
-                      onClick={() => router.push('/sign-in?redirect=' + encodeURIComponent(window.location.pathname))}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs sm:text-sm"
-                    >
-                      {language === 'ko' ? '로그인하기' : 'Iniciar sesión'}
-                    </button>
-                  </div>
-                </div>
-              ) : loading ? (
+              {(() => {
+                console.log('[GlobalChatButton] 채팅 내용 렌더링:', { user: user ? { id: user.id, email: user.email } : null, authLoading, loading, amikoRoom: amikoRoom ? { id: amikoRoom.id } : null })
+                return null
+              })()}
+              {loading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-pink-500 mx-auto mb-2 sm:mb-4" />

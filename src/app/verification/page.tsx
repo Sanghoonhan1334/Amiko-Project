@@ -757,7 +757,8 @@ export default function VerificationPage() {
                             body: JSON.stringify({
                               channel: 'sms',
                               target: formData.phone,
-                              code: code
+                              code: code,
+                              nationality: 'KR'
                             })
                           })
                           const result = await response.json()
@@ -788,7 +789,8 @@ export default function VerificationPage() {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                               channel: method,
-                              target: formData.phone
+                              target: formData.phone,
+                              nationality: 'KR'
                             })
                           })
                           const result = await response.json()
