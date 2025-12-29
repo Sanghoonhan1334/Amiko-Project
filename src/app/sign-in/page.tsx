@@ -22,6 +22,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } f
 import { Fingerprint } from 'lucide-react'
 import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick } from '@/lib/analytics'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+import { Capacitor } from '@capacitor/core'
 
 export default function SignInPage() {
   const BIOMETRIC_ENABLED = process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true'
@@ -430,10 +431,27 @@ export default function SignInPage() {
                 setIsLoading(true)
                 const supabase = createSupabaseBrowserClient()
                 
+                // 앱 환경에서 올바른 리다이렉트 URL 사용
+                const getRedirectUrl = () => {
+                  // 환경 변수가 있으면 우선 사용
+                  if (process.env.NEXT_PUBLIC_APP_URL) {
+                    return `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/main`
+                  }
+                  
+                  // Capacitor 앱인 경우 실제 서버 URL 사용
+                  if (Capacitor.isNativePlatform()) {
+                    return `https://www.helloamiko.com/auth/callback?next=/main`
+                  }
+                  
+                  // 웹 환경에서는 window.location.origin 사용
+                  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.helloamiko.com'
+                  return `${origin}/auth/callback?next=/main`
+                }
+                
                 const { error } = await supabase.auth.signInWithOAuth({
                   provider: 'google',
                   options: {
-                    redirectTo: `${window.location.origin}/auth/callback?next=/main`,
+                    redirectTo: getRedirectUrl(),
                     queryParams: {
                       access_type: 'offline',
                       prompt: 'consent',

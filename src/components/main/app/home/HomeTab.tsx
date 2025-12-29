@@ -1281,7 +1281,7 @@ export default function HomeTab() {
               <img
                 src="/icons/home-fanart.png"
                 alt="팬아트"
-                className="w-8 h-8 object-contain"
+                className="w-5 h-5 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.fanArt')}
@@ -1328,7 +1328,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-fanart.png"
                       alt="팬아트"
-                      className="w-8 h-8 mx-auto mb-2 opacity-40"
+                      className="w-5 h-5 mx-auto mb-2 opacity-40"
                     />
                     <p className="text-gray-500 text-xs">
                       {language === 'ko' ? '팬아트가 없습니다' : 'No hay fan art'}
@@ -1347,7 +1347,7 @@ export default function HomeTab() {
               <img
                 src="/icons/home-idol.png"
                 alt="아이돌 사진"
-                className="w-8 h-8 object-contain"
+                className="w-5 h-5 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.idolPhotos')}
@@ -1394,7 +1394,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-idol.png"
                       alt="아이돌 사진"
-                      className="w-8 h-8 mx-auto mb-2 opacity-40"
+                      className="w-5 h-5 mx-auto mb-2 opacity-40"
                     />
                     <p className="text-gray-500 text-xs">
                       {language === 'ko' ? '아이돌 사진이 없습니다' : 'No hay fotos de ídolos'}
@@ -2124,7 +2124,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-fanart.png"
                       alt="팬아트"
-                      className="w-8 h-8 object-contain"
+                      className="w-5 h-5 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       {language === 'ko' ? '팬아트' : 'Fan Art'}
@@ -2171,7 +2171,7 @@ export default function HomeTab() {
                           <img
                             src="/icons/home-fanart.png"
                             alt="팬아트"
-                            className="w-8 h-8 mx-auto mb-2 opacity-40"
+                            className="w-5 h-5 mx-auto mb-2 opacity-40"
                           />
                           <p className="text-gray-500 text-xs">
                             {language === 'ko' ? '팬아트가 없습니다' : 'No hay fan art'}
@@ -2190,7 +2190,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-idol.png"
                       alt="아이돌 사진"
-                      className="w-8 h-8 object-contain"
+                      className="w-5 h-5 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       {language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
@@ -2237,7 +2237,7 @@ export default function HomeTab() {
                           <img
                             src="/icons/home-idol.png"
                             alt="아이돌 사진"
-                            className="w-8 h-8 mx-auto mb-2 opacity-40"
+                            className="w-5 h-5 mx-auto mb-2 opacity-40"
                           />
                           <p className="text-gray-500 text-xs">
                             {language === 'ko' ? '아이돌 사진이 없습니다' : 'No hay fotos de ídolos'}
