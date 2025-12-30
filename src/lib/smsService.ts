@@ -279,11 +279,15 @@ export async function sendVerificationSMS(phoneNumber: string, code: string, lan
 
 // WhatsApp 인증코드 발송 (템플릿 사용)
 export async function sendVerificationWhatsApp(phoneNumber: string, code: string, language: 'ko' | 'es' = 'ko'): Promise<boolean> {
+  // 함수 진입 로그 (가장 먼저)
+  console.log('[WHATSAPP_VERIFICATION] ========================================')
+  console.log('[WHATSAPP_VERIFICATION] ✅ 함수 호출됨!')
+  console.log('[WHATSAPP_VERIFICATION] WhatsApp 인증코드 발송 시작')
+  console.log('[WHATSAPP_VERIFICATION] 전화번호:', phoneNumber)
+  console.log('[WHATSAPP_VERIFICATION] 언어:', language)
+  console.log('[WHATSAPP_VERIFICATION] 인증코드:', code)
+  
   try {
-    console.log('[WHATSAPP_VERIFICATION] ========================================')
-    console.log('[WHATSAPP_VERIFICATION] WhatsApp 인증코드 발송 시작')
-    console.log('[WHATSAPP_VERIFICATION] 전화번호:', phoneNumber)
-    console.log('[WHATSAPP_VERIFICATION] 언어:', language)
     
     // Twilio 계정이 설정되어 있는지 확인
     const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
@@ -377,9 +381,32 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
           WhatsApp형식: whatsappTo
         })
         
-        const whatsappFrom = whatsappNumber.startsWith('whatsapp:')
+        let whatsappFrom = whatsappNumber.startsWith('whatsapp:')
           ? whatsappNumber
           : `whatsapp:${whatsappNumber}`
+        
+        // +14로 시작하는 번호(Sandbox) 차단, +15로 시작하는 번호만 허용
+        const cleanNumber = whatsappFrom.replace('whatsapp:', '').replace(/[^\d+]/g, '')
+        if (cleanNumber.includes('14155238886') || cleanNumber.includes('4155238886') || cleanNumber.startsWith('+14') || cleanNumber.startsWith('14')) {
+          console.error('[WHATSAPP_VERIFICATION] ❌ Sandbox 번호 사용 금지!')
+          console.error('[WHATSAPP_VERIFICATION] 현재 번호:', whatsappFrom)
+          console.error('[WHATSAPP_VERIFICATION] 프로덕션 번호만 사용 가능: whatsapp:+15557803562')
+          throw new Error('Sandbox 번호는 사용할 수 없습니다. 프로덕션 번호(+15557803562)를 사용하세요.')
+        }
+        
+        if (!cleanNumber.startsWith('+15') && !cleanNumber.startsWith('15')) {
+          console.error('[WHATSAPP_VERIFICATION] ❌ 프로덕션 번호가 아닙니다!')
+          console.error('[WHATSAPP_VERIFICATION] 현재 번호:', whatsappFrom)
+          console.error('[WHATSAPP_VERIFICATION] 프로덕션 번호만 사용 가능: whatsapp:+15557803562')
+          throw new Error('프로덕션 번호(+15557803562)만 사용할 수 있습니다.')
+        }
+        
+        console.log('[WHATSAPP_VERIFICATION] ✅ 프로덕션 번호 확인됨:', whatsappFrom)
+        console.log('[WHATSAPP_VERIFICATION] 발송 정보:', {
+          from: whatsappFrom,
+          to: whatsappTo,
+          templateSid: templateSid.substring(0, 10) + '...'
+        })
         
         // WhatsApp Authentication 템플릿 사용
         const result = await client.messages.create({
