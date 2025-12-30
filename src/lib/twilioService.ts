@@ -238,11 +238,19 @@ export async function sendTwilioWhatsApp(to: string, message: string): Promise<b
         whatsappFrom = `whatsapp:${whatsappFromEnv}`
         console.log(`[TWILIO_WHATSAPP] ✅ 환경변수 번호 사용 (whatsapp: 접두사 추가): ${whatsappFrom}`)
       }
+      
+      // Sandbox 번호 사용 방지 (프로덕션 번호만 허용)
+      if (whatsappFrom.includes('14155238886') || whatsappFrom.includes('4155238886')) {
+        console.error(`[TWILIO_WHATSAPP] ❌ Sandbox 번호 사용 금지! 프로덕션 번호를 사용하세요.`)
+        console.error(`[TWILIO_WHATSAPP] 프로덕션 번호: whatsapp:+15557803562`)
+        throw new Error('Sandbox 번호는 사용할 수 없습니다. TWILIO_WHATSAPP_NUMBER를 프로덕션 번호(+15557803562)로 설정하세요.')
+      }
     } else {
-      // 환경변수 번호가 없으면 샌드박스 번호 사용 (테스트용)
-      whatsappFrom = 'whatsapp:+14155238886'
-      console.warn(`[TWILIO_WHATSAPP] ⚠️  환경변수 번호가 없어 샌드박스 번호 사용: ${whatsappFrom}`)
-      console.warn(`[TWILIO_WHATSAPP] 샌드박스 번호는 테스트용이며, 실제 발송을 위해서는 .env.local에 TWILIO_WHATSAPP_NUMBER를 설정하세요.`)
+      // 환경변수 번호가 없으면 에러 발생 (Sandbox 번호 사용 금지)
+      console.error(`[TWILIO_WHATSAPP] ❌ 환경변수 번호가 없습니다!`)
+      console.error(`[TWILIO_WHATSAPP] Vercel 환경 변수에 TWILIO_WHATSAPP_NUMBER를 설정하세요.`)
+      console.error(`[TWILIO_WHATSAPP] 프로덕션 번호: whatsapp:+15557803562 또는 +15557803562`)
+      throw new Error('TWILIO_WHATSAPP_NUMBER 환경 변수가 설정되지 않았습니다. 프로덕션 번호(+15557803562)를 설정하세요.')
     }
     
     const whatsappTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`
@@ -286,6 +294,17 @@ export async function sendTwilioWhatsApp(to: string, message: string): Promise<b
         console.error(`[TWILIO_WHATSAPP] 1. Twilio 콘솔에서 Sandbox 설정 확인: https://console.twilio.com/us1/develop/sms/sandbox`)
         console.error(`[TWILIO_WHATSAPP] 2. 수신 번호 ${whatsappTo.replace('whatsapp:', '')}를 Sandbox에 등록하세요.`)
         console.error(`[TWILIO_WHATSAPP] 3. 또는 프로덕션 WhatsApp Business API로 전환하세요.`)
+      } else if (result.errorCode === 63015) {
+        console.error(`[TWILIO_WHATSAPP] ❌ 에러 63015: Sandbox 채널은 Sandbox에 가입한 전화번호로만 메시지를 보낼 수 있습니다.`)
+        console.error(`[TWILIO_WHATSAPP] 해결 방법:`)
+        console.error(`[TWILIO_WHATSAPP] 1. 수신 번호를 Sandbox에 등록:`)
+        console.error(`[TWILIO_WHATSAPP]    - Twilio 콘솔 → Messaging → Try it out → Send a WhatsApp message`)
+        console.error(`[TWILIO_WHATSAPP]    - Sandbox에 표시된 코드를 수신 번호로 WhatsApp으로 보내기`)
+        console.error(`[TWILIO_WHATSAPP]    - 예: "join [코드]" 메시지를 +1 415 523 8886으로 보내기`)
+        console.error(`[TWILIO_WHATSAPP] 2. 또는 프로덕션 WhatsApp Business API로 전환 (권장):`)
+        console.error(`[TWILIO_WHATSAPP]    - Twilio 콘솔 → Messaging → Settings → WhatsApp Senders`)
+        console.error(`[TWILIO_WHATSAPP]    - WhatsApp Business API 승인 및 번호 등록`)
+        console.error(`[TWILIO_WHATSAPP]    - Content Template 생성 및 승인`)
       } else if (result.errorCode === 63016) {
         console.error(`[TWILIO_WHATSAPP] ❌ 에러 63016: 24시간 이내에 사용자가 메시지를 보내지 않았습니다.`)
         console.error(`[TWILIO_WHATSAPP] 해결 방법:`)
