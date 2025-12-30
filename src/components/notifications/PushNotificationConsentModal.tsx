@@ -101,11 +101,11 @@ export default function PushNotificationConsentModal() {
       if (!open) handleDecline()
     }}>
       <DialogContent 
-        className="sm:max-w-md max-w-[90vw] p-0 overflow-hidden"
+        className="sm:max-w-md max-w-[90vw] p-0 max-h-[90vh] overflow-y-auto"
         showCloseButton={false}
       >
         {/* 그라데이션 배경 헤더 */}
-        <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-6 pb-8">
+        <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-4 sm:p-6 pb-6 sm:pb-8">
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative z-10">
             {/* 아이콘 */}
@@ -119,13 +119,13 @@ export default function PushNotificationConsentModal() {
             </div>
             
             {/* 제목 */}
-            <DialogTitle className="text-2xl font-bold text-white text-center mb-2">
+            <DialogTitle className="text-xl sm:text-2xl font-bold text-white text-center mb-2">
               {isSpanish 
                 ? '¿Te gustaría recibir notificaciones?'
                 : '알림을 받아보시겠어요?'}
             </DialogTitle>
             
-            <DialogDescription className="text-white/90 text-center text-base">
+            <DialogDescription className="text-white/90 text-center text-sm sm:text-base">
               {isSpanish
                 ? 'No te pierdas eventos importantes'
                 : '중요한 소식을 놓치지 마세요'}
@@ -139,11 +139,11 @@ export default function PushNotificationConsentModal() {
         </div>
 
         {/* 본문 */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           {/* 운영자 사진들 */}
-          <div className="flex justify-center items-center gap-3 mb-4">
+          <div className="flex justify-center items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="relative group">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-3 border-white shadow-lg overflow-hidden ring-2 ring-blue-200 group-hover:ring-blue-300 transition-all">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-3 border-white shadow-lg overflow-hidden ring-2 ring-blue-200 group-hover:ring-blue-300 transition-all">
                 {/* Pablo 사진 */}
                 <img 
                   src="/images/operators/Pablo.jpg" 
@@ -164,9 +164,9 @@ export default function PushNotificationConsentModal() {
                 <Sparkles className="w-3 h-3 text-white" />
               </div>
             </div>
-            <div className="text-2xl text-gray-400 font-light">+</div>
+            <div className="text-xl sm:text-2xl text-gray-400 font-light">+</div>
             <div className="relative group">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 border-3 border-white shadow-lg overflow-hidden ring-2 ring-pink-200 group-hover:ring-pink-300 transition-all">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 border-3 border-white shadow-lg overflow-hidden ring-2 ring-pink-200 group-hover:ring-pink-300 transition-all">
                 {/* Samuel 사진 */}
                 <img 
                   src="/images/operators/Samuel.jpg" 
@@ -190,8 +190,8 @@ export default function PushNotificationConsentModal() {
           </div>
 
           {/* 설명 텍스트 */}
-          <div className="space-y-3 text-center">
-            <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">
+          <div className="space-y-2 sm:space-y-3 text-center">
+            <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed">
               {isSpanish ? (
                 <>
                   Reuniones con los <span className="font-semibold text-purple-600 dark:text-purple-400">operadores de Amiko</span>, 
@@ -218,29 +218,29 @@ export default function PushNotificationConsentModal() {
           </div>
 
           {/* 버튼들 */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
             <Button
               onClick={handleDecline}
               variant="outline"
-              className="flex-1 border-gray-300 hover:bg-gray-50"
+              className="flex-1 border-gray-300 hover:bg-gray-50 text-sm sm:text-base py-2 sm:py-2.5"
               disabled={isLoading}
             >
               {isSpanish ? 'Ahora no' : '나중에'}
             </Button>
             <Button
               onClick={handleAccept}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all"
+              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all text-sm sm:text-base py-2 sm:py-2.5"
               disabled={isLoading}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>{isSpanish ? 'Configurando...' : '설정 중...'}</span>
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs sm:text-sm">{isSpanish ? 'Configurando...' : '설정 중...'}</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4" />
-                  <span>{isSpanish ? 'Sí, recibir notificaciones' : '알림 받기'}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-sm">{isSpanish ? 'Sí, recibir notificaciones' : '알림 받기'}</span>
                 </div>
               )}
             </Button>
