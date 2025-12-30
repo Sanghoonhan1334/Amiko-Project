@@ -8,6 +8,7 @@ import ScrollToTop from '@/components/common/ScrollToTop'
 import CustomBanner from '@/components/layout/CustomBanner'
 import GlobalChatButton from '@/components/common/GlobalChatButton'
 import HistoryManager from '@/components/common/HistoryManager'
+import DeepLinkHandler from '@/components/common/DeepLinkHandler'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { UserProvider } from '@/context/UserContext'
@@ -153,6 +154,7 @@ export default function RootLayout({
             <AuthProvider>
               <LanguageProvider>
                 <UserProvider>
+                  <DeepLinkHandler />
                   <CustomBanner />
                   <HeaderWrapper />
                   <main>
