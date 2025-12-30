@@ -163,65 +163,68 @@ export async function DELETE(request: NextRequest) {
       'comments' // comments 테이블은 author_id 사용
     ]
 
-      // user_id로 삭제
-      for (const table of tablesToRemoveByUserId) {
-        await deleteByUserId(table, 'user_id')
-      }
+      // user_id로 삭제 (병렬 처리로 속도 향상)
+      await Promise.all(tablesToRemoveByUserId.map(table => deleteByUserId(table, 'user_id')))
 
-      // author_id로 삭제
-      for (const table of tablesToRemoveByAuthorId) {
-        await deleteByUserId(table, 'author_id')
-      }
+      // author_id로 삭제 (병렬 처리로 속도 향상)
+      await Promise.all(tablesToRemoveByAuthorId.map(table => deleteByUserId(table, 'author_id')))
 
-      // 포인트 및 로그 테이블은 기록을 위해 user_id를 익명화
-      await updateByUserId('points_history', { user_id: null }) // 실제 테이블 이름: points_history
-      await updateByUserId('post_reactions', { user_id: null })
-      await updateByUserId('post_views', { user_id: null })
-      await updateByUserId('reactions', { user_id: null }) // reactions 테이블도 익명화
+      // 포인트 및 로그 테이블은 기록을 위해 user_id를 익명화 (병렬 처리로 속도 향상)
+      await Promise.all([
+        updateByUserId('points_history', { user_id: null }),
+        updateByUserId('post_reactions', { user_id: null }),
+        updateByUserId('post_views', { user_id: null }),
+        updateByUserId('reactions', { user_id: null })
+      ])
 
-      // 갤러리 게시글/댓글은 삭제 상태로 표시
+      // 갤러리 게시글/댓글은 삭제 상태로 표시 (병렬 처리로 속도 향상)
       // deleted_at 컬럼이 없을 수 있으므로 is_deleted만 업데이트
-      try {
-        const { error: galleryError } = await supabaseServer
-          .from('gallery_posts')
-          .update({
-            is_deleted: true
-            // deleted_at 컬럼이 없을 수 있으므로 제거
-          })
-          .eq('user_id', userId)
-        
-        if (galleryError) {
-          console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 실패:', galleryError)
-          // 테이블이 없거나 컬럼이 없으면 무시 (PGRST205, PGRST204)
-          if (galleryError.code !== 'PGRST205' && galleryError.code !== 'PGRST204') {
-            failedOperations.push('update:gallery_posts')
+      await Promise.all([
+        (async () => {
+          try {
+            const { error: galleryError } = await supabaseServer
+              .from('gallery_posts')
+              .update({
+                is_deleted: true
+                // deleted_at 컬럼이 없을 수 있으므로 제거
+              })
+              .eq('user_id', userId)
+            
+            if (galleryError) {
+              console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 실패:', galleryError)
+              // 테이블이 없거나 컬럼이 없으면 무시 (PGRST205, PGRST204)
+              if (galleryError.code !== 'PGRST205' && galleryError.code !== 'PGRST204') {
+                failedOperations.push('update:gallery_posts')
+              }
+            }
+          } catch (error) {
+            console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 예외:', error)
+            // 테이블이 없거나 컬럼이 없으면 무시
           }
-        }
-      } catch (error) {
-        console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 예외:', error)
-        // 테이블이 없거나 컬럼이 없으면 무시
-      }
-
-      try {
-        const { error: commentsError } = await supabaseServer
-          .from('post_comments')
-          .update({
-            is_deleted: true,
-            content: '[삭제된 댓글]'
-          })
-          .eq('user_id', userId)
-        
-        if (commentsError) {
-          console.error('[ACCOUNT_DELETE] post_comments 업데이트 실패:', commentsError)
-          // 테이블이 없으면 무시 (PGRST205)
-          if (commentsError.code !== 'PGRST205') {
-            failedOperations.push('update:post_comments')
+        })(),
+        (async () => {
+          try {
+            const { error: commentsError } = await supabaseServer
+              .from('post_comments')
+              .update({
+                is_deleted: true,
+                content: '[삭제된 댓글]'
+              })
+              .eq('user_id', userId)
+            
+            if (commentsError) {
+              console.error('[ACCOUNT_DELETE] post_comments 업데이트 실패:', commentsError)
+              // 테이블이 없으면 무시 (PGRST205)
+              if (commentsError.code !== 'PGRST205') {
+                failedOperations.push('update:post_comments')
+              }
+            }
+          } catch (error) {
+            console.error('[ACCOUNT_DELETE] post_comments 업데이트 예외:', error)
+            // 테이블이 없으면 무시
           }
-        }
-      } catch (error) {
-        console.error('[ACCOUNT_DELETE] post_comments 업데이트 예외:', error)
-        // 테이블이 없으면 무시
-      }
+        })()
+      ])
 
       // 사용자 레코드를 익명화 후 삭제 (auth.users 삭제 전에 먼저 처리)
       // 주의: public.users는 auth.users를 참조하는 외래 키가 있으므로,
@@ -364,10 +367,10 @@ export async function DELETE(request: NextRequest) {
         // 1. public.users가 확실히 삭제되었는지 확인
         let publicUsersDeleted = false
         let checkAttempts = 0
-        const maxCheckAttempts = 10
+        const maxCheckAttempts = 5 // 최대 시도 횟수 감소 (10 -> 5)
         
         while (!publicUsersDeleted && checkAttempts < maxCheckAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 2000)) // 2초마다 확인
+          await new Promise(resolve => setTimeout(resolve, 1000)) // 1초마다 확인 (2초 -> 1초)
           
           try {
             const { data: usersCheck, error: usersCheckError } = await supabaseServer
@@ -389,8 +392,8 @@ export async function DELETE(request: NextRequest) {
               console.log(`[ACCOUNT_DELETE] public.users 아직 존재함 (${checkAttempts + 1}차 확인), 재확인 대기...`)
               checkAttempts++
               
-              // 5번째 시도에서 강제 삭제
-              if (checkAttempts === 5) {
+              // 3번째 시도에서 강제 삭제 (5 -> 3)
+              if (checkAttempts === 3) {
                 console.log('[ACCOUNT_DELETE] public.users 강제 삭제 시도')
                 const { error: forceDeleteError } = await supabaseServer
                   .from('users')
@@ -433,19 +436,19 @@ export async function DELETE(request: NextRequest) {
         }
         
         // 추가 대기 시간 (Supabase 내부 동기화)
-        const waitTime = 5000 // 5초 대기
+        const waitTime = 1000 // 1초 대기 (5초 -> 1초)
         console.log(`[ACCOUNT_DELETE] auth.users 삭제 전 최종 대기: ${waitTime}ms`)
         await new Promise(resolve => setTimeout(resolve, waitTime))
       
-        // 강력한 재시도 로직: 최대 5번 재시도, 점진적으로 증가하는 대기 시간
-        const maxRetries = 5
+        // 강력한 재시도 로직: 최대 3번 재시도, 점진적으로 증가하는 대기 시간 (5 -> 3)
+        const maxRetries = 3
         let retryCount = 0
         let lastError: any = null
         
         while (retryCount <= maxRetries && !authDeleteSuccess) {
           if (retryCount > 0) {
-            // 재시도 시 점진적으로 증가하는 대기 시간 (5초, 10초, 15초, 20초, 25초)
-            const retryWaitTime = 5000 * retryCount
+            // 재시도 시 점진적으로 증가하는 대기 시간 (1초, 2초, 3초) - 5초 * retryCount -> 1초 * retryCount
+            const retryWaitTime = 1000 * retryCount
             console.log(`[ACCOUNT_DELETE] ${retryCount}차 재시도 전 대기: ${retryWaitTime}ms`)
             await new Promise(resolve => setTimeout(resolve, retryWaitTime))
           }
@@ -505,7 +508,7 @@ export async function DELETE(request: NextRequest) {
                   
                   if (existingAuthUser) {
                     console.log(`[ACCOUNT_DELETE] 이메일로 사용자 찾음 (${existingAuthUser.id}), 최종 강제 삭제 시도`)
-                    await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
+                    await new Promise(resolve => setTimeout(resolve, 1000)) // 1초 대기 (5초 -> 1초)
                     const { error: finalDeleteError } = await supabaseServer.auth.admin.deleteUser(existingAuthUser.id)
                     
                     if (finalDeleteError) {
@@ -538,7 +541,7 @@ export async function DELETE(request: NextRequest) {
         
         // 삭제 확인: 잠시 후 사용자가 실제로 삭제되었는지 확인
         if (authDeleteSuccess) {
-          await new Promise(resolve => setTimeout(resolve, 3000)) // 3초 대기
+          await new Promise(resolve => setTimeout(resolve, 1000)) // 1초 대기 (3초 -> 1초)
           
           try {
             const { data: verifyUsers, error: verifyError } = await supabaseServer.auth.admin.listUsers()
@@ -560,7 +563,7 @@ export async function DELETE(request: NextRequest) {
                   
                   if (!usersCheckError && !usersCheck) {
                     // public.users가 삭제되었으므로 auth.users 삭제 시도
-                    await new Promise(resolve => setTimeout(resolve, 5000)) // 5초 대기
+                    await new Promise(resolve => setTimeout(resolve, 1000)) // 1초 대기 (5초 -> 1초)
                     const { error: verifyDeleteError } = await supabaseServer.auth.admin.deleteUser(existingUser.id)
                     
                     if (verifyDeleteError) {
@@ -583,7 +586,7 @@ export async function DELETE(request: NextRequest) {
                             failedOperations.splice(index, 1)
                             console.log('[ACCOUNT_DELETE] failedOperations에서 public.users 제거됨')
                           }
-                          await new Promise(resolve => setTimeout(resolve, 3000))
+                          await new Promise(resolve => setTimeout(resolve, 1000)) // 1초 대기 (3초 -> 1초)
                           const { error: retryDeleteError } = await supabaseServer.auth.admin.deleteUser(existingUser.id)
                           
                           if (retryDeleteError) {
