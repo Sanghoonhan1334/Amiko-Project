@@ -24,7 +24,8 @@ import {
   Palette,
   Image as ImageIcon,
   ChevronRight,
-  MessageCircle
+  MessageCircle,
+  Bell
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -304,12 +305,22 @@ export default function HomeTab() {
       // 임시 하드코딩된 이벤트 데이터
       const mockEvents = [
         {
+          id: 'event-opening',
+          title: language === 'ko' ? '오픈 이벤트' : 'Evento de Apertura',
+          description: language === 'ko' ? '¡SUBE TU FOTO DE VERIFICACIÓN EN SNS Y RECIBE UN REGALO!' : '¡SUBE TU FOTO DE VERIFICACIÓN EN SNS Y RECIBE UN REGALO!',
+          image: '/banners/event-opening-banner.png',
+          bannerMobile: '/banners/event-opening-banner.png',
+          bannerDesktop: '/banners/event-opening-banner.png',
+          date: language === 'ko' ? '진행 중' : 'En curso',
+          participants: 0
+        },
+        {
           id: 'event-korean-meeting',
           title: language === 'ko' ? '한국어 모임' : 'Reunión de Coreano',
           description: language === 'ko' ? '2주에 한번씩 한국어 모임을 진행합니다!' : '¡Reunión de coreano cada 2 semanas!',
-          image: null,
-          bannerMobile: null,
-          bannerDesktop: null,
+          image: '/banners/event-korean-meeting-banner.png',
+          bannerMobile: '/banners/event-korean-meeting-banner.png',
+          bannerDesktop: '/banners/event-korean-meeting-banner.png',
           date: language === 'ko' ? '2주마다 진행' : 'Cada 2 semanas',
           participants: 0
         }
@@ -1010,7 +1021,7 @@ export default function HomeTab() {
             <CardContent className="p-0">
               <div
                 id="event-container"
-                className="relative h-40 md:h-32 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                className="relative aspect-[2/1] w-full overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -1019,30 +1030,29 @@ export default function HomeTab() {
                 onTouchEnd={handleTouchEnd}
               >
                 <div
-                  className="flex transition-transform duration-700 ease-in-out"
+                  className="flex h-full transition-transform duration-700 ease-in-out"
                   style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                 >
                   {currentEvents.map((event, index) => (
                     <div
                       key={event.id}
-                      className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-4"
-                      style={{ height: '160px' }}
+                      className="relative w-full h-full flex-shrink-0 cursor-pointer rounded-lg overflow-hidden"
                       onClick={() => {
-                        router.push('/main?tab=event&show=korean-meeting')
+                        if (event.id === 'event-korean-meeting') {
+                          router.push('/main?tab=event&show=korean-meeting')
+                        } else if (event.id === 'event-opening') {
+                          router.push('/main?tab=event')
+                        }
                       }}
                     >
-                      {/* 텍스트 기반 배너 */}
-                      <div className="text-center text-white">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2">
-                          {event.title}
-                        </h3>
-                        <p className="text-sm sm:text-base text-white/90 mb-1">
-                          {event.description}
-                        </p>
-                        <p className="text-xs sm:text-sm text-white/80">
-                          {event.date}
-                        </p>
-                      </div>
+                      {/* 배너 이미지 */}
+                      <Image
+                        src={event.image || event.bannerMobile || '/banners/event-banner.png'}
+                        alt={event.title}
+                        fill
+                        className="object-contain"
+                        priority={index === 0}
+                      />
                     </div>
                   ))}
                 </div>
@@ -1080,14 +1090,7 @@ export default function HomeTab() {
       {/* 4. Anuncio - 공지사항 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Image
-            src="/icons/home-notice.png"
-            alt="공지사항"
-            width={20}
-            height={20}
-            className="object-contain"
-            priority
-          />
+          <Bell className="w-5 h-5 text-blue-600" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {t('home.sections.announcements')}
           </h2>
@@ -2004,7 +2007,7 @@ export default function HomeTab() {
                 <CardContent className="p-0 bg-transparent">
                   <div
                     id="event-container-desktop"
-                    className="relative h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                    className="relative aspect-[2/1] w-full max-w-[320px] sm:max-w-[480px] md:max-w-[640px] lg:max-w-[800px] mx-auto overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
@@ -2014,35 +2017,34 @@ export default function HomeTab() {
                   >
                     {currentEvents.length > 0 ? (
                       <div
-                        className="flex transition-transform duration-1000 ease-in-out"
+                        className="flex h-full transition-transform duration-1000 ease-in-out"
                         style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                       >
                         {currentEvents.map((event, index) => (
                           <div
                             key={event.id}
-                            className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-6"
-                            style={{ height: '160px' }}
+                            className="relative w-full h-full flex-shrink-0 cursor-pointer rounded-lg overflow-hidden"
                             onClick={() => {
-                              router.push('/main?tab=event&show=korean-meeting')
+                              if (event.id === 'event-korean-meeting') {
+                                router.push('/main?tab=event&show=korean-meeting')
+                              } else if (event.id === 'event-opening') {
+                                router.push('/main?tab=event')
+                              }
                             }}
                           >
-                            {/* 텍스트 기반 배너 */}
-                            <div className="text-center text-white">
-                              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-3">
-                                {event.title}
-                              </h3>
-                              <p className="text-base md:text-lg text-white/90 mb-2">
-                                {event.description}
-                              </p>
-                              <p className="text-sm md:text-base text-white/80">
-                                {event.date}
-                              </p>
-                            </div>
+                            {/* 배너 이미지 */}
+                            <Image
+                              src={event.image || event.bannerDesktop || '/banners/event-banner.png'}
+                              alt={event.title}
+                              fill
+                              className="object-cover"
+                              priority={index === 0}
+                            />
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center h-40 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 rounded-lg">
                         <p className="text-gray-500 dark:text-gray-400">
                           {language === 'ko' ? '진행 중인 이벤트가 없습니다' : 'No hay eventos en curso'}
                         </p>

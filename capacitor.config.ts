@@ -14,6 +14,9 @@ const config: CapacitorConfig = {
       launchShowDuration: 2000,
       backgroundColor: '#ffffff',
       showSpinner: false
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
     }
   },
   // Deep linking 설정

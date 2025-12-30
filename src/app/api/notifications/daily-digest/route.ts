@@ -50,11 +50,11 @@ export async function GET(request: NextRequest) {
       end: endTime.toISOString()
     })
 
-    // 1. 하루 요약 알림이 활성화된 사용자 조회
+    // 1. 새게시물 알림이 활성화된 사용자 조회 (간소화된 설정)
     const { data: usersWithDigest, error: usersError } = await supabaseServer
       .from('notification_settings')
-      .select('user_id, daily_digest_enabled, post_notifications_enabled, push_enabled')
-      .eq('daily_digest_enabled', true)
+      .select('user_id, new_post_notifications_enabled, push_enabled')
+      .eq('new_post_notifications_enabled', true)
       .eq('push_enabled', true)
 
     if (usersError) {
@@ -117,16 +117,9 @@ export async function GET(request: NextRequest) {
         const newLikesCount = newLikes?.length || 0
         const newPostsCount = newPosts?.length || 0
 
-        // 알림을 보낼 내용이 있는 경우에만 발송
-        if (newLikesCount > 0 || (userSetting.post_notifications_enabled && newPostsCount > 0)) {
-          let message = ''
-          if (newLikesCount > 0 && newPostsCount > 0) {
-            message = `새로운 좋아요 ${newLikesCount}개, 새로운 게시물 ${newPostsCount}개가 있습니다`
-          } else if (newLikesCount > 0) {
-            message = `새로운 좋아요 ${newLikesCount}개가 있습니다`
-          } else if (newPostsCount > 0) {
-            message = `새로운 게시물 ${newPostsCount}개가 올라왔어요`
-          }
+        // 알림을 보낼 내용이 있는 경우에만 발송 (새 게시물이 있으면 발송)
+        if (newPostsCount > 0) {
+          const message = `새로운 게시물 ${newPostsCount}개가 올라왔어요`
 
           // 푸시 알림 발송
           const pushResponse = await fetch(

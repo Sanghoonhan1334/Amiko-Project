@@ -4,13 +4,13 @@ import { createClient } from '@supabase/supabase-js'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { userId, subscription } = body
+    const { userId, subscription, nativeToken, platform, tokenType } = body
 
-    console.log('🔔 [API] 푸시 알림 구독 요청:', { userId, subscription })
+    console.log('🔔 [API] 푸시 알림 구독 요청:', { userId, subscription, nativeToken, platform, tokenType })
 
-    if (!userId || !subscription) {
+    if (!userId) {
       return NextResponse.json(
-        { success: false, message: '사용자 ID와 구독 정보가 필요합니다.' },
+        { success: false, message: '사용자 ID가 필요합니다.' },
         { status: 400 }
       )
     }
@@ -26,6 +26,46 @@ export async function POST(request: Request) {
         }
       }
     )
+
+    // 네이티브 앱 토큰인 경우
+    if (nativeToken) {
+      const { data, error } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: userId,
+          endpoint: `native://${platform}/${nativeToken}`, // 네이티브 토큰을 endpoint로 저장
+          native_token: nativeToken,
+          platform: platform || 'unknown',
+          token_type: tokenType || 'fcm',
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,endpoint'
+        })
+        .select()
+
+      if (error) {
+        console.error('❌ 네이티브 푸시 구독 저장 실패:', error)
+        return NextResponse.json(
+          { success: false, message: '네이티브 구독 정보 저장에 실패했습니다.' },
+          { status: 500 }
+        )
+      }
+
+      console.log('✅ 네이티브 푸시 구독 저장 성공:', data)
+      return NextResponse.json({
+        success: true,
+        message: '네이티브 푸시 알림 구독이 완료되었습니다.',
+        data
+      })
+    }
+
+    // 웹 푸시 구독인 경우
+    if (!subscription) {
+      return NextResponse.json(
+        { success: false, message: '구독 정보 또는 네이티브 토큰이 필요합니다.' },
+        { status: 400 }
+      )
+    }
 
     // 구독 정보 저장 또는 업데이트
     const { data, error } = await supabase

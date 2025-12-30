@@ -18,6 +18,7 @@
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
+    "@capacitor/push-notifications": "^7.0.4",
     "@capacitor/status-bar": "^7.0.3",
     "@hello-pangea/dnd": "^18.0.1",
     "@paypal/react-paypal-js": "^8.9.1",

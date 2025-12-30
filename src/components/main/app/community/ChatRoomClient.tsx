@@ -178,17 +178,21 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const [loading, setLoading] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
   const [userRole, setUserRole] = useState<'owner' | 'admin' | 'moderator' | 'member'>('member')
+  const [isOperator, setIsOperator] = useState(false) // 운영자 여부 (admin_users 테이블)
   const [showSettings, setShowSettings] = useState(false)
   const [showParticipantsModal, setShowParticipantsModal] = useState(false)
   const [showReportsModal, setShowReportsModal] = useState(false)
   const [participants, setParticipants] = useState<any[]>([])
   const [reports, setReports] = useState<any[]>([])
+  const [showBanMenu, setShowBanMenu] = useState<string | null>(null) // 채팅금지 드롭다운 메뉴 표시
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false) // Realtime 기본 비활성화 (오류 방지)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const channelRef = useRef<any>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const processedMessageIds = useRef<Set<string>>(new Set())
   const profileCache = useRef<Map<string, { display_name?: string; avatar_url?: string; total_points: number }>>(new Map())
+  const deletedMessageIdsRef = useRef<Set<string>>(new Set()) // 삭제된 메시지 ID 추적
 
   // 색상 팔레트 가져오기 (useMemo로 메모이제이션) - early return 이전에 배치
   const palette = useMemo(() => {
@@ -231,6 +235,23 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       document.removeEventListener('drop', handleDrop)
     }
   }, [])
+
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (showBanMenu && !target.closest('.ban-menu-container')) {
+        setShowBanMenu(null)
+      }
+    }
+
+    if (showBanMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [showBanMenu])
   
   // 사용자 프로필 가져오기 (캐시 활용) - early return 이전에 정의
   const fetchUserProfile = async (userId: string) => {
@@ -278,6 +299,14 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   // 중복 메시지 방지 헬퍼 함수 - early return 이전에 정의
   const addMessageSafely = (newMessage: Message) => {
     setMessages((prev) => {
+      // 삭제된 메시지는 무시
+      if (deletedMessageIdsRef.current.has(newMessage.id)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🚫 삭제된 메시지 무시:', newMessage.id)
+        }
+        return prev
+      }
+
       // 이미 처리된 메시지인지 확인
       if (processedMessageIds.current.has(newMessage.id)) {
         // 개발 환경에서만 로그 출력
@@ -374,8 +403,11 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       const messages = data || []
       
+      // 삭제된 메시지 필터링
+      const activeMessages = messages.filter(msg => !deletedMessageIdsRef.current.has(msg.id))
+      
       const messagesWithProfiles = await Promise.all(
-        messages.map(async (msg) => {
+        activeMessages.map(async (msg) => {
           const userProfile = await fetchUserProfile(msg.user_id)
           // users 테이블에서 실제 이름 가져오기
           let userInfo = null
@@ -477,62 +509,91 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   }
 
   const subscribeToMessages = () => {
-    if (channelRef.current) {
-      console.log('🗑️ Removing existing channel')
-      authSupabase.removeChannel(channelRef.current)
+    // Realtime이 비활성화된 경우 Polling만 사용
+    if (!realtimeEnabled) {
+      return
     }
 
-    console.log('📡 Starting Realtime subscription for room:', roomId)
-
-    const channel = authSupabase
-      .channel(`room-${roomId}-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`
-        },
-        async (payload) => {
-          console.log('✅ New message received via Realtime:', payload.new)
-          const rawMessage = payload.new as Message
-          
-          const userProfile = await fetchUserProfile(rawMessage.user_id)
-          // users 테이블에서 실제 이름 가져오기
-          let userInfo = null
-          try {
-            const { data: userData } = await authSupabase
-              .from('users')
-              .select('full_name, korean_name, spanish_name')
-              .eq('id', rawMessage.user_id)
-              .single()
-            userInfo = userData
-          } catch (error) {
-            console.error('Error fetching user info:', error)
-          }
-          
-          const newMessage = {
-            ...rawMessage,
-            user_profiles: userProfile,
-            users: userInfo
-          }
-          
-          addMessageSafely(newMessage)
+    try {
+      if (channelRef.current) {
+        try {
+          authSupabase.removeChannel(channelRef.current)
+        } catch (e) {
+          // 채널 제거 오류 무시
         }
-      )
-      .subscribe((status) => {
-        console.log('🔔 Realtime Subscription status:', status)
-        if (status === 'SUBSCRIBED') {
-          console.log('🎉 Realtime 연결 성공! 즉시 메시지 수신 가능')
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Realtime 연결 실패 - Polling으로 전환됩니다')
-        } else if (status === 'TIMED_OUT') {
-          console.warn('⏱️ Realtime 연결 시간 초과 - Polling으로 전환됩니다')
-        }
-      })
+        channelRef.current = null
+      }
 
-    channelRef.current = channel
+      let channel
+      try {
+        channel = authSupabase
+          .channel(`room-${roomId}-${Date.now()}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'chat_messages',
+              filter: `room_id=eq.${roomId}`
+            },
+            async (payload) => {
+              try {
+                const rawMessage = payload.new as Message
+                
+                const userProfile = await fetchUserProfile(rawMessage.user_id)
+                // users 테이블에서 실제 이름 가져오기
+                let userInfo = null
+                try {
+                  const { data: userData } = await authSupabase
+                    .from('users')
+                    .select('full_name, korean_name, spanish_name')
+                    .eq('id', rawMessage.user_id)
+                    .single()
+                  userInfo = userData
+                } catch (error) {
+                  // 사용자 정보 조회 실패는 무시
+                }
+                
+                const newMessage = {
+                  ...rawMessage,
+                  user_profiles: userProfile,
+                  users: userInfo
+                }
+                
+                addMessageSafely(newMessage)
+              } catch (error) {
+                // Realtime 메시지 처리 오류 무시
+              }
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('🎉 Realtime 연결 성공')
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              // Realtime 연결 실패 시 비활성화하고 Polling만 사용
+              setRealtimeEnabled(false)
+              if (channelRef.current) {
+                try {
+                  authSupabase.removeChannel(channelRef.current)
+                } catch (e) {
+                  // 무시
+                }
+                channelRef.current = null
+              }
+            }
+          })
+
+        channelRef.current = channel
+      } catch (error) {
+        // Realtime 구독 실패 시 비활성화
+        setRealtimeEnabled(false)
+        channelRef.current = null
+      }
+    } catch (error) {
+      // Realtime 구독 실패 시 비활성화
+      setRealtimeEnabled(false)
+      channelRef.current = null
+    }
   }
 
   const joinRoom = async () => {
@@ -564,6 +625,31 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       console.error('Error leaving room:', error)
     }
   }
+
+  // 운영자 권한 체크 useEffect
+  useEffect(() => {
+    const checkOperatorStatus = async () => {
+      if (!user?.id && !user?.email) return
+      
+      try {
+        const params = new URLSearchParams()
+        if (user?.id) params.append('userId', user.id)
+        if (user?.email) params.append('email', user.email)
+        
+        const response = await fetch(`/api/admin/check?${params.toString()}`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsOperator(data.isAdmin || false)
+        }
+      } catch (error) {
+        setIsOperator(false)
+      }
+    }
+
+    if (user) {
+      checkOperatorStatus()
+    }
+  }, [user])
   
   // 채팅 초기화 useEffect - early return 이전에 배치
   useEffect(() => {
@@ -952,38 +1038,123 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     return userRole === 'owner' || userRole === 'admin' || userRole === 'moderator'
   }
 
-  // 메시지 삭제 (작성자 본인 또는 관리자)
-  const deleteMessage = async (messageId: string, messageUserId: string) => {
-    // 권한 확인: 본인 또는 관리자/운영자
-    const canDelete = user?.id === messageUserId || user?.is_admin || isAdmin()
-    
-    if (!canDelete) {
-      alert('메시지를 삭제할 권한이 없습니다.')
-      return
-    }
+  // 운영자 권한 확인 (admin_users 테이블 기반)
+  const isOperatorUser = () => {
+    return isOperator || user?.is_admin || false
+  }
 
-    if (!confirm('이 메시지를 삭제하시겠습니까?')) {
+  // 채팅금지 기능 (운영자 전용)
+  const chatBanUser = async (userId: string, banDays: number | null, reason: string = '') => {
+    // 운영자 권한만 체크 (전체 채팅방이므로 방장/부방장 개념 없음)
+    if (!user || !isOperatorUser()) {
+      alert(language === 'ko' ? '운영자만 채팅금지를 할 수 있습니다.' : 'Solo los operadores pueden prohibir el chat.')
       return
     }
 
     try {
-      const { error } = await authSupabase
-        .from('chat_messages')
-        .delete()
-        .eq('id', messageId)
+      // 기간 계산
+      let expiresAt: string | null = null
+      let banType: 'temporary' | 'permanent' = 'temporary'
+      
+      if (banDays === null) {
+        // 영구 추방 (최후의 수단) - 참여자 목록에서 제거
+        banType = 'permanent'
+        await authSupabase
+          .from('chat_room_participants')
+          .delete()
+          .eq('room_id', roomId)
+          .eq('user_id', userId)
+      } else {
+        // 임시 채팅금지 - 참여자 목록은 유지 (채팅만 금지)
+        const expiryDate = new Date()
+        expiryDate.setDate(expiryDate.getDate() + banDays)
+        expiresAt = expiryDate.toISOString()
+      }
 
-      if (error) {
-        console.error('메시지 삭제 오류:', error)
-        alert('메시지 삭제에 실패했습니다.')
+      // 채팅금지 기록 생성 (기존 기록이 있으면 업데이트)
+      const { error: upsertError } = await authSupabase
+        .from('chat_bans')
+        .upsert({
+          room_id: roomId,
+          user_id: userId,
+          banned_by: user.id,
+          reason: reason || (banDays === null 
+            ? (language === 'ko' ? '운영자에 의해 영구 추방됨' : 'Expulsado permanentemente por operador')
+            : (language === 'ko' 
+              ? `채팅금지 ${banDays}일` 
+              : `Prohibición de chat por ${banDays} días`)),
+          ban_type: banType,
+          expires_at: expiresAt
+        }, {
+          onConflict: 'room_id,user_id'
+        })
+
+      if (upsertError) {
+        console.error('Error banning user chat:', upsertError)
+        alert(language === 'ko' ? '채팅금지에 실패했습니다.' : 'Error al prohibir el chat')
         return
       }
+
+      const banMessage = banDays === null
+        ? (language === 'ko' ? '사용자가 영구 추방되었습니다.' : 'Usuario expulsado permanentemente.')
+        : (language === 'ko' 
+          ? `채팅금지 ${banDays}일이 적용되었습니다.` 
+          : `Prohibición de chat por ${banDays} días aplicada.`)
+      
+      alert(banMessage)
+      
+      // 채팅방 새로고침
+      fetchRoom()
+      setShowBanMenu(null)
+    } catch (error) {
+      console.error('Error banning user chat:', error)
+      alert(language === 'ko' ? '채팅금지 중 오류가 발생했습니다.' : 'Error al prohibir el chat')
+    }
+  }
+
+  // 메시지 삭제 (작성자 본인 또는 관리자)
+  const deleteMessage = async (messageId: string, messageUserId: string) => {
+    // 권한 확인: 본인 또는 관리자/운영자
+    const canDelete = user?.id === messageUserId || user?.is_admin || isAdmin() || isOperatorUser()
+    
+    if (!canDelete) {
+      alert(language === 'ko' ? '메시지를 삭제할 권한이 없습니다.' : 'No tienes permiso para eliminar este mensaje.')
+      return
+    }
+
+    if (!confirm(language === 'ko' ? '이 메시지를 삭제하시겠습니까?' : '¿Deseas eliminar este mensaje?')) {
+      return
+    }
+
+    try {
+      // API 엔드포인트를 통해 삭제 (서버 사이드에서 운영자 권한 체크 및 RLS 우회)
+      const response = await fetch(`/api/chat/messages/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        console.error('메시지 삭제 오류:', result.error)
+        alert(language === 'ko' 
+          ? (result.error || '메시지 삭제에 실패했습니다.') 
+          : (result.error || 'Error al eliminar el mensaje.'))
+        return
+      }
+
+      // 삭제된 메시지 ID 추적에 추가
+      deletedMessageIdsRef.current.add(messageId)
 
       // UI에서 즉시 제거
       setMessages(prev => prev.filter(m => m.id !== messageId))
       console.log('✅ 메시지 삭제 완료:', messageId)
     } catch (error) {
       console.error('메시지 삭제 중 오류:', error)
-      alert('메시지 삭제 중 오류가 발생했습니다.')
+      alert(language === 'ko' ? '메시지 삭제 중 오류가 발생했습니다.' : 'Error al eliminar el mensaje.')
     }
   }
 
@@ -1428,19 +1599,72 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                           <Trash2 className="w-3 h-3" />
                         </button>
                       )}
-                      {/* 추방 버튼 (관리자만, 자신 제외) */}
-                      {isAdmin() && !isOwn && (
-                        <button
-                          onClick={() => {
-                            if (confirm(`¿Expulsar a ${getUserName(message)}?`)) {
-                              banUser(message.user_id)
-                            }
-                          }}
-                          className="text-red-400 hover:text-red-600 transition-colors"
-                          title="Expulsar"
-                        >
-                          <Ban className="w-3 h-3" />
-                        </button>
+                      {/* 채팅금지 버튼 (운영자만, 자신 제외) */}
+                      {isOperatorUser() && !isOwn && (
+                        <div className="relative ban-menu-container">
+                          <button
+                            onClick={() => {
+                              setShowBanMenu(showBanMenu === message.id ? null : message.id)
+                            }}
+                            className="text-red-400 hover:text-red-600 transition-colors"
+                            title={language === 'ko' ? '채팅금지' : 'Prohibir chat'}
+                          >
+                            <Ban className="w-3 h-3" />
+                          </button>
+                          {showBanMenu === message.id && (
+                            <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px] ban-menu-container">
+                              <button
+                                onClick={() => {
+                                  if (confirm(language === 'ko' 
+                                    ? `${getUserName(message)}님에게 채팅금지 1일을 적용하시겠습니까?`
+                                    : `¿Prohibir el chat por 1 día a ${getUserName(message)}?`)) {
+                                    chatBanUser(message.user_id, 1)
+                                  }
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 first:rounded-t-lg"
+                              >
+                                {language === 'ko' ? '1일' : '1 día'}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(language === 'ko' 
+                                    ? `${getUserName(message)}님에게 채팅금지 3일을 적용하시겠습니까?`
+                                    : `¿Prohibir el chat por 3 días a ${getUserName(message)}?`)) {
+                                    chatBanUser(message.user_id, 3)
+                                  }
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                              >
+                                {language === 'ko' ? '3일' : '3 días'}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(language === 'ko' 
+                                    ? `${getUserName(message)}님에게 채팅금지 7일을 적용하시겠습니까?`
+                                    : `¿Prohibir el chat por 7 días a ${getUserName(message)}?`)) {
+                                    chatBanUser(message.user_id, 7)
+                                  }
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                              >
+                                {language === 'ko' ? '7일' : '7 días'}
+                              </button>
+                              <div className="border-t border-gray-200"></div>
+                              <button
+                                onClick={() => {
+                                  if (confirm(language === 'ko' 
+                                    ? `${getUserName(message)}님을 영구 추방하시겠습니까? (최후의 수단)`
+                                    : `¿Expulsar permanentemente a ${getUserName(message)}? (Último recurso)`)) {
+                                    chatBanUser(message.user_id, null)
+                                  }
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 font-semibold last:rounded-b-lg"
+                              >
+                                {language === 'ko' ? '영구 추방' : 'Expulsar'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                     <div

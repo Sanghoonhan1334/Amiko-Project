@@ -1,6 +1,9 @@
 /**
- * 웹 푸시 알림 관리 유틸리티
+ * 웹 및 네이티브 앱 푸시 알림 관리 유틸리티
  */
+
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 
 export interface PushSubscriptionData {
   endpoint: string;
@@ -8,6 +11,11 @@ export interface PushSubscriptionData {
     p256dh: string;
     auth: string;
   };
+}
+
+export interface NativePushToken {
+  value: string;
+  type: 'fcm' | 'apns';
 }
 
 export interface PushNotificationData {
@@ -255,49 +263,120 @@ export function showLocalNotification(payload: PushNotificationData): void {
 }
 
 /**
- * 푸시 알림 초기화
+ * 네이티브 앱 푸시 알림 초기화
+ */
+async function initializeNativePushNotifications(userId: string): Promise<boolean> {
+  try {
+    console.log('[PUSH] 네이티브 앱 푸시 알림 초기화 시작');
+
+    // 권한 요청
+    const permission = await PushNotifications.requestPermissions();
+    if (permission.receive !== 'granted') {
+      console.log('[PUSH] 네이티브 앱 알림 권한이 허용되지 않음');
+      return false;
+    }
+    console.log('[PUSH] 네이티브 앱 알림 권한 허용됨');
+
+    // 푸시 알림 등록
+    await PushNotifications.register();
+
+    // 토큰 수신 이벤트
+    PushNotifications.addListener('registration', async (token: NativePushToken) => {
+      console.log('[PUSH] 네이티브 앱 푸시 토큰 수신:', token);
+      
+      // 서버에 토큰 전송
+      await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          nativeToken: token.value,
+          platform: Capacitor.getPlatform(),
+          tokenType: token.type
+        })
+      });
+    });
+
+    // 에러 이벤트
+    PushNotifications.addListener('registrationError', (error) => {
+      console.error('[PUSH] 네이티브 앱 푸시 등록 실패:', error);
+    });
+
+    // 알림 수신 이벤트
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('[PUSH] 네이티브 앱 푸시 알림 수신:', notification);
+    });
+
+    // 알림 탭 이벤트
+    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      console.log('[PUSH] 네이티브 앱 푸시 알림 탭:', action);
+      if (action.notification.data?.url) {
+        window.location.href = action.notification.data.url as string;
+      }
+    });
+
+    console.log('[PUSH] 네이티브 앱 푸시 알림 초기화 완료');
+    return true;
+  } catch (error) {
+    console.error('[PUSH] 네이티브 앱 푸시 알림 초기화 실패:', error);
+    return false;
+  }
+}
+
+/**
+ * 푸시 알림 초기화 (웹 및 네이티브 앱 모두 지원)
  */
 export async function initializePushNotifications(userId: string): Promise<boolean> {
   try {
     console.log('[PUSH] 푸시 알림 초기화 시작');
     
-    // 1. 알림 권한 요청
-    console.log('[PUSH] 1단계: 알림 권한 요청');
-    const permission = await requestNotificationPermission();
-    if (permission !== 'granted') {
-      console.log('[PUSH] 알림 권한이 허용되지 않음');
-      return false;
-    }
-    console.log('[PUSH] 알림 권한 허용됨');
+    const isNative = Capacitor.isNativePlatform();
+    
+    if (isNative) {
+      // 네이티브 앱 (Android/iOS)
+      return await initializeNativePushNotifications(userId);
+    } else {
+      // 웹 브라우저
+      // 1. 알림 권한 요청
+      console.log('[PUSH] 1단계: 알림 권한 요청');
+      const permission = await requestNotificationPermission();
+      if (permission !== 'granted') {
+        console.log('[PUSH] 알림 권한이 허용되지 않음');
+        return false;
+      }
+      console.log('[PUSH] 알림 권한 허용됨');
 
-    // 2. Service Worker 등록
-    console.log('[PUSH] 2단계: Service Worker 등록');
-    const registration = await registerServiceWorker();
-    if (!registration) {
-      console.log('[PUSH] Service Worker 등록 실패');
-      return false;
-    }
-    console.log('[PUSH] Service Worker 등록 성공:', registration);
+      // 2. Service Worker 등록
+      console.log('[PUSH] 2단계: Service Worker 등록');
+      const registration = await registerServiceWorker();
+      if (!registration) {
+        console.log('[PUSH] Service Worker 등록 실패');
+        return false;
+      }
+      console.log('[PUSH] Service Worker 등록 성공:', registration);
 
-    // 3. 푸시 구독 생성
-    console.log('[PUSH] 3단계: 푸시 구독 생성');
-    const subscription = await subscribeToPushNotifications(registration);
-    if (!subscription) {
-      console.log('[PUSH] 푸시 구독 생성 실패');
-      return false;
-    }
-    console.log('[PUSH] 푸시 구독 생성 성공:', subscription);
+      // 3. 푸시 구독 생성
+      console.log('[PUSH] 3단계: 푸시 구독 생성');
+      const subscription = await subscribeToPushNotifications(registration);
+      if (!subscription) {
+        console.log('[PUSH] 푸시 구독 생성 실패');
+        return false;
+      }
+      console.log('[PUSH] 푸시 구독 생성 성공:', subscription);
 
-    // 4. 구독 데이터를 서버에 전송
-    console.log('[PUSH] 4단계: 서버 전송');
-    const success = await sendSubscriptionToServer(subscription, userId);
-    if (!success) {
-      console.log('[PUSH] 서버 전송 실패');
-      return false;
-    }
+      // 4. 구독 데이터를 서버에 전송
+      console.log('[PUSH] 4단계: 서버 전송');
+      const success = await sendSubscriptionToServer(subscription, userId);
+      if (!success) {
+        console.log('[PUSH] 서버 전송 실패');
+        return false;
+      }
 
-    console.log('[PUSH] 푸시 알림 초기화 완료');
-    return true;
+      console.log('[PUSH] 푸시 알림 초기화 완료');
+      return true;
+    }
   } catch (error) {
     console.error('[PUSH] 푸시 알림 초기화 실패:', error);
     return false;
@@ -309,12 +388,25 @@ export async function initializePushNotifications(userId: string): Promise<boole
  */
 export function getPushNotificationStatus(): {
   supported: boolean;
-  permission: NotificationPermission;
+  permission: NotificationPermission | 'prompt' | 'granted' | 'denied';
   serviceWorker: boolean;
+  isNative: boolean;
 } {
+  const isNative = Capacitor.isNativePlatform();
+  
+  if (isNative) {
+    return {
+      supported: true,
+      permission: 'prompt', // 네이티브에서는 동적으로 확인 필요
+      serviceWorker: false,
+      isNative: true
+    };
+  }
+  
   return {
     supported: 'Notification' in window,
     permission: 'Notification' in window ? Notification.permission : 'denied',
-    serviceWorker: 'serviceWorker' in navigator
+    serviceWorker: 'serviceWorker' in navigator,
+    isNative: false
   };
 }

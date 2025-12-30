@@ -27,7 +27,8 @@ Crea un archivo `.env.local` en la raíz del proyecto y configura las variables 
 Variables principales:
 - Relacionadas con Supabase (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`)
 - Relacionadas con Toss Payments (`NEXT_PUBLIC_TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`)
-- Otros servicios (traducción, notificaciones push, SMS, etc.)
+- FCM para notificaciones push nativas (`FCM_SERVER_KEY`) - [Guía de configuración](./docs/QUICK_START_FCM.md)
+- Otros servicios (traducción, notificaciones push web, SMS, etc.)
 
 `.env.local` 파일을 프로젝트 루트에 생성하고 필요한 환경 변수를 설정하세요.
 
@@ -36,7 +37,8 @@ Variables principales:
 주요 환경 변수:
 - Supabase 관련 (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`)
 - Toss Payments 관련 (`NEXT_PUBLIC_TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`)
-- 기타 서비스 (번역, 푸시 알림, SMS 등)
+- 네이티브 앱 푸시 알림용 FCM (`FCM_SERVER_KEY`) - [설정 가이드](./docs/QUICK_START_FCM.md)
+- 기타 서비스 (번역, 웹 푸시 알림, SMS 등)
 
 ### 3. Ejecutar el Servidor de Desarrollo / 개발 서버 실행
 

@@ -132,32 +132,105 @@ export async function POST(request: Request) {
             requireInteraction: data?.requireInteraction || false
           }
 
-          const pushSubscription = {
-            endpoint: String(subscription.endpoint),
-            keys: {
-              p256dh: String(subscription.p256dh_key),
-              auth: String(subscription.auth_key)
-            }
-          }
-
-          // 웹 푸시 발송
-          const result = await webpush.sendNotification(
-            pushSubscription,
-            JSON.stringify(pushPayload)
-          )
-
-          console.log('✅ 푸시 알림 발송 성공:', subscription.id, result.statusCode)
+          // 네이티브 앱 토큰인지 확인
+          const isNative = String(subscription.endpoint).startsWith('native://')
           
-          return {
-            subscriptionId: subscription.id,
-            success: true,
-            statusCode: result.statusCode
+          if (isNative) {
+            // 네이티브 앱 푸시 알림 (FCM/APNS)
+            const nativeToken = subscription.native_token as string
+            const platform = subscription.platform as string
+            
+            console.log(`[PUSH] 네이티브 앱 푸시 발송 시도: ${platform}, 토큰: ${nativeToken?.substring(0, 20)}...`)
+            
+            // FCM 서버 키가 있는 경우 FCM으로 발송
+            const fcmServerKey = process.env.FCM_SERVER_KEY
+            if (fcmServerKey && platform === 'android') {
+              try {
+                const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `key=${fcmServerKey}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    to: nativeToken,
+                    notification: {
+                      title,
+                      body: messageBody,
+                      icon: data?.icon || '/favicon.ico',
+                      click_action: data?.url || '/notifications'
+                    },
+                    data: {
+                      ...data,
+                      url: data?.url || '/notifications',
+                      notificationId: notificationLog.id
+                    }
+                  })
+                })
+                
+                if (fcmResponse.ok) {
+                  console.log('✅ FCM 푸시 알림 발송 성공:', subscription.id)
+                  return {
+                    subscriptionId: subscription.id,
+                    success: true,
+                    statusCode: fcmResponse.status,
+                    platform: 'android'
+                  }
+                } else {
+                  const errorData = await fcmResponse.json()
+                  throw new Error(`FCM 발송 실패: ${JSON.stringify(errorData)}`)
+                }
+              } catch (fcmError) {
+                console.error('❌ FCM 푸시 알림 발송 실패:', fcmError)
+                throw fcmError
+              }
+            } else {
+              // FCM 서버 키가 없거나 iOS인 경우
+              if (!fcmServerKey) {
+                console.warn(`[PUSH] FCM 서버 키가 설정되지 않았습니다. 환경 변수 FCM_SERVER_KEY를 설정해주세요.`)
+                console.warn(`[PUSH] 설정 가이드: docs/FCM_SETUP_GUIDE.md 참조`)
+              }
+              if (platform === 'ios') {
+                console.warn(`[PUSH] iOS 푸시 알림은 아직 지원되지 않습니다.`)
+              }
+              return {
+                subscriptionId: subscription.id,
+                success: false,
+                error: fcmServerKey 
+                  ? 'iOS는 아직 지원되지 않습니다.' 
+                  : 'FCM 서버 키가 설정되지 않았습니다. 환경 변수 FCM_SERVER_KEY를 설정해주세요.',
+                statusCode: 503
+              }
+            }
+          } else {
+            // 웹 푸시 알림
+            const pushSubscription = {
+              endpoint: String(subscription.endpoint),
+              keys: {
+                p256dh: String(subscription.p256dh_key),
+                auth: String(subscription.auth_key)
+              }
+            }
+
+            const result = await webpush.sendNotification(
+              pushSubscription,
+              JSON.stringify(pushPayload)
+            )
+
+            console.log('✅ 웹 푸시 알림 발송 성공:', subscription.id, result.statusCode)
+            
+            return {
+              subscriptionId: subscription.id,
+              success: true,
+              statusCode: result.statusCode,
+              platform: 'web'
+            }
           }
 
         } catch (error) {
           console.error('❌ 푸시 알림 발송 실패:', subscription.id, error)
           
-          // 구독이 유효하지 않은 경우 삭제
+          // 구독이 유효하지 않은 경우 삭제 (웹 푸시만)
           if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 410) {
             console.log('🗑️ 유효하지 않은 구독 삭제:', subscription.id)
             await supabase
