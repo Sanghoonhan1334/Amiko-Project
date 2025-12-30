@@ -2491,12 +2491,12 @@ export default function MyTab() {
                       />
                   </div>
                   ) : (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
                       <div className="flex-1">
-                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1">
                           {language === 'ko' ? '직업 정보 공개' : 'Información profesional pública'}
                         </label>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {language === 'ko' 
                             ? '직업, 회사, 경력 정보를 다른 사용자에게 공개합니다' 
                             : 'Comparte tu ocupación, empresa y experiencia con otros usuarios'}
@@ -2859,24 +2859,24 @@ export default function MyTab() {
           showCloseButton={!isDeletingAccount}
         >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">
               {language === 'ko' ? '계정을 정말 삭제할까요?' : '¿Eliminar tu cuenta permanentemente?'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               {language === 'ko'
                 ? '계정을 삭제하면 개인정보와 포인트, 설정이 영구적으로 삭제되며 복구할 수 없습니다.'
                 : 'La eliminación eliminará permanentemente tus datos personales, puntos y ajustes. No podrás deshacer esta acción.'}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 text-sm text-gray-600">
+          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
             <p>
               {language === 'ko'
                 ? '삭제를 진행하려면 아래 확인 문구를 입력해주세요.'
                 : 'Para continuar, escribe la palabra de confirmación abajo.'}
             </p>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
-              <p className="font-semibold text-gray-700 mb-1">{language === 'ko' ? '삭제 시 처리 내용' : 'Lo que sucederá'}</p>
+            <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 p-3 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+              <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1">{language === 'ko' ? '삭제 시 처리 내용' : 'Lo que sucederá'}</p>
               <ul className="list-disc pl-4 space-y-1">
                 <li>
                   {language === 'ko'
@@ -2885,8 +2885,8 @@ export default function MyTab() {
                 </li>
                 <li>
                   {language === 'ko'
-                    ? '작성한 게시글과 댓글은 더 이상 노출되지 않거나 “탈퇴한 사용자”로 표시됩니다.'
-                    : 'Tus publicaciones y comentarios dejarán de mostrarse o aparecerán como “usuario eliminado”.'}
+                    ? '작성한 게시글과 댓글은 더 이상 노출되지 않거나 "탈퇴한 사용자"로 표시됩니다.'
+                    : 'Tus publicaciones y comentarios dejarán de mostrarse o aparecerán como "usuario eliminado".'}
                 </li>
                 <li>
                   {language === 'ko'
@@ -2898,10 +2898,10 @@ export default function MyTab() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-600">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
               {language === 'ko'
                 ? '"DELETE" 를 대문자로 입력해주세요.'
-                : 'Escribe “DELETE” en mayúsculas para confirmar.'}
+                : 'Escribe "DELETE" en mayúsculas para confirmar.'}
             </label>
             <Input
               value={deleteConfirmText}
