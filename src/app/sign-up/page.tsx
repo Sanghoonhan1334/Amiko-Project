@@ -717,7 +717,7 @@ export default function SignUpPage() {
                           const redirectUrl = getRedirectUrl()
                           console.log('[SIGNUP] 최종 리다이렉트 URL:', redirectUrl)
                           
-                          // OAuth 요청 (skipBrowserRedirect 사용하지 않음)
+                          // OAuth 요청 (skipBrowserRedirect 사용하여 수동 처리)
                           const { data, error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
@@ -725,7 +725,10 @@ export default function SignUpPage() {
                               queryParams: {
                                 access_type: 'offline',
                                 prompt: 'consent',
+                                // Google OAuth에 테마 파라미터 추가 (다크모드 방지)
+                                theme: 'light',
                               },
+                              skipBrowserRedirect: Capacitor.isNativePlatform(), // 네이티브 앱에서만 수동 처리
                             },
                           })
 
@@ -742,12 +745,51 @@ export default function SignUpPage() {
                           if (data?.url) {
                             console.log('[SIGNUP] Google OAuth 리다이렉트 시작:', data.url)
                             
-                            // 네이티브 앱에서는 현재 WebView에서 직접 리다이렉트
-                            // Capacitor의 server.url 설정으로 인해 모든 요청이 앱 내부에서 처리됨
+                            // 네이티브 앱에서는 Browser 플러그인으로 인앱 브라우저 열기
                             if (Capacitor.isNativePlatform()) {
-                              console.log('[SIGNUP] 네이티브 앱: WebView에서 OAuth 처리')
-                              // 현재 WebView에서 리다이렉트 (앱 내부에서 처리)
-                              window.location.href = data.url
+                              try {
+                                console.log('[SIGNUP] 네이티브 앱: 인앱 브라우저로 OAuth 열기')
+                                const { Browser } = await import('@capacitor/browser')
+                                
+                                // OAuth URL에 테마 파라미터 추가 (다크모드 방지)
+                                const oauthUrl = new URL(data.url)
+                                oauthUrl.searchParams.set('theme', 'light')
+                                const finalUrl = oauthUrl.toString()
+                                
+                                console.log('[SIGNUP] 최종 OAuth URL:', finalUrl)
+                                
+                                // 인앱 브라우저 열기
+                                await Browser.open({
+                                  url: finalUrl,
+                                  windowName: '_self',
+                                  presentationStyle: 'fullscreen'
+                                })
+                                
+                                // 브라우저가 닫히면 로딩 상태 해제
+                                Browser.addListener('browserFinished', () => {
+                                  console.log('[SIGNUP] 인앱 브라우저 닫힘')
+                                  setIsLoading(false)
+                                })
+                                
+                                // 앱으로 돌아오는 딥링크 리스너
+                                const { App } = await import('@capacitor/app')
+                                const urlOpenListener = await App.addListener('appUrlOpen', (event) => {
+                                  console.log('[SIGNUP] 앱 딥링크 수신:', event.url)
+                                  if (event.url.includes('/auth/callback') || event.url.includes('amiko://auth/callback')) {
+                                    // 브라우저 닫기
+                                    Browser.close().catch(console.error)
+                                    // 콜백이 처리되면 로딩 상태 해제
+                                    setIsLoading(false)
+                                    // 리스너 제거
+                                    urlOpenListener.remove()
+                                  }
+                                })
+                              } catch (browserError) {
+                                console.error('[SIGNUP] 인앱 브라우저 열기 실패:', browserError)
+                                // Browser 플러그인 실패 시 현재 WebView에서 직접 처리
+                                console.log('[SIGNUP] Browser 플러그인 실패, WebView에서 직접 처리')
+                                window.location.replace(data.url)
+                              }
                             } else {
                               // 웹에서는 자동으로 리다이렉트
                               window.location.href = data.url
