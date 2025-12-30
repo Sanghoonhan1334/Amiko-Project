@@ -717,7 +717,7 @@ export default function SignUpPage() {
                           const redirectUrl = getRedirectUrl()
                           console.log('[SIGNUP] 최종 리다이렉트 URL:', redirectUrl)
                           
-                          // 네이티브 앱에서는 skipBrowserRedirect를 사용하여 수동으로 처리
+                          // OAuth 요청 (skipBrowserRedirect 사용하지 않음)
                           const { data, error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
@@ -726,7 +726,6 @@ export default function SignUpPage() {
                                 access_type: 'offline',
                                 prompt: 'consent',
                               },
-                              skipBrowserRedirect: Capacitor.isNativePlatform(), // 네이티브 앱에서는 자동 리다이렉트 비활성화
                             },
                           })
 
@@ -743,47 +742,12 @@ export default function SignUpPage() {
                           if (data?.url) {
                             console.log('[SIGNUP] Google OAuth 리다이렉트 시작:', data.url)
                             
-                            // 네이티브 앱에서는 Browser 플러그인으로 인앱 브라우저 열기
+                            // 네이티브 앱에서는 현재 WebView에서 직접 리다이렉트
+                            // Capacitor의 server.url 설정으로 인해 모든 요청이 앱 내부에서 처리됨
                             if (Capacitor.isNativePlatform()) {
-                              try {
-                                console.log('[SIGNUP] 네이티브 앱: 인앱 브라우저로 OAuth 열기')
-                                const { Browser } = await import('@capacitor/browser')
-                                
-                                // 인앱 브라우저 열기 (OAuth URL 그대로 사용)
-                                // 콜백 URL은 https://www.helloamiko.com/auth/callback로 유지
-                                // AndroidManifest.xml의 Universal Link 설정으로 앱으로 돌아옴
-                                await Browser.open({
-                                  url: data.url,
-                                  windowName: '_self',
-                                  presentationStyle: 'fullscreen'
-                                })
-                                
-                                // 브라우저가 닫히면 로딩 상태 해제
-                                Browser.addListener('browserFinished', () => {
-                                  console.log('[SIGNUP] 인앱 브라우저 닫힘')
-                                  setIsLoading(false)
-                                })
-                                
-                                // 앱으로 돌아오는 딥링크 리스너
-                                const { App } = await import('@capacitor/app')
-                                const urlOpenListener = await App.addListener('appUrlOpen', (data) => {
-                                  console.log('[SIGNUP] 앱 딥링크 수신:', data.url)
-                                  if (data.url.includes('/auth/callback') || data.url.includes('amiko://auth/callback')) {
-                                    // 브라우저 닫기
-                                    Browser.close().catch(console.error)
-                                    // 콜백이 처리되면 로딩 상태 해제
-                                    setIsLoading(false)
-                                    // 리스너 제거
-                                    urlOpenListener.remove()
-                                  }
-                                })
-                              } catch (browserError) {
-                                console.error('[SIGNUP] 인앱 브라우저 열기 실패:', browserError)
-                                alert(language === 'ko' 
-                                  ? '인앱 브라우저를 열 수 없습니다. 다시 시도해주세요.' 
-                                  : 'No se pudo abrir el navegador. Por favor, inténtelo de nuevo.')
-                                setIsLoading(false)
-                              }
+                              console.log('[SIGNUP] 네이티브 앱: WebView에서 OAuth 처리')
+                              // 현재 WebView에서 리다이렉트 (앱 내부에서 처리)
+                              window.location.href = data.url
                             } else {
                               // 웹에서는 자동으로 리다이렉트
                               window.location.href = data.url
