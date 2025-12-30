@@ -293,15 +293,23 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
     const hasTwilioConfig = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
     const hasTemplateSid = !!process.env.TWILIO_WHATSAPP_TEMPLATE_SID
     
-    console.log('[WHATSAPP_VERIFICATION] 환경 변수 확인:', {
+    // 환경 변수 상세 로깅 (디버깅용)
+    const envCheck = {
       hasTwilioConfig,
       hasTemplateSid,
-      TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ? '설정됨' : '없음',
-      TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ? '설정됨' : '없음',
+      TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ? `설정됨 (${process.env.TWILIO_ACCOUNT_SID.substring(0, 4)}...)` : '없음',
+      TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ? `설정됨 (${process.env.TWILIO_AUTH_TOKEN.substring(0, 4)}...)` : '없음',
       TWILIO_WHATSAPP_TEMPLATE_SID: process.env.TWILIO_WHATSAPP_TEMPLATE_SID || '없음',
       TWILIO_WHATSAPP_NUMBER: process.env.TWILIO_WHATSAPP_NUMBER || '없음',
-      TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM || '없음'
-    })
+      TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM || '없음',
+      NODE_ENV: process.env.NODE_ENV || '없음',
+      VERCEL: process.env.VERCEL ? 'Vercel 환경' : '로컬 환경'
+    }
+    console.log('[WHATSAPP_VERIFICATION] 환경 변수 확인:', envCheck)
+    
+    // 사용할 WhatsApp 번호 결정
+    const whatsappNumberToUse = process.env.TWILIO_WHATSAPP_NUMBER || process.env.TWILIO_WHATSAPP_FROM
+    console.log('[WHATSAPP_VERIFICATION] 사용할 WhatsApp 번호:', whatsappNumberToUse || '없음 (에러 발생 예상)')
     
     // Twilio 설정이 없으면 실패
     if (!hasTwilioConfig) {
@@ -387,18 +395,33 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
         
         // +14로 시작하는 번호(Sandbox) 차단, +15로 시작하는 번호만 허용
         const cleanNumber = whatsappFrom.replace('whatsapp:', '').replace(/[^\d+]/g, '')
+        console.log('[WHATSAPP_VERIFICATION] 번호 검증:', {
+          원본: whatsappFrom,
+          정리된_번호: cleanNumber,
+          '+15로_시작': cleanNumber.startsWith('+15') || cleanNumber.startsWith('15'),
+          'Sandbox_포함': cleanNumber.includes('14155238886') || cleanNumber.includes('4155238886')
+        })
+        
+        // Sandbox 번호 차단
         if (cleanNumber.includes('14155238886') || cleanNumber.includes('4155238886') || cleanNumber.startsWith('+14') || cleanNumber.startsWith('14')) {
           console.error('[WHATSAPP_VERIFICATION] ❌ Sandbox 번호 사용 금지!')
           console.error('[WHATSAPP_VERIFICATION] 현재 번호:', whatsappFrom)
+          console.error('[WHATSAPP_VERIFICATION] 정리된 번호:', cleanNumber)
           console.error('[WHATSAPP_VERIFICATION] 프로덕션 번호만 사용 가능: whatsapp:+15557803562')
           throw new Error('Sandbox 번호는 사용할 수 없습니다. 프로덕션 번호(+15557803562)를 사용하세요.')
         }
         
-        if (!cleanNumber.startsWith('+15') && !cleanNumber.startsWith('15')) {
+        // +15로 시작하는 번호만 허용 (하지만 너무 엄격하지 않게)
+        // +15557803562 형식이면 통과
+        const isProductionNumber = cleanNumber.startsWith('+15') || cleanNumber.startsWith('15') || cleanNumber === '15557803562' || cleanNumber === '+15557803562'
+        
+        if (!isProductionNumber) {
           console.error('[WHATSAPP_VERIFICATION] ❌ 프로덕션 번호가 아닙니다!')
           console.error('[WHATSAPP_VERIFICATION] 현재 번호:', whatsappFrom)
+          console.error('[WHATSAPP_VERIFICATION] 정리된 번호:', cleanNumber)
           console.error('[WHATSAPP_VERIFICATION] 프로덕션 번호만 사용 가능: whatsapp:+15557803562')
-          throw new Error('프로덕션 번호(+15557803562)만 사용할 수 있습니다.')
+          console.error('[WHATSAPP_VERIFICATION] 허용되는 형식: +15557803562, 15557803562, whatsapp:+15557803562')
+          throw new Error(`프로덕션 번호(+15557803562)만 사용할 수 있습니다. 현재 번호: ${cleanNumber}`)
         }
         
         console.log('[WHATSAPP_VERIFICATION] ✅ 프로덕션 번호 확인됨:', whatsappFrom)
