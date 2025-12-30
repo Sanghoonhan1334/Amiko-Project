@@ -12,11 +12,13 @@ import { useLanguage } from '@/context/LanguageContext'
 import { countries, getCountryByCode } from '@/constants/countries'
 import { ArrowRight, Globe, Shield } from 'lucide-react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+import { useTheme } from 'next-themes'
 
 export default function CompleteProfilePage() {
   const router = useRouter()
   const { user } = useAuth()
   const { t, language } = useLanguage()
+  const { setTheme } = useTheme()
   const [isLoading, setIsLoading] = useState(false)
   const [isCheckingSession, setIsCheckingSession] = useState(true)
   const [hasSession, setHasSession] = useState(false)
@@ -26,6 +28,18 @@ export default function CompleteProfilePage() {
     termsAgreed: false
   })
   const [ageError, setAgeError] = useState<string | null>(null)
+
+  // 구글 로그인 후 라이트 모드 강제 설정
+  useEffect(() => {
+    // 구글 로그인 후 다크모드가 활성화되는 문제 방지
+    setTheme('light')
+    // localStorage에서도 강제로 light 설정
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', 'light')
+      // HTML 클래스에서 dark 제거
+      document.documentElement.classList.remove('dark')
+    }
+  }, [setTheme])
 
   // 세션 확인 (Google OAuth 직후 프로필이 없을 수 있으므로 세션만 확인)
   useEffect(() => {

@@ -687,29 +687,40 @@ export default function SignUpPage() {
                       onClick={async () => {
                         try {
                           setIsLoading(true)
+                          console.log('[SIGNUP] Google 로그인 시작')
+                          
                           const supabase = createSupabaseBrowserClient()
                           
                           // 앱 환경에서 올바른 리다이렉트 URL 사용
                           const getRedirectUrl = () => {
                             // 환경 변수가 있으면 우선 사용
                             if (process.env.NEXT_PUBLIC_APP_URL) {
-                              return `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/main`
+                              const url = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/main`
+                              console.log('[SIGNUP] 리다이렉트 URL (환경변수):', url)
+                              return url
                             }
                             
                             // Capacitor 앱인 경우 실제 서버 URL 사용
                             if (Capacitor.isNativePlatform()) {
-                              return `https://www.helloamiko.com/auth/callback?next=/main`
+                              const url = `https://www.helloamiko.com/auth/callback?next=/main`
+                              console.log('[SIGNUP] 리다이렉트 URL (네이티브):', url)
+                              return url
                             }
                             
                             // 웹 환경에서는 window.location.origin 사용
                             const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.helloamiko.com'
-                            return `${origin}/auth/callback?next=/main`
+                            const url = `${origin}/auth/callback?next=/main`
+                            console.log('[SIGNUP] 리다이렉트 URL (웹):', url)
+                            return url
                           }
                           
-                          const { error } = await supabase.auth.signInWithOAuth({
+                          const redirectUrl = getRedirectUrl()
+                          console.log('[SIGNUP] 최종 리다이렉트 URL:', redirectUrl)
+                          
+                          const { data, error } = await supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
-                              redirectTo: getRedirectUrl(),
+                              redirectTo: redirectUrl,
                               queryParams: {
                                 access_type: 'offline',
                                 prompt: 'consent',
@@ -719,13 +730,41 @@ export default function SignUpPage() {
 
                           if (error) {
                             console.error('[SIGNUP] Google 로그인 실패:', error)
-                            alert(language === 'ko' ? '구글 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
+                            alert(language === 'ko' 
+                              ? `구글 로그인에 실패했습니다: ${error.message || error}` 
+                              : `Error al iniciar sesión con Google: ${error.message || error}`)
+                            setIsLoading(false)
+                            return
+                          }
+
+                          // data가 있으면 리다이렉트가 시작된 것
+                          if (data?.url) {
+                            console.log('[SIGNUP] Google OAuth 리다이렉트 시작:', data.url)
+                            
+                            // 네이티브 앱에서는 현재 WebView에서 리다이렉트
+                            // Capacitor의 server.url 설정으로 인해 모든 요청이 앱 내부에서 처리됨
+                            if (Capacitor.isNativePlatform()) {
+                              console.log('[SIGNUP] 네이티브 앱: WebView에서 OAuth 처리')
+                              // 현재 WebView에서 리다이렉트 (앱 내부에서 처리)
+                              window.location.href = data.url
+                            } else {
+                              // 웹에서는 자동으로 리다이렉트
+                              window.location.href = data.url
+                            }
+                          } else {
+                            // data.url이 없으면 예상치 못한 상황
+                            console.warn('[SIGNUP] Google OAuth 응답에 URL이 없음:', data)
+                            alert(language === 'ko' 
+                              ? 'Google 로그인을 시작할 수 없습니다. 다시 시도해주세요.' 
+                              : 'No se pudo iniciar el inicio de sesión con Google. Por favor, inténtelo de nuevo.')
                             setIsLoading(false)
                           }
-                          // 성공하면 자동으로 Google로 리다이렉트되므로 여기서는 아무것도 하지 않음
                         } catch (error) {
                           console.error('[SIGNUP] Google 로그인 오류:', error)
-                          alert(language === 'ko' ? '구글 로그인 중 오류가 발생했습니다.' : 'Error al iniciar sesión con Google')
+                          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+                          alert(language === 'ko' 
+                            ? `구글 로그인 중 오류가 발생했습니다: ${errorMessage}` 
+                            : `Error al iniciar sesión con Google: ${errorMessage}`)
                           setIsLoading(false)
                         }
                       }}

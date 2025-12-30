@@ -16,6 +16,7 @@ import { appEngagementEvents, marketingEvents } from '@/lib/analytics'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Skeleton } from '@/components/ui/skeleton'
 import PushNotificationConsentModal from '@/components/notifications/PushNotificationConsentModal'
+import { useTheme } from 'next-themes'
 
 // 지연 로딩 컴포넌트들
 const MeetTab = dynamic(() => import('@/components/main/app/meet/MeetTab'), {
@@ -74,12 +75,35 @@ const EventTab = dynamic(() => import('@/components/main/app/event/EventTab'), {
 function AppPageContent() {
   const { t, language } = useLanguage()
   const { user } = useAuth()
+  const { setTheme } = useTheme()
   const searchParams = useSearchParams()
   const router = useRouter()
 
   const [activeTab, setActiveTab] = useState('home')
   const [isAdmin, setIsAdmin] = useState(false)
   const [communityView, setCommunityView] = useState('home')
+
+  // 구글 로그인 후 라이트 모드 강제 설정 (한 번만 실행)
+  useEffect(() => {
+    // 구글 로그인 후 다크모드가 활성화되는 문제 방지
+    const checkAndSetLightMode = () => {
+      if (typeof window !== 'undefined') {
+        const currentTheme = localStorage.getItem('theme')
+        const hasDarkClass = document.documentElement.classList.contains('dark')
+        
+        // 다크모드가 활성화되어 있으면 라이트 모드로 변경
+        if (currentTheme === 'dark' || hasDarkClass) {
+          console.log('[MAIN] 구글 로그인 후 다크모드 감지, 라이트 모드로 변경')
+          setTheme('light')
+          localStorage.setItem('theme', 'light')
+          document.documentElement.classList.remove('dark')
+        }
+      }
+    }
+    
+    // 컴포넌트 마운트 시 한 번만 실행
+    checkAndSetLightMode()
+  }, [setTheme])
 
   // 🚀 최적화: React Query로 포인트 및 쿠폰 데이터 관리
   const {
@@ -352,7 +376,7 @@ function AppPageContent() {
   }, [activeTab])
 
   return (
-    <div className="min-h-screen body-gradient dark:bg-gray-900 pb-20 md:pb-0">
+    <div className="min-h-screen body-gradient bg-white dark:bg-transparent pb-20 md:pb-0">
       {/* 메인 콘텐츠 섹션 */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24 py-0 sm:py-2 md:py-6 relative z-0">
         <div className="w-full">
@@ -644,7 +668,7 @@ export default function AppPage() {
 
   return (
     <Suspense fallback={
-      <div className="min-h-screen body-gradient">
+      <div className="min-h-screen body-gradient bg-white dark:bg-transparent">
         {/* 헤더 스켈레톤 */}
         <div className="h-16 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
 

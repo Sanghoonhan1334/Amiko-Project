@@ -56,16 +56,57 @@ export default function SignInPage() {
       }
     }
     
-    // accountDeleted 쿼리 파라미터 확인
+    // 쿼리 파라미터 확인
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
+      
+      // accountDeleted 쿼리 파라미터 확인
       if (params.get('accountDeleted') === '1') {
         setShowDeleteSuccess(true)
         // URL에서 쿼리 파라미터 제거 (깔끔한 URL 유지)
         router.replace('/sign-in', { scroll: false })
       }
+      
+      // OAuth 에러 처리
+      const error = params.get('error')
+      const errorDescription = params.get('error_description')
+      if (error) {
+        console.error('[SIGNIN] OAuth 에러 감지:', error, errorDescription)
+        
+        let errorMessage = ''
+        if (error === 'access_denied' || error === 'user_cancelled') {
+          errorMessage = language === 'ko' 
+            ? 'Google 로그인이 취소되었습니다.' 
+            : 'Inicio de sesión con Google cancelado.'
+        } else if (error === 'missing_code') {
+          errorMessage = language === 'ko'
+            ? '인증 코드를 받지 못했습니다. 다시 시도해주세요.'
+            : 'No se recibió el código de autenticación. Por favor, inténtelo de nuevo.'
+        } else if (error === 'exchange_failed') {
+          errorMessage = language === 'ko'
+            ? '인증 처리 중 오류가 발생했습니다. 다시 시도해주세요.'
+            : 'Error al procesar la autenticación. Por favor, inténtelo de nuevo.'
+        } else if (error === 'no_session') {
+          errorMessage = language === 'ko'
+            ? '세션을 생성하지 못했습니다. 다시 시도해주세요.'
+            : 'No se pudo crear la sesión. Por favor, inténtelo de nuevo.'
+        } else if (error === 'unexpected_error') {
+          errorMessage = language === 'ko'
+            ? '예상치 못한 오류가 발생했습니다. 다시 시도해주세요.'
+            : 'Ocurrió un error inesperado. Por favor, inténtelo de nuevo.'
+        } else {
+          errorMessage = errorDescription 
+            ? (language === 'ko' ? `오류: ${errorDescription}` : `Error: ${errorDescription}`)
+            : (language === 'ko' ? 'Google 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
+        }
+        
+        alert(errorMessage)
+        
+        // URL에서 쿼리 파라미터 제거
+        router.replace('/sign-in', { scroll: false })
+      }
     }
-  }, [router])
+  }, [router, language])
 
   useEffect(() => {
     if (!BIOMETRIC_ENABLED) {
@@ -429,29 +470,40 @@ export default function SignInPage() {
             onClick={async () => {
               try {
                 setIsLoading(true)
+                console.log('[SIGNIN] Google 로그인 시작')
+                
                 const supabase = createSupabaseBrowserClient()
                 
                 // 앱 환경에서 올바른 리다이렉트 URL 사용
                 const getRedirectUrl = () => {
                   // 환경 변수가 있으면 우선 사용
                   if (process.env.NEXT_PUBLIC_APP_URL) {
-                    return `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/main`
+                    const url = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/main`
+                    console.log('[SIGNIN] 리다이렉트 URL (환경변수):', url)
+                    return url
                   }
                   
                   // Capacitor 앱인 경우 실제 서버 URL 사용
                   if (Capacitor.isNativePlatform()) {
-                    return `https://www.helloamiko.com/auth/callback?next=/main`
+                    const url = `https://www.helloamiko.com/auth/callback?next=/main`
+                    console.log('[SIGNIN] 리다이렉트 URL (네이티브):', url)
+                    return url
                   }
                   
                   // 웹 환경에서는 window.location.origin 사용
                   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.helloamiko.com'
-                  return `${origin}/auth/callback?next=/main`
+                  const url = `${origin}/auth/callback?next=/main`
+                  console.log('[SIGNIN] 리다이렉트 URL (웹):', url)
+                  return url
                 }
                 
-                const { error } = await supabase.auth.signInWithOAuth({
+                const redirectUrl = getRedirectUrl()
+                console.log('[SIGNIN] 최종 리다이렉트 URL:', redirectUrl)
+                
+                const { data, error } = await supabase.auth.signInWithOAuth({
                   provider: 'google',
                   options: {
-                    redirectTo: getRedirectUrl(),
+                    redirectTo: redirectUrl,
                     queryParams: {
                       access_type: 'offline',
                       prompt: 'consent',
@@ -461,13 +513,41 @@ export default function SignInPage() {
 
                 if (error) {
                   console.error('[SIGNIN] Google 로그인 실패:', error)
-                  alert(language === 'ko' ? '구글 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
+                  alert(language === 'ko' 
+                    ? `구글 로그인에 실패했습니다: ${error.message || error}` 
+                    : `Error al iniciar sesión con Google: ${error.message || error}`)
+                  setIsLoading(false)
+                  return
+                }
+
+                // data가 있으면 리다이렉트가 시작된 것
+                if (data?.url) {
+                  console.log('[SIGNIN] Google OAuth 리다이렉트 시작:', data.url)
+                  
+                  // 네이티브 앱에서는 현재 WebView에서 리다이렉트
+                  // Capacitor의 server.url 설정으로 인해 모든 요청이 앱 내부에서 처리됨
+                  if (Capacitor.isNativePlatform()) {
+                    console.log('[SIGNIN] 네이티브 앱: WebView에서 OAuth 처리')
+                    // 현재 WebView에서 리다이렉트 (앱 내부에서 처리)
+                    window.location.href = data.url
+                  } else {
+                    // 웹에서는 자동으로 리다이렉트
+                    window.location.href = data.url
+                  }
+                } else {
+                  // data.url이 없으면 예상치 못한 상황
+                  console.warn('[SIGNIN] Google OAuth 응답에 URL이 없음:', data)
+                  alert(language === 'ko' 
+                    ? 'Google 로그인을 시작할 수 없습니다. 다시 시도해주세요.' 
+                    : 'No se pudo iniciar el inicio de sesión con Google. Por favor, inténtelo de nuevo.')
                   setIsLoading(false)
                 }
-                // 성공하면 자동으로 Google로 리다이렉트되므로 여기서는 아무것도 하지 않음
               } catch (error) {
                 console.error('[SIGNIN] Google 로그인 오류:', error)
-                alert(language === 'ko' ? '구글 로그인 중 오류가 발생했습니다.' : 'Error al iniciar sesión con Google')
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+                alert(language === 'ko' 
+                  ? `구글 로그인 중 오류가 발생했습니다: ${errorMessage}` 
+                  : `Error al iniciar sesión con Google: ${errorMessage}`)
                 setIsLoading(false)
               }
             }}

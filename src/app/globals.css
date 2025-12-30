@@ -847,6 +847,11 @@ link[rel="shortcut icon"] img {
     background: hsl(var(--background));
   }
   
+  /* 라이트 모드에서 명시적으로 흰색 배경 */
+  .body-gradient:not(.dark) {
+    background: #ffffff !important;
+  }
+  
   .dark .body-gradient {
     background: hsl(var(--background));
   }
