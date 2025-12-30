@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
+import { sendFCMv1Notification } from '@/lib/fcm-v1'
 
 // VAPID 키 설정 (환경변수가 없으면 빌드 시점에 오류를 방지하기 위해 조건부로 설정)
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
@@ -136,70 +137,62 @@ export async function POST(request: Request) {
           const isNative = String(subscription.endpoint).startsWith('native://')
           
           if (isNative) {
-            // 네이티브 앱 푸시 알림 (FCM/APNS)
+            // 네이티브 앱 푸시 알림 (FCM HTTP v1 API 사용)
             const nativeToken = subscription.native_token as string
             const platform = subscription.platform as string
             
             console.log(`[PUSH] 네이티브 앱 푸시 발송 시도: ${platform}, 토큰: ${nativeToken?.substring(0, 20)}...`)
             
-            // FCM 서버 키가 있는 경우 FCM으로 발송
-            const fcmServerKey = process.env.FCM_SERVER_KEY
-            if (fcmServerKey && platform === 'android') {
+            if (platform === 'android') {
               try {
-                const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `key=${fcmServerKey}`,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    to: nativeToken,
-                    notification: {
-                      title,
-                      body: messageBody,
-                      icon: data?.icon || '/favicon.ico',
-                      click_action: data?.url || '/notifications'
-                    },
-                    data: {
-                      ...data,
-                      url: data?.url || '/notifications',
-                      notificationId: notificationLog.id
-                    }
-                  })
-                })
+                // FCM HTTP v1 API 사용
+                const result = await sendFCMv1Notification(
+                  nativeToken,
+                  title,
+                  messageBody,
+                  {
+                    ...data,
+                    url: data?.url || '/notifications',
+                    notificationId: String(notificationLog.id)
+                  }
+                )
                 
-                if (fcmResponse.ok) {
-                  console.log('✅ FCM 푸시 알림 발송 성공:', subscription.id)
+                if (result.success) {
+                  console.log('✅ FCM v1 푸시 알림 발송 성공:', subscription.id, result.messageId)
                   return {
                     subscriptionId: subscription.id,
                     success: true,
-                    statusCode: fcmResponse.status,
-                    platform: 'android'
+                    statusCode: 200,
+                    platform: 'android',
+                    messageId: result.messageId
                   }
                 } else {
-                  const errorData = await fcmResponse.json()
-                  throw new Error(`FCM 발송 실패: ${JSON.stringify(errorData)}`)
+                  throw new Error(result.error || 'FCM v1 발송 실패')
                 }
               } catch (fcmError) {
-                console.error('❌ FCM 푸시 알림 발송 실패:', fcmError)
-                throw fcmError
+                console.error('❌ FCM v1 푸시 알림 발송 실패:', fcmError)
+                return {
+                  subscriptionId: subscription.id,
+                  success: false,
+                  error: fcmError instanceof Error ? fcmError.message : 'FCM v1 발송 실패',
+                  statusCode: 500
+                }
               }
-            } else {
-              // FCM 서버 키가 없거나 iOS인 경우
-              if (!fcmServerKey) {
-                console.warn(`[PUSH] FCM 서버 키가 설정되지 않았습니다. 환경 변수 FCM_SERVER_KEY를 설정해주세요.`)
-                console.warn(`[PUSH] 설정 가이드: docs/FCM_SETUP_GUIDE.md 참조`)
-              }
-              if (platform === 'ios') {
-                console.warn(`[PUSH] iOS 푸시 알림은 아직 지원되지 않습니다.`)
-              }
+            } else if (platform === 'ios') {
+              // iOS는 아직 지원되지 않음
+              console.warn(`[PUSH] iOS 푸시 알림은 아직 지원되지 않습니다.`)
               return {
                 subscriptionId: subscription.id,
                 success: false,
-                error: fcmServerKey 
-                  ? 'iOS는 아직 지원되지 않습니다.' 
-                  : 'FCM 서버 키가 설정되지 않았습니다. 환경 변수 FCM_SERVER_KEY를 설정해주세요.',
+                error: 'iOS는 아직 지원되지 않습니다.',
                 statusCode: 503
+              }
+            } else {
+              return {
+                subscriptionId: subscription.id,
+                success: false,
+                error: `지원되지 않는 플랫폼: ${platform}`,
+                statusCode: 400
               }
             }
           } else {
