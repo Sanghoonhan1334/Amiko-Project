@@ -34,7 +34,10 @@ const nextConfig = {
   },
   // 🚀 최적화: 컴파일러 최적화 강화
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // API 라우트에서는 로그가 필요하므로 console.error만 제거
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['log', 'warn', 'error'], // 모든 console 메서드 유지 (디버깅용)
+    } : false,
   },
   // React Strict Mode 설정
   reactStrictMode: true,

@@ -1,5 +1,7 @@
 // 모듈 로딩 시점 로그 (가장 먼저 실행)
-console.log('[VERIFY_START] 🔥 모듈 로드 완료 - TOP LEVEL')
+if (typeof console !== 'undefined') {
+  console.log('[VERIFY_START] 🔥 모듈 로드 완료 - TOP LEVEL')
+}
 
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -7,15 +9,51 @@ export const runtime = 'nodejs'
 
 // OTP 전송 시작 API - 단계적 테스트 버전
 export async function POST(request: NextRequest) {
-  console.log('[VERIFY_START] ========================================')
-  console.log('[VERIFY_START] STEP 1: 함수 진입')
-  console.log('[VERIFY_START] ========================================')
+  // 즉시 로그 출력 (함수 진입 확인용)
+  if (typeof console !== 'undefined') {
+    console.log('[VERIFY_START] ========================================')
+    console.log('[VERIFY_START] STEP 1: 함수 진입 성공!')
+    console.log('[VERIFY_START] Request URL:', request.url)
+    console.log('[VERIFY_START] Request Method:', request.method)
+    console.log('[VERIFY_START] ========================================')
+  }
 
   try {
-    // STEP 2: 요청 본문 파싱
-    console.log('[VERIFY_START] STEP 2: 요청 본문 파싱 시작')
-    const body = await request.json()
-    console.log('[VERIFY_START] STEP 2 완료:', { channel: body.channel, target: body.target?.substring(0, 5) + '...' })
+    // STEP 2: 요청 본문 파싱 (안전하게)
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 2: 요청 본문 파싱 시작')
+    }
+    
+    let body: any
+    try {
+      const text = await request.text()
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 2: 요청 본문 텍스트 받음:', text?.substring(0, 100))
+      }
+      
+      if (!text || text.trim() === '') {
+        if (typeof console !== 'undefined') {
+          console.error('[VERIFY_START] STEP 2 에러: 요청 본문이 비어있음')
+        }
+        return NextResponse.json(
+          { ok: false, error: 'EMPTY_REQUEST_BODY', message: '요청 본문이 비어있습니다.' },
+          { status: 400 }
+        )
+      }
+      
+      body = JSON.parse(text)
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 2 완료:', { channel: body?.channel, target: body?.target?.substring(0, 5) + '...' })
+      }
+    } catch (jsonError) {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 2 에러: JSON 파싱 실패!', jsonError)
+      }
+      return NextResponse.json(
+        { ok: false, error: 'INVALID_JSON', message: '요청 본문 형식이 올바르지 않습니다.', detail: jsonError instanceof Error ? jsonError.message : String(jsonError) },
+        { status: 400 }
+      )
+    }
 
     const { channel, target, nationality } = body
 
@@ -35,7 +73,9 @@ export async function POST(request: NextRequest) {
     }
 
     // STEP 4: 전화번호 정규화 (간단 버전)
-    console.log('[VERIFY_START] STEP 4: 전화번호 정규화 시작')
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 4: 전화번호 정규화 시작')
+    }
     let normalizedTarget = target
     try {
       const { toE164 } = await import('@/lib/phoneUtils')
@@ -46,9 +86,13 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      console.log('[VERIFY_START] STEP 4 완료:', { original: target, normalized: normalizedTarget })
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 4 완료:', { original: target, normalized: normalizedTarget })
+      }
     } catch (phoneError) {
-      console.error('[VERIFY_START] STEP 4 에러:', phoneError)
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 4 에러:', phoneError)
+      }
       return NextResponse.json(
         { ok: false, error: 'PHONE_NUMBER_NORMALIZATION_FAILED', message: '전화번호 정규화에 실패했습니다.' },
         { status: 400 }
@@ -56,26 +100,40 @@ export async function POST(request: NextRequest) {
     }
 
     // STEP 5: 인증코드 생성
-    console.log('[VERIFY_START] STEP 5: 인증코드 생성')
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 5: 인증코드 생성')
+    }
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    console.log('[VERIFY_START] STEP 5 완료:', { code: verificationCode })
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 5 완료:', { code: verificationCode })
+    }
 
     // STEP 6: WhatsApp 발송 (Twilio 호출만 테스트)
-    console.log('[VERIFY_START] STEP 6: WhatsApp 발송 시작')
-    console.log('[VERIFY_START] 동적 import 시작...')
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 6: WhatsApp 발송 시작')
+      console.log('[VERIFY_START] 동적 import 시작...')
+    }
     
     let sendSuccess = false
     try {
       const { sendVerificationWhatsApp } = await import('@/lib/smsService')
-      console.log('[VERIFY_START] sendVerificationWhatsApp import 성공')
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] sendVerificationWhatsApp import 성공')
+      }
       
       const language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
-      console.log('[VERIFY_START] WhatsApp 발송 호출:', { to: normalizedTarget, code: verificationCode, language })
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] WhatsApp 발송 호출:', { to: normalizedTarget, code: verificationCode, language })
+      }
       
       sendSuccess = await sendVerificationWhatsApp(normalizedTarget, verificationCode, language)
-      console.log('[VERIFY_START] WhatsApp 발송 결과:', sendSuccess)
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] WhatsApp 발송 결과:', sendSuccess)
+      }
     } catch (sendError) {
-      console.error('[VERIFY_START] STEP 6 에러: WhatsApp 발송 중 예외 발생!', sendError)
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 6 에러: WhatsApp 발송 중 예외 발생!', sendError)
+      }
       return NextResponse.json(
         { 
           ok: false, 
@@ -89,17 +147,23 @@ export async function POST(request: NextRequest) {
     }
 
     if (!sendSuccess) {
-      console.error('[VERIFY_START] STEP 6 에러: WhatsApp 발송 실패!')
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 6 에러: WhatsApp 발송 실패!')
+      }
       return NextResponse.json(
         { ok: false, error: 'WHATSAPP_SEND_FAILED', message: 'WhatsApp 발송에 실패했습니다.' },
         { status: 500 }
       )
     }
 
-    console.log('[VERIFY_START] STEP 6 완료: WhatsApp 발송 성공')
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 6 완료: WhatsApp 발송 성공')
+    }
 
     // STEP 7: 성공 응답
-    console.log('[VERIFY_START] STEP 7: 성공 응답 반환')
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 7: 성공 응답 반환')
+    }
     return NextResponse.json({ 
       ok: true, 
       message: '인증코드가 성공적으로 발송되었습니다.',
@@ -107,12 +171,14 @@ export async function POST(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error) {
-    console.error('========================================')
-    console.error('[VERIFY_START] ❌ 최상위 catch 블록: 예외 발생!')
-    console.error('========================================')
-    console.error('[VERIFY_START] 에러 타입:', error?.constructor?.name)
-    console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
-    console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
+    if (typeof console !== 'undefined') {
+      console.error('========================================')
+      console.error('[VERIFY_START] ❌ 최상위 catch 블록: 예외 발생!')
+      console.error('========================================')
+      console.error('[VERIFY_START] 에러 타입:', error?.constructor?.name)
+      console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
+      console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
+    }
 
     return NextResponse.json(
       {
