@@ -6,23 +6,29 @@ import { toE164 } from '@/lib/phoneUtils'
 
 // OTP 전송 시작 API
 export async function POST(request: NextRequest) {
-  console.log('[VERIFY_START] ========================================')
-  console.log('[VERIFY_START] ✅ 함수 호출됨!')
+  console.log('========================================')
+  console.log('STEP 1: 함수 진입')
+  console.log('========================================')
   
   try {
-    console.log('[VERIFY_START] 요청 본문 파싱 시작')
+    console.log('STEP 2: 요청 본문 파싱 시작')
     const body = await request.json()
+    console.log('STEP 2: req body', body)
     const { channel, target, purpose = 'signup', nationality } = body
-    console.log('[VERIFY_START] 요청 본문 파싱 완료:', { channel, target: target?.substring(0, 5) + '...', purpose, nationality })
+    console.log('STEP 2 완료:', { channel, target: target?.substring(0, 5) + '...', purpose, nationality })
 
+    console.log('STEP 3: 입력 검증 시작')
     // 입력 검증
     if (!channel || !target) {
+      console.error('STEP 3 에러: 필수 필드 누락', { channel, target })
       return NextResponse.json(
         { ok: false, error: 'MISSING_REQUIRED_FIELDS' },
         { status: 400 }
       )
     }
+    console.log('STEP 3 완료')
     
+    console.log('STEP 4: 전화번호 정규화 시작')
     // 전화번호인 경우 국가번호 정규화
     let normalizedTarget = target
     if (channel !== 'email') {
@@ -55,20 +61,48 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log('STEP 4 완료:', { normalizedTarget })
+    
+    console.log('STEP 5: 채널 유효성 검증')
     // 채널 유효성 검증
     const validChannels = ['wa', 'sms', 'email']
     if (!validChannels.includes(channel)) {
+      console.error('STEP 5 에러: 잘못된 채널', { channel })
       return NextResponse.json(
         { ok: false, error: 'INVALID_CHANNEL' },
         { status: 400 }
       )
     }
+    console.log('STEP 5 완료')
 
-    const supabase = createAdminClient()
+    console.log('STEP 6: Admin Client 생성 시작')
+    console.log('STEP 6: 환경 변수 확인', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0
+    })
+    let supabase
+    try {
+      supabase = createAdminClient()
+      console.log('STEP 6 완료: Admin Client 생성 성공')
+    } catch (err) {
+      console.error('STEP 6 에러: Admin Client 생성 실패')
+      console.error(err)
+      return NextResponse.json(
+        { 
+          ok: false, 
+          error: 'SERVER_CONFIG_ERROR',
+          message: '서버 설정 오류가 발생했습니다. 관리자에게 문의해주세요.' 
+        },
+        { status: 500 }
+      )
+    }
 
+    console.log('STEP 7: Rate Limit 체크 시작')
     // 인증 시도 제한 확인
     // 개발 환경에서는 rate limit 체크를 건너뜀 (테스트 편의를 위해)
     const skipRateLimit = process.env.NODE_ENV === 'development'
+    console.log('STEP 7: skipRateLimit', skipRateLimit)
     
     if (!skipRateLimit) {
       // 'wa' (WhatsApp)는 'sms'로 처리 (RPC 함수는 'email' 또는 'sms'만 체크)
@@ -92,7 +126,7 @@ export async function POST(request: NextRequest) {
             p_auth_type: authTypeForRateLimit
           })
         
-        console.log('[VERIFY_START] RPC 함수 호출 후:', {
+        console.log('STEP 7: RPC 함수 호출 후:', {
           rateLimitData,
           hasError: !!rateLimitError,
           error: rateLimitError
@@ -100,7 +134,8 @@ export async function POST(request: NextRequest) {
 
         // RPC 함수 에러가 있는 경우
         if (rateLimitError) {
-          console.error('[VERIFY_START] 인증 시도 제한 확인 실패:', rateLimitError)
+          console.error('STEP 7 에러: 인증 시도 제한 확인 실패')
+          console.error(rateLimitError)
           // RPC 함수 에러는 일단 통과 (함수 자체의 문제일 수 있음)
           console.warn('[VERIFY_START] RPC 함수 에러 발생, rate limit 체크를 건너뜁니다:', rateLimitError)
         } else {
@@ -153,26 +188,29 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (rpcError) {
-        console.error('[VERIFY_START] ========================================')
-        console.error('[VERIFY_START] ❌ RPC 함수 호출 중 예외 발생!')
-        console.error('[VERIFY_START] RPC 에러 타입:', rpcError?.constructor?.name)
-        console.error('[VERIFY_START] RPC 에러 메시지:', rpcError instanceof Error ? rpcError.message : String(rpcError))
-        console.error('[VERIFY_START] RPC 에러 스택:', rpcError instanceof Error ? rpcError.stack : 'N/A')
-        console.error('[VERIFY_START] RPC 에러 전체:', JSON.stringify(rpcError, Object.getOwnPropertyNames(rpcError || {}), 2))
-        console.error('[VERIFY_START] ========================================')
+        console.error('STEP 7 에러: RPC 함수 호출 중 예외 발생!')
+        console.error('STEP 7 에러 타입:', rpcError?.constructor?.name)
+        console.error('STEP 7 에러 메시지:', rpcError instanceof Error ? rpcError.message : String(rpcError))
+        console.error('STEP 7 에러 스택:', rpcError instanceof Error ? rpcError.stack : 'N/A')
+        console.error('STEP 7 에러 전체:', JSON.stringify(rpcError, Object.getOwnPropertyNames(rpcError || {}), 2))
+        console.error(rpcError)
         // RPC 함수 호출 실패는 일단 통과 (함수 자체의 문제일 수 있음)
         console.warn('[VERIFY_START] RPC 함수 호출 실패, rate limit 체크를 건너뜁니다')
       }
     } else {
-      console.log('[RATE_LIMIT] 개발 환경에서 rate limit 체크를 건너뜁니다 (DISABLE_RATE_LIMIT=true)')
+      console.log('STEP 7: 개발 환경에서 rate limit 체크를 건너뜁니다')
     }
+    console.log('STEP 7 완료')
 
+    console.log('STEP 8: 인증코드 생성 및 저장 시작')
     // 인증코드 생성 (6자리 숫자)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    console.log('STEP 8: 인증코드 생성 완료:', verificationCode.substring(0, 2) + '****')
     
     // 만료 시간 설정 (10분)
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
+    console.log('STEP 8: 기존 인증코드 비활성화 시작')
     // 기존 미인증 코드들 비활성화 (정규화된 전화번호 사용)
     const { error: deactivateError } = await supabase
       .from('verification_codes')
@@ -182,11 +220,15 @@ export async function POST(request: NextRequest) {
       .eq('verified', false)
 
     if (deactivateError) {
-      console.error('기존 인증코드 비활성화 실패:', deactivateError)
+      console.error('STEP 8 에러: 기존 인증코드 비활성화 실패')
+      console.error(deactivateError)
+    } else {
+      console.log('STEP 8: 기존 인증코드 비활성화 완료')
     }
 
+    console.log('STEP 8: 새 인증코드 저장 시작')
     // 새 인증코드 저장 (정규화된 전화번호 사용)
-    console.log('[VERIFY_START] 인증코드 저장 시도:', {
+    console.log('STEP 8: 인증코드 저장 데이터:', {
       channel,
       normalizedTarget,
       code: verificationCode,
@@ -210,9 +252,8 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError || !verificationData) {
-      console.error('[VERIFY_START] ========================================')
-      console.error('[VERIFY_START] ❌ 인증코드 저장 실패!')
-      console.error('[VERIFY_START] 에러 객체:', {
+      console.error('STEP 8 에러: 인증코드 저장 실패!')
+      console.error('STEP 8 에러 객체:', {
         error: insertError,
         message: insertError?.message,
         code: insertError?.code,
@@ -221,9 +262,9 @@ export async function POST(request: NextRequest) {
         channel,
         normalizedTarget
       })
-      console.error('[VERIFY_START] 에러 전체:', JSON.stringify(insertError, Object.getOwnPropertyNames(insertError || {}), 2))
-      console.error('[VERIFY_START] verificationData:', verificationData)
-      console.error('[VERIFY_START] ========================================')
+      console.error('STEP 8 에러 전체:', JSON.stringify(insertError, Object.getOwnPropertyNames(insertError || {}), 2))
+      console.error('STEP 8 verificationData:', verificationData)
+      console.error(insertError)
       return NextResponse.json(
         { 
           ok: false, 
@@ -235,14 +276,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[VERIFY_START] 인증코드 저장 성공:', {
+    console.log('STEP 8 완료: 인증코드 저장 성공:', {
       id: verificationData.id,
       channel,
       target: normalizedTarget
     })
 
+    console.log('STEP 9: 인증코드 발송 시작')
     // 채널별 실제 발송 (정규화된 전화번호 사용)
     if (channel === 'email') {
+      console.log('STEP 9: 이메일 발송 시작')
       // 이메일 발송 (purpose에 따라 다른 템플릿 사용)
       const emailPurpose = purpose === 'passwordReset' ? 'passwordReset' : 'signup'
       // 언어 결정 (이메일 도메인 기반 또는 기본값)
@@ -253,38 +296,45 @@ export async function POST(request: NextRequest) {
       const emailSent = await sendVerificationEmail(normalizedTarget, verificationCode, emailLanguage, emailPurpose)
       
       if (!emailSent) {
-        console.error('이메일 발송 실패')
+        console.error('STEP 9 에러: 이메일 발송 실패')
         return NextResponse.json(
           { ok: false, error: 'EMAIL_SEND_FAILED' },
           { status: 500 }
         )
       }
+      console.log('STEP 9: 이메일 발송 완료')
     } else if (channel === 'sms') {
+      console.log('STEP 9: SMS 발송 시작')
       // SMS 발송 (정규화된 전화번호 사용)
       const language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
       const smsSent = await sendVerificationSMS(normalizedTarget, verificationCode, language)
       
       if (!smsSent) {
-        console.error('SMS 발송 실패')
+        console.error('STEP 9 에러: SMS 발송 실패')
         return NextResponse.json(
           { ok: false, error: 'SMS_SEND_FAILED' },
           { status: 500 }
         )
       }
+      console.log('STEP 9: SMS 발송 완료')
     } else if (channel === 'wa') {
+      console.log('STEP 9: WhatsApp 발송 시작')
       // WhatsApp 발송 (정규화된 전화번호 사용)
       const language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
       const waSent = await sendVerificationWhatsApp(normalizedTarget, verificationCode, language)
       
       if (!waSent) {
-        console.error('WhatsApp 발송 실패')
+        console.error('STEP 9 에러: WhatsApp 발송 실패')
         return NextResponse.json(
           { ok: false, error: 'WHATSAPP_SEND_FAILED' },
           { status: 500 }
         )
       }
+      console.log('STEP 9: WhatsApp 발송 완료')
     }
+    console.log('STEP 9 완료')
 
+    console.log('STEP 10: 인증 로그 기록 시작')
     // 인증 로그 기록
     const { error: logError } = await supabase
       .rpc('log_auth_attempt', {
@@ -297,10 +347,16 @@ export async function POST(request: NextRequest) {
       })
 
     if (logError) {
-      console.error('인증 로그 기록 실패:', logError)
+      console.error('STEP 10 에러: 인증 로그 기록 실패')
+      console.error(logError)
       // 로그 실패는 인증코드 발송 성공에 영향을 주지 않음
+    } else {
+      console.log('STEP 10 완료')
     }
 
+    console.log('========================================')
+    console.log('STEP 11: OTP 전송 성공!')
+    console.log('========================================')
     console.log('OTP 전송 성공:', {
       channel,
       target,
@@ -321,13 +377,14 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('[VERIFY_START] ========================================')
-    console.error('[VERIFY_START] ❌ 예외 발생!')
-    console.error('[VERIFY_START] 에러 타입:', error?.constructor?.name)
-    console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
-    console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
-    console.error('[VERIFY_START] 에러 전체:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
-    console.error('[VERIFY_START] ========================================')
+    console.error('========================================')
+    console.error('❌ 최상위 catch 블록: 예외 발생!')
+    console.error('========================================')
+    console.error('에러 타입:', error?.constructor?.name)
+    console.error('에러 메시지:', error instanceof Error ? error.message : String(error))
+    console.error('에러 스택:', error instanceof Error ? error.stack : 'N/A')
+    console.error('에러 전체:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+    console.error(error)
     
     return NextResponse.json(
       { 
