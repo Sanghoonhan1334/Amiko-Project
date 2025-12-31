@@ -462,139 +462,17 @@ export default function SignInPage() {
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6">
-          {/* 구글 로그인 버튼 */}
+          {/* 구글 로그인 버튼 - 일시 비활성화 */}
           <Button
             type="button"
             variant="outline"
-            className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors"
-            onClick={async () => {
-              try {
-                setIsLoading(true)
-                console.log('[SIGNIN] Google 로그인 시작')
-                
-                const supabase = createSupabaseBrowserClient()
-                
-                // 앱 환경에서 올바른 리다이렉트 URL 사용
-                const getRedirectUrl = () => {
-                  // 환경 변수가 있으면 우선 사용
-                  if (process.env.NEXT_PUBLIC_APP_URL) {
-                    const url = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/main`
-                    console.log('[SIGNIN] 리다이렉트 URL (환경변수):', url)
-                    return url
-                  }
-                  
-                  // Capacitor 앱인 경우 실제 서버 URL 사용
-                  if (Capacitor.isNativePlatform()) {
-                    const url = `https://www.helloamiko.com/auth/callback?next=/main`
-                    console.log('[SIGNIN] 리다이렉트 URL (네이티브):', url)
-                    return url
-                  }
-                  
-                  // 웹 환경에서는 window.location.origin 사용
-                  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.helloamiko.com'
-                  const url = `${origin}/auth/callback?next=/main`
-                  console.log('[SIGNIN] 리다이렉트 URL (웹):', url)
-                  return url
-                }
-                
-                const redirectUrl = getRedirectUrl()
-                console.log('[SIGNIN] 최종 리다이렉트 URL:', redirectUrl)
-                
-                // OAuth 요청 (skipBrowserRedirect 사용하여 수동 처리)
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                  provider: 'google',
-                  options: {
-                    redirectTo: redirectUrl,
-                    queryParams: {
-                      access_type: 'offline',
-                      prompt: 'consent',
-                      // Google OAuth에 테마 파라미터 추가 (다크모드 방지)
-                      theme: 'light',
-                    },
-                    skipBrowserRedirect: Capacitor.isNativePlatform(), // 네이티브 앱에서만 수동 처리
-                  },
-                })
-
-                if (error) {
-                  console.error('[SIGNIN] Google 로그인 실패:', error)
-                  alert(language === 'ko' 
-                    ? `구글 로그인에 실패했습니다: ${error.message || error}` 
-                    : `Error al iniciar sesión con Google: ${error.message || error}`)
-                  setIsLoading(false)
-                  return
-                }
-
-                // data가 있으면 리다이렉트가 시작된 것
-                if (data?.url) {
-                  console.log('[SIGNIN] Google OAuth 리다이렉트 시작:', data.url)
-                  
-                  // 네이티브 앱에서는 Browser 플러그인으로 인앱 브라우저 열기
-                  if (Capacitor.isNativePlatform()) {
-                    try {
-                      console.log('[SIGNIN] 네이티브 앱: 인앱 브라우저로 OAuth 열기')
-                      const { Browser } = await import('@capacitor/browser')
-                      
-                      // OAuth URL에 테마 파라미터 추가 (다크모드 방지)
-                      const oauthUrl = new URL(data.url)
-                      oauthUrl.searchParams.set('theme', 'light')
-                      const finalUrl = oauthUrl.toString()
-                      
-                      console.log('[SIGNIN] 최종 OAuth URL:', finalUrl)
-                      
-                      // 인앱 브라우저 열기
-                      await Browser.open({
-                        url: finalUrl,
-                        windowName: '_self',
-                        presentationStyle: 'fullscreen'
-                      })
-                      
-                      // 브라우저가 닫히면 로딩 상태 해제
-                      Browser.addListener('browserFinished', () => {
-                        console.log('[SIGNIN] 인앱 브라우저 닫힘')
-                        setIsLoading(false)
-                      })
-                      
-                      // 앱으로 돌아오는 딥링크 리스너
-                      const { App } = await import('@capacitor/app')
-                      const urlOpenListener = await App.addListener('appUrlOpen', (event) => {
-                        console.log('[SIGNIN] 앱 딥링크 수신:', event.url)
-                        if (event.url.includes('/auth/callback') || event.url.includes('amiko://auth/callback')) {
-                          // 브라우저 닫기
-                          Browser.close().catch(console.error)
-                          // 콜백이 처리되면 로딩 상태 해제
-                          setIsLoading(false)
-                          // 리스너 제거
-                          urlOpenListener.remove()
-                        }
-                      })
-                    } catch (browserError) {
-                      console.error('[SIGNIN] 인앱 브라우저 열기 실패:', browserError)
-                      // Browser 플러그인 실패 시 현재 WebView에서 직접 처리
-                      console.log('[SIGNIN] Browser 플러그인 실패, WebView에서 직접 처리')
-                      window.location.replace(data.url)
-                    }
-                  } else {
-                    // 웹에서는 자동으로 리다이렉트
-                    window.location.href = data.url
-                  }
-                } else {
-                  // data.url이 없으면 예상치 못한 상황
-                  console.warn('[SIGNIN] Google OAuth 응답에 URL이 없음:', data)
-                  alert(language === 'ko' 
-                    ? 'Google 로그인을 시작할 수 없습니다. 다시 시도해주세요.' 
-                    : 'No se pudo iniciar el inicio de sesión con Google. Por favor, inténtelo de nuevo.')
-                  setIsLoading(false)
-                }
-              } catch (error) {
-                console.error('[SIGNIN] Google 로그인 오류:', error)
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-                alert(language === 'ko' 
-                  ? `구글 로그인 중 오류가 발생했습니다: ${errorMessage}` 
-                  : `Error al iniciar sesión con Google: ${errorMessage}`)
-                setIsLoading(false)
-              }
+            className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors opacity-50 cursor-not-allowed"
+            onClick={() => {
+              alert(language === 'ko' 
+                ? 'Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
+                : 'El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.')
             }}
-            disabled={isLoading}
+            disabled={true}
           >
             <div className="flex items-center justify-center gap-3">
               {/* 구글 아이콘 SVG */}
@@ -617,10 +495,18 @@ export default function SignInPage() {
                 />
               </svg>
               <span>
-                {language === 'ko' ? 'Google로 계속하기' : 'Continuar con Google'}
+                {language === 'ko' ? 'Google로 계속하기 (수리 중)' : 'Continuar con Google (En mantenimiento)'}
               </span>
             </div>
           </Button>
+          {/* 안내 메시지 */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+            <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
+              {language === 'ko' 
+                ? '⚠️ Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
+                : '⚠️ El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.'}
+            </p>
+          </div>
           {/* 구분선 */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
