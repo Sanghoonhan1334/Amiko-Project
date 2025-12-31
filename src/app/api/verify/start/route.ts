@@ -1,16 +1,49 @@
-console.log('🔥 VERIFY_START MODULE LOADING');
+// 모듈 로딩 시점 로그 (가장 먼저 실행)
+console.log('🔥 VERIFY_START MODULE LOADING - TOP LEVEL');
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { sendVerificationEmail } from '@/lib/emailService'
-import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
-import { toE164 } from '@/lib/phoneUtils'
 
 export const runtime = 'nodejs';
 
 // OTP 전송 시작 API
 export async function POST(request: NextRequest) {
   console.log('🔥 VERIFY_START HANDLER ENTERED');
+  
+  // 동적 import - 함수 내부에서만 실행되도록
+  let createAdminClient: any
+  let sendVerificationEmail: any
+  let sendVerificationSMS: any
+  let sendVerificationWhatsApp: any
+  let toE164: any
+  
+  try {
+    console.log('[VERIFY_START] 동적 import 시작');
+    const adminModule = await import('@/lib/supabase/admin')
+    createAdminClient = adminModule.createAdminClient
+    
+    const emailModule = await import('@/lib/emailService')
+    sendVerificationEmail = emailModule.sendVerificationEmail
+    
+    const smsModule = await import('@/lib/smsService')
+    sendVerificationSMS = smsModule.sendVerificationSMS
+    sendVerificationWhatsApp = smsModule.sendVerificationWhatsApp
+    
+    const phoneModule = await import('@/lib/phoneUtils')
+    toE164 = phoneModule.toE164
+    
+    console.log('[VERIFY_START] 동적 import 완료');
+  } catch (importError) {
+    console.error('[VERIFY_START] ❌ 동적 import 실패:', importError);
+    return NextResponse.json(
+      { 
+        ok: false, 
+        error: 'MODULE_IMPORT_FAILED',
+        message: '필수 모듈을 로드할 수 없습니다.',
+        detail: importError instanceof Error ? importError.message : String(importError)
+      },
+      { status: 500 }
+    );
+  }
   
   try {
     console.log('[VERIFY_START] STEP 1: 요청 본문 파싱 시작');
