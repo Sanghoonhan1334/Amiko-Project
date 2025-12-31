@@ -1,21 +1,59 @@
+// 파일 최상단 - import 전에 즉시 실행되는 로그
+console.log('[VERIFY_START] 파일 로드 완료 - 모듈 초기화')
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendVerificationEmail } from '@/lib/emailService'
 import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 import { toE164 } from '@/lib/phoneUtils'
 
+// Edge 런타임 문제 방지 - Node.js 런타임 명시
+export const runtime = 'nodejs'
+
 // OTP 전송 시작 API
 export async function POST(request: NextRequest) {
   console.log('========================================')
-  console.log('STEP 1: 함수 진입')
+  console.log('[VERIFY_START] STEP 1: 함수 진입')
+  console.log('[VERIFY_START] STEP 1: Request 객체 확인', {
+    hasRequest: !!request,
+    method: request?.method,
+    url: request?.url
+  })
   console.log('========================================')
   
+  let body: any = null
+  
   try {
-    console.log('STEP 2: 요청 본문 파싱 시작')
-    const body = await request.json()
-    console.log('STEP 2: req body', body)
+    console.log('[VERIFY_START] STEP 2: 요청 본문 파싱 시작')
+    try {
+      body = await request.json()
+      console.log('[VERIFY_START] STEP 2: req body 파싱 성공', body)
+    } catch (jsonError) {
+      console.error('[VERIFY_START] STEP 2 에러: req.json() 파싱 실패')
+      console.error('[VERIFY_START] STEP 2 에러 타입:', jsonError?.constructor?.name)
+      console.error('[VERIFY_START] STEP 2 에러 메시지:', jsonError instanceof Error ? jsonError.message : String(jsonError))
+      console.error('[VERIFY_START] STEP 2 에러 스택:', jsonError instanceof Error ? jsonError.stack : 'N/A')
+      console.error(jsonError)
+      return NextResponse.json(
+        { 
+          ok: false, 
+          error: 'INVALID_REQUEST_BODY',
+          message: '요청 본문을 파싱할 수 없습니다.',
+          detail: jsonError instanceof Error ? jsonError.message : String(jsonError)
+        },
+        { status: 400 }
+      )
+    }
+    if (!body) {
+      console.error('[VERIFY_START] STEP 2 에러: body가 null 또는 undefined')
+      return NextResponse.json(
+        { ok: false, error: 'MISSING_REQUEST_BODY', message: '요청 본문이 없습니다.' },
+        { status: 400 }
+      )
+    }
+    
     const { channel, target, purpose = 'signup', nationality } = body
-    console.log('STEP 2 완료:', { channel, target: target?.substring(0, 5) + '...', purpose, nationality })
+    console.log('[VERIFY_START] STEP 2 완료:', { channel, target: target?.substring(0, 5) + '...', purpose, nationality })
 
     console.log('STEP 3: 입력 검증 시작')
     // 입력 검증
@@ -421,15 +459,18 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    // 최상위 catch - 모든 예외를 잡아야 함
     console.error('========================================')
-    console.error('❌ 최상위 catch 블록: 예외 발생!')
+    console.error('[VERIFY_START] ❌ 최상위 catch 블록: 예외 발생!')
     console.error('========================================')
-    console.error('에러 타입:', error?.constructor?.name)
-    console.error('에러 메시지:', error instanceof Error ? error.message : String(error))
-    console.error('에러 스택:', error instanceof Error ? error.stack : 'N/A')
-    console.error('에러 전체:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+    console.error('[VERIFY_START] 에러 타입:', error?.constructor?.name)
+    console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
+    console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
+    console.error('[VERIFY_START] 에러 전체:', JSON.stringify(error, Object.getOwnPropertyNames(error || {}), 2))
+    console.error('[VERIFY_START] 에러 객체:', error)
     console.error(error)
     
+    // 에러를 다시 throw하지 않고 응답 반환
     return NextResponse.json(
       { 
         ok: false, 
