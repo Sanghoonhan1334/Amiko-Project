@@ -431,15 +431,45 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
           templateSid: templateSid.substring(0, 10) + '...'
         })
         
-        // WhatsApp Authentication 템플릿 사용
-        const result = await client.messages.create({
+        console.log('[WHATSAPP_VERIFICATION] ========================================')
+        console.log('[WHATSAPP_VERIFICATION] 🚀 Twilio API 호출 시작!')
+        console.log('[WHATSAPP_VERIFICATION] Twilio 클라이언트 초기화 완료:', !!client)
+        console.log('[WHATSAPP_VERIFICATION] 요청 파라미터:', {
           from: whatsappFrom,
           to: whatsappTo,
           contentSid: templateSid,
-          contentVariables: JSON.stringify({
-            '1': code
-          })
+          contentVariables: JSON.stringify({ '1': code })
         })
+        console.log('[WHATSAPP_VERIFICATION] ========================================')
+        
+        // WhatsApp Authentication 템플릿 사용
+        let result: any
+        try {
+          result = await client.messages.create({
+            from: whatsappFrom,
+            to: whatsappTo,
+            contentSid: templateSid,
+            contentVariables: JSON.stringify({
+              '1': code
+            })
+          })
+          console.log('[WHATSAPP_VERIFICATION] ✅ Twilio API 호출 성공!')
+          console.log('[WHATSAPP_VERIFICATION] 응답 받음:', {
+            sid: result?.sid,
+            status: result?.status,
+            errorCode: result?.errorCode,
+            errorMessage: result?.errorMessage
+          })
+        } catch (apiError: any) {
+          console.error('[WHATSAPP_VERIFICATION] ❌ Twilio API 호출 실패!')
+          console.error('[WHATSAPP_VERIFICATION] API 에러:', {
+            code: apiError?.code,
+            message: apiError?.message,
+            status: apiError?.status,
+            moreInfo: apiError?.moreInfo
+          })
+          throw apiError // 상위 catch로 전달
+        }
         
         console.log(`[WHATSAPP_VERIFICATION] 템플릿을 사용한 WhatsApp 발송 완료: ${phoneNumber}`)
         console.log(`[WHATSAPP_VERIFICATION] 메시지 SID: ${result.sid}`)
