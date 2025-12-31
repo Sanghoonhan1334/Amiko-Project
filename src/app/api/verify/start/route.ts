@@ -55,21 +55,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { channel, target, nationality } = body
+    let { channel, target, nationality } = body
 
     // STEP 3: 입력 유효성 검사
     if (!channel || !target) {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 3 에러: 필수 필드 누락!', { channel, target })
+      }
       return NextResponse.json(
         { ok: false, error: 'MISSING_REQUIRED_FIELDS', message: '채널과 대상이 필요합니다.' },
         { status: 400 }
       )
     }
 
+    // 채널 정규화 (wa -> whatsapp)
+    if (channel === 'wa') {
+      channel = 'whatsapp'
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 3: 채널 정규화 (wa -> whatsapp)')
+      }
+    }
+
     if (channel !== 'whatsapp') {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 3 에러: 지원하지 않는 채널!', { channel })
+      }
       return NextResponse.json(
         { ok: false, error: 'ONLY_WHATSAPP_SUPPORTED', message: '현재 WhatsApp만 테스트 중입니다.' },
         { status: 400 }
       )
+    }
+
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 3 완료: 입력 유효성 검사 통과', { channel, target: target?.substring(0, 10) + '...' })
     }
 
     // STEP 4: 전화번호 정규화 (간단 버전)
