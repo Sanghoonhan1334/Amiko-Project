@@ -211,19 +211,33 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
     console.log('STEP 8: 기존 인증코드 비활성화 시작')
-    // 기존 미인증 코드들 비활성화 (정규화된 전화번호 사용)
-    const { error: deactivateError } = await supabase
-      .from('verification_codes')
-      .update({ verified: true }) // 이미 사용된 것으로 처리
-      .eq(channel === 'email' ? 'email' : 'phone_number', normalizedTarget)
-      .eq('type', channel)
-      .eq('verified', false)
+    try {
+      // 기존 미인증 코드들 비활성화 (정규화된 전화번호 사용)
+      const { data: deactivateData, error: deactivateError } = await supabase
+        .from('verification_codes')
+        .update({ verified: true }) // 이미 사용된 것으로 처리
+        .eq(channel === 'email' ? 'email' : 'phone_number', normalizedTarget)
+        .eq('type', channel)
+        .eq('verified', false)
+        .select()
 
-    if (deactivateError) {
-      console.error('STEP 8 에러: 기존 인증코드 비활성화 실패')
-      console.error(deactivateError)
-    } else {
-      console.log('STEP 8: 기존 인증코드 비활성화 완료')
+      if (deactivateError) {
+        console.error('STEP 8 에러: 기존 인증코드 비활성화 실패')
+        console.error('STEP 8 에러 상세:', {
+          message: deactivateError.message,
+          code: deactivateError.code,
+          details: deactivateError.details,
+          hint: deactivateError.hint
+        })
+        console.error(deactivateError)
+        // 에러가 있어도 계속 진행
+      } else {
+        console.log('STEP 8: 기존 인증코드 비활성화 완료', { deactivatedCount: deactivateData?.length || 0 })
+      }
+    } catch (deactivateErr) {
+      console.error('STEP 8 예외: 기존 인증코드 비활성화 중 예외 발생')
+      console.error(deactivateErr)
+      // 예외가 있어도 계속 진행
     }
 
     console.log('STEP 8: 새 인증코드 저장 시작')
@@ -236,20 +250,49 @@ export async function POST(request: NextRequest) {
       phone_number: channel !== 'email' ? normalizedTarget : null
     })
     
-    const { data: verificationData, error: insertError } = await supabase
-      .from('verification_codes')
-      .insert([{
-        email: channel === 'email' ? normalizedTarget : null,
-        phone_number: channel !== 'email' ? normalizedTarget : null,
-        code: verificationCode,
-        type: channel,
-        verified: false,
-        expires_at: expiresAt,
-        ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
-        user_agent: request.headers.get('user-agent') || 'Unknown'
-      }])
-      .select()
-      .single()
+    console.log('STEP 8: Supabase insert 호출 직전')
+    let verificationData
+    let insertError
+    try {
+      const result = await supabase
+        .from('verification_codes')
+        .insert([{
+          email: channel === 'email' ? normalizedTarget : null,
+          phone_number: channel !== 'email' ? normalizedTarget : null,
+          code: verificationCode,
+          type: channel,
+          verified: false,
+          expires_at: expiresAt,
+          ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
+          user_agent: request.headers.get('user-agent') || 'Unknown'
+        }])
+        .select()
+        .single()
+      
+      verificationData = result.data
+      insertError = result.error
+      
+      console.log('STEP 8: Supabase insert 호출 완료', {
+        hasData: !!verificationData,
+        hasError: !!insertError,
+        errorCode: insertError?.code,
+        errorMessage: insertError?.message
+      })
+    } catch (insertException) {
+      console.error('STEP 8 예외: Supabase insert 중 예외 발생!')
+      console.error('STEP 8 예외 타입:', insertException?.constructor?.name)
+      console.error('STEP 8 예외 메시지:', insertException instanceof Error ? insertException.message : String(insertException))
+      console.error('STEP 8 예외 스택:', insertException instanceof Error ? insertException.stack : 'N/A')
+      console.error(insertException)
+      return NextResponse.json(
+        { 
+          ok: false, 
+          error: 'DATABASE_EXCEPTION',
+          message: insertException instanceof Error ? insertException.message : '인증코드 저장 중 예외가 발생했습니다.'
+        },
+        { status: 500 }
+      )
+    }
 
     if (insertError || !verificationData) {
       console.error('STEP 8 에러: 인증코드 저장 실패!')
@@ -270,7 +313,8 @@ export async function POST(request: NextRequest) {
           ok: false, 
           error: 'DATABASE_ERROR',
           message: insertError?.message || '인증코드 저장에 실패했습니다.',
-          details: insertError?.details || insertError?.hint
+          details: insertError?.details || insertError?.hint,
+          code: insertError?.code
         },
         { status: 500 }
       )
