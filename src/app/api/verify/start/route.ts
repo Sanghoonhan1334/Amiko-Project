@@ -185,8 +185,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (insertError || !verificationData) {
-        console.error('[VERIFY_START] STEP 8 에러: 인증코드 저장 실패!');
-        console.error('[VERIFY_START] 저장 에러 객체:', {
+        const errorInfo = {
           error: insertError,
           message: insertError?.message,
           code: insertError?.code,
@@ -194,19 +193,50 @@ export async function POST(request: NextRequest) {
           hint: insertError?.hint,
           channel,
           normalizedTarget
-        });
+        };
+        console.error('[VERIFY_START] STEP 8 에러: 인증코드 저장 실패!');
+        console.error('[VERIFY_START] 저장 에러 객체:', errorInfo);
         return NextResponse.json(
-          { ok: false, error: 'CODE_STORAGE_FAILED', message: '인증코드 저장에 실패했습니다.' },
+          { 
+            ok: false, 
+            error: 'CODE_STORAGE_FAILED', 
+            message: '인증코드 저장에 실패했습니다.',
+            // 에러 정보를 응답에 포함 (Vercel 로그가 안 보이므로)
+            errorDetails: {
+              step: 8,
+              supabaseError: insertError ? {
+                message: insertError.message,
+                code: insertError.code,
+                details: insertError.details,
+                hint: insertError.hint
+              } : null,
+              channel,
+              normalizedTarget: normalizedTarget?.substring(0, 5) + '...'
+            }
+          },
           { status: 500 }
         );
       }
 
       console.log('[VERIFY_START] STEP 8: 인증코드 저장 완료 (ID:', verificationData.id, ')');
     } catch (insertException) {
+      const exceptionInfo = {
+        type: insertException?.constructor?.name,
+        message: insertException instanceof Error ? insertException.message : String(insertException),
+        stack: insertException instanceof Error ? insertException.stack : 'N/A'
+      };
       console.error('[VERIFY_START] STEP 8 예외: 인증코드 저장 중 예외 발생');
-      console.error('[VERIFY_START] 저장 예외:', insertException);
+      console.error('[VERIFY_START] 저장 예외:', exceptionInfo);
       return NextResponse.json(
-        { ok: false, error: 'CODE_STORAGE_EXCEPTION', message: '인증코드 저장 중 오류가 발생했습니다.' },
+        { 
+          ok: false, 
+          error: 'CODE_STORAGE_EXCEPTION', 
+          message: '인증코드 저장 중 오류가 발생했습니다.',
+          errorDetails: {
+            step: 8,
+            exception: exceptionInfo
+          }
+        },
         { status: 500 }
       );
     }
@@ -251,21 +281,40 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     // 최상위 catch - 모든 예외를 잡아야 함
+    const errorDetails = {
+      type: error?.constructor?.name || 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'N/A',
+      name: error instanceof Error ? error.name : 'Unknown',
+      // 에러 객체의 모든 속성 포함
+      ...(error instanceof Error ? {
+        cause: error.cause,
+        code: (error as any).code,
+        statusCode: (error as any).statusCode,
+        response: (error as any).response
+      } : {})
+    };
+
     console.error('========================================');
     console.error('[VERIFY_START] ❌ 최상위 catch 블록: 예외 발생!');
     console.error('========================================');
-    console.error('[VERIFY_START] 에러 타입:', error?.constructor?.name);
-    console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error));
-    console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A');
+    console.error('[VERIFY_START] 에러 상세:', errorDetails);
     console.error('[VERIFY_START] 에러 전체:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-    console.error('[VERIFY_START] 에러 객체:', error);
     
+    // 프로덕션에서도 에러 정보를 응답에 포함 (디버깅용)
     return NextResponse.json(
       { 
         ok: false, 
         error: 'INTERNAL_SERVER_ERROR',
         message: '서버 오류가 발생했습니다.',
-        detail: error instanceof Error ? error.message : String(error)
+        // 프로덕션에서도 에러 정보 포함 (Vercel 로그가 안 보이므로)
+        detail: errorDetails.message,
+        errorType: errorDetails.type,
+        // 스택은 프로덕션에서는 제외하거나 마스킹
+        ...(process.env.NODE_ENV === 'development' ? {
+          stack: errorDetails.stack,
+          fullError: errorDetails
+        } : {})
       },
       { status: 500 }
     );
