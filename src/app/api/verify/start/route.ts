@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       try {
     const { data: rateLimitData, error: rateLimitError } = await supabase
       .rpc('check_auth_rate_limit', {
-        p_identifier: target,
+        p_identifier: normalizedTarget,
             p_auth_type: authTypeForRateLimit
       })
 
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
               const { data: rateLimitRecord } = await supabase
                 .from('auth_rate_limits')
                 .select('blocked_until, attempt_count')
-                .eq('identifier', target)
+                .eq('identifier', normalizedTarget)
                 .eq('auth_type', authTypeForRateLimit)
                 .single()
               
