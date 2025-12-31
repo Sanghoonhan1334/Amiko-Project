@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendVerificationEmail } from '@/lib/emailService'
 import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
 import { toE164 } from '@/lib/phoneUtils'
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = createAdminClient()
 
     // 인증 시도 제한 확인
     // 개발 환경에서는 rate limit 체크를 건너뜀 (테스트 편의를 위해)
