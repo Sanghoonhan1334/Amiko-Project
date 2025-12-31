@@ -74,22 +74,39 @@ export async function POST(request: NextRequest) {
       // 'wa' (WhatsApp)는 'sms'로 처리 (RPC 함수는 'email' 또는 'sms'만 체크)
       const authTypeForRateLimit = channel === 'wa' ? 'sms' : channel
       
-      try {
-    const { data: rateLimitData, error: rateLimitError } = await supabase
-      .rpc('check_auth_rate_limit', {
-        p_identifier: normalizedTarget,
-            p_auth_type: authTypeForRateLimit
+      console.log('[VERIFY_START] Rate limit 체크 시작:', {
+        normalizedTarget,
+        authTypeForRateLimit,
+        channel
       })
+      
+      try {
+        console.log('[VERIFY_START] RPC 함수 호출 전:', {
+          p_identifier: normalizedTarget,
+          p_auth_type: authTypeForRateLimit
+        })
+        
+        const { data: rateLimitData, error: rateLimitError } = await supabase
+          .rpc('check_auth_rate_limit', {
+            p_identifier: normalizedTarget,
+            p_auth_type: authTypeForRateLimit
+          })
+        
+        console.log('[VERIFY_START] RPC 함수 호출 후:', {
+          rateLimitData,
+          hasError: !!rateLimitError,
+          error: rateLimitError
+        })
 
         // RPC 함수 에러가 있는 경우
         if (rateLimitError) {
-      console.error('인증 시도 제한 확인 실패:', rateLimitError)
+          console.error('[VERIFY_START] 인증 시도 제한 확인 실패:', rateLimitError)
           // RPC 함수 에러는 일단 통과 (함수 자체의 문제일 수 있음)
-          console.warn('RPC 함수 에러 발생, rate limit 체크를 건너뜁니다:', rateLimitError)
+          console.warn('[VERIFY_START] RPC 함수 에러 발생, rate limit 체크를 건너뜁니다:', rateLimitError)
         } else {
           // rateLimitData가 false면 rate limit 초과
           if (rateLimitData === false) {
-            console.error('인증 시도 제한 초과:', { target, channel, authTypeForRateLimit })
+            console.error('[VERIFY_START] 인증 시도 제한 초과:', { target, channel, authTypeForRateLimit })
             
             // 차단 시간 확인
             try {
@@ -119,20 +136,20 @@ export async function POST(request: NextRequest) {
                 { status: 429 }
               )
             } catch (queryError) {
-              console.error('차단 시간 조회 실패:', queryError)
-      return NextResponse.json(
+              console.error('[VERIFY_START] 차단 시간 조회 실패:', queryError)
+              return NextResponse.json(
                 { ok: false, error: 'RATE_LIMIT_EXCEEDED', message: '인증코드 발송이 제한되었습니다. 잠시 후 다시 시도해주세요.' },
-        { status: 429 }
-      )
+                { status: 429 }
+              )
             }
           }
           
           // rateLimitData가 true면 통과
           if (rateLimitData === true) {
-            console.log('인증 시도 제한 통과:', { target, channel, authTypeForRateLimit })
+            console.log('[VERIFY_START] 인증 시도 제한 통과:', { target, channel, authTypeForRateLimit })
           } else {
             // rateLimitData가 null이거나 undefined인 경우는 경고만
-            console.warn('인증 시도 제한 확인 결과가 예상과 다릅니다:', { target, channel, authTypeForRateLimit, rateLimitData })
+            console.warn('[VERIFY_START] 인증 시도 제한 확인 결과가 예상과 다릅니다:', { target, channel, authTypeForRateLimit, rateLimitData })
           }
         }
       } catch (rpcError) {
