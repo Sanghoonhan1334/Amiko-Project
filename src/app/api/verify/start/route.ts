@@ -6,9 +6,14 @@ import { toE164 } from '@/lib/phoneUtils'
 
 // OTP 전송 시작 API
 export async function POST(request: NextRequest) {
+  console.log('[VERIFY_START] ========================================')
+  console.log('[VERIFY_START] ✅ 함수 호출됨!')
+  
   try {
+    console.log('[VERIFY_START] 요청 본문 파싱 시작')
     const body = await request.json()
     const { channel, target, purpose = 'signup', nationality } = body
+    console.log('[VERIFY_START] 요청 본문 파싱 완료:', { channel, target: target?.substring(0, 5) + '...', purpose, nationality })
 
     // 입력 검증
     if (!channel || !target) {
@@ -131,9 +136,15 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (rpcError) {
-        console.error('RPC 함수 호출 중 예외 발생:', rpcError)
+        console.error('[VERIFY_START] ========================================')
+        console.error('[VERIFY_START] ❌ RPC 함수 호출 중 예외 발생!')
+        console.error('[VERIFY_START] RPC 에러 타입:', rpcError?.constructor?.name)
+        console.error('[VERIFY_START] RPC 에러 메시지:', rpcError instanceof Error ? rpcError.message : String(rpcError))
+        console.error('[VERIFY_START] RPC 에러 스택:', rpcError instanceof Error ? rpcError.stack : 'N/A')
+        console.error('[VERIFY_START] RPC 에러 전체:', JSON.stringify(rpcError, Object.getOwnPropertyNames(rpcError || {}), 2))
+        console.error('[VERIFY_START] ========================================')
         // RPC 함수 호출 실패는 일단 통과 (함수 자체의 문제일 수 있음)
-        console.warn('RPC 함수 호출 실패, rate limit 체크를 건너뜁니다')
+        console.warn('[VERIFY_START] RPC 함수 호출 실패, rate limit 체크를 건너뜁니다')
       }
     } else {
       console.log('[RATE_LIMIT] 개발 환경에서 rate limit 체크를 건너뜁니다 (DISABLE_RATE_LIMIT=true)')
@@ -182,7 +193,9 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError || !verificationData) {
-      console.error('[VERIFY_START] 인증코드 저장 실패:', {
+      console.error('[VERIFY_START] ========================================')
+      console.error('[VERIFY_START] ❌ 인증코드 저장 실패!')
+      console.error('[VERIFY_START] 에러 객체:', {
         error: insertError,
         message: insertError?.message,
         code: insertError?.code,
@@ -191,6 +204,9 @@ export async function POST(request: NextRequest) {
         channel,
         normalizedTarget
       })
+      console.error('[VERIFY_START] 에러 전체:', JSON.stringify(insertError, Object.getOwnPropertyNames(insertError || {}), 2))
+      console.error('[VERIFY_START] verificationData:', verificationData)
+      console.error('[VERIFY_START] ========================================')
       return NextResponse.json(
         { 
           ok: false, 
@@ -288,13 +304,20 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('OTP 전송 시작 오류:', error)
+    console.error('[VERIFY_START] ========================================')
+    console.error('[VERIFY_START] ❌ 예외 발생!')
+    console.error('[VERIFY_START] 에러 타입:', error?.constructor?.name)
+    console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
+    console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
+    console.error('[VERIFY_START] 에러 전체:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+    console.error('[VERIFY_START] ========================================')
     
     return NextResponse.json(
       { 
         ok: false, 
         error: 'INTERNAL_SERVER_ERROR',
-        message: '서버 오류가 발생했습니다.'
+        message: '서버 오류가 발생했습니다.',
+        detail: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     )
