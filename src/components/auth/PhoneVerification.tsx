@@ -225,7 +225,7 @@ export default function PhoneVerification({
           <Phone className="w-5 h-5 text-blue-600" />
           {t('phoneVerification.title')}
         </h3>
-        <p className="text-gray-600 whitespace-nowrap">
+        <p className="text-gray-600 break-words">
           <strong className="text-blue-600">{phoneNumber}</strong>{t('phoneVerification.proceedWith')}
         </p>
         <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-blue-50 rounded-full">
@@ -495,9 +495,9 @@ export default function PhoneVerification({
                     setSelectedMethod('')
                     setVerificationCode('')
                   }}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 break-words whitespace-normal"
                 >
-                  {t('phoneVerification.changeMethod')}
+                  <span className="break-words">{t('phoneVerification.changeMethod')}</span>
                 </Button>
               </div>
             </div>
