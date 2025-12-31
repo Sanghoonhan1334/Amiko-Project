@@ -274,25 +274,26 @@ export default function PhoneVerification({
                     onClick={() => handleMethodSelect(method.id)}
                     disabled={!method.isAvailable || isLoading}
                     style={{ height: '80px', minHeight: '80px' }}
-                    className={`${method.color} ${method.id === 'kakao' ? 'text-black font-black' : 'text-white font-semibold'} w-full !h-[80px] !min-h-[80px] py-2.5 px-4 flex items-center justify-start gap-3 rounded-xl border-0 relative`}
+                    className={`${method.color} ${method.id === 'kakao' ? 'text-black font-black' : 'text-white font-semibold'} w-full !h-[80px] !min-h-[80px] py-2.5 px-4 flex items-center justify-start gap-3 rounded-xl border-0 relative overflow-hidden`}
                   >
                     <div className={`flex-shrink-0 p-1 rounded-lg backdrop-blur-sm ${method.id === 'kakao' ? 'bg-gray-600/30' : 'bg-white/20'}`}>
                       <div className="w-5 h-5 flex items-center justify-center">
                         {method.icon}
                       </div>
                     </div>
-                    <div className="text-left flex-1 pr-6 min-w-0 overflow-hidden">
-                      <div className={`font-bold text-sm leading-tight mb-0.5 ${method.id === 'kakao' ? '!text-black !font-black' : ''}`}>{method.name}</div>
-                      <div className={`text-xs leading-snug font-medium whitespace-normal break-words ${method.id === 'kakao' ? '!text-black !opacity-100' : 'opacity-90'}`} style={{ 
+                    <div className="text-left flex-1 pr-8 min-w-0 overflow-hidden">
+                      <div className={`font-bold text-sm leading-tight mb-0.5 truncate ${method.id === 'kakao' ? '!text-black !font-black' : ''}`}>{method.name}</div>
+                      <div className={`text-xs leading-snug font-medium ${method.id === 'kakao' ? '!text-black !opacity-100' : 'opacity-90'}`} style={{ 
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
                         wordBreak: 'break-word',
-                        overflowWrap: 'break-word'
+                        overflowWrap: 'break-word',
+                        textOverflow: 'ellipsis'
                       }}>{method.description}</div>
                     </div>
-                    <div className="flex-shrink-0 absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <div className="flex-shrink-0 absolute right-3 top-1/2 transform -translate-y-1/2">
                       <svg className={`w-4 h-4 ${method.id === 'kakao' ? 'text-black opacity-80' : 'text-white opacity-70'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -306,18 +307,17 @@ export default function PhoneVerification({
             <Button 
               onClick={handleSendCode}
               disabled={isLoading || isSending}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              size="lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
             >
               {(isLoading || isSending) ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  {t('phoneVerification.sending')}
+                <div className="flex items-center justify-center gap-2 truncate">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                  <span className="truncate">{t('phoneVerification.sending')}</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  {t('phoneVerification.sendCode')}
+                <div className="flex items-center justify-center gap-2 truncate">
+                  <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{t('phoneVerification.sendCode')}</span>
                 </div>
               )}
             </Button>
@@ -426,12 +426,11 @@ export default function PhoneVerification({
                 // 2단계: 코드 입력 대기 (회색 비활성화)
                 <Button 
                   disabled={true}
-                  className="w-full bg-gray-400 text-white font-semibold py-2.5 text-base"
-                  size="lg"
+                  className="w-full bg-gray-400 text-white font-semibold py-2.5 text-base overflow-hidden"
                 >
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {t('phoneVerification.enterCode')}
+                  <div className="flex items-center justify-center gap-2 truncate">
+                    <Clock className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{t('phoneVerification.enterCode')}</span>
                   </div>
                 </Button>
               ) : (
@@ -439,27 +438,26 @@ export default function PhoneVerification({
                 <Button 
                   onClick={handleVerify}
                   disabled={verificationCode.length !== 6 || isLoading || isVerifying || timeLeft === 0}
-                  className={`w-full font-semibold py-2.5 text-base shadow-lg transition-all duration-200 ${
+                  className={`w-full font-semibold py-2.5 text-base shadow-lg transition-all duration-200 overflow-hidden ${
                     timeLeft === 0 || isVerifying
                       ? 'bg-gray-400 text-white cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl transform hover:scale-105'
                   } disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
-                  size="lg"
                 >
                   {(isLoading || isVerifying) ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      {t('phoneVerification.verifying')}
+                    <div className="flex items-center justify-center gap-2 truncate">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                      <span className="truncate">{t('phoneVerification.verifying')}</span>
                     </div>
                   ) : timeLeft === 0 ? (
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      {t('phoneVerification.codeExpired')}
+                    <div className="flex items-center justify-center gap-2 truncate">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{t('phoneVerification.codeExpired')}</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      {t('auth.verifyButton')}
+                    <div className="flex items-center justify-center gap-2 truncate">
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{t('auth.verifyButton')}</span>
                     </div>
                   )}
                 </Button>
@@ -474,13 +472,17 @@ export default function PhoneVerification({
                   variant="outline" 
                   onClick={handleResend}
                   disabled={isLoading || timeLeft > 0}
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                 >
-                  <RefreshCw className="w-3 h-3 mr-1" />
-                  {timeLeft > 0 
-                    ? `${t('phoneVerification.timeLeft')} ${formatTime(timeLeft)}`
-                    : t('phoneVerification.resendCode')
-                  }
+                  <div className="flex items-center justify-center gap-1 truncate">
+                    <RefreshCw className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">
+                      {timeLeft > 0 
+                        ? `${t('phoneVerification.timeLeft')} ${formatTime(timeLeft)}`
+                        : t('phoneVerification.resendCode')
+                      }
+                    </span>
+                  </div>
                 </Button>
               </div>
               
