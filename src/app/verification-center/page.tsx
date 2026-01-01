@@ -1048,23 +1048,10 @@ export default function VerificationCenterPage() {
                           })
                           const result = await response.json()
                           if (!response.ok || !result.ok) {
-                            // Rate limit 에러인 경우 특별 처리
-                            if (result.error === 'RATE_LIMIT_EXCEEDED') {
-                              // Rate limit 에러는 사용자에게 친절한 메시지 표시
-                              const message = result.message || (language === 'ko' 
-                                ? '인증코드 발송이 제한되었습니다. 잠시 후 다시 시도해주세요.\n\n만약 인증코드를 받으셨다면 그대로 사용하실 수 있습니다.'
-                                : 'El envío del código de verificación está limitado. Por favor, intente nuevamente en unos momentos.\n\nSi recibió el código de verificación, puede usarlo normalmente.')
-                              alert(message)
-                              throw new Error('RATE_LIMIT_EXCEEDED')
-                            }
                             throw new Error(result.error || (language === 'ko' ? '인증코드 발송 실패' : 'Error al enviar el código de verificación'))
                           }
                         } catch (error) {
                           console.error('인증코드 발송 실패:', error)
-                          // Rate limit 에러는 이미 alert를 표시했으므로 다시 throw하지 않음
-                          if (error instanceof Error && error.message === 'RATE_LIMIT_EXCEEDED') {
-                            throw error
-                          }
                           throw error
                         }
                       }}

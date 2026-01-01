@@ -160,16 +160,8 @@ export default function PhoneVerification({
         await new Promise(resolve => setTimeout(resolve, 2000))
       } catch (error) {
         console.error('❌ [DEBUG] 인증코드 발송 실패:', error)
-        // Rate limit 에러인 경우에도 사용자가 코드를 받았을 수 있으므로
-        // 입력 상태는 유지 (hasAutoSent는 false로 유지)
-        if (error instanceof Error && error.message === 'RATE_LIMIT_EXCEEDED') {
-          // Rate limit 에러는 이미 alert를 표시했으므로
-          // 사용자가 코드를 받았을 수 있다는 것을 알려줌
-          // 입력 상태는 유지하되, 타이머는 리셋하지 않음
-        } else {
         setIsWaitingForCode(false)
         setTimeLeft(0)
-      }
         
         // 최소 2초 대기 (중복 클릭 방지)
         await new Promise(resolve => setTimeout(resolve, 2000))
@@ -472,11 +464,11 @@ export default function PhoneVerification({
                   variant="outline" 
                   onClick={handleResend}
                   disabled={isLoading || timeLeft > 0}
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden break-words whitespace-normal"
                 >
-                  <div className="flex items-center justify-center gap-1 truncate">
+                  <div className="flex items-center justify-center gap-1 break-words">
                     <RefreshCw className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate">
+                    <span className="break-words text-center">
                       {timeLeft > 0 
                         ? `${t('phoneVerification.timeLeft')} ${formatTime(timeLeft)}`
                         : t('phoneVerification.resendCode')
