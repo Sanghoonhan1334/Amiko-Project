@@ -39,6 +39,8 @@ interface AuthMethod {
   isAvailable: boolean
 }
 
+const COOLDOWN_SECONDS = 180 // 3분
+
 export default function PhoneVerification({ 
   phoneNumber, 
   nationality, 
@@ -48,7 +50,28 @@ export default function PhoneVerification({
 }: PhoneVerificationProps) {
   const { t } = useLanguage()
   const [verificationCode, setVerificationCode] = useState('')
-  const [timeLeft, setTimeLeft] = useState(120) // 2분
+  
+  // localStorage에서 쿨다운 복원
+  const getInitialTimeLeft = () => {
+    if (typeof window === 'undefined' || !phoneNumber) return COOLDOWN_SECONDS
+    
+    try {
+      const lastSendKey = `verification_cooldown_${phoneNumber}`
+      const lastSendTime = localStorage.getItem(lastSendKey)
+      
+      if (lastSendTime) {
+        const elapsed = Math.floor((Date.now() - parseInt(lastSendTime)) / 1000)
+        const remaining = Math.max(0, COOLDOWN_SECONDS - elapsed)
+        return remaining
+      }
+    } catch (error) {
+      console.error('쿨다운 복원 실패:', error)
+    }
+    
+    return COOLDOWN_SECONDS // 기본값
+  }
+  
+  const [timeLeft, setTimeLeft] = useState(getInitialTimeLeft())
   const [selectedMethod, setSelectedMethod] = useState<string>('')
   const [codeSent, setCodeSent] = useState(false)
   const [isWaitingForCode, setIsWaitingForCode] = useState(false)
@@ -111,6 +134,14 @@ export default function PhoneVerification({
     }
   }, [timeLeft])
 
+  // phoneNumber가 변경되면 쿨다운 재계산
+  useEffect(() => {
+    if (phoneNumber) {
+      const remaining = getInitialTimeLeft()
+      setTimeLeft(remaining)
+    }
+  }, [phoneNumber])
+
   const handleMethodSelect = (methodId: string) => {
     // 카카오톡은 아직 사용 불가
     if (methodId === 'kakao') {
@@ -136,6 +167,12 @@ export default function PhoneVerification({
       return
     }
     
+    // 쿨다운 체크
+    if (timeLeft > 0) {
+      console.log('🔍 [DEBUG] 쿨다운 중:', timeLeft)
+      return
+    }
+    
     console.log('🔍 [DEBUG] handleSendCode 호출됨:', {
       selectedMethod,
       phoneNumber,
@@ -145,7 +182,17 @@ export default function PhoneVerification({
     if (selectedMethod) {
       setIsSending(true) // 발송 시작 - 버튼 비활성화
       setIsWaitingForCode(true)
-      setTimeLeft(120) // 2분 타이머 시작
+      setTimeLeft(COOLDOWN_SECONDS) // 3분 타이머 시작
+      
+      // localStorage에 발송 시간 저장
+      if (typeof window !== 'undefined' && phoneNumber) {
+        try {
+          const lastSendKey = `verification_cooldown_${phoneNumber}`
+          localStorage.setItem(lastSendKey, Date.now().toString())
+        } catch (error) {
+          console.error('쿨다운 저장 실패:', error)
+        }
+      }
       
       // 재전송 시 입력창 리셋
       setVerificationCode('')
@@ -162,6 +209,16 @@ export default function PhoneVerification({
         console.error('❌ [DEBUG] 인증코드 발송 실패:', error)
         setIsWaitingForCode(false)
         setTimeLeft(0)
+        
+        // 발송 실패 시 localStorage에서 쿨다운 제거
+        if (typeof window !== 'undefined' && phoneNumber) {
+          try {
+            const lastSendKey = `verification_cooldown_${phoneNumber}`
+            localStorage.removeItem(lastSendKey)
+          } catch (error) {
+            console.error('쿨다운 제거 실패:', error)
+          }
+        }
         
         // 최소 2초 대기 (중복 클릭 방지)
         await new Promise(resolve => setTimeout(resolve, 2000))
@@ -197,7 +254,18 @@ export default function PhoneVerification({
 
   const handleResend = async () => {
     if (selectedMethod && timeLeft === 0) {
-      setTimeLeft(120) // 2분 타이머 시작
+      setTimeLeft(COOLDOWN_SECONDS) // 3분 타이머 시작
+      
+      // localStorage에 발송 시간 저장
+      if (typeof window !== 'undefined' && phoneNumber) {
+        try {
+          const lastSendKey = `verification_cooldown_${phoneNumber}`
+          localStorage.setItem(lastSendKey, Date.now().toString())
+        } catch (error) {
+          console.error('쿨다운 저장 실패:', error)
+        }
+      }
+      
       setVerificationCode('')
       setIsWaitingForCode(true)
       await onResend(selectedMethod)
