@@ -70,6 +70,13 @@ export default function KChatBoard() {
       setLoading(true)
       // fanclub 타입만 가져오기 (아미코 전체 채팅은 플로팅 버튼으로 접근)
       const response = await fetch('/api/chat/rooms?type=fanclub')
+      
+      if (!response.ok) {
+        console.error('Failed to fetch chat rooms:', response.status, response.statusText)
+        setRooms([])
+        return
+      }
+      
       const data = await response.json()
       
       if (data.success) {

@@ -20,6 +20,7 @@ interface Message {
   user_profiles?: {
     display_name?: string
     avatar_url?: string
+    profile_image?: string
     total_points?: number
   }
   users?: {
@@ -191,7 +192,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const channelRef = useRef<any>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const processedMessageIds = useRef<Set<string>>(new Set())
-  const profileCache = useRef<Map<string, { display_name?: string; avatar_url?: string; total_points: number }>>(new Map())
+  const profileCache = useRef<Map<string, { display_name?: string; avatar_url?: string; profile_image?: string; total_points: number }>>(new Map())
   const deletedMessageIdsRef = useRef<Set<string>>(new Set()) // 삭제된 메시지 ID 추적
 
   // 색상 팔레트 가져오기 (useMemo로 메모이제이션) - early return 이전에 배치
@@ -264,7 +265,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       // 프로필 조회
       const { data: profile } = await authSupabase
         .from('user_profiles')
-        .select('display_name, avatar_url, total_points')
+        .select('display_name, avatar_url, profile_image, total_points')
         .eq('user_id', userId)
         .single()
       
@@ -282,6 +283,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       const userProfile = {
         display_name: profile?.display_name,
         avatar_url: profile?.avatar_url,
+        profile_image: profile?.profile_image,
         total_points: totalPoints
       }
 
@@ -290,7 +292,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       return userProfile
     } catch (error) {
       // 에러 시 기본값 반환 및 캐시 저장
-      const defaultProfile = { display_name: undefined, avatar_url: undefined, total_points: 0 }
+      const defaultProfile = { display_name: undefined, avatar_url: undefined, profile_image: undefined, total_points: 0 }
       profileCache.current.set(userId, defaultProfile)
       return defaultProfile
     }
@@ -1136,9 +1138,18 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         }
       })
 
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('메시지 삭제 오류:', errorText)
+        alert(language === 'ko' 
+          ? '메시지 삭제에 실패했습니다.' 
+          : 'Error al eliminar el mensaje.')
+        return
+      }
+
       const result = await response.json()
 
-      if (!response.ok || !result.success) {
+      if (!result.success) {
         console.error('메시지 삭제 오류:', result.error)
         alert(language === 'ko' 
           ? (result.error || '메시지 삭제에 실패했습니다.') 
@@ -1181,7 +1192,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             // user_profiles 테이블에서 프로필 정보 가져오기
             const { data: profileData } = await authSupabase
               .from('user_profiles')
-              .select('display_name, avatar_url, total_points')
+              .select('display_name, avatar_url, profile_image, total_points')
               .eq('user_id', participant.user_id)
               .single()
             let totalPoints3 = profileData?.total_points ?? 0
@@ -1209,7 +1220,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             
             return {
               ...participant,
-              user_profiles: { ...(profileData || {}), display_name: profileData?.display_name, avatar_url: profileData?.avatar_url, total_points: totalPoints3 },
+              user_profiles: { ...(profileData || {}), display_name: profileData?.display_name, avatar_url: profileData?.avatar_url, profile_image: profileData?.profile_image, total_points: totalPoints3 },
               users: userInfo
             }
           } catch (error) {
@@ -1571,15 +1582,23 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                 <div className={`flex gap-3 max-w-xs md:max-w-md ${isOwn ? 'flex-row-reverse' : ''}`}>
                   {/* Avatar */}
                   <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" 
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" 
                     style={{ 
                       backgroundColor: isOwn ? palette.avatarBg : palette.otherMessageBg,
                       color: isOwn ? palette.avatarText : palette.otherMessageText
                     } as React.CSSProperties}
                   >
-                    <span className="text-sm font-semibold" style={{ color: isOwn ? palette.avatarText : palette.otherMessageText } as React.CSSProperties}>
-                      {getUserName(message).charAt(0).toUpperCase()}
-                    </span>
+                    {(message.user_profiles?.avatar_url || message.user_profiles?.profile_image) ? (
+                      <img 
+                        src={message.user_profiles.avatar_url || message.user_profiles.profile_image} 
+                        alt={getUserName(message)}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold" style={{ color: isOwn ? palette.avatarText : palette.otherMessageText } as React.CSSProperties}>
+                        {getUserName(message).charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
 
                   {/* Message */}

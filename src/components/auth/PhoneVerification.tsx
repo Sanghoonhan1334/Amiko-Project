@@ -41,6 +41,12 @@ interface AuthMethod {
 
 const COOLDOWN_SECONDS = 180 // 3분
 
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
 export default function PhoneVerification({ 
   phoneNumber, 
   nationality, 
@@ -48,10 +54,10 @@ export default function PhoneVerification({
   onResend, 
   isLoading = false 
 }: PhoneVerificationProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [verificationCode, setVerificationCode] = useState('')
   
-  // localStorage에서 쿨다운 복원
+  // localStorage에서 쿨다운 복원 (발송 시점부터 계산하여 남은 시간 표시)
   const getInitialTimeLeft = () => {
     if (typeof window === 'undefined' || !phoneNumber) return COOLDOWN_SECONDS
     
@@ -59,6 +65,7 @@ export default function PhoneVerification({
       const lastSendKey = `verification_cooldown_${phoneNumber}`
       const lastSendTime = localStorage.getItem(lastSendKey)
       
+      // 발송 시점부터 경과 시간 계산
       if (lastSendTime) {
         const elapsed = Math.floor((Date.now() - parseInt(lastSendTime)) / 1000)
         const remaining = Math.max(0, COOLDOWN_SECONDS - elapsed)
@@ -142,6 +149,25 @@ export default function PhoneVerification({
     }
   }, [phoneNumber])
 
+  // 페이지를 떠났다가 돌아왔을 때 쿨다운 재계산
+  useEffect(() => {
+    if (typeof window === 'undefined' || !phoneNumber) return
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // 다시 돌아왔을 때 발송 시점부터 경과 시간을 계산하여 남은 시간 표시
+        const remaining = getInitialTimeLeft()
+        setTimeLeft(remaining)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [phoneNumber])
+
   const handleMethodSelect = (methodId: string) => {
     // 카카오톡은 아직 사용 불가
     if (methodId === 'kakao') {
@@ -167,7 +193,7 @@ export default function PhoneVerification({
       return
     }
     
-    // 쿨다운 체크
+    // 쿨다운 체크 - 버튼에 실시간으로 표시되므로 alert 제거
     if (timeLeft > 0) {
       console.log('🔍 [DEBUG] 쿨다운 중:', timeLeft)
       return
@@ -253,6 +279,11 @@ export default function PhoneVerification({
   }
 
   const handleResend = async () => {
+    // 쿨다운 체크 - 버튼에 실시간으로 표시되므로 alert 제거
+    if (timeLeft > 0) {
+      return
+    }
+    
     if (selectedMethod && timeLeft === 0) {
       setTimeLeft(COOLDOWN_SECONDS) // 3분 타이머 시작
       
@@ -270,12 +301,6 @@ export default function PhoneVerification({
       setIsWaitingForCode(true)
       await onResend(selectedMethod)
     }
-  }
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   return (
@@ -366,13 +391,18 @@ export default function PhoneVerification({
             // 인증코드 보내기 버튼
             <Button 
               onClick={handleSendCode}
-              disabled={isLoading || isSending}
+              disabled={isLoading || isSending || timeLeft > 0}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
             >
               {(isLoading || isSending) ? (
                 <div className="flex items-center justify-center gap-2 truncate">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
                   <span className="truncate">{t('phoneVerification.sending')}</span>
+                </div>
+              ) : timeLeft > 0 ? (
+                <div className="flex items-center justify-center gap-2 truncate">
+                  <Clock className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{t('phoneVerification.timeLeft')} {formatTime(timeLeft)}</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2 truncate">
