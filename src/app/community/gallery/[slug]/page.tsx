@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Plus } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import dynamic from 'next/dynamic'
-import { communityEvents } from '@/lib/analytics'
+import { communityEvents, trackUgcWriteClick } from '@/lib/analytics'
 
 // 무거운 컴포넌트들을 동적 임포트로 최적화
 const GalleryPostList = dynamic(() => import('@/components/main/app/community/GalleryPostList'), {
@@ -84,6 +84,8 @@ export default function GalleryPostsPage() {
   }
 
   const handleCreatePost = () => {
+    // UGC 생성 퍼널 이벤트: 글쓰기 버튼 클릭
+    trackUgcWriteClick(gallery?.slug)
     setCurrentView('create')
   }
 

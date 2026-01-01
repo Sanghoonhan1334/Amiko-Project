@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { communityEvents } from '@/lib/analytics'
+import { communityEvents, trackUgcEditorEnter, trackUgcContentInputStart, trackUgcSubmitAttempt, trackUgcSubmitSuccess, trackRevisitIntendedAction } from '@/lib/analytics'
 
 interface Gallery {
   id: string
@@ -33,6 +33,11 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
   useEffect(() => {
     communityEvents.clickWritePost(gallery.slug)
     communityEvents.startPost(gallery.slug)
+  }, [gallery.slug])
+
+  // UGC 생성 퍼널 이벤트: 에디터 진입
+  useEffect(() => {
+    trackUgcEditorEnter(gallery.slug)
   }, [gallery.slug])
 
   // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
@@ -79,6 +84,7 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const contentInputStartTracked = useRef(false) // 내용 입력 시작 이벤트 중복 방지
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
@@ -187,6 +193,9 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
       setSubmitting(true)
       setError(null)
 
+      // UGC 생성 퍼널 이벤트: 게시 시도
+      trackUgcSubmitAttempt(gallery.slug)
+
       let response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
@@ -231,6 +240,12 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
 
       const data = await response.json()
       console.log('게시물 작성 성공:', data.post.id)
+      
+      // UGC 생성 퍼널 이벤트: 게시 성공
+      trackUgcSubmitSuccess(data.post.id, gallery.slug)
+      
+      // 재방문 퍼널 이벤트: 이전 행동 재실행 (재방문 세션에서만)
+      trackRevisitIntendedAction('write_post')
       
       // 커뮤니티 퍼널 이벤트: 게시물 제출
       communityEvents.submitPost(gallery.slug, title.trim())
@@ -321,6 +336,11 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
                     // 커뮤니티 퍼널 이벤트: 내용 작성
                     if (e.target.value.length > 0) {
                       communityEvents.writeContent(e.target.value.length)
+                    }
+                    // UGC 생성 퍼널 이벤트: 내용 입력 시작 (최초 1회만)
+                    if (!contentInputStartTracked.current && e.target.value.length > 0) {
+                      trackUgcContentInputStart(gallery.slug)
+                      contentInputStartTracked.current = true
                     }
                   }}
                   placeholder="내용을 입력해주세요"

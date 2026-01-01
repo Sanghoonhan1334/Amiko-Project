@@ -181,48 +181,48 @@ export async function DELETE(request: NextRequest) {
       // deleted_at 컬럼이 없을 수 있으므로 is_deleted만 업데이트
       await Promise.all([
         (async () => {
-          try {
-            const { error: galleryError } = await supabaseServer
-              .from('gallery_posts')
-              .update({
-                is_deleted: true
-                // deleted_at 컬럼이 없을 수 있으므로 제거
-              })
-              .eq('user_id', userId)
-            
-            if (galleryError) {
-              console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 실패:', galleryError)
-              // 테이블이 없거나 컬럼이 없으면 무시 (PGRST205, PGRST204)
-              if (galleryError.code !== 'PGRST205' && galleryError.code !== 'PGRST204') {
-                failedOperations.push('update:gallery_posts')
-              }
-            }
-          } catch (error) {
-            console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 예외:', error)
-            // 테이블이 없거나 컬럼이 없으면 무시
+      try {
+        const { error: galleryError } = await supabaseServer
+          .from('gallery_posts')
+          .update({
+            is_deleted: true
+            // deleted_at 컬럼이 없을 수 있으므로 제거
+          })
+          .eq('user_id', userId)
+        
+        if (galleryError) {
+          console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 실패:', galleryError)
+          // 테이블이 없거나 컬럼이 없으면 무시 (PGRST205, PGRST204)
+          if (galleryError.code !== 'PGRST205' && galleryError.code !== 'PGRST204') {
+            failedOperations.push('update:gallery_posts')
           }
+        }
+      } catch (error) {
+        console.error('[ACCOUNT_DELETE] gallery_posts 업데이트 예외:', error)
+        // 테이블이 없거나 컬럼이 없으면 무시
+      }
         })(),
         (async () => {
-          try {
-            const { error: commentsError } = await supabaseServer
-              .from('post_comments')
-              .update({
-                is_deleted: true,
-                content: '[삭제된 댓글]'
-              })
-              .eq('user_id', userId)
-            
-            if (commentsError) {
-              console.error('[ACCOUNT_DELETE] post_comments 업데이트 실패:', commentsError)
-              // 테이블이 없으면 무시 (PGRST205)
-              if (commentsError.code !== 'PGRST205') {
-                failedOperations.push('update:post_comments')
-              }
-            }
-          } catch (error) {
-            console.error('[ACCOUNT_DELETE] post_comments 업데이트 예외:', error)
-            // 테이블이 없으면 무시
+      try {
+        const { error: commentsError } = await supabaseServer
+          .from('post_comments')
+          .update({
+            is_deleted: true,
+            content: '[삭제된 댓글]'
+          })
+          .eq('user_id', userId)
+        
+        if (commentsError) {
+          console.error('[ACCOUNT_DELETE] post_comments 업데이트 실패:', commentsError)
+          // 테이블이 없으면 무시 (PGRST205)
+          if (commentsError.code !== 'PGRST205') {
+            failedOperations.push('update:post_comments')
           }
+        }
+      } catch (error) {
+        console.error('[ACCOUNT_DELETE] post_comments 업데이트 예외:', error)
+        // 테이블이 없으면 무시
+      }
         })()
       ])
 

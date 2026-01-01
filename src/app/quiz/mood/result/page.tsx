@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, Share2, RotateCcw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Header from '@/components/layout/Header'
+import { trackQuizResultShare } from '@/lib/analytics'
 
 interface MoodResult {
   result_type: string
@@ -53,10 +54,11 @@ function MoodResultContent() {
         throw new Error('No se pudo encontrar el quiz.')
       }
 
-      const quizId = quizData.data.quiz.id
+      const fetchedQuizId = quizData.data.quiz.id
+      setQuizId(fetchedQuizId)
 
       // Obtener datos del resultado
-      const response = await fetch(`/api/quizzes/${quizId}/result?type=${resultType}`)
+      const response = await fetch(`/api/quizzes/${fetchedQuizId}/result?type=${resultType}`)
       const data = await response.json()
       
       if (data.success && data.result) {
@@ -91,16 +93,23 @@ function MoodResultContent() {
     const shareUrl = `${baseUrl}/quiz/mood/result?type=${resultType}`
     const shareText = `Mi Mood en AMIKO: ${result.title}\n\n${result.description}\n\n${shareUrl}`
     
+    let shareChannel = 'system' // 기본값
+    
     try {
       if (navigator.share) {
         await navigator.share({
           title: 'Mi Mood',
           text: shareText
         })
+        shareChannel = 'system'
       } else {
         await navigator.clipboard.writeText(shareText)
         alert('¡Enlace copiado!')
+        shareChannel = 'copy'
       }
+      
+      // 퀴즈 퍼널 이벤트: 결과 공유
+      trackQuizResultShare(quizId, shareChannel)
     } catch (error: any) {
       if (error.name === 'AbortError') {
         return
@@ -108,6 +117,10 @@ function MoodResultContent() {
       try {
         await navigator.clipboard.writeText(shareText)
         alert('¡Enlace copiado!')
+        shareChannel = 'copy'
+        
+        // 퀴즈 퍼널 이벤트: 결과 공유 (복사)
+        trackQuizResultShare(quizId, shareChannel)
       } catch (clipboardError) {
         console.error('Error al compartir:', clipboardError)
       }

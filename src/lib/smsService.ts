@@ -446,13 +446,13 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
         let result: any
         try {
           result = await client.messages.create({
-            from: whatsappFrom,
-            to: whatsappTo,
-            contentSid: templateSid,
-            contentVariables: JSON.stringify({
-              '1': code
-            })
+          from: whatsappFrom,
+          to: whatsappTo,
+          contentSid: templateSid,
+          contentVariables: JSON.stringify({
+            '1': code
           })
+        })
           console.log('[WHATSAPP_VERIFICATION] ✅ Twilio API 호출 성공!')
           console.log('[WHATSAPP_VERIFICATION] 응답 받음:', {
             sid: result?.sid,
@@ -460,6 +460,13 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
             errorCode: result?.errorCode,
             errorMessage: result?.errorMessage
           })
+          
+          // result.errorCode가 있으면 템플릿 발송 실패 (하지만 API 호출은 성공)
+          if (result?.errorCode) {
+            console.error('[WHATSAPP_VERIFICATION] ⚠️  템플릿 발송 실패 (API 호출은 성공했지만 에러 코드 있음)')
+            console.error('[WHATSAPP_VERIFICATION] 에러 코드:', result.errorCode)
+            console.error('[WHATSAPP_VERIFICATION] 에러 메시지:', result.errorMessage)
+          }
         } catch (apiError: any) {
           console.error('[WHATSAPP_VERIFICATION] ❌ Twilio API 호출 실패!')
           console.error('[WHATSAPP_VERIFICATION] API 에러:', {
@@ -476,6 +483,14 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
         console.log(`[WHATSAPP_VERIFICATION] 상태: ${result.status}`)
         console.log(`[WHATSAPP_VERIFICATION] 에러 코드: ${result.errorCode || '없음'}`)
         console.log(`[WHATSAPP_VERIFICATION] 에러 메시지: ${result.errorMessage || '없음'}`)
+        console.log(`[WHATSAPP_VERIFICATION] 메시지 상태 확인: https://console.twilio.com/us1/monitor/logs/messages/${result.sid}`)
+        
+        // 상태가 queued인 경우 경고 (실제 전송 시도 시 에러가 발생할 수 있음)
+        if (result.status === 'queued') {
+          console.warn('[WHATSAPP_VERIFICATION] ⚠️  메시지가 큐에 들어갔습니다. 실제 전송 여부는 Twilio 콘솔에서 확인하세요.')
+          console.warn('[WHATSAPP_VERIFICATION] ⚠️  전송 시도 시 에러가 발생하면 메시지 상태가 업데이트됩니다.')
+          console.warn('[WHATSAPP_VERIFICATION] ⚠️  에러 63016이 발생했다면 템플릿이 제대로 작동하지 않았을 수 있습니다.')
+        }
         
         // 에러 코드가 있으면 false 반환
         if (result.errorCode) {
@@ -490,15 +505,46 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
             console.error('[WHATSAPP_VERIFICATION] 1. Twilio 콘솔에서 Content Templates 확인')
             console.error('[WHATSAPP_VERIFICATION] 2. 템플릿 상태가 "Approved"인지 확인')
             console.error('[WHATSAPP_VERIFICATION] 3. Content SID가 올바른지 확인')
+            // 템플릿 SID 오류는 fallback하지 않고 바로 실패
+            return false
           } else if (result.errorCode === 21608) {
             console.error('[WHATSAPP_VERIFICATION] ⚠️  에러 21608: WhatsApp 발신 번호가 등록되지 않았습니다.')
             console.error('[WHATSAPP_VERIFICATION] 해결 방법:')
             console.error('[WHATSAPP_VERIFICATION] 1. Twilio 콘솔에서 WhatsApp Business 번호 확인')
             console.error('[WHATSAPP_VERIFICATION] 2. .env.local의 TWILIO_WHATSAPP_NUMBER 확인')
-          }
-          
-          // 템플릿 실패 시 일반 메시지로 fallback
+            // 발신 번호 오류는 fallback하지 않고 바로 실패
+            return false
+          } else if (result.errorCode === 63016) {
+            console.error('[WHATSAPP_VERIFICATION] ⚠️  에러 63016: 템플릿 메시지가 24시간 윈도우 밖에서 발송되었습니다.')
+            console.error('[WHATSAPP_VERIFICATION] 이 에러는 템플릿을 사용했는데도 발생할 수 있습니다.')
+            console.error('[WHATSAPP_VERIFICATION] 해결 방법:')
+            console.error('[WHATSAPP_VERIFICATION] 1. Twilio 콘솔에서 템플릿이 "Approved" 상태인지 확인')
+            console.error('[WHATSAPP_VERIFICATION] 2. 템플릿 변수 형식이 올바른지 확인')
+            console.error('[WHATSAPP_VERIFICATION] 3. Vercel 환경 변수에 TWILIO_WHATSAPP_TEMPLATE_SID가 설정되어 있는지 확인')
+            // 63016 에러는 fallback하지 않고 바로 실패
+            return false
+          } else if (result.errorCode === 63112) {
+            console.error('[WHATSAPP_VERIFICATION] ❌❌❌ 심각한 에러 63112: Meta/WhatsApp 비즈니스 계정이 비활성화되었습니다.')
+            console.error('[WHATSAPP_VERIFICATION] 이 에러는 Meta(구 Facebook)에서 WhatsApp 비즈니스 계정을 비활성화했을 때 발생합니다.')
+            console.error('[WHATSAPP_VERIFICATION] 가능한 원인:')
+            console.error('[WHATSAPP_VERIFICATION] 1. 정책 위반 (스팸, 부적절한 콘텐츠 등)')
+            console.error('[WHATSAPP_VERIFICATION] 2. 사용자 신고로 인한 계정 정지')
+            console.error('[WHATSAPP_VERIFICATION] 3. 비즈니스 인증 미완료')
+            console.error('[WHATSAPP_VERIFICATION] 해결 방법:')
+            console.error('[WHATSAPP_VERIFICATION] 1. Meta 비즈니스 계정에 로그인하여 비활성화 이유 확인')
+            console.error('[WHATSAPP_VERIFICATION] 2. Meta 비즈니스 설정 > WhatsApp 섹션에서 알림/경고 확인')
+            console.error('[WHATSAPP_VERIFICATION] 3. 비활성화가 실수라면 Meta에 이의 제기 제출')
+            console.error('[WHATSAPP_VERIFICATION] 4. WhatsApp 비즈니스 정책 준수 여부 검토')
+            console.error('[WHATSAPP_VERIFICATION] 5. 비즈니스 인증 프로세스 완료')
+            console.error('[WHATSAPP_VERIFICATION] 6. Twilio 지원팀에 문의 (https://support.twilio.com/)')
+            console.error('[WHATSAPP_VERIFICATION] ⚠️  이 에러는 즉시 해결이 필요합니다. WhatsApp 발송이 완전히 중단됩니다.')
+            // 63112 에러는 fallback하지 않고 바로 실패
+          return false
+        }
+        
+          // 기타 템플릿 실패 시 일반 메시지로 fallback (하지만 24시간 윈도우 문제로 실패할 가능성 높음)
           console.warn('[WHATSAPP_VERIFICATION] 템플릿 실패 → 일반 메시지로 fallback 시도')
+          console.warn('[WHATSAPP_VERIFICATION] ⚠️  일반 메시지는 24시간 윈도우 정책 때문에 실패할 수 있습니다.')
           return await fallbackToOldWhatsAppMethod(phoneNumber, code, language)
         }
         
@@ -545,10 +591,38 @@ export async function sendVerificationWhatsApp(phoneNumber: string, code: string
           console.error('[WHATSAPP_VERIFICATION] 2. 프로덕션 WhatsApp Business API로 전환 (권장):')
           console.error('[WHATSAPP_VERIFICATION]    - Twilio 콘솔 → Messaging → Settings → WhatsApp Senders')
           console.error('[WHATSAPP_VERIFICATION]    - WhatsApp Business API 승인 및 번호 등록')
+          // Sandbox 에러는 fallback하지 않고 바로 실패
+          return false
+        } else if (twilioError?.code === 63016) {
+          console.error('[WHATSAPP_VERIFICATION] ⚠️  에러 63016: 템플릿 메시지가 24시간 윈도우 밖에서 발송되었습니다.')
+          console.error('[WHATSAPP_VERIFICATION] 이 에러는 템플릿을 사용했는데도 발생할 수 있습니다.')
+          console.error('[WHATSAPP_VERIFICATION] 해결 방법:')
+          console.error('[WHATSAPP_VERIFICATION] 1. Twilio 콘솔에서 템플릿이 "Approved" 상태인지 확인')
+          console.error('[WHATSAPP_VERIFICATION] 2. 템플릿 변수 형식이 올바른지 확인')
+          console.error('[WHATSAPP_VERIFICATION] 3. Vercel 환경 변수에 TWILIO_WHATSAPP_TEMPLATE_SID가 설정되어 있는지 확인')
+          // 63016 에러는 fallback하지 않고 바로 실패
+          return false
+        } else if (twilioError?.code === 63112) {
+          console.error('[WHATSAPP_VERIFICATION] ❌❌❌ 심각한 에러 63112: Meta/WhatsApp 비즈니스 계정이 비활성화되었습니다.')
+          console.error('[WHATSAPP_VERIFICATION] 이 에러는 Meta(구 Facebook)에서 WhatsApp 비즈니스 계정을 비활성화했을 때 발생합니다.')
+          console.error('[WHATSAPP_VERIFICATION] 가능한 원인:')
+          console.error('[WHATSAPP_VERIFICATION] 1. 정책 위반 (스팸, 부적절한 콘텐츠 등)')
+          console.error('[WHATSAPP_VERIFICATION] 2. 사용자 신고로 인한 계정 정지')
+          console.error('[WHATSAPP_VERIFICATION] 3. 비즈니스 인증 미완료')
+          console.error('[WHATSAPP_VERIFICATION] 해결 방법:')
+          console.error('[WHATSAPP_VERIFICATION] 1. Meta 비즈니스 계정에 로그인하여 비활성화 이유 확인')
+          console.error('[WHATSAPP_VERIFICATION] 2. Meta 비즈니스 설정 > WhatsApp 섹션에서 알림/경고 확인')
+          console.error('[WHATSAPP_VERIFICATION] 3. 비활성화가 실수라면 Meta에 이의 제기 제출')
+          console.error('[WHATSAPP_VERIFICATION] 4. WhatsApp 비즈니스 정책 준수 여부 검토')
+          console.error('[WHATSAPP_VERIFICATION] 5. 비즈니스 인증 프로세스 완료')
+          console.error('[WHATSAPP_VERIFICATION] 6. Twilio 지원팀에 문의 (https://support.twilio.com/)')
+          console.error('[WHATSAPP_VERIFICATION] ⚠️  이 에러는 즉시 해결이 필요합니다. WhatsApp 발송이 완전히 중단됩니다.')
+          // 63112 에러는 fallback하지 않고 바로 실패
+          return false
         }
         console.error('[WHATSAPP_VERIFICATION] ========================================')
         
-        // 템플릿 발송 실패 시 기존 방식으로 fallback (하지만 24시간 윈도우 문제로 실패할 가능성 높음)
+        // 기타 템플릿 발송 실패 시 일반 메시지로 fallback (하지만 24시간 윈도우 문제로 실패할 가능성 높음)
         console.warn('[WHATSAPP_VERIFICATION] ⚠️  템플릿 발송 실패 → 일반 메시지 방식으로 fallback 시도')
         console.warn('[WHATSAPP_VERIFICATION] ⚠️  일반 메시지는 24시간 윈도우 정책 때문에 실패할 수 있습니다.')
         console.warn('[WHATSAPP_VERIFICATION] ⚠️  해결 방법: Twilio 콘솔에서 Message Template을 승인받고 사용하세요.')
@@ -659,6 +733,22 @@ async function fallbackToOldWhatsAppMethod(phoneNumber: string, code: string, la
           console.error('[WHATSAPP_FALLBACK] 해결 방법:')
           console.error('[WHATSAPP_FALLBACK] 1. 수신 번호를 Sandbox에 등록 (임시 해결책)')
           console.error('[WHATSAPP_FALLBACK] 2. 프로덕션 WhatsApp Business API로 전환 (권장)')
+        } else if (twilioError?.code === 63112) {
+          console.error('[WHATSAPP_FALLBACK] ❌❌❌ 심각한 에러 63112: Meta/WhatsApp 비즈니스 계정이 비활성화되었습니다.')
+          console.error('[WHATSAPP_FALLBACK] 이 에러는 Meta(구 Facebook)에서 WhatsApp 비즈니스 계정을 비활성화했을 때 발생합니다.')
+          console.error('[WHATSAPP_FALLBACK] 가능한 원인:')
+          console.error('[WHATSAPP_FALLBACK] 1. 정책 위반 (스팸, 부적절한 콘텐츠 등)')
+          console.error('[WHATSAPP_FALLBACK] 2. 사용자 신고로 인한 계정 정지')
+          console.error('[WHATSAPP_FALLBACK] 3. 비즈니스 인증 미완료')
+          console.error('[WHATSAPP_FALLBACK] 해결 방법:')
+          console.error('[WHATSAPP_FALLBACK] 1. Meta 비즈니스 계정에 로그인하여 비활성화 이유 확인')
+          console.error('[WHATSAPP_FALLBACK] 2. Meta 비즈니스 설정 > WhatsApp 섹션에서 알림/경고 확인')
+          console.error('[WHATSAPP_FALLBACK] 3. 비활성화가 실수라면 Meta에 이의 제기 제출')
+          console.error('[WHATSAPP_FALLBACK] 4. WhatsApp 비즈니스 정책 준수 여부 검토')
+          console.error('[WHATSAPP_FALLBACK] 5. 비즈니스 인증 프로세스 완료')
+          console.error('[WHATSAPP_FALLBACK] 6. Twilio 지원팀에 문의 (https://support.twilio.com/)')
+          console.error('[WHATSAPP_FALLBACK] ⚠️  이 에러는 즉시 해결이 필요합니다. WhatsApp 발송이 완전히 중단됩니다.')
+          return false
         }
         
         console.error('[WHATSAPP_FALLBACK] 에러 상세:', {

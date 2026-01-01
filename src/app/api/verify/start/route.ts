@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
+    
     let { channel, target, nationality } = body
 
     // STEP 3: 입력 유효성 검사
@@ -62,12 +62,12 @@ export async function POST(request: NextRequest) {
       if (typeof console !== 'undefined') {
         console.error('[VERIFY_START] STEP 3 에러: 필수 필드 누락!', { channel, target })
       }
-      return NextResponse.json(
+          return NextResponse.json(
         { ok: false, error: 'MISSING_REQUIRED_FIELDS', message: '채널과 대상이 필요합니다.' },
-        { status: 400 }
-      )
-    }
-
+            { status: 400 }
+          )
+        }
+        
     // 채널 정규화 (wa -> whatsapp)
     if (channel === 'wa') {
       channel = 'whatsapp'
@@ -95,14 +95,14 @@ export async function POST(request: NextRequest) {
       console.log('[VERIFY_START] STEP 4: 전화번호 정규화 시작')
     }
     let normalizedTarget = target
-    try {
+            try {
       const { toE164 } = await import('@/lib/phoneUtils')
       normalizedTarget = toE164(target, nationality)
       if (!normalizedTarget.startsWith('+')) {
-        return NextResponse.json(
+              return NextResponse.json(
           { ok: false, error: 'INVALID_PHONE_NUMBER_FORMAT', message: '유효하지 않은 전화번호 형식입니다.' },
           { status: 400 }
-        )
+              )
       }
       if (typeof console !== 'undefined') {
         console.log('[VERIFY_START] STEP 4 완료:', { original: target, normalized: normalizedTarget })
@@ -115,8 +115,8 @@ export async function POST(request: NextRequest) {
         { ok: false, error: 'PHONE_NUMBER_NORMALIZATION_FAILED', message: '전화번호 정규화에 실패했습니다.' },
         { status: 400 }
       )
-    }
-
+          }
+          
     // STEP 5: 인증코드 생성
     if (typeof console !== 'undefined') {
       console.log('[VERIFY_START] STEP 5: 인증코드 생성')
@@ -168,11 +168,11 @@ export async function POST(request: NextRequest) {
       if (typeof console !== 'undefined') {
         console.error('[VERIFY_START] STEP 6 에러: WhatsApp 발송 실패!')
       }
-      return NextResponse.json(
+        return NextResponse.json(
         { ok: false, error: 'WHATSAPP_SEND_FAILED', message: 'WhatsApp 발송에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
+          { status: 500 }
+        )
+      }
 
     if (typeof console !== 'undefined') {
       console.log('[VERIFY_START] STEP 6 완료: WhatsApp 발송 성공')
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
     if (typeof console !== 'undefined') {
       console.log('[VERIFY_START] STEP 7: 성공 응답 반환')
     }
-    return NextResponse.json({ 
-      ok: true, 
+    return NextResponse.json({
+      ok: true,
       message: '인증코드가 성공적으로 발송되었습니다.',
       code: verificationCode // 테스트용 (나중에 제거)
     }, { status: 200 })
@@ -197,10 +197,10 @@ export async function POST(request: NextRequest) {
       console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
       console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
     }
-
+    
     return NextResponse.json(
-      {
-        ok: false,
+      { 
+        ok: false, 
         error: 'INTERNAL_SERVER_ERROR',
         message: '서버 오류가 발생했습니다.',
         detail: error instanceof Error ? error.message : String(error),

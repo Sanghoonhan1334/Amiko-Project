@@ -197,24 +197,24 @@ export async function POST(request: Request) {
             }
           } else {
             // 웹 푸시 알림
-            const pushSubscription = {
-              endpoint: String(subscription.endpoint),
-              keys: {
-                p256dh: String(subscription.p256dh_key),
-                auth: String(subscription.auth_key)
-              }
+          const pushSubscription = {
+            endpoint: String(subscription.endpoint),
+            keys: {
+              p256dh: String(subscription.p256dh_key),
+              auth: String(subscription.auth_key)
             }
+          }
 
-            const result = await webpush.sendNotification(
-              pushSubscription,
-              JSON.stringify(pushPayload)
-            )
+          const result = await webpush.sendNotification(
+            pushSubscription,
+            JSON.stringify(pushPayload)
+          )
 
             console.log('✅ 웹 푸시 알림 발송 성공:', subscription.id, result.statusCode)
-            
-            return {
-              subscriptionId: subscription.id,
-              success: true,
+          
+          return {
+            subscriptionId: subscription.id,
+            success: true,
               statusCode: result.statusCode,
               platform: 'web'
             }

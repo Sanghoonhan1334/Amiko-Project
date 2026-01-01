@@ -138,28 +138,86 @@ export function trackSessionStart(): void {
 }
 
 /**
- * Revisit detection - checks if user has logged in previously
- * Should be called when user logs in or when app initializes with existing session
+ * Revisit detection - checks if user has visited before
+ * Should be called at session start to detect returning users
+ * 기존 사용자(과거 방문 이력 있음)가 다시 사이트에 방문했을 때 1회 전송
  */
-export function trackRevisit(userId?: string): void {
+export function trackRevisit(): void {
   if (typeof window === 'undefined') return
   
   const revisitKey = 'ga4_revisit_tracked'
   const revisitTracked = sessionStorage.getItem(revisitKey)
   
-  // Check if user has logged in before (has stored session or user ID)
-  const hasPreviousSession = 
-    localStorage.getItem('amiko_session') || 
-    localStorage.getItem('amiko_user') ||
-    userId
-  
-  if (hasPreviousSession && !revisitTracked) {
-    logEvent('revisit', {
-      user_id: userId,
-      timestamp: new Date().toISOString()
-    })
-    sessionStorage.setItem(revisitKey, 'true')
+  if (revisitTracked) {
+    return // 이미 이 세션에서 추적됨
   }
+  
+  // 재방문 판별: localStorage에 방문 이력이 있는지 확인
+  const isReturningUser = localStorage.getItem('amiko_is_returning_user') === 'true'
+  
+  // 최초 방문인 경우 플래그 설정 (다음 방문부터 재방문으로 간주)
+  if (!isReturningUser) {
+    localStorage.setItem('amiko_is_returning_user', 'true')
+    // 최초 방문이므로 revisit 이벤트 전송하지 않음
+    return
+  }
+  
+  // 재방문 사용자인 경우 이벤트 전송
+  trackEvent('revisit', {
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  sessionStorage.setItem(revisitKey, 'true')
+}
+
+/**
+ * 재방문 세션에서 커뮤니티 진입
+ * /community 진입 시 해당 세션에서 revisit가 이미 발생한 경우에만 전송
+ */
+export function trackRevisitCommunityEnter(): void {
+  if (typeof window === 'undefined') return
+  
+  // revisit 이벤트가 이미 발생했는지 확인
+  const revisitTracked = sessionStorage.getItem('ga4_revisit_tracked')
+  if (!revisitTracked) {
+    return // revisit가 발생하지 않았으면 전송하지 않음
+  }
+  
+  // 이미 이 세션에서 추적되었는지 확인
+  const communityEnterKey = 'ga4_revisit_community_enter_tracked'
+  const alreadyTracked = sessionStorage.getItem(communityEnterKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('revisit_community_enter', {
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  sessionStorage.setItem(communityEnterKey, 'true')
+}
+
+/**
+ * 재방문 후 이전에 했던 주요 행동 재실행
+ * 재방문 후 글쓰기, 댓글, 퀴즈 등 이전 행동을 다시 실행했을 때 호출
+ */
+export function trackRevisitIntendedAction(actionType?: string): void {
+  if (typeof window === 'undefined') return
+  
+  // revisit 이벤트가 이미 발생했는지 확인
+  const revisitTracked = sessionStorage.getItem('ga4_revisit_tracked')
+  if (!revisitTracked) {
+    return // revisit가 발생하지 않았으면 전송하지 않음
+  }
+  
+  trackEvent('revisit_intended_action', {
+    action_type: actionType, // 'write_post', 'comment', 'quiz_retry' 등
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
 }
 
 // ==================== 퍼널 1: 마케팅 퍼널 ====================
@@ -933,6 +991,260 @@ export function trackSignupSuccess(userId?: string) {
   })
 }
 
+// ==================== 회원가입 퍼널 GA4 이벤트 (요청된 이벤트명) ====================
+
+/**
+ * 회원가입 폼 입력 시작
+ * 회원가입 페이지 진입 또는 입력 시작 시 호출
+ */
+export function trackSignUpFormStart() {
+  trackEvent('sign_up_form_start', {
+    page_location: typeof window !== 'undefined' ? window.location.href : ''
+  })
+}
+
+/**
+ * 필수 정보 입력 완료
+ * 필수 정보(이름, 이메일, 비밀번호, 생년월일, 국가) 입력 완료 시 호출
+ */
+export function trackSignUpRequiredInfoCompleted() {
+  trackEvent('sign_up_required_info_completed', {
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 인증 완료
+ * 이메일/SMS 등 인증 완료 시 호출
+ */
+export function trackSignUpVerificationCompleted(verificationMethod: 'email' | 'sms' | 'whatsapp' = 'email') {
+  trackEvent('sign_up_verification_completed', {
+    verification_method: verificationMethod,
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 회원가입 제출
+ * 회원가입 제출 버튼 클릭 시 호출
+ */
+export function trackSignUpSubmit() {
+  trackEvent('sign_up_submit', {
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 회원가입 성공
+ * 회원가입 최종 성공 시 호출
+ */
+export function trackSignUpSuccess(userId?: string) {
+  trackEvent('sign_up_success', {
+    user_id: userId,
+    timestamp: new Date().toISOString()
+  })
+}
+
+// ==================== 커뮤니티 참여 퍼널 GA4 이벤트 ====================
+
+/**
+ * 댓글 영역 viewport 노출
+ * 게시글 상세 페이지에서 댓글 영역이 viewport에 최초로 노출될 때 호출
+ * 사용자당 1회만 전송
+ */
+export function trackCommunityCommentSectionView(postId?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_comment_section_view_${postId || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('community_comment_section_view', {
+    post_id: postId,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 로그인 유도 UI 노출
+ * 비로그인 상태에서 로그인 유도 UI(모달, 배너, CTA)가 실제로 사용자 화면에 노출되었을 때 호출
+ * 사용자당 1회만 전송
+ */
+export function trackLoginPromptImpression(promptType?: string, location?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_login_prompt_impression_${promptType || 'default'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('login_prompt_impression', {
+    prompt_type: promptType || 'comment_section',
+    page_location: location || window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 댓글 입력 시작
+ * 댓글 입력창에 포커스되거나 입력 시작 시 호출
+ * 사용자당 1회만 전송 (postId별로 구분)
+ */
+export function trackCommunityCommentInputStart(postId?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_comment_input_start_${postId || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('community_comment_input_start', {
+    post_id: postId,
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 댓글 작성 완료 및 제출 성공
+ * 댓글 작성 완료 및 제출 성공 시 호출
+ * 사용자당 1회만 전송 (postId별로 구분)
+ */
+export function trackCommunityCommentSubmit(postId?: string, commentId?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_comment_submit_${postId || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('community_comment_submit', {
+    post_id: postId,
+    comment_id: commentId,
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+// ==================== UGC 생성 퍼널 GA4 이벤트 ====================
+
+/**
+ * 글쓰기 버튼 클릭
+ * 사용자가 "글쓰기" 버튼을 클릭했을 때 호출
+ * 클릭당 1회만 전송
+ */
+export function trackUgcWriteClick(gallerySlug?: string) {
+  trackEvent('ugc_write_click', {
+    gallery_slug: gallerySlug,
+    page_location: typeof window !== 'undefined' ? window.location.href : '',
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 에디터 진입
+ * 글쓰기 에디터 페이지가 최초 렌더링될 때 호출
+ * 페이지 진입 기준 1회만 전송
+ */
+export function trackUgcEditorEnter(gallerySlug?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_ugc_editor_enter_${gallerySlug || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('ugc_editor_enter', {
+    gallery_slug: gallerySlug,
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 내용 입력 시작
+ * 사용자가 처음으로 글자를 입력했을 때 호출
+ * 입력 시작 최초 1회만 전송
+ */
+export function trackUgcContentInputStart(gallerySlug?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_ugc_content_input_start_${gallerySlug || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('ugc_content_input_start', {
+    gallery_slug: gallerySlug,
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 게시 시도
+ * 게시 API 호출 직전에 호출
+ * 클릭당 1회만 전송
+ */
+export function trackUgcSubmitAttempt(gallerySlug?: string) {
+  trackEvent('ugc_submit_attempt', {
+    gallery_slug: gallerySlug,
+    page_location: typeof window !== 'undefined' ? window.location.href : '',
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 게시 성공
+ * 서버에서 게시 성공 응답을 받은 경우 호출
+ * 성공 시 1회만 전송
+ */
+export function trackUgcSubmitSuccess(postId?: string, gallerySlug?: string) {
+  trackEvent('ugc_submit_success', {
+    post_id: postId,
+    gallery_slug: gallerySlug,
+    page_location: typeof window !== 'undefined' ? window.location.href : '',
+    timestamp: new Date().toISOString()
+  })
+}
+
 // Login Flow
 export function trackLoginAttempt() {
   logEvent('login_attempt', {})
@@ -942,6 +1254,166 @@ export function trackLoginSuccess(userId?: string, method?: string) {
   logEvent('login_success', {
     user_id: userId,
     login_method: method || 'email'
+  })
+  
+  // GA4 이벤트로도 전송
+  trackEvent('login_success', {
+    user_id: userId,
+    login_method: method || 'email',
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 로그인 유도 UI 내 로그인 버튼 클릭
+ * 로그인 유도 UI 내 로그인 버튼 클릭 시 호출
+ * 클릭당 1회만 전송
+ */
+export function trackLoginClick(promptType?: string, intent?: string) {
+  // intent를 sessionStorage에 저장 (로그인 성공 후 재시도 추적용)
+  if (typeof window !== 'undefined' && intent) {
+    sessionStorage.setItem('amiko_login_intent', JSON.stringify({
+      intent,
+      promptType,
+      pageLocation: window.location.href,
+      timestamp: new Date().toISOString()
+    }))
+  }
+  
+  trackEvent('login_click', {
+    prompt_type: promptType,
+    intent: intent,
+    page_location: typeof window !== 'undefined' ? window.location.href : '',
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 로그인 성공 후 원래 하려던 행동 재시도
+ * 로그인 성공 후 사용자가 원래 하려던 행동을 다시 시도했을 때 호출
+ * intent가 존재할 때만 전송
+ */
+export function trackIntendedActionResume(intent?: string, promptType?: string) {
+  if (!intent) return // intent가 없으면 전송하지 않음
+  
+  trackEvent('intended_action_resume', {
+    intent: intent,
+    prompt_type: promptType,
+    page_location: typeof window !== 'undefined' ? window.location.href : '',
+    timestamp: new Date().toISOString()
+  })
+  
+  // intent 사용 후 삭제
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem('amiko_login_intent')
+  }
+}
+
+// ==================== 퀴즈 퍼널 GA4 이벤트 ====================
+
+/**
+ * 테스트 진입
+ * 퀴즈 소개 페이지 진입 시 호출
+ * 페이지 진입 기준 1회만 전송 (testId별로 구분)
+ */
+export function trackQuizEnter(testId?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_quiz_enter_${testId || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('quiz_enter', {
+    test_id: testId,
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 시작 클릭
+ * "시작하기" 버튼 클릭 시 호출
+ * 클릭당 1회만 전송
+ */
+export function trackQuizStartClick(testId?: string) {
+  trackEvent('quiz_start_click', {
+    test_id: testId,
+    page_location: typeof window !== 'undefined' ? window.location.href : '',
+    timestamp: new Date().toISOString()
+  })
+}
+
+/**
+ * 질문 50% 도달
+ * 전체 질문 수 대비 50% 이상 최초 도달 시 호출
+ * 50% 최초 도달 시 1회만 전송 (testId별로 구분)
+ */
+export function trackQuizProgress50(testId?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_quiz_progress_50_${testId || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('quiz_progress_50', {
+    test_id: testId,
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 테스트 완료
+ * 마지막 질문 완료 + 결과 페이지 진입 시 호출
+ * 완료 시 1회만 전송 (testId별로 구분)
+ */
+export function trackQuizComplete(testId?: string, resultType?: string) {
+  if (typeof window === 'undefined') return
+  
+  // 중복 전송 방지: sessionStorage 사용
+  const storageKey = `ga4_quiz_complete_${testId || 'global'}`
+  const alreadyTracked = sessionStorage.getItem(storageKey)
+  
+  if (alreadyTracked) {
+    return // 이미 추적됨
+  }
+  
+  trackEvent('quiz_complete', {
+    test_id: testId,
+    result_type: resultType,
+    page_location: window.location.href,
+    timestamp: new Date().toISOString()
+  })
+  
+  // 추적 완료 표시
+  sessionStorage.setItem(storageKey, 'true')
+}
+
+/**
+ * 결과 공유
+ * 결과 공유 버튼 클릭 시 호출
+ * 클릭당 1회만 전송
+ */
+export function trackQuizResultShare(testId?: string, channel?: string) {
+  trackEvent('quiz_result_share', {
+    test_id: testId,
+    channel: channel, // 'whatsapp', 'instagram', 'tiktok', 'system', 'copy' 등
+    page_location: typeof window !== 'undefined' ? window.location.href : '',
+    timestamp: new Date().toISOString()
   })
 }
 

@@ -20,7 +20,7 @@ import { checkWebAuthnSupport, startBiometricRegistration, startBiometricAuthent
 import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '@/components/ui/dialog'
 import { Fingerprint } from 'lucide-react'
-import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick } from '@/lib/analytics'
+import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick, trackIntendedActionResume } from '@/lib/analytics'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { Capacitor } from '@capacitor/core'
 
@@ -276,7 +276,19 @@ export default function SignInPage() {
         }
       }
       
-      // 로그인 성공 후 메인 앱으로 이동
+      // 로그인 성공 후 redirect 처리
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const redirectPath = params.get('redirect')
+        
+        // redirect 파라미터가 있으면 해당 경로로 이동
+        if (redirectPath) {
+          router.push(redirectPath)
+          return
+        }
+      }
+      
+      // redirect 파라미터가 없으면 메인 앱으로 이동
       router.push('/main')
       
     } catch (error) {
@@ -326,11 +338,21 @@ export default function SignInPage() {
       }
     } catch (error) {
       console.error('지문 등록 오류:', error)
-      alert(language === 'ko' 
-        ? '지문 등록에 실패했습니다. 나중에 마이페이지에서 다시 시도해주세요.' 
-        : 'Error al registrar huella digital. Inténtelo más tarde en Mi Perfil.')
-      setShowBiometricSetupModal(false)
-      router.push('/main')
+        alert(language === 'ko' 
+          ? '지문 등록에 실패했습니다. 나중에 마이페이지에서 다시 시도해주세요.' 
+          : 'Error al registrar huella digital. Inténtelo más tarde en Mi Perfil.')
+        setShowBiometricSetupModal(false)
+        
+        // redirect 처리
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search)
+          const redirectPath = params.get('redirect')
+          if (redirectPath) {
+            router.push(redirectPath)
+            return
+          }
+        }
+        router.push('/main')
     } finally {
       setIsLoading(false)
     }
@@ -338,6 +360,16 @@ export default function SignInPage() {
 
   const handleSkipBiometric = () => {
     setShowBiometricSetupModal(false)
+    
+    // redirect 처리
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const redirectPath = params.get('redirect')
+      if (redirectPath) {
+        router.push(redirectPath)
+        return
+      }
+    }
     router.push('/main')
   }
 
@@ -495,7 +527,7 @@ export default function SignInPage() {
                 />
               </svg>
               <span>
-                {language === 'ko' ? 'Google로 계속하기 (수리 중)' : 'Continuar con Google (En mantenimiento)'}
+                {language === 'ko' ? 'Google로 계속하기' : 'Continuar con Google'}
               </span>
             </div>
           </Button>

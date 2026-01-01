@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, ArrowLeft, User, Mail, Lock, Globe } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { countries } from '@/constants/countries'
-import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick } from '@/lib/analytics'
+import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick, trackSignUpFormStart, trackSignUpRequiredInfoCompleted, trackSignUpVerificationCompleted, trackSignUpSubmit as trackSignUpSubmitEvent, trackSignUpSuccess as trackSignUpSuccessEvent } from '@/lib/analytics'
 import EmailVerification from '@/components/auth/EmailVerification'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { Capacitor } from '@capacitor/core'
@@ -48,6 +48,7 @@ export default function SignUpPage() {
 
   const [ageError, setAgeError] = useState<string | null>(null)
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [requiredInfoCompletedTracked, setRequiredInfoCompletedTracked] = useState(false)
 
   // 가입 퍼널 이벤트: 회원가입 시작
   useEffect(() => {
@@ -55,6 +56,8 @@ export default function SignUpPage() {
     signUpEvents.formStart()
     // Standardized event
     trackStartSignup()
+    // 요청된 GA4 이벤트: 회원가입 폼 입력 시작
+    trackSignUpFormStart()
     
     // 히스토리 초기화 - 모바일 뒤로가기 방지
     if (typeof window !== 'undefined') {
@@ -65,6 +68,29 @@ export default function SignUpPage() {
       }
     }
   }, [])
+
+  // 필수 정보 입력 완료 감지
+  useEffect(() => {
+    if (requiredInfoCompletedTracked) return
+
+    const isRequiredInfoCompleted = 
+      formData.name &&
+      formData.email &&
+      formData.password &&
+      formData.confirmPassword &&
+      formData.country &&
+      formData.birthDate &&
+      isPasswordValid &&
+      formData.password === formData.confirmPassword &&
+      !ageError &&
+      !emailError
+
+    if (isRequiredInfoCompleted) {
+      // 요청된 GA4 이벤트: 필수 정보 입력 완료
+      trackSignUpRequiredInfoCompleted()
+      setRequiredInfoCompletedTracked(true)
+    }
+  }, [formData, isPasswordValid, ageError, emailError, requiredInfoCompletedTracked])
 
   const calculateAge = (value: string) => {
     if (!value) return null
@@ -277,6 +303,10 @@ export default function SignUpPage() {
       // 이메일 인증 완료
       setEmailVerified(true)
       setAuthData(prev => ({ ...prev, isEmailVerified: true }))
+      
+      // 요청된 GA4 이벤트: 인증 완료
+      trackSignUpVerificationCompleted('email')
+      
       alert(language === 'ko' ? '이메일 인증이 완료되었습니다.' : 'Verificación de correo electrónico completada.')
       
       // 회원가입 진행
@@ -301,8 +331,7 @@ export default function SignUpPage() {
     if (e) e.preventDefault()
     setIsLoading(true)
     
-    // Standardized event: signup_submit
-    trackSignupSubmit()
+    // sign_up_submit 이벤트는 handleFormSubmit에서만 호출 (중복 방지)
 
     try {
       if (!formData.birthDate) {
@@ -358,6 +387,9 @@ export default function SignUpPage() {
       // Standardized events
       trackSignupSuccess(userId)
       
+      // 요청된 GA4 이벤트: 회원가입 성공
+      trackSignUpSuccessEvent(userId)
+      
       alert(t('auth.signUpSuccess'))
       
       // 회원가입 성공 후 로그인 페이지로 이동
@@ -407,6 +439,8 @@ export default function SignUpPage() {
 
     // 가입 퍼널 이벤트: 회원가입 제출
     signUpEvents.submitRegister()
+    // 요청된 GA4 이벤트: 회원가입 제출 (폼 제출 시)
+    trackSignUpSubmitEvent()
 
     setIsLoading(true)
     
@@ -712,7 +746,7 @@ export default function SignUpPage() {
                           />
                         </svg>
                         <span>
-                          {language === 'ko' ? 'Google로 계속하기 (수리 중)' : 'Continuar con Google (En mantenimiento)'}
+                          {language === 'ko' ? 'Google로 계속하기' : 'Continuar con Google'}
                         </span>
                       </div>
                     </Button>

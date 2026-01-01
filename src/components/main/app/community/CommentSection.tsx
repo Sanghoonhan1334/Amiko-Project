@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import { TranslationService } from '@/lib/translation'
 import UserBadge from '@/components/common/UserBadge'
 import AuthorName from '@/components/common/AuthorName'
-import { communityEvents, trackCommentStart, trackCommentSubmit, trackCommentSuccess } from '@/lib/analytics'
+import { communityEvents, trackCommentStart, trackCommentSubmit, trackCommentSuccess, trackCommunityCommentSectionView, trackLoginPromptImpression, trackCommunityCommentInputStart, trackCommunityCommentSubmit, trackLoginClick, trackIntendedActionResume, trackRevisitIntendedAction } from '@/lib/analytics'
 
 interface Comment {
   id: string
@@ -63,6 +64,9 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
   const translationService = new TranslationService()
+  const commentSectionRef = useRef<HTMLDivElement>(null)
+  const loginPromptRef = useRef<HTMLDivElement>(null)
+  const commentInputStartTracked = useRef(false) // 댓글 입력 시작 이벤트 중복 방지
 
   // 운영자 권한 체크
   useEffect(() => {
@@ -236,6 +240,24 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       return
     }
 
+    // 로그인 유도 퍼널 이벤트: 원래 하려던 행동 재시도
+    if (typeof window !== 'undefined') {
+      const savedIntent = sessionStorage.getItem('amiko_login_intent')
+      if (savedIntent) {
+        try {
+          const intentData = JSON.parse(savedIntent)
+          if (intentData.intent === 'comment_write') {
+            trackIntendedActionResume('comment_write', intentData.promptType)
+          }
+        } catch (e) {
+          // 파싱 에러 무시
+        }
+      }
+    }
+
+    // 재방문 퍼널 이벤트: 이전 행동 재실행 (재방문 세션에서만)
+    trackRevisitIntendedAction('comment')
+
     // Standardized event: comment_submit
     trackCommentSubmit(postId)
 
@@ -259,6 +281,9 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
         
         // Standardized event: comment_success
         trackCommentSuccess(commentId, postId)
+        
+        // 커뮤니티 참여 퍼널 이벤트: 댓글 작성 완료 및 제출 성공
+        trackCommunityCommentSubmit(postId, commentId)
         
         setCommentContent('')
         await loadComments()
@@ -597,8 +622,64 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
     loadComments()
   }, [postId])
 
+  // 댓글 영역 viewport 노출 감지 (IntersectionObserver)
+  useEffect(() => {
+    if (!commentSectionRef.current) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // 댓글 영역이 viewport에 노출됨
+            trackCommunityCommentSectionView(postId)
+            // 한 번만 추적하면 되므로 observer 해제
+            observer.disconnect()
+          }
+        })
+      },
+      {
+        threshold: 0.1, // 10% 이상 노출되면 감지
+        rootMargin: '0px'
+      }
+    )
+
+    observer.observe(commentSectionRef.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [postId])
+
+  // 로그인 유도 UI 노출 감지 (비로그인 상태에서만)
+  useEffect(() => {
+    if (user || !loginPromptRef.current) return // 로그인 상태이거나 요소가 없으면 무시
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // 로그인 유도 UI가 viewport에 노출됨
+            trackLoginPromptImpression('comment_section', window.location.href)
+            // 한 번만 추적하면 되므로 observer 해제
+            observer.disconnect()
+          }
+        })
+      },
+      {
+        threshold: 0.1, // 10% 이상 노출되면 감지
+        rootMargin: '0px'
+      }
+    )
+
+    observer.observe(loginPromptRef.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [user])
+
   return (
-    <div className="space-y-4">
+    <div ref={commentSectionRef} className="space-y-4">
       {/* 댓글 헤더 */}
       <div className="px-4 pt-3 md:pt-4">
         <div className="flex items-center justify-between mb-2">
@@ -653,6 +734,12 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
             onFocus={() => {
               // Standardized event: comment_start (when user focuses on comment input)
               trackCommentStart(postId)
+              
+              // 커뮤니티 참여 퍼널 이벤트: 댓글 입력 시작 (중복 방지)
+              if (!commentInputStartTracked.current) {
+                trackCommunityCommentInputStart(postId)
+                commentInputStartTracked.current = true
+              }
             }}
           >
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium overflow-hidden">
@@ -670,7 +757,21 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
               <textarea
                 ref={textareaRef}
                 value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
+                onChange={(e) => {
+                  setCommentContent(e.target.value)
+                  // 최초 입력 시에도 이벤트 전송 (포커스만으로는 감지되지 않는 경우 대비)
+                  if (!commentInputStartTracked.current && e.target.value.length > 0) {
+                    trackCommunityCommentInputStart(postId)
+                    commentInputStartTracked.current = true
+                  }
+                }}
+                onFocus={() => {
+                  // 커뮤니티 참여 퍼널 이벤트: 댓글 입력 시작 (중복 방지)
+                  if (!commentInputStartTracked.current) {
+                    trackCommunityCommentInputStart(postId)
+                    commentInputStartTracked.current = true
+                  }
+                }}
                 placeholder={t('freeboard.commentPlaceholder')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
                 rows={3}
@@ -694,10 +795,23 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
           </div>
         </div>
       ) : (
-        <div className="px-4 py-3 md:py-4 border-t border-gray-200">
-          <p className="text-center text-xs md:text-sm text-gray-600">
-            {t('freeboard.commentLoginRequired')}
-          </p>
+        <div ref={loginPromptRef} className="px-4 py-3 md:py-4 border-t border-gray-200">
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-center text-xs md:text-sm text-gray-600">
+              {t('freeboard.commentLoginRequired')}
+            </p>
+            <Button
+              onClick={() => {
+                // 로그인 유도 퍼널 이벤트: 로그인 버튼 클릭
+                trackLoginClick('comment_section', 'comment_write')
+                router.push(`/sign-in?redirect=${encodeURIComponent(window.location.pathname)}`)
+              }}
+              size="sm"
+              className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-4 py-2"
+            >
+              {language === 'ko' ? '로그인하기' : 'Iniciar sesión'}
+            </Button>
+          </div>
         </div>
       )}
 

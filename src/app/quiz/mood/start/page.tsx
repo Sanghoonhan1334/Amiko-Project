@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/layout/Header'
-import { quizEvents } from '@/lib/analytics'
+import { quizEvents, trackQuizStartClick } from '@/lib/analytics'
 
 function HeaderFallback() {
   return (
@@ -23,9 +23,25 @@ export default function MoodStartPage() {
     router.push('/quiz/mood')
   }
 
-  const handleStart = () => {
+  const handleStart = async () => {
     setIsStarting(true)
-    quizEvents.startQuiz('mood', 'Encuentra tu Mood')
+    
+    // 퀴즈 ID 가져오기
+    let quizId: string | undefined
+    try {
+      const response = await fetch('/api/quizzes/mood')
+      const data = await response.json()
+      if (data.success && data.data.quiz) {
+        quizId = data.data.quiz.id
+      }
+    } catch (error) {
+      console.error('Error fetching quiz ID:', error)
+    }
+    
+    // 퀴즈 퍼널 이벤트: 시작 클릭
+    trackQuizStartClick(quizId)
+    
+    quizEvents.startQuiz(quizId, 'Encuentra tu Mood')
     // Ir a la página de preguntas
     router.push('/quiz/mood/questions')
   }

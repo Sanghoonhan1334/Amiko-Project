@@ -244,7 +244,7 @@ export default function PhoneVerification({
           } catch (error) {
             console.error('쿨다운 제거 실패:', error)
           }
-        }
+      }
         
         // 최소 2초 대기 (중복 클릭 방지)
         await new Promise(resolve => setTimeout(resolve, 2000))
@@ -567,10 +567,10 @@ export default function PhoneVerification({
                   <div className="flex items-center justify-center gap-1 break-words">
                     <RefreshCw className="w-3 h-3 flex-shrink-0" />
                     <span className="break-words text-center">
-                      {timeLeft > 0 
-                        ? `${t('phoneVerification.timeLeft')} ${formatTime(timeLeft)}`
-                        : t('phoneVerification.resendCode')
-                      }
+                  {timeLeft > 0 
+                    ? `${t('phoneVerification.timeLeft')} ${formatTime(timeLeft)}`
+                    : t('phoneVerification.resendCode')
+                  }
                     </span>
                   </div>
                 </Button>
