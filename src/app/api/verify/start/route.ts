@@ -76,12 +76,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (channel !== 'whatsapp') {
+    // 지원하는 채널 확인 (SMS와 WhatsApp 모두 지원)
+    if (channel !== 'whatsapp' && channel !== 'sms') {
       if (typeof console !== 'undefined') {
         console.error('[VERIFY_START] STEP 3 에러: 지원하지 않는 채널!', { channel })
       }
       return NextResponse.json(
-        { ok: false, error: 'ONLY_WHATSAPP_SUPPORTED', message: '현재 WhatsApp만 테스트 중입니다.' },
+        { ok: false, error: 'UNSUPPORTED_CHANNEL', message: 'SMS 또는 WhatsApp만 지원됩니다.' },
         { status: 400 }
       )
     }
@@ -126,37 +127,50 @@ export async function POST(request: NextRequest) {
       console.log('[VERIFY_START] STEP 5 완료:', { code: verificationCode })
     }
 
-    // STEP 6: WhatsApp 발송 (Twilio 호출만 테스트)
+    // STEP 6: 인증코드 발송 (SMS 또는 WhatsApp)
     if (typeof console !== 'undefined') {
-      console.log('[VERIFY_START] STEP 6: WhatsApp 발송 시작')
+      console.log(`[VERIFY_START] STEP 6: ${channel.toUpperCase()} 발송 시작`)
       console.log('[VERIFY_START] 동적 import 시작...')
     }
     
     let sendSuccess = false
     try {
-      const { sendVerificationWhatsApp } = await import('@/lib/smsService')
-      if (typeof console !== 'undefined') {
-        console.log('[VERIFY_START] sendVerificationWhatsApp import 성공')
-      }
-      
       const language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
-      if (typeof console !== 'undefined') {
-        console.log('[VERIFY_START] WhatsApp 발송 호출:', { to: normalizedTarget, code: verificationCode, language })
-      }
       
-      sendSuccess = await sendVerificationWhatsApp(normalizedTarget, verificationCode, language)
-      if (typeof console !== 'undefined') {
-        console.log('[VERIFY_START] WhatsApp 발송 결과:', sendSuccess)
+      if (channel === 'sms') {
+        // SMS 발송
+        const { sendVerificationSMS } = await import('@/lib/smsService')
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] sendVerificationSMS import 성공')
+          console.log('[VERIFY_START] SMS 발송 호출:', { to: normalizedTarget, code: verificationCode, language, nationality })
+        }
+        
+        sendSuccess = await sendVerificationSMS(normalizedTarget, verificationCode, language, nationality)
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] SMS 발송 결과:', sendSuccess)
+        }
+      } else if (channel === 'whatsapp') {
+        // WhatsApp 발송
+        const { sendVerificationWhatsApp } = await import('@/lib/smsService')
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] sendVerificationWhatsApp import 성공')
+          console.log('[VERIFY_START] WhatsApp 발송 호출:', { to: normalizedTarget, code: verificationCode, language })
+        }
+        
+        sendSuccess = await sendVerificationWhatsApp(normalizedTarget, verificationCode, language)
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] WhatsApp 발송 결과:', sendSuccess)
+        }
       }
     } catch (sendError) {
       if (typeof console !== 'undefined') {
-        console.error('[VERIFY_START] STEP 6 에러: WhatsApp 발송 중 예외 발생!', sendError)
+        console.error(`[VERIFY_START] STEP 6 에러: ${channel.toUpperCase()} 발송 중 예외 발생!`, sendError)
       }
       return NextResponse.json(
         { 
           ok: false, 
-          error: 'WHATSAPP_SEND_EXCEPTION', 
-          message: 'WhatsApp 발송 중 오류가 발생했습니다.',
+          error: `${channel.toUpperCase()}_SEND_EXCEPTION`, 
+          message: `${channel === 'sms' ? 'SMS' : 'WhatsApp'} 발송 중 오류가 발생했습니다.`,
           detail: sendError instanceof Error ? sendError.message : String(sendError),
           stack: sendError instanceof Error ? sendError.stack : 'N/A'
         },
@@ -166,16 +180,16 @@ export async function POST(request: NextRequest) {
 
     if (!sendSuccess) {
       if (typeof console !== 'undefined') {
-        console.error('[VERIFY_START] STEP 6 에러: WhatsApp 발송 실패!')
+        console.error(`[VERIFY_START] STEP 6 에러: ${channel.toUpperCase()} 발송 실패!`)
       }
-        return NextResponse.json(
-        { ok: false, error: 'WHATSAPP_SEND_FAILED', message: 'WhatsApp 발송에 실패했습니다.' },
-          { status: 500 }
-        )
-      }
+      return NextResponse.json(
+        { ok: false, error: `${channel.toUpperCase()}_SEND_FAILED`, message: `${channel === 'sms' ? 'SMS' : 'WhatsApp'} 발송에 실패했습니다.` },
+        { status: 500 }
+      )
+    }
 
     if (typeof console !== 'undefined') {
-      console.log('[VERIFY_START] STEP 6 완료: WhatsApp 발송 성공')
+      console.log(`[VERIFY_START] STEP 6 완료: ${channel.toUpperCase()} 발송 성공`)
     }
 
     // STEP 7: 성공 응답
