@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { toE164 } from '@/lib/phoneUtils'
+import { toE164, normalizeDigits } from '@/lib/phoneUtils'
 
 // OTP 코드 검증 API
 export async function POST(request: NextRequest) {
@@ -24,6 +24,23 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // 코드 정규화 (유니코드 숫자 처리)
+    const normalizedCode = normalizeDigits(code)
+    if (normalizedCode.length !== 6) {
+      console.error('[VERIFY_CHECK] 코드 길이 이상:', { 
+        original: code, 
+        normalized: normalizedCode, 
+        length: normalizedCode.length 
+      })
+      return NextResponse.json(
+        { ok: false, error: 'INVALID_CODE_FORMAT' },
+        { status: 400 }
+      )
+    }
+
+    // DB type 변환: 'wa' → 'sms' (저장 시와 동일하게)
+    const dbType = channel === 'wa' ? 'sms' : channel
 
     // 전화번호인 경우 정규화 (verification_codes 테이블에는 정규화된 형식으로 저장되므로)
     let normalizedTarget = target
@@ -53,8 +70,8 @@ export async function POST(request: NextRequest) {
       .from('verification_codes')
       .select('*')
       .eq(channel === 'email' ? 'email' : 'phone_number', normalizedTarget)
-      .eq('type', channel)
-      .eq('code', code)
+      .eq('type', dbType) // 'wa' → 'sms'로 변환된 값 사용
+      .eq('code', normalizedCode) // 정규화된 코드 사용
       .eq('verified', false)
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
@@ -62,7 +79,13 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (verificationError || !verificationData) {
-      console.error('인증코드 검증 실패:', verificationError)
+      console.error('[VERIFY_CHECK] 인증코드 검증 실패:', verificationError)
+      console.error('[VERIFY_CHECK] 검색 조건:', { 
+        target: normalizedTarget, 
+        type: dbType, 
+        code: normalizedCode.substring(0, 2) + '****',
+        channel
+      })
       return NextResponse.json(
         { ok: false, error: 'INVALID_CODE' },
         { status: 400 }
@@ -178,10 +201,11 @@ export async function POST(request: NextRequest) {
       // 로그 실패는 인증 성공에 영향을 주지 않음
     }
 
-    console.log('OTP 검증 성공:', {
+    console.log('[VERIFY_CHECK] OTP 검증 성공:', {
       channel,
+      dbType,
       target,
-      code: code.substring(0, 2) + '****', // 보안을 위해 코드 일부만 로그
+      code: normalizedCode.substring(0, 2) + '****', // 보안을 위해 코드 일부만 로그
       verificationId: verificationData.id
     })
 
