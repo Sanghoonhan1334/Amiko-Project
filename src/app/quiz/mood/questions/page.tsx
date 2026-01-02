@@ -33,7 +33,13 @@ export default function MoodQuestionsPage() {
       try {
         const response = await fetch('/api/quizzes/mood')
         const data = await response.json()
-        console.log('[Mood Questions] Respuesta API:', data)
+        console.log('[Mood Questions] Respuesta API completa:', JSON.stringify(data, null, 2))
+        console.log('[Mood Questions] Response status:', response.status)
+        console.log('[Mood Questions] data.success:', data.success)
+        console.log('[Mood Questions] data.data:', data.data)
+        console.log('[Mood Questions] data.data?.questions:', data.data?.questions)
+        console.log('[Mood Questions] questions length:', data.data?.questions?.length)
+        
         if (data.success && data.data && data.data.questions && Array.isArray(data.data.questions) && data.data.questions.length > 0) {
           console.log('[Mood Questions] Preguntas cargadas exitosamente:', data.data.questions.length, 'preguntas')
           
