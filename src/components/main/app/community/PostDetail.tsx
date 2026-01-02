@@ -466,20 +466,37 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
           />
         </div>
 
-        {/* 이미지 갤러리 */}
+        {/* 이미지/영상/GIF 갤러리 */}
         {post.images && post.images.length > 0 && (
           <div className="mb-3 md:mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
-              {post.images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img 
-                    src={image} 
-                    alt={`첨부 이미지 ${index + 1}`}
-                    className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => window.open(image, '_blank')}
-                  />
-                </div>
-              ))}
+              {post.images.map((media, index) => {
+                // 파일 확장자로 타입 판단
+                const isVideo = media.match(/\.(mp4|webm|mov|avi|mkv)$/i)
+                const isGif = media.match(/\.gif$/i)
+                
+                return (
+                  <div key={index} className="relative group">
+                    {isVideo ? (
+                      <video 
+                        src={media} 
+                        controls
+                        className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(media, '_blank')}
+                      >
+                        {language === 'es' ? 'Tu navegador no soporta el elemento de video.' : '브라우저가 비디오 태그를 지원하지 않습니다.'}
+                      </video>
+                    ) : (
+                      <img 
+                        src={media} 
+                        alt={isGif ? `GIF ${index + 1}` : `첨부 이미지 ${index + 1}`}
+                        className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(media, '_blank')}
+                      />
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

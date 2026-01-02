@@ -49,6 +49,7 @@ interface Post {
   is_pinned?: boolean
   is_hot?: boolean
   is_notice?: boolean
+  images?: string[]
 }
 
 interface Category {
@@ -530,14 +531,24 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
     setUploadingImages(true)
     try {
+      // 파일 타입 검증
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
+      const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type))
+      
+      if (invalidFiles.length > 0) {
+        toast.error(language === 'es' ? 'Tipo de archivo no permitido. Solo se permiten imágenes, videos y GIFs.' : '지원하지 않는 파일 형식입니다. 이미지, 영상, GIF만 업로드 가능합니다.')
+        return
+      }
+
       const uploadPromises = Array.from(files).map(async (file) => {
         if (file.size > 5 * 1024 * 1024) {
-          throw new Error('파일 크기는 5MB를 초과할 수 없습니다.')
+          throw new Error(language === 'es' ? 'El tamaño del archivo no puede exceder 5MB.' : '파일 크기는 5MB를 초과할 수 없습니다.')
         }
 
         const formData = new FormData()
         formData.append('file', file)
 
+        // 이미지와 영상 모두 같은 API 사용 (서버에서 타입 자동 감지)
         const response = await fetch('/api/upload/image', {
           method: 'POST',
           headers: {
@@ -547,7 +558,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         })
 
         if (!response.ok) {
-          throw new Error('이미지 업로드 실패')
+          throw new Error(language === 'es' ? 'Error al subir el archivo.' : '파일 업로드 실패')
         }
 
         const data = await response.json()
@@ -557,14 +568,21 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const urls = await Promise.all(uploadPromises)
       setUploadedImages(prev => [...prev, ...urls])
       
-      // 미리보기 생성
-      const previews = Array.from(files).map(file => URL.createObjectURL(file))
+      // 미리보기 생성 (이미지만, 영상은 썸네일 생성 불가)
+      const previews = Array.from(files).map(file => {
+        if (file.type.startsWith('image/')) {
+          return URL.createObjectURL(file)
+        } else {
+          // 영상의 경우 썸네일 대신 영상 아이콘 표시
+          return null
+        }
+      }).filter(Boolean) as string[]
       setImagePreviews(prev => [...prev, ...previews])
       
-      toast.success(language === 'es' ? '¡Imagen subida exitosamente!' : '이미지가 업로드되었습니다!')
+      toast.success(language === 'es' ? '¡Archivo(s) subido(s) exitosamente!' : '파일이 업로드되었습니다!')
     } catch (error) {
-      console.error('이미지 업로드 실패:', error)
-      toast.error(language === 'es' ? 'Error al subir la imagen.' : '이미지 업로드에 실패했습니다.')
+      console.error('파일 업로드 실패:', error)
+      toast.error(language === 'es' ? 'Error al subir el archivo.' : '파일 업로드에 실패했습니다.')
     } finally {
       setUploadingImages(false)
     }
@@ -794,7 +812,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           comments_count: post.comment_count || 0,
           is_pinned: post.is_pinned || false,
           is_hot: post.is_hot || false,
-          is_notice: post.is_notice || false // is_notice 필드 추가
+          is_notice: post.is_notice || false, // is_notice 필드 추가
+          images: post.images || [] // images 필드 추가
         }))
 
         console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
@@ -1153,6 +1172,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                               <div className="flex items-center gap-2">
                                 {post.is_pinned && <Star className="w-4 h-4 text-yellow-500" />}
                                 {post.is_hot && <TrendingUp className="w-4 h-4 text-red-500" />}
+                                {post.images && post.images.length > 0 && (
+                                  <span className="text-blue-500" title={language === 'es' ? `${post.images.length} archivo(s)` : `${post.images.length}개 첨부`}>
+                                    📎
+                                  </span>
+                                )}
                                 <span className="truncate max-w-xs">
                                   {translationMode !== 'none' && post.translatedTitle ? post.translatedTitle : post.title}
                                 </span>
@@ -1607,7 +1631,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 <div className="space-y-2">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*,.gif"
                     multiple
                     onChange={handleImageUpload}
                     className="hidden"
@@ -1619,30 +1643,46 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     className={`inline-flex items-center gap-2 px-4 py-2 text-xs border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900 transition-all duration-200 font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <span>📷</span>
-                    {uploadingImages ? '업로드 중...' : t('community.selectImage')}
+                    {uploadingImages ? (language === 'es' ? 'Subiendo...' : '업로드 중...') : (language === 'es' ? 'Seleccionar archivo (imagen/video/GIF)' : '파일 선택 (이미지/영상/GIF)')}
                   </label>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('community.imageRestrictions')}
+                    {language === 'es' ? 'Imágenes, videos y GIFs permitidos (máx. 5MB)' : '이미지, 영상, GIF 지원 (최대 5MB)'}
                   </div>
                   
-                  {/* 이미지 미리보기 */}
-                  {imagePreviews.length > 0 && (
+                  {/* 이미지/영상 미리보기 */}
+                  {(imagePreviews.length > 0 || uploadedImages.length > 0) && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                      {imagePreviews.map((preview, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={preview}
-                            alt={`첨부 이미지 ${index + 1}`}
-                            className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200"
-                          />
-                          <button
-                            onClick={() => handleRemoveImage(index)}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                      {uploadedImages.map((url, index) => {
+                        const isVideo = url.match(/\.(mp4|webm|mov|avi|mkv)$/i)
+                        const isGif = url.match(/\.gif$/i)
+                        const preview = imagePreviews[index] || null
+                        
+                        return (
+                          <div key={index} className="relative group">
+                            {isVideo ? (
+                              <div className="w-full h-20 bg-gray-200 dark:bg-gray-700 rounded-lg border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                                <span className="text-2xl">🎬</span>
+                              </div>
+                            ) : preview ? (
+                              <img
+                                src={preview}
+                                alt={isGif ? `GIF ${index + 1}` : `첨부 이미지 ${index + 1}`}
+                                className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200"
+                              />
+                            ) : (
+                              <div className="w-full h-20 bg-gray-200 dark:bg-gray-700 rounded-lg border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                                <span className="text-2xl">{isGif ? '🎞️' : '📎'}</span>
+                              </div>
+                            )}
+                            <button
+                              onClick={() => handleRemoveImage(index)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>

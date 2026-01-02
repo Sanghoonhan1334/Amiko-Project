@@ -52,10 +52,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 파일 타입 체크
-    if (!file.type.startsWith('image/')) {
+    // 파일 타입 체크 (이미지, 영상, GIF 지원)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
+    if (!validTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: '이미지 파일만 업로드 가능합니다.' },
+        { error: '지원하지 않는 파일 형식입니다. 이미지, 영상, GIF만 업로드 가능합니다.' },
         { status: 400 }
       )
     }
