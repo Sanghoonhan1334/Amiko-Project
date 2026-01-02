@@ -151,42 +151,66 @@ export async function POST(request: NextRequest) {
         }
       }
     } else if (channel === 'sms' || channel === 'wa') {
-      // SMS 또는 WhatsApp 인증 완료 시 sms_verified_at 업데이트
-      // 전화번호로 사용자 찾기 (하이픈 제거 후 비교)
+      // SMS 또는 WhatsApp 인증 완료 시 sms_verified_at 및 phone_verified 업데이트
+      // 전화번호로 사용자 찾기 (여러 형식으로 시도)
       const cleanPhone = target.replace(/\D/g, '')
+      const phoneWithPlus = target.startsWith('+') ? target : `+${cleanPhone}`
       
       // verificationData.user_id가 있으면 직접 사용
       let userId = verificationData.user_id
       
-      // user_id가 없으면 전화번호로 찾기
+      // user_id가 없으면 전화번호로 찾기 (여러 형식으로 시도)
       if (!userId) {
+        // E.164 형식으로 정규화 시도 (nationality가 있으면)
+        let normalizedPhone = target
+        if (nationality) {
+          try {
+            const { toE164 } = await import('@/lib/phoneUtils')
+            const e164Phone = toE164(target, nationality)
+            if (e164Phone && e164Phone.startsWith('+')) {
+              normalizedPhone = e164Phone
+              console.log('[VERIFY_CHECK] 전화번호 E.164 정규화 성공:', { original: target, normalized: normalizedPhone, nationality })
+            }
+          } catch (e) {
+            console.warn('[VERIFY_CHECK] E.164 정규화 실패, 원본 사용:', e)
+          }
+        }
+        
+        // 여러 형식으로 사용자 찾기 시도
         const { data: userData, error: userFindError } = await supabase
           .from('users')
           .select('id, phone')
-          .or(`phone.eq.${target},phone.eq.${cleanPhone}`)
+          .or(`phone.eq.${target},phone.eq.${cleanPhone},phone.eq.${phoneWithPlus},phone.eq.${normalizedPhone}`)
           .maybeSingle()
 
         if (!userFindError && userData?.id) {
           userId = userData.id
+          console.log('[VERIFY_CHECK] 전화번호로 사용자 찾기 성공:', { userId, phone: userData.phone, searched: [target, cleanPhone, phoneWithPlus, normalizedPhone] })
+        } else {
+          console.warn('[VERIFY_CHECK] 전화번호로 사용자 찾기 실패:', { target, cleanPhone, phoneWithPlus, normalizedPhone, error: userFindError?.message })
         }
       }
 
       if (userId) {
-        // sms_verified_at 직접 업데이트
+        // sms_verified_at 및 phone_verified 동시 업데이트
+        const updateData: any = {
+          sms_verified_at: new Date().toISOString(),
+          phone_verified: true,
+          phone_verified_at: new Date().toISOString()
+        }
+        
         const { error: updateUserError } = await supabase
           .from('users')
-          .update({ 
-            sms_verified_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', userId)
 
         if (updateUserError) {
-          console.error('SMS 인증 시간 업데이트 실패:', updateUserError)
+          console.error('[VERIFY_CHECK] SMS 인증 상태 업데이트 실패:', updateUserError)
         } else {
-          console.log('SMS 인증 시간 업데이트 성공:', userId)
+          console.log('[VERIFY_CHECK] SMS 인증 상태 업데이트 성공:', { userId, updateData })
         }
       } else {
-        console.warn('SMS 인증 완료했지만 사용자를 찾을 수 없음:', { target, cleanPhone, verificationId: verificationData.id })
+        console.warn('[VERIFY_CHECK] SMS 인증 완료했지만 사용자를 찾을 수 없음:', { target, cleanPhone, phoneWithPlus, verificationId: verificationData.id })
       }
     }
 
