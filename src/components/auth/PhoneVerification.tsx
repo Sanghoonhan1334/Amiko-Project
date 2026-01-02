@@ -37,6 +37,7 @@ interface AuthMethod {
   description: string
   color: string
   isAvailable: boolean
+  isMaintenance?: boolean
 }
 
 const COOLDOWN_SECONDS = 180 // 3분
@@ -90,14 +91,26 @@ export default function PhoneVerification({
         }
       ]
     } else {
+      // 프로덕션 환경 체크 (Vercel 배포 환경)
+      const isProduction = typeof window !== 'undefined' && (
+        window.location.hostname !== 'localhost' && 
+        window.location.hostname !== '127.0.0.1' &&
+        !window.location.hostname.includes('localhost')
+      )
+      
       return [
         {
           id: 'whatsapp',
           name: t('auth.whatsappAuth'),
           icon: <MessageSquare className="w-5 h-5" />,
-          description: t('auth.whatsappCodeSend'),
-          color: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-white',
-          isAvailable: true
+          description: isProduction 
+            ? (language === 'ko' ? '점검 중입니다. SMS 인증을 이용해주세요.' : 'En mantenimiento. Por favor, use la verificación por SMS.')
+            : t('auth.whatsappCodeSend'),
+          color: isProduction
+            ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+            : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-white',
+          isAvailable: !isProduction,
+          isMaintenance: isProduction
         },
         {
           id: 'sms',
@@ -135,11 +148,20 @@ export default function PhoneVerification({
       return
     }
     
-    // WhatsApp은 이제 사용 가능
-    // if (methodId === 'whatsapp') {
-    //   alert(t('auth.whatsappAuthAlert'))
-    //   return
-    // }
+    // WhatsApp 점검중 체크
+    if (methodId === 'whatsapp') {
+      const isProduction = typeof window !== 'undefined' && (
+        window.location.hostname !== 'localhost' && 
+        window.location.hostname !== '127.0.0.1' &&
+        !window.location.hostname.includes('localhost')
+      )
+      if (isProduction) {
+        alert(language === 'ko' 
+          ? 'WhatsApp 인증은 현재 점검 중입니다. SMS 인증을 이용해주세요.' 
+          : 'La verificación de WhatsApp está en mantenimiento. Por favor, use la verificación por SMS.')
+        return
+      }
+    }
     
     setSelectedMethod(methodId)
     setCodeSent(true)
@@ -299,28 +321,30 @@ export default function PhoneVerification({
           {!codeSent ? (
             // 인증 방식 선택
             <div className="grid grid-cols-1 gap-3">
-              {authMethods.map((method) => (
-                <div key={method.id} className="relative">
-                  {/* 준비중인 서비스에 배지 표시 - 버튼 위쪽에 위치 */}
-                  {method.id === 'kakao' && (
-                    <div className="absolute -top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
-                      {t('auth.kakaoComingSoon')}
-                    </div>
-                  )}
-                  {/* WhatsApp은 이제 활성화됨 - 배지 제거 */}
-                  {/* {method.id === 'whatsapp' && (
-                    <div className="absolute -top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
-                      {t('auth.comingSoon')}
-                    </div>
-                  )} */}
-                  
-                  <Button
-                    key={method.id}
-                    onClick={() => handleMethodSelect(method.id)}
-                    disabled={!method.isAvailable || isLoading}
-                    style={{ height: '80px', minHeight: '80px' }}
-                    className={`${method.color} ${method.id === 'kakao' ? 'text-black font-black' : 'text-white font-semibold'} w-full !h-[80px] !min-h-[80px] py-2.5 px-4 flex items-center justify-start gap-3 rounded-xl border-0 relative overflow-hidden`}
-                  >
+              {authMethods.map((method) => {
+                const isMaintenance = (method as any).isMaintenance === true
+                return (
+                  <div key={method.id} className="relative">
+                    {/* 준비중인 서비스에 배지 표시 - 버튼 위쪽에 위치 */}
+                    {method.id === 'kakao' && (
+                      <div className="absolute -top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
+                        {t('auth.kakaoComingSoon')}
+                      </div>
+                    )}
+                    {/* WhatsApp 점검중 배지 */}
+                    {isMaintenance && (
+                      <div className="absolute -top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
+                        ⚠️ {language === 'ko' ? '점검중' : 'Mantenimiento'}
+                      </div>
+                    )}
+                    
+                    <Button
+                      key={method.id}
+                      onClick={() => handleMethodSelect(method.id)}
+                      disabled={!method.isAvailable || isLoading || isMaintenance}
+                      style={{ height: '80px', minHeight: '80px' }}
+                      className={`${method.color} ${method.id === 'kakao' ? 'text-black font-black' : isMaintenance ? 'text-gray-600' : 'text-white font-semibold'} w-full !h-[80px] !min-h-[80px] py-2.5 px-4 flex items-center justify-start gap-3 rounded-xl border-0 relative overflow-hidden ${isMaintenance ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
                     <div className={`flex-shrink-0 p-1 rounded-lg backdrop-blur-sm ${method.id === 'kakao' ? 'bg-gray-600/30' : 'bg-white/20'}`}>
                       <div className="w-5 h-5 flex items-center justify-center">
                         {method.icon}
@@ -339,13 +363,23 @@ export default function PhoneVerification({
                       }}>{method.description}</div>
                     </div>
                     <div className="flex-shrink-0 absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg className={`w-4 h-4 ${method.id === 'kakao' ? 'text-black opacity-80' : 'text-white opacity-70'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 ${method.id === 'kakao' ? 'text-black opacity-80' : isMaintenance ? 'text-gray-500 opacity-50' : 'text-white opacity-70'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
                   </Button>
+                  {isMaintenance && (
+                    <div className="mt-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                      <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
+                        {language === 'ko' 
+                          ? '⚠️ WhatsApp 인증은 현재 점검 중입니다. SMS 인증을 이용해주세요.' 
+                          : '⚠️ La verificación de WhatsApp está en mantenimiento. Por favor, use la verificación por SMS.'}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ))}
+              )
+              })}
             </div>
           ) : !hasAutoSent ? (
             // 인증코드 보내기 버튼
