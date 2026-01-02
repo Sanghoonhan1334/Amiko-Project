@@ -52,12 +52,16 @@ export default function SignUpPage() {
 
   // 가입 퍼널 이벤트: 회원가입 시작
   useEffect(() => {
-    signUpEvents.startSignUp()
-    signUpEvents.formStart()
-    // Standardized event
-    trackStartSignup()
-    // 요청된 GA4 이벤트: 회원가입 폼 입력 시작
-    trackSignUpFormStart()
+    try {
+      signUpEvents.startSignUp()
+      signUpEvents.formStart()
+      // Standardized event
+      trackStartSignup()
+      // 요청된 GA4 이벤트: 회원가입 폼 입력 시작
+      trackSignUpFormStart()
+    } catch (e) {
+      console.error('[SIGNUP] 초기 analytics 이벤트 오류:', e)
+    }
     
     // 히스토리 초기화 - 모바일 뒤로가기 방지
     if (typeof window !== 'undefined') {
@@ -73,6 +77,9 @@ export default function SignUpPage() {
   useEffect(() => {
     if (requiredInfoCompletedTracked) return
 
+    // isPasswordValid를 여기서 계산 (선언 전 사용 방지)
+    const isPasswordValid = Object.values(passwordChecks).every(check => check)
+
     const isRequiredInfoCompleted = 
       formData.name &&
       formData.email &&
@@ -87,10 +94,15 @@ export default function SignUpPage() {
 
     if (isRequiredInfoCompleted) {
       // 요청된 GA4 이벤트: 필수 정보 입력 완료
-      trackSignUpRequiredInfoCompleted()
-      setRequiredInfoCompletedTracked(true)
+      try {
+        trackSignUpRequiredInfoCompleted()
+        setRequiredInfoCompletedTracked(true)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignUpRequiredInfoCompleted 이벤트 오류:', e)
+        setRequiredInfoCompletedTracked(true) // 에러가 나도 추적 완료로 표시
+      }
     }
-  }, [formData, isPasswordValid, ageError, emailError, requiredInfoCompletedTracked])
+  }, [formData, passwordChecks, ageError, emailError, requiredInfoCompletedTracked])
 
   const calculateAge = (value: string) => {
     if (!value) return null
@@ -121,22 +133,34 @@ export default function SignUpPage() {
       validateEmail(value)
       // 가입 퍼널 이벤트: 이메일 입력
       if (value.length > 0) {
-        signUpEvents.enterEmail()
-        // Standardized event
-        trackSignupInput('email')
+        try {
+          signUpEvents.enterEmail()
+          // Standardized event
+          trackSignupInput('email')
+        } catch (e) {
+          console.error('[SIGNUP] enterEmail 이벤트 오류:', e)
+        }
       }
     }
     
     // 가입 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
-      signUpEvents.enterPassword()
-      // Standardized event
-      trackSignupInput('password')
+      try {
+        signUpEvents.enterPassword()
+        // Standardized event
+        trackSignupInput('password')
+      } catch (e) {
+        console.error('[SIGNUP] enterPassword 이벤트 오류:', e)
+      }
     }
     
     // Standardized events for other fields
     if (value.length > 0 && ['name', 'birthDate', 'country'].includes(field)) {
-      trackSignupInput(field)
+      try {
+        trackSignupInput(field)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignupInput 이벤트 오류:', e)
+      }
     }
 
     if (field === 'birthDate') {
@@ -150,9 +174,13 @@ export default function SignUpPage() {
       } else {
         setAgeError(null)
         // 가입 퍼널 이벤트: 생년월일 입력
-        signUpEvents.enterBirthdate()
-        signUpEvents.enterBirthday()
-        signUpEvents.birthdayOk()
+        try {
+          signUpEvents.enterBirthdate()
+          signUpEvents.enterBirthday()
+          signUpEvents.birthdayOk()
+        } catch (e) {
+          console.error('[SIGNUP] 생년월일 이벤트 오류:', e)
+        }
       }
     }
   }
@@ -168,7 +196,11 @@ export default function SignUpPage() {
     
     // 비밀번호 검증 통과 시 이벤트
     if (Object.values(checks).every(check => check)) {
-      signUpEvents.passwordOk()
+      try {
+        signUpEvents.passwordOk()
+      } catch (e) {
+        console.error('[SIGNUP] passwordOk 이벤트 오류:', e)
+      }
     }
   }
   
@@ -307,7 +339,11 @@ export default function SignUpPage() {
       setAuthData(prev => ({ ...prev, isEmailVerified: true }))
       
       // 요청된 GA4 이벤트: 인증 완료
-      trackSignUpVerificationCompleted('email')
+      try {
+        trackSignUpVerificationCompleted('email')
+      } catch (e) {
+        console.error('[SIGNUP] trackSignUpVerificationCompleted 이벤트 오류:', e)
+      }
       
       alert(language === 'ko' ? '이메일 인증이 완료되었습니다.' : 'Verificación de correo electrónico completada.')
       
@@ -446,7 +482,11 @@ export default function SignUpPage() {
     e.preventDefault()
     
     // 가입 퍼널 이벤트: 회원가입 버튼 클릭
-    signUpEvents.registerClick()
+    try {
+      signUpEvents.registerClick()
+    } catch (e) {
+      console.error('[SIGNUP] registerClick 이벤트 오류:', e)
+    }
     
     if (!isPasswordValid || formData.password !== formData.confirmPassword) {
       return
@@ -469,9 +509,13 @@ export default function SignUpPage() {
     }
 
     // 가입 퍼널 이벤트: 회원가입 제출
-    signUpEvents.submitRegister()
-    // 요청된 GA4 이벤트: 회원가입 제출 (폼 제출 시)
-    trackSignUpSubmitEvent()
+    try {
+      signUpEvents.submitRegister()
+      // 요청된 GA4 이벤트: 회원가입 제출 (폼 제출 시)
+      trackSignUpSubmitEvent()
+    } catch (e) {
+      console.error('[SIGNUP] submitRegister/trackSignUpSubmitEvent 이벤트 오류:', e)
+    }
 
     setIsLoading(true)
     
@@ -812,7 +856,13 @@ export default function SignUpPage() {
                     {t('auth.alreadyHaveAccount')}{' '}
                     <a 
                       href="/sign-in" 
-                      onClick={() => trackCTAClick('signup_to_signin_link', window.location.href)}
+                      onClick={() => {
+                        try {
+                          trackCTAClick('signup_to_signin_link', window.location.href)
+                        } catch (e) {
+                          console.error('[SIGNUP] trackCTAClick 이벤트 오류:', e)
+                        }
+                      }}
                       className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium"
                     >
                       {t('auth.signIn')}
