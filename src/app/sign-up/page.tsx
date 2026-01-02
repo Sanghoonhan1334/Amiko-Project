@@ -22,6 +22,7 @@ export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState<'form' | 'email' | 'complete'>('form')
   const [emailVerified, setEmailVerified] = useState(false)
   const [isEmailVerifying, setIsEmailVerifying] = useState(false)
+  const [emailCodeSent, setEmailCodeSent] = useState(false) // 인증 코드 발송 여부 추적 (중복 방지)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -283,6 +284,12 @@ export default function SignUpPage() {
   const handleSendEmailCode = useCallback(async () => {
     if (!formData.email) return
     
+    // 이미 발송했으면 중복 방지
+    if (emailCodeSent) {
+      console.log('[SIGNUP] 인증 코드가 이미 발송되었습니다. 중복 발송 방지.')
+      return
+    }
+    
     setIsEmailVerifying(true)
     try {
       const response = await fetch('/api/verify/start', {
@@ -300,6 +307,9 @@ export default function SignUpPage() {
         throw new Error(result.error || result.message || '인증코드 발송에 실패했습니다.')
       }
 
+      // 발송 완료 플래그 설정
+      setEmailCodeSent(true)
+
       // 자동 발송 시에는 알림을 표시하지 않음 (사용자가 버튼을 눌렀을 때만 표시)
       if (currentStep === 'email') {
         // 이메일 인증 단계에서는 조용히 발송
@@ -312,7 +322,7 @@ export default function SignUpPage() {
     } finally {
       setIsEmailVerifying(false)
     }
-  }, [formData.email, language, currentStep])
+  }, [formData.email, language, currentStep, emailCodeSent])
 
   // 이메일 인증 코드 확인
   const handleVerifyEmailCode = async (code: string) => {
@@ -357,12 +367,17 @@ export default function SignUpPage() {
     }
   }
 
-  // 이메일 인증 단계로 이동 시 자동으로 코드 발송
+  // 이메일 인증 단계로 이동 시 자동으로 코드 발송 (한 번만)
   useEffect(() => {
-    if (currentStep === 'email' && formData.email && !emailVerified) {
+    if (currentStep === 'email' && formData.email && !emailVerified && !emailCodeSent) {
       handleSendEmailCode()
     }
-  }, [currentStep, formData.email, emailVerified, handleSendEmailCode])
+  }, [currentStep, formData.email, emailVerified, emailCodeSent, handleSendEmailCode])
+
+  // 이메일이 변경되면 발송 플래그 리셋 (다른 이메일로 변경 시 재발송 가능하도록)
+  useEffect(() => {
+    setEmailCodeSent(false)
+  }, [formData.email])
 
 
   const handleSignUp = async (e?: React.FormEvent) => {
