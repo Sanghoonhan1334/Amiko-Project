@@ -995,7 +995,8 @@ export default function VerificationCenterPage() {
                             body: JSON.stringify({
                               channel: channel,
                               target: fullPhoneNumber,
-                              code: code
+                              code: code,
+                              nationality: isKorean ? 'KR' : (user?.user_metadata?.country || 'MX')
                             })
                           })
                           const result = await response.json()

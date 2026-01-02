@@ -57,28 +57,8 @@ export default function PhoneVerification({
   const { t, language } = useLanguage()
   const [verificationCode, setVerificationCode] = useState('')
   
-  // localStorage에서 쿨다운 복원 (발송 시점부터 계산하여 남은 시간 표시)
-  const getInitialTimeLeft = () => {
-    if (typeof window === 'undefined' || !phoneNumber) return COOLDOWN_SECONDS
-    
-    try {
-      const lastSendKey = `verification_cooldown_${phoneNumber}`
-      const lastSendTime = localStorage.getItem(lastSendKey)
-      
-      // 발송 시점부터 경과 시간 계산
-      if (lastSendTime) {
-        const elapsed = Math.floor((Date.now() - parseInt(lastSendTime)) / 1000)
-        const remaining = Math.max(0, COOLDOWN_SECONDS - elapsed)
-        return remaining
-      }
-    } catch (error) {
-      console.error('쿨다운 복원 실패:', error)
-    }
-    
-    return COOLDOWN_SECONDS // 기본값
-  }
-  
-  const [timeLeft, setTimeLeft] = useState(getInitialTimeLeft())
+  // 페이지 재진입 시 쿨타임은 표시하지 않음 (재전송 버튼 클릭 시에만 쿨타임 적용)
+  const [timeLeft, setTimeLeft] = useState(0)
   const [selectedMethod, setSelectedMethod] = useState<string>('')
   const [codeSent, setCodeSent] = useState(false)
   const [isWaitingForCode, setIsWaitingForCode] = useState(false)
@@ -141,30 +121,10 @@ export default function PhoneVerification({
     }
   }, [timeLeft])
 
-  // phoneNumber가 변경되면 쿨다운 재계산
+  // phoneNumber가 변경되면 쿨다운 초기화 (페이지 재진입 시 쿨타임 없음)
   useEffect(() => {
     if (phoneNumber) {
-      const remaining = getInitialTimeLeft()
-      setTimeLeft(remaining)
-    }
-  }, [phoneNumber])
-
-  // 페이지를 떠났다가 돌아왔을 때 쿨다운 재계산
-  useEffect(() => {
-    if (typeof window === 'undefined' || !phoneNumber) return
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // 다시 돌아왔을 때 발송 시점부터 경과 시간을 계산하여 남은 시간 표시
-        const remaining = getInitialTimeLeft()
-        setTimeLeft(remaining)
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      setTimeLeft(0) // 페이지 진입 시 쿨타임 없음
     }
   }, [phoneNumber])
 
@@ -208,9 +168,9 @@ export default function PhoneVerification({
     if (selectedMethod) {
       setIsSending(true) // 발송 시작 - 버튼 비활성화
       setIsWaitingForCode(true)
-      setTimeLeft(COOLDOWN_SECONDS) // 3분 타이머 시작
+      setTimeLeft(COOLDOWN_SECONDS) // 3분 타이머 시작 (재전송 시에만 쿨타임 적용)
       
-      // localStorage에 발송 시간 저장
+      // localStorage에 발송 시간 저장 (재전송 쿨타임 추적용)
       if (typeof window !== 'undefined' && phoneNumber) {
         try {
           const lastSendKey = `verification_cooldown_${phoneNumber}`
@@ -279,15 +239,15 @@ export default function PhoneVerification({
   }
 
   const handleResend = async () => {
-    // 쿨다운 체크 - 버튼에 실시간으로 표시되므로 alert 제거
+    // 쿨다운 체크 - 재전송 버튼 클릭 시에만 쿨타임 적용
     if (timeLeft > 0) {
       return
     }
     
     if (selectedMethod && timeLeft === 0) {
-      setTimeLeft(COOLDOWN_SECONDS) // 3분 타이머 시작
+      setTimeLeft(COOLDOWN_SECONDS) // 3분 타이머 시작 (재전송 시에만 쿨타임 적용)
       
-      // localStorage에 발송 시간 저장
+      // localStorage에 발송 시간 저장 (재전송 쿨타임 추적용)
       if (typeof window !== 'undefined' && phoneNumber) {
         try {
           const lastSendKey = `verification_cooldown_${phoneNumber}`

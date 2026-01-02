@@ -192,9 +192,75 @@ export async function POST(request: NextRequest) {
       console.log(`[VERIFY_START] STEP 6 완료: ${channel.toUpperCase()} 발송 성공`)
     }
 
-    // STEP 7: 성공 응답
+    // STEP 7: 인증코드를 DB에 저장
     if (typeof console !== 'undefined') {
-      console.log('[VERIFY_START] STEP 7: 성공 응답 반환')
+      console.log('[VERIFY_START] STEP 7: 인증코드 DB 저장 시작')
+    }
+    
+    try {
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = createClient()
+      
+      // DB type 변환: 'whatsapp' → 'sms' (verification_codes 테이블의 type 컬럼은 'sms' 사용)
+      const dbType = channel === 'whatsapp' ? 'sms' : channel
+      
+      // 기존 미인증 코드들 비활성화
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] 기존 미인증 코드 비활성화')
+      }
+      await supabase
+        .from('verification_codes')
+        .update({ verified: true })
+        .eq('phone_number', normalizedTarget)
+        .eq('type', dbType)
+        .eq('verified', false)
+      
+      // 새 인증코드 저장 (10분간 유효)
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      const insertData = {
+        phone_number: normalizedTarget,
+        code: verificationCode,
+        type: dbType,
+        verified: false,
+        expires_at: expiresAt,
+        ip_address: request.headers.get('x-forwarded-for') || '127.0.0.1',
+        user_agent: request.headers.get('user-agent') || 'Unknown'
+      }
+      
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] 인증코드 DB 저장 시도:', { 
+          phone_number: normalizedTarget.substring(0, 5) + '...',
+          type: dbType,
+          code: verificationCode.substring(0, 2) + '****'
+        })
+      }
+      
+      const { error: insertError } = await supabase
+        .from('verification_codes')
+        .insert([insertData])
+      
+      if (insertError) {
+        if (typeof console !== 'undefined') {
+          console.error('[VERIFY_START] STEP 7 에러: 인증코드 DB 저장 실패!', insertError)
+        }
+        // DB 저장 실패해도 발송은 성공했으므로 경고만 하고 계속 진행
+        console.warn('[VERIFY_START] 인증코드 발송은 성공했지만 DB 저장 실패:', insertError)
+      } else {
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] STEP 7 완료: 인증코드 DB 저장 성공')
+        }
+      }
+    } catch (dbError) {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 7 에러: DB 저장 중 예외 발생!', dbError)
+      }
+      // DB 저장 실패해도 발송은 성공했으므로 경고만 하고 계속 진행
+      console.warn('[VERIFY_START] 인증코드 발송은 성공했지만 DB 저장 중 오류:', dbError)
+    }
+
+    // STEP 8: 성공 응답
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 8: 성공 응답 반환')
     }
     return NextResponse.json({
       ok: true,
