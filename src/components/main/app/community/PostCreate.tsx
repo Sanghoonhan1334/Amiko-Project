@@ -41,43 +41,99 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
   }, [gallery.slug])
 
   // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
+  const [verificationChecked, setVerificationChecked] = React.useState(false)
+  const [isCheckingVerification, setIsCheckingVerification] = React.useState(false)
+  
   React.useEffect(() => {
-    if (user) {
-      // 사용자 프로필 정보를 가져와서 인증 상태 확인
-      const checkVerificationStatus = async () => {
-        try {
-          const response = await fetch(`/api/profile?userId=${user.id}`)
-          const result = await response.json()
-          
-          if (response.ok && result.user) {
-            // 기본 등급: SMS 1차 인증만 체크
-            const hasSMSVerification = !!(
-              result.user.phone_verified ||
-              result.user.sms_verified_at ||
-              result.user.phone_verified_at
-            )
-            
-            if (!hasSMSVerification) {
-              console.log('SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.')
-              alert(language === 'ko' 
-                ? 'SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.'
-                : 'Se requiere verificación SMS. Complete la verificación SMS durante el registro.'
-              )
-              router.push('/sign-up')
-              return
-            }
-          }
-        } catch (error) {
-          console.error('인증 상태 확인 실패:', error)
-          // 오류 발생 시에도 인증센터로 리다이렉트하지 않음 (무한 루프 방지)
-        }
-      }
-      
-      // 1초 딜레이를 두어 무한 루프 방지
-      const timeoutId = setTimeout(checkVerificationStatus, 1000)
-      return () => clearTimeout(timeoutId)
+    // 이미 확인했거나 확인 중이면 스킵 (무한 루프 방지)
+    if (!user || verificationChecked || isCheckingVerification) {
+      return
     }
-  }, [user, router])
+    
+    // 사용자 프로필 정보를 가져와서 인증 상태 확인
+    const checkVerificationStatus = async () => {
+      setIsCheckingVerification(true)
+      try {
+        console.log('[PostCreate] 인증 상태 확인 시작:', user.id)
+        
+        // 세션 갱신 시도 (최신 데이터를 가져오기 위해)
+        if (refreshSession) {
+          try {
+            await refreshSession()
+            console.log('[PostCreate] 세션 갱신 완료')
+          } catch (sessionError) {
+            console.warn('[PostCreate] 세션 갱신 실패 (계속 진행):', sessionError)
+          }
+        }
+        
+        const response = await fetch(`/api/profile?userId=${user.id}`, {
+          cache: 'no-store', // 캐시 무시
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
+        
+        console.log('[PostCreate] 프로필 API 응답 상태:', response.status)
+        const result = await response.json()
+        console.log('[PostCreate] 프로필 API 응답 데이터:', {
+          ok: response.ok,
+          hasUser: !!result.user,
+          phone_verified: result.user?.phone_verified,
+          sms_verified_at: result.user?.sms_verified_at,
+          phone_verified_at: result.user?.phone_verified_at
+        })
+        
+        if (response.ok && result.user) {
+          // 기본 등급: SMS 1차 인증만 체크
+          const hasSMSVerification = !!(
+            result.user.phone_verified ||
+            result.user.sms_verified_at ||
+            result.user.phone_verified_at
+          )
+          
+          console.log('[PostCreate] SMS 인증 상태:', {
+            hasSMSVerification,
+            phone_verified: result.user.phone_verified,
+            sms_verified_at: result.user.sms_verified_at,
+            phone_verified_at: result.user.phone_verified_at
+          })
+          
+          if (!hasSMSVerification) {
+            console.warn('[PostCreate] SMS 인증이 필요합니다.')
+            setVerificationChecked(true) // 확인 완료 플래그 설정 (무한 루프 방지)
+            alert(language === 'ko' 
+              ? 'SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.'
+              : 'Se requiere verificación SMS. Complete la verificación SMS durante el registro.'
+            )
+            router.push('/sign-up')
+            return
+          } else {
+            console.log('[PostCreate] 인증 확인 완료 - 글쓰기 가능')
+            setVerificationChecked(true) // 확인 완료 플래그 설정
+          }
+        } else {
+          console.error('[PostCreate] 프로필 API 응답 오류:', {
+            status: response.status,
+            error: result.error,
+            hasUser: !!result.user
+          })
+          // API 오류 시에도 확인 완료로 표시하여 무한 루프 방지
+          // (인증이 실제로 완료되었을 수도 있으므로 사용자가 계속 시도할 수 있도록)
+          setVerificationChecked(true)
+        }
+      } catch (error) {
+        console.error('[PostCreate] 인증 상태 확인 실패:', error)
+        // 오류 발생 시에도 확인 완료로 표시하여 무한 루프 방지
+        setVerificationChecked(true)
+      } finally {
+        setIsCheckingVerification(false)
+      }
+    }
+    
+    // 1초 딜레이를 두어 무한 루프 방지
+    const timeoutId = setTimeout(checkVerificationStatus, 1000)
+    return () => clearTimeout(timeoutId)
+  }, [user, router, refreshSession, verificationChecked, isCheckingVerification])
   const [content, setContent] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)

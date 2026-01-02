@@ -156,26 +156,26 @@ export async function POST(request: NextRequest) {
       const cleanPhone = target.replace(/\D/g, '')
       const phoneWithPlus = target.startsWith('+') ? target : `+${cleanPhone}`
       
+      // E.164 형식으로 정규화 시도 (nationality가 있으면) - 스코프 밖에서도 사용하기 위해 먼저 정의
+      let normalizedPhone = target
+      if (nationality) {
+        try {
+          const { toE164 } = await import('@/lib/phoneUtils')
+          const e164Phone = toE164(target, nationality)
+          if (e164Phone && e164Phone.startsWith('+')) {
+            normalizedPhone = e164Phone
+            console.log('[VERIFY_CHECK] 전화번호 E.164 정규화 성공:', { original: target, normalized: normalizedPhone, nationality })
+          }
+        } catch (e) {
+          console.warn('[VERIFY_CHECK] E.164 정규화 실패, 원본 사용:', e)
+        }
+      }
+      
       // verificationData.user_id가 있으면 직접 사용
       let userId = verificationData.user_id
       
       // user_id가 없으면 전화번호로 찾기 (여러 형식으로 시도)
       if (!userId) {
-        // E.164 형식으로 정규화 시도 (nationality가 있으면)
-        let normalizedPhone = target
-        if (nationality) {
-          try {
-            const { toE164 } = await import('@/lib/phoneUtils')
-            const e164Phone = toE164(target, nationality)
-            if (e164Phone && e164Phone.startsWith('+')) {
-              normalizedPhone = e164Phone
-              console.log('[VERIFY_CHECK] 전화번호 E.164 정규화 성공:', { original: target, normalized: normalizedPhone, nationality })
-            }
-          } catch (e) {
-            console.warn('[VERIFY_CHECK] E.164 정규화 실패, 원본 사용:', e)
-          }
-        }
-        
         // 여러 형식으로 사용자 찾기 시도
         const { data: userData, error: userFindError } = await supabase
           .from('users')
@@ -192,22 +192,66 @@ export async function POST(request: NextRequest) {
       }
 
       if (userId) {
-        // sms_verified_at 및 phone_verified 동시 업데이트
+        // 사용자가 public.users에 있는지 확인
+        const { data: existingUser, error: checkError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle()
+        
         const updateData: any = {
           sms_verified_at: new Date().toISOString(),
           phone_verified: true,
           phone_verified_at: new Date().toISOString()
         }
         
-        const { error: updateUserError } = await supabase
-          .from('users')
-          .update(updateData)
-          .eq('id', userId)
+        let updateUserError = null
+        
+        if (existingUser) {
+          // 사용자가 있으면 업데이트
+          const { error } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', userId)
+          updateUserError = error
+        } else {
+          // 사용자가 없으면 생성 (인증센터에서만 인증한 경우)
+          console.log('[VERIFY_CHECK] public.users에 사용자 없음, 생성 시도:', userId)
+          
+          // auth.users에서 이메일 가져오기
+          let userEmail = null
+          try {
+            const { createClient } = await import('@/lib/supabase/server')
+            const adminSupabase = createClient()
+            const { data: authUserData } = await adminSupabase.auth.admin.getUserById(userId)
+            userEmail = authUserData?.user?.email || null
+          } catch (e) {
+            console.warn('[VERIFY_CHECK] auth.users 조회 실패:', e)
+          }
+          
+          const insertData: any = {
+            id: userId,
+            email: userEmail || '',
+            phone: normalizedPhone || target,
+            ...updateData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          
+          const { error } = await supabase
+            .from('users')
+            .insert(insertData)
+          updateUserError = error
+          
+          if (!error) {
+            console.log('[VERIFY_CHECK] 사용자 생성 성공:', userId)
+          }
+        }
 
         if (updateUserError) {
-          console.error('[VERIFY_CHECK] SMS 인증 상태 업데이트 실패:', updateUserError)
+          console.error('[VERIFY_CHECK] SMS 인증 상태 업데이트/생성 실패:', updateUserError)
         } else {
-          console.log('[VERIFY_CHECK] SMS 인증 상태 업데이트 성공:', { userId, updateData })
+          console.log('[VERIFY_CHECK] SMS 인증 상태 업데이트/생성 성공:', { userId, updateData })
         }
       } else {
         console.warn('[VERIFY_CHECK] SMS 인증 완료했지만 사용자를 찾을 수 없음:', { target, cleanPhone, phoneWithPlus, verificationId: verificationData.id })
