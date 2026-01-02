@@ -26,6 +26,7 @@ export default function MoodQuestionsPage() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [questions, setQuestions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [quizId, setQuizId] = useState<string | null>(null)
 
   // Obtener datos de preguntas desde la base de datos
   useEffect(() => {
@@ -173,7 +174,9 @@ export default function MoodQuestionsPage() {
         const testResult = calculateResult(newAnswers)
         
         // 퀴즈 퍼널 이벤트: 테스트 완료
-        trackQuizComplete(quizId, testResult)
+        if (quizId) {
+          trackQuizComplete(quizId, testResult)
+        }
         
         // Incrementar número de participantes
         try {
@@ -199,7 +202,7 @@ export default function MoodQuestionsPage() {
         
         // 퀴즈 퍼널 이벤트: 질문 50% 도달 체크
         const progress = ((nextQuestion + 1) / questions.length) * 100
-        if (progress >= 50) {
+        if (progress >= 50 && quizId) {
           trackQuizProgress50(quizId)
         }
       }
