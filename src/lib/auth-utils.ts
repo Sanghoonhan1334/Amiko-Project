@@ -137,7 +137,8 @@ export function requireAuth(
 
 /**
  * Level 1 인증 체크 (게시글 작성용)
- * 이메일 인증만 확인 (회원가입 완료 = 이메일 인증 완료)
+ * 인증센터에서 인증 완료한 경우 자동 통과
+ * 또는 이메일 인증, SMS 인증, 전화번호 인증 중 하나라도 있으면 통과
  */
 export function checkLevel1Auth(profile: UserProfile | null): {
   canAccess: boolean
@@ -147,11 +148,31 @@ export function checkLevel1Auth(profile: UserProfile | null): {
     return { canAccess: false, missingRequirements: ['로그인'] }
   }
 
+  // 인증센터에서 이미 인증을 완료한 경우 자동 통과
+  const isVerified = profile.is_verified === true || profile.is_verified === 'true' || profile.is_verified === 1
+  const verificationCompleted = profile.verification_completed === true || profile.verification_completed === 'true' || profile.verification_completed === 1
+  
+  if (isVerified || verificationCompleted) {
+    console.log('[AUTH_UTILS] Level 1 인증: 인증센터에서 인증 완료됨, 자동 통과:', {
+      is_verified: profile.is_verified,
+      verification_completed: profile.verification_completed
+    })
+    return {
+      canAccess: true,
+      missingRequirements: []
+    }
+  }
+
   const missing: string[] = []
   
-  // 이메일 인증 확인 (회원가입 시 이메일 인증 완료)
-  if (!profile.email_verified_at) {
-    missing.push('이메일 인증')
+  // 인증센터 인증이 없으면 개별 인증 방법 확인
+  // 이메일 인증, SMS 인증, 전화번호 인증 중 하나라도 있으면 통과
+  const hasEmailVerification = !!profile.email_verified_at
+  const hasSMSVerification = !!(profile.sms_verified_at || profile.phone_verified_at || profile.phone_verified)
+  const hasOtherVerification = !!(profile.kakao_linked_at || profile.wa_verified_at)
+  
+  if (!hasEmailVerification && !hasSMSVerification && !hasOtherVerification) {
+    missing.push('인증 (이메일, SMS, 전화번호 중 하나)')
   }
 
   return {
