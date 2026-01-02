@@ -44,10 +44,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 파일 크기 체크 (5MB 제한)
-    if (file.size > 5 * 1024 * 1024) {
+    // 파일 크기 체크 (이미지: 5MB, 영상: 100MB)
+    const isVideo = file.type.startsWith('video/')
+    const maxSize = isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024
+    
+    if (file.size > maxSize) {
       return NextResponse.json(
-        { error: '파일 크기는 5MB를 초과할 수 없습니다.' },
+        { 
+          error: isVideo 
+            ? '영상 파일 크기는 100MB를 초과할 수 없습니다.' 
+            : '이미지 파일 크기는 5MB를 초과할 수 없습니다.' 
+        },
         { status: 400 }
       )
     }

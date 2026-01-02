@@ -541,8 +541,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       }
 
       const uploadPromises = Array.from(files).map(async (file) => {
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(language === 'es' ? 'El tamaño del archivo no puede exceder 5MB.' : '파일 크기는 5MB를 초과할 수 없습니다.')
+        // 이미지와 영상의 크기 제한을 다르게 설정
+        const isVideo = file.type.startsWith('video/')
+        const maxSize = isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024 // 영상: 100MB, 이미지: 5MB
+        
+        if (file.size > maxSize) {
+          throw new Error(
+            language === 'es' 
+              ? `El tamaño del archivo no puede exceder ${isVideo ? '100MB' : '5MB'}.`
+              : `파일 크기는 ${isVideo ? '100MB' : '5MB'}를 초과할 수 없습니다.`
+          )
         }
 
         const formData = new FormData()
@@ -1646,7 +1654,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     {uploadingImages ? (language === 'es' ? 'Subiendo...' : '업로드 중...') : (language === 'es' ? 'Seleccionar archivo (imagen/video/GIF)' : '파일 선택 (이미지/영상/GIF)')}
                   </label>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {language === 'es' ? 'Imágenes, videos y GIFs permitidos (máx. 5MB)' : '이미지, 영상, GIF 지원 (최대 5MB)'}
+                    {language === 'es' ? 'Imágenes (máx. 5MB), videos y GIFs (máx. 100MB) permitidos' : '이미지 (최대 5MB), 영상 및 GIF (최대 100MB) 지원'}
                   </div>
                   
                   {/* 이미지/영상 미리보기 */}
