@@ -114,7 +114,35 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [translationMode, setTranslationMode] = useState<'none' | 'ko-to-es' | 'es-to-ko'>('none')
   
   // 운영자 권한 체크
-  const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
+  const [isAdmin, setIsAdmin] = useState(false)
+  
+  // 운영자 상태 확인
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user?.id && !user?.email) {
+        setIsAdmin(false)
+        return
+      }
+
+      try {
+        const params = new URLSearchParams()
+        if (user?.id) params.append('userId', user.id)
+        if (user?.email) params.append('email', user.email)
+        
+        const response = await fetch(`/api/admin/check?${params.toString()}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setIsAdmin(data.isAdmin || false)
+        }
+      } catch (error) {
+        console.error('운영자 상태 확인 실패:', error)
+        setIsAdmin(false)
+      }
+    }
+
+    checkAdminStatus()
+  }, [user?.id, user?.email])
 
   const categories: Category[] = [
     { id: 'announcement', name: language === 'ko' ? '📢 공지사항' : '📢 Anuncios', icon: '📢' },
@@ -1519,11 +1547,19 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   className="w-full h-10 text-xs md:text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3"
                 >
                   <option value="">{t('community.selectBoardPlaceholder')}</option>
-                  {categories.filter(cat => cat.id !== 'all').map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
+                  {categories
+                    .filter(cat => {
+                      // 'all' 제외
+                      if (cat.id === 'all') return false
+                      // 'announcement'는 운영자만 볼 수 있음
+                      if (cat.id === 'announcement') return isAdmin
+                      return true
+                    })
+                    .map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 
