@@ -591,6 +591,8 @@ export async function GET(request: NextRequest) {
         verification_completed: (user as any).verification_completed, // 인증 완료 플래그
         verified_badge: (user as any).verified_badge || false, // Level 2 인증 뱃지
         sms_verified_at: (user as any).sms_verified_at,
+        phone_verified: (user as any).phone_verified || !!(user as any).sms_verified_at, // 전화번호 인증 여부
+        phone_verified_at: (user as any).phone_verified_at || (user as any).sms_verified_at, // 전화번호 인증 완료 시간
         email_verified_at: (user as any).email_verified_at,
         join_date: (user as any).join_date,
         is_admin: (user as any).is_admin,
@@ -624,7 +626,9 @@ export async function GET(request: NextRequest) {
         join_date: (user as any).join_date,
         kakao_linked_at: null,
         wa_verified_at: null,
-        sms_verified_at: null,
+        sms_verified_at: (user as any).sms_verified_at,
+        phone_verified: (user as any).phone_verified || !!(user as any).sms_verified_at, // 전화번호 인증 여부
+        phone_verified_at: (user as any).phone_verified_at || (user as any).sms_verified_at, // 전화번호 인증 완료 시간
         email_verified_at: (user as any).email_verified_at,
         academic_info_public: (user as any).academic_info_public ?? false, // 학업 정보 공개 설정
         job_info_public: (user as any).job_info_public ?? false // 직업 정보 공개 설정
