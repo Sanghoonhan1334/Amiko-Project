@@ -107,18 +107,39 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
           })
           
           if (response.ok && result.user) {
-            // 기본 등급: SMS 1차 인증만 체크
+            // 인증 상태 확인 - 인증센터에서 인증 완료한 경우도 포함
+            const userType = result.user.user_type || 'student'
             hasSMSVerification = !!(
+              result.user.is_verified ||
+              result.user.verification_completed ||
               result.user.phone_verified ||
               result.user.sms_verified_at ||
-              result.user.phone_verified_at
+              result.user.phone_verified_at ||
+              result.user.email_verified_at ||
+              result.user.kakao_linked_at ||
+              result.user.wa_verified_at ||
+              (result.user.korean_name) ||
+              (result.user.spanish_name) ||
+              (userType === 'student' && result.user.full_name && result.user.university && result.user.major) ||
+              (userType === 'general' && result.user.full_name && (result.user.occupation || result.user.company))
             )
             
-            console.log(`[PostCreate] SMS 인증 상태 (시도 ${retryCount + 1}):`, {
+            console.log(`[PostCreate] 인증 상태 (시도 ${retryCount + 1}):`, {
               hasSMSVerification,
+              is_verified: result.user.is_verified,
+              verification_completed: result.user.verification_completed,
               phone_verified: result.user.phone_verified,
               sms_verified_at: result.user.sms_verified_at,
-              phone_verified_at: result.user.phone_verified_at
+              phone_verified_at: result.user.phone_verified_at,
+              email_verified_at: result.user.email_verified_at,
+              korean_name: result.user.korean_name,
+              spanish_name: result.user.spanish_name,
+              user_type: userType,
+              full_name: result.user.full_name,
+              university: result.user.university,
+              major: result.user.major,
+              occupation: result.user.occupation,
+              company: result.user.company
             })
             
             if (hasSMSVerification) {
