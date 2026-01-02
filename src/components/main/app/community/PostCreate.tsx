@@ -50,6 +50,18 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
       return
     }
     
+    // 인증 완료 플래그 확인 (인증센터에서 방금 완료한 경우)
+    const verificationJustCompleted = typeof window !== 'undefined' && localStorage.getItem('verification_just_completed') === 'true'
+    if (verificationJustCompleted) {
+      console.log('[PostCreate] 인증 완료 플래그 감지 - 인증 상태 재확인 대기')
+      // 플래그 제거하고 잠시 대기 후 재확인 (DB 업데이트 시간 확보)
+      localStorage.removeItem('verification_just_completed')
+      setTimeout(() => {
+        setVerificationChecked(false) // 재확인을 위해 플래그 리셋
+      }, 2000) // 2초 대기
+      return
+    }
+    
     // 사용자 프로필 정보를 가져와서 인증 상태 확인
     const checkVerificationStatus = async () => {
       setIsCheckingVerification(true)
@@ -66,60 +78,75 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
           }
         }
         
-        const response = await fetch(`/api/profile?userId=${user.id}`, {
-          cache: 'no-store', // 캐시 무시
-          headers: {
-            'Cache-Control': 'no-cache'
+        // 여러 번 재시도 (DB 업데이트 지연 고려)
+        let hasSMSVerification = false
+        let retryCount = 0
+        const maxRetries = 3
+        
+        while (retryCount < maxRetries && !hasSMSVerification) {
+          if (retryCount > 0) {
+            console.log(`[PostCreate] 인증 상태 재확인 시도 ${retryCount}/${maxRetries - 1}`)
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)) // 재시도 간격 증가
           }
-        })
-        
-        console.log('[PostCreate] 프로필 API 응답 상태:', response.status)
-        const result = await response.json()
-        console.log('[PostCreate] 프로필 API 응답 데이터:', {
-          ok: response.ok,
-          hasUser: !!result.user,
-          phone_verified: result.user?.phone_verified,
-          sms_verified_at: result.user?.sms_verified_at,
-          phone_verified_at: result.user?.phone_verified_at
-        })
-        
-        if (response.ok && result.user) {
-          // 기본 등급: SMS 1차 인증만 체크
-          const hasSMSVerification = !!(
-            result.user.phone_verified ||
-            result.user.sms_verified_at ||
-            result.user.phone_verified_at
-          )
           
-          console.log('[PostCreate] SMS 인증 상태:', {
-            hasSMSVerification,
-            phone_verified: result.user.phone_verified,
-            sms_verified_at: result.user.sms_verified_at,
-            phone_verified_at: result.user.phone_verified_at
+          const response = await fetch(`/api/profile?userId=${user.id}`, {
+            cache: 'no-store', // 캐시 무시
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
           })
           
-          if (!hasSMSVerification) {
-            console.warn('[PostCreate] SMS 인증이 필요합니다.')
-            setVerificationChecked(true) // 확인 완료 플래그 설정 (무한 루프 방지)
-            alert(language === 'ko' 
-              ? 'SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.'
-              : 'Se requiere verificación SMS. Complete la verificación SMS durante el registro.'
+          console.log(`[PostCreate] 프로필 API 응답 상태 (시도 ${retryCount + 1}):`, response.status)
+          const result = await response.json()
+          console.log(`[PostCreate] 프로필 API 응답 데이터 (시도 ${retryCount + 1}):`, {
+            ok: response.ok,
+            hasUser: !!result.user,
+            phone_verified: result.user?.phone_verified,
+            sms_verified_at: result.user?.sms_verified_at,
+            phone_verified_at: result.user?.phone_verified_at
+          })
+          
+          if (response.ok && result.user) {
+            // 기본 등급: SMS 1차 인증만 체크
+            hasSMSVerification = !!(
+              result.user.phone_verified ||
+              result.user.sms_verified_at ||
+              result.user.phone_verified_at
             )
-            router.push('/sign-up')
-            return
+            
+            console.log(`[PostCreate] SMS 인증 상태 (시도 ${retryCount + 1}):`, {
+              hasSMSVerification,
+              phone_verified: result.user.phone_verified,
+              sms_verified_at: result.user.sms_verified_at,
+              phone_verified_at: result.user.phone_verified_at
+            })
+            
+            if (hasSMSVerification) {
+              console.log('[PostCreate] 인증 확인 완료 - 글쓰기 가능')
+              setVerificationChecked(true) // 확인 완료 플래그 설정
+              return // 인증 확인 완료, 루프 종료
+            }
           } else {
-            console.log('[PostCreate] 인증 확인 완료 - 글쓰기 가능')
-            setVerificationChecked(true) // 확인 완료 플래그 설정
+            console.warn(`[PostCreate] 프로필 API 응답 오류 (시도 ${retryCount + 1}):`, {
+              status: response.status,
+              error: result.error,
+              hasUser: !!result.user
+            })
           }
-        } else {
-          console.error('[PostCreate] 프로필 API 응답 오류:', {
-            status: response.status,
-            error: result.error,
-            hasUser: !!result.user
-          })
-          // API 오류 시에도 확인 완료로 표시하여 무한 루프 방지
-          // (인증이 실제로 완료되었을 수도 있으므로 사용자가 계속 시도할 수 있도록)
-          setVerificationChecked(true)
+          
+          retryCount++
+        }
+        
+        // 모든 재시도 실패 시
+        if (!hasSMSVerification) {
+          console.warn('[PostCreate] SMS 인증이 필요합니다. (모든 재시도 실패)')
+          setVerificationChecked(true) // 확인 완료 플래그 설정 (무한 루프 방지)
+          alert(language === 'ko' 
+            ? 'SMS 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
+            : 'Se requiere verificación SMS. Complete la verificación en el centro de verificación.'
+          )
+          router.push('/verification-center')
+          return
         }
       } catch (error) {
         console.error('[PostCreate] 인증 상태 확인 실패:', error)
@@ -133,7 +160,7 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
     // 1초 딜레이를 두어 무한 루프 방지
     const timeoutId = setTimeout(checkVerificationStatus, 1000)
     return () => clearTimeout(timeoutId)
-  }, [user, router, refreshSession, verificationChecked, isCheckingVerification])
+  }, [user, router, refreshSession, verificationChecked, isCheckingVerification, language])
   const [content, setContent] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
