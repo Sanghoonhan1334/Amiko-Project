@@ -42,9 +42,14 @@ export async function POST(request: NextRequest) {
     // DB type 변환: 'wa' → 'sms' (저장 시와 동일하게)
     const dbType = channel === 'wa' ? 'sms' : channel
 
-    // 전화번호인 경우 정규화 (verification_codes 테이블에는 정규화된 형식으로 저장되므로)
+    // 전화번호 또는 이메일 정규화 (verification_codes 테이블에는 정규화된 형식으로 저장되므로)
     let normalizedTarget = target
-    if (channel !== 'email') {
+    if (channel === 'email') {
+      // 이메일은 소문자로 정규화
+      normalizedTarget = target.toLowerCase().trim()
+      console.log('[VERIFY_CHECK] 이메일 정규화:', { original: target, normalized: normalizedTarget })
+    } else {
+      // 전화번호인 경우 정규화
       // 이미 E.164 형식인지 확인
       if (target.startsWith('+')) {
         normalizedTarget = target

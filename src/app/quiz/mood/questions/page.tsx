@@ -34,7 +34,7 @@ export default function MoodQuestionsPage() {
         const response = await fetch('/api/quizzes/mood')
         const data = await response.json()
         console.log('[Mood Questions] Respuesta API:', data)
-        if (data.success && data.data && data.data.questions) {
+        if (data.success && data.data && data.data.questions && Array.isArray(data.data.questions) && data.data.questions.length > 0) {
           console.log('[Mood Questions] Preguntas cargadas exitosamente:', data.data.questions.length, 'preguntas')
           
           // 퀴즈 ID 저장
@@ -58,7 +58,11 @@ export default function MoodQuestionsPage() {
           uniqueQuestions.sort((a: any, b: any) => (a.question_order || 0) - (b.question_order || 0))
           setQuestions(uniqueQuestions)
         } else {
-          console.error('[Mood Questions] No hay datos de preguntas:', data)
+          console.error('[Mood Questions] No hay datos de preguntas o preguntas vacías:', data)
+          // API 응답은 성공했지만 questions가 없거나 빈 배열인 경우
+          if (data.success && data.data && data.data.quiz) {
+            console.error('[Mood Questions] 퀴즈는 찾았지만 질문이 없습니다. Quiz ID:', data.data.quiz.id)
+          }
         }
       } catch (error) {
         console.error('[Mood Questions] Error al cargar preguntas:', error)

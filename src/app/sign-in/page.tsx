@@ -237,10 +237,33 @@ export default function SignInPage() {
         사용할_이메일: emailForSignIn
       })
       
-      await signIn(emailForSignIn, formData.password).catch(err => {
+      // 클라이언트 세션 업데이트 시도
+      const signInResult = await signIn(emailForSignIn, formData.password).catch(err => {
         // 이미 서버에서 인증되었으므로, 클라이언트 인증 실패는 무시
-        console.log('[SIGNIN] 클라이언트 세션 업데이트 시도 (이미 서버에서 인증됨):', err)
+        console.log('[SIGNIN] 클라이언트 signIn 실패, 서버 세션 확인 시도:', err)
+        return { error: err }
       })
+      
+      // signIn이 실패했지만 서버에서 세션 쿠키를 설정했을 수 있으므로 세션 확인
+      if (signInResult?.error) {
+        console.log('[SIGNIN] 클라이언트 signIn 실패, 서버 세션에서 복원 시도')
+        try {
+          // Supabase 클라이언트에서 세션 확인 (쿠키에서 자동으로 가져옴)
+          const supabase = createSupabaseBrowserClient()
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+          
+          if (session && !sessionError) {
+            console.log('[SIGNIN] 서버 세션에서 복원 성공:', session.user.email)
+            // 세션이 있으면 AuthContext가 자동으로 감지하여 업데이트됨
+          } else {
+            console.warn('[SIGNIN] 서버 세션도 없음:', sessionError?.message || '세션 없음')
+            // 세션이 없으면 에러 표시하지 않고 그냥 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
+          }
+        } catch (sessionCheckError) {
+          console.error('[SIGNIN] 세션 확인 중 오류:', sessionCheckError)
+          // 에러는 무시하고 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
+        }
+      }
       
       // 마지막 로그인 사용자 ID 저장
       if (userId) {
@@ -274,6 +297,33 @@ export default function SignInPage() {
           setShowBiometricSetupModal(true)
           return // 모달이 닫힐 때까지 대기
         }
+      }
+      
+      // 세션이 제대로 설정되었는지 확인 (약간의 지연 후)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Supabase 세션 최종 확인
+      try {
+        const supabase = createSupabaseBrowserClient()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (!session && !sessionError) {
+          console.warn('[SIGNIN] 세션이 아직 설정되지 않음, 잠시 대기 후 재확인')
+          // 추가 대기 후 재확인
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          const { data: { session: retrySession } } = await supabase.auth.getSession()
+          
+          if (!retrySession) {
+            console.error('[SIGNIN] 세션 설정 실패 - 사용자에게 알림')
+            alert(language === 'ko' 
+              ? '로그인은 성공했지만 세션이 설정되지 않았습니다. 페이지를 새로고침해주세요.' 
+              : 'El inicio de sesión fue exitoso pero la sesión no se configuró. Por favor, actualiza la página.')
+            return
+          }
+        }
+      } catch (sessionCheckError) {
+        console.error('[SIGNIN] 세션 확인 중 오류:', sessionCheckError)
+        // 에러는 무시하고 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
       }
       
       // 로그인 성공 후 redirect 처리

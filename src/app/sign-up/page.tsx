@@ -222,7 +222,9 @@ export default function SignUpPage() {
   const isPasswordValid = Object.values(passwordChecks).every(check => check)
 
   const handleCountryChange = (countryCode: string) => {
-    const selectedCountry = countries.find(c => c.code === countryCode)
+    const selectedCountry = countries && Array.isArray(countries) 
+      ? countries.find(c => c.code === countryCode)
+      : null
     setFormData(prev => ({
       ...prev,
       country: countryCode,
@@ -348,7 +350,9 @@ export default function SignUpPage() {
       }
 
       // 실제 회원가입 API 호출
-      const selectedCountry = countries.find(c => c.code === formData.country)
+      const selectedCountry = countries && Array.isArray(countries)
+        ? countries.find(c => c.code === formData.country)
+        : null
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -372,25 +376,52 @@ export default function SignUpPage() {
 
       console.log('회원가입 성공:', result)
       
-      const userId = result.data?.userId || result.user?.id
+      const userId = result.data?.userId || result.user?.id || result.data?.user?.id
       
-      // 가입 퍼널 이벤트: 사용자 생성
-      signUpEvents.createUser(userId)
+      // userId가 없으면 에러
+      if (!userId) {
+        console.error('[SIGNUP] userId를 찾을 수 없음:', result)
+        throw new Error('회원가입은 성공했지만 사용자 ID를 찾을 수 없습니다.')
+      }
+      
+      // 가입 퍼널 이벤트: 사용자 생성 (userId가 있을 때만)
+      try {
+        signUpEvents.createUser(userId)
+      } catch (e) {
+        console.error('[SIGNUP] createUser 이벤트 오류:', e)
+      }
       
       // 가입 퍼널 이벤트: 회원가입 완료
-      signUpEvents.completeSignUp(userId)
-      signUpEvents.signUpSuccess(userId)
+      try {
+        signUpEvents.completeSignUp(userId)
+        signUpEvents.signUpSuccess(userId)
+      } catch (e) {
+        console.error('[SIGNUP] completeSignUp 이벤트 오류:', e)
+      }
       
       // 마케팅 퍼널 이벤트: 회원가입 완료
-      marketingEvents.signUp(userId, 'email')
+      try {
+        marketingEvents.signUp(userId, 'email')
+      } catch (e) {
+        console.error('[SIGNUP] marketingEvents.signUp 이벤트 오류:', e)
+      }
       
       // Standardized events
-      trackSignupSuccess(userId)
+      try {
+        trackSignupSuccess(userId)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignupSuccess 이벤트 오류:', e)
+      }
       
       // 요청된 GA4 이벤트: 회원가입 성공
-      trackSignUpSuccessEvent(userId)
+      try {
+        trackSignUpSuccessEvent(userId)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignUpSuccessEvent 이벤트 오류:', e)
+      }
       
-      alert(t('auth.signUpSuccess'))
+      const successMessage = t('auth.signUpSuccess') || (language === 'ko' ? '회원가입이 완료되었습니다.' : 'Registro completado.')
+      alert(successMessage)
       
       // 회원가입 성공 후 로그인 페이지로 이동
       router.push('/sign-in')
@@ -652,11 +683,15 @@ export default function SignUpPage() {
                     <SelectValue placeholder={t('auth.selectNationality')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                    {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100">
-                        {t(`auth.countries.${country.code}`)}
-                      </SelectItem>
-                    ))}
+                    {countries && Array.isArray(countries) && countries.length > 0 ? (
+                      countries.map((country) => (
+                        <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100">
+                          {t(`auth.countries.${country.code}`) || country.code}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>No countries available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
