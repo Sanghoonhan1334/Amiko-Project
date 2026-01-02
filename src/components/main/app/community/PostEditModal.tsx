@@ -28,7 +28,7 @@ interface PostEditModalProps {
 
 export default function PostEditModal({ post, isOpen, onClose, onSave }: PostEditModalProps) {
   const { t, language } = useLanguage()
-  const { token } = useAuth()
+  const { token, user, session, refreshSession } = useAuth()
   
   const categories = [
     { value: '공지사항', label: language === 'ko' ? '📢 공지사항' : '📢 Anuncios' },
@@ -72,20 +72,77 @@ export default function PostEditModal({ post, isOpen, onClose, onSave }: PostEdi
 
     setUploadingImages(true)
     try {
-      // 파일 타입 검증
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
-      const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type))
+      // 토큰 가져오기 - 여러 방법 시도
+      let currentToken = session?.access_token || token
+      
+      if (!currentToken) {
+        // 방법 1: localStorage에서 토큰 가져오기
+        currentToken = localStorage.getItem('amiko_token')
+      }
+      
+      // 토큰이 없거나 만료된 경우 세션 갱신 시도
+      if (!currentToken) {
+        console.log('[PostEditModal] 토큰이 없어 세션 갱신 시도...')
+        const refreshed = await refreshSession()
+        if (refreshed) {
+          // refreshSession 후 localStorage에서 토큰 가져오기
+          currentToken = localStorage.getItem('amiko_token')
+          // 또는 세션에서 직접 가져오기 (상태가 업데이트되지 않았을 수 있음)
+          if (!currentToken && session?.access_token) {
+            currentToken = session.access_token
+          }
+        }
+      } else {
+        // 토큰이 있지만 만료되었을 수 있으므로, 세션 갱신 시도
+        console.log('[PostEditModal] 토큰이 있지만 만료되었을 수 있으므로 세션 갱신 시도...')
+        const refreshed = await refreshSession()
+        if (refreshed) {
+          // 갱신된 토큰 사용
+          currentToken = localStorage.getItem('amiko_token') || session?.access_token || currentToken
+        }
+      }
+      
+      if (!currentToken) {
+        throw new Error(language === 'es' ? 'Sesión expirada. Por favor, inicia sesión nuevamente.' : '세션이 만료되었습니다. 다시 로그인해주세요.')
+      }
+      
+      console.log('[PostEditModal] 토큰 확인:', { 
+        hasToken: !!currentToken, 
+        tokenLength: currentToken?.length,
+        fromSession: !!session?.access_token,
+        fromLocalStorage: !!localStorage.getItem('amiko_token')
+      })
+      // 파일 타입 검증 (MIME 타입 또는 확장자 기반)
+      const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
+      const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.mov', '.webm', '.avi']
+      
+      const invalidFiles = Array.from(files).filter(file => {
+        const hasValidMimeType = validMimeTypes.includes(file.type)
+        const fileName = file.name.toLowerCase()
+        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext))
+        return !hasValidMimeType && !hasValidExtension
+      })
       
       if (invalidFiles.length > 0) {
+        console.error('[PostEditModal] 지원하지 않는 파일 타입:', invalidFiles.map(f => ({ name: f.name, type: f.type })))
         setError(language === 'es' ? 'Tipo de archivo no permitido. Solo se permiten imágenes, videos y GIFs.' : '지원하지 않는 파일 형식입니다. 이미지, 영상, GIF만 업로드 가능합니다.')
         setUploadingImages(false)
         return
       }
 
       const uploadPromises = Array.from(files).map(async (file) => {
-        // 이미지와 영상의 크기 제한을 다르게 설정
-        const isVideo = file.type.startsWith('video/')
+        // 이미지와 영상의 크기 제한을 다르게 설정 (MIME 타입 또는 확장자 기반)
+        const fileName = file.name.toLowerCase()
+        const isVideo = file.type.startsWith('video/') || ['.mp4', '.mov', '.webm', '.avi'].some(ext => fileName.endsWith(ext))
         const maxSize = isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024 // 영상: 100MB, 이미지: 5MB
+        
+        console.log('[PostEditModal] 파일 업로드 시작:', {
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          isVideo,
+          maxSize
+        })
         
         if (file.size > maxSize) {
           throw new Error(
@@ -101,16 +158,25 @@ export default function PostEditModal({ post, isOpen, onClose, onSave }: PostEdi
         const response = await fetch('/api/upload/image', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${currentToken}`
           },
           body: formData,
         })
 
+        const data = await response.json()
+
         if (!response.ok) {
-          throw new Error(language === 'es' ? 'Error al subir el archivo.' : '파일 업로드 실패')
+          console.error('[PostEditModal] 업로드 실패:', {
+            status: response.status,
+            error: data.error,
+            details: data.details,
+            fileType: file.type,
+            fileName: file.name,
+            fileSize: file.size
+          })
+          throw new Error(data.error || data.details || (language === 'es' ? 'Error al subir el archivo.' : '파일 업로드 실패'))
         }
 
-        const data = await response.json()
         return data.url
       })
 
@@ -151,11 +217,40 @@ export default function PostEditModal({ post, isOpen, onClose, onSave }: PostEdi
     setError('')
 
     try {
+      // 토큰 가져오기 - 여러 방법 시도
+      let currentToken = session?.access_token || token
+      
+      if (!currentToken) {
+        currentToken = localStorage.getItem('amiko_token')
+      }
+      
+      // 토큰이 없거나 만료되었을 수 있으므로 세션 갱신 시도
+      if (!currentToken) {
+        console.log('[PostEditModal] 토큰이 없어 세션 갱신 시도...')
+        const refreshed = await refreshSession()
+        if (refreshed) {
+          currentToken = localStorage.getItem('amiko_token') || session?.access_token
+        }
+      } else {
+        // 토큰이 있지만 만료되었을 수 있으므로 세션 갱신 시도
+        console.log('[PostEditModal] 토큰이 있지만 만료되었을 수 있으므로 세션 갱신 시도...')
+        const refreshed = await refreshSession()
+        if (refreshed) {
+          currentToken = localStorage.getItem('amiko_token') || session?.access_token || currentToken
+        }
+      }
+      
+      if (!currentToken) {
+        setError(language === 'es' ? 'Sesión expirada. Por favor, inicia sesión nuevamente.' : '세션이 만료되었습니다. 다시 로그인해주세요.')
+        setLoading(false)
+        return
+      }
+
       const response = await fetch(`/api/posts/${post.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${currentToken}`
         },
         body: JSON.stringify({
           title: title.trim(),

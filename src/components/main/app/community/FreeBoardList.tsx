@@ -109,6 +109,14 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [isSubmittingPost, setIsSubmittingPost] = useState(false)
   
+  // 필드별 에러 상태
+  const [fieldErrors, setFieldErrors] = useState<{
+    category?: string
+    title?: string
+    content?: string
+    general?: string
+  }>({})
+  
   // 번역 상태 관리
   const [isTranslating, setIsTranslating] = useState(false)
   const [translatedPosts, setTranslatedPosts] = useState<Post[]>([])
@@ -522,6 +530,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     setPostCategory('')
     setUploadedImages([])
     setImagePreviews([])
+    setFieldErrors({}) // 에러 상태 초기화
   }
 
   // 이미지 업로드 처리
@@ -610,22 +619,60 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       return
     }
 
+    // 에러 상태 초기화
+    const errors: typeof fieldErrors = {}
+
+    // 필드별 검증
+    if (!postCategory) {
+      errors.category = language === 'es' ? 'Por favor selecciona un foro.' : '게시판을 선택해주세요.'
+    }
+
+    if (!postTitle.trim()) {
+      errors.title = language === 'es' ? 'Por favor ingresa un título.' : '제목을 입력해주세요.'
+    } else if (postTitle.trim().length < 2) {
+      errors.title = language === 'es' ? 'El título debe tener al menos 2 caracteres.' : '제목은 최소 2자 이상 입력해주세요.'
+    }
+
+    if (!postContent.trim()) {
+      errors.content = language === 'es' ? 'Por favor ingresa el contenido.' : '내용을 입력해주세요.'
+    } else if (postContent.trim().length < 5) {
+      errors.content = language === 'es' ? 'El contenido debe tener al menos 5 caracteres.' : '내용은 최소 5자 이상 입력해주세요.'
+    }
+
+    // 에러가 있으면 표시하고 중단
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      
+      // 첫 번째 에러 필드로 스크롤
+      const firstErrorField = Object.keys(errors)[0]
+      const errorElement = document.querySelector(`[data-field="${firstErrorField}"]`)
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // 포커스 설정
+        if (firstErrorField === 'category') {
+          const selectElement = document.querySelector('select[data-field="category"]') as HTMLSelectElement
+          selectElement?.focus()
+        } else if (firstErrorField === 'title') {
+          const inputElement = document.querySelector('input[data-field="title"]') as HTMLInputElement
+          inputElement?.focus()
+        } else if (firstErrorField === 'content') {
+          const textareaElement = document.querySelector('textarea[data-field="content"]') as HTMLTextAreaElement
+          textareaElement?.focus()
+        }
+      }
+      
+      return
+    }
+
+    // 에러 없으면 초기화
+    setFieldErrors({})
+
     console.log('[POST_CREATE] 글쓰기 시작:', {
       postTitle,
       postContent: postContent.substring(0, 50),
       postCategory,
       uploadedImages: uploadedImages.length
     })
-
-    if (!postCategory) {
-      toast.error(language === 'es' ? 'Por favor selecciona un foro.' : '게시판을 선택해주세요.')
-      return
-    }
-
-    if (!postTitle.trim() || !postContent.trim()) {
-      toast.error(language === 'es' ? 'Por favor ingresa título y contenido.' : '제목과 내용을 모두 입력해주세요.')
-      return
-    }
 
     setIsSubmittingPost(true) // 제출 상태 설정
 
@@ -693,16 +740,29 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         // 게시글 목록 새로고침
         loadPosts()
       } else {
-        toast.error(t('community.postCreateFailed'))
+        // 서버 응답의 에러 메시지 파싱
+        let errorMessage = t('community.postCreateFailed')
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.details || errorMessage
+        } catch (e) {
+          // JSON 파싱 실패 시 기본 메시지 사용
+        }
+        
+        setFieldErrors({ general: errorMessage })
+        toast.error(errorMessage)
       }
     } catch (error) {
       console.error('[POST_CREATE] 게시글 작성 실패:', error)
       console.error('[POST_CREATE] 에러 상세:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
       })
-      toast.error(t('community.postCreateError'))
+      
+      const errorMessage = error instanceof Error ? error.message : t('community.postCreateError')
+      setFieldErrors({ general: errorMessage })
+      toast.error(errorMessage)
     } finally {
       setIsSubmittingPost(false) // 제출 상태 해제
     }
@@ -1568,15 +1628,32 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
             {/* 모달 내용 */}
             <div className="p-3 md:p-4 space-y-3 md:space-y-4 max-h-[calc(85vh-120px)] overflow-y-auto">
+              {/* 일반 에러 메시지 */}
+              {fieldErrors.general && (
+                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
+                  {fieldErrors.general}
+                </div>
+              )}
+              
               {/* 카테고리 선택 */}
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {t('community.category')}
+                  {t('community.category')} {fieldErrors.category && <span className="text-red-500">*</span>}
                 </label>
                 <select 
+                  data-field="category"
                   value={postCategory} 
-                  onChange={(e) => setPostCategory(e.target.value)}
-                  className="w-full h-10 text-xs md:text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3"
+                  onChange={(e) => {
+                    setPostCategory(e.target.value)
+                    if (fieldErrors.category) {
+                      setFieldErrors(prev => ({ ...prev, category: undefined }))
+                    }
+                  }}
+                  className={`w-full h-10 text-xs md:text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 ${
+                    fieldErrors.category 
+                      ? 'border-red-500 dark:border-red-500' 
+                      : 'border-gray-200 dark:border-gray-600'
+                  }`}
                 >
                   <option value="">{t('community.selectBoardPlaceholder')}</option>
                   {categories
@@ -1593,41 +1670,74 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                       </option>
                     ))}
                 </select>
+                {fieldErrors.category && (
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">{fieldErrors.category}</p>
+                )}
               </div>
 
               {/* 제목 입력 */}
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {t('community.postTitle')}
+                  {t('community.postTitle')} {fieldErrors.title && <span className="text-red-500">*</span>}
                 </label>
                 <input
+                  data-field="title"
                   type="text"
                   value={postTitle}
-                  onChange={(e) => setPostTitle(e.target.value)}
+                  onChange={(e) => {
+                    setPostTitle(e.target.value)
+                    if (fieldErrors.title) {
+                      setFieldErrors(prev => ({ ...prev, title: undefined }))
+                    }
+                  }}
                   placeholder={t('community.postTitlePlaceholder')}
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  className={`w-full px-3 py-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                    fieldErrors.title 
+                      ? 'border-red-500 dark:border-red-500' 
+                      : 'border-gray-200 dark:border-gray-600'
+                  }`}
                   maxLength={100}
                 />
-                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
-                  {postTitle.length}/100
+                <div className="flex justify-between items-center">
+                  {fieldErrors.title && (
+                    <p className="text-xs text-red-500 dark:text-red-400">{fieldErrors.title}</p>
+                  )}
+                  <div className={`text-right text-xs ml-auto ${fieldErrors.title ? '' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {postTitle.length}/100
+                  </div>
                 </div>
               </div>
 
               {/* 내용 입력 */}
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {t('community.postContent')}
+                  {t('community.postContent')} {fieldErrors.content && <span className="text-red-500">*</span>}
                 </label>
                 <textarea
+                  data-field="content"
                   value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
+                  onChange={(e) => {
+                    setPostContent(e.target.value)
+                    if (fieldErrors.content) {
+                      setFieldErrors(prev => ({ ...prev, content: undefined }))
+                    }
+                  }}
                   placeholder={t('community.postContentPlaceholder')}
                   rows={6}
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  className={`w-full px-3 py-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                    fieldErrors.content 
+                      ? 'border-red-500 dark:border-red-500' 
+                      : 'border-gray-200 dark:border-gray-600'
+                  }`}
                   maxLength={2000}
                 />
-                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
-                  {postContent.length}/2000
+                <div className="flex justify-between items-center">
+                  {fieldErrors.content && (
+                    <p className="text-xs text-red-500 dark:text-red-400">{fieldErrors.content}</p>
+                  )}
+                  <div className={`text-right text-xs ml-auto ${fieldErrors.content ? '' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {postContent.length}/2000
+                  </div>
                 </div>
               </div>
 

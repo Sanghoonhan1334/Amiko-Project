@@ -135,60 +135,6 @@ function AppPageContent() {
     checkAdminStatus()
   }, [user?.id, user?.email])
 
-  // 자동 출석 체크 (메인 페이지 진입 시 한 번만)
-  useEffect(() => {
-    const autoAttendanceCheck = async () => {
-      if (!user?.id) return
-
-      // localStorage로 오늘 이미 출석했는지 확인 (중복 방지)
-      const today = new Date().toISOString().split('T')[0]
-      const lastCheckDate = localStorage.getItem('last_attendance_check')
-
-      if (lastCheckDate === today) {
-        console.log('[AUTO_ATTENDANCE] 오늘 이미 출석 체크 완료')
-        return
-      }
-
-      try {
-        const response = await fetch('/api/community/points', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            activityType: 'attendance_check',
-            postId: null,
-            title: '자동 출석 체크'
-          })
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          console.log('[AUTO_ATTENDANCE] 출석 체크 성공: +10점')
-
-          // localStorage에 오늘 출석 기록
-          localStorage.setItem('last_attendance_check', today)
-
-          // 포인트 업데이트 이벤트 발생
-          window.dispatchEvent(new CustomEvent('pointsUpdated'))
-
-          // 출석체크 alert 메시지 제거됨 (점수 제도 미사용)
-        } else {
-          const errorData = await response.json()
-          console.log('[AUTO_ATTENDANCE] 출석 체크 실패:', errorData.error)
-          // 일일 한도 초과 또는 이미 체크한 경우 무시
-        }
-      } catch (error) {
-        console.error('[AUTO_ATTENDANCE] 출석 체크 오류:', error)
-      }
-    }
-
-    // 메인 페이지 진입 후 1초 후에 실행 (초기 로딩 완료 후)
-    const timer = setTimeout(() => {
-      autoAttendanceCheck()
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [user?.id])
 
   // URL 파라미터에서 탭 확인 및 설정
   useEffect(() => {
