@@ -195,6 +195,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const [reports, setReports] = useState<any[]>([])
   const [showBanMenu, setShowBanMenu] = useState<string | null>(null) // 채팅금지 드롭다운 메뉴 표시
   const [realtimeEnabled, setRealtimeEnabled] = useState(false) // Realtime 기본 비활성화 (오류 방지)
+  const [lastReadAt, setLastReadAt] = useState<string | null>(null) // 마지막 읽은 시간
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const channelRef = useRef<any>(null)
@@ -202,6 +203,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const processedMessageIds = useRef<Set<string>>(new Set())
   const profileCache = useRef<Map<string, { display_name?: string; avatar_url?: string; profile_image?: string; total_points: number }>>(new Map())
   const deletedMessageIdsRef = useRef<Set<string>>(new Set()) // 삭제된 메시지 ID 추적
+  const messagesContainerRef = useRef<HTMLDivElement>(null) // 메시지 컨테이너 참조
+  const updateReadStatusTimeoutRef = useRef<NodeJS.Timeout | null>(null) // 읽음 상태 업데이트 디바운스
 
   // 색상 팔레트 가져오기 (useMemo로 메모이제이션) - early return 이전에 배치
   const palette = useMemo(() => {
@@ -384,13 +387,14 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       if (user) {
         const { data: participant } = await authSupabase
           .from('chat_room_participants')
-          .select('role')
+          .select('role, last_read_at')
           .eq('room_id', roomId)
           .eq('user_id', user.id)
           .single()
         
         if (participant) {
           setUserRole(participant.role as any)
+          setLastReadAt(participant.last_read_at || null)
         }
       }
     } catch (error) {
@@ -649,13 +653,20 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     if (!user) return
 
     try {
-      await authSupabase
+      const now = new Date().toISOString()
+      const { data } = await authSupabase
         .from('chat_room_participants')
         .upsert({
           room_id: roomId,
           user_id: user.id,
-          last_read_at: new Date().toISOString()
+          last_read_at: now
         })
+        .select('last_read_at')
+        .single()
+      
+      if (data) {
+        setLastReadAt(data.last_read_at || now)
+      }
     } catch (error) {
       console.error('Error joining room:', error)
     }
@@ -674,6 +685,86 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       console.error('Error leaving room:', error)
     }
   }
+
+  // 읽음 상태 업데이트 함수 (디바운스 적용)
+  const updateReadStatus = async () => {
+    if (!user || !roomId) return
+
+    // 기존 타임아웃 취소
+    if (updateReadStatusTimeoutRef.current) {
+      clearTimeout(updateReadStatusTimeoutRef.current)
+    }
+
+    // 500ms 후에 읽음 상태 업데이트 (디바운스)
+    updateReadStatusTimeoutRef.current = setTimeout(async () => {
+      try {
+        const now = new Date().toISOString()
+        const { data, error } = await authSupabase
+          .from('chat_room_participants')
+          .upsert({
+            room_id: roomId,
+            user_id: user.id,
+            last_read_at: now
+          })
+          .select('last_read_at')
+          .single()
+        
+        if (error) {
+          console.error('[ChatRoomClient] 읽음 상태 업데이트 실패:', error)
+        } else {
+          if (data) {
+            setLastReadAt(data.last_read_at || now)
+          }
+          console.log('[ChatRoomClient] 읽음 상태 업데이트 완료:', {
+            roomId,
+            userId: user.id,
+            last_read_at: now
+          })
+        }
+      } catch (error) {
+        console.error('[ChatRoomClient] 읽음 상태 업데이트 실패:', error)
+      }
+    }, 500)
+  }
+
+  // 스크롤 감지 및 읽음 상태 업데이트
+  useEffect(() => {
+    const messagesContainer = messagesContainerRef.current
+    if (!messagesContainer || !user) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainer
+      // 맨 아래에서 100px 이내에 있으면 읽음 상태 업데이트
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
+
+      if (isNearBottom) {
+        updateReadStatus()
+      }
+    }
+
+    messagesContainer.addEventListener('scroll', handleScroll, { passive: true })
+
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      messagesContainer.removeEventListener('scroll', handleScroll)
+      if (updateReadStatusTimeoutRef.current) {
+        clearTimeout(updateReadStatusTimeoutRef.current)
+      }
+    }
+  }, [user, roomId])
+
+  // 메시지가 추가될 때 자동으로 읽음 상태 업데이트 (맨 아래에 있을 때만)
+  useEffect(() => {
+    if (!messagesContainerRef.current || !user || messages.length === 0) return
+
+    const container = messagesContainerRef.current
+    const { scrollTop, scrollHeight, clientHeight } = container
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
+
+    if (isNearBottom) {
+      updateReadStatus()
+    }
+  }, [messages.length, user, roomId])
 
   // 운영자 권한 체크 useEffect
   useEffect(() => {
@@ -1574,6 +1665,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       {/* Messages */}
       <div 
+        ref={messagesContainerRef}
         className="flex-1 overflow-y-auto px-4 py-4" 
         style={{ 
           backgroundColor: palette.background,
@@ -1597,11 +1689,31 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             const isOwn = message.user_id === user?.id
             // 고유한 키 생성 (id + index)
             const uniqueKey = `${message.id}-${index}`
+            
+            // 마지막 읽은 메시지 위치 확인
+            const messageTime = new Date(message.created_at).getTime()
+            const lastReadTime = lastReadAt ? new Date(lastReadAt).getTime() : 0
+            const isUnread = messageTime > lastReadTime
+            const isLastReadMessage = lastReadAt && 
+              messageTime <= lastReadTime && 
+              (index === messages.length - 1 || 
+               (index < messages.length - 1 && new Date(messages[index + 1].created_at).getTime() > lastReadTime))
+            
             return (
-              <div
-                key={uniqueKey}
-                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-              >
+              <React.Fragment key={uniqueKey}>
+                {/* 마지막 읽은 메시지 구분선 */}
+                {isLastReadMessage && user && (
+                  <div className="flex items-center gap-2 my-4 px-4">
+                    <div className="flex-1 border-t border-blue-400 border-dashed"></div>
+                    <span className="text-xs text-blue-500 font-medium px-2 py-1 bg-blue-50 rounded-full">
+                      {language === 'ko' ? '여기까지 읽음' : 'Leído hasta aquí'}
+                    </span>
+                    <div className="flex-1 border-t border-blue-400 border-dashed"></div>
+                  </div>
+                )}
+                <div
+                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${isUnread && !isOwn ? 'opacity-90' : ''}`}
+                >
                 <div className={`flex gap-3 max-w-xs md:max-w-md ${isOwn ? 'flex-row-reverse' : ''}`}>
                   {/* Avatar */}
                   <div 
@@ -1778,6 +1890,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                   </div>
                 </div>
               </div>
+              </React.Fragment>
             )
           })}
             </div>

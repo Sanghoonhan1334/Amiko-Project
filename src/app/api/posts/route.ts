@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const gallerySlug = searchParams.get('gallery') // 갤러리 슬러그 파라미터 (전체 선택 시 null)
     const category = searchParams.get('category') // 카테고리 필터 (예: "공지사항")
     const isNotice = searchParams.get('is_notice') // 공지사항 필터 (true/false)
+    const exclude = searchParams.get('exclude') // 제외할 게시글 ID
     const offset = (page - 1) * limit
 
     console.log('[POSTS_GET] 게시물 목록 조회:', { page, limit, sortBy, searchQuery, gallerySlug, category, isNotice })
@@ -274,6 +275,11 @@ export async function GET(request: NextRequest) {
     // 카테고리 필터 적용 (일반 게시글)
     if (category) {
       regularQuery = regularQuery.eq('category', category)
+    }
+    
+    // 제외할 게시글 필터 적용
+    if (exclude) {
+      regularQuery = regularQuery.neq('id', exclude)
     }
     
     // 검색 쿼리 적용 (일반 게시글)
