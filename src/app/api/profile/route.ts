@@ -162,11 +162,24 @@ async function handleProfileUpdate(request: NextRequest) {
     // 프로필 사진이 있으면 추가
     if (profile_image) {
       updateData.profile_image = profile_image
-    }
-
-    // 여러 프로필 사진이 있으면 추가
-    if (profile_images && profile_images.length > 0) {
-      updateData.profile_images = profile_images
+      
+      // profile_images가 전송되지 않았으면 기존 배열 유지 (중복 방지)
+      // /api/profile/upload-image에서 이미 profile_images 배열에 추가했으므로
+      // 여기서는 profile_image만 업데이트하고 profile_images는 그대로 유지
+      if (!profile_images || profile_images.length === 0) {
+        // profile_images를 업데이트하지 않음 (기존 배열 유지)
+        // updateData에 profile_images를 포함시키지 않으면 기존 값이 유지됨
+        console.log('[PROFILE] profile_image만 업데이트, profile_images 배열은 유지')
+      } else {
+        // profile_images가 명시적으로 전송되었으면 그대로 사용
+        updateData.profile_images = profile_images
+        console.log('[PROFILE] profile_images 배열 업데이트:', profile_images.length)
+      }
+    } else {
+      // 여러 프로필 사진이 있으면 추가
+      if (profile_images && profile_images.length > 0) {
+        updateData.profile_images = profile_images
+      }
     }
 
     // 대표 프로필 사진이 있으면 추가
@@ -591,6 +604,8 @@ export async function GET(request: NextRequest) {
         verification_completed: (user as any).verification_completed, // 인증 완료 플래그
         verified_badge: (user as any).verified_badge || false, // Level 2 인증 뱃지
         sms_verified_at: (user as any).sms_verified_at,
+        phone_verified: (user as any).phone_verified || !!(user as any).sms_verified_at, // 전화번호 인증 여부
+        phone_verified_at: (user as any).phone_verified_at || (user as any).sms_verified_at, // 전화번호 인증 완료 시간
         email_verified_at: (user as any).email_verified_at,
         join_date: (user as any).join_date,
         is_admin: (user as any).is_admin,
@@ -624,7 +639,9 @@ export async function GET(request: NextRequest) {
         join_date: (user as any).join_date,
         kakao_linked_at: null,
         wa_verified_at: null,
-        sms_verified_at: null,
+        sms_verified_at: (user as any).sms_verified_at,
+        phone_verified: (user as any).phone_verified || !!(user as any).sms_verified_at, // 전화번호 인증 여부
+        phone_verified_at: (user as any).phone_verified_at || (user as any).sms_verified_at, // 전화번호 인증 완료 시간
         email_verified_at: (user as any).email_verified_at,
         academic_info_public: (user as any).academic_info_public ?? false, // 학업 정보 공개 설정
         job_info_public: (user as any).job_info_public ?? false // 직업 정보 공개 설정

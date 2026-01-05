@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import { useLanguage } from '@/context/LanguageContext'
+import { trackQuizProgress50, trackQuizComplete } from '@/lib/analytics'
 
 function HeaderFallback() {
   return (
@@ -25,6 +26,7 @@ export default function MoodQuestionsPage() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [questions, setQuestions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [quizId, setQuizId] = useState<string | null>(null)
 
   // Obtener datos de preguntas desde la base de datos
   useEffect(() => {
@@ -32,9 +34,21 @@ export default function MoodQuestionsPage() {
       try {
         const response = await fetch('/api/quizzes/mood')
         const data = await response.json()
-        console.log('[Mood Questions] Respuesta API:', data)
-        if (data.success && data.data && data.data.questions) {
+        console.log('[Mood Questions] Respuesta API completa:', JSON.stringify(data, null, 2))
+        console.log('[Mood Questions] Response status:', response.status)
+        console.log('[Mood Questions] data.success:', data.success)
+        console.log('[Mood Questions] data.data:', data.data)
+        console.log('[Mood Questions] data.data?.questions:', data.data?.questions)
+        console.log('[Mood Questions] questions length:', data.data?.questions?.length)
+        
+        if (data.success && data.data && data.data.questions && Array.isArray(data.data.questions) && data.data.questions.length > 0) {
           console.log('[Mood Questions] Preguntas cargadas exitosamente:', data.data.questions.length, 'preguntas')
+          
+          // 퀴즈 ID 저장
+          if (data.data.quiz) {
+            setQuizId(data.data.quiz.id)
+          }
+          
           // Eliminar duplicados: eliminar duplicados basados en question_order (mantener solo el primero)
           const seenOrders = new Set<number>()
           const uniqueQuestions = data.data.questions.filter((question: any) => {
@@ -51,7 +65,11 @@ export default function MoodQuestionsPage() {
           uniqueQuestions.sort((a: any, b: any) => (a.question_order || 0) - (b.question_order || 0))
           setQuestions(uniqueQuestions)
         } else {
-          console.error('[Mood Questions] No hay datos de preguntas:', data)
+          console.error('[Mood Questions] No hay datos de preguntas o preguntas vacías:', data)
+          // API 응답은 성공했지만 questions가 없거나 빈 배열인 경우
+          if (data.success && data.data && data.data.quiz) {
+            console.error('[Mood Questions] 퀴즈는 찾았지만 질문이 없습니다. Quiz ID:', data.data.quiz.id)
+          }
         }
       } catch (error) {
         console.error('[Mood Questions] Error al cargar preguntas:', error)
@@ -155,6 +173,11 @@ export default function MoodQuestionsPage() {
         // Si es la última pregunta, calcular el resultado e ir a la página de resultados
         const testResult = calculateResult(newAnswers)
         
+        // 퀴즈 퍼널 이벤트: 테스트 완료
+        if (quizId) {
+          trackQuizComplete(quizId, testResult)
+        }
+        
         // Incrementar número de participantes
         try {
           const quizResponse = await fetch('/api/quizzes/mood')
@@ -174,7 +197,14 @@ export default function MoodQuestionsPage() {
         router.push(`/quiz/mood/result?type=${testResult}`)
       } else {
         // A la siguiente pregunta
-        setCurrentQuestion(prev => prev + 1)
+        const nextQuestion = currentQuestion + 1
+        setCurrentQuestion(nextQuestion)
+        
+        // 퀴즈 퍼널 이벤트: 질문 50% 도달 체크
+        const progress = ((nextQuestion + 1) / questions.length) * 100
+        if (progress >= 50 && quizId) {
+          trackQuizProgress50(quizId)
+        }
       }
       setIsTransitioning(false)
     }, 300)

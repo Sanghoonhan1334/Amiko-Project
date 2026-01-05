@@ -9,7 +9,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { useAuth } from '@/context/AuthContext'
 import TestComments from '@/components/quiz/TestComments'
-import { quizEvents } from '@/lib/analytics'
+import { quizEvents, trackQuizEnter } from '@/lib/analytics'
 
 interface QuizData {
   id: string
@@ -52,6 +52,9 @@ export default function MoodTestPage() {
         const data = await response.json()
         if (data.success && data.data.quiz) {
           setQuizData(data.data.quiz)
+          
+          // 퀴즈 퍼널 이벤트: 테스트 진입
+          trackQuizEnter(data.data.quiz.id)
         } else {
           throw new Error('No hay datos del quiz.')
         }

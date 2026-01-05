@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
+import { sendFCMv1Notification } from '@/lib/fcm-v1'
 
 // VAPID 키 설정 (환경변수가 없으면 빌드 시점에 오류를 방지하기 위해 조건부로 설정)
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
@@ -132,6 +133,70 @@ export async function POST(request: Request) {
             requireInteraction: data?.requireInteraction || false
           }
 
+          // 네이티브 앱 토큰인지 확인
+          const isNative = String(subscription.endpoint).startsWith('native://')
+          
+          if (isNative) {
+            // 네이티브 앱 푸시 알림 (FCM HTTP v1 API 사용)
+            const nativeToken = subscription.native_token as string
+            const platform = subscription.platform as string
+            
+            console.log(`[PUSH] 네이티브 앱 푸시 발송 시도: ${platform}, 토큰: ${nativeToken?.substring(0, 20)}...`)
+            
+            if (platform === 'android') {
+              try {
+                // FCM HTTP v1 API 사용
+                const result = await sendFCMv1Notification(
+                  nativeToken,
+                  title,
+                  messageBody,
+                  {
+                    ...data,
+                    url: data?.url || '/notifications',
+                    notificationId: String(notificationLog.id)
+                  }
+                )
+                
+                if (result.success) {
+                  console.log('✅ FCM v1 푸시 알림 발송 성공:', subscription.id, result.messageId)
+                  return {
+                    subscriptionId: subscription.id,
+                    success: true,
+                    statusCode: 200,
+                    platform: 'android',
+                    messageId: result.messageId
+                  }
+                } else {
+                  throw new Error(result.error || 'FCM v1 발송 실패')
+                }
+              } catch (fcmError) {
+                console.error('❌ FCM v1 푸시 알림 발송 실패:', fcmError)
+                return {
+                  subscriptionId: subscription.id,
+                  success: false,
+                  error: fcmError instanceof Error ? fcmError.message : 'FCM v1 발송 실패',
+                  statusCode: 500
+                }
+              }
+            } else if (platform === 'ios') {
+              // iOS는 아직 지원되지 않음
+              console.warn(`[PUSH] iOS 푸시 알림은 아직 지원되지 않습니다.`)
+              return {
+                subscriptionId: subscription.id,
+                success: false,
+                error: 'iOS는 아직 지원되지 않습니다.',
+                statusCode: 503
+              }
+            } else {
+              return {
+                subscriptionId: subscription.id,
+                success: false,
+                error: `지원되지 않는 플랫폼: ${platform}`,
+                statusCode: 400
+              }
+            }
+          } else {
+            // 웹 푸시 알림
           const pushSubscription = {
             endpoint: String(subscription.endpoint),
             keys: {
@@ -140,24 +205,25 @@ export async function POST(request: Request) {
             }
           }
 
-          // 웹 푸시 발송
           const result = await webpush.sendNotification(
             pushSubscription,
             JSON.stringify(pushPayload)
           )
 
-          console.log('✅ 푸시 알림 발송 성공:', subscription.id, result.statusCode)
+            console.log('✅ 웹 푸시 알림 발송 성공:', subscription.id, result.statusCode)
           
           return {
             subscriptionId: subscription.id,
             success: true,
-            statusCode: result.statusCode
+              statusCode: result.statusCode,
+              platform: 'web'
+            }
           }
 
         } catch (error) {
           console.error('❌ 푸시 알림 발송 실패:', subscription.id, error)
           
-          // 구독이 유효하지 않은 경우 삭제
+          // 구독이 유효하지 않은 경우 삭제 (웹 푸시만)
           if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 410) {
             console.log('🗑️ 유효하지 않은 구독 삭제:', subscription.id)
             await supabase

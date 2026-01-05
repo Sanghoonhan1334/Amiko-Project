@@ -75,18 +75,29 @@ export async function PUT(request: Request) {
       updated_at: new Date().toISOString()
     }
 
-    // 커뮤니티 알림 설정 필드 추가
+    // 간소화된 알림 설정 필드
+    if (settings.event_notifications_enabled !== undefined) {
+      settingsData.event_notifications_enabled = settings.event_notifications_enabled
+    }
+    if (settings.interaction_notifications_enabled !== undefined) {
+      settingsData.interaction_notifications_enabled = settings.interaction_notifications_enabled
+    }
+    if (settings.new_post_notifications_enabled !== undefined) {
+      settingsData.new_post_notifications_enabled = settings.new_post_notifications_enabled
+    }
+    
+    // 하위 호환성을 위한 필드 (기존 데이터 마이그레이션용)
     if (settings.like_notifications_enabled !== undefined) {
       settingsData.like_notifications_enabled = settings.like_notifications_enabled
+    }
+    if (settings.comment_notifications_enabled !== undefined) {
+      settingsData.comment_notifications_enabled = settings.comment_notifications_enabled
     }
     if (settings.post_notifications_enabled !== undefined) {
       settingsData.post_notifications_enabled = settings.post_notifications_enabled
     }
     if (settings.daily_digest_enabled !== undefined) {
       settingsData.daily_digest_enabled = settings.daily_digest_enabled
-    }
-    if (settings.daily_digest_time !== undefined) {
-      settingsData.daily_digest_time = settings.daily_digest_time
     }
     if (settings.marketing_emails !== undefined) {
       settingsData.marketing_emails = settings.marketing_emails
@@ -118,10 +129,18 @@ export async function PUT(request: Request) {
       throw error
     }
 
-    // 반환 데이터에 모든 필드 포함
+    // 반환 데이터에 모든 필드 포함 (하위 호환성 포함)
     const responseData = {
       ...data,
+      // 새로운 간소화된 필드
+      event_notifications_enabled: data.event_notifications_enabled ?? data.marketing_emails ?? true,
+      interaction_notifications_enabled: data.interaction_notifications_enabled ?? 
+        (data.like_notifications_enabled && data.comment_notifications_enabled) ?? true,
+      new_post_notifications_enabled: data.new_post_notifications_enabled ?? 
+        (data.post_notifications_enabled && data.daily_digest_enabled) ?? true,
+      // 기존 필드 (하위 호환성)
       like_notifications_enabled: data.like_notifications_enabled ?? true,
+      comment_notifications_enabled: data.comment_notifications_enabled ?? true,
       post_notifications_enabled: data.post_notifications_enabled ?? true,
       daily_digest_enabled: data.daily_digest_enabled ?? true,
       daily_digest_time: data.daily_digest_time ?? '08:30:00',

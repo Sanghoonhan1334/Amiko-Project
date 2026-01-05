@@ -48,23 +48,31 @@ export default function LoadingOverlay({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 mx-4 shadow-2xl border border-gray-200 dark:border-gray-700 max-w-sm w-full relative">
         {/* 로고 - 맨 위에 배치, 하얀색 배경으로 덮음 */}
-        <div className="absolute top-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl pt-6 pb-4 -mt-8 -mx-8 px-8 z-10">
-          <div className="flex justify-center">
+        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 rounded-full p-2 z-10 shadow-lg">
+          <div className="flex justify-center items-center w-24 h-24">
             <Image
               src="/logos/amiko-logo.png"
               alt="AMIKO"
-              width={120}
-              height={120}
-              className="block dark:hidden w-24 h-24 object-contain"
+              width={96}
+              height={96}
+              className="block dark:hidden w-full h-full object-contain"
               priority
+              unoptimized={process.env.NODE_ENV === 'development'}
+              onError={(e) => {
+                console.error('[LoadingOverlay] 로고 이미지 로드 실패:', e)
+              }}
             />
             <Image
               src="/logos/amiko-logo-dark.png"
               alt="AMIKO"
-              width={120}
-              height={120}
-              className="hidden dark:block w-24 h-24 object-contain"
+              width={96}
+              height={96}
+              className="hidden dark:block w-full h-full object-contain"
               priority
+              unoptimized={process.env.NODE_ENV === 'development'}
+              onError={(e) => {
+                console.error('[LoadingOverlay] 로고 이미지 로드 실패:', e)
+              }}
             />
           </div>
         </div>

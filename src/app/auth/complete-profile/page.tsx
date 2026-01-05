@@ -12,7 +12,6 @@ import { useLanguage } from '@/context/LanguageContext'
 import { countries, getCountryByCode } from '@/constants/countries'
 import { ArrowRight, Globe, Shield } from 'lucide-react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
-
 export default function CompleteProfilePage() {
   const router = useRouter()
   const { user } = useAuth()

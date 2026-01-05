@@ -217,11 +217,22 @@ export async function POST(request: NextRequest) {
       // 언어 설정 (전화번호 국가코드 기준, 국적과 독립적)
       // 멕시코 국적 + 한국 전화번호 조합 허용
       const language = normalizedPhoneNumber.startsWith('+82') ? 'ko' : 'es'
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[VERIFICATION] Attempting WhatsApp send:', { language })
-        }
+        console.log('[VERIFICATION] ========================================')
+        console.log('[VERIFICATION] WhatsApp 발송 시도')
+        console.log('[VERIFICATION] 전화번호:', normalizedPhoneNumber)
+        console.log('[VERIFICATION] 언어:', language)
+        console.log('[VERIFICATION] 인증코드:', verificationCode)
+        console.log('[VERIFICATION] 환경 변수 확인:', {
+          TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ? '설정됨' : '없음',
+          TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ? '설정됨' : '없음',
+          TWILIO_WHATSAPP_NUMBER: process.env.TWILIO_WHATSAPP_NUMBER || '없음',
+          TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM || '없음',
+          TWILIO_WHATSAPP_TEMPLATE_SID: process.env.TWILIO_WHATSAPP_TEMPLATE_SID || '없음'
+        })
         // 정규화된 번호 사용
         sendResult = await sendVerificationWhatsApp(normalizedPhoneNumber, verificationCode, language)
+        console.log('[VERIFICATION] WhatsApp 발송 결과:', sendResult)
+        console.log('[VERIFICATION] ========================================')
       sendMethod = 'WhatsApp'
     } else {
       return NextResponse.json(

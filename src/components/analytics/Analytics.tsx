@@ -3,7 +3,7 @@
 import Script from 'next/script'
 import { useEffect, useRef } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { trackPageView, trackSessionStart } from '@/lib/analytics'
+import { trackPageView, trackSessionStart, trackRevisit } from '@/lib/analytics'
 
 const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || 'G-5RM3B0CKWJ'
 
@@ -25,12 +25,27 @@ export default function Analytics() {
   // Session start tracking (once per session)
   useEffect(() => {
     trackSessionStart()
+    
+    // 재방문 이벤트 추적 (세션당 1회)
+    trackRevisit()
   }, [])
 
   // 페이지뷰 추적
   useEffect(() => {
+    // gtag가 준비될 때까지 대기
+    if (typeof window === 'undefined') return
+    
+    const checkAndTrack = () => {
+      if (typeof (window as any).gtag === 'function') {
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '')
     trackPageView(url)
+      } else {
+        // gtag가 아직 로드되지 않았으면 재시도
+        setTimeout(checkAndTrack, 100)
+      }
+    }
+    
+    checkAndTrack()
   }, [pathname, searchParams])
 
   // GA 초기화 중복 방지

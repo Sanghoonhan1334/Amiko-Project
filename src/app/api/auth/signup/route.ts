@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
                           name: name,
                           country: country
                         },
-                        email_confirm: emailVerified
+                        email_confirm: true
                       })
                       
                       if (updatePasswordError) {
@@ -262,7 +262,9 @@ export async function POST(request: NextRequest) {
         console.log(`[SIGNUP] Supabase Auth를 사용하여 사용자 생성 시도`)
         
         // Supabase Auth로 사용자 생성 (전화번호는 인증센터에서 입력)
-        // 이메일 인증은 회원가입 단계에서 완료되므로 email_confirm은 false로 설정
+        // 이메일 인증이 완료된 경우 email_confirm을 true로 설정하여 로그인 가능하도록 함
+        // 이메일 인증이 완료되지 않은 경우에도 로그인을 허용하기 위해 true로 설정
+        // (Supabase 설정에서 이메일 확인을 필수로 하지 않는 경우)
         const { data: authData, error: authError } = await supabaseServer.auth.admin.createUser({
           email: email,
           password: password,
@@ -270,7 +272,7 @@ export async function POST(request: NextRequest) {
             name: name,
             country: country
           },
-          email_confirm: emailVerified // 실제 이메일 인증 완료 여부에 따라 설정
+          email_confirm: true // 이메일 인증 완료 여부와 관계없이 항상 true로 설정하여 로그인 가능하도록 함
         })
 
         if (!authError && authData?.user) {
@@ -323,7 +325,7 @@ export async function POST(request: NextRequest) {
                               name: name,
                               country: country
                             },
-                            email_confirm: emailVerified
+                            email_confirm: true
                           })
                         
                           if (updatePasswordError) {
@@ -382,7 +384,7 @@ export async function POST(request: NextRequest) {
                             name: name,
                             country: country
                           },
-                          email_confirm: emailVerified
+                          email_confirm: true
                         })
                         
                         if (finalRetryError) {
@@ -423,7 +425,7 @@ export async function POST(request: NextRequest) {
                             name: name,
                             country: country
                           },
-                          email_confirm: emailVerified
+                          email_confirm: true
                         })
                       
                         if (updatePasswordError) {

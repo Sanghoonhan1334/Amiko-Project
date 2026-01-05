@@ -9,7 +9,7 @@ import PostDetail from './PostDetail'
 import PostCreate from './PostCreate'
 import PostEditModal from './PostEditModal'
 import PopularPosts from './PopularPosts'
-import { communityEvents } from '@/lib/analytics'
+import { communityEvents, trackUgcWriteClick } from '@/lib/analytics'
 
 interface Gallery {
   id: string
@@ -75,6 +75,9 @@ export default function CommunityMain() {
   }
 
   const handleCreatePost = () => {
+    // UGC 생성 퍼널 이벤트: 글쓰기 버튼 클릭
+    trackUgcWriteClick(selectedGallery?.slug)
+    
     // 커뮤니티 퍼널 이벤트: 게시물 생성 시작 (실제 생성은 PostCreate에서)
     setViewMode('post-create')
   }

@@ -24,6 +24,7 @@ export default function GlobalChatButton() {
   const [isOpening, setIsOpening] = useState(false)
   const [amikoRoom, setAmikoRoom] = useState<ChatRoom | null>(null)
   const [loading, setLoading] = useState(false)
+  const [hasUnread, setHasUnread] = useState(false) // 읽지 않은 메시지 존재 여부
   const { user, loading: authLoading } = useAuth()
   const { t, language } = useLanguage()
   const router = useRouter()
@@ -80,6 +81,56 @@ export default function GlobalChatButton() {
     }
   }, [isOpen, user])
 
+  // 읽지 않은 메시지 확인
+  useEffect(() => {
+    // 인증센터 페이지에서는 확인하지 않음
+    if (pathname?.startsWith('/verification')) {
+      return
+    }
+
+    // 채팅방이 열려있으면 읽지 않은 메시지 확인하지 않음
+    if (isOpen) {
+      setHasUnread(false)
+      return
+    }
+
+    if (!user || !amikoRoom?.id) {
+      setHasUnread(false)
+      return
+    }
+
+    const checkUnreadMessages = async () => {
+      try {
+        const response = await fetch(
+          `/api/chat/unread-check?roomId=${amikoRoom.id}&userId=${user.id}`,
+          { cache: 'no-store' }
+        )
+        const data = await response.json()
+        
+        if (data.success) {
+          console.log('[GlobalChatButton] 읽지 않은 메시지 확인:', {
+            hasUnread: data.hasUnread,
+            roomId: amikoRoom.id,
+            userId: user.id
+          })
+          setHasUnread(data.hasUnread)
+        }
+      } catch (error) {
+        console.error('[GlobalChatButton] 읽지 않은 메시지 확인 실패:', error)
+      }
+    }
+
+    // 초기 확인
+    checkUnreadMessages()
+
+    // 5초마다 확인 (폴링)
+    const interval = setInterval(checkUnreadMessages, 5000)
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [user, amikoRoom?.id, isOpen, pathname])
+
   const handleToggle = () => {
     // 인증 체크 강화
     if (authLoading) return // 로딩 중일 때는 대기
@@ -104,7 +155,28 @@ export default function GlobalChatButton() {
     }
   }
   
-  const handleClose = () => {
+  const handleClose = async () => {
+    // 채팅방을 닫을 때 읽음 상태 업데이트
+    if (user && amikoRoom?.id) {
+      try {
+        // 읽음 상태 업데이트 (API에서 가장 최근 메시지 시간 자동 사용)
+        await fetch('/api/chat/update-read-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            roomId: amikoRoom.id,
+            userId: user.id
+            // lastReadAt은 API에서 자동으로 가장 최근 메시지 시간 사용
+          }),
+        })
+        console.log('[GlobalChatButton] 채팅방 닫을 때 읽음 상태 업데이트 완료')
+      } catch (error) {
+        console.error('[GlobalChatButton] 채팅방 닫을 때 읽음 상태 업데이트 실패:', error)
+      }
+    }
+    
     setIsClosing(true)
     setTimeout(() => {
       setIsOpen(false)
@@ -114,6 +186,12 @@ export default function GlobalChatButton() {
 
   // 인증센터 페이지에서는 플로팅 버튼 숨김
   if (pathname?.startsWith('/verification')) {
+    return null
+  }
+
+  // 로딩 중일 때는 플로팅 버튼을 표시하지 않음 (또는 로딩 표시)
+  // 로딩이 완료된 후에만 사용자 체크
+  if (authLoading) {
     return null
   }
 
@@ -134,14 +212,17 @@ export default function GlobalChatButton() {
         ) : (
           <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
         )}
-        {/* 알림 뱃지 (선택사항) */}
-        {/* <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center">
-          3
-        </span> */}
+        {/* 읽지 않은 메시지 빨간 점 표시 */}
+        {hasUnread && !isOpen && (
+          <span 
+            className="absolute -top-0.5 -left-0.5 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white shadow-lg animate-pulse"
+            title={language === 'ko' ? '읽지 않은 메시지가 있습니다' : 'Tienes mensajes no leídos'}
+          />
+        )}
       </button>
 
       {/* 채팅 모달/사이드바 - 인증된 사용자만 */}
-      {(isOpen || isClosing || isOpening) && user && (
+      {(isOpen || isClosing || isOpening) && !authLoading && user && (
         <div className={`fixed top-16 bottom-0 right-0 left-0 sm:left-auto sm:right-0 sm:top-0 sm:bottom-0 sm:w-96 z-[60] bg-white shadow-2xl flex flex-col rounded-t-xl sm:rounded-l-2xl sm:rounded-r-none sm:rounded-t-none overflow-hidden ${
           isClosing 
             ? 'animate-[slideDownMobile_0.3s_ease-out_forwards] sm:animate-[slideOutRight_0.3s_ease-out_forwards]'
@@ -166,19 +247,11 @@ export default function GlobalChatButton() {
 
             {/* 채팅 내용 */}
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-              {!user ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <p className="text-gray-600 text-xs sm:text-sm mb-4">{language === 'ko' ? '로그인이 필요합니다.' : 'Inicio de sesión requerido.'}</p>
-                    <button
-                      onClick={() => router.push('/sign-in?redirect=' + encodeURIComponent(window.location.pathname))}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs sm:text-sm"
-                    >
-                      {language === 'ko' ? '로그인하기' : 'Iniciar sesión'}
-                    </button>
-                  </div>
-                </div>
-              ) : loading ? (
+              {(() => {
+                console.log('[GlobalChatButton] 채팅 내용 렌더링:', { user: user ? { id: user.id, email: user.email } : null, authLoading, loading, amikoRoom: amikoRoom ? { id: amikoRoom.id } : null })
+                return null
+              })()}
+              {loading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-pink-500 mx-auto mb-2 sm:mb-4" />

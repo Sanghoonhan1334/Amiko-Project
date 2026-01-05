@@ -33,6 +33,8 @@ import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import AuthorName from '@/components/common/AuthorName'
 import { checkLevel1Auth } from '@/lib/auth-utils'
+import Image from 'next/image'
+import { createClient } from '@supabase/supabase-js'
 
 interface Post {
   id: string
@@ -42,6 +44,7 @@ interface Post {
   category_name: string
   author_name: string
   author_id?: string | null
+  author_profile_image?: string | null
   created_at: string
   views: number
   likes: number
@@ -49,6 +52,7 @@ interface Post {
   is_pinned?: boolean
   is_hot?: boolean
   is_notice?: boolean
+  images?: string[]
 }
 
 interface Category {
@@ -67,6 +71,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const { language, t } = useLanguage()
   const { theme } = useTheme()
   const router = useRouter()
+  
+  // Supabase 클라이언트 (프로필 이미지 URL 변환용)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   
   // 번역 서비스 초기화
   const translationService = TranslationService.getInstance()
@@ -108,13 +118,49 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [isSubmittingPost, setIsSubmittingPost] = useState(false)
   
+  // 필드별 에러 상태
+  const [fieldErrors, setFieldErrors] = useState<{
+    category?: string
+    title?: string
+    content?: string
+    general?: string
+  }>({})
+  
   // 번역 상태 관리
   const [isTranslating, setIsTranslating] = useState(false)
   const [translatedPosts, setTranslatedPosts] = useState<Post[]>([])
   const [translationMode, setTranslationMode] = useState<'none' | 'ko-to-es' | 'es-to-ko'>('none')
   
   // 운영자 권한 체크
-  const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
+  const [isAdmin, setIsAdmin] = useState(false)
+  
+  // 운영자 상태 확인
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user?.id && !user?.email) {
+        setIsAdmin(false)
+        return
+      }
+
+      try {
+        const params = new URLSearchParams()
+        if (user?.id) params.append('userId', user.id)
+        if (user?.email) params.append('email', user.email)
+        
+        const response = await fetch(`/api/admin/check?${params.toString()}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setIsAdmin(data.isAdmin || false)
+        }
+      } catch (error) {
+        console.error('운영자 상태 확인 실패:', error)
+        setIsAdmin(false)
+      }
+    }
+
+    checkAdminStatus()
+  }, [user?.id, user?.email])
 
   const categories: Category[] = [
     { id: 'announcement', name: language === 'ko' ? '📢 공지사항' : '📢 Anuncios', icon: '📢' },
@@ -493,6 +539,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     setPostCategory('')
     setUploadedImages([])
     setImagePreviews([])
+    setFieldErrors({}) // 에러 상태 초기화
   }
 
   // 이미지 업로드 처리
@@ -502,14 +549,32 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
     setUploadingImages(true)
     try {
+      // 파일 타입 검증
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
+      const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type))
+      
+      if (invalidFiles.length > 0) {
+        toast.error(language === 'es' ? 'Tipo de archivo no permitido. Solo se permiten imágenes, videos y GIFs.' : '지원하지 않는 파일 형식입니다. 이미지, 영상, GIF만 업로드 가능합니다.')
+        return
+      }
+
       const uploadPromises = Array.from(files).map(async (file) => {
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error('파일 크기는 5MB를 초과할 수 없습니다.')
+        // 이미지와 영상의 크기 제한을 다르게 설정
+        const isVideo = file.type.startsWith('video/')
+        const maxSize = isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024 // 영상: 100MB, 이미지: 5MB
+        
+        if (file.size > maxSize) {
+          throw new Error(
+            language === 'es' 
+              ? `El tamaño del archivo no puede exceder ${isVideo ? '100MB' : '5MB'}.`
+              : `파일 크기는 ${isVideo ? '100MB' : '5MB'}를 초과할 수 없습니다.`
+          )
         }
 
         const formData = new FormData()
         formData.append('file', file)
 
+        // 이미지와 영상 모두 같은 API 사용 (서버에서 타입 자동 감지)
         const response = await fetch('/api/upload/image', {
           method: 'POST',
           headers: {
@@ -519,7 +584,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         })
 
         if (!response.ok) {
-          throw new Error('이미지 업로드 실패')
+          throw new Error(language === 'es' ? 'Error al subir el archivo.' : '파일 업로드 실패')
         }
 
         const data = await response.json()
@@ -529,14 +594,21 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const urls = await Promise.all(uploadPromises)
       setUploadedImages(prev => [...prev, ...urls])
       
-      // 미리보기 생성
-      const previews = Array.from(files).map(file => URL.createObjectURL(file))
+      // 미리보기 생성 (이미지만, 영상은 썸네일 생성 불가)
+      const previews = Array.from(files).map(file => {
+        if (file.type.startsWith('image/')) {
+          return URL.createObjectURL(file)
+        } else {
+          // 영상의 경우 썸네일 대신 영상 아이콘 표시
+          return null
+        }
+      }).filter(Boolean) as string[]
       setImagePreviews(prev => [...prev, ...previews])
       
-      toast.success(language === 'es' ? '¡Imagen subida exitosamente!' : '이미지가 업로드되었습니다!')
+      toast.success(language === 'es' ? '¡Archivo(s) subido(s) exitosamente!' : '파일이 업로드되었습니다!')
     } catch (error) {
-      console.error('이미지 업로드 실패:', error)
-      toast.error(language === 'es' ? 'Error al subir la imagen.' : '이미지 업로드에 실패했습니다.')
+      console.error('파일 업로드 실패:', error)
+      toast.error(language === 'es' ? 'Error al subir el archivo.' : '파일 업로드에 실패했습니다.')
     } finally {
       setUploadingImages(false)
     }
@@ -556,22 +628,60 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       return
     }
 
+    // 에러 상태 초기화
+    const errors: typeof fieldErrors = {}
+
+    // 필드별 검증
+    if (!postCategory) {
+      errors.category = language === 'es' ? 'Por favor selecciona un foro.' : '게시판을 선택해주세요.'
+    }
+
+    if (!postTitle.trim()) {
+      errors.title = language === 'es' ? 'Por favor ingresa un título.' : '제목을 입력해주세요.'
+    } else if (postTitle.trim().length < 2) {
+      errors.title = language === 'es' ? 'El título debe tener al menos 2 caracteres.' : '제목은 최소 2자 이상 입력해주세요.'
+    }
+
+    if (!postContent.trim()) {
+      errors.content = language === 'es' ? 'Por favor ingresa el contenido.' : '내용을 입력해주세요.'
+    } else if (postContent.trim().length < 5) {
+      errors.content = language === 'es' ? 'El contenido debe tener al menos 5 caracteres.' : '내용은 최소 5자 이상 입력해주세요.'
+    }
+
+    // 에러가 있으면 표시하고 중단
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      
+      // 첫 번째 에러 필드로 스크롤
+      const firstErrorField = Object.keys(errors)[0]
+      const errorElement = document.querySelector(`[data-field="${firstErrorField}"]`)
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // 포커스 설정
+        if (firstErrorField === 'category') {
+          const selectElement = document.querySelector('select[data-field="category"]') as HTMLSelectElement
+          selectElement?.focus()
+        } else if (firstErrorField === 'title') {
+          const inputElement = document.querySelector('input[data-field="title"]') as HTMLInputElement
+          inputElement?.focus()
+        } else if (firstErrorField === 'content') {
+          const textareaElement = document.querySelector('textarea[data-field="content"]') as HTMLTextAreaElement
+          textareaElement?.focus()
+        }
+      }
+      
+      return
+    }
+
+    // 에러 없으면 초기화
+    setFieldErrors({})
+
     console.log('[POST_CREATE] 글쓰기 시작:', {
       postTitle,
       postContent: postContent.substring(0, 50),
       postCategory,
       uploadedImages: uploadedImages.length
     })
-
-    if (!postCategory) {
-      toast.error(language === 'es' ? 'Por favor selecciona un foro.' : '게시판을 선택해주세요.')
-      return
-    }
-
-    if (!postTitle.trim() || !postContent.trim()) {
-      toast.error(language === 'es' ? 'Por favor ingresa título y contenido.' : '제목과 내용을 모두 입력해주세요.')
-      return
-    }
 
     setIsSubmittingPost(true) // 제출 상태 설정
 
@@ -639,16 +749,29 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         // 게시글 목록 새로고침
         loadPosts()
       } else {
-        toast.error(t('community.postCreateFailed'))
+        // 서버 응답의 에러 메시지 파싱
+        let errorMessage = t('community.postCreateFailed')
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.details || errorMessage
+        } catch (e) {
+          // JSON 파싱 실패 시 기본 메시지 사용
+        }
+        
+        setFieldErrors({ general: errorMessage })
+        toast.error(errorMessage)
       }
     } catch (error) {
       console.error('[POST_CREATE] 게시글 작성 실패:', error)
       console.error('[POST_CREATE] 에러 상세:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
       })
-      toast.error(t('community.postCreateError'))
+      
+      const errorMessage = error instanceof Error ? error.message : t('community.postCreateError')
+      setFieldErrors({ general: errorMessage })
+      toast.error(errorMessage)
     } finally {
       setIsSubmittingPost(false) // 제출 상태 해제
     }
@@ -760,13 +883,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           category_name: post.category || '자유게시판',
           author_id: post.author?.id || null,
           author_name: post.author?.full_name || (post.is_notice ? (language === 'es' ? 'Administrador' : '운영자') : (language === 'es' ? 'Anónimo' : '익명')),
+          author_profile_image: post.author?.profile_image || post.author?.avatar_url || null,
           created_at: post.created_at,
           views: post.view_count || 0,
           likes: post.like_count || 0,
           comments_count: post.comment_count || 0,
           is_pinned: post.is_pinned || false,
           is_hot: post.is_hot || false,
-          is_notice: post.is_notice || false // is_notice 필드 추가
+          is_notice: post.is_notice || false, // is_notice 필드 추가
+          images: post.images || [] // images 필드 추가
         }))
 
         console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
@@ -1125,6 +1250,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                               <div className="flex items-center gap-2">
                                 {post.is_pinned && <Star className="w-4 h-4 text-yellow-500" />}
                                 {post.is_hot && <TrendingUp className="w-4 h-4 text-red-500" />}
+                                {post.images && post.images.length > 0 && (
+                                  <span className="text-blue-500" title={language === 'es' ? `${post.images.length} archivo(s)` : `${post.images.length}개 첨부`}>
+                                    📎
+                                  </span>
+                                )}
                                 <span className="truncate max-w-xs">
                                   {translationMode !== 'none' && post.translatedTitle ? post.translatedTitle : post.title}
                                 </span>
@@ -1371,10 +1501,60 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   }}
                 >
                   <div className="space-y-1">
-                    {/* 제목 */}
-                    <h3 className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
-                      {post.title}
-                    </h3>
+                    {/* 제목과 프로필 사진 */}
+                    <div className="flex items-start gap-2">
+                      {/* 프로필 사진 (작은 크기) */}
+                      {(() => {
+                        const avatarUrl = post.author_profile_image
+                        let publicUrl = avatarUrl
+                        
+                        // Supabase Storage URL을 공개 URL로 변환
+                        if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+                          try {
+                            const { data: { publicUrl: convertedUrl } } = supabase.storage
+                              .from('profile-images')
+                              .getPublicUrl(avatarUrl)
+                            publicUrl = convertedUrl
+                          } catch (error) {
+                            console.error('[FreeBoardList] 프로필 이미지 URL 변환 실패:', error)
+                          }
+                        }
+                        
+                        if (publicUrl && post.author_id) {
+                          return (
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 mt-0.5">
+                              <img 
+                                src={publicUrl} 
+                                alt={post.author_name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // 이미지 로드 실패 시 이니셜 표시
+                                  e.currentTarget.style.display = 'none'
+                                  const parent = e.currentTarget.parentElement
+                                  if (parent) {
+                                    const fallback = document.createElement('span')
+                                    fallback.className = 'w-full h-full flex items-center justify-center text-white text-[8px] sm:text-[10px] font-semibold'
+                                    fallback.textContent = (post.author_name || '?').charAt(0).toUpperCase()
+                                    parent.appendChild(fallback)
+                                  }
+                                }}
+                              />
+                            </div>
+                          )
+                        }
+                        
+                        // 프로필 사진이 없으면 이니셜 표시
+                        return (
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-[8px] sm:text-[10px] font-semibold mt-0.5">
+                            {(post.author_name || '?').charAt(0).toUpperCase()}
+                          </div>
+                        )
+                      })()}
+                      
+                      <h3 className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 line-clamp-2 flex-1">
+                        {post.title}
+                      </h3>
+                    </div>
                     
                     {/* 카테고리와 날짜 */}
                     <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
@@ -1508,58 +1688,116 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
             {/* 모달 내용 */}
             <div className="p-3 md:p-4 space-y-3 md:space-y-4 max-h-[calc(85vh-120px)] overflow-y-auto">
+              {/* 일반 에러 메시지 */}
+              {fieldErrors.general && (
+                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
+                  {fieldErrors.general}
+                </div>
+              )}
+              
               {/* 카테고리 선택 */}
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {t('community.category')}
+                  {t('community.category')} {fieldErrors.category && <span className="text-red-500">*</span>}
                 </label>
                 <select 
+                  data-field="category"
                   value={postCategory} 
-                  onChange={(e) => setPostCategory(e.target.value)}
-                  className="w-full h-10 text-xs md:text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3"
+                  onChange={(e) => {
+                    setPostCategory(e.target.value)
+                    if (fieldErrors.category) {
+                      setFieldErrors(prev => ({ ...prev, category: undefined }))
+                    }
+                  }}
+                  className={`w-full h-10 text-xs md:text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 ${
+                    fieldErrors.category 
+                      ? 'border-red-500 dark:border-red-500' 
+                      : 'border-gray-200 dark:border-gray-600'
+                  }`}
                 >
                   <option value="">{t('community.selectBoardPlaceholder')}</option>
-                  {categories.filter(cat => cat.id !== 'all').map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
+                  {categories
+                    .filter(cat => {
+                      // 'all' 제외
+                      if (cat.id === 'all') return false
+                      // 'announcement'는 운영자만 볼 수 있음
+                      if (cat.id === 'announcement') return isAdmin
+                      return true
+                    })
+                    .map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
                 </select>
+                {fieldErrors.category && (
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">{fieldErrors.category}</p>
+                )}
               </div>
 
               {/* 제목 입력 */}
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {t('community.postTitle')}
+                  {t('community.postTitle')} {fieldErrors.title && <span className="text-red-500">*</span>}
                 </label>
                 <input
+                  data-field="title"
                   type="text"
                   value={postTitle}
-                  onChange={(e) => setPostTitle(e.target.value)}
+                  onChange={(e) => {
+                    setPostTitle(e.target.value)
+                    if (fieldErrors.title) {
+                      setFieldErrors(prev => ({ ...prev, title: undefined }))
+                    }
+                  }}
                   placeholder={t('community.postTitlePlaceholder')}
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  className={`w-full px-3 py-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                    fieldErrors.title 
+                      ? 'border-red-500 dark:border-red-500' 
+                      : 'border-gray-200 dark:border-gray-600'
+                  }`}
                   maxLength={100}
                 />
-                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
-                  {postTitle.length}/100
+                <div className="flex justify-between items-center">
+                  {fieldErrors.title && (
+                    <p className="text-xs text-red-500 dark:text-red-400">{fieldErrors.title}</p>
+                  )}
+                  <div className={`text-right text-xs ml-auto ${fieldErrors.title ? '' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {postTitle.length}/100
+                  </div>
                 </div>
               </div>
 
               {/* 내용 입력 */}
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {t('community.postContent')}
+                  {t('community.postContent')} {fieldErrors.content && <span className="text-red-500">*</span>}
                 </label>
                 <textarea
+                  data-field="content"
                   value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
+                  onChange={(e) => {
+                    setPostContent(e.target.value)
+                    if (fieldErrors.content) {
+                      setFieldErrors(prev => ({ ...prev, content: undefined }))
+                    }
+                  }}
                   placeholder={t('community.postContentPlaceholder')}
                   rows={6}
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  className={`w-full px-3 py-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                    fieldErrors.content 
+                      ? 'border-red-500 dark:border-red-500' 
+                      : 'border-gray-200 dark:border-gray-600'
+                  }`}
                   maxLength={2000}
                 />
-                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
-                  {postContent.length}/2000
+                <div className="flex justify-between items-center">
+                  {fieldErrors.content && (
+                    <p className="text-xs text-red-500 dark:text-red-400">{fieldErrors.content}</p>
+                  )}
+                  <div className={`text-right text-xs ml-auto ${fieldErrors.content ? '' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {postContent.length}/2000
+                  </div>
                 </div>
               </div>
 
@@ -1571,7 +1809,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 <div className="space-y-2">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*,.gif"
                     multiple
                     onChange={handleImageUpload}
                     className="hidden"
@@ -1583,30 +1821,46 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     className={`inline-flex items-center gap-2 px-4 py-2 text-xs border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900 transition-all duration-200 font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${uploadingImages ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <span>📷</span>
-                    {uploadingImages ? '업로드 중...' : t('community.selectImage')}
+                    {uploadingImages ? (language === 'es' ? 'Subiendo...' : '업로드 중...') : (language === 'es' ? 'Seleccionar archivo (imagen/video/GIF)' : '파일 선택 (이미지/영상/GIF)')}
                   </label>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('community.imageRestrictions')}
+                    {language === 'es' ? 'Imágenes (máx. 5MB), videos y GIFs (máx. 100MB) permitidos' : '이미지 (최대 5MB), 영상 및 GIF (최대 100MB) 지원'}
                   </div>
                   
-                  {/* 이미지 미리보기 */}
-                  {imagePreviews.length > 0 && (
+                  {/* 이미지/영상 미리보기 */}
+                  {(imagePreviews.length > 0 || uploadedImages.length > 0) && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                      {imagePreviews.map((preview, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={preview}
-                            alt={`첨부 이미지 ${index + 1}`}
-                            className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200"
-                          />
-                          <button
-                            onClick={() => handleRemoveImage(index)}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                      {uploadedImages.map((url, index) => {
+                        const isVideo = url.match(/\.(mp4|webm|mov|avi|mkv)$/i)
+                        const isGif = url.match(/\.gif$/i)
+                        const preview = imagePreviews[index] || null
+                        
+                        return (
+                          <div key={index} className="relative group">
+                            {isVideo ? (
+                              <div className="w-full h-20 bg-gray-200 dark:bg-gray-700 rounded-lg border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                                <span className="text-2xl">🎬</span>
+                              </div>
+                            ) : preview ? (
+                              <img
+                                src={preview}
+                                alt={isGif ? `GIF ${index + 1}` : `첨부 이미지 ${index + 1}`}
+                                className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200"
+                              />
+                            ) : (
+                              <div className="w-full h-20 bg-gray-200 dark:bg-gray-700 rounded-lg border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                                <span className="text-2xl">{isGif ? '🎞️' : '📎'}</span>
+                              </div>
+                            )}
+                            <button
+                              onClick={() => handleRemoveImage(index)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>

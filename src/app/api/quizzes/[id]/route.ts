@@ -170,9 +170,29 @@ export async function GET(
 
     console.log('[QUIZ_DETAIL] 퀴즈 상세 조회 성공:', {
       quiz: quiz.title,
+      quizId: quizId,
       questions: questions?.length || 0,
       results: results?.length || 0
     });
+
+    // 디버깅: 질문 데이터 상세 로그
+    if (questions && questions.length > 0) {
+      console.log('[QUIZ_DETAIL] 첫 번째 질문 샘플:', {
+        id: questions[0].id,
+        question_text: questions[0].question_text,
+        question_order: questions[0].question_order,
+        quiz_options_count: questions[0].quiz_options?.length || 0
+      });
+    } else {
+      console.log('[QUIZ_DETAIL] ⚠️ 질문이 없습니다! quizId:', quizId);
+      // quizId로 직접 확인
+      const { data: directCheck } = await supabase
+        .from('quiz_questions')
+        .select('id, question_text, question_order')
+        .eq('quiz_id', quizId)
+        .limit(5);
+      console.log('[QUIZ_DETAIL] 직접 조회 결과:', directCheck);
+    }
 
     return NextResponse.json({
       success: true,

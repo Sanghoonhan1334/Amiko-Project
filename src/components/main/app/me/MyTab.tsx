@@ -45,7 +45,10 @@ import {
   Fingerprint,
   Smartphone,
   Lock,
-  ArrowRight
+  ArrowRight,
+  CreditCard,
+  Ban,
+  UserX
 } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard'
@@ -68,6 +71,7 @@ import UserBadge from '@/components/common/UserBadge'
 import { getUserLevel } from '@/lib/user-level'
 import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import InquiryModal from '@/components/common/InquiryModal'
+import ChatBanManagement from '@/components/admin/ChatBanManagement'
 
 export default function MyTab() {
   const { t, language } = useLanguage()
@@ -388,12 +392,10 @@ export default function MyTab() {
     missingRequirements: []
   })
   const [notificationSettings, setNotificationSettings] = useState({
-    webPush: true,
-    email: false,
-    marketing: false,
-    likeNotifications: true,
-    postNotifications: true,
-    dailyDigest: true
+    pushEnabled: true, // 푸시 알림 마스터 스위치
+    eventNotifications: true, // 이벤트 알림
+    interactionNotifications: true, // 좋아요·댓글 알림
+    newPostNotifications: true // 새게시물 알림 (매일 오전 8:30)
   })
   
   // 보안 설정 상태
@@ -871,12 +873,10 @@ export default function MyTab() {
           const data = await response.json()
           if (data.settings) {
             setNotificationSettings({
-              webPush: data.settings.push_enabled ?? true,
-              email: data.settings.email_enabled ?? false,
-              marketing: data.settings.marketing_emails ?? false,
-              likeNotifications: data.settings.like_notifications_enabled ?? true,
-              postNotifications: data.settings.post_notifications_enabled ?? true,
-              dailyDigest: data.settings.daily_digest_enabled ?? true
+              pushEnabled: data.settings.push_enabled ?? true,
+              eventNotifications: data.settings.event_notifications_enabled ?? true,
+              interactionNotifications: data.settings.interaction_notifications_enabled ?? true,
+              newPostNotifications: data.settings.new_post_notifications_enabled ?? true
             })
           }
         }
@@ -902,12 +902,10 @@ export default function MyTab() {
       const updateData: any = {}
       
       // 키 매핑
-      if (key === 'webPush') updateData.push_enabled = value
-      else if (key === 'email') updateData.email_enabled = value
-      else if (key === 'marketing') updateData.marketing_emails = value
-      else if (key === 'likeNotifications') updateData.like_notifications_enabled = value
-      else if (key === 'postNotifications') updateData.post_notifications_enabled = value
-      else if (key === 'dailyDigest') updateData.daily_digest_enabled = value
+      if (key === 'pushEnabled') updateData.push_enabled = value
+      else if (key === 'eventNotifications') updateData.event_notifications_enabled = value
+      else if (key === 'interactionNotifications') updateData.interaction_notifications_enabled = value
+      else if (key === 'newPostNotifications') updateData.new_post_notifications_enabled = value
 
       await fetch('/api/notifications/settings', {
         method: 'PUT',
@@ -1461,6 +1459,24 @@ export default function MyTab() {
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
                 <AnalyticsDashboard />
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* 채팅금지 관리 */}
+            <AccordionItem value="chat-bans" className="border-2 border-red-200 rounded-xl overflow-hidden bg-red-50">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
+                    <Ban className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-lg text-gray-900">{language === 'ko' ? '채팅금지 관리' : 'Gestión de prohibiciones de chat'}</h3>
+                    <p className="text-sm text-gray-600">{language === 'ko' ? '채팅금지 및 영구 추방 사용자 관리' : 'Gestionar usuarios con prohibición de chat y expulsión permanente'}</p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <ChatBanManagement />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -2475,12 +2491,12 @@ export default function MyTab() {
                       />
                   </div>
                   ) : (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
                       <div className="flex-1">
-                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1">
                           {language === 'ko' ? '직업 정보 공개' : 'Información profesional pública'}
                         </label>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {language === 'ko' 
                             ? '직업, 회사, 경력 정보를 다른 사용자에게 공개합니다' 
                             : 'Comparte tu ocupación, empresa y experiencia con otros usuarios'}
@@ -2691,114 +2707,94 @@ export default function MyTab() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-5 pb-5 space-y-3">
+                  {/* 푸시 알림 마스터 스위치 */}
                   <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
                     <div className="flex items-center gap-2">
                       <Bell className="w-4 h-4 text-amber-600" />
                       <div>
-                        <div className="font-medium text-gray-800 text-xs">{t('myTab.webPushNotification')}</div>
-                        <div className="text-xs text-gray-600">{t('myTab.webPushDescription')}</div>
+                        <div className="font-medium text-gray-800 text-xs">
+                          {language === 'ko' ? '푸시 알림' : 'Notificaciones Push'}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'ko' 
+                            ? '모든 푸시 알림을 받습니다 (웹 및 앱)' 
+                            : 'Recibe todas las notificaciones push (web y app)'}
+                        </div>
                       </div>
                     </div>
                     <Switch
                       className={compactSwitchClass}
-                      checked={notificationSettings.webPush}
-                      onCheckedChange={(checked) => handleNotificationChange('webPush', checked)}
+                      checked={notificationSettings.pushEnabled}
+                      onCheckedChange={(checked) => handleNotificationChange('pushEnabled', checked)}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                  {/* 이벤트 알림 */}
+                  <div className={`flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200 ${!notificationSettings.pushEnabled ? 'opacity-50' : ''}`}>
                     <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-amber-600" />
+                      <Calendar className="w-4 h-4 text-amber-600" />
                       <div>
-                        <div className="font-medium text-gray-800 text-xs">{t('myTab.emailNotification')}</div>
-                        <div className="text-xs text-gray-600">{t('myTab.emailDescription')}</div>
+                        <div className="font-medium text-gray-800 text-xs">
+                          {language === 'ko' ? '이벤트 알림' : 'Notificaciones de eventos'}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'ko' 
+                            ? '이벤트 및 프로모션 알림을 받습니다' 
+                            : 'Recibe notificaciones de eventos y promociones'}
+                        </div>
                       </div>
                     </div>
                     <Switch
                       className={compactSwitchClass}
-                      checked={notificationSettings.email}
-                      onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                      checked={notificationSettings.eventNotifications && notificationSettings.pushEnabled}
+                      onCheckedChange={(checked) => handleNotificationChange('eventNotifications', checked)}
+                      disabled={!notificationSettings.pushEnabled}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-amber-600" />
-                      <div>
-                        <div className="font-medium text-gray-800 text-xs">{t('myTab.marketingNotification')}</div>
-                        <div className="text-xs text-gray-600">{t('myTab.marketingDescription')}</div>
-                      </div>
-                    </div>
-                    <Switch
-                      className={compactSwitchClass}
-                      checked={notificationSettings.marketing}
-                      onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
-                    />
-                  </div>
-
-                  {/* 좋아요 알림 */}
-                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                  {/* 좋아요·댓글 알림 */}
+                  <div className={`flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200 ${!notificationSettings.pushEnabled ? 'opacity-50' : ''}`}>
                     <div className="flex items-center gap-2">
                       <Heart className="w-4 h-4 text-amber-600" />
                       <div>
                         <div className="font-medium text-gray-800 text-xs">
-                          {language === 'ko' ? '좋아요 알림' : 'Notificaciones de me gusta'}
+                          {language === 'ko' ? '좋아요·댓글 알림' : 'Notificaciones de interacción'}
                         </div>
                         <div className="text-xs text-gray-600">
                           {language === 'ko' 
-                            ? '내 글에 좋아요가 달리면 즉시 알림을 받습니다' 
-                            : 'Recibe notificaciones cuando alguien le da me gusta a tus publicaciones'}
+                            ? '내 글에 좋아요나 댓글이 달리면 즉시 알림을 받습니다' 
+                            : 'Recibe notificaciones cuando alguien da me gusta o comenta en tus publicaciones'}
                         </div>
                       </div>
                     </div>
                     <Switch
                       className={compactSwitchClass}
-                      checked={notificationSettings.likeNotifications}
-                      onCheckedChange={(checked) => handleNotificationChange('likeNotifications', checked)}
+                      checked={notificationSettings.interactionNotifications && notificationSettings.pushEnabled}
+                      onCheckedChange={(checked) => handleNotificationChange('interactionNotifications', checked)}
+                      disabled={!notificationSettings.pushEnabled}
                     />
                   </div>
 
-                  {/* 게시물 알림 */}
-                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
-                    <div className="flex items-center gap-2">
-                      <Newspaper className="w-4 h-4 text-amber-600" />
-                      <div>
-                        <div className="font-medium text-gray-800 text-xs">
-                          {language === 'ko' ? '게시물 알림' : 'Notificaciones de publicaciones'}
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          {language === 'ko' 
-                            ? '새로운 게시물이 올라오면 하루 요약으로 알림을 받습니다' 
-                            : 'Recibe un resumen diario de nuevas publicaciones'}
-                        </div>
-                      </div>
-                    </div>
-                    <Switch
-                      className={compactSwitchClass}
-                      checked={notificationSettings.postNotifications}
-                      onCheckedChange={(checked) => handleNotificationChange('postNotifications', checked)}
-                    />
-                  </div>
-
-                  {/* 하루 요약 알림 */}
-                  <div className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200">
+                  {/* 새게시물 알림 */}
+                  <div className={`flex items-center justify-between p-3 bg-white/80 rounded-xl border border-amber-200 ${!notificationSettings.pushEnabled ? 'opacity-50' : ''}`}>
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-amber-600" />
                       <div>
                         <div className="font-medium text-gray-800 text-xs">
-                          {language === 'ko' ? '하루 요약 알림' : 'Resumen diario'}
+                          {language === 'ko' ? '새게시물 알림' : 'Notificaciones de nuevas publicaciones'}
                         </div>
                         <div className="text-xs text-gray-600">
                           {language === 'ko' 
-                            ? '매일 오전 8:30에 새로운 소식을 요약해서 알려드립니다' 
-                            : 'Recibe un resumen diario de nuevas actividades a las 8:30 AM'}
+                            ? '매일 오전 8:30에 새로운 게시물을 요약해서 알려드립니다' 
+                            : 'Recibe un resumen diario de nuevas publicaciones a las 8:30 AM'}
                         </div>
                       </div>
                     </div>
                     <Switch
                       className={compactSwitchClass}
-                      checked={notificationSettings.dailyDigest}
-                      onCheckedChange={(checked) => handleNotificationChange('dailyDigest', checked)}
+                      checked={notificationSettings.newPostNotifications && notificationSettings.pushEnabled}
+                      onCheckedChange={(checked) => handleNotificationChange('newPostNotifications', checked)}
+                      disabled={!notificationSettings.pushEnabled}
                     />
                   </div>
                 </AccordionContent>
@@ -2863,24 +2859,24 @@ export default function MyTab() {
           showCloseButton={!isDeletingAccount}
         >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">
               {language === 'ko' ? '계정을 정말 삭제할까요?' : '¿Eliminar tu cuenta permanentemente?'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               {language === 'ko'
                 ? '계정을 삭제하면 개인정보와 포인트, 설정이 영구적으로 삭제되며 복구할 수 없습니다.'
                 : 'La eliminación eliminará permanentemente tus datos personales, puntos y ajustes. No podrás deshacer esta acción.'}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 text-sm text-gray-600">
+          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
             <p>
               {language === 'ko'
                 ? '삭제를 진행하려면 아래 확인 문구를 입력해주세요.'
                 : 'Para continuar, escribe la palabra de confirmación abajo.'}
             </p>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
-              <p className="font-semibold text-gray-700 mb-1">{language === 'ko' ? '삭제 시 처리 내용' : 'Lo que sucederá'}</p>
+            <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 p-3 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+              <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1">{language === 'ko' ? '삭제 시 처리 내용' : 'Lo que sucederá'}</p>
               <ul className="list-disc pl-4 space-y-1">
                 <li>
                   {language === 'ko'
@@ -2889,8 +2885,8 @@ export default function MyTab() {
                 </li>
                 <li>
                   {language === 'ko'
-                    ? '작성한 게시글과 댓글은 더 이상 노출되지 않거나 “탈퇴한 사용자”로 표시됩니다.'
-                    : 'Tus publicaciones y comentarios dejarán de mostrarse o aparecerán como “usuario eliminado”.'}
+                    ? '작성한 게시글과 댓글은 더 이상 노출되지 않거나 "탈퇴한 사용자"로 표시됩니다.'
+                    : 'Tus publicaciones y comentarios dejarán de mostrarse o aparecerán como "usuario eliminado".'}
                 </li>
                 <li>
                   {language === 'ko'
@@ -2902,10 +2898,10 @@ export default function MyTab() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-600">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
               {language === 'ko'
                 ? '"DELETE" 를 대문자로 입력해주세요.'
-                : 'Escribe “DELETE” en mayúsculas para confirmar.'}
+                : 'Escribe "DELETE" en mayúsculas para confirmar.'}
             </label>
             <Input
               value={deleteConfirmText}

@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, ArrowLeft, User, Mail, Lock, Globe } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { countries } from '@/constants/countries'
-import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick } from '@/lib/analytics'
+import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick, trackSignUpFormStart, trackSignUpRequiredInfoCompleted, trackSignUpVerificationCompleted, trackSignUpSubmit as trackSignUpSubmitEvent, trackSignUpSuccess as trackSignUpSuccessEvent } from '@/lib/analytics'
 import EmailVerification from '@/components/auth/EmailVerification'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+import { Capacitor } from '@capacitor/core'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -21,6 +22,7 @@ export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState<'form' | 'email' | 'complete'>('form')
   const [emailVerified, setEmailVerified] = useState(false)
   const [isEmailVerifying, setIsEmailVerifying] = useState(false)
+  const [emailCodeSent, setEmailCodeSent] = useState(false) // 인증 코드 발송 여부 추적 (중복 방지)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -30,14 +32,14 @@ export default function SignUpPage() {
     isKorean: false,
     birthDate: ''
   })
-
+  
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     hasNumber: false,
     hasSpecial: false,
     noRepeated: false
   })
-
+  
   const [authData, setAuthData] = useState({
     email: '',
     nationality: '',
@@ -47,16 +49,21 @@ export default function SignUpPage() {
 
   const [ageError, setAgeError] = useState<string | null>(null)
   const [emailError, setEmailError] = useState<string | null>(null)
-  const [privacyAccepted, setPrivacyAccepted] = useState(false)
-  const [privacyError, setPrivacyError] = useState<string | null>(null)
+  const [requiredInfoCompletedTracked, setRequiredInfoCompletedTracked] = useState(false)
 
   // 가입 퍼널 이벤트: 회원가입 시작
   useEffect(() => {
-    signUpEvents.startSignUp()
-    signUpEvents.formStart()
-    // Standardized event
-    trackStartSignup()
-
+    try {
+      signUpEvents.startSignUp()
+      signUpEvents.formStart()
+      // Standardized event
+      trackStartSignup()
+      // 요청된 GA4 이벤트: 회원가입 폼 입력 시작
+      trackSignUpFormStart()
+    } catch (e) {
+      console.error('[SIGNUP] 초기 analytics 이벤트 오류:', e)
+    }
+    
     // 히스토리 초기화 - 모바일 뒤로가기 방지
     if (typeof window !== 'undefined') {
       // 히스토리가 비어있으면 랜딩 페이지를 히스토리에 추가
@@ -66,6 +73,37 @@ export default function SignUpPage() {
       }
     }
   }, [])
+
+  // 필수 정보 입력 완료 감지
+  useEffect(() => {
+    if (requiredInfoCompletedTracked) return
+
+    // isPasswordValid를 여기서 계산 (선언 전 사용 방지)
+    const isPasswordValid = Object.values(passwordChecks).every(check => check)
+
+    const isRequiredInfoCompleted = 
+      formData.name &&
+      formData.email &&
+      formData.password &&
+      formData.confirmPassword &&
+      formData.country &&
+      formData.birthDate &&
+      isPasswordValid &&
+      formData.password === formData.confirmPassword &&
+      !ageError &&
+      !emailError
+
+    if (isRequiredInfoCompleted) {
+      // 요청된 GA4 이벤트: 필수 정보 입력 완료
+      try {
+        trackSignUpRequiredInfoCompleted()
+        setRequiredInfoCompletedTracked(true)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignUpRequiredInfoCompleted 이벤트 오류:', e)
+        setRequiredInfoCompletedTracked(true) // 에러가 나도 추적 완료로 표시
+      }
+    }
+  }, [formData, passwordChecks, ageError, emailError, requiredInfoCompletedTracked])
 
   const calculateAge = (value: string) => {
     if (!value) return null
@@ -85,33 +123,45 @@ export default function SignUpPage() {
       ...prev,
       [field]: value
     }))
-
+    
     // 비밀번호 검증
     if (field === 'password') {
       validatePassword(value)
     }
-
+    
     // 이메일 검증 (오타 감지)
     if (field === 'email') {
       validateEmail(value)
       // 가입 퍼널 이벤트: 이메일 입력
       if (value.length > 0) {
-        signUpEvents.enterEmail()
-        // Standardized event
-        trackSignupInput('email')
+        try {
+          signUpEvents.enterEmail()
+          // Standardized event
+          trackSignupInput('email')
+        } catch (e) {
+          console.error('[SIGNUP] enterEmail 이벤트 오류:', e)
+        }
       }
     }
-
+    
     // 가입 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
-      signUpEvents.enterPassword()
-      // Standardized event
-      trackSignupInput('password')
+      try {
+        signUpEvents.enterPassword()
+        // Standardized event
+        trackSignupInput('password')
+      } catch (e) {
+        console.error('[SIGNUP] enterPassword 이벤트 오류:', e)
+      }
     }
-
+    
     // Standardized events for other fields
     if (value.length > 0 && ['name', 'birthDate', 'country'].includes(field)) {
-      trackSignupInput(field)
+      try {
+        trackSignupInput(field)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignupInput 이벤트 오류:', e)
+      }
     }
 
     if (field === 'birthDate') {
@@ -125,13 +175,17 @@ export default function SignUpPage() {
       } else {
         setAgeError(null)
         // 가입 퍼널 이벤트: 생년월일 입력
-        signUpEvents.enterBirthdate()
-        signUpEvents.enterBirthday()
-        signUpEvents.birthdayOk()
+        try {
+          signUpEvents.enterBirthdate()
+          signUpEvents.enterBirthday()
+          signUpEvents.birthdayOk()
+        } catch (e) {
+          console.error('[SIGNUP] 생년월일 이벤트 오류:', e)
+        }
       }
     }
   }
-
+  
   const validatePassword = (password: string) => {
     const checks = {
       length: password.length >= 8,
@@ -140,30 +194,34 @@ export default function SignUpPage() {
       noRepeated: !/(.)\1{2,}/.test(password) // 3개 이상 연속된 문자 방지
     }
     setPasswordChecks(checks)
-
+    
     // 비밀번호 검증 통과 시 이벤트
     if (Object.values(checks).every(check => check)) {
-      signUpEvents.passwordOk()
+      try {
+        signUpEvents.passwordOk()
+      } catch (e) {
+        console.error('[SIGNUP] passwordOk 이벤트 오류:', e)
+      }
     }
   }
-
-
+  
+  
   const validateEmail = (email: string) => {
     if (!email || email.length === 0) {
       setEmailError(null)
       return
     }
-
+    
     // 기본 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       setEmailError(language === 'ko' ? '올바른 이메일 형식이 아닙니다.' : 'Formato de correo electrónico inválido.')
       return
     }
-
+    
     // 도메인 추출
     const domain = email.split('@')[1]?.toLowerCase() || ''
-
+    
     // 일반적인 이메일 도메인 오타 패턴
     const commonTypos: Record<string, string[]> = {
       'gmail.com': ['gamil.com', 'gmai.com', 'gmaill.com', 'gmal.com', 'gmial.com', 'gmaol.com'],
@@ -176,28 +234,30 @@ export default function SignUpPage() {
       'icloud.com': ['icloud.co', 'icloudd.com'],
       'live.com': ['live.co', 'livve.com']
     }
-
+    
     // 오타 감지
     for (const [correctDomain, typos] of Object.entries(commonTypos)) {
       if (typos.includes(domain)) {
         const suggestion = correctDomain
         setEmailError(
-          language === 'ko'
+          language === 'ko' 
             ? `이메일 도메인에 오타가 있는 것 같습니다. "${suggestion}"를 확인해주세요.`
             : `Parece que hay un error tipográfico en el dominio del correo. Por favor verifica "${suggestion}".`
         )
         return
       }
     }
-
+    
     // 오타가 없으면 에러 제거
     setEmailError(null)
   }
-
+  
   const isPasswordValid = Object.values(passwordChecks).every(check => check)
 
   const handleCountryChange = (countryCode: string) => {
-    const selectedCountry = countries.find(c => c.code === countryCode)
+    const selectedCountry = countries && Array.isArray(countries) 
+      ? countries.find(c => c.code === countryCode)
+      : null
     setFormData(prev => ({
       ...prev,
       country: countryCode,
@@ -223,7 +283,13 @@ export default function SignUpPage() {
   // 이메일 인증 코드 발송
   const handleSendEmailCode = useCallback(async () => {
     if (!formData.email) return
-
+    
+    // 이미 발송했으면 중복 방지
+    if (emailCodeSent) {
+      console.log('[SIGNUP] 인증 코드가 이미 발송되었습니다. 중복 발송 방지.')
+      return
+    }
+    
     setIsEmailVerifying(true)
     try {
       const response = await fetch('/api/verify/start', {
@@ -241,6 +307,9 @@ export default function SignUpPage() {
         throw new Error(result.error || result.message || '인증코드 발송에 실패했습니다.')
       }
 
+      // 발송 완료 플래그 설정
+      setEmailCodeSent(true)
+
       // 자동 발송 시에는 알림을 표시하지 않음 (사용자가 버튼을 눌렀을 때만 표시)
       if (currentStep === 'email') {
         // 이메일 인증 단계에서는 조용히 발송
@@ -253,7 +322,7 @@ export default function SignUpPage() {
     } finally {
       setIsEmailVerifying(false)
     }
-  }, [formData.email, language, currentStep])
+  }, [formData.email, language, currentStep, emailCodeSent])
 
   // 이메일 인증 코드 확인
   const handleVerifyEmailCode = async (code: string) => {
@@ -262,7 +331,7 @@ export default function SignUpPage() {
       const response = await fetch('/api/verify/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           channel: 'email',
           target: formData.email,
           code: code
@@ -278,8 +347,16 @@ export default function SignUpPage() {
       // 이메일 인증 완료
       setEmailVerified(true)
       setAuthData(prev => ({ ...prev, isEmailVerified: true }))
+      
+      // 요청된 GA4 이벤트: 인증 완료
+      try {
+        trackSignUpVerificationCompleted('email')
+      } catch (e) {
+        console.error('[SIGNUP] trackSignUpVerificationCompleted 이벤트 오류:', e)
+      }
+      
       alert(language === 'ko' ? '이메일 인증이 완료되었습니다.' : 'Verificación de correo electrónico completada.')
-
+      
       // 회원가입 진행
       await handleSignUp()
     } catch (error) {
@@ -290,20 +367,24 @@ export default function SignUpPage() {
     }
   }
 
-  // 이메일 인증 단계로 이동 시 자동으로 코드 발송
+  // 이메일 인증 단계로 이동 시 자동으로 코드 발송 (한 번만)
   useEffect(() => {
-    if (currentStep === 'email' && formData.email && !emailVerified) {
+    if (currentStep === 'email' && formData.email && !emailVerified && !emailCodeSent) {
       handleSendEmailCode()
     }
-  }, [currentStep, formData.email, emailVerified, handleSendEmailCode])
+  }, [currentStep, formData.email, emailVerified, emailCodeSent, handleSendEmailCode])
+
+  // 이메일이 변경되면 발송 플래그 리셋 (다른 이메일로 변경 시 재발송 가능하도록)
+  useEffect(() => {
+    setEmailCodeSent(false)
+  }, [formData.email])
 
 
   const handleSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     setIsLoading(true)
-
-    // Standardized event: signup_submit
-    trackSignupSubmit()
+    
+    // sign_up_submit 이벤트는 handleFormSubmit에서만 호출 (중복 방지)
 
     try {
       if (!formData.birthDate) {
@@ -320,7 +401,9 @@ export default function SignUpPage() {
       }
 
       // 실제 회원가입 API 호출
-      const selectedCountry = countries.find(c => c.code === formData.country)
+      const selectedCountry = countries && Array.isArray(countries)
+        ? countries.find(c => c.code === formData.country)
+        : null
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -343,37 +426,67 @@ export default function SignUpPage() {
       }
 
       console.log('회원가입 성공:', result)
-
-      const userId = result.data?.userId || result.user?.id
-
-      // 가입 퍼널 이벤트: 사용자 생성
-      signUpEvents.createUser(userId)
-
+      
+      const userId = result.data?.userId || result.user?.id || result.data?.user?.id
+      
+      // userId가 없으면 에러
+      if (!userId) {
+        console.error('[SIGNUP] userId를 찾을 수 없음:', result)
+        throw new Error('회원가입은 성공했지만 사용자 ID를 찾을 수 없습니다.')
+      }
+      
+      // 가입 퍼널 이벤트: 사용자 생성 (userId가 있을 때만)
+      try {
+        signUpEvents.createUser(userId)
+      } catch (e) {
+        console.error('[SIGNUP] createUser 이벤트 오류:', e)
+      }
+      
       // 가입 퍼널 이벤트: 회원가입 완료
-      signUpEvents.completeSignUp(userId)
-      signUpEvents.signUpSuccess(userId)
-
+      try {
+        signUpEvents.completeSignUp(userId)
+        signUpEvents.signUpSuccess(userId)
+      } catch (e) {
+        console.error('[SIGNUP] completeSignUp 이벤트 오류:', e)
+      }
+      
       // 마케팅 퍼널 이벤트: 회원가입 완료
-      marketingEvents.signUp(userId, 'email')
-
+      try {
+        marketingEvents.signUp(userId, 'email')
+      } catch (e) {
+        console.error('[SIGNUP] marketingEvents.signUp 이벤트 오류:', e)
+      }
+      
       // Standardized events
-      trackSignupSuccess(userId)
-
-      alert(t('auth.signUpSuccess'))
-
+      try {
+        trackSignupSuccess(userId)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignupSuccess 이벤트 오류:', e)
+      }
+      
+      // 요청된 GA4 이벤트: 회원가입 성공
+      try {
+        trackSignUpSuccessEvent(userId)
+      } catch (e) {
+        console.error('[SIGNUP] trackSignUpSuccessEvent 이벤트 오류:', e)
+      }
+      
+      const successMessage = t('auth.signUpSuccess') || (language === 'ko' ? '회원가입이 완료되었습니다.' : 'Registro completado.')
+      alert(successMessage)
+      
       // 회원가입 성공 후 로그인 페이지로 이동
       router.push('/sign-in')
-
+      
     } catch (error) {
       console.error('회원가입 오류:', error)
-
+      
       // 중복 이메일 에러 처리
       if (error instanceof Error && error.message.includes('이미 가입된 이메일')) {
         alert(t('auth.emailAlreadyExists'))
         setCurrentStep('form') // 폼으로 돌아가기
         return
       }
-
+      
       alert(error instanceof Error ? error.message : t('auth.signUpError'))
     } finally {
       setIsLoading(false)
@@ -382,10 +495,14 @@ export default function SignUpPage() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     // 가입 퍼널 이벤트: 회원가입 버튼 클릭
-    signUpEvents.registerClick()
-
+    try {
+      signUpEvents.registerClick()
+    } catch (e) {
+      console.error('[SIGNUP] registerClick 이벤트 오류:', e)
+    }
+    
     if (!isPasswordValid || formData.password !== formData.confirmPassword) {
       return
     }
@@ -406,17 +523,17 @@ export default function SignUpPage() {
       return
     }
 
-    // Privacy policy acceptance required
-    if (!privacyAccepted) {
-      setPrivacyError(t('auth.privacyRequired'))
-      return
+    // 가입 퍼널 이벤트: 회원가입 제출
+    try {
+      signUpEvents.submitRegister()
+      // 요청된 GA4 이벤트: 회원가입 제출 (폼 제출 시)
+      trackSignUpSubmitEvent()
+    } catch (e) {
+      console.error('[SIGNUP] submitRegister/trackSignUpSubmitEvent 이벤트 오류:', e)
     }
 
-    // 가입 퍼널 이벤트: 회원가입 제출
-    signUpEvents.submitRegister()
-
     setIsLoading(true)
-
+    
     try {
       // 중복 이메일 체크
       const emailResponse = await fetch('/api/auth/check-email', {
@@ -424,13 +541,13 @@ export default function SignUpPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email })
       })
-
+      
       const emailResult = await emailResponse.json()
-
+      
       if (!emailResponse.ok) {
         throw new Error(emailResult.error || '이메일 확인 중 오류가 발생했습니다.')
       }
-
+      
       if (emailResult.exists) {
         alert(t('auth.emailAlreadyExists'))
         return
@@ -438,7 +555,7 @@ export default function SignUpPage() {
 
       // 중복이 아닌 경우 이메일 인증 단계로 이동
       setCurrentStep('email')
-
+      
     } catch (error) {
       console.error('중복 체크 오류:', error)
       alert(error instanceof Error ? error.message : t('auth.checkError'))
@@ -566,7 +683,7 @@ export default function SignUpPage() {
                   required
                 />
               </div>
-
+              
               {/* 비밀번호 강도 표시 */}
               {formData.password && (
                 <div className="space-y-1 text-xs">
@@ -625,37 +742,19 @@ export default function SignUpPage() {
                     <SelectValue placeholder={t('auth.selectNationality')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                    {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100">
-                        {t(`auth.countries.${country.code}`)}
-                      </SelectItem>
-                    ))}
+                    {countries && Array.isArray(countries) && countries.length > 0 ? (
+                      countries.map((country) => (
+                        <SelectItem key={country.code} value={country.code} className="hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100">
+                          {t(`auth.countries.${country.code}`) || country.code}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>No countries available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
-              <div className="flex items-start gap-2">
-                <input
-                  id="privacy"
-                  type="checkbox"
-                  checked={privacyAccepted}
-                  onChange={(e) => {
-                    setPrivacyAccepted(e.target.checked)
-                    if (e.target.checked) setPrivacyError(null)
-                  }}
-                  className="mt-1 h-4 w-4 rounded border-gray-300 text-slate-900 focus:ring-slate-400"
-                />
-                <div className="text-sm text-slate-700 dark:text-gray-300">
-                  <label htmlFor="privacy" className="select-none">
-                    {t('auth.privacyAcceptLabel')}
-                  </label>
-                  <a href="/privacy" className="text-slate-900 dark:text-gray-100 underline ml-1" target="_blank" rel="noreferrer">
-                      {t('auth.privacyView')}
-                    </a>
-                  {privacyError && <p className="text-xs text-red-500 mt-1">{privacyError}</p>}
-                </div>
-              </div>
 
             <Button
               type="submit"
@@ -672,7 +771,6 @@ export default function SignUpPage() {
                 formData.password !== formData.confirmPassword ||
                 !!ageError ||
                 !!emailError
-                || !privacyAccepted
               }
             >
               {isLoading ? (
@@ -707,42 +805,19 @@ export default function SignUpPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* 구글 로그인 버튼 */}
+                {/* 구글 로그인 버튼 - 일시 비활성화 */}
                 {currentStep === 'form' && (
                   <div className="mb-6">
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors"
-                      onClick={async () => {
-                        try {
-                          setIsLoading(true)
-                          const supabase = createSupabaseBrowserClient()
-
-                          const { error } = await supabase.auth.signInWithOAuth({
-                            provider: 'google',
-                            options: {
-                              redirectTo: `${window.location.origin}/auth/callback?next=/main`,
-                              queryParams: {
-                                access_type: 'offline',
-                                prompt: 'consent',
-                              },
-                            },
-                          })
-
-                          if (error) {
-                            console.error('[SIGNUP] Google 로그인 실패:', error)
-                            alert(language === 'ko' ? '구글 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
-                            setIsLoading(false)
-                          }
-                          // 성공하면 자동으로 Google로 리다이렉트되므로 여기서는 아무것도 하지 않음
-                        } catch (error) {
-                          console.error('[SIGNUP] Google 로그인 오류:', error)
-                          alert(language === 'ko' ? '구글 로그인 중 오류가 발생했습니다.' : 'Error al iniciar sesión con Google')
-                          setIsLoading(false)
-                        }
+                      className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors opacity-50 cursor-not-allowed"
+                      onClick={() => {
+                        alert(language === 'ko' 
+                          ? 'Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
+                          : 'El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.')
                       }}
-                      disabled={isLoading}
+                      disabled={true}
                     >
                       <div className="flex items-center justify-center gap-3">
                         {/* 구글 아이콘 SVG */}
@@ -769,6 +844,14 @@ export default function SignUpPage() {
                         </span>
                       </div>
                     </Button>
+                    {/* 안내 메시지 */}
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+                      <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
+                        {language === 'ko' 
+                          ? '⚠️ Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
+                          : '⚠️ El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.'}
+                      </p>
+                    </div>
                     {/* 구분선 */}
                     <div className="relative my-6">
                       <div className="absolute inset-0 flex items-center">
@@ -786,9 +869,15 @@ export default function SignUpPage() {
                 <div className="mt-6 text-center">
                   <p className="text-sm text-slate-600 dark:text-gray-400">
                     {t('auth.alreadyHaveAccount')}{' '}
-                    <a
-                      href="/sign-in"
-                      onClick={() => trackCTAClick('signup_to_signin_link', window.location.href)}
+                    <a 
+                      href="/sign-in" 
+                      onClick={() => {
+                        try {
+                          trackCTAClick('signup_to_signin_link', window.location.href)
+                        } catch (e) {
+                          console.error('[SIGNUP] trackCTAClick 이벤트 오류:', e)
+                        }
+                      }}
                       className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium"
                     >
                       {t('auth.signIn')}
@@ -798,7 +887,7 @@ export default function SignUpPage() {
               </CardContent>
             </>
           )}
-
+          
           {currentStep === 'email' && (
             <>
               <CardHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
@@ -814,7 +903,7 @@ export default function SignUpPage() {
               </CardContent>
             </>
           )}
-
+          
           {currentStep === 'complete' && (
             <CardContent className="p-6">
               {renderStep()}

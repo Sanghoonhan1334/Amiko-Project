@@ -859,6 +859,14 @@ export const translations = {
       community: '커뮤니티',
       communityDescription: '',
       educacionComingSoon: '곧 출시될 예정입니다',
+      educacionComingSoonTitle: '곧 출시',
+      educacionComingSoonDescription: '이 기능은 곧 출시될 예정입니다',
+      educacionOpeningDate: '4월 오픈 예정',
+      educacionFeatures: [
+        '한국어 온라인 강의',
+        '실시간 화상 강의 및 녹화강의',
+        'K컬쳐 관련 강좌 (춤, 노래, 요리 등)'
+      ],
       me: '내 프로필',
       myPage: '마이페이지',
       meDescription: '내 활동 내역과 포인트를 확인하세요'
@@ -3892,6 +3900,14 @@ export const translations = {
       community: 'Comunidad',
       communityDescription: '',
       educacionComingSoon: 'Próximamente',
+      educacionComingSoonTitle: 'Próximamente',
+      educacionComingSoonDescription: 'Esta función estará disponible pronto',
+      educacionOpeningDate: 'Apertura en abril',
+      educacionFeatures: [
+        'Cursos en línea de coreano',
+        'Clases en vivo y grabadas',
+        'Cursos de K-cultura (baile, canto, cocina, etc.)'
+      ],
       me: 'Mi Perfil',
       myPage: 'Mi Página',
       meDescription: 'Revisa tu historial de actividad y puntos'

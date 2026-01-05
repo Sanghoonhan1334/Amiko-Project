@@ -19,6 +19,7 @@ interface Post {
   title: string
   content: string
   images: string[]
+  category?: string
   view_count: number
   like_count: number
   dislike_count: number
@@ -58,6 +59,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   const [error, setError] = useState<string | null>(null)
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [relatedPosts, setRelatedPosts] = useState<Post[]>([])
+  const [loadingRelatedPosts, setLoadingRelatedPosts] = useState(false)
   
   // 번역 서비스 초기화
   const translationService = TranslationService.getInstance()
@@ -95,6 +98,13 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     loadPost()
     loadUserVote()
   }, [postId])
+
+  // 같은 카테고리의 다른 게시글 목록 가져오기
+  useEffect(() => {
+    if (post?.category) {
+      fetchRelatedPosts(post.category)
+    }
+  }, [post?.category, postId])
 
   // 스크롤 추적 및 읽기 시간 추적
   useEffect(() => {
@@ -190,6 +200,34 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       }
     } catch (err) {
       console.error('투표 정보 로드 오류:', err)
+    }
+  }
+
+  // 같은 카테고리의 다른 게시글 목록 가져오기
+  const fetchRelatedPosts = async (category: string) => {
+    try {
+      setLoadingRelatedPosts(true)
+      const params = new URLSearchParams({
+        category: category,
+        limit: '10',
+        exclude: postId
+      })
+      
+      const response = await fetch(`/api/posts?${params}`)
+      const data = await response.json()
+      
+      if (data.success && data.posts) {
+        // 현재 게시글 제외하고 최대 10개만
+        const filtered = data.posts
+          .filter((p: Post) => p.id !== postId)
+          .slice(0, 10)
+        setRelatedPosts(filtered)
+      }
+    } catch (error) {
+      console.error('관련 게시글 로드 실패:', error)
+      setRelatedPosts([])
+    } finally {
+      setLoadingRelatedPosts(false)
     }
   }
 
@@ -403,7 +441,9 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               <AuthorName
                 userId={post.author?.id}
                 name={post.author?.nickname || post.author?.full_name || t('freeboard.anonymous')}
+                profileImage={post.author?.profile_image}
                 className="font-medium text-gray-700"
+                avatarSize="sm"
               />
               <span>/ {formatDate(post.created_at)}</span>
             </p>
@@ -466,20 +506,37 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
           />
         </div>
 
-        {/* 이미지 갤러리 */}
+        {/* 이미지/영상/GIF 갤러리 */}
         {post.images && post.images.length > 0 && (
           <div className="mb-3 md:mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
-              {post.images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img 
-                    src={image} 
-                    alt={`첨부 이미지 ${index + 1}`}
-                    className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => window.open(image, '_blank')}
-                  />
-                </div>
-              ))}
+              {post.images.map((media, index) => {
+                // 파일 확장자로 타입 판단
+                const isVideo = media.match(/\.(mp4|webm|mov|avi|mkv)$/i)
+                const isGif = media.match(/\.gif$/i)
+                
+                return (
+                  <div key={index} className="relative group">
+                    {isVideo ? (
+                      <video 
+                        src={media} 
+                        controls
+                        className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(media, '_blank')}
+                      >
+                        {language === 'es' ? 'Tu navegador no soporta el elemento de video.' : '브라우저가 비디오 태그를 지원하지 않습니다.'}
+                      </video>
+                    ) : (
+                      <img 
+                        src={media} 
+                        alt={isGif ? `GIF ${index + 1}` : `첨부 이미지 ${index + 1}`}
+                        className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(media, '_blank')}
+                      />
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -553,6 +610,165 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
           }}
         />
       </div>
+
+      {/* 같은 카테고리 게시글 목록 */}
+      {relatedPosts.length > 0 && (
+        <div className="border-t border-gray-200">
+          {/* 헤더 */}
+          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              {language === 'ko' ? '같은 게시판의 다른 글' : 'Otros posts en este foro'}
+            </h3>
+          </div>
+
+          {/* 데스크톱: 테이블 형태 (md 이상) */}
+          <div className="hidden md:block overflow-x-auto bg-white dark:bg-gray-900">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-600">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 w-16">
+                    {language === 'ko' ? '번호' : 'No.'}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    {language === 'ko' ? '제목' : 'Título'}
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 w-24">
+                    {language === 'ko' ? '작성자' : 'Autor'}
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 w-28">
+                    {language === 'ko' ? '날짜' : 'Fecha'}
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 w-20">
+                    {language === 'ko' ? '조회' : 'Vistas'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-900">
+                {relatedPosts.map((relatedPost, index) => (
+                  <tr 
+                    key={relatedPost.id}
+                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      router.push(`/community/post/${relatedPost.id}`)
+                    }}
+                  >
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm font-medium">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        {relatedPost.is_pinned && (
+                          <span className="text-yellow-500 text-sm">📌</span>
+                        )}
+                        {relatedPost.is_hot && (
+                          <span className="text-red-500 text-sm">🔥</span>
+                        )}
+                        {relatedPost.images && relatedPost.images.length > 0 && (
+                          <span className="text-blue-500 text-sm" title={language === 'es' ? `${relatedPost.images.length} archivo(s)` : `${relatedPost.images.length}개 첨부`}>
+                            📎
+                          </span>
+                        )}
+                        <span className="text-gray-900 dark:text-gray-100 truncate max-w-md text-sm hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                          {relatedPost.title}
+                        </span>
+                        {relatedPost.comment_count > 0 && (
+                          <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+                            [{relatedPost.comment_count}]
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 text-sm">
+                      <AuthorName
+                        userId={relatedPost.author?.id}
+                        name={relatedPost.author?.full_name || t('freeboard.anonymous')}
+                        profileImage={relatedPost.author?.profile_image}
+                        avatarSize="sm"
+                        showAvatar={true}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 text-sm">
+                      {formatDate(relatedPost.created_at)}
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 text-sm">
+                      {relatedPost.view_count}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 모바일: 카드 형태 (md 미만) */}
+          <div className="md:hidden">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {relatedPosts.map((relatedPost, index) => (
+                <div
+                  key={relatedPost.id}
+                  className="px-4 py-3 active:bg-gray-50 dark:active:bg-gray-800 cursor-pointer transition-colors"
+                  onClick={() => {
+                    router.push(`/community/post/${relatedPost.id}`)
+                  }}
+                >
+                  <div className="flex items-start gap-2">
+                    {/* 번호 */}
+                    <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[24px]">
+                      {index + 1}
+                    </span>
+                    
+                    {/* 제목 및 정보 */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        {relatedPost.is_pinned && (
+                          <span className="text-yellow-500 text-xs">📌</span>
+                        )}
+                        {relatedPost.is_hot && (
+                          <span className="text-red-500 text-xs">🔥</span>
+                        )}
+                        {relatedPost.images && relatedPost.images.length > 0 && (
+                          <span className="text-blue-500 text-xs">📎</span>
+                        )}
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {relatedPost.title}
+                        </h4>
+                        {relatedPost.comment_count > 0 && (
+                          <span className="text-blue-500 text-xs">
+                            [{relatedPost.comment_count}]
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* 메타 정보 */}
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <AuthorName
+                          userId={relatedPost.author?.id}
+                          name={relatedPost.author?.full_name || t('freeboard.anonymous')}
+                          profileImage={relatedPost.author?.profile_image}
+                          avatarSize="sm"
+                          showAvatar={true}
+                        />
+                        <span>•</span>
+                        <span>{formatDate(relatedPost.created_at)}</span>
+                        <span>•</span>
+                        <span>{language === 'ko' ? '조회' : 'Vistas'} {relatedPost.view_count}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loadingRelatedPosts && (
+        <div className="border-t border-gray-200 px-4 py-8 text-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 dark:border-gray-400 mx-auto mb-2"></div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {language === 'ko' ? '로딩 중...' : 'Cargando...'}
+          </p>
+        </div>
+      )}
     </Card>
     </div>
   )

@@ -22,7 +22,7 @@ import { useLanguage } from '@/context/LanguageContext'
 function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedChannel, setSelectedChannel] = useState<string>('')
   const [target, setTarget] = useState('')
@@ -37,6 +37,13 @@ function VerifyContent() {
   // URL 파라미터에서 사용자 정보 가져오기
   const userCountry = searchParams.get('country') || 'KR'
   const isKorean = userCountry === 'KR'
+
+  // 프로덕션 환경 체크 (Vercel 배포 환경)
+  const isProduction = typeof window !== 'undefined' && (
+    window.location.hostname !== 'localhost' && 
+    window.location.hostname !== '127.0.0.1' &&
+    !window.location.hostname.includes('localhost')
+  )
 
   // 인증 채널 설정
   const authChannels = isKorean 
@@ -64,11 +71,16 @@ function VerifyContent() {
         {
           id: 'wa',
           name: 'WhatsApp',
-          description: 'WhatsApp으로 인증번호 전송',
+          description: isProduction 
+            ? '점검 중입니다. SMS 인증을 이용해주세요.'
+            : 'WhatsApp으로 인증번호 전송',
           icon: '💚',
           priority: 'primary',
-          color: 'bg-green-100 text-green-700 border-green-300',
-          placeholder: '+82-10-1234-5678'
+          color: isProduction 
+            ? 'bg-gray-100 text-gray-500 border-gray-300 opacity-50 cursor-not-allowed'
+            : 'bg-green-100 text-green-700 border-green-300',
+          placeholder: '+82-10-1234-5678',
+          isMaintenance: isProduction
         },
         {
           id: 'sms',
@@ -101,6 +113,14 @@ function VerifyContent() {
 
   // 인증 채널 선택
   const handleChannelSelect = (channelId: string) => {
+    // WhatsApp이 점검중이면 선택 불가
+    if (channelId === 'wa' && isProduction) {
+      alert(language === 'ko' 
+        ? 'WhatsApp 인증은 현재 점검 중입니다. SMS 인증을 이용해주세요.' 
+        : 'La verificación de WhatsApp está en mantenimiento. Por favor, use la verificación por SMS.')
+      return
+    }
+    
     setSelectedChannel(channelId)
     setTarget('')
     setIsOtpSent(false)
@@ -284,43 +304,69 @@ function VerifyContent() {
                 인증 방법 선택
               </h3>
               
-              {authChannels.map((channel) => (
-                <div
-                  key={channel.id}
-                  className={`p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-                    selectedChannel === channel.id
-                      ? 'border-brand-400 bg-gradient-to-r from-brand-50 to-brand-100 shadow-xl shadow-brand-200/50'
-                      : 'border-gray-200 hover:border-brand-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-brand-50/50 shadow-lg hover:shadow-xl'
-                  }`}
-                  onClick={() => handleChannelSelect(channel.id)}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${
-                      selectedChannel === channel.id
-                        ? 'bg-gradient-to-br from-brand-400 to-brand-600 shadow-lg'
-                        : 'bg-gradient-to-br from-gray-100 to-gray-200'
-                    }`}>
-                      {channel.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-bold text-lg text-gray-800">{channel.name}</span>
-                        {channel.priority === 'primary' && (
-                          <Badge className="bg-gradient-to-r from-orange-400 to-orange-500 text-white border-0 text-xs px-3 py-1 rounded-full shadow-md">
-                            ✨ 추천
-                          </Badge>
+              {authChannels.map((channel) => {
+                const isMaintenance = (channel as any).isMaintenance === true
+                return (
+                  <div key={channel.id}>
+                    <div
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
+                        isMaintenance
+                          ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50'
+                          : selectedChannel === channel.id
+                          ? 'border-brand-400 bg-gradient-to-r from-brand-50 to-brand-100 shadow-xl shadow-brand-200/50 cursor-pointer transform hover:scale-105'
+                          : 'border-gray-200 hover:border-brand-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-brand-50/50 shadow-lg hover:shadow-xl cursor-pointer transform hover:scale-105'
+                      }`}
+                      onClick={() => !isMaintenance && handleChannelSelect(channel.id)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${
+                          isMaintenance
+                            ? 'bg-gray-200'
+                            : selectedChannel === channel.id
+                            ? 'bg-gradient-to-br from-brand-400 to-brand-600 shadow-lg'
+                            : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                        }`}>
+                          {channel.icon}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className={`font-bold text-lg ${isMaintenance ? 'text-gray-500' : 'text-gray-800'}`}>
+                              {channel.name}
+                            </span>
+                            {isMaintenance && (
+                              <Badge className="bg-yellow-500 text-white border-0 text-xs px-3 py-1 rounded-full shadow-md">
+                                ⚠️ 점검중
+                              </Badge>
+                            )}
+                            {!isMaintenance && channel.priority === 'primary' && (
+                              <Badge className="bg-gradient-to-r from-orange-400 to-orange-500 text-white border-0 text-xs px-3 py-1 rounded-full shadow-md">
+                                ✨ 추천
+                              </Badge>
+                            )}
+                          </div>
+                          <p className={`text-sm leading-relaxed ${isMaintenance ? 'text-gray-500' : 'text-gray-600'}`}>
+                            {channel.description}
+                          </p>
+                        </div>
+                        {!isMaintenance && selectedChannel === channel.id && (
+                          <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+                            <CheckCircle className="w-5 h-5 text-white" />
+                          </div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 leading-relaxed">{channel.description}</p>
                     </div>
-                    {selectedChannel === channel.id && (
-                      <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
-                        <CheckCircle className="w-5 h-5 text-white" />
+                    {isMaintenance && (
+                      <div className="mt-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                        <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
+                          {language === 'ko' 
+                            ? '⚠️ WhatsApp 인증은 현재 점검 중입니다. SMS 인증을 이용해주세요.' 
+                            : '⚠️ La verificación de WhatsApp está en mantenimiento. Por favor, use la verificación por SMS.'}
+                        </p>
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
 

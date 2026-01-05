@@ -24,7 +24,8 @@ import {
   Palette,
   Image as ImageIcon,
   ChevronRight,
-  MessageCircle
+  MessageCircle,
+  Bell
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
@@ -304,12 +305,22 @@ export default function HomeTab() {
       // 임시 하드코딩된 이벤트 데이터
       const mockEvents = [
         {
+          id: 'event-opening',
+          title: language === 'ko' ? '오픈 이벤트' : 'Evento de Apertura',
+          description: language === 'ko' ? '¡SUBE TU FOTO DE VERIFICACIÓN EN SNS Y RECIBE UN REGALO!' : '¡SUBE TU FOTO DE VERIFICACIÓN EN SNS Y RECIBE UN REGALO!',
+          image: '/banners/event-opening-banner.png',
+          bannerMobile: '/banners/event-opening-banner.png',
+          bannerDesktop: '/banners/event-opening-banner.png',
+          date: language === 'ko' ? '진행 중' : 'En curso',
+          participants: 0
+        },
+        {
           id: 'event-korean-meeting',
           title: language === 'ko' ? '한국어 모임' : 'Reunión de Coreano',
           description: language === 'ko' ? '2주에 한번씩 한국어 모임을 진행합니다!' : '¡Reunión de coreano cada 2 semanas!',
-          image: null,
-          bannerMobile: null,
-          bannerDesktop: null,
+          image: '/banners/event-korean-meeting-banner.png',
+          bannerMobile: '/banners/event-korean-meeting-banner.png',
+          bannerDesktop: '/banners/event-korean-meeting-banner.png',
           date: language === 'ko' ? '2주마다 진행' : 'Cada 2 semanas',
           participants: 0
         }
@@ -926,13 +937,10 @@ export default function HomeTab() {
       <div className="space-y-3 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Image
+              <img
                 src="/icons/home-news.png"
                 alt="K-Noticia"
-                width={20}
-                height={20}
-                className="object-contain mr-2"
-                priority
+                className="w-8 h-8 object-contain mr-2"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.kNoticia')}
@@ -984,12 +992,10 @@ export default function HomeTab() {
                 ))
               ) : (
                 <div className="text-center py-4">
-                  <Image
+                  <img
                     src="/icons/home-news.png"
                     alt="K-Noticia"
-                    width={32}
-                    height={32}
-                    className="mx-auto mb-2 opacity-40"
+                    className="w-8 h-8 mx-auto mb-2 opacity-40"
                   />
                   <p className="text-gray-500 text-xs">
                     {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
@@ -1015,7 +1021,7 @@ export default function HomeTab() {
             <CardContent className="p-0">
               <div
                 id="event-container"
-                className="relative h-40 md:h-32 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                className="relative aspect-[2/1] w-full overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -1024,30 +1030,29 @@ export default function HomeTab() {
                 onTouchEnd={handleTouchEnd}
               >
                 <div
-                  className="flex transition-transform duration-700 ease-in-out"
+                  className="flex h-full transition-transform duration-700 ease-in-out"
                   style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                 >
                   {currentEvents.map((event, index) => (
                     <div
                       key={event.id}
-                      className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-4"
-                      style={{ height: '160px' }}
+                      className="relative w-full h-full flex-shrink-0 cursor-pointer rounded-lg overflow-hidden"
                       onClick={() => {
-                        router.push('/main?tab=event&show=korean-meeting')
+                        if (event.id === 'event-korean-meeting') {
+                          router.push('/main?tab=event&show=korean-meeting')
+                        } else if (event.id === 'event-opening') {
+                          router.push('/main?tab=event')
+                        }
                       }}
                     >
-                      {/* 텍스트 기반 배너 */}
-                      <div className="text-center text-white">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2">
-                          {event.title}
-                        </h3>
-                        <p className="text-sm sm:text-base text-white/90 mb-1">
-                          {event.description}
-                        </p>
-                        <p className="text-xs sm:text-sm text-white/80">
-                          {event.date}
-                        </p>
-                      </div>
+                      {/* 배너 이미지 */}
+                      <Image
+                        src={event.image || event.bannerMobile || '/banners/event-banner.png'}
+                        alt={event.title}
+                        fill
+                        className="object-contain"
+                        priority={index === 0}
+                      />
                     </div>
                   ))}
                 </div>
@@ -1085,14 +1090,7 @@ export default function HomeTab() {
       {/* 4. Anuncio - 공지사항 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Image
-            src="/icons/home-notice.png"
-            alt="공지사항"
-            width={20}
-            height={20}
-            className="object-contain"
-            priority
-          />
+          <Bell className="w-5 h-5 text-blue-600" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {t('home.sections.announcements')}
           </h2>
@@ -1149,74 +1147,6 @@ export default function HomeTab() {
             </Card>
           )}
         </div>
-      </div>
-
-      {/* 지금 커뮤니티에서 핫한 글 */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-red-600" />
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {t('home.sections.hotPosts')}
-            </h2>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/community/freeboard')}
-            className="rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-3 py-1.5"
-          >
-            {language === 'ko' ? '더 보기' : 'Ver Más'}
-          </Button>
-        </div>
-
-        {hotPosts.length > 0 ? (
-          <Card className="border-l-4 border-l-red-500">
-            <CardContent className="p-0">
-              <div className="divide-y">
-                {hotPosts.map((post, index) => (
-                  <div
-                    key={post.id}
-                    className="cursor-pointer hover:bg-gray-50 transition-colors px-3 py-1"
-                    onClick={() => router.push(`/community/post/${post.id}?from=home`)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-gray-100 text-gray-700 border-0 px-1.5 py-0.5 font-medium text-[10px] whitespace-nowrap">
-                        {shortenCategoryName(post.category || 'Libre')}
-                      </Badge>
-                      <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 flex-1 line-clamp-1">
-                        {post.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-[10px] text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center gap-0.5">
-                          <Heart className="w-3 h-3 text-red-500" />
-                          <span>{post.likes}</span>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                          <MessageSquare className="w-3 h-3 text-blue-500" />
-                          <span>{post.comments}</span>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                          <Eye className="w-3 h-3" />
-                          <span>{formatNumber(post.views)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">
-                {language === 'ko' ? '핫한 게시글이 없습니다' : 'No hay posts populares'}
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* 인기 심리테스트 */}
@@ -1286,7 +1216,7 @@ export default function HomeTab() {
               <img
                 src="/icons/home-fanart.png"
                 alt="팬아트"
-                className="w-8 h-8 object-contain"
+                className="w-5 h-5 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.fanArt')}
@@ -1333,7 +1263,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-fanart.png"
                       alt="팬아트"
-                      className="w-8 h-8 mx-auto mb-2 opacity-40"
+                      className="w-5 h-5 mx-auto mb-2 opacity-40"
                     />
                     <p className="text-gray-500 text-xs">
                       {language === 'ko' ? '팬아트가 없습니다' : 'No hay fan art'}
@@ -1352,7 +1282,7 @@ export default function HomeTab() {
               <img
                 src="/icons/home-idol.png"
                 alt="아이돌 사진"
-                className="w-8 h-8 object-contain"
+                className="w-5 h-5 object-contain"
               />
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 {t('home.sections.idolPhotos')}
@@ -1399,7 +1329,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-idol.png"
                       alt="아이돌 사진"
-                      className="w-8 h-8 mx-auto mb-2 opacity-40"
+                      className="w-5 h-5 mx-auto mb-2 opacity-40"
                     />
                     <p className="text-gray-500 text-xs">
                       {language === 'ko' ? '아이돌 사진이 없습니다' : 'No hay fotos de ídolos'}
@@ -1924,13 +1854,10 @@ export default function HomeTab() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Image
+                  <img
                     src="/icons/home-news.png"
                     alt="K-Noticia"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                    priority
+                    className="w-8 h-8 object-contain"
                   />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {t('home.sections.kNoticia')}
@@ -1982,12 +1909,10 @@ export default function HomeTab() {
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <Image
+                        <img
                           src="/icons/home-news.png"
                           alt="K-Noticia"
-                          width={48}
-                          height={48}
-                          className="mx-auto mb-3 opacity-40"
+                          className="w-12 h-12 mx-auto mb-3 opacity-40"
                         />
                         <p className="text-gray-500 text-sm">
                           {language === 'ko' ? '뉴스가 없습니다' : 'No hay noticias'}
@@ -2014,7 +1939,7 @@ export default function HomeTab() {
                 <CardContent className="p-0 bg-transparent">
                   <div
                     id="event-container-desktop"
-                    className="relative h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                    className="relative aspect-[2/1] w-full max-w-[320px] sm:max-w-[480px] md:max-w-[640px] lg:max-w-[800px] mx-auto overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
@@ -2024,35 +1949,34 @@ export default function HomeTab() {
                   >
                     {currentEvents.length > 0 ? (
                       <div
-                        className="flex transition-transform duration-1000 ease-in-out"
+                        className="flex h-full transition-transform duration-1000 ease-in-out"
                         style={{ transform: `translateX(-${currentEventIndex * 100}%)` }}
                       >
                         {currentEvents.map((event, index) => (
                           <div
                             key={event.id}
-                            className="relative w-full flex-shrink-0 cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center p-6"
-                            style={{ height: '160px' }}
+                            className="relative w-full h-full flex-shrink-0 cursor-pointer rounded-lg overflow-hidden"
                             onClick={() => {
-                              router.push('/main?tab=event&show=korean-meeting')
+                              if (event.id === 'event-korean-meeting') {
+                                router.push('/main?tab=event&show=korean-meeting')
+                              } else if (event.id === 'event-opening') {
+                                router.push('/main?tab=event')
+                              }
                             }}
                           >
-                            {/* 텍스트 기반 배너 */}
-                            <div className="text-center text-white">
-                              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-3">
-                                {event.title}
-                              </h3>
-                              <p className="text-base md:text-lg text-white/90 mb-2">
-                                {event.description}
-                              </p>
-                              <p className="text-sm md:text-base text-white/80">
-                                {event.date}
-                              </p>
-                            </div>
+                            {/* 배너 이미지 */}
+                            <Image
+                              src={event.image || event.bannerDesktop || '/banners/event-banner.png'}
+                              alt={event.title}
+                              fill
+                              className="object-cover"
+                              priority={index === 0}
+                            />
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center h-40 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 rounded-lg">
                         <p className="text-gray-500 dark:text-gray-400">
                           {language === 'ko' ? '진행 중인 이벤트가 없습니다' : 'No hay eventos en curso'}
                         </p>
@@ -2134,7 +2058,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-fanart.png"
                       alt="팬아트"
-                      className="w-8 h-8 object-contain"
+                      className="w-5 h-5 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       {language === 'ko' ? '팬아트' : 'Fan Art'}
@@ -2181,7 +2105,7 @@ export default function HomeTab() {
                           <img
                             src="/icons/home-fanart.png"
                             alt="팬아트"
-                            className="w-8 h-8 mx-auto mb-2 opacity-40"
+                            className="w-5 h-5 mx-auto mb-2 opacity-40"
                           />
                           <p className="text-gray-500 text-xs">
                             {language === 'ko' ? '팬아트가 없습니다' : 'No hay fan art'}
@@ -2200,7 +2124,7 @@ export default function HomeTab() {
                     <img
                       src="/icons/home-idol.png"
                       alt="아이돌 사진"
-                      className="w-8 h-8 object-contain"
+                      className="w-5 h-5 object-contain"
                     />
                     <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       {language === 'ko' ? '아이돌 사진' : 'Fotos de Ídolos'}
@@ -2247,7 +2171,7 @@ export default function HomeTab() {
                           <img
                             src="/icons/home-idol.png"
                             alt="아이돌 사진"
-                            className="w-8 h-8 mx-auto mb-2 opacity-40"
+                            className="w-5 h-5 mx-auto mb-2 opacity-40"
                           />
                           <p className="text-gray-500 text-xs">
                             {language === 'ko' ? '아이돌 사진이 없습니다' : 'No hay fotos de ídolos'}

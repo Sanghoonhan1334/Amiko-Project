@@ -44,18 +44,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 파일 크기 체크 (5MB 제한)
-    if (file.size > 5 * 1024 * 1024) {
+    // 파일 크기 체크 (이미지: 5MB, 영상: 100MB)
+    const isVideo = file.type.startsWith('video/')
+    const maxSize = isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024
+    
+    if (file.size > maxSize) {
       return NextResponse.json(
-        { error: '파일 크기는 5MB를 초과할 수 없습니다.' },
+        { 
+          error: isVideo 
+            ? '영상 파일 크기는 100MB를 초과할 수 없습니다.' 
+            : '이미지 파일 크기는 5MB를 초과할 수 없습니다.' 
+        },
         { status: 400 }
       )
     }
 
-    // 파일 타입 체크
-    if (!file.type.startsWith('image/')) {
+    // 파일 타입 체크 (이미지, 영상, GIF 지원) - MIME 타입 또는 확장자 기반
+    const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
+    const fileLowerCaseName = file.name.toLowerCase()
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.mov', '.webm', '.avi']
+    const hasValidMimeType = validMimeTypes.includes(file.type)
+    const hasValidExtension = validExtensions.some(ext => fileLowerCaseName.endsWith(ext))
+    
+    if (!hasValidMimeType && !hasValidExtension) {
+      console.error('[UPLOAD_IMAGE] 지원하지 않는 파일 타입:', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      })
       return NextResponse.json(
-        { error: '이미지 파일만 업로드 가능합니다.' },
+        { error: `지원하지 않는 파일 형식입니다. (파일명: ${file.name}, 타입: ${file.type || '알 수 없음'}) 이미지, 영상, GIF만 업로드 가능합니다.` },
         { status: 400 }
       )
     }
@@ -75,12 +93,24 @@ export async function POST(request: NextRequest) {
     })
 
     // Supabase Storage에 파일 업로드
+    // contentType을 명시적으로 지정하여 MIME 타입 제한 문제 해결
+    const uploadOptions: {
+      cacheControl: string
+      upsert: boolean
+      contentType?: string
+    } = {
+      cacheControl: '3600',
+      upsert: false
+    }
+    
+    // 파일 타입이 있으면 contentType 명시
+    if (file.type) {
+      uploadOptions.contentType = file.type
+    }
+    
     const { data, error } = await supabaseServer.storage
       .from('images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      })
+      .upload(filePath, file, uploadOptions)
 
     if (error) {
       console.error('[UPLOAD_IMAGE] 파일 업로드 실패:', error)

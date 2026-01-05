@@ -1,310 +1,349 @@
+// 모듈 로딩 시점 로그 (가장 먼저 실행)
+if (typeof console !== 'undefined') {
+  console.log('[VERIFY_START] 🔥 모듈 로드 완료 - TOP LEVEL')
+}
+
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { sendVerificationEmail } from '@/lib/emailService'
-import { sendVerificationSMS, sendVerificationWhatsApp } from '@/lib/smsService'
-import { toE164 } from '@/lib/phoneUtils'
 
-// OTP 전송 시작 API
+export const runtime = 'nodejs'
+
+// OTP 전송 시작 API - 단계적 테스트 버전
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { channel, target, purpose = 'signup', nationality } = body
+  // 즉시 로그 출력 (함수 진입 확인용)
+  if (typeof console !== 'undefined') {
+    console.log('[VERIFY_START] ========================================')
+    console.log('[VERIFY_START] STEP 1: 함수 진입 성공!')
+    console.log('[VERIFY_START] Request URL:', request.url)
+    console.log('[VERIFY_START] Request Method:', request.method)
+    console.log('[VERIFY_START] ========================================')
+  }
 
-    // 입력 검증
-    if (!channel || !target) {
+  try {
+    // STEP 2: 요청 본문 파싱 (안전하게)
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 2: 요청 본문 파싱 시작')
+    }
+    
+    let body: any
+    try {
+      const text = await request.text()
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 2: 요청 본문 텍스트 받음:', text?.substring(0, 100))
+      }
+      
+      if (!text || text.trim() === '') {
+        if (typeof console !== 'undefined') {
+          console.error('[VERIFY_START] STEP 2 에러: 요청 본문이 비어있음')
+        }
+        return NextResponse.json(
+          { ok: false, error: 'EMPTY_REQUEST_BODY', message: '요청 본문이 비어있습니다.' },
+          { status: 400 }
+        )
+      }
+      
+      body = JSON.parse(text)
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 2 완료:', { channel: body?.channel, target: body?.target?.substring(0, 5) + '...' })
+      }
+    } catch (jsonError) {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 2 에러: JSON 파싱 실패!', jsonError)
+      }
       return NextResponse.json(
-        { ok: false, error: 'MISSING_REQUIRED_FIELDS' },
+        { ok: false, error: 'INVALID_JSON', message: '요청 본문 형식이 올바르지 않습니다.', detail: jsonError instanceof Error ? jsonError.message : String(jsonError) },
         { status: 400 }
       )
     }
     
-    // 전화번호인 경우 국가번호 정규화
-    let normalizedTarget = target
-    if (channel !== 'email') {
-      // 이미 E.164 형식인지 확인
-      if (target.startsWith('+')) {
-        // 이미 E.164 형식이면 그대로 사용
-        normalizedTarget = target
-        console.log('[VERIFY_START] 이미 E.164 형식:', normalizedTarget)
-      } else if (nationality) {
-        // nationality가 있으면 정규화 시도
-        normalizedTarget = toE164(target, nationality)
-        
-        // 정규화 실패 시 에러 (E.164 형식이 아님)
-        if (!normalizedTarget.startsWith('+')) {
-          console.error('[VERIFY_START] 전화번호 정규화 실패:', { target, nationality, normalizedTarget })
+    let { channel, target, nationality, purpose } = body
+
+    // STEP 3: 입력 유효성 검사
+    if (!channel || !target) {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 3 에러: 필수 필드 누락!', { channel, target })
+      }
           return NextResponse.json(
-            { ok: false, error: 'INVALID_PHONE_NUMBER', message: '전화번호 형식이 올바르지 않습니다. 국가번호를 포함해주세요.' },
+        { ok: false, error: 'MISSING_REQUIRED_FIELDS', message: '채널과 대상이 필요합니다.' },
             { status: 400 }
           )
         }
         
-        console.log('[VERIFY_START] 전화번호 정규화 성공:', { target, nationality, normalizedTarget })
-      } else {
-        // nationality도 없고 E.164 형식도 아니면 에러
-        console.error('[VERIFY_START] 국가번호 정보 없음:', { target, channel })
-        return NextResponse.json(
-          { ok: false, error: 'MISSING_NATIONALITY', message: '전화번호에 국가번호를 포함하거나 국가 정보를 제공해주세요.' },
-          { status: 400 }
-        )
+    // 채널 정규화 (wa -> whatsapp)
+    if (channel === 'wa') {
+      channel = 'whatsapp'
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 3: 채널 정규화 (wa -> whatsapp)')
       }
     }
 
-    // 채널 유효성 검증
-    const validChannels = ['wa', 'sms', 'email']
-    if (!validChannels.includes(channel)) {
+    // 지원하는 채널 확인 (SMS, WhatsApp, Email 모두 지원)
+    if (channel !== 'whatsapp' && channel !== 'sms' && channel !== 'email') {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 3 에러: 지원하지 않는 채널!', { channel })
+      }
       return NextResponse.json(
-        { ok: false, error: 'INVALID_CHANNEL' },
+        { ok: false, error: 'UNSUPPORTED_CHANNEL', message: 'SMS, WhatsApp 또는 Email만 지원됩니다.' },
         { status: 400 }
       )
     }
 
-    const supabase = createClient()
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 3 완료: 입력 유효성 검사 통과', { channel, target: target?.substring(0, 10) + '...' })
+    }
 
-    // 인증 시도 제한 확인
-    // 개발 환경에서는 rate limit 체크를 건너뜀 (테스트 편의를 위해)
-    const skipRateLimit = process.env.NODE_ENV === 'development'
+    // STEP 4: 대상 정규화 (전화번호 또는 이메일)
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 4: 대상 정규화 시작')
+    }
+    let normalizedTarget = target
     
-    if (!skipRateLimit) {
-      // 'wa' (WhatsApp)는 'sms'로 처리 (RPC 함수는 'email' 또는 'sms'만 체크)
-      const authTypeForRateLimit = channel === 'wa' ? 'sms' : channel
-      
-      try {
-    const { data: rateLimitData, error: rateLimitError } = await supabase
-      .rpc('check_auth_rate_limit', {
-        p_identifier: target,
-            p_auth_type: authTypeForRateLimit
-      })
-
-        // RPC 함수 에러가 있는 경우
-        if (rateLimitError) {
-      console.error('인증 시도 제한 확인 실패:', rateLimitError)
-          // RPC 함수 에러는 일단 통과 (함수 자체의 문제일 수 있음)
-          console.warn('RPC 함수 에러 발생, rate limit 체크를 건너뜁니다:', rateLimitError)
-        } else {
-          // rateLimitData가 false면 rate limit 초과
-          if (rateLimitData === false) {
-            console.error('인증 시도 제한 초과:', { target, channel, authTypeForRateLimit })
-            
-            // 차단 시간 확인
-            try {
-              const { data: rateLimitRecord } = await supabase
-                .from('auth_rate_limits')
-                .select('blocked_until, attempt_count')
-                .eq('identifier', target)
-                .eq('auth_type', authTypeForRateLimit)
-                .single()
-              
-              let message = '인증코드 발송이 제한되었습니다.'
-              if (rateLimitRecord?.blocked_until) {
-                const blockedUntil = new Date(rateLimitRecord.blocked_until)
-                const now = new Date()
-                const minutesLeft = Math.ceil((blockedUntil.getTime() - now.getTime()) / (1000 * 60))
-                if (minutesLeft > 0) {
-                  message += ` ${minutesLeft}분 후 다시 시도해주세요.`
-                } else {
-                  message += ' 잠시 후 다시 시도해주세요.'
-                }
-              } else {
-                message += ' 잠시 후 다시 시도해주세요.'
-              }
-              
-              return NextResponse.json(
-                { ok: false, error: 'RATE_LIMIT_EXCEEDED', message },
-                { status: 429 }
-              )
-            } catch (queryError) {
-              console.error('차단 시간 조회 실패:', queryError)
-      return NextResponse.json(
-                { ok: false, error: 'RATE_LIMIT_EXCEEDED', message: '인증코드 발송이 제한되었습니다. 잠시 후 다시 시도해주세요.' },
-        { status: 429 }
-      )
-            }
-          }
-          
-          // rateLimitData가 true면 통과
-          if (rateLimitData === true) {
-            console.log('인증 시도 제한 통과:', { target, channel, authTypeForRateLimit })
-          } else {
-            // rateLimitData가 null이거나 undefined인 경우는 경고만
-            console.warn('인증 시도 제한 확인 결과가 예상과 다릅니다:', { target, channel, authTypeForRateLimit, rateLimitData })
-          }
+    // 이메일 채널인 경우 이메일 형식 검증만 수행
+    if (channel === 'email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(target)) {
+        if (typeof console !== 'undefined') {
+          console.error('[VERIFY_START] STEP 4 에러: 유효하지 않은 이메일 형식')
         }
-      } catch (rpcError) {
-        console.error('RPC 함수 호출 중 예외 발생:', rpcError)
-        // RPC 함수 호출 실패는 일단 통과 (함수 자체의 문제일 수 있음)
-        console.warn('RPC 함수 호출 실패, rate limit 체크를 건너뜁니다')
+        return NextResponse.json(
+          { ok: false, error: 'INVALID_EMAIL_FORMAT', message: '유효하지 않은 이메일 형식입니다.' },
+          { status: 400 }
+        )
+      }
+      normalizedTarget = target.toLowerCase().trim() // 이메일은 소문자로 정규화
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] STEP 4 완료: 이메일 정규화', { original: target, normalized: normalizedTarget })
       }
     } else {
-      console.log('[RATE_LIMIT] 개발 환경에서 rate limit 체크를 건너뜁니다 (DISABLE_RATE_LIMIT=true)')
+      // 전화번호 정규화 (SMS/WhatsApp)
+      try {
+        const { toE164 } = await import('@/lib/phoneUtils')
+        normalizedTarget = toE164(target, nationality)
+        if (!normalizedTarget.startsWith('+')) {
+          return NextResponse.json(
+            { ok: false, error: 'INVALID_PHONE_NUMBER_FORMAT', message: '유효하지 않은 전화번호 형식입니다.' },
+            { status: 400 }
+          )
+        }
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] STEP 4 완료: 전화번호 정규화', { original: target, normalized: normalizedTarget })
+        }
+      } catch (phoneError) {
+        if (typeof console !== 'undefined') {
+          console.error('[VERIFY_START] STEP 4 에러:', phoneError)
+        }
+        return NextResponse.json(
+          { ok: false, error: 'PHONE_NUMBER_NORMALIZATION_FAILED', message: '전화번호 정규화에 실패했습니다.' },
+          { status: 400 }
+        )
+      }
     }
-
-    // 인증코드 생성 (6자리 숫자)
+          
+    // STEP 5: 인증코드 생성
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 5: 인증코드 생성')
+    }
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    
-    // 만료 시간 설정 (10분)
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-
-    // 기존 미인증 코드들 비활성화 (정규화된 전화번호 사용)
-    const { error: deactivateError } = await supabase
-      .from('verification_codes')
-      .update({ verified: true }) // 이미 사용된 것으로 처리
-      .eq(channel === 'email' ? 'email' : 'phone_number', normalizedTarget)
-      .eq('type', channel)
-      .eq('verified', false)
-
-    if (deactivateError) {
-      console.error('기존 인증코드 비활성화 실패:', deactivateError)
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 5 완료:', { code: verificationCode })
     }
 
-    // 새 인증코드 저장 (정규화된 전화번호 사용)
-    console.log('[VERIFY_START] 인증코드 저장 시도:', {
-      channel,
-      normalizedTarget,
-      code: verificationCode,
-      email: channel === 'email' ? normalizedTarget : null,
-      phone_number: channel !== 'email' ? normalizedTarget : null
-    })
+    // STEP 6: 인증코드 발송 (SMS, WhatsApp 또는 Email)
+    if (typeof console !== 'undefined') {
+      console.log(`[VERIFY_START] STEP 6: ${channel.toUpperCase()} 발송 시작`)
+      console.log('[VERIFY_START] 동적 import 시작...')
+    }
     
-    const { data: verificationData, error: insertError } = await supabase
-      .from('verification_codes')
-      .insert([{
-        email: channel === 'email' ? normalizedTarget : null,
-        phone_number: channel !== 'email' ? normalizedTarget : null,
-        code: verificationCode,
-        type: channel,
-        verified: false,
-        expires_at: expiresAt,
-        ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
-        user_agent: request.headers.get('user-agent') || 'Unknown'
-      }])
-      .select()
-      .single()
-
-    if (insertError || !verificationData) {
-      console.error('[VERIFY_START] 인증코드 저장 실패:', {
-        error: insertError,
-        message: insertError?.message,
-        code: insertError?.code,
-        details: insertError?.details,
-        hint: insertError?.hint,
-        channel,
-        normalizedTarget
-      })
+    let sendSuccess = false
+    try {
+      // 언어 설정 (이메일은 nationality 또는 기본값 사용, 전화번호는 국가코드 기준)
+      let language: 'ko' | 'es' = 'es' // 기본값: 스페인어
+      if (channel === 'email') {
+        language = nationality === 'KR' ? 'ko' : 'es'
+      } else {
+        language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
+      }
+      
+      if (channel === 'sms') {
+        // SMS 발송
+        const { sendVerificationSMS } = await import('@/lib/smsService')
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] sendVerificationSMS import 성공')
+          console.log('[VERIFY_START] SMS 발송 호출:', { to: normalizedTarget, code: verificationCode, language, nationality })
+        }
+        
+        sendSuccess = await sendVerificationSMS(normalizedTarget, verificationCode, language, nationality)
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] SMS 발송 결과:', sendSuccess)
+        }
+      } else if (channel === 'whatsapp') {
+        // WhatsApp 발송
+        const { sendVerificationWhatsApp } = await import('@/lib/smsService')
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] sendVerificationWhatsApp import 성공')
+          console.log('[VERIFY_START] WhatsApp 발송 호출:', { to: normalizedTarget, code: verificationCode, language })
+        }
+        
+        sendSuccess = await sendVerificationWhatsApp(normalizedTarget, verificationCode, language)
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] WhatsApp 발송 결과:', sendSuccess)
+        }
+      } else if (channel === 'email') {
+        // Email 발송
+        const { sendVerificationEmail } = await import('@/lib/emailService')
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] sendVerificationEmail import 성공')
+          console.log('[VERIFY_START] Email 발송 호출:', { to: normalizedTarget, code: verificationCode, language, purpose: purpose || 'signup' })
+        }
+        
+        const emailPurpose: 'signup' | 'passwordReset' = purpose === 'passwordReset' ? 'passwordReset' : 'signup'
+        sendSuccess = await sendVerificationEmail(normalizedTarget, verificationCode, language, emailPurpose)
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] Email 발송 결과:', sendSuccess)
+        }
+      }
+    } catch (sendError) {
+      if (typeof console !== 'undefined') {
+        console.error(`[VERIFY_START] STEP 6 에러: ${channel.toUpperCase()} 발송 중 예외 발생!`, sendError)
+      }
       return NextResponse.json(
         { 
           ok: false, 
-          error: 'DATABASE_ERROR',
-          message: insertError?.message || '인증코드 저장에 실패했습니다.',
-          details: insertError?.details || insertError?.hint
+          error: `${channel.toUpperCase()}_SEND_EXCEPTION`, 
+          message: `${channel === 'sms' ? 'SMS' : channel === 'whatsapp' ? 'WhatsApp' : 'Email'} 발송 중 오류가 발생했습니다.`,
+          detail: sendError instanceof Error ? sendError.message : String(sendError),
+          stack: sendError instanceof Error ? sendError.stack : 'N/A'
         },
         { status: 500 }
       )
     }
 
-    console.log('[VERIFY_START] 인증코드 저장 성공:', {
-      id: verificationData.id,
-      channel,
-      target: normalizedTarget
-    })
-
-    // 채널별 실제 발송 (정규화된 전화번호 사용)
-    if (channel === 'email') {
-      // 이메일 발송 (purpose에 따라 다른 템플릿 사용)
-      const emailPurpose = purpose === 'passwordReset' ? 'passwordReset' : 'signup'
-      // 언어 결정 (이메일 도메인 기반 또는 기본값)
-      const emailLanguage = normalizedTarget.toLowerCase().includes('@naver.com') || 
-                           normalizedTarget.toLowerCase().includes('@gmail.com') || 
-                           normalizedTarget.toLowerCase().includes('@daum.net') || 
-                           normalizedTarget.toLowerCase().includes('@kakao.com') ? 'ko' : 'es'
-      const emailSent = await sendVerificationEmail(normalizedTarget, verificationCode, emailLanguage, emailPurpose)
-      
-      if (!emailSent) {
-        console.error('이메일 발송 실패')
-        return NextResponse.json(
-          { ok: false, error: 'EMAIL_SEND_FAILED' },
-          { status: 500 }
-        )
+    if (!sendSuccess) {
+      if (typeof console !== 'undefined') {
+        console.error(`[VERIFY_START] STEP 6 에러: ${channel.toUpperCase()} 발송 실패!`)
       }
-    } else if (channel === 'sms') {
-      // SMS 발송 (정규화된 전화번호 사용)
-      const language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
-      const smsSent = await sendVerificationSMS(normalizedTarget, verificationCode, language)
-      
-      if (!smsSent) {
-        console.error('SMS 발송 실패')
-        return NextResponse.json(
-          { ok: false, error: 'SMS_SEND_FAILED' },
-          { status: 500 }
-        )
-      }
-    } else if (channel === 'wa') {
-      // WhatsApp 발송 (정규화된 전화번호 사용)
-      const language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
-      const waSent = await sendVerificationWhatsApp(normalizedTarget, verificationCode, language)
-      
-      if (!waSent) {
-        console.error('WhatsApp 발송 실패')
-        return NextResponse.json(
-          { ok: false, error: 'WHATSAPP_SEND_FAILED' },
-          { status: 500 }
-        )
-      }
+      return NextResponse.json(
+        { ok: false, error: `${channel.toUpperCase()}_SEND_FAILED`, message: `${channel === 'sms' ? 'SMS' : 'WhatsApp'} 발송에 실패했습니다.` },
+        { status: 500 }
+      )
     }
 
-    // 인증 로그 기록
-    const { error: logError } = await supabase
-      .rpc('log_auth_attempt', {
-        p_user_id: null, // 아직 로그인하지 않은 상태
-        p_auth_type: channel,
-        p_action_type: 'resend',
-        p_success: true,
-        p_ip_address: request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1',
-        p_user_agent: request.headers.get('user-agent') || 'Unknown'
-      })
-
-    if (logError) {
-      console.error('인증 로그 기록 실패:', logError)
-      // 로그 실패는 인증코드 발송 성공에 영향을 주지 않음
+    if (typeof console !== 'undefined') {
+      console.log(`[VERIFY_START] STEP 6 완료: ${channel.toUpperCase()} 발송 성공`)
     }
 
-    console.log('OTP 전송 성공:', {
-      channel,
-      target,
-      code: verificationCode.substring(0, 2) + '****', // 보안을 위해 코드 일부만 로그
-      verificationId: verificationData.id,
-      expiresAt
-    })
+    // STEP 7: 인증코드를 DB에 저장
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 7: 인증코드 DB 저장 시작')
+    }
+    
+    try {
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = createClient()
+      
+      // DB type 변환: 'whatsapp' → 'sms' (verification_codes 테이블의 type 컬럼은 'sms' 사용)
+      // 이메일의 경우 'email'로 저장
+      const dbType = channel === 'whatsapp' ? 'sms' : channel
+      
+      // 기존 미인증 코드들 비활성화
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] 기존 미인증 코드 비활성화')
+      }
+      
+      // 이메일인 경우 email 필드 사용, 전화번호인 경우 phone_number 필드 사용
+      if (channel === 'email') {
+        await supabase
+          .from('verification_codes')
+          .update({ verified: true })
+          .eq('email', normalizedTarget)
+          .eq('type', dbType)
+          .eq('verified', false)
+      } else {
+        await supabase
+          .from('verification_codes')
+          .update({ verified: true })
+          .eq('phone_number', normalizedTarget)
+          .eq('type', dbType)
+          .eq('verified', false)
+      }
+      
+      // 새 인증코드 저장 (10분간 유효)
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      const insertData: any = {
+        code: verificationCode,
+        type: dbType,
+        verified: false,
+        expires_at: expiresAt,
+        ip_address: request.headers.get('x-forwarded-for') || '127.0.0.1',
+        user_agent: request.headers.get('user-agent') || 'Unknown'
+      }
+      
+      // 이메일인 경우 email 필드 사용, 전화번호인 경우 phone_number 필드 사용
+      if (channel === 'email') {
+        insertData.email = normalizedTarget
+      } else {
+        insertData.phone_number = normalizedTarget
+      }
+      
+      if (typeof console !== 'undefined') {
+        console.log('[VERIFY_START] 인증코드 DB 저장 시도:', { 
+          target: channel === 'email' ? normalizedTarget.substring(0, 5) + '...' : normalizedTarget.substring(0, 5) + '...',
+          type: dbType,
+          code: verificationCode.substring(0, 2) + '****'
+        })
+      }
+      
+      const { error: insertError } = await supabase
+        .from('verification_codes')
+        .insert([insertData])
+      
+      if (insertError) {
+        if (typeof console !== 'undefined') {
+          console.error('[VERIFY_START] STEP 7 에러: 인증코드 DB 저장 실패!', insertError)
+        }
+        // DB 저장 실패해도 발송은 성공했으므로 경고만 하고 계속 진행
+        console.warn('[VERIFY_START] 인증코드 발송은 성공했지만 DB 저장 실패:', insertError)
+      } else {
+        if (typeof console !== 'undefined') {
+          console.log('[VERIFY_START] STEP 7 완료: 인증코드 DB 저장 성공')
+        }
+      }
+    } catch (dbError) {
+      if (typeof console !== 'undefined') {
+        console.error('[VERIFY_START] STEP 7 에러: DB 저장 중 예외 발생!', dbError)
+      }
+      // DB 저장 실패해도 발송은 성공했으므로 경고만 하고 계속 진행
+      console.warn('[VERIFY_START] 인증코드 발송은 성공했지만 DB 저장 중 오류:', dbError)
+    }
 
-    // 성공 응답
+    // STEP 8: 성공 응답
+    if (typeof console !== 'undefined') {
+      console.log('[VERIFY_START] STEP 8: 성공 응답 반환')
+    }
     return NextResponse.json({
       ok: true,
-      message: '인증코드가 발송되었습니다.',
-      data: {
-        channel,
-        target,
-        expires_at: expiresAt
-      }
-    })
+      message: '인증코드가 성공적으로 발송되었습니다.',
+      code: verificationCode // 테스트용 (나중에 제거)
+    }, { status: 200 })
 
   } catch (error) {
-    console.error('OTP 전송 시작 오류:', error)
+    if (typeof console !== 'undefined') {
+      console.error('========================================')
+      console.error('[VERIFY_START] ❌ 최상위 catch 블록: 예외 발생!')
+      console.error('========================================')
+      console.error('[VERIFY_START] 에러 타입:', error?.constructor?.name)
+      console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
+      console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
+    }
     
     return NextResponse.json(
       { 
         ok: false, 
         error: 'INTERNAL_SERVER_ERROR',
-        message: '서버 오류가 발생했습니다.'
+        message: '서버 오류가 발생했습니다.',
+        detail: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'N/A'
       },
       { status: 500 }
     )
   }
-}
-
-// GET 메서드 차단
-export async function GET() {
-  return NextResponse.json(
-    { ok: false, error: 'METHOD_NOT_ALLOWED' },
-    { status: 405 }
-  )
 }

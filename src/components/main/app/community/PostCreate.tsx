@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { communityEvents } from '@/lib/analytics'
+import { communityEvents, trackUgcEditorEnter, trackUgcContentInputStart, trackUgcSubmitAttempt, trackUgcSubmitSuccess, trackRevisitIntendedAction } from '@/lib/analytics'
 
 interface Gallery {
   id: string
@@ -35,50 +35,160 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
     communityEvents.startPost(gallery.slug)
   }, [gallery.slug])
 
+  // UGC 생성 퍼널 이벤트: 에디터 진입
+  useEffect(() => {
+    trackUgcEditorEnter(gallery.slug)
+  }, [gallery.slug])
+
   // 인증 체크 - 인증이 안된 사용자는 인증센터로 리다이렉트
+  const [verificationChecked, setVerificationChecked] = React.useState(false)
+  const [isCheckingVerification, setIsCheckingVerification] = React.useState(false)
+  
   React.useEffect(() => {
-    if (user) {
-      // 사용자 프로필 정보를 가져와서 인증 상태 확인
-      const checkVerificationStatus = async () => {
-        try {
-          const response = await fetch(`/api/profile?userId=${user.id}`)
+    // 이미 확인했거나 확인 중이면 스킵 (무한 루프 방지)
+    if (!user || verificationChecked || isCheckingVerification) {
+      return
+    }
+    
+    // 인증 완료 플래그 확인 (인증센터에서 방금 완료한 경우)
+    const verificationJustCompleted = typeof window !== 'undefined' && localStorage.getItem('verification_just_completed') === 'true'
+    if (verificationJustCompleted) {
+      console.log('[PostCreate] 인증 완료 플래그 감지 - 인증 상태 재확인 대기')
+      // 플래그 제거하고 잠시 대기 후 재확인 (DB 업데이트 시간 확보)
+      localStorage.removeItem('verification_just_completed')
+      setTimeout(() => {
+        setVerificationChecked(false) // 재확인을 위해 플래그 리셋
+      }, 2000) // 2초 대기
+      return
+    }
+    
+    // 사용자 프로필 정보를 가져와서 인증 상태 확인
+    const checkVerificationStatus = async () => {
+      setIsCheckingVerification(true)
+      try {
+        console.log('[PostCreate] 인증 상태 확인 시작:', user.id)
+        
+        // 세션 갱신 시도 (최신 데이터를 가져오기 위해)
+        if (refreshSession) {
+          try {
+            await refreshSession()
+            console.log('[PostCreate] 세션 갱신 완료')
+          } catch (sessionError) {
+            console.warn('[PostCreate] 세션 갱신 실패 (계속 진행):', sessionError)
+          }
+        }
+        
+        // 여러 번 재시도 (DB 업데이트 지연 고려)
+        let hasSMSVerification = false
+        let retryCount = 0
+        const maxRetries = 3
+        
+        while (retryCount < maxRetries && !hasSMSVerification) {
+          if (retryCount > 0) {
+            console.log(`[PostCreate] 인증 상태 재확인 시도 ${retryCount}/${maxRetries - 1}`)
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)) // 재시도 간격 증가
+          }
+          
+          const response = await fetch(`/api/profile?userId=${user.id}`, {
+            cache: 'no-store', // 캐시 무시
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          })
+          
+          console.log(`[PostCreate] 프로필 API 응답 상태 (시도 ${retryCount + 1}):`, response.status)
           const result = await response.json()
+          console.log(`[PostCreate] 프로필 API 응답 데이터 (시도 ${retryCount + 1}):`, {
+            ok: response.ok,
+            hasUser: !!result.user,
+            phone_verified: result.user?.phone_verified,
+            sms_verified_at: result.user?.sms_verified_at,
+            phone_verified_at: result.user?.phone_verified_at
+          })
           
           if (response.ok && result.user) {
-            // 기본 등급: SMS 1차 인증만 체크
-            const hasSMSVerification = !!(
+            // 인증 상태 확인 - 인증센터에서 인증 완료한 경우도 포함
+            const userType = result.user.user_type || 'student'
+            hasSMSVerification = !!(
+              result.user.is_verified ||
+              result.user.verification_completed ||
               result.user.phone_verified ||
               result.user.sms_verified_at ||
-              result.user.phone_verified_at
+              result.user.phone_verified_at ||
+              result.user.email_verified_at ||
+              result.user.kakao_linked_at ||
+              result.user.wa_verified_at ||
+              (result.user.korean_name) ||
+              (result.user.spanish_name) ||
+              (userType === 'student' && result.user.full_name && result.user.university && result.user.major) ||
+              (userType === 'general' && result.user.full_name && (result.user.occupation || result.user.company))
             )
             
-            if (!hasSMSVerification) {
-              console.log('SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.')
-              alert(language === 'ko' 
-                ? 'SMS 인증이 필요합니다. 회원가입 시 SMS 인증을 완료해주세요.'
-                : 'Se requiere verificación SMS. Complete la verificación SMS durante el registro.'
-              )
-              router.push('/sign-up')
-              return
+            console.log(`[PostCreate] 인증 상태 (시도 ${retryCount + 1}):`, {
+              hasSMSVerification,
+              is_verified: result.user.is_verified,
+              verification_completed: result.user.verification_completed,
+              phone_verified: result.user.phone_verified,
+              sms_verified_at: result.user.sms_verified_at,
+              phone_verified_at: result.user.phone_verified_at,
+              email_verified_at: result.user.email_verified_at,
+              korean_name: result.user.korean_name,
+              spanish_name: result.user.spanish_name,
+              user_type: userType,
+              full_name: result.user.full_name,
+              university: result.user.university,
+              major: result.user.major,
+              occupation: result.user.occupation,
+              company: result.user.company
+            })
+            
+            if (hasSMSVerification) {
+              console.log('[PostCreate] 인증 확인 완료 - 글쓰기 가능')
+              setVerificationChecked(true) // 확인 완료 플래그 설정
+              return // 인증 확인 완료, 루프 종료
             }
+          } else {
+            console.warn(`[PostCreate] 프로필 API 응답 오류 (시도 ${retryCount + 1}):`, {
+              status: response.status,
+              error: result.error,
+              hasUser: !!result.user
+            })
           }
-        } catch (error) {
-          console.error('인증 상태 확인 실패:', error)
-          // 오류 발생 시에도 인증센터로 리다이렉트하지 않음 (무한 루프 방지)
+          
+          retryCount++
         }
+        
+        // 모든 재시도 실패 시
+        if (!hasSMSVerification) {
+          console.warn('[PostCreate] SMS 인증이 필요합니다. (모든 재시도 실패)')
+          setVerificationChecked(true) // 확인 완료 플래그 설정 (무한 루프 방지)
+          alert(language === 'ko' 
+            ? 'SMS 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
+            : 'Se requiere verificación SMS. Complete la verificación en el centro de verificación.'
+          )
+          router.push('/verification-center')
+          return
+        }
+      } catch (error) {
+        console.error('[PostCreate] 인증 상태 확인 실패:', error)
+        // 오류 발생 시에도 확인 완료로 표시하여 무한 루프 방지
+        setVerificationChecked(true)
+      } finally {
+        setIsCheckingVerification(false)
       }
-      
-      // 1초 딜레이를 두어 무한 루프 방지
-      const timeoutId = setTimeout(checkVerificationStatus, 1000)
-      return () => clearTimeout(timeoutId)
     }
-  }, [user, router])
+    
+    // 1초 딜레이를 두어 무한 루프 방지
+    const timeoutId = setTimeout(checkVerificationStatus, 1000)
+    return () => clearTimeout(timeoutId)
+  }, [user, router, refreshSession, verificationChecked, isCheckingVerification, language])
   const [content, setContent] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const contentInputStartTracked = useRef(false) // 내용 입력 시작 이벤트 중복 방지
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
@@ -187,6 +297,9 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
       setSubmitting(true)
       setError(null)
 
+      // UGC 생성 퍼널 이벤트: 게시 시도
+      trackUgcSubmitAttempt(gallery.slug)
+
       let response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
@@ -231,6 +344,12 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
 
       const data = await response.json()
       console.log('게시물 작성 성공:', data.post.id)
+      
+      // UGC 생성 퍼널 이벤트: 게시 성공
+      trackUgcSubmitSuccess(data.post.id, gallery.slug)
+      
+      // 재방문 퍼널 이벤트: 이전 행동 재실행 (재방문 세션에서만)
+      trackRevisitIntendedAction('write_post')
       
       // 커뮤니티 퍼널 이벤트: 게시물 제출
       communityEvents.submitPost(gallery.slug, title.trim())
@@ -321,6 +440,11 @@ export default function PostCreate({ gallery, onSuccess, onCancel }: PostCreateP
                     // 커뮤니티 퍼널 이벤트: 내용 작성
                     if (e.target.value.length > 0) {
                       communityEvents.writeContent(e.target.value.length)
+                    }
+                    // UGC 생성 퍼널 이벤트: 내용 입력 시작 (최초 1회만)
+                    if (!contentInputStartTracked.current && e.target.value.length > 0) {
+                      trackUgcContentInputStart(gallery.slug)
+                      contentInputStartTracked.current = true
                     }
                   }}
                   placeholder="내용을 입력해주세요"

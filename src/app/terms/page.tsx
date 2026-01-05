@@ -1,9 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useLanguage } from '@/context/LanguageContext'
 
 export default function TermsOfService() {
-  const { t } = useLanguage()
+  const { t, language, setLanguage } = useLanguage()
+
+  // 정책 페이지 진입 시 기본 언어를 스페인어로 설정
+  useEffect(() => {
+    // 페이지 진입 시 한국어로 되어 있으면 스페인어로 변경
+    // 사용자가 드롭박스로 변경하면 그대로 유지됨
+    if (language === 'ko') {
+      setLanguage('es')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // 마운트 시 한 번만 실행
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">

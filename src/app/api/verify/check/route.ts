@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { toE164, normalizeDigits } from '@/lib/phoneUtils'
 
 // OTP 코드 검증 API
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { channel, target, code } = body
+    const { channel, target, code, nationality } = body
 
     // 입력 검증
     if (!channel || !target || !code) {
@@ -24,15 +25,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 코드 정규화 (유니코드 숫자 처리)
+    const normalizedCode = normalizeDigits(code)
+    if (normalizedCode.length !== 6) {
+      console.error('[VERIFY_CHECK] 코드 길이 이상:', { 
+        original: code, 
+        normalized: normalizedCode, 
+        length: normalizedCode.length 
+      })
+      return NextResponse.json(
+        { ok: false, error: 'INVALID_CODE_FORMAT' },
+        { status: 400 }
+      )
+    }
+
+    // DB type 변환: 'wa' → 'sms' (저장 시와 동일하게)
+    const dbType = channel === 'wa' ? 'sms' : channel
+
+    // 전화번호 또는 이메일 정규화 (verification_codes 테이블에는 정규화된 형식으로 저장되므로)
+    let normalizedTarget = target
+    if (channel === 'email') {
+      // 이메일은 소문자로 정규화
+      normalizedTarget = target.toLowerCase().trim()
+      console.log('[VERIFY_CHECK] 이메일 정규화:', { original: target, normalized: normalizedTarget })
+    } else {
+      // 전화번호인 경우 정규화
+      // 이미 E.164 형식인지 확인
+      if (target.startsWith('+')) {
+        normalizedTarget = target
+      } else if (nationality) {
+        // nationality가 있으면 정규화 시도
+        normalizedTarget = toE164(target, nationality)
+        
+        // 정규화 실패 시 원본 사용 (하위 호환성)
+        if (!normalizedTarget.startsWith('+')) {
+          console.warn('[VERIFY_CHECK] 전화번호 정규화 실패, 원본 사용:', { target, nationality, normalizedTarget })
+          normalizedTarget = target
+        } else {
+          console.log('[VERIFY_CHECK] 전화번호 정규화 성공:', { target, nationality, normalizedTarget })
+        }
+      }
+      // nationality가 없고 E.164 형식도 아니면 원본 사용 (하위 호환성)
+    }
+
     const supabase = createClient()
 
-    // 인증코드 검증
+    // 인증코드 검증 (정규화된 전화번호 또는 원본 전화번호로 검색)
     const { data: verificationData, error: verificationError } = await supabase
       .from('verification_codes')
       .select('*')
-      .eq(channel === 'email' ? 'email' : 'phone_number', target)
-      .eq('type', channel)
-      .eq('code', code)
+      .eq(channel === 'email' ? 'email' : 'phone_number', normalizedTarget)
+      .eq('type', dbType) // 'wa' → 'sms'로 변환된 값 사용
+      .eq('code', normalizedCode) // 정규화된 코드 사용
       .eq('verified', false)
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
@@ -40,7 +84,13 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (verificationError || !verificationData) {
-      console.error('인증코드 검증 실패:', verificationError)
+      console.error('[VERIFY_CHECK] 인증코드 검증 실패:', verificationError)
+      console.error('[VERIFY_CHECK] 검색 조건:', { 
+        target: normalizedTarget, 
+        type: dbType, 
+        code: normalizedCode.substring(0, 2) + '****',
+        channel
+      })
       return NextResponse.json(
         { ok: false, error: 'INVALID_CODE' },
         { status: 400 }
@@ -101,42 +151,110 @@ export async function POST(request: NextRequest) {
         }
       }
     } else if (channel === 'sms' || channel === 'wa') {
-      // SMS 또는 WhatsApp 인증 완료 시 sms_verified_at 업데이트
-      // 전화번호로 사용자 찾기 (하이픈 제거 후 비교)
+      // SMS 또는 WhatsApp 인증 완료 시 sms_verified_at 및 phone_verified 업데이트
+      // 전화번호로 사용자 찾기 (여러 형식으로 시도)
       const cleanPhone = target.replace(/\D/g, '')
+      const phoneWithPlus = target.startsWith('+') ? target : `+${cleanPhone}`
+      
+      // E.164 형식으로 정규화 시도 (nationality가 있으면) - 스코프 밖에서도 사용하기 위해 먼저 정의
+      let normalizedPhone = target
+      if (nationality) {
+        try {
+          const { toE164 } = await import('@/lib/phoneUtils')
+          const e164Phone = toE164(target, nationality)
+          if (e164Phone && e164Phone.startsWith('+')) {
+            normalizedPhone = e164Phone
+            console.log('[VERIFY_CHECK] 전화번호 E.164 정규화 성공:', { original: target, normalized: normalizedPhone, nationality })
+          }
+        } catch (e) {
+          console.warn('[VERIFY_CHECK] E.164 정규화 실패, 원본 사용:', e)
+        }
+      }
       
       // verificationData.user_id가 있으면 직접 사용
       let userId = verificationData.user_id
       
-      // user_id가 없으면 전화번호로 찾기
+      // user_id가 없으면 전화번호로 찾기 (여러 형식으로 시도)
       if (!userId) {
+        // 여러 형식으로 사용자 찾기 시도
         const { data: userData, error: userFindError } = await supabase
           .from('users')
           .select('id, phone')
-          .or(`phone.eq.${target},phone.eq.${cleanPhone}`)
+          .or(`phone.eq.${target},phone.eq.${cleanPhone},phone.eq.${phoneWithPlus},phone.eq.${normalizedPhone}`)
           .maybeSingle()
 
         if (!userFindError && userData?.id) {
           userId = userData.id
+          console.log('[VERIFY_CHECK] 전화번호로 사용자 찾기 성공:', { userId, phone: userData.phone, searched: [target, cleanPhone, phoneWithPlus, normalizedPhone] })
+        } else {
+          console.warn('[VERIFY_CHECK] 전화번호로 사용자 찾기 실패:', { target, cleanPhone, phoneWithPlus, normalizedPhone, error: userFindError?.message })
         }
       }
 
       if (userId) {
-        // sms_verified_at 직접 업데이트
-        const { error: updateUserError } = await supabase
+        // 사용자가 public.users에 있는지 확인
+        const { data: existingUser, error: checkError } = await supabase
           .from('users')
-          .update({ 
-            sms_verified_at: new Date().toISOString()
-          })
+          .select('id')
           .eq('id', userId)
+          .maybeSingle()
+        
+        const updateData: any = {
+          sms_verified_at: new Date().toISOString(),
+          phone_verified: true,
+          phone_verified_at: new Date().toISOString()
+        }
+        
+        let updateUserError = null
+        
+        if (existingUser) {
+          // 사용자가 있으면 업데이트
+          const { error } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', userId)
+          updateUserError = error
+        } else {
+          // 사용자가 없으면 생성 (인증센터에서만 인증한 경우)
+          console.log('[VERIFY_CHECK] public.users에 사용자 없음, 생성 시도:', userId)
+          
+          // auth.users에서 이메일 가져오기
+          let userEmail = null
+          try {
+            const { createClient } = await import('@/lib/supabase/server')
+            const adminSupabase = createClient()
+            const { data: authUserData } = await adminSupabase.auth.admin.getUserById(userId)
+            userEmail = authUserData?.user?.email || null
+          } catch (e) {
+            console.warn('[VERIFY_CHECK] auth.users 조회 실패:', e)
+          }
+          
+          const insertData: any = {
+            id: userId,
+            email: userEmail || '',
+            phone: normalizedPhone || target,
+            ...updateData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          
+          const { error } = await supabase
+            .from('users')
+            .insert(insertData)
+          updateUserError = error
+          
+          if (!error) {
+            console.log('[VERIFY_CHECK] 사용자 생성 성공:', userId)
+          }
+        }
 
         if (updateUserError) {
-          console.error('SMS 인증 시간 업데이트 실패:', updateUserError)
+          console.error('[VERIFY_CHECK] SMS 인증 상태 업데이트/생성 실패:', updateUserError)
         } else {
-          console.log('SMS 인증 시간 업데이트 성공:', userId)
+          console.log('[VERIFY_CHECK] SMS 인증 상태 업데이트/생성 성공:', { userId, updateData })
         }
       } else {
-        console.warn('SMS 인증 완료했지만 사용자를 찾을 수 없음:', { target, cleanPhone, verificationId: verificationData.id })
+        console.warn('[VERIFY_CHECK] SMS 인증 완료했지만 사용자를 찾을 수 없음:', { target, cleanPhone, phoneWithPlus, verificationId: verificationData.id })
       }
     }
 
@@ -156,10 +274,11 @@ export async function POST(request: NextRequest) {
       // 로그 실패는 인증 성공에 영향을 주지 않음
     }
 
-    console.log('OTP 검증 성공:', {
+    console.log('[VERIFY_CHECK] OTP 검증 성공:', {
       channel,
+      dbType,
       target,
-      code: code.substring(0, 2) + '****', // 보안을 위해 코드 일부만 로그
+      code: normalizedCode.substring(0, 2) + '****', // 보안을 위해 코드 일부만 로그
       verificationId: verificationData.id
     })
 

@@ -184,15 +184,27 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   // 내가 한국인 파트너인지 확인
   useEffect(() => {
     const checkIfPartner = async () => {
+      // 사용자 ID가 없으면 즉시 종료
       if (!user?.id) {
         console.log('[checkIfPartner] 사용자 ID 없음')
         setIsKoreanPartner(false)
+        setIsCheckingPartner(false)
         return
       }
 
       console.log('[checkIfPartner] 파트너 확인 시작:', user.id)
+      setIsCheckingPartner(true)
+      
       try {
-        const response = await fetch(`/api/conversation-partners/check?userId=${user.id}`)
+        // 타임아웃 설정 (10초)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+        
+        const response = await fetch(`/api/conversation-partners/check?userId=${user.id}`, {
+          signal: controller.signal
+        })
+        
+        clearTimeout(timeoutId)
         console.log('[checkIfPartner] API 응답:', response.status, response.statusText)
         
         if (response.ok) {
@@ -215,7 +227,11 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
           setIsKoreanPartner(false)
         }
       } catch (error) {
-        console.error('[checkIfPartner] 파트너 확인 실패:', error)
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.error('[checkIfPartner] API 타임아웃')
+        } else {
+          console.error('[checkIfPartner] 파트너 확인 실패:', error)
+        }
         setIsKoreanPartner(false)
       } finally {
         setIsCheckingPartner(false)
@@ -492,27 +508,27 @@ export default function VideoCallStarter({ onStartCall }: VideoCallStarterProps)
   const availablePartners = allPartners.filter(partner => partner.id !== user?.id)  // 자기 자신 제외
 
   return (
-    <div className="relative">
+    <div className="relative min-h-[60vh] md:min-h-[500px]">
       {/* 오픈 예정 오버레이 */}
-      <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-[2px] z-50 flex items-center justify-center rounded-xl">
-        <div className="text-center space-y-4 px-6">
+      <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-[2px] z-50 flex items-center justify-center rounded-xl min-h-[60vh] md:min-h-[500px] py-8 md:py-12">
+        <div className="text-center space-y-4 px-6 w-full max-w-2xl">
           {/* 공사 중 이미지 */}
           <div className="mb-6">
             <img 
               src="/misc/coming-soon.png" 
               alt="Coming Soon" 
-              className="w-64 h-64 mx-auto object-contain"
+              className="w-48 h-48 md:w-64 md:h-64 mx-auto object-contain"
             />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white drop-shadow-lg">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white drop-shadow-lg">
             Próximamente
           </h2>
-          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 drop-shadow">
+          <p className="text-base md:text-lg font-semibold text-gray-700 dark:text-gray-200 drop-shadow px-4">
             Esta función estará disponible pronto
           </p>
           <div className="pt-4">
-            <div className="inline-block px-8 py-3 bg-orange-100 dark:bg-orange-900/40 rounded-full border-2 border-orange-300 dark:border-orange-600 shadow-md">
-              <span className="text-orange-700 dark:text-orange-300 font-bold text-lg">
+            <div className="inline-block px-6 md:px-8 py-2.5 md:py-3 bg-orange-100 dark:bg-orange-900/40 rounded-full border-2 border-orange-300 dark:border-orange-600 shadow-md">
+              <span className="text-orange-700 dark:text-orange-300 font-bold text-base md:text-lg">
                 Abriendo Pronto
               </span>
             </div>

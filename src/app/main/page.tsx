@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic'
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import HomeTab from '@/components/main/app/home/HomeTab'
 import { useLanguage } from '@/context/LanguageContext'
+import { translations } from '@/lib/translations'
 import { useAuth } from '@/context/AuthContext'
 import { Video } from 'lucide-react'
 // 🚀 최적화: React Query hook 추가
@@ -134,60 +135,6 @@ function AppPageContent() {
     checkAdminStatus()
   }, [user?.id, user?.email])
 
-  // 자동 출석 체크 (메인 페이지 진입 시 한 번만)
-  useEffect(() => {
-    const autoAttendanceCheck = async () => {
-      if (!user?.id) return
-
-      // localStorage로 오늘 이미 출석했는지 확인 (중복 방지)
-      const today = new Date().toISOString().split('T')[0]
-      const lastCheckDate = localStorage.getItem('last_attendance_check')
-
-      if (lastCheckDate === today) {
-        console.log('[AUTO_ATTENDANCE] 오늘 이미 출석 체크 완료')
-        return
-      }
-
-      try {
-        const response = await fetch('/api/community/points', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            activityType: 'attendance_check',
-            postId: null,
-            title: '자동 출석 체크'
-          })
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          console.log('[AUTO_ATTENDANCE] 출석 체크 성공: +10점')
-
-          // localStorage에 오늘 출석 기록
-          localStorage.setItem('last_attendance_check', today)
-
-          // 포인트 업데이트 이벤트 발생
-          window.dispatchEvent(new CustomEvent('pointsUpdated'))
-
-          // 출석체크 alert 메시지 제거됨 (점수 제도 미사용)
-        } else {
-          const errorData = await response.json()
-          console.log('[AUTO_ATTENDANCE] 출석 체크 실패:', errorData.error)
-          // 일일 한도 초과 또는 이미 체크한 경우 무시
-        }
-      } catch (error) {
-        console.error('[AUTO_ATTENDANCE] 출석 체크 오류:', error)
-      }
-    }
-
-    // 메인 페이지 진입 후 1초 후에 실행 (초기 로딩 완료 후)
-    const timer = setTimeout(() => {
-      autoAttendanceCheck()
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [user?.id])
 
   // URL 파라미터에서 탭 확인 및 설정
   useEffect(() => {
@@ -351,7 +298,7 @@ function AppPageContent() {
   }, [activeTab])
 
   return (
-    <div className="min-h-screen body-gradient dark:bg-gray-900 pb-20 md:pb-0">
+    <div className="min-h-screen body-gradient bg-white dark:bg-transparent pb-20 md:pb-0">
       {/* 메인 콘텐츠 섹션 */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24 py-0 sm:py-2 md:py-6 relative z-0">
         <div className="w-full">
@@ -390,7 +337,7 @@ function AppPageContent() {
             )}
 
             {activeTab === 'meet' && (
-              <div className="block md:hidden pt-20">
+              <div className="block md:hidden pt-24 pb-20">
                 <div className="px-1">
                   <MeetTab />
                 </div>
@@ -459,10 +406,10 @@ function AppPageContent() {
             )}
 
             {activeTab === 'educacion' && (
-              <div className="pb-20 md:pb-8 pt-16 sm:pt-36">
+              <div className="pb-20 md:pb-8 pt-24 sm:pt-36">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
-                  <div className="card dark:bg-gray-800 dark:border-gray-700 px-8 py-8 -mt-12 sm:mt-0">
+                  <div className="card dark:bg-gray-800 dark:border-gray-700 px-8 py-8 -mt-12 sm:mt-0 relative">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden">
                         <span className="text-3xl">📚</span>
@@ -471,17 +418,96 @@ function AppPageContent() {
                         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('headerNav.educacion')}</h2>
                       </div>
                     </div>
-                    <div className="text-center py-12">
-                      <p className="text-gray-600 dark:text-gray-400">{t('main.educacionComingSoon')}</p>
+                    
+                    {/* Coming Soon 섹션 */}
+                    <div className="text-center space-y-6 py-8">
+                      {/* 공사 중 이미지 */}
+                      <div className="mb-6">
+                        <img 
+                          src="/misc/coming-soon.png" 
+                          alt="Coming Soon" 
+                          className="w-48 h-48 mx-auto object-contain"
+                        />
+                      </div>
+                      
+                      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white drop-shadow-lg">
+                        {t('main.educacionComingSoonTitle')}
+                      </h2>
+                      
+                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 drop-shadow">
+                        {t('main.educacionComingSoonDescription')}
+                      </p>
+                      
+                      <div className="pt-4">
+                        <div className="inline-block px-8 py-3 bg-orange-100 dark:bg-orange-900/40 rounded-full border-2 border-orange-300 dark:border-orange-600 shadow-md">
+                          <span className="text-orange-700 dark:text-orange-300 font-bold text-lg">
+                            {t('main.educacionOpeningDate')}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* 기능 소개 */}
+                      <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                          {language === 'ko' ? '주요 기능' : 'Características principales'}
+                        </h3>
+                        <ul className="space-y-3 text-left max-w-2xl mx-auto">
+                          {(translations[language]?.main?.educacionFeatures as string[] || []).map((feature: string, index: number) => (
+                            <li key={index} className="flex items-start gap-3 text-gray-700 dark:text-gray-300">
+                              <span className="text-orange-500 dark:text-orange-400 mt-1">✓</span>
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
                 {/* 모바일: 섹션 카드 없이 */}
-                <div className="block md:hidden pt-12">
-                  <div className="px-2 sm:px-4 pt-6">
-                    <div className="text-center py-12">
-                      <p className="text-gray-600 dark:text-gray-400">{t('main.educacionComingSoon')}</p>
+                <div className="block md:hidden pt-4">
+                  <div className="px-4 pt-4">
+                    {/* Coming Soon 섹션 */}
+                    <div className="text-center space-y-6 py-8">
+                      {/* 공사 중 이미지 */}
+                      <div className="mb-6">
+                        <img 
+                          src="/misc/coming-soon.png" 
+                          alt="Coming Soon" 
+                          className="w-40 h-40 mx-auto object-contain"
+                        />
+                      </div>
+                      
+                      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white drop-shadow-lg">
+                        {t('main.educacionComingSoonTitle')}
+                      </h2>
+                      
+                      <p className="text-base font-semibold text-gray-700 dark:text-gray-200 drop-shadow">
+                        {t('main.educacionComingSoonDescription')}
+                      </p>
+                      
+                      <div className="pt-4">
+                        <div className="inline-block px-6 py-2.5 bg-orange-100 dark:bg-orange-900/40 rounded-full border-2 border-orange-300 dark:border-orange-600 shadow-md">
+                          <span className="text-orange-700 dark:text-orange-300 font-bold text-base">
+                            {t('main.educacionOpeningDate')}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* 기능 소개 */}
+                      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                          {language === 'ko' ? '주요 기능' : 'Características principales'}
+                        </h3>
+                        <ul className="space-y-2.5 text-left">
+                          {(translations[language]?.main?.educacionFeatures as string[] || []).map((feature: string, index: number) => (
+                            <li key={index} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
+                              <span className="text-orange-500 dark:text-orange-400 mt-0.5">✓</span>
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -564,7 +590,7 @@ export default function AppPage() {
 
   return (
     <Suspense fallback={
-      <div className="min-h-screen body-gradient">
+      <div className="min-h-screen body-gradient bg-white dark:bg-transparent">
         {/* 헤더 스켈레톤 */}
         <div className="h-16 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
 

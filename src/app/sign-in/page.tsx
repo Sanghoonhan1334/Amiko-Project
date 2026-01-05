@@ -20,8 +20,9 @@ import { checkWebAuthnSupport, startBiometricRegistration, startBiometricAuthent
 import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '@/components/ui/dialog'
 import { Fingerprint } from 'lucide-react'
-import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick } from '@/lib/analytics'
+import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick, trackIntendedActionResume } from '@/lib/analytics'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+import { Capacitor } from '@capacitor/core'
 
 export default function SignInPage() {
   const BIOMETRIC_ENABLED = process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true'
@@ -55,16 +56,57 @@ export default function SignInPage() {
       }
     }
     
-    // accountDeleted 쿼리 파라미터 확인
+    // 쿼리 파라미터 확인
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
+      
+      // accountDeleted 쿼리 파라미터 확인
       if (params.get('accountDeleted') === '1') {
         setShowDeleteSuccess(true)
         // URL에서 쿼리 파라미터 제거 (깔끔한 URL 유지)
         router.replace('/sign-in', { scroll: false })
       }
+      
+      // OAuth 에러 처리
+      const error = params.get('error')
+      const errorDescription = params.get('error_description')
+      if (error) {
+        console.error('[SIGNIN] OAuth 에러 감지:', error, errorDescription)
+        
+        let errorMessage = ''
+        if (error === 'access_denied' || error === 'user_cancelled') {
+          errorMessage = language === 'ko' 
+            ? 'Google 로그인이 취소되었습니다.' 
+            : 'Inicio de sesión con Google cancelado.'
+        } else if (error === 'missing_code') {
+          errorMessage = language === 'ko'
+            ? '인증 코드를 받지 못했습니다. 다시 시도해주세요.'
+            : 'No se recibió el código de autenticación. Por favor, inténtelo de nuevo.'
+        } else if (error === 'exchange_failed') {
+          errorMessage = language === 'ko'
+            ? '인증 처리 중 오류가 발생했습니다. 다시 시도해주세요.'
+            : 'Error al procesar la autenticación. Por favor, inténtelo de nuevo.'
+        } else if (error === 'no_session') {
+          errorMessage = language === 'ko'
+            ? '세션을 생성하지 못했습니다. 다시 시도해주세요.'
+            : 'No se pudo crear la sesión. Por favor, inténtelo de nuevo.'
+        } else if (error === 'unexpected_error') {
+          errorMessage = language === 'ko'
+            ? '예상치 못한 오류가 발생했습니다. 다시 시도해주세요.'
+            : 'Ocurrió un error inesperado. Por favor, inténtelo de nuevo.'
+        } else {
+          errorMessage = errorDescription 
+            ? (language === 'ko' ? `오류: ${errorDescription}` : `Error: ${errorDescription}`)
+            : (language === 'ko' ? 'Google 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
+        }
+        
+        alert(errorMessage)
+        
+        // URL에서 쿼리 파라미터 제거
+        router.replace('/sign-in', { scroll: false })
+      }
     }
-  }, [router])
+  }, [router, language])
 
   useEffect(() => {
     if (!BIOMETRIC_ENABLED) {
@@ -195,10 +237,33 @@ export default function SignInPage() {
         사용할_이메일: emailForSignIn
       })
       
-      await signIn(emailForSignIn, formData.password).catch(err => {
+      // 클라이언트 세션 업데이트 시도
+      const signInResult = await signIn(emailForSignIn, formData.password).catch(err => {
         // 이미 서버에서 인증되었으므로, 클라이언트 인증 실패는 무시
-        console.log('[SIGNIN] 클라이언트 세션 업데이트 시도 (이미 서버에서 인증됨):', err)
+        console.log('[SIGNIN] 클라이언트 signIn 실패, 서버 세션 확인 시도:', err)
+        return { error: err }
       })
+      
+      // signIn이 실패했지만 서버에서 세션 쿠키를 설정했을 수 있으므로 세션 확인
+      if (signInResult?.error) {
+        console.log('[SIGNIN] 클라이언트 signIn 실패, 서버 세션에서 복원 시도')
+        try {
+          // Supabase 클라이언트에서 세션 확인 (쿠키에서 자동으로 가져옴)
+          const supabase = createSupabaseBrowserClient()
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+          
+          if (session && !sessionError) {
+            console.log('[SIGNIN] 서버 세션에서 복원 성공:', session.user.email)
+            // 세션이 있으면 AuthContext가 자동으로 감지하여 업데이트됨
+          } else {
+            console.warn('[SIGNIN] 서버 세션도 없음:', sessionError?.message || '세션 없음')
+            // 세션이 없으면 에러 표시하지 않고 그냥 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
+          }
+        } catch (sessionCheckError) {
+          console.error('[SIGNIN] 세션 확인 중 오류:', sessionCheckError)
+          // 에러는 무시하고 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
+        }
+      }
       
       // 마지막 로그인 사용자 ID 저장
       if (userId) {
@@ -234,7 +299,46 @@ export default function SignInPage() {
         }
       }
       
-      // 로그인 성공 후 메인 앱으로 이동
+      // 세션이 제대로 설정되었는지 확인 (약간의 지연 후)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Supabase 세션 최종 확인
+      try {
+        const supabase = createSupabaseBrowserClient()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (!session && !sessionError) {
+          console.warn('[SIGNIN] 세션이 아직 설정되지 않음, 잠시 대기 후 재확인')
+          // 추가 대기 후 재확인
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          const { data: { session: retrySession } } = await supabase.auth.getSession()
+          
+          if (!retrySession) {
+            console.error('[SIGNIN] 세션 설정 실패 - 사용자에게 알림')
+            alert(language === 'ko' 
+              ? '로그인은 성공했지만 세션이 설정되지 않았습니다. 페이지를 새로고침해주세요.' 
+              : 'El inicio de sesión fue exitoso pero la sesión no se configuró. Por favor, actualiza la página.')
+            return
+          }
+        }
+      } catch (sessionCheckError) {
+        console.error('[SIGNIN] 세션 확인 중 오류:', sessionCheckError)
+        // 에러는 무시하고 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
+      }
+      
+      // 로그인 성공 후 redirect 처리
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const redirectPath = params.get('redirect')
+        
+        // redirect 파라미터가 있으면 해당 경로로 이동
+        if (redirectPath) {
+          router.push(redirectPath)
+          return
+        }
+      }
+      
+      // redirect 파라미터가 없으면 메인 앱으로 이동
       router.push('/main')
       
     } catch (error) {
@@ -284,11 +388,21 @@ export default function SignInPage() {
       }
     } catch (error) {
       console.error('지문 등록 오류:', error)
-      alert(language === 'ko' 
-        ? '지문 등록에 실패했습니다. 나중에 마이페이지에서 다시 시도해주세요.' 
-        : 'Error al registrar huella digital. Inténtelo más tarde en Mi Perfil.')
-      setShowBiometricSetupModal(false)
-      router.push('/main')
+        alert(language === 'ko' 
+          ? '지문 등록에 실패했습니다. 나중에 마이페이지에서 다시 시도해주세요.' 
+          : 'Error al registrar huella digital. Inténtelo más tarde en Mi Perfil.')
+        setShowBiometricSetupModal(false)
+        
+        // redirect 처리
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search)
+          const redirectPath = params.get('redirect')
+          if (redirectPath) {
+            router.push(redirectPath)
+            return
+          }
+        }
+        router.push('/main')
     } finally {
       setIsLoading(false)
     }
@@ -296,6 +410,16 @@ export default function SignInPage() {
 
   const handleSkipBiometric = () => {
     setShowBiometricSetupModal(false)
+    
+    // redirect 처리
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const redirectPath = params.get('redirect')
+      if (redirectPath) {
+        router.push(redirectPath)
+        return
+      }
+    }
     router.push('/main')
   }
 
@@ -420,40 +544,17 @@ export default function SignInPage() {
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6">
-          {/* 구글 로그인 버튼 */}
+          {/* 구글 로그인 버튼 - 일시 비활성화 */}
           <Button
             type="button"
             variant="outline"
-            className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors"
-            onClick={async () => {
-              try {
-                setIsLoading(true)
-                const supabase = createSupabaseBrowserClient()
-                
-                const { error } = await supabase.auth.signInWithOAuth({
-                  provider: 'google',
-                  options: {
-                    redirectTo: `${window.location.origin}/auth/callback?next=/main`,
-                    queryParams: {
-                      access_type: 'offline',
-                      prompt: 'consent',
-                    },
-                  },
-                })
-
-                if (error) {
-                  console.error('[SIGNIN] Google 로그인 실패:', error)
-                  alert(language === 'ko' ? '구글 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
-                  setIsLoading(false)
-                }
-                // 성공하면 자동으로 Google로 리다이렉트되므로 여기서는 아무것도 하지 않음
-              } catch (error) {
-                console.error('[SIGNIN] Google 로그인 오류:', error)
-                alert(language === 'ko' ? '구글 로그인 중 오류가 발생했습니다.' : 'Error al iniciar sesión con Google')
-                setIsLoading(false)
-              }
+            className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors opacity-50 cursor-not-allowed"
+            onClick={() => {
+              alert(language === 'ko' 
+                ? 'Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
+                : 'El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.')
             }}
-            disabled={isLoading}
+            disabled={true}
           >
             <div className="flex items-center justify-center gap-3">
               {/* 구글 아이콘 SVG */}
@@ -480,6 +581,14 @@ export default function SignInPage() {
               </span>
             </div>
           </Button>
+          {/* 안내 메시지 */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+            <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
+              {language === 'ko' 
+                ? '⚠️ Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
+                : '⚠️ El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.'}
+            </p>
+          </div>
           {/* 구분선 */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
