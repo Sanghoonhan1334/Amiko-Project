@@ -441,7 +441,9 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               <AuthorName
                 userId={post.author?.id}
                 name={post.author?.nickname || post.author?.full_name || t('freeboard.anonymous')}
+                profileImage={post.author?.profile_image}
                 className="font-medium text-gray-700"
+                avatarSize="sm"
               />
               <span>/ {formatDate(post.created_at)}</span>
             </p>
@@ -677,7 +679,13 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 text-sm">
-                      {relatedPost.author?.full_name || t('freeboard.anonymous')}
+                      <AuthorName
+                        userId={relatedPost.author?.id}
+                        name={relatedPost.author?.full_name || t('freeboard.anonymous')}
+                        profileImage={relatedPost.author?.profile_image}
+                        avatarSize="sm"
+                        showAvatar={true}
+                      />
                     </td>
                     <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 text-sm">
                       {formatDate(relatedPost.created_at)}
@@ -732,7 +740,13 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                       
                       {/* 메타 정보 */}
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                        <span>{relatedPost.author?.full_name || t('freeboard.anonymous')}</span>
+                        <AuthorName
+                          userId={relatedPost.author?.id}
+                          name={relatedPost.author?.full_name || t('freeboard.anonymous')}
+                          profileImage={relatedPost.author?.profile_image}
+                          avatarSize="sm"
+                          showAvatar={true}
+                        />
                         <span>•</span>
                         <span>{formatDate(relatedPost.created_at)}</span>
                         <span>•</span>

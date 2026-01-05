@@ -33,6 +33,8 @@ import AuthConfirmDialog from '@/components/common/AuthConfirmDialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import AuthorName from '@/components/common/AuthorName'
 import { checkLevel1Auth } from '@/lib/auth-utils'
+import Image from 'next/image'
+import { createClient } from '@supabase/supabase-js'
 
 interface Post {
   id: string
@@ -42,6 +44,7 @@ interface Post {
   category_name: string
   author_name: string
   author_id?: string | null
+  author_profile_image?: string | null
   created_at: string
   views: number
   likes: number
@@ -68,6 +71,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const { language, t } = useLanguage()
   const { theme } = useTheme()
   const router = useRouter()
+  
+  // Supabase 클라이언트 (프로필 이미지 URL 변환용)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   
   // 번역 서비스 초기화
   const translationService = TranslationService.getInstance()
@@ -874,6 +883,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           category_name: post.category || '자유게시판',
           author_id: post.author?.id || null,
           author_name: post.author?.full_name || (post.is_notice ? (language === 'es' ? 'Administrador' : '운영자') : (language === 'es' ? 'Anónimo' : '익명')),
+          author_profile_image: post.author?.profile_image || post.author?.avatar_url || null,
           created_at: post.created_at,
           views: post.view_count || 0,
           likes: post.like_count || 0,
@@ -1491,10 +1501,60 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   }}
                 >
                   <div className="space-y-1">
-                    {/* 제목 */}
-                    <h3 className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
-                      {post.title}
-                    </h3>
+                    {/* 제목과 프로필 사진 */}
+                    <div className="flex items-start gap-2">
+                      {/* 프로필 사진 (작은 크기) */}
+                      {(() => {
+                        const avatarUrl = post.author_profile_image
+                        let publicUrl = avatarUrl
+                        
+                        // Supabase Storage URL을 공개 URL로 변환
+                        if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+                          try {
+                            const { data: { publicUrl: convertedUrl } } = supabase.storage
+                              .from('profile-images')
+                              .getPublicUrl(avatarUrl)
+                            publicUrl = convertedUrl
+                          } catch (error) {
+                            console.error('[FreeBoardList] 프로필 이미지 URL 변환 실패:', error)
+                          }
+                        }
+                        
+                        if (publicUrl && post.author_id) {
+                          return (
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 mt-0.5">
+                              <img 
+                                src={publicUrl} 
+                                alt={post.author_name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // 이미지 로드 실패 시 이니셜 표시
+                                  e.currentTarget.style.display = 'none'
+                                  const parent = e.currentTarget.parentElement
+                                  if (parent) {
+                                    const fallback = document.createElement('span')
+                                    fallback.className = 'w-full h-full flex items-center justify-center text-white text-[8px] sm:text-[10px] font-semibold'
+                                    fallback.textContent = (post.author_name || '?').charAt(0).toUpperCase()
+                                    parent.appendChild(fallback)
+                                  }
+                                }}
+                              />
+                            </div>
+                          )
+                        }
+                        
+                        // 프로필 사진이 없으면 이니셜 표시
+                        return (
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-[8px] sm:text-[10px] font-semibold mt-0.5">
+                            {(post.author_name || '?').charAt(0).toUpperCase()}
+                          </div>
+                        )
+                      })()}
+                      
+                      <h3 className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 line-clamp-2 flex-1">
+                        {post.title}
+                      </h3>
+                    </div>
                     
                     {/* 카테고리와 날짜 */}
                     <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">

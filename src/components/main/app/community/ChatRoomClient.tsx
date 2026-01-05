@@ -1723,17 +1723,47 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                       color: isOwn ? palette.avatarText : palette.otherMessageText
                     } as React.CSSProperties}
                   >
-                    {(message.user_profiles?.avatar_url || message.user_profiles?.profile_image) ? (
-                      <img 
-                        src={message.user_profiles.avatar_url || message.user_profiles.profile_image} 
-                        alt={getUserName(message)}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-sm font-semibold" style={{ color: isOwn ? palette.avatarText : palette.otherMessageText } as React.CSSProperties}>
-                        {getUserName(message).charAt(0).toUpperCase()}
-                      </span>
-                    )}
+                    {(() => {
+                      const avatarUrl = message.user_profiles?.avatar_url || message.user_profiles?.profile_image
+                      if (avatarUrl) {
+                        // Supabase Storage URL을 공개 URL로 변환
+                        let publicUrl = avatarUrl
+                        if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
+                          try {
+                            const { data: { publicUrl: convertedUrl } } = anonSupabase.storage
+                              .from('profile-images')
+                              .getPublicUrl(avatarUrl)
+                            publicUrl = convertedUrl
+                          } catch (error) {
+                            console.error('[ChatRoomClient] 프로필 이미지 URL 변환 실패:', error)
+                          }
+                        }
+                        return (
+                          <img 
+                            src={publicUrl} 
+                            alt={getUserName(message)}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // 이미지 로드 실패 시 이니셜 표시
+                              e.currentTarget.style.display = 'none'
+                              const parent = e.currentTarget.parentElement
+                              if (parent) {
+                                const fallback = document.createElement('span')
+                                fallback.className = 'text-sm font-semibold'
+                                fallback.style.color = isOwn ? palette.avatarText : palette.otherMessageText
+                                fallback.textContent = getUserName(message).charAt(0).toUpperCase()
+                                parent.appendChild(fallback)
+                              }
+                            }}
+                          />
+                        )
+                      }
+                      return (
+                        <span className="text-sm font-semibold" style={{ color: isOwn ? palette.avatarText : palette.otherMessageText } as React.CSSProperties}>
+                          {getUserName(message).charAt(0).toUpperCase()}
+                        </span>
+                      )
+                    })()}
                   </div>
 
                   {/* Message */}
