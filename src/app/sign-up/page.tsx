@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowRight, ArrowLeft, User, Mail, Lock, Globe } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 import { countries } from '@/constants/countries'
 import { signUpEvents, marketingEvents, trackStartSignup, trackSignupInput, trackSignupSubmit, trackSignupSuccess, trackCTAClick, trackSignUpFormStart, trackSignUpRequiredInfoCompleted, trackSignUpVerificationCompleted, trackSignUpSubmit as trackSignUpSubmitEvent, trackSignUpSuccess as trackSignUpSuccessEvent } from '@/lib/analytics'
 import EmailVerification from '@/components/auth/EmailVerification'
@@ -18,6 +19,7 @@ import { Capacitor } from '@capacitor/core'
 export default function SignUpPage() {
   const router = useRouter()
   const { t, language } = useLanguage()
+  const { signInWithGoogle } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState<'form' | 'email' | 'complete'>('form')
   const [emailVerified, setEmailVerified] = useState(false)
@@ -805,19 +807,24 @@ export default function SignUpPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* 구글 로그인 버튼 - 일시 비활성화 */}
+                {/* 구글 로그인 버튼 */}
                 {currentStep === 'form' && (
                   <div className="mb-6">
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors opacity-50 cursor-not-allowed"
-                      onClick={() => {
-                        alert(language === 'ko' 
-                          ? 'Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
-                          : 'El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.')
+                      className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors"
+                      onClick={async () => {
+                        try {
+                          setIsLoading(true)
+                          await signInWithGoogle()
+                        } catch (error) {
+                          console.error('Google 로그인 실패:', error)
+                        } finally {
+                          setIsLoading(false)
+                        }
                       }}
-                      disabled={true}
+                      disabled={isLoading}
                     >
                       <div className="flex items-center justify-center gap-3">
                         {/* 구글 아이콘 SVG */}
@@ -844,14 +851,6 @@ export default function SignUpPage() {
                         </span>
                       </div>
                     </Button>
-                    {/* 안내 메시지 */}
-                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
-                      <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
-                        {language === 'ko' 
-                          ? '⚠️ Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
-                          : '⚠️ El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.'}
-                      </p>
-                    </div>
                     {/* 구분선 */}
                     <div className="relative my-6">
                       <div className="absolute inset-0 flex items-center">
