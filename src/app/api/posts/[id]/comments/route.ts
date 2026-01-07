@@ -205,7 +205,7 @@ export async function POST(
 
     console.log('[COMMENTS_POST] 댓글 작성 성공:', newComment)
 
-    // 사용자 정보 조회 (user_profiles 우선, users fallback)
+    // 사용자 정보 조회 (user_profiles 우선, users fallback) - 알림 생성에 필요
     let userName = null
     let avatarUrl = null
     
@@ -246,6 +246,90 @@ export async function POST(
         // 우선순위: korean_name > spanish_name > full_name > 익명
         userName = userData.korean_name || userData.spanish_name || userData.full_name || '익명'
         avatarUrl = userData.profile_image || userData.avatar_url
+      }
+    }
+
+    // 게시물 정보 조회 (작성자에게 알림 보내기 위해)
+    console.log('[COMMENTS_POST] 게시물 정보 조회 시작:', postId)
+    const { data: postData, error: postError } = await supabaseServer
+      .from('posts')
+      .select('user_id, title')
+      .eq('id', postId)
+      .single()
+
+    console.log('[COMMENTS_POST] 게시물 조회 결과:', {
+      postError: postError?.message,
+      postData: postData ? { user_id: postData.user_id, title: postData.title?.substring(0, 30) } : null,
+      commentUserId: newComment.user_id,
+      isSameUser: postData?.user_id === newComment.user_id
+    })
+
+    // 게시물 작성자에게 알림 생성 (댓글 작성자가 게시물 작성자와 다른 경우만)
+    // 인증 여부와 관계없이 알림 생성
+    if (!postError && postData && postData.user_id && postData.user_id !== newComment.user_id) {
+      console.log('[COMMENTS_POST] 알림 생성 조건 통과:', {
+        hasPostData: !!postData,
+        hasPostUserId: !!postData.user_id,
+        isDifferentUser: postData.user_id !== newComment.user_id
+      })
+      try {
+        // 댓글 작성자 이름 사용 (위에서 조회한 userName)
+        const commentAuthorName = userName || '익명'
+        
+        console.log('[COMMENTS_POST] 알림 생성 시도:', {
+          postAuthor: postData.user_id,
+          commentAuthor: newComment.user_id,
+          commentAuthorName,
+          postTitle: postData.title
+        })
+        
+        // 알림 생성 (인증 여부와 관계없이 생성)
+        const notificationPayload = {
+          user_id: postData.user_id, // 게시물 작성자
+          type: 'comment',
+          title: '새로운 댓글이 달렸습니다',
+          message: `${commentAuthorName}님이 "${postData.title?.substring(0, 30) || '게시물'}"에 댓글을 남겼습니다.`,
+          related_id: postId
+        }
+        
+        console.log('[COMMENTS_POST] 알림 생성 페이로드:', notificationPayload)
+        
+        const { data: notificationData, error: notificationError } = await supabaseServer
+          .from('notifications')
+          .insert(notificationPayload)
+          .select()
+          .single()
+
+        if (notificationError) {
+          console.error('[COMMENTS_POST] 알림 생성 실패:', {
+            error: notificationError,
+            code: notificationError.code,
+            message: notificationError.message,
+            details: notificationError.details,
+            hint: notificationError.hint
+          })
+          // 알림 생성 실패해도 댓글은 생성됨
+        } else {
+          console.log('[COMMENTS_POST] 알림 생성 성공:', {
+            id: notificationData?.id,
+            user_id: notificationData?.user_id,
+            type: notificationData?.type,
+            is_read: notificationData?.is_read
+          })
+        }
+      } catch (notificationErr) {
+        console.error('[COMMENTS_POST] 알림 생성 예외:', notificationErr)
+        // 알림 생성 실패해도 댓글은 생성됨
+      }
+    } else {
+      if (postError) {
+        console.error('[COMMENTS_POST] 게시물 조회 실패:', postError)
+      } else if (!postData) {
+        console.warn('[COMMENTS_POST] 게시물 데이터 없음')
+      } else if (!postData.user_id) {
+        console.warn('[COMMENTS_POST] 게시물 작성자 ID 없음')
+      } else if (postData.user_id === newComment.user_id) {
+        console.log('[COMMENTS_POST] 댓글 작성자가 게시물 작성자와 동일 - 알림 생성 안 함')
       }
     }
 

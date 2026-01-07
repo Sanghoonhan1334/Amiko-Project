@@ -437,7 +437,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                 <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
               )}
             </div>
-            <p className="text-xs md:text-sm text-gray-500 flex items-center gap-1">
+            <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1">
               <AuthorName
                 userId={post.author?.id}
                 name={post.author?.nickname || post.author?.full_name || t('freeboard.anonymous')}
@@ -446,7 +446,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                 avatarSize="sm"
               />
               <span>/ {formatDate(post.created_at)}</span>
-            </p>
+            </div>
           </div>
 
           {/* 상태 배지 및 액션 버튼 */}

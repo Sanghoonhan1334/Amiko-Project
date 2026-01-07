@@ -60,6 +60,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'abrxigfmuebrnyzkfcyr.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
     ],
   },
   // 🚀 최적화: 웹팩 설정 개선

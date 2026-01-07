@@ -89,12 +89,20 @@ export default function NotificationBell() {
       if (response.ok) {
         const data: NotificationResponse = await response.json()
         
+        console.log('[NotificationBell] 전체 알림:', data.notifications?.length || 0, '개')
+        console.log('[NotificationBell] 전체 알림 타입들:', data.notifications?.map(n => n.type) || [])
+        
         // 좋아요, 댓글, 새로운 뉴스만 필터링
         const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
         const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
         
+        console.log('[NotificationBell] 필터링된 알림:', filteredNotifications.length, '개')
+        console.log('[NotificationBell] 필터링된 알림 타입들:', filteredNotifications.map(n => n.type))
+        
         // 읽지 않은 알림 개수만 계산
         const unread = filteredNotifications.filter(n => !n.is_read).length || 0
+        console.log('[NotificationBell] 읽지 않은 알림:', unread, '개')
+        
         setUnreadCount(unread)
       } else {
         console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
