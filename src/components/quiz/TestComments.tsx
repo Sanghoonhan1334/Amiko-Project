@@ -27,7 +27,7 @@ interface TestCommentsProps {
 }
 
 export default function TestComments({ testId }: TestCommentsProps) {
-  const { user } = useAuth()
+  const { user, token, session } = useAuth()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -143,10 +143,18 @@ export default function TestComments({ testId }: TestCommentsProps) {
 
       console.log('댓글 작성 - 사용 이름:', displayName)
 
+      // 토큰 가져오기
+      const authToken = token || session?.access_token || null
+      
       // API로 댓글 저장
+      const headers: HeadersInit = { 'Content-Type': 'application/json' }
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+      
       const response = await fetch('/api/test-comments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           test_id: testId,
           comment: newComment.trim()
@@ -154,7 +162,11 @@ export default function TestComments({ testId }: TestCommentsProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to post comment')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('댓글 작성 실패:', response.status, errorData)
+        const errorMessage = errorData.error || `Failed to post comment: ${response.status}`
+        alert(errorMessage)
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()

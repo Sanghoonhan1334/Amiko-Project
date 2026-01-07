@@ -312,10 +312,17 @@ export async function POST(
   } catch (error) {
     console.error('[NEWS_COMMENTS_POST] 댓글 작성 오류:', error)
     console.error('[NEWS_COMMENTS_POST] 오류 스택:', error instanceof Error ? error.stack : 'No stack')
+    console.error('[NEWS_COMMENTS_POST] 오류 타입:', typeof error)
+    console.error('[NEWS_COMMENTS_POST] 오류 상세:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
-      { 
+      {
         error: '서버 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : String(error),
+        type: error instanceof Error ? error.name : typeof error
       },
       { status: 500 }
     )

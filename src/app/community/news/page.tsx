@@ -511,7 +511,7 @@ function NewsPageContent() {
         })
       })
 
-      console.log('뉴스 댓글 작성 응답:', response.status)
+      console.log('뉴스 댓글 작성 응답:', response.status, response.statusText)
 
       if (response.ok) {
         const data = await response.json()
@@ -533,9 +533,21 @@ function NewsPageContent() {
         // 뉴스 목록도 새로고침 (comment_count 업데이트)
         await fetchRealNews(currentPage)
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('뉴스 댓글 작성 실패:', errorData)
-        toast.error(errorData.error || (language === 'ko' ? '댓글 작성에 실패했습니다.' : 'Error al publicar comentario.'))
+        // 응답 본문을 텍스트로 먼저 읽어서 확인
+        const responseText = await response.text()
+        console.error('뉴스 댓글 작성 실패 - 응답 본문:', responseText)
+        console.error('뉴스 댓글 작성 실패 - 상태:', response.status, response.statusText)
+        
+        let errorData: any = { error: 'Unknown error' }
+        try {
+          errorData = JSON.parse(responseText)
+        } catch (e) {
+          console.error('JSON 파싱 실패:', e)
+          errorData = { error: responseText || `HTTP ${response.status}: ${response.statusText}` }
+        }
+        
+        console.error('뉴스 댓글 작성 실패 - 파싱된 에러:', errorData)
+        toast.error(errorData.error || errorData.details || (language === 'ko' ? '댓글 작성에 실패했습니다.' : 'Error al publicar comentario.'))
       }
     } catch (error) {
       console.error('댓글 작성 오류:', error)
