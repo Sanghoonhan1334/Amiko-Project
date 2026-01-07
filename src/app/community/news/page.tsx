@@ -490,14 +490,10 @@ function NewsPageContent() {
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !selectedNews?.id) return
     
-    // 인증 체크
-    if (!user || !isVerified) {
-      toast.error(language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.')
-      if (!user) {
-        router.push('/sign-in')
-      } else {
-        router.push('/verification-center')
-      }
+    // 로그인 체크만 (인증 불필요)
+    if (!user) {
+      toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Se requiere iniciar sesión.')
+      router.push('/sign-in')
       return
     }
 
@@ -550,14 +546,10 @@ function NewsPageContent() {
   const handleSubmitReply = async (parentId: string) => {
     if (!replyContent.trim() || !selectedNews?.id) return
     
-    // 인증 체크
-    if (!user || !isVerified) {
-      toast.error(language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.')
-      if (!user) {
-        router.push('/sign-in')
-      } else {
-        router.push('/verification-center')
-      }
+    // 로그인 체크만 (인증 불필요)
+    if (!user) {
+      toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Se requiere iniciar sesión.')
+      router.push('/sign-in')
       return
     }
 
@@ -1154,15 +1146,6 @@ function NewsPageContent() {
                 </p>
                 <Button onClick={() => router.push('/sign-in')} variant="outline" className="text-[10px] md:text-sm">
                   {language === 'ko' ? '로그인하기' : 'Iniciar Sesión'}
-                </Button>
-              </div>
-            ) : !isVerified ? (
-              <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
-                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">
-                  {language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.'}
-                </p>
-                <Button onClick={() => router.push('/verification-center')} variant="outline" className="text-[10px] md:text-sm">
-                  {language === 'ko' ? '인증하기' : 'Verificar'}
                 </Button>
               </div>
             ) : (

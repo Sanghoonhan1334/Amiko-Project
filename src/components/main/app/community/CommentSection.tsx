@@ -214,24 +214,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const handleSubmitComment = async () => {
     if (!commentContent.trim() || submitting) return
 
-    // 인증 상태 확인
-    if (isVerified === false) {
-      alert(language === 'ko' 
-        ? '댓글을 작성하려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
-        : 'Se requiere verificación para comentar. Complete la verificación en el centro de verificación.'
-      )
-      return
-    }
-
-    // 인증 상태가 아직 확인 중인 경우
-    if (isVerified === null) {
-      alert(language === 'ko' 
-        ? '인증 상태를 확인하는 중입니다. 잠시 후 다시 시도해주세요.'
-        : 'Verificando estado de autenticación. Por favor, intente de nuevo en un momento.'
-      )
-      return
-    }
-
+    // 로그인 체크만 (인증 불필요)
     if (!token) {
       alert(language === 'ko' 
         ? '로그인이 필요합니다.'
