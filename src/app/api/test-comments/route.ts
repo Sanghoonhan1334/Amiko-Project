@@ -42,17 +42,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'test_id and comment are required' }, { status: 400 })
     }
 
-    const supabase = createClient()
-    
-    // 현재 사용자 정보 가져오기
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (!supabaseServer) {
+      console.error('[TEST_COMMENTS_POST] Supabase 연결 실패')
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+
+    // Authorization 헤더에서 토큰 추출 (우선)
+    const authHeader = request.headers.get('Authorization')
+    let user = null
+    let userError = null
+
+    if (authHeader) {
+      // Authorization 헤더가 있으면 토큰으로 인증
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user: authUser }, error: authErr } = await supabaseServer.auth.getUser(token)
+      user = authUser
+      userError = authErr
+    } else {
+      // Authorization 헤더가 없으면 쿠키에서 세션 읽기
+      const supabase = createClient()
+      const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser()
+      user = authUser
+      userError = authErr
+    }
     
     if (userError || !user) {
+      console.error('[TEST_COMMENTS_POST] 인증 실패:', userError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // 사용자 프로필 정보 가져오기
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseServer
       .from('profiles')
       .select('name, avatar_url')
       .eq('id', user.id)
@@ -67,7 +90,7 @@ export async function POST(request: NextRequest) {
       avatarUrl = profile.avatar_url
     } else {
       // profiles에 없으면 users 테이블 조회
-      const { data: userData } = await supabase
+      const { data: userData } = await supabaseServer
         .from('users')
         .select('nickname, korean_name, spanish_name, full_name, profile_image, avatar_url')
         .eq('id', user.id)
@@ -79,7 +102,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: newComment, error } = await supabase
+    const { data: newComment, error } = await supabaseServer
       .from('test_comments')
       .insert({
         test_id,
@@ -92,8 +115,18 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating comment:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('[TEST_COMMENTS_POST] Error creating comment:', error)
+      console.error('[TEST_COMMENTS_POST] Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
+      return NextResponse.json({ 
+        error: error.message || 'Failed to create comment',
+        details: error.details,
+        code: error.code
+      }, { status: 500 })
     }
 
     // 포인트 지급 (심리테스트 댓글 - 75점 체계)

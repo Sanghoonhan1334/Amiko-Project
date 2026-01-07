@@ -490,14 +490,10 @@ function NewsPageContent() {
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !selectedNews?.id) return
     
-    // 인증 체크
-    if (!user || !isVerified) {
-      toast.error(language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.')
-      if (!user) {
-        router.push('/sign-in')
-      } else {
-        router.push('/verification-center')
-      }
+    // 로그인 체크만 (인증 불필요)
+    if (!user) {
+      toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Se requiere iniciar sesión.')
+      router.push('/sign-in')
       return
     }
 
@@ -515,7 +511,7 @@ function NewsPageContent() {
         })
       })
 
-      console.log('뉴스 댓글 작성 응답:', response.status)
+      console.log('뉴스 댓글 작성 응답:', response.status, response.statusText)
 
       if (response.ok) {
         const data = await response.json()
@@ -537,9 +533,21 @@ function NewsPageContent() {
         // 뉴스 목록도 새로고침 (comment_count 업데이트)
         await fetchRealNews(currentPage)
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('뉴스 댓글 작성 실패:', errorData)
-        toast.error(errorData.error || (language === 'ko' ? '댓글 작성에 실패했습니다.' : 'Error al publicar comentario.'))
+        // 응답 본문을 텍스트로 먼저 읽어서 확인
+        const responseText = await response.text()
+        console.error('뉴스 댓글 작성 실패 - 응답 본문:', responseText)
+        console.error('뉴스 댓글 작성 실패 - 상태:', response.status, response.statusText)
+        
+        let errorData: any = { error: 'Unknown error' }
+        try {
+          errorData = JSON.parse(responseText)
+        } catch (e) {
+          console.error('JSON 파싱 실패:', e)
+          errorData = { error: responseText || `HTTP ${response.status}: ${response.statusText}` }
+        }
+        
+        console.error('뉴스 댓글 작성 실패 - 파싱된 에러:', errorData)
+        toast.error(errorData.error || errorData.details || (language === 'ko' ? '댓글 작성에 실패했습니다.' : 'Error al publicar comentario.'))
       }
     } catch (error) {
       console.error('댓글 작성 오류:', error)
@@ -550,14 +558,10 @@ function NewsPageContent() {
   const handleSubmitReply = async (parentId: string) => {
     if (!replyContent.trim() || !selectedNews?.id) return
     
-    // 인증 체크
-    if (!user || !isVerified) {
-      toast.error(language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.')
-      if (!user) {
-        router.push('/sign-in')
-      } else {
-        router.push('/verification-center')
-      }
+    // 로그인 체크만 (인증 불필요)
+    if (!user) {
+      toast.error(language === 'ko' ? '로그인이 필요합니다.' : 'Se requiere iniciar sesión.')
+      router.push('/sign-in')
       return
     }
 
@@ -1154,15 +1158,6 @@ function NewsPageContent() {
                 </p>
                 <Button onClick={() => router.push('/sign-in')} variant="outline" className="text-[10px] md:text-sm">
                   {language === 'ko' ? '로그인하기' : 'Iniciar Sesión'}
-                </Button>
-              </div>
-            ) : !isVerified ? (
-              <div className="mb-2 md:mb-6 p-1 md:p-4 bg-gray-50 rounded-lg text-center">
-                <p className="text-gray-600 mb-1 md:mb-2 text-[10px] md:text-sm">
-                  {language === 'ko' ? '댓글을 작성하려면 인증이 필요합니다.' : 'Se requiere verificación para comentar.'}
-                </p>
-                <Button onClick={() => router.push('/verification-center')} variant="outline" className="text-[10px] md:text-sm">
-                  {language === 'ko' ? '인증하기' : 'Verificar'}
                 </Button>
               </div>
             ) : (
