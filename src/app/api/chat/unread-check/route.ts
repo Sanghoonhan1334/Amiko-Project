@@ -44,7 +44,8 @@ export async function GET(request: Request) {
       // 참가자 정보가 없으면 읽지 않은 메시지가 있다고 간주
       return NextResponse.json({
         success: true,
-        hasUnread: true
+        hasUnread: true,
+        unreadCount: 1 // 기본값으로 1 반환
       })
     }
 
@@ -54,19 +55,19 @@ export async function GET(request: Request) {
     if (!lastReadAt) {
       return NextResponse.json({
         success: true,
-        hasUnread: true
+        hasUnread: true,
+        unreadCount: 1 // 기본값으로 1 반환
       })
     }
 
-    // last_read_at 이후의 메시지가 있는지 확인 (현재 시간보다 미래인 메시지는 제외)
+    // last_read_at 이후의 메시지 개수 확인 (현재 시간보다 미래인 메시지는 제외)
     const now = new Date().toISOString()
-    const { data: unreadMessages, error: messagesError } = await supabaseAdmin
+    const { count, error: messagesError } = await supabaseAdmin
       .from('chat_messages')
-      .select('id')
+      .select('*', { count: 'exact', head: true })
       .eq('room_id', roomId)
       .gt('created_at', lastReadAt)
       .lte('created_at', now) // 현재 시간보다 미래인 메시지는 제외
-      .limit(1)
 
     if (messagesError) {
       console.error('[UNREAD_CHECK] 메시지 조회 실패:', messagesError)
@@ -76,11 +77,13 @@ export async function GET(request: Request) {
       )
     }
 
-    const hasUnread = unreadMessages && unreadMessages.length > 0
+    const unreadCount = count || 0
+    const hasUnread = unreadCount > 0
 
     return NextResponse.json({
       success: true,
-      hasUnread
+      hasUnread,
+      unreadCount
     })
   } catch (error) {
     console.error('Error in GET /api/chat/unread-check:', error)

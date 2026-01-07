@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Bell, X, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +11,7 @@ import { useLanguage } from '@/context/LanguageContext'
 
 interface Notification {
   id: string
-  type: 'booking_request' | 'booking_approved' | 'booking_rejected' | 'schedule_confirmed' | 'comment' | 'like' | 'answer_accepted' | 'story_comment' | 'story_like'
+  type: 'booking_request' | 'booking_approved' | 'booking_rejected' | 'schedule_confirmed' | 'comment' | 'like' | 'answer_accepted' | 'story_comment' | 'story_like' | 'new_post' | 'new_news'
   title: string
   message: string
   related_id?: string | null
@@ -25,6 +26,7 @@ interface NotificationResponse {
 export default function NotificationBell() {
   const { user } = useAuth()
   const { t } = useLanguage()
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -52,8 +54,12 @@ export default function NotificationBell() {
 
       const data: NotificationResponse = await response.json()
       
-      const unread = data.notifications?.filter(n => !n.is_read).length || 0
-      setNotifications(data.notifications || [])
+      // 좋아요, 댓글, 새로운 뉴스만 필터링
+      const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
+      const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
+      
+      const unread = filteredNotifications.filter(n => !n.is_read).length || 0
+      setNotifications(filteredNotifications)
       setUnreadCount(unread)
     } catch (error) {
       console.error('알림 조회 실패:', error)
@@ -64,21 +70,32 @@ export default function NotificationBell() {
     }
   }
 
-  // 읽지 않은 알림 개수만 조회
+  // 읽지 않은 알림 개수만 조회 (필터링된 알림만)
   const fetchUnreadCount = async () => {
-    if (!user) return
+    if (!user) {
+      setUnreadCount(0)
+      return
+    }
 
     try {
-      const response = await fetch('/api/notifications/unread-count', {
+      const response = await fetch('/api/notifications', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
         cache: 'no-store'
       })
+      
       if (response.ok) {
-        const data = await response.json()
-        setUnreadCount(data.count || 0)
+        const data: NotificationResponse = await response.json()
+        
+        // 좋아요, 댓글, 새로운 뉴스만 필터링
+        const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
+        const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
+        
+        // 읽지 않은 알림 개수만 계산
+        const unread = filteredNotifications.filter(n => !n.is_read).length || 0
+        setUnreadCount(unread)
       } else {
         console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
         setUnreadCount(0)
@@ -110,6 +127,31 @@ export default function NotificationBell() {
       }
     } catch (error) {
       console.error('알림 읽음 처리 실패:', error)
+    }
+  }
+
+  // 알림 클릭 시 해당 페이지로 이동
+  const handleNotificationClick = (notification: Notification) => {
+    // 읽음 처리
+    markAsRead(notification.id)
+    
+    // 알림 드롭다운 닫기
+    setIsOpen(false)
+    
+    // 타입별로 다른 페이지로 이동
+    if (notification.type === 'like' || notification.type === 'story_like' || 
+        notification.type === 'comment' || notification.type === 'story_comment') {
+      // 내 게시물에 좋아요/댓글이 달린 경우 → 게시물 페이지로
+      if (notification.related_id) {
+        router.push(`/community/post/${notification.related_id}`)
+      }
+    } else if (notification.type === 'new_post' || notification.type === 'new_news') {
+      // 새로운 뉴스 → 뉴스 페이지로
+      if (notification.related_id) {
+        router.push(`/community/news/${notification.related_id}`)
+      } else {
+        router.push('/community/news')
+      }
     }
   }
 
@@ -150,6 +192,9 @@ export default function NotificationBell() {
         return '❤️'
       case 'answer_accepted':
         return '✅'
+      case 'new_post':
+      case 'new_news':
+        return '📰'
       default:
         return '🔔'
     }
@@ -174,6 +219,9 @@ export default function NotificationBell() {
         return 'text-red-600'
       case 'answer_accepted':
         return 'text-green-600'
+      case 'new_post':
+      case 'new_news':
+        return 'text-blue-600'
       default:
         return 'text-gray-600'
     }
@@ -203,11 +251,21 @@ export default function NotificationBell() {
       fetchNotifications()
       fetchUnreadCount()
       
-      // 5분마다 알림 개수만 업데이트 (대폭 감소)
-      const interval = setInterval(fetchUnreadCount, 5 * 60 * 1000)
+      // 5초마다 읽지 않은 알림 개수 업데이트 (더 빠른 반응)
+      const interval = setInterval(fetchUnreadCount, 5000)
       return () => clearInterval(interval)
+    } else {
+      setNotifications([])
+      setUnreadCount(0)
     }
   }, [user?.id]) // user 객체 대신 user?.id만 의존성으로 사용
+
+  // 드롭다운이 열릴 때마다 최신 알림 가져오기
+  useEffect(() => {
+    if (isOpen && user) {
+      fetchNotifications()
+    }
+  }, [isOpen, user])
 
   return (
     <div className="relative">
@@ -271,7 +329,8 @@ export default function NotificationBell() {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 sm:p-4 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`p-3 sm:p-4 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
                     !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}
                 >
@@ -299,7 +358,10 @@ export default function NotificationBell() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => markAsRead(notification.id)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              markAsRead(notification.id)
+                            }}
                             className="p-1 h-6 w-6 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
                           >
                             <Check className="w-3 h-3" />

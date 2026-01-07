@@ -291,24 +291,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
   const handleSubmitReply = async (parentId: string) => {
     if (!replyContent.trim() || submitting) return
 
-    // 인증 상태 확인
-    if (isVerified === false) {
-      alert(language === 'ko' 
-        ? '댓글을 작성하려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
-        : 'Se requiere verificación para comentar. Complete la verificación en el centro de verificación.'
-      )
-      return
-    }
-
-    // 인증 상태가 아직 확인 중인 경우
-    if (isVerified === null) {
-      alert(language === 'ko' 
-        ? '인증 상태를 확인하는 중입니다. 잠시 후 다시 시도해주세요.'
-        : 'Verificando estado de autenticación. Por favor, intente de nuevo en un momento.'
-      )
-      return
-    }
-
+    // 로그인 체크만 (인증 불필요)
     if (!token) {
       alert(language === 'ko' 
         ? '로그인이 필요합니다.'
@@ -702,16 +685,6 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
       {/* 댓글 작성 폼 */}
       {user ? (
         <div className="px-4 py-3 md:py-4 border-t border-gray-200">
-          {isVerified === false && (
-            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-xs md:text-sm text-yellow-800 text-center">
-                {language === 'ko' 
-                  ? '⚠️ 댓글을 작성하려면 인증이 필요합니다. 인증센터에서 인증을 완료해주세요.'
-                  : '⚠️ Se requiere verificación para comentar. Complete la verificación en el centro de verificación.'
-                }
-              </p>
-            </div>
-          )}
           <div 
             className="flex space-x-3"
             onFocus={() => {
@@ -759,7 +732,6 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
                 rows={3}
                 maxLength={1000}
-                disabled={isVerified === false}
               />
               <div className="flex justify-between items-center mt-2">
                 <span className="text-[10px] md:text-xs text-gray-500">
@@ -767,7 +739,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                 </span>
                 <Button
                   onClick={handleSubmitComment}
-                  disabled={submitting || !commentContent.trim() || isVerified === false}
+                  disabled={submitting || !commentContent.trim()}
                   size="sm"
                   className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 py-1.5 md:px-4 md:py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >

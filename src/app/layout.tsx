@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import ScrollToTop from '@/components/common/ScrollToTop'
 import CustomBanner from '@/components/layout/CustomBanner'
 import GlobalChatButton from '@/components/common/GlobalChatButton'
+import FaviconBadge from '@/components/common/FaviconBadge'
 import HistoryManager from '@/components/common/HistoryManager'
 import DeepLinkHandler from '@/components/common/DeepLinkHandler'
 import { AuthProvider } from '@/context/AuthContext'
@@ -164,6 +165,7 @@ export default function RootLayout({
                   <Footer />
                   <ScrollToTop />
                   <GlobalChatButton />
+                  <FaviconBadge />
                 </UserProvider>
               </LanguageProvider>
             </AuthProvider>

@@ -25,19 +25,24 @@ export default function GlobalChatButton() {
   const [amikoRoom, setAmikoRoom] = useState<ChatRoom | null>(null)
   const [loading, setLoading] = useState(false)
   const [hasUnread, setHasUnread] = useState(false) // 읽지 않은 메시지 존재 여부
+  const [unreadCount, setUnreadCount] = useState(0) // 읽지 않은 메시지 개수
   const { user, loading: authLoading } = useAuth()
   const { t, language } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
 
-  // 아미코 채팅방 ID 가져오기
+  // 아미코 채팅방 ID 가져오기 (읽지 않은 메시지 확인을 위해 항상 가져와야 함)
   useEffect(() => {
     // 인증센터 페이지에서는 채팅방 정보 가져오지 않음
     if (pathname?.startsWith('/verification')) {
       return
     }
+    
     const fetchAmikoRoom = async () => {
-      if (!user) return
+      if (!user) {
+        setAmikoRoom(null)
+        return
+      }
       
       try {
         setLoading(true)
@@ -67,19 +72,25 @@ export default function GlobalChatButton() {
           
           if (amikoRoomData) {
             setAmikoRoom(amikoRoomData)
+          } else {
+            setAmikoRoom(null)
           }
         }
       } catch (error) {
         console.error('아미코 채팅방 조회 실패:', error)
+        setAmikoRoom(null)
       } finally {
         setLoading(false)
       }
     }
 
-    if (isOpen && user) {
+    // 채팅방이 열려있지 않아도 읽지 않은 메시지 확인을 위해 채팅방 정보는 가져와야 함
+    if (user) {
       fetchAmikoRoom()
+    } else {
+      setAmikoRoom(null)
     }
-  }, [isOpen, user])
+  }, [user, pathname])
 
   // 읽지 않은 메시지 확인
   useEffect(() => {
@@ -91,11 +102,13 @@ export default function GlobalChatButton() {
     // 채팅방이 열려있으면 읽지 않은 메시지 확인하지 않음
     if (isOpen) {
       setHasUnread(false)
+      setUnreadCount(0)
       return
     }
 
     if (!user || !amikoRoom?.id) {
       setHasUnread(false)
+      setUnreadCount(0)
       return
     }
 
@@ -110,10 +123,12 @@ export default function GlobalChatButton() {
         if (data.success) {
           console.log('[GlobalChatButton] 읽지 않은 메시지 확인:', {
             hasUnread: data.hasUnread,
+            unreadCount: data.unreadCount,
             roomId: amikoRoom.id,
             userId: user.id
           })
           setHasUnread(data.hasUnread)
+          setUnreadCount(data.unreadCount || 0)
         }
       } catch (error) {
         console.error('[GlobalChatButton] 읽지 않은 메시지 확인 실패:', error)
@@ -212,12 +227,14 @@ export default function GlobalChatButton() {
         ) : (
           <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
         )}
-        {/* 읽지 않은 메시지 빨간 점 표시 */}
-        {hasUnread && !isOpen && (
+        {/* 읽지 않은 메시지 숫자 배지 표시 */}
+        {hasUnread && !isOpen && unreadCount > 0 && (
           <span 
-            className="absolute -top-0.5 -left-0.5 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white shadow-lg animate-pulse"
-            title={language === 'ko' ? '읽지 않은 메시지가 있습니다' : 'Tienes mensajes no leídos'}
-          />
+            className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full border-2 border-white shadow-lg flex items-center justify-center"
+            title={language === 'ko' ? `읽지 않은 메시지 ${unreadCount}개` : `${unreadCount} mensajes no leídos`}
+          >
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
         )}
       </button>
 
