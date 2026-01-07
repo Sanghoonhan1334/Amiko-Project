@@ -17,6 +17,7 @@ interface AuthContextType {
   token: string | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: unknown }>
+  signInWithGoogle: () => Promise<{ error: unknown }>
   signUp: (email: string, password: string) => Promise<{ error: unknown }>
   signOut: () => Promise<void>
   refreshSession: () => Promise<boolean>
@@ -29,22 +30,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null)
-  
+  const [supabase, setSupabase] = useState<ReturnType<typeof createSupabaseBrowserClient> | null>(null)
+
   // 사용자 프로필 정보 (is_admin 포함) 가져오기
   const fetchUserProfile = async (baseUser: User): Promise<ExtendedUser | null> => {
     try {
       console.log('[AUTH] 사용자 프로필 정보 가져오기:', baseUser.email)
       const response = await fetch(`/api/profile?userId=${baseUser.id}`)
       const result = await response.json()
-      
+
       if (response.ok && result.user) {
         console.log('[AUTH] 프로필 정보:', {
           is_admin: result.user.is_admin,
           is_korean: result.user.is_korean,
           full_name: result.user.full_name
         })
-        
+
         return {
           ...baseUser,
           is_admin: result.user.is_admin || false,
@@ -59,17 +60,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('[AUTH] 프로필 정보 가져오기 실패:', error)
     }
-    
+
     // 실패 시 null 반환 (프로필이 없음을 의미)
     return null
   }
-  
+
   // 사용자 프로필 언어 가져오기
   const fetchUserLanguage = async (userId: string) => {
     try {
       const response = await fetch(`/api/profile?userId=${userId}`)
       const result = await response.json()
-      
+
       if (response.ok && result.user?.language) {
         console.log('[AUTH] 사용자 프로필 언어:', result.user.language)
         // LanguageContext의 setUserLanguage 함수 호출 (동적 import)
@@ -124,17 +125,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         console.log('[AUTH] 인증 초기화 시작')
-        
+
         // 먼저 로컬 스토리지에서 세션 복구 시도
         const savedSession = localStorage.getItem('amiko_session')
         if (savedSession) {
           try {
             const sessionData = JSON.parse(savedSession)
             const now = Math.floor(Date.now() / 1000)
-            
+
             if (sessionData.expires_at > now) {
               console.log('[AUTH] 로컬 세션으로 인증 상태 복구:', sessionData.user.email)
-              
+
               // 프로필 정보 포함하여 user 설정
               const extendedUser = await fetchUserProfile(sessionData.user)
               setUser(extendedUser)
@@ -142,15 +143,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 user: sessionData.user,
                 expires_at: sessionData.expires_at
               } as Session)
-              
+
               // Revisit tracking for returning users
-              trackRevisit(sessionData.user.id)
-              
+              trackRevisit()
+
               // 백그라운드에서 Supabase 세션 확인 및 갱신
               setTimeout(async () => {
                 try {
                   const { data: { session }, error } = await supabase.auth.getSession()
-                  
+
                   if (error) {
                     // Refresh token 에러는 조용히 처리
                     if (error.message?.includes('Refresh Token')) {
@@ -160,15 +161,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }
                     return
                   }
-                  
+
                   if (session) {
                     console.log('[AUTH] Supabase 세션 확인됨, 상태 동기화')
                     setSession(session)
-                    
+
                     // 프로필 정보 포함하여 user 설정
                     const extendedUser = await fetchUserProfile(session.user)
                     setUser(extendedUser)
-                    
+
                     // 로컬 스토리지 업데이트
                     const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
                     localStorage.setItem('amiko_session', JSON.stringify({
@@ -183,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   console.log('[AUTH] Supabase 세션 확인 중 예외, 로컬 세션 유지')
                 }
               }, 1000)
-              
+
               console.log('[AUTH] 로컬 세션으로 인증 상태 복구 완료')
               setLoading(false)
               return
@@ -200,19 +201,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 로컬 세션이 없으면 Supabase에서 세션 확인
         const { data: { session }, error } = await supabase.auth.getSession()
         console.log('[AUTH] Supabase 세션 확인:', session ? '있음' : '없음')
-        
+
         if (session && !error) {
           console.log('[AUTH] Supabase 세션으로 인증 상태 설정')
           setSession(session)
-          
+
           // 프로필 정보 포함하여 user 설정
           const extendedUser = await fetchUserProfile(session.user)
-          
+
           if (!extendedUser) {
             // 프로필이 없으면 public.users에 사용자가 없음 (삭제된 계정)
             console.warn('[AUTH] 프로필이 없음 - auth.users에만 존재하는 orphaned 계정 감지')
             console.log('[AUTH] 세션 무효화 및 auth.users에서 삭제 시도')
-            
+
             // 세션 무효화 및 auth.users에서 삭제를 위한 API 호출
             try {
               const cleanupResponse = await fetch('/api/auth/cleanup-orphaned-session', {
@@ -220,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: session.user.id })
               })
-              
+
               if (cleanupResponse.ok) {
                 console.log('[AUTH] Orphaned 세션 정리 완료')
               } else {
@@ -229,7 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } catch (cleanupError) {
               console.error('[AUTH] Orphaned 세션 정리 중 오류:', cleanupError)
             }
-            
+
             // 세션 무효화 및 로그아웃
             await supabase.auth.signOut()
             localStorage.removeItem('amiko_session')
@@ -238,10 +239,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('[AUTH] 세션 무효화 완료')
           } else {
             setUser(extendedUser)
-            
+
             // 사용자 프로필 언어 가져오기
             await fetchUserLanguage(session.user.id)
-            
+
             // 로컬 스토리지에 저장 (더 긴 만료시간으로)
             const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60) // 30일 추가
             localStorage.setItem('amiko_session', JSON.stringify({
@@ -256,7 +257,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('[AUTH] Supabase 세션 없음, 로컬 스토리지 정리')
           localStorage.removeItem('amiko_session')
         }
-        
+
         setLoading(false)
       } catch (error) {
         console.error('[AUTH] 인증 초기화 실패:', error)
@@ -274,7 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           console.log('[AUTH] 인증 상태 변경:', event)
         }
-        
+
         // Refresh token 에러로 인한 SIGNED_OUT은 무시하고 로컬 세션 유지
         if (event === 'SIGNED_OUT' && !session) {
           const savedSession = localStorage.getItem('amiko_session')
@@ -282,7 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               const sessionData = JSON.parse(savedSession)
               const now = Math.floor(Date.now() / 1000)
-              
+
               // 로컬 세션이 아직 유효하면 유지
               if (sessionData.expires_at > now) {
                 console.log('[AUTH] Refresh token 만료로 인한 SIGNED_OUT, 로컬 세션 유지')
@@ -294,15 +295,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }
-        
+
         if (session) {
           // 세션 설정
           setSession(session)
-          
+
           // 프로필 정보 포함하여 user 설정
           const extendedUser = await fetchUserProfile(session.user)
           setUser(extendedUser)
-          
+
           // 로컬 스토리지 업데이트 (간소화)
           const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
           localStorage.setItem('amiko_session', JSON.stringify({
@@ -310,16 +311,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             expires_at: extendedExpiry,
             original_expires_at: session.expires_at
           }))
-          
+
+          // 토큰 저장 (OAuth 로그인 포함)
+          localStorage.setItem('amiko_token', session.access_token)
+
           // Revisit tracking for returning users
-          trackRevisit(session.user.id)
+          trackRevisit()
         } else {
           // 세션 정리
           setUser(null)
           setSession(null)
           localStorage.removeItem('amiko_session')
         }
-        
+
         setLoading(false)
       }
     )
@@ -329,21 +333,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     console.log('[AUTH] 로그인 시도:', { email, passwordLength: password.length });
-    
+
     if (!supabase) {
       console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
       return { error: new Error('Supabase 클라이언트가 초기화되지 않음') };
     }
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       if (error) {
         console.error('[AUTH] 로그인 실패:', error);
-        
+
         // 로컬 스토리지 초기화 (사용자가 삭제된 경우)
         if (error.message.includes('Invalid login credentials')) {
           try {
@@ -354,20 +358,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.warn('[AUTH] 로컬 스토리지 초기화 실패:', e);
           }
         }
-        
+
         return { error };
       }
-      
+
       if (data.session && data.user) {
         console.log('[AUTH] 로그인 성공:', data.user.email);
-        
+
         // 세션 설정
         setSession(data.session);
-        
+
         // 프로필 정보 포함하여 user 설정
         const extendedUser = await fetchUserProfile(data.user);
         setUser(extendedUser);
-        
+
         // 로컬 스토리지에 세션 저장 (30일 연장)
         const extendedExpiry = data.session.expires_at + (30 * 24 * 60 * 60); // 30일 추가
         localStorage.setItem('amiko_session', JSON.stringify({
@@ -375,16 +379,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           expires_at: extendedExpiry,
           original_expires_at: data.session.expires_at
         }));
-        
+
         // 토큰도 별도로 저장 (verification 페이지에서 사용)
         localStorage.setItem('amiko_token', data.session.access_token);
-        
+
         // Revisit tracking for returning users
-        trackRevisit(data.user.id);
-        
+        trackRevisit()
+
         console.log('[AUTH] 세션과 토큰을 로컬 스토리지에 저장 완료 (30일 연장)');
       }
-      
+
       return { data, error: null };
     } catch (err) {
       console.error('[AUTH] 로그인 예외 발생:', err);
@@ -392,25 +396,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string) => {
-    console.log('[AUTH] 회원가입 시도:', { email, passwordLength: password.length });
-    
+  const signInWithGoogle = async () => {
+    console.log('[AUTH] Google 로그인 시도');
+
     if (!supabase) {
       console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
       return { error: new Error('Supabase 클라이언트가 초기화되지 않음') };
     }
-    
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        console.error('[AUTH] Google 로그인 실패:', error);
+        return { error };
+      }
+
+      console.log('[AUTH] Google OAuth 리다이렉트 시작');
+      return { error: null };
+    } catch (err) {
+      console.error('[AUTH] Google 로그인 예외 발생:', err);
+      return { error: err };
+    }
+  }
+
+  const signUp = async (email: string, password: string) => {
+    console.log('[AUTH] 회원가입 시도:', { email, passwordLength: password.length });
+
+    if (!supabase) {
+      console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
+      return { error: new Error('Supabase 클라이언트가 초기화되지 않음') };
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
       });
-      
+
       if (error) {
         console.error('[AUTH] 회원가입 실패:', error);
         return { error };
       }
-      
+
       console.log('[AUTH] 회원가입 성공');
       return { error: null };
     } catch (err) {
@@ -421,7 +454,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     console.log('[AUTH] 로그아웃 시작')
-    
+
     // 1. 서버 측 쿠키 삭제를 위해 로그아웃 API 호출
     try {
       await fetch('/api/auth/logout', {
@@ -432,7 +465,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('[AUTH] 서버 측 로그아웃 오류:', error)
     }
-    
+
     // 2. 클라이언트 측 Supabase 로그아웃
     if (supabase) {
       try {
@@ -442,17 +475,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('[AUTH] 클라이언트 측 Supabase 로그아웃 오류:', error)
       }
     }
-    
+
     // 3. 사용자 상태 초기화
     setUser(null)
     setSession(null)
     setLoading(false)
-    
+
     // 4. 모든 스토리지 정리
     if (typeof window !== 'undefined') {
       localStorage.clear()
       sessionStorage.clear()
-      
+
       // Supabase 관련 쿠키도 명시적으로 삭제 시도
       document.cookie.split(";").forEach((c) => {
         const cookieName = c.trim().split("=")[0]
@@ -463,9 +496,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
     }
-    
+
     console.log('[AUTH] 로그아웃 완료, 상태 초기화됨')
-    
+
     // 5. 로그인 페이지로 리다이렉트 (새로고침 대신)
     if (typeof window !== 'undefined') {
       window.location.href = '/sign-in'
@@ -478,19 +511,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('[AUTH] Supabase 클라이언트가 초기화되지 않음');
       return false;
     }
-    
+
     try {
       console.log('[AUTH] 세션 갱신 시도...')
       const { data: { session }, error } = await supabase.auth.refreshSession()
-      
+
       if (session && !error) {
         console.log('[AUTH] 세션 갱신 성공')
         setSession(session)
-        
+
         // 프로필 정보 포함하여 user 설정
         const extendedUser = await fetchUserProfile(session.user)
         setUser(extendedUser)
-        
+
         // 로컬 스토리지 업데이트 (30일 연장)
         const extendedExpiry = session.expires_at + (30 * 24 * 60 * 60)
         localStorage.setItem('amiko_session', JSON.stringify({
@@ -498,10 +531,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           expires_at: extendedExpiry,
           original_expires_at: session.expires_at
         }))
-        
+
         // 토큰도 업데이트
         localStorage.setItem('amiko_token', session.access_token)
-        
+
         console.log('[AUTH] 세션 갱신 완료 - 로컬 스토리지 업데이트됨')
         return true
       } else {
@@ -521,6 +554,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     error,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     refreshSession

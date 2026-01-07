@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  ArrowRight, 
-  User, 
-  Lock, 
-  Eye, 
+import {
+  ArrowRight,
+  User,
+  Lock,
+  Eye,
   EyeOff,
   Mail
 } from 'lucide-react'
@@ -27,7 +27,7 @@ import { Capacitor } from '@capacitor/core'
 export default function SignInPage() {
   const BIOMETRIC_ENABLED = process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true'
   const router = useRouter()
-  const { signIn } = useAuth()
+  const { signIn, signInWithGoogle } = useAuth()
   const { t, language } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -35,7 +35,7 @@ export default function SignInPage() {
     identifier: '',
     password: ''
   })
-  
+
   const [isWebAuthnSupported, setIsWebAuthnSupported] = useState(false)
   const [showBiometricSetupModal, setShowBiometricSetupModal] = useState(false)
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null)
@@ -46,7 +46,7 @@ export default function SignInPage() {
   // 로그인 페이지 방문 이벤트
   useEffect(() => {
     signInEvents.visitLogin()
-    
+
     // 히스토리 초기화 - 모바일 뒤로가기 방지
     if (typeof window !== 'undefined') {
       // 히스토리가 비어있으면 랜딩 페이지를 히스토리에 추가
@@ -55,28 +55,28 @@ export default function SignInPage() {
         window.history.pushState({ index: 1 }, '', '/sign-in')
       }
     }
-    
+
     // 쿼리 파라미터 확인
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      
+
       // accountDeleted 쿼리 파라미터 확인
       if (params.get('accountDeleted') === '1') {
         setShowDeleteSuccess(true)
         // URL에서 쿼리 파라미터 제거 (깔끔한 URL 유지)
         router.replace('/sign-in', { scroll: false })
       }
-      
+
       // OAuth 에러 처리
       const error = params.get('error')
       const errorDescription = params.get('error_description')
       if (error) {
         console.error('[SIGNIN] OAuth 에러 감지:', error, errorDescription)
-        
+
         let errorMessage = ''
         if (error === 'access_denied' || error === 'user_cancelled') {
-          errorMessage = language === 'ko' 
-            ? 'Google 로그인이 취소되었습니다.' 
+          errorMessage = language === 'ko'
+            ? 'Google 로그인이 취소되었습니다.'
             : 'Inicio de sesión con Google cancelado.'
         } else if (error === 'missing_code') {
           errorMessage = language === 'ko'
@@ -95,13 +95,13 @@ export default function SignInPage() {
             ? '예상치 못한 오류가 발생했습니다. 다시 시도해주세요.'
             : 'Ocurrió un error inesperado. Por favor, inténtelo de nuevo.'
         } else {
-          errorMessage = errorDescription 
+          errorMessage = errorDescription
             ? (language === 'ko' ? `오류: ${errorDescription}` : `Error: ${errorDescription}`)
             : (language === 'ko' ? 'Google 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
         }
-        
+
         alert(errorMessage)
-        
+
         // URL에서 쿼리 파라미터 제거
         router.replace('/sign-in', { scroll: false })
       }
@@ -117,29 +117,29 @@ export default function SignInPage() {
     // WebAuthn 지원 여부 확인
     const support = checkWebAuthnSupport()
     setIsWebAuthnSupported(support.isSupported)
-    
+
     console.log('[SIGNIN] WebAuthn 지원 여부:', support.isSupported)
-    
+
     // 마지막 로그인 사용자 확인
     const checkLastUser = async () => {
       const lastUserId = localStorage.getItem('amiko_last_user_id')
       console.log('[SIGNIN] localStorage에서 사용자 ID 확인:', lastUserId)
-      
+
       if (lastUserId && support.isSupported) {
         setSavedUserId(lastUserId)
-        
+
         // 해당 사용자의 지문 등록 여부 확인
         try {
           console.log('[SIGNIN] 지문 등록 여부 확인 시작:', lastUserId)
           const biometricCheck = await fetch(`/api/auth/biometric?userId=${lastUserId}`)
           const biometricData = await biometricCheck.json()
-          
+
           console.log('[SIGNIN] 지문 등록 여부 API 응답:', {
             success: biometricData.success,
             dataLength: biometricData.data?.length || 0,
             data: biometricData.data
           })
-          
+
           if (biometricData.success && biometricData.data && biometricData.data.length > 0) {
             console.log('[SIGNIN] 지문 인증 사용 가능 - 버튼 표시')
             setCanUseBiometric(true)
@@ -162,7 +162,7 @@ export default function SignInPage() {
         })
       }
     }
-    
+
     checkLastUser()
   }, [])
 
@@ -171,13 +171,13 @@ export default function SignInPage() {
       ...prev,
       [field]: value
     }))
-    
+
     // 로그인 퍼널 이벤트: 이메일 입력
     if (field === 'identifier' && value.length > 0) {
       signInEvents.enterEmail()
       signInEvents.enterLoginEmail()
     }
-    
+
     // 로그인 퍼널 이벤트: 비밀번호 입력
     if (field === 'password' && value.length > 0) {
       signInEvents.enterPassword()
@@ -215,7 +215,7 @@ export default function SignInPage() {
       }
 
       console.log('[SIGNIN] 로그인 성공 응답:', result)
-      
+
       // 로그인 퍼널 이벤트: 로그인 성공
       const userId = result.data?.user?.id || result.user?.id
       const userEmail = result.data?.user?.email || result.user?.email
@@ -223,11 +223,11 @@ export default function SignInPage() {
       signInEvents.loginSuccess(userId, 'email')
       // Standardized event
       trackLoginSuccess(userId, 'email')
-      
+
       // API 응답 구조: result.data.user.id (이미 위에서 추출됨)
       console.log('[SIGNIN] 추출된 사용자 ID:', userId)
       console.log('[SIGNIN] 추출된 사용자 이메일:', userEmail)
-      
+
       // API가 실제 인증을 수행하므로, 클라이언트에서 추가 인증 시도 필요 없음
       // 세션은 서버에서 쿠키로 설정되었으므로, 클라이언트 세션도 업데이트하기 위해 signIn 호출
       // 이메일 로그인만 지원
@@ -236,14 +236,14 @@ export default function SignInPage() {
         원본_identifier: formData.identifier,
         사용할_이메일: emailForSignIn
       })
-      
+
       // 클라이언트 세션 업데이트 시도
       const signInResult = await signIn(emailForSignIn, formData.password).catch(err => {
         // 이미 서버에서 인증되었으므로, 클라이언트 인증 실패는 무시
         console.log('[SIGNIN] 클라이언트 signIn 실패, 서버 세션 확인 시도:', err)
         return { error: err }
       })
-      
+
       // signIn이 실패했지만 서버에서 세션 쿠키를 설정했을 수 있으므로 세션 확인
       if (signInResult?.error) {
         console.log('[SIGNIN] 클라이언트 signIn 실패, 서버 세션에서 복원 시도')
@@ -251,7 +251,7 @@ export default function SignInPage() {
           // Supabase 클라이언트에서 세션 확인 (쿠키에서 자동으로 가져옴)
           const supabase = createSupabaseBrowserClient()
           const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-          
+
           if (session && !sessionError) {
             console.log('[SIGNIN] 서버 세션에서 복원 성공:', session.user.email)
             // 세션이 있으면 AuthContext가 자동으로 감지하여 업데이트됨
@@ -264,7 +264,7 @@ export default function SignInPage() {
           // 에러는 무시하고 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
         }
       }
-      
+
       // 마지막 로그인 사용자 ID 저장
       if (userId) {
         console.log('[SIGNIN] localStorage에 사용자 ID 저장:', userId)
@@ -273,19 +273,19 @@ export default function SignInPage() {
       } else {
         console.error('[SIGNIN] 사용자 ID를 찾을 수 없음:', result)
       }
-      
+
       // 지문 인증 지원하고, 아직 등록하지 않은 경우 모달 표시
       if (isWebAuthnSupported && userId) {
         // 지문 등록 여부 확인
         const biometricCheck = await fetch(`/api/auth/biometric?userId=${userId}`)
         const biometricData = await biometricCheck.json()
-        
+
         console.log('[SIGNIN] 로그인 후 지문 확인:', {
           success: biometricData.success,
           dataLength: biometricData.data?.length || 0,
           data: biometricData.data
         })
-        
+
         if (biometricData.success && biometricData.data && biometricData.data.length > 0) {
           // 이미 등록된 지문이 있으면 즉시 사용 가능으로 설정
           console.log('[SIGNIN] 이미 등록된 지문 있음 - canUseBiometric=true')
@@ -298,25 +298,25 @@ export default function SignInPage() {
           return // 모달이 닫힐 때까지 대기
         }
       }
-      
+
       // 세션이 제대로 설정되었는지 확인 (약간의 지연 후)
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       // Supabase 세션 최종 확인
       try {
         const supabase = createSupabaseBrowserClient()
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         if (!session && !sessionError) {
           console.warn('[SIGNIN] 세션이 아직 설정되지 않음, 잠시 대기 후 재확인')
           // 추가 대기 후 재확인
           await new Promise(resolve => setTimeout(resolve, 1000))
           const { data: { session: retrySession } } = await supabase.auth.getSession()
-          
+
           if (!retrySession) {
             console.error('[SIGNIN] 세션 설정 실패 - 사용자에게 알림')
-            alert(language === 'ko' 
-              ? '로그인은 성공했지만 세션이 설정되지 않았습니다. 페이지를 새로고침해주세요.' 
+            alert(language === 'ko'
+              ? '로그인은 성공했지만 세션이 설정되지 않았습니다. 페이지를 새로고침해주세요.'
               : 'El inicio de sesión fue exitoso pero la sesión no se configuró. Por favor, actualiza la página.')
             return
           }
@@ -325,28 +325,28 @@ export default function SignInPage() {
         console.error('[SIGNIN] 세션 확인 중 오류:', sessionCheckError)
         // 에러는 무시하고 진행 (서버 쿠키가 있으면 다음 페이지에서 복원됨)
       }
-      
+
       // 로그인 성공 후 redirect 처리
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search)
         const redirectPath = params.get('redirect')
-        
+
         // redirect 파라미터가 있으면 해당 경로로 이동
         if (redirectPath) {
           router.push(redirectPath)
           return
         }
       }
-      
+
       // redirect 파라미터가 없으면 메인 앱으로 이동
       router.push('/main')
-      
+
     } catch (error) {
       console.error('로그인 오류:', error)
-      
+
       // 사용자에게 더 친화적인 메시지 표시
       const errorMessage = error instanceof Error ? error.message : t('auth.signInError')
-      
+
       if (errorMessage.includes('이메일 또는 비밀번호가 올바르지 않습니다')) {
         alert(t('auth.credentialsCheckMessage'))
       } else {
@@ -357,6 +357,24 @@ export default function SignInPage() {
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    try {
+      // 로그인 퍼널 이벤트: Google 로그인 시도
+      signInEvents.loginAttempt()
+      trackLoginAttempt()
+
+      const result = await signInWithGoogle()
+
+      if (result.error) {
+        console.error('Google 로그인 오류:', result.error)
+        alert(language === 'ko' ? 'Google 로그인에 실패했습니다.' : 'Error al iniciar sesión con Google')
+      }
+      // 성공 시 OAuth 리다이렉트가 발생하므로 추가 처리 필요 없음
+    } catch (error) {
+      console.error('Google 로그인 예외:', error)
+      alert(language === 'ko' ? 'Google 로그인 중 오류가 발생했습니다.' : 'Error durante el inicio de sesión con Google')
+    }
+  }
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
@@ -364,7 +382,7 @@ export default function SignInPage() {
 
   const handleBiometricSetup = async () => {
     if (!loggedInUserId) return
-    
+
     setIsLoading(true)
     try {
       const result = await startBiometricRegistration(
@@ -372,14 +390,14 @@ export default function SignInPage() {
         formData.identifier,
         formData.identifier
       )
-      
+
       if (result.success) {
         console.log('[SIGNIN] 지문 등록 성공 - 상태 업데이트')
-        
+
         // 지문 등록 성공 시 즉시 상태 업데이트
         setSavedUserId(loggedInUserId)
         setCanUseBiometric(true)
-        
+
         alert(language === 'ko' ? '지문 인증이 등록되었습니다!' : '¡Autenticación de huella digital registrada!')
         setShowBiometricSetupModal(false)
         router.push('/main')
@@ -388,11 +406,11 @@ export default function SignInPage() {
       }
     } catch (error) {
       console.error('지문 등록 오류:', error)
-        alert(language === 'ko' 
-          ? '지문 등록에 실패했습니다. 나중에 마이페이지에서 다시 시도해주세요.' 
+        alert(language === 'ko'
+          ? '지문 등록에 실패했습니다. 나중에 마이페이지에서 다시 시도해주세요.'
           : 'Error al registrar huella digital. Inténtelo más tarde en Mi Perfil.')
         setShowBiometricSetupModal(false)
-        
+
         // redirect 처리
         if (typeof window !== 'undefined') {
           const params = new URLSearchParams(window.location.search)
@@ -410,7 +428,7 @@ export default function SignInPage() {
 
   const handleSkipBiometric = () => {
     setShowBiometricSetupModal(false)
-    
+
     // redirect 처리
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
@@ -425,20 +443,20 @@ export default function SignInPage() {
 
   const handleBiometricQuickLogin = async () => {
     if (!savedUserId) return
-    
+
     setIsLoading(true)
     try {
       console.log('[BIOMETRIC_LOGIN] 지문 로그인 시작:', { userId: savedUserId })
-      
+
       // 실제 WebAuthn 인증 플로우 시작
       const result = await startBiometricAuthentication(savedUserId)
-      
+
       if (!result.success) {
         throw new Error(result.error || '인증 실패')
       }
-      
+
       console.log('[BIOMETRIC_LOGIN] 지문 인증 성공:', result.data)
-      
+
       // 인증 성공 후 서버에서 세션 생성
       // 사용자 정보를 가져와서 세션 생성
       const sessionResponse = await fetch('/api/auth/biometric/session', {
@@ -449,15 +467,15 @@ export default function SignInPage() {
           credentialId: result.data?.id
         })
       })
-      
+
       const sessionResult = await sessionResponse.json()
-      
+
       if (!sessionResponse.ok || !sessionResult.success) {
         throw new Error(sessionResult.error || '세션 생성 실패')
       }
-      
+
       console.log('[BIOMETRIC_LOGIN] 세션 생성 성공:', sessionResult)
-      
+
       // AuthContext 업데이트를 위해 signIn 호출 (비밀번호 없이)
       // 서버에서 이미 세션이 생성되었으므로, 클라이언트 상태만 업데이트
       try {
@@ -468,15 +486,15 @@ export default function SignInPage() {
       } catch (err) {
         // 무시 - 서버 세션이 이미 있음
       }
-      
+
       // 로그인 성공 후 메인으로 이동
       router.push('/main')
-      
+
     } catch (error) {
       console.error('[BIOMETRIC_LOGIN] 지문 로그인 실패:', error)
-      
+
       const errorMessage = error instanceof Error ? error.message : ''
-      
+
       // 사용자 친화적인 에러 메시지
       if (errorMessage.includes('cancel') || errorMessage.includes('abort') || errorMessage.includes('취소')) {
         // 사용자가 취소한 경우 - 조용히 실패
@@ -485,12 +503,12 @@ export default function SignInPage() {
         // 등록된 인증기가 없는 경우
         setCanUseBiometric(false)
         localStorage.removeItem('amiko_last_user_id')
-        alert(language === 'ko' 
+        alert(language === 'ko'
           ? '등록된 지문 인증이 없습니다. 일반 로그인을 이용해주세요.'
           : 'No hay autenticación de huella registrada. Use el inicio de sesión normal.')
       } else {
         // 기타 오류
-        alert(language === 'ko' 
+        alert(language === 'ko'
           ? '지문 인증에 실패했습니다. 일반 로그인을 이용해주세요.'
           : 'Error en autenticación de huella. Use el inicio de sesión normal.')
       }
@@ -517,8 +535,8 @@ export default function SignInPage() {
                   {language === 'ko' ? '계정이 성공적으로 삭제되었습니다.' : 'La cuenta se ha eliminado correctamente.'}
                 </p>
                 <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-                  {language === 'ko' 
-                    ? '이메일과 비밀번호로 다시 가입하실 수 있습니다.' 
+                  {language === 'ko'
+                    ? '이메일과 비밀번호로 다시 가입하실 수 있습니다.'
                     : 'Puede registrarse nuevamente con su correo electrónico y contraseña.'}
                 </p>
               </div>
@@ -544,17 +562,12 @@ export default function SignInPage() {
         </CardHeader>
 
         <CardContent className="space-y-4 sm:space-y-6">
-          {/* 구글 로그인 버튼 - 일시 비활성화 */}
+          {/* 구글 로그인 버튼 */}
           <Button
             type="button"
             variant="outline"
-            className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors opacity-50 cursor-not-allowed"
-            onClick={() => {
-              alert(language === 'ko' 
-                ? 'Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
-                : 'El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.')
-            }}
-            disabled={true}
+            className="w-full border-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-900 dark:text-gray-100 py-3 text-base font-medium transition-colors"
+            onClick={handleGoogleSignIn}
           >
             <div className="flex items-center justify-center gap-3">
               {/* 구글 아이콘 SVG */}
@@ -581,14 +594,6 @@ export default function SignInPage() {
               </span>
             </div>
           </Button>
-          {/* 안내 메시지 */}
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
-            <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
-              {language === 'ko' 
-                ? '⚠️ Google 로그인은 현재 수리 중입니다. 수리 후 다시 사용할 수 있도록 열겠습니다.' 
-                : '⚠️ El inicio de sesión con Google está en mantenimiento. Lo abriremos nuevamente después de la reparación.'}
-            </p>
-          </div>
           {/* 구분선 */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -719,11 +724,11 @@ export default function SignInPage() {
                 {t('footer.help')}
               </a>
             </div>
-            
+
             <p className="text-sm text-slate-600 dark:text-gray-400">
               {t('auth.noAccount')}{' '}
-              <a 
-                href="/sign-up" 
+              <a
+                href="/sign-up"
                 onClick={() => trackCTAClick('signin_to_signup_link', window.location.href)}
                 className="text-slate-900 dark:text-gray-100 hover:text-slate-700 dark:hover:text-gray-300 font-medium"
               >
@@ -749,7 +754,7 @@ export default function SignInPage() {
                 {language === 'ko' ? '🔒 지문으로 빠르게 로그인하세요!' : '🔒 ¡Inicia sesión rápido con huella!'}
               </DialogTitle>
               <DialogDescription className="text-gray-600 text-sm">
-                {language === 'ko' 
+                {language === 'ko'
                   ? '다음부터 지문으로 간편하게 로그인할 수 있습니다. 안전하고 빠릅니다!'
                   : '¡Puedes iniciar sesión fácilmente con tu huella la próxima vez. Es seguro y rápido!'}
               </DialogDescription>
@@ -802,7 +807,7 @@ export default function SignInPage() {
                   </div>
                 )}
               </Button>
-              
+
               <Button
                 onClick={handleSkipBiometric}
                 variant="outline"
@@ -814,7 +819,7 @@ export default function SignInPage() {
 
             {/* 작은 안내 */}
             <p className="text-xs text-center text-gray-500">
-              {language === 'ko' 
+              {language === 'ko'
                 ? '마이페이지 > 보안 설정에서 언제든지 등록할 수 있습니다.'
                 : 'Puedes registrar en cualquier momento en Mi Perfil > Seguridad.'}
             </p>
