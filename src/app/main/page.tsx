@@ -421,10 +421,10 @@ function AppPageContent() {
             )}
 
             {activeTab === 'dance' && (
-              <div className="pb-20 md:pb-8 pt-24 sm:pt-36">
+              <div className="pb-4 md:pb-8 pt-16 sm:pt-36">
                 {/* 웹: 섹션 카드로 감싸기 */}
                 <div className="hidden md:block">
-                  <div className="card dark:bg-gray-800 dark:border-gray-700 px-8 py-8 -mt-12 sm:mt-0 relative">
+                  <div className="card dark:bg-gray-800 dark:border-gray-700 px-2 py-8 -mt-12 sm:mt-0 relative">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-12 h-12 rounded-3xl flex items-center justify-center overflow-hidden bg-purple-100 dark:bg-purple-900/30">
                         <Music className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -440,8 +440,8 @@ function AppPageContent() {
                 </div>
                 
                 {/* 모바일: 섹션 카드 없이 */}
-                <div className="block md:hidden pt-4">
-                  <div className="px-4 pt-4">
+                <div className="block md:hidden pt-0">
+                  <div className="px-0 pt-0">
                     <DanceTab />
                   </div>
                 </div>

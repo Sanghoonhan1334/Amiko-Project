@@ -2417,7 +2417,7 @@ export const translations = {
     dance: {
       guide: {
         title: '가이드',
-        button: 'Guía',
+        button: '가이드',
         step1: '매주 다른 플레이리스트가 올라옵니다!',
         step2: '가이드 영상을 보고 댄스를 올려주세요!',
         step3: '매주 일요일 자정까지 올려주신 영상을 유튜브에 모아 업로드합니다! (동의 하신분 한해서)',
@@ -2439,7 +2439,7 @@ export const translations = {
         submit: '업로드'
       },
       share: {
-        button: 'Compartir',
+        button: '공유',
         title: '댄스 탭 공유',
         text: 'AMIKO 댄스 탭을 확인해보세요!',
         copied: '링크가 클립보드에 복사되었습니다.'

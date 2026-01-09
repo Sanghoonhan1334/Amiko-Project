@@ -2018,7 +2018,7 @@ export default function RandomPlayDanceSection({
         </div>
       </Card>
       ) : (
-        <div className="pt-2 pb-2 px-2 md:p-6 md:pt-6">
+        <div className="pt-0 pb-0 px-0 md:px-2 md:pt-6 md:pb-6">
           <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
             {/* 가운데: 플레이리스트 */}
             <div className="order-1 lg:order-1 lg:col-span-2 lg:mx-auto lg:max-w-2xl">

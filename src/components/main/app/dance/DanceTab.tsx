@@ -121,7 +121,7 @@ export default function DanceTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 md:space-y-6">
       {/* 플레이리스트 섹션 */}
       <RandomPlayDanceSection
         playlist={dancePlaylist}
