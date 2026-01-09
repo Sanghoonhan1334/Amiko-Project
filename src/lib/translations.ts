@@ -2413,6 +2413,39 @@ export const translations = {
       completeGuide: '• 인증 완료 후 회원가입이 완료됩니다'
     },
 
+    // 댄스 탭
+    dance: {
+      guide: {
+        title: '가이드',
+        button: 'Guía',
+        step1: '매주 다른 플레이리스트가 올라옵니다!',
+        step2: '가이드 영상을 보고 댄스를 올려주세요!',
+        step3: '매주 일요일 자정까지 올려주신 영상을 유튜브에 모아 업로드합니다! (동의 하신분 한해서)',
+        footer: 'Amiko에서 글로벌 KPOP팬들과 함께 랜덤플레이 댄스를 즐겨보시고 유튜브에서 본인 영상을 확인해보세요 :)'
+      },
+      upload: {
+        button: '업로드',
+        title: '영상 업로드',
+        description: '비디오 파일을 선택하여 업로드하세요.',
+        videoFile: '비디오 파일',
+        thumbnailFile: '썸네일 이미지 (선택)',
+        selectVideo: '비디오 파일 선택',
+        selectThumbnail: '썸네일 이미지 선택',
+        videoSizeLimit: '최대 100MB',
+        imageSizeLimit: '최대 5MB',
+        titleInput: '제목 (선택)',
+        titlePlaceholder: '영상 제목을 입력하세요',
+        uploading: '업로드 중...',
+        submit: '업로드'
+      },
+      share: {
+        button: 'Compartir',
+        title: '댄스 탭 공유',
+        text: 'AMIKO 댄스 탭을 확인해보세요!',
+        copied: '링크가 클립보드에 복사되었습니다.'
+      }
+    },
+
     // 프로필 관련
     profile: {
       title: '프로필',
@@ -6146,6 +6179,39 @@ export const translations = {
       whatsappGuide: '• La verificación por WhatsApp recibe un código de 6 dígitos por mensaje',
       smsGuide: '• La verificación por SMS recibe un código de 6 dígitos por mensaje de texto',
       completeGuide: '• El registro se completa después de la verificación'
+    },
+
+    // 댄스 탭
+    dance: {
+      guide: {
+        title: 'Guía',
+        button: 'Guía',
+        step1: '¡Cada semana se sube una playlist diferente!',
+        step2: '¡Mira el video guía y sube tu baile!',
+        step3: '¡Cada domingo a medianoche, subimos todos los videos que subiste a YouTube! (solo para quienes dieron su consentimiento)',
+        footer: 'Disfruta del Random Play Dance con fans globales de KPOP en Amiko y revisa tu video en YouTube :)'
+      },
+      upload: {
+        button: 'Subir',
+        title: 'Subir Video',
+        description: 'Selecciona un archivo de video para subir.',
+        videoFile: 'Archivo de Video',
+        thumbnailFile: 'Imagen de Miniatura (Opcional)',
+        selectVideo: 'Seleccionar archivo de video',
+        selectThumbnail: 'Seleccionar imagen de miniatura',
+        videoSizeLimit: 'Máx 100MB',
+        imageSizeLimit: 'Máx 5MB',
+        titleInput: 'Título (Opcional)',
+        titlePlaceholder: 'Ingresa el título del video',
+        uploading: 'Subiendo...',
+        submit: 'Subir'
+      },
+      share: {
+        button: 'Compartir',
+        title: 'Compartir pestaña Dance',
+        text: '¡Echa un vistazo a la pestaña Dance de AMIKO!',
+        copied: 'El enlace ha sido copiado al portapapeles.'
+      }
     }
   }
 }

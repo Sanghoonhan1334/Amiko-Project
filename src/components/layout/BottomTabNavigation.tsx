@@ -12,7 +12,7 @@ import {
   Zap,
   ShoppingBag,
   Calendar,
-  GraduationCap
+  Music
 } from 'lucide-react'
 
 export default function BottomTabNavigation() {
@@ -67,10 +67,10 @@ export default function BottomTabNavigation() {
       path: '/main?tab=home'
     },
     {
-      id: 'educacion',
-      label: t('headerNav.educacion'),
-      icon: GraduationCap,
-      path: '/main?tab=educacion'
+      id: 'dance',
+      label: t('language') === 'ko' ? '댄스' : 'Dance',
+      icon: Music,
+      path: '/main?tab=dance'
     },
     {
       id: 'me',

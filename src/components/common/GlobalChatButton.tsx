@@ -118,6 +118,12 @@ export default function GlobalChatButton() {
           `/api/chat/unread-check?roomId=${amikoRoom.id}&userId=${user.id}`,
           { cache: 'no-store' }
         )
+        
+        if (!response.ok) {
+          console.warn('[GlobalChatButton] 읽지 않은 메시지 확인 실패:', response.status)
+          return
+        }
+        
         const data = await response.json()
         
         if (data.success) {
@@ -131,7 +137,12 @@ export default function GlobalChatButton() {
           setUnreadCount(data.unreadCount || 0)
         }
       } catch (error) {
-        console.error('[GlobalChatButton] 읽지 않은 메시지 확인 실패:', error)
+        // 네트워크 에러는 조용히 처리 (API가 없거나 연결 실패 시)
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          console.warn('[GlobalChatButton] 네트워크 연결 실패 - API 엔드포인트를 확인하세요')
+        } else {
+          console.error('[GlobalChatButton] 읽지 않은 메시지 확인 실패:', error)
+        }
       }
     }
 
