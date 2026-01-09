@@ -1392,10 +1392,10 @@ export default function RandomPlayDanceSection({
           </div>
         )}
         <div className="overflow-hidden">
-          <CardContent className="pt-2 pb-2 px-2 md:p-6 md:pt-6">
+          <CardContent className="pt-2 pb-1 px-2 md:p-6 md:pt-6 md:pb-2">
             <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
-            {/* 가운데: 플레이리스트 */}
-            <div className="order-1 lg:order-1 lg:col-span-2 lg:mx-auto lg:max-w-2xl">
+            {/* 왼쪽: 플레이리스트 */}
+            <div className="order-1 lg:order-1">
               {/* Playlist 헤더 - 플레이리스트 박스 밖 */}
               <div className="flex items-center justify-center mb-3 md:mb-4 relative">
                 <div className="flex items-center gap-2">
@@ -1889,7 +1889,7 @@ export default function RandomPlayDanceSection({
               </div>
             </div>
             
-            {/* 오른쪽: 비디오 그리드 */}
+            {/* 오른쪽: 비디오 그리드 또는 목업 이미지 */}
             {!hideVideoGrid && (
             <div className="order-2 lg:order-2 flex flex-col">
               {videos.length > 0 ? (
@@ -2013,15 +2013,103 @@ export default function RandomPlayDanceSection({
               ) : null}
             </div>
             )}
+            {/* 목업 이미지와 CTA 박스 (hideVideoGrid가 true일 때 표시) */}
+            {hideVideoGrid && (
+              <div className="order-2 lg:order-2 flex flex-col">
+                <div className="relative w-full mb-4">
+                  <Image
+                    src="/images/random-play-dance-grid-mockup.png.png"
+                    alt="K-POP Random Play Dance"
+                    width={600}
+                    height={800}
+                    className="w-full h-auto rounded-lg"
+                  />
+                </div>
+                {/* CTA 박스 (hideCTA가 false일 때만 표시) */}
+                {!hideCTA && (
+                  <div className="relative bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700 rounded-lg py-2 px-4 md:py-3 md:px-6 mb-1">
+                    {/* 네 모서리 못 장식 */}
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        top: '4px',
+                        left: '4px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        top: '4px',
+                        right: '4px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        bottom: '3px',
+                        left: '3px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        bottom: '4px',
+                        right: '4px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <p className="text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center mb-3">
+                      {language === 'ko' 
+                        ? '매주 전 세계 사람들과 함께 다른 랜덤 플레이 댄스에 무료로 참여하세요!' 
+                        : '¡Únete gratis cada semana a un Random Play Dance diferente con personas de todo el mundo!'}
+                    </p>
+                    {/* 모바일 Participar 버튼 (CTA 박스 아래) */}
+                    <div className="md:hidden flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold"
+                        onClick={() => router.push('/main?tab=dance')}
+                      >
+                        {language === 'ko' ? '참여하기' : 'Participar'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
         </div>
       </Card>
       ) : (
-        <div className="pt-0 pb-0 px-0 md:px-2 md:pt-6 md:pb-6">
+        <div className="pt-0 pb-0 px-0 md:px-2 md:pt-6 md:pb-2">
           <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
-            {/* 가운데: 플레이리스트 */}
-            <div className="order-1 lg:order-1 lg:col-span-2 lg:mx-auto lg:max-w-2xl">
+            {/* 왼쪽: 플레이리스트 */}
+            <div className="order-1 lg:order-1">
               {/* Playlist 헤더 - 플레이리스트 박스 밖 */}
               <div className="flex items-center justify-center mb-3 md:mb-4 relative">
                 <div className="flex items-center gap-2">
@@ -2514,6 +2602,94 @@ export default function RandomPlayDanceSection({
                 </div>
               </div>
             </div>
+            {/* 오른쪽: 목업 이미지와 CTA 박스 (hideVideoGrid가 true일 때 표시) */}
+            {hideVideoGrid && (
+              <div className="order-2 lg:order-2 flex flex-col">
+                <div className="relative w-full mb-4">
+                  <Image
+                    src="/images/random-play-dance-grid-mockup.png.png"
+                    alt="K-POP Random Play Dance"
+                    width={600}
+                    height={800}
+                    className="w-full h-auto rounded-lg"
+                  />
+                </div>
+                {/* CTA 박스 (hideCTA가 false일 때만 표시) */}
+                {!hideCTA && (
+                  <div className="relative bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700 rounded-lg py-2 px-4 md:py-3 md:px-6 mb-1">
+                    {/* 네 모서리 못 장식 */}
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        top: '4px',
+                        left: '4px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        top: '4px',
+                        right: '4px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        bottom: '3px',
+                        left: '3px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <svg 
+                      className="absolute w-4 h-4 z-10" 
+                      style={{
+                        bottom: '4px',
+                        right: '4px'
+                      }}
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="#D4A574" stroke="#B8860B" strokeWidth="1"/>
+                      <circle cx="12" cy="12" r="4" fill="#B8860B"/>
+                    </svg>
+                    <p className="text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center mb-3">
+                      {language === 'ko' 
+                        ? '매주 전 세계 사람들과 함께 다른 랜덤 플레이 댄스에 무료로 참여하세요!' 
+                        : '¡Únete gratis cada semana a un Random Play Dance diferente con personas de todo el mundo!'}
+                    </p>
+                    {/* 모바일 Participar 버튼 (CTA 박스 아래) */}
+                    <div className="md:hidden flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold"
+                        onClick={() => router.push('/main?tab=dance')}
+                      >
+                        {language === 'ko' ? '참여하기' : 'Participar'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

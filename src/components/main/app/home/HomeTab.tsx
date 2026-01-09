@@ -928,6 +928,7 @@ export default function HomeTab() {
         videos={danceVideos}
         loading={danceLoading}
         onPlaylistUpdate={loadDanceData}
+        hideVideoGrid={true}
       />
       {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 */}
       {/* 지금 커뮤니티에서 핫한 글 */}
@@ -1847,6 +1848,7 @@ export default function HomeTab() {
               videos={danceVideos}
               loading={danceLoading}
               onPlaylistUpdate={loadDanceData}
+              hideVideoGrid={true}
             />
 
             {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}

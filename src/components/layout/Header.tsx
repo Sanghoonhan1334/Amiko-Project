@@ -885,7 +885,7 @@ function HeaderContent() {
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}
                     >
-                      Dance
+                      {t('headerNav.dance')}
                     </button>
                   </div>
                 ) : null}

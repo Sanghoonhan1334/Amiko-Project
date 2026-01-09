@@ -68,7 +68,7 @@ export default function BottomTabNavigation() {
     },
     {
       id: 'dance',
-      label: t('language') === 'ko' ? '댄스' : 'Dance',
+      label: t('headerNav.dance'),
       icon: Music,
       path: '/main?tab=dance'
     },
