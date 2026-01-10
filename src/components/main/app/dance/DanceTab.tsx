@@ -89,6 +89,17 @@ export default function DanceTab() {
 
   useEffect(() => {
     loadDanceData()
+    
+    // 최초 방문 시 가이드 모달 자동 열기
+    if (typeof window !== 'undefined') {
+      const hasViewedGuide = localStorage.getItem('danceGuideViewed')
+      if (!hasViewedGuide) {
+        // 최초 방문이면 모달 열기
+        setIsGuideModalOpen(true)
+        // localStorage에 저장 (다음부터는 안 뜨도록)
+        localStorage.setItem('danceGuideViewed', 'true')
+      }
+    }
   }, [])
 
   const handleUpload = () => {
