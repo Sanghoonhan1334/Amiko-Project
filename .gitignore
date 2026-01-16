@@ -45,3 +45,4 @@ firebase-service-account.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+service-account*.json
