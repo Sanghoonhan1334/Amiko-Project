@@ -45,22 +45,22 @@ export default function NotificationSettingsPage() {
 
     try {
       setLoading(true)
-      
+
       // 먼저 localStorage에서 설정 확인
       const localSettings = localStorage.getItem(`notificationSettings_${user.id}`)
-      
+
       const response = await fetch(`/api/notifications/settings?userId=${user.id}`)
-      
+
       if (response.ok) {
         const data = await response.json()
-        
+
         // 로컬에 저장된 경우거나 실제 DB에서 가져온 경우 모두 적용
         if (data.settings) {
           setSettings(data.settings)
           // localStorage에도 저장
           localStorage.setItem(`notificationSettings_${user.id}`, JSON.stringify(data.settings))
         }
-        
+
         // 성공 메시지가 있으면 표시
         if (data.message && !data.is_local) {
           setSuccess(data.message)
@@ -88,7 +88,7 @@ export default function NotificationSettingsPage() {
       }
     } catch (error) {
       console.error('알림 설정 조회 실패:', error)
-      
+
       // 에러 발생 시 localStorage에서 설정 불러오기
       const localSettings = localStorage.getItem(`notificationSettings_${user.id}`)
       if (localSettings) {
@@ -142,7 +142,7 @@ export default function NotificationSettingsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        
+
         // 로컬 저장인 경우와 실제 DB 저장 구분
         if (data.is_local) {
           setSuccess('설정이 로컬에 저장되었습니다.')
@@ -182,7 +182,7 @@ export default function NotificationSettingsPage() {
     setSettings(prev => {
       const typesKey = `${channel}_types` as keyof NotificationSettings
       const currentTypes = prev[typesKey] as string[]
-      
+
       if (currentTypes.includes(type)) {
         return {
           ...prev,
@@ -286,7 +286,7 @@ export default function NotificationSettingsPage() {
                   {t('notificationSettings.subtitle')}
                 </p>
               </div>
-              
+
               <div className="flex space-x-3">
                 <Button
                   variant="outline"
@@ -297,18 +297,18 @@ export default function NotificationSettingsPage() {
                       if (response.ok) {
                         const data = await response.json()
                         console.log('알림 시스템 상태:', data)
-                        
+
                         let statusMessage = data.message + '\n\n'
                         statusMessage += `📊 테이블 상태:\n`
                         statusMessage += `• notifications: ${data.status.notifications_table ? '✅' : '❌'}\n`
                         statusMessage += `• settings: ${data.status.notification_settings_table ? '✅' : '❌'}\n`
                         statusMessage += `• logs: ${data.status.notification_logs_table ? '✅' : '❌'}\n`
                         statusMessage += `• DB 연결: ${data.status.database_connection ? '✅' : '❌'}`
-                        
+
                         if (!data.status.tables_ready) {
                           statusMessage += `\n\n💡 권장사항:\n${data.recommendations.if_tables_missing}`
                         }
-                        
+
                         alert(statusMessage)
                       } else {
                         alert('시스템 상태 확인에 실패했습니다.')
@@ -320,7 +320,7 @@ export default function NotificationSettingsPage() {
                 >
                   🔍 {t('notificationSettings.systemStatus')}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -329,46 +329,9 @@ export default function NotificationSettingsPage() {
                   <RotateCcw className="w-4 h-4 mr-2" />
                   {t('notificationSettings.reset')}
                 </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    if (!user) return
-                    
-                    try {
-                      console.log('🧪 테스트 알림 발송 중...');
-                      
-                      // 직접 푸시 알림 발송 API 호출
-                      const response = await fetch('/api/notifications/send-push', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          userId: user.id,
-                          title: '테스트 알림',
-                          body: '테스트 메시지입니다!',
-                          data: { test: true }
-                        })
-                      });
 
-                      if (response.ok) {
-                        setSuccess(t('notificationSettings.testSuccess'))
-                        setTimeout(() => setSuccess(''), 5000)
-                      } else {
-                        const errorData = await response.json()
-                        console.warn('[NOTIFICATION TEST] API 응답 에러:', errorData)
-                        setError(`테스트 알림 발송 실패: ${errorData.message || '알 수 없는 오류'}`)
-                        setTimeout(() => setError(''), 8000)
-                      }
-                    } catch {
-                      setError(t('notificationSettings.testError'))
-                      setTimeout(() => setError(''), 5000)
-                    }
-                  }}
-                >
-                  🧪 {t('notificationSettings.testNotification')}
-                </Button>
-                
+                {/* 테스트 알림 버튼 제거 */}
+
                 <div className="flex items-center space-x-2">
                   <Button
                     onClick={saveSettings}
@@ -377,7 +340,7 @@ export default function NotificationSettingsPage() {
                     <Save className="w-4 h-4 mr-2" />
                     {saving ? t('notificationSettings.saving') : t('notificationSettings.save')}
                   </Button>
-                  
+
                   {autoSaving && (
                     <div className="flex items-center text-sm text-gray-500">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2"></div>
@@ -462,7 +425,7 @@ export default function NotificationSettingsPage() {
                       <p className="text-sm text-gray-600">{t('notificationSettings.browserPushDescription')}</p>
                     </div>
                   </div>
-                  
+
                   {/* 푸시 알림 토글 컴포넌트 */}
                   <PushNotificationToggle />
                 </div>

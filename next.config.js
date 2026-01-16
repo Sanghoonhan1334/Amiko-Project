@@ -7,6 +7,7 @@ const withPWA = require('next-pwa')({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development', // 개발 모드에서 PWA 비활성화
+  swSrc: 'src/worker/index.ts',
 })
 
 /** @type {import('next').NextConfig} */
@@ -84,12 +85,12 @@ const nextConfig = {
       os: false,
       path: false,
     };
-    
+
     // 모듈 해결 문제 해결
     config.resolve.alias = {
       ...config.resolve.alias,
     };
-    
+
     // 🚀 최적화: 프로덕션에서 번들 크기 최적화
     if (!dev && !isServer) {
       config.optimization = {
@@ -132,7 +133,7 @@ const nextConfig = {
         },
       };
     }
-    
+
     return config;
   },
 };

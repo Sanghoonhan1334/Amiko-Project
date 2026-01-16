@@ -20,13 +20,13 @@ interface ServiceAccount {
  */
 async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
   const now = Math.floor(Date.now() / 1000)
-  
+
   // JWT 헤더
   const header = {
     alg: 'RS256',
     typ: 'JWT'
   }
-  
+
   // JWT 클레임
   const claim = {
     iss: serviceAccount.client_email,
@@ -35,22 +35,22 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
     exp: now + 3600, // 1시간 유효
     iat: now
   }
-  
+
   // JWT 서명 생성
   const base64Header = Buffer.from(JSON.stringify(header)).toString('base64url')
   const base64Claim = Buffer.from(JSON.stringify(claim)).toString('base64url')
   const signatureInput = `${base64Header}.${base64Claim}`
-  
+
   // RSA-SHA256 서명
   const sign = createSign('RSA-SHA256')
   sign.update(signatureInput)
   sign.end()
-  
+
   const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n')
   const signature = sign.sign(privateKey, 'base64url')
-  
+
   const jwt = `${signatureInput}.${signature}`
-  
+
   // OAuth 2.0 토큰 요청
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -62,12 +62,12 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
       assertion: jwt
     })
   })
-  
+
   if (!tokenResponse.ok) {
     const errorData = await tokenResponse.text()
     throw new Error(`OAuth 2.0 토큰 요청 실패: ${tokenResponse.status} ${errorData}`)
   }
-  
+
   const tokenData = await tokenResponse.json()
   return tokenData.access_token
 }
@@ -89,7 +89,7 @@ function loadServiceAccount(): ServiceAccount {
       client_email: process.env.FCM_CLIENT_EMAIL
     }
   }
-  
+
   // 방법 2: JSON 파일 경로가 제공된 경우
   if (process.env.FCM_SERVICE_ACCOUNT_JSON_PATH) {
     const fs = require('fs')
@@ -98,12 +98,12 @@ function loadServiceAccount(): ServiceAccount {
     const jsonContent = fs.readFileSync(jsonPath, 'utf8')
     return JSON.parse(jsonContent)
   }
-  
+
   // 방법 3: JSON 문자열로 제공된 경우
   if (process.env.FCM_SERVICE_ACCOUNT_JSON) {
     return JSON.parse(process.env.FCM_SERVICE_ACCOUNT_JSON)
   }
-  
+
   throw new Error(
     'FCM 서비스 계정 정보가 설정되지 않았습니다. ' +
     '환경변수 FCM_PROJECT_ID, FCM_PRIVATE_KEY, FCM_CLIENT_EMAIL 또는 ' +
@@ -128,13 +128,13 @@ export async function sendFCMv1Notification(
   try {
     // 서비스 계정 정보 로드
     const serviceAccount = loadServiceAccount()
-    
+
     // OAuth 2.0 access token 생성
     const accessToken = await getAccessToken(serviceAccount)
-    
+
     // FCM v1 API 엔드포인트
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`
-    
+
     // FCM v1 메시지 페이로드
     const message = {
       message: {
@@ -155,7 +155,7 @@ export async function sendFCMv1Notification(
         }
       }
     }
-    
+
     // FCM v1 API 호출
     const response = await fetch(fcmUrl, {
       method: 'POST',
@@ -165,7 +165,7 @@ export async function sendFCMv1Notification(
       },
       body: JSON.stringify(message)
     })
-    
+
     if (!response.ok) {
       const errorData = await response.text()
       console.error('❌ FCM v1 API 호출 실패:', response.status, errorData)
@@ -174,15 +174,28 @@ export async function sendFCMv1Notification(
         error: `FCM 발송 실패: ${response.status} ${errorData}`
       }
     }
-    
+
     const result = await response.json()
     console.log('✅ FCM v1 푸시 알림 발송 성공:', result.name)
-    
+
+    // 로컬 알림 스케줄링
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: Date.now() % 100000,
+        title: String(title),
+        body: String(body),
+        channelId: 'default',
+        sound: 'default',
+        smallIcon: undefined,
+        extra: data || {}
+      }]
+    })
+
     return {
       success: true,
       messageId: result.name
     }
-    
+
   } catch (error) {
     console.error('❌ FCM v1 푸시 알림 발송 중 오류:', error)
     return {
@@ -214,7 +227,7 @@ export async function sendFCMv1BatchNotifications(
       }))
     )
   )
-  
+
   return results.map((result, index) => {
     if (result.status === 'fulfilled') {
       return result.value

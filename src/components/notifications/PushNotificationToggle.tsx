@@ -7,10 +7,10 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Bell, BellOff, Settings, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
-import { 
-  initializePushNotifications, 
+import {
+  initializePushNotifications,
   getPushNotificationStatus,
-  showLocalNotification 
+  showLocalNotification
 } from '@/lib/push-notifications'
 import { useAuth } from '@/context/AuthContext'
 
@@ -32,7 +32,7 @@ export default function PushNotificationToggle() {
     try {
       const pushStatus = getPushNotificationStatus()
       setStatus(pushStatus)
-      
+
       // 실제 구독 상태 확인
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.getRegistration()
@@ -65,7 +65,7 @@ export default function PushNotificationToggle() {
         if (success) {
           setIsEnabled(true)
           setSuccess('푸시 알림이 활성화되었습니다!')
-          
+
           // 테스트 알림 표시
           setTimeout(() => {
             showLocalNotification({
@@ -92,7 +92,7 @@ export default function PushNotificationToggle() {
               }
             }
           }
-          
+
           setIsEnabled(false)
           setSuccess('푸시 알림이 비활성화되었습니다.')
         } catch (error) {
@@ -110,17 +110,7 @@ export default function PushNotificationToggle() {
     }
   }
 
-  const handleTestNotification = () => {
-    if (!isEnabled) return
-
-    showLocalNotification({
-      title: '🧪 테스트 알림',
-      body: '푸시 알림이 정상적으로 작동합니다!',
-      data: { url: '/notifications' }
-    })
-
-    setSuccess('테스트 알림이 발송되었습니다!')
-  }
+  // Test notification handler removed for production
 
   const getStatusIcon = () => {
     if (isEnabled) return <CheckCircle className="w-5 h-5 text-green-600" />
@@ -156,7 +146,7 @@ export default function PushNotificationToggle() {
           중요한 알림을 실시간으로 받아보세요
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* 상태 표시 */}
         <div className="flex items-center justify-between">
@@ -202,17 +192,7 @@ export default function PushNotificationToggle() {
           />
         </div>
 
-        {/* 테스트 버튼 */}
-        {isEnabled && (
-          <Button
-            onClick={handleTestNotification}
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            🧪 테스트 알림 보내기
-          </Button>
-        )}
+        {/* 테스트 버튼 제거 (프로덕션) */}
 
         {/* 권한이 거부된 경우 안내 */}
         {status?.permission === 'denied' && (

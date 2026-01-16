@@ -24,8 +24,8 @@ export async function POST(request: Request) {
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.warn('[PUSH] VAPID 키가 설정되지 않아 푸시 알림을 발송할 수 없습니다.')
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: '푸시 알림 서비스가 설정되지 않았습니다.',
           error: 'VAPID 키가 설정되지 않음',
           suggestion: '환경변수 NEXT_PUBLIC_VAPID_PUBLIC_KEY와 VAPID_PRIVATE_KEY를 설정해주세요.'
@@ -46,7 +46,13 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('[SUPABASE] SUPABASE_SERVICE_ROLE_KEY not set; falling back to anon key for server operations')
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     // 1. 사용자의 푸시 구독 정보 조회
     const { data: subscriptions, error: fetchError } = await supabase
@@ -57,8 +63,8 @@ export async function POST(request: Request) {
     if (fetchError) {
       console.error('❌ 푸시 구독 조회 실패:', fetchError)
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: '푸시 구독 정보 조회에 실패했습니다.',
           error: fetchError.message,
           details: {
@@ -96,14 +102,14 @@ export async function POST(request: Request) {
     if (logError) {
       console.error('❌ 알림 로그 생성 실패:', logError)
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: '알림 로그 생성에 실패했습니다.',
           error: logError.message,
           details: {
             code: logError.code,
             hint: logError.hint,
-            suggestion: logError.code === '42P01' ? 
+            suggestion: logError.code === '42P01' ?
               'push_notification_logs 테이블이 존재하지 않습니다. Supabase에서 테이블을 생성해주세요.' :
               '데이터베이스 연결을 확인해주세요.'
           }
@@ -135,14 +141,14 @@ export async function POST(request: Request) {
 
           // 네이티브 앱 토큰인지 확인
           const isNative = String(subscription.endpoint).startsWith('native://')
-          
+
           if (isNative) {
             // 네이티브 앱 푸시 알림 (FCM HTTP v1 API 사용)
             const nativeToken = subscription.native_token as string
             const platform = subscription.platform as string
-            
+
             console.log(`[PUSH] 네이티브 앱 푸시 발송 시도: ${platform}, 토큰: ${nativeToken?.substring(0, 20)}...`)
-            
+
             if (platform === 'android') {
               try {
                 // FCM HTTP v1 API 사용
@@ -156,7 +162,7 @@ export async function POST(request: Request) {
                     notificationId: String(notificationLog.id)
                   }
                 )
-                
+
                 if (result.success) {
                   console.log('✅ FCM v1 푸시 알림 발송 성공:', subscription.id, result.messageId)
                   return {
@@ -211,7 +217,7 @@ export async function POST(request: Request) {
           )
 
             console.log('✅ 웹 푸시 알림 발송 성공:', subscription.id, result.statusCode)
-          
+
           return {
             subscriptionId: subscription.id,
             success: true,
@@ -222,7 +228,7 @@ export async function POST(request: Request) {
 
         } catch (error) {
           console.error('❌ 푸시 알림 발송 실패:', subscription.id, error)
-          
+
           // 구독이 유효하지 않은 경우 삭제 (웹 푸시만)
           if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 410) {
             console.log('🗑️ 유효하지 않은 구독 삭제:', subscription.id)
@@ -231,7 +237,7 @@ export async function POST(request: Request) {
               .delete()
               .eq('id', subscription.id)
           }
-          
+
           return {
             subscriptionId: subscription.id,
             success: false,
@@ -251,7 +257,7 @@ export async function POST(request: Request) {
 
     // 5. 알림 로그 상태 업데이트
     const finalStatus = failed === 0 ? 'sent' : (successful > 0 ? 'partial' : 'failed')
-    
+
     await supabase
       .from('push_notification_logs')
       .update({
@@ -277,12 +283,12 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('❌ 푸시 알림 발송 API 처리 중 예외 발생:', error)
-    
+
     // VAPID 키 관련 에러 처리
     if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('VAPID')) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: 'VAPID 키 설정에 문제가 있습니다.',
           error: error.message,
           details: {
@@ -292,12 +298,12 @@ export async function POST(request: Request) {
         { status: 500 }
       )
     }
-    
+
     // 네트워크 관련 에러 처리
     if (error && typeof error === 'object' && 'code' in error && (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND')) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: '네트워크 연결에 문제가 있습니다.',
           error: error && typeof error === 'object' && 'message' in error ? String(error.message) : 'Unknown error',
           details: {
@@ -308,11 +314,11 @@ export async function POST(request: Request) {
         { status: 503 }
       )
     }
-    
+
     // 일반 에러 처리
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: '푸시 알림 발송 처리 중 오류가 발생했습니다.',
         error: error && typeof error === 'object' && 'message' in error ? String(error.message) : '알 수 없는 오류',
         details: {
@@ -342,7 +348,7 @@ export async function PUT(request: Request) {
 
     // 각 사용자에게 개별적으로 발송
     const results = await Promise.allSettled(
-      userIds.map(userId => 
+      userIds.map(userId =>
         fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -70,7 +70,7 @@ export default async function PaymentsPage() {
       cancelled: { label: '취소됨', className: 'bg-red-100 text-red-800' },
       failed: { label: '실패', className: 'bg-gray-100 text-gray-800' }
     }
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
     return <Badge className={config.className}>{config.label}</Badge>
   }
@@ -82,7 +82,7 @@ export default async function PaymentsPage() {
       VIRTUAL_ACCOUNT: { label: '가상계좌', className: 'bg-purple-100 text-purple-800' },
       PHONE: { label: '휴대폰', className: 'bg-orange-100 text-orange-800' }
     }
-    
+
     const config = methodConfig[method as keyof typeof methodConfig] || { label: method, className: 'bg-gray-100 text-gray-800' }
     return <Badge className={config.className}>{config.label}</Badge>
   }
@@ -141,7 +141,7 @@ export default async function PaymentsPage() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-3">
@@ -149,10 +149,10 @@ export default async function PaymentsPage() {
                       <CreditCard className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">결제 키:</span>
                       <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                        {payment.payment_key.slice(0, 20)}...
+                        {payment.payment_key?.slice(0, 20)}...
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">결제일:</span>
@@ -160,7 +160,7 @@ export default async function PaymentsPage() {
                         {formatDate(payment.created_at)}
                       </span>
                     </div>
-                    
+
                     {payment.approved_at && (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">승인일:</span>
@@ -170,7 +170,7 @@ export default async function PaymentsPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-gray-500" />
@@ -179,7 +179,7 @@ export default async function PaymentsPage() {
                         {payment.bookings?.users?.name || payment.bookings?.users?.email || '익명'}
                       </span>
                     </div>
-                    
+
                     {payment.bookings?.consultants?.name && (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">상담사:</span>
@@ -188,7 +188,7 @@ export default async function PaymentsPage() {
                         </span>
                       </div>
                     )}
-                    
+
                     {payment.bookings?.start_at && (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">상담 일시:</span>
@@ -199,12 +199,12 @@ export default async function PaymentsPage() {
                     )}
                   </div>
                 </div>
-                
+
                 {payment.receipt_url && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <a 
-                      href={payment.receipt_url} 
-                      target="_blank" 
+                    <a
+                      href={payment.receipt_url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
                     >

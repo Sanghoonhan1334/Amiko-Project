@@ -12,8 +12,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Button } from '@/components/ui/button'
-import { 
-  MessageSquare, 
+import {
+  MessageSquare,
   Handshake,
   Building2,
   Users,
@@ -36,7 +36,7 @@ const Hero = dynamic(() => import('@/components/landing/Hero'), {
     <div className="min-h-screen body-gradient">
       {/* 헤더 스켈레톤 */}
       <div className="h-16 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-      
+
       {/* 메인 콘텐츠 스켈레톤 */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center space-y-8">
@@ -45,21 +45,21 @@ const Hero = dynamic(() => import('@/components/landing/Hero'), {
             <Skeleton className="h-12 w-3/4 mx-auto" />
             <Skeleton className="h-8 w-1/2 mx-auto" />
           </div>
-          
+
           {/* 설명 스켈레톤 */}
           <div className="space-y-3 max-w-2xl mx-auto">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-5/6 mx-auto" />
             <Skeleton className="h-4 w-4/6 mx-auto" />
           </div>
-          
+
           {/* 버튼 스켈레톤 */}
           <div className="flex justify-center space-x-4">
             <Skeleton className="h-12 w-32" />
             <Skeleton className="h-12 w-32" />
           </div>
         </div>
-        
+
         {/* 하단 카드들 스켈레톤 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
           {[1, 2, 3].map((i) => (
@@ -83,7 +83,7 @@ function HomePageContent() {
   const [showSplash, setShowSplash] = useState(false)
   const { t, language } = useLanguage()
   const router = useRouter()
-  
+
   // 문의 모달 상태
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false)
 
@@ -92,7 +92,7 @@ function HomePageContent() {
 
   useEffect(() => {
     setIsClient(true)
-    
+
     // URL에 splash=true가 있으면 스플래시 표시 (로고 클릭)
     if (shouldShowSplash) {
       setShowSplash(true)
@@ -147,6 +147,8 @@ function HomePageContent() {
 
   return (
     <div className="min-h-screen body-gradient">
+      {/* Push Notification Tester removed in production build */}
+
       {/* Hero Section */}
       <Hero />
 
@@ -161,9 +163,9 @@ function HomePageContent() {
           </p>
         </div>
 
-        <Accordion 
-          type="single" 
-          collapsible 
+        <Accordion
+          type="single"
+          collapsible
           className="w-full space-y-2 md:space-y-4"
           style={{
             '--radix-accordion-content-duration': '300ms',
@@ -218,53 +220,53 @@ function HomePageContent() {
                     <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.connectDescription')}</p>
                   </div>
                 </div>
-                
+
                 {/* 소개글 */}
                 <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                       {t('about.greeting')}
                     </h2>
-                    
+
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-bold">
                       {t('about.thankYou')}
                     </p>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-bold">
                       {t('about.teamIntroduction')}
                     </p>
-                    
+
                     <br />
-                    
+
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {t('about.latinAmericaExperience')}
                     </p>
-                    
+
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {t('about.koreanInterest')}
                     </p>
-                    
+
                     <br />
-                    
+
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {t('about.culturalExchange')}
                     </p>
-                    
+
                     <br />
-                    
+
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {t('about.bridgePromise')}
                     </p>
-                    
+
                     <br />
-                    
+
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {t('about.platformDescription')}
                     </p>
-                    
+
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {t('about.communityVision')}
                     </p>
-                    
+
                     <p className="text-lg font-semibold text-gray-900 dark:text-white mt-6">
                       {t('about.finalMessage')}
                     </p>
@@ -299,7 +301,7 @@ function HomePageContent() {
                     <p className="text-green-700 dark:text-green-300 text-sm">{t('heroSlides.slide3.infoSection.contact.hours')}</p>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={() => {
                     marketingEvents.clickCTA('contact_inquiry_button')
                     setIsInquiryModalOpen(true)
@@ -345,7 +347,7 @@ function HomePageContent() {
                     <p className="text-xs text-gray-600 dark:text-gray-400">{t('heroSlides.slide3.infoSection.partnership.revenueDescription')}</p>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={() => {
                     marketingEvents.clickCTA('partnership_button')
                     setIsPartnershipModalOpen(true)
@@ -442,15 +444,15 @@ function HomePageContent() {
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-4">
                 <p className="text-gray-600 dark:text-gray-300">
-                  {language === 'ko' 
-                    ? 'AMIKO의 최신 소식과 이벤트를 SNS에서 확인하세요!' 
+                  {language === 'ko'
+                    ? 'AMIKO의 최신 소식과 이벤트를 SNS에서 확인하세요!'
                     : '¡Mantente al día con las últimas noticias y eventos de AMIKO en nuestras redes sociales!'
                   }
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <a 
-                    href="https://www.tiktok.com/@amiko_latin" 
-                    target="_blank" 
+                  <a
+                    href="https://www.tiktok.com/@amiko_latin"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
                   >
@@ -460,9 +462,9 @@ function HomePageContent() {
                       <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
                     </div>
                   </a>
-                  <a 
-                    href="https://www.instagram.com/amiko_latin" 
-                    target="_blank" 
+                  <a
+                    href="https://www.instagram.com/amiko_latin"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
                   >
@@ -472,9 +474,9 @@ function HomePageContent() {
                       <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
                     </div>
                   </a>
-                  <a 
-                    href="https://www.youtube.com/@AMIKO_Officialstudio" 
-                    target="_blank" 
+                  <a
+                    href="https://www.youtube.com/@AMIKO_Officialstudio"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
                   >
@@ -504,14 +506,14 @@ function HomePageContent() {
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-4">
                 <p className="text-gray-600 dark:text-gray-300">
-                  {language === 'ko' 
-                    ? '도움이 필요하신가요? 언제든지 연락주세요!' 
+                  {language === 'ko'
+                    ? '도움이 필요하신가요? 언제든지 연락주세요!'
                     : '¿Necesitas ayuda? ¡Contáctanos en cualquier momento!'
                   }
                 </p>
                 <div className="grid grid-cols-1 gap-3">
-                  <a 
-                    href="/help" 
+                  <a
+                    href="/help"
                     className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-300"
                   >
                     <HelpCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -524,8 +526,8 @@ function HomePageContent() {
                       </p>
                     </div>
                   </a>
-                  <a 
-                    href="/faq" 
+                  <a
+                    href="/faq"
                     className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors duration-300"
                   >
                     <HelpCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -536,8 +538,8 @@ function HomePageContent() {
                       </p>
                     </div>
                   </a>
-                  <a 
-                    href="/contact" 
+                  <a
+                    href="/contact"
                     className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors duration-300"
                   >
                     <MessageSquare className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -570,14 +572,14 @@ function HomePageContent() {
             <AccordionContent className="px-6 pb-6">
               <div className="space-y-4">
                 <p className="text-gray-600 dark:text-gray-300">
-                  {language === 'ko' 
-                    ? 'AMIKO는 사용자의 개인정보 보호를 최우선으로 합니다.' 
+                  {language === 'ko'
+                    ? 'AMIKO는 사용자의 개인정보 보호를 최우선으로 합니다.'
                     : 'AMIKO prioriza la protección de la información personal de los usuarios.'
                   }
                 </p>
                 <div className="grid grid-cols-1 gap-3">
-                  <a 
-                    href="/privacy" 
+                  <a
+                    href="/privacy"
                     className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300"
                   >
                     <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -590,8 +592,8 @@ function HomePageContent() {
                       </p>
                     </div>
                   </a>
-                  <a 
-                    href="/terms" 
+                  <a
+                    href="/terms"
                     className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300"
                   >
                     <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -604,8 +606,8 @@ function HomePageContent() {
                       </p>
                     </div>
                   </a>
-                  <a 
-                    href="/cookies" 
+                  <a
+                    href="/cookies"
                     className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300"
                   >
                     <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -626,15 +628,15 @@ function HomePageContent() {
       </div>
 
       {/* 문의 모달 */}
-      <InquiryModal 
-        isOpen={isInquiryModalOpen} 
-        onClose={() => setIsInquiryModalOpen(false)} 
+      <InquiryModal
+        isOpen={isInquiryModalOpen}
+        onClose={() => setIsInquiryModalOpen(false)}
       />
 
       {/* 제휴 모달 */}
-      <PartnershipModal 
-        isOpen={isPartnershipModalOpen} 
-        onClose={() => setIsPartnershipModalOpen(false)} 
+      <PartnershipModal
+        isOpen={isPartnershipModalOpen}
+        onClose={() => setIsPartnershipModalOpen(false)}
       />
 
       {/* 맨 위로 이동 버튼 - 제거됨 */}
@@ -646,7 +648,7 @@ function HomePageContent() {
 // 랜ing페이지 제거: 자동으로 /main으로 리다이렉트
 function RedirectToMain() {
   const router = useRouter()
-  
+
   useEffect(() => {
     // 히스토리 초기화 - 모바일 뒤로가기 방지
     if (typeof window !== 'undefined') {
@@ -658,7 +660,7 @@ function RedirectToMain() {
     // 스플래시는 유지하되, 바로 메인으로 이동
     const searchParams = new URLSearchParams(window.location.search)
     const shouldShowSplash = searchParams.get('splash') === 'true'
-    
+
     if (!shouldShowSplash) {
       // 스플래시 없이 바로 리다이렉트
       router.replace('/main')
@@ -669,7 +671,7 @@ function RedirectToMain() {
       }, 2000)
     }
   }, [router])
-  
+
   return (
     <div className="min-h-screen body-gradient flex items-center justify-center">
       <div className="text-center">

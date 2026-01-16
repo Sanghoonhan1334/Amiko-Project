@@ -17,14 +17,15 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import QueryProvider from '@/providers/QueryProvider'
 import Analytics from '@/components/analytics/Analytics'
 import { Suspense } from 'react'
+import { PushNotificationInitializer } from '@/components/notifications/PushNotificationInitializer'
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 })
 
-const baloo2 = Baloo_2({ 
+const baloo2 = Baloo_2({
   subsets: ['latin'],
   variable: '--font-baloo2',
   display: 'swap',
@@ -124,19 +125,19 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/logos/apple-touch-icon.png" />
         <link rel="shortcut icon" href="/logos/amiko-logo.png" />
         {/* 폰트 preload로 초기 렌더링 최적화 */}
-        <link 
-          rel="preload" 
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" 
+        <link
+          rel="preload"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
           as="style"
         />
-        <link 
-          rel="preload" 
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" 
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           as="style"
         />
-        <link 
-          rel="preload" 
-          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" 
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap"
           as="style"
         />
       </head>
@@ -155,6 +156,7 @@ export default function RootLayout({
             <AuthProvider>
               <LanguageProvider>
                 <UserProvider>
+                  <PushNotificationInitializer />
                   <DeepLinkHandler />
                   <CustomBanner />
                   <HeaderWrapper />
@@ -193,9 +195,9 @@ export default function RootLayout({
                   { name: 'twitter:description', content: '한국 문화를 배우고 소통하는 플랫폼' },
                   { name: 'twitter:image', content: 'https://www.helloamiko.com/amiko-logo.png' }
                 ];
-                
+
                 metaTags.forEach(tag => {
-                  let element = document.querySelector(\`meta[property="\${tag.property}"]\`) || 
+                  let element = document.querySelector(\`meta[property="\${tag.property}"]\`) ||
                                document.querySelector(\`meta[name="\${tag.name}"]\`);
                   if (element) {
                     element.setAttribute('content', tag.content);
@@ -210,20 +212,20 @@ export default function RootLayout({
                     document.head.appendChild(element);
                   }
                 });
-                
+
                 // 파비콘 크기 최적화 - 더 큰 파비콘 우선 사용
                 const faviconSizes = ['512x512', '192x192', '128x128', '96x96', '64x64', '32x32', '16x16'];
                 const existingFavicon = document.querySelector('link[rel="icon"]');
                 if (existingFavicon) {
                   existingFavicon.href = '/favicon-128x128.png';
                 }
-                
+
                 // 파비콘 크기 강제 조정
                 const allFavicons = document.querySelectorAll('link[rel="icon"]');
                 allFavicons.forEach(favicon => {
                   favicon.href = '/favicon-128x128.png';
                 });
-                
+
                 // 추가 파비콘 링크들 생성
                 faviconSizes.forEach(size => {
                   const link = document.createElement('link');

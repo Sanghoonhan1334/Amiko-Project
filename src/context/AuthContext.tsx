@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { trackRevisit } from '@/lib/analytics'
+import { Capacitor } from '@capacitor/core'
 
 interface ExtendedUser extends User {
   is_admin?: boolean
@@ -405,23 +406,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+      const isNative = Capacitor.isNativePlatform();
+      console.log('[AUTH] 플랫폼 감지:', isNative ? '네이티브' : '웹');
+
+      if (isNative) {
+        console.log('[AUTH] 네이티브 플랫폼에서 Google 로그인 시도');
+
+        try {
+          // 네이티브 Google Auth 플러그인 사용
+          const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+
+          // 플러그인 초기화 확인
+          console.log('[AUTH] Google Auth 플러그인 로드됨');
+
+          const googleUser = await GoogleAuth.signIn();
+          console.log('[AUTH] 네이티브 Google 로그인 성공:', {
+            email: googleUser.email,
+            name: googleUser.name,
+            id: googleUser.id
+          });
+
+          // Google 토큰을 Supabase 세션으로 교환
+          const { data, error } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: googleUser.authentication.idToken,
+          });
+
+          if (error) {
+            console.error('[AUTH] Supabase 세션 교환 실패:', error);
+            return { error };
+          }
+
+          console.log('[AUTH] 네이티브 Google 로그인 완료, 세션 생성됨');
+          return { error: null };
+        } catch (nativeError) {
+          console.error('[AUTH] 네이티브 Google 로그인 실패, 웹 OAuth로 폴백:', nativeError);
+
+          // 네이티브 실패 시 웹 OAuth로 폴백
+          console.log('[AUTH] 웹 OAuth 폴백 시도');
+
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: 'amiko://auth/callback'
+            }
+          });
+
+          if (error) {
+            console.error('[AUTH] 웹 OAuth 폴백도 실패:', error);
+            return { error };
+          }
+
+          console.log('[AUTH] 웹 OAuth 폴백 성공');
+          return { error: null };
         }
-      });
+      } else {
+        // 웹에서는 기존 OAuth 플로우 사용
+        console.log('[AUTH] 웹 플랫폼에서 Google OAuth 시도');
 
-      if (error) {
-        console.error('[AUTH] Google 로그인 실패:', error);
-        return { error };
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`
+          }
+        });
+
+        if (error) {
+          console.error('[AUTH] 웹 Google 로그인 실패:', error);
+          return { error };
+        }
+
+        console.log('[AUTH] 웹 Google OAuth 리다이렉트 시작');
+        return { error: null };
       }
-
-      console.log('[AUTH] Google OAuth 리다이렉트 시작');
-      return { error: null };
-    } catch (err) {
-      console.error('[AUTH] Google 로그인 예외 발생:', err);
-      return { error: err };
+    } catch (error) {
+      console.error('[AUTH] Google 로그인 예외:', error);
+      return { error };
     }
   }
 

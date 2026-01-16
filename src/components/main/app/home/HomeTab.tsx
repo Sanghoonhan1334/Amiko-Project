@@ -31,7 +31,6 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import type { YouTubeVideo } from '@/lib/youtube'
 
 interface Event {
   id: string
@@ -860,7 +859,6 @@ export default function HomeTab() {
 
   return (
     <>
-      {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 p-4">
       {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 */}
       {/* 지금 커뮤니티에서 핫한 글 */}
@@ -1771,7 +1769,7 @@ export default function HomeTab() {
       </div>
     </div>
 
-        {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
+        {/* 데스크톱 버전 */}
         <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
           <div className="space-y-4">
 
