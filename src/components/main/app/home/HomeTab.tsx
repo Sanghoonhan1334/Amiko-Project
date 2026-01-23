@@ -31,6 +31,8 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import type { YouTubeVideo } from '@/lib/youtube'
+import RandomPlayDanceSection from './RandomPlayDanceSection'
 
 interface Event {
   id: string
@@ -115,6 +117,29 @@ interface NewsItem {
   views: number
 }
 
+interface DanceSong {
+  id: string
+  song_title: string
+  artist_name: string
+  youtube_video_id?: string
+  display_order: number
+}
+
+interface DancePlaylist {
+  id: string
+  week_number: number
+  week_label: string
+  songs: DanceSong[]
+}
+
+interface DanceVideo {
+  id: string
+  user_id: string
+  video_url: string
+  thumbnail_url?: string
+  title?: string
+}
+
 export default function HomeTab() {
   const { t, language } = useLanguage()
   const { user } = useAuth()
@@ -138,6 +163,9 @@ export default function HomeTab() {
   const [kNoticiaNews, setKNoticiaNews] = useState<NewsItem[]>([])
   const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([])
   const [youtubeLoading, setYoutubeLoading] = useState(true)
+  const [dancePlaylist, setDancePlaylist] = useState<DancePlaylist | null>(null)
+  const [danceVideos, setDanceVideos] = useState<DanceVideo[]>([])
+  const [danceLoading, setDanceLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [currentEventIndex, setCurrentEventIndex] = useState(0)
@@ -728,11 +756,44 @@ export default function HomeTab() {
     }
   }
 
+  const loadDanceData = async () => {
+    setDanceLoading(true)
+    try {
+      // 최신 플레이리스트 가져오기
+      const playlistResponse = await fetch('/api/dance/playlist/current')
+      if (playlistResponse.ok) {
+        const playlistData = await playlistResponse.json()
+        console.log('[HomeTab] 플레이리스트 데이터:', playlistData)
+        // id가 null이 아니고 songs가 있는 경우에만 설정
+        if (playlistData && playlistData.id) {
+          setDancePlaylist(playlistData)
+        } else {
+          setDancePlaylist(null)
+        }
+      } else {
+        console.error('[HomeTab] 플레이리스트 조회 실패:', playlistResponse.status)
+        setDancePlaylist(null)
+      }
+      // 승인된 댄스 비디오 가져오기 (최신 12개)
+      const videosResponse = await fetch('/api/dance/videos?limit=12&status=approved')
+      if (videosResponse.ok) {
+        const videosData = await videosResponse.json()
+        setDanceVideos(videosData.videos || [])
+      }
+    } catch (error) {
+      console.error('댄스 데이터 로딩 실패:', error)
+      setDancePlaylist(null)
+    } finally {
+      setDanceLoading(false)
+    }
+  }
+
   // 모든 데이터 로딩
   const loadAllData = async () => {
     setLoading(true)
     try {
       await Promise.all([
+        loadDanceData(),
         loadCurrentEvents(),
         loadHotPosts(),
         loadPopularTests(),
@@ -859,7 +920,16 @@ export default function HomeTab() {
 
   return (
     <>
-      <div className="md:hidden space-y-6 p-4">
+      {/* 모바일 버전 - 기존 그대로 */}
+      <div className="md:hidden space-y-6 px-2 pt-6 pb-4">
+      {/* Random Play Dance 섹션 */}
+      <RandomPlayDanceSection
+        playlist={dancePlaylist}
+        videos={danceVideos}
+        loading={danceLoading}
+        onPlaylistUpdate={loadDanceData}
+        hideVideoGrid={true}
+      />
       {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 */}
       {/* 지금 커뮤니티에서 핫한 글 */}
       <div className="space-y-3">
@@ -1769,9 +1839,17 @@ export default function HomeTab() {
       </div>
     </div>
 
-        {/* 데스크톱 버전 */}
-        <div className="hidden md:block max-w-4xl mx-auto p-6 pt-20 pb-4">
+        {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
+        <div className="hidden md:block max-w-4xl mx-auto px-2 md:px-4 lg:px-6 pt-20 pb-4">
           <div className="space-y-4">
+            {/* Random Play Dance 섹션 */}
+            <RandomPlayDanceSection
+              playlist={dancePlaylist}
+              videos={danceVideos}
+              loading={danceLoading}
+              onPlaylistUpdate={loadDanceData}
+              hideVideoGrid={true}
+            />
 
             {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
             {/* 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}

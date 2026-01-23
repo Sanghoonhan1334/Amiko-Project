@@ -46,10 +46,10 @@ export default function LoadingOverlay({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 mx-4 shadow-2xl border border-gray-200 dark:border-gray-700 max-w-sm w-full relative">
-        {/* 로고 - 맨 위에 배치, 하얀색 배경으로 덮음 */}
-        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 rounded-full p-2 z-10 shadow-lg">
-          <div className="flex justify-center items-center w-24 h-24">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 mx-4 shadow-2xl border border-gray-200 dark:border-gray-700 max-w-sm w-full">
+        {/* 로고 - 스피너 위에 배치, 동그라미 배경 없음 */}
+        <div className="flex justify-center items-center mb-6">
+          <div className="w-24 h-24 flex items-center justify-center">
             <Image
               src="/logos/amiko-logo.png"
               alt="AMIKO"
@@ -77,8 +77,8 @@ export default function LoadingOverlay({
           </div>
         </div>
 
-        {/* 콘텐츠 영역 - 로고 아래에 배치 */}
-        <div className="mt-20">
+        {/* 콘텐츠 영역 */}
+        <div>
           {/* 로딩 스피너 */}
           <div className="flex justify-center mb-6">
             <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-600 rounded-full animate-spin border-t-gray-600 dark:border-t-gray-400"></div>

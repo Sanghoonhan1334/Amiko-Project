@@ -86,30 +86,36 @@ export default function NotificationBell() {
         cache: 'no-store'
       })
       
-      if (response.ok) {
-        const data: NotificationResponse = await response.json()
-        
-        console.log('[NotificationBell] 전체 알림:', data.notifications?.length || 0, '개')
-        console.log('[NotificationBell] 전체 알림 타입들:', data.notifications?.map(n => n.type) || [])
-        
-        // 좋아요, 댓글, 새로운 뉴스만 필터링
-        const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
-        const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
-        
-        console.log('[NotificationBell] 필터링된 알림:', filteredNotifications.length, '개')
-        console.log('[NotificationBell] 필터링된 알림 타입들:', filteredNotifications.map(n => n.type))
-        
-        // 읽지 않은 알림 개수만 계산
-        const unread = filteredNotifications.filter(n => !n.is_read).length || 0
-        console.log('[NotificationBell] 읽지 않은 알림:', unread, '개')
-        
-        setUnreadCount(unread)
-      } else {
+      if (!response.ok) {
         console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
         setUnreadCount(0)
+        return
       }
+      
+      const data: NotificationResponse = await response.json()
+      
+      console.log('[NotificationBell] 전체 알림:', data.notifications?.length || 0, '개')
+      console.log('[NotificationBell] 전체 알림 타입들:', data.notifications?.map(n => n.type) || [])
+      
+      // 좋아요, 댓글, 새로운 뉴스만 필터링
+      const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
+      const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
+      
+      console.log('[NotificationBell] 필터링된 알림:', filteredNotifications.length, '개')
+      console.log('[NotificationBell] 필터링된 알림 타입들:', filteredNotifications.map(n => n.type))
+      
+      // 읽지 않은 알림 개수만 계산
+      const unread = filteredNotifications.filter(n => !n.is_read).length || 0
+      console.log('[NotificationBell] 읽지 않은 알림:', unread, '개')
+      
+      setUnreadCount(unread)
     } catch (error) {
-      console.error('[NotificationBell] 알림 개수 조회 오류:', error)
+      // 네트워크 에러는 조용히 처리 (API가 없거나 연결 실패 시)
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.warn('[NotificationBell] 네트워크 연결 실패 - API 엔드포인트를 확인하세요')
+      } else {
+        console.error('[NotificationBell] 알림 개수 조회 오류:', error)
+      }
       setUnreadCount(0)
     }
   }
