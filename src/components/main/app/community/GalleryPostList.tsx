@@ -52,13 +52,13 @@ interface PostListProps {
 }
 
 // GalleryPostList.tsx - 갤러리 시스템 게시글 목록 (currentView === 'posts')
-export default function GalleryPostList({ 
-  gallery, 
-  onPostSelect, 
-  onCreatePost, 
-  onGallerySelect, 
-  onBackToGalleries, 
-  onPopularPosts 
+export default function GalleryPostList({
+  gallery,
+  onPostSelect,
+  onCreatePost,
+  onGallerySelect,
+  onBackToGalleries,
+  onPopularPosts
 }: PostListProps) {
   const { t, language } = useLanguage()
   const { user } = useAuth()
@@ -74,7 +74,7 @@ export default function GalleryPostList({
     status: 'all',
     searchQuery: ''
   })
-  
+
   const translationService = new TranslationService()
 
   useEffect(() => {
@@ -109,14 +109,14 @@ export default function GalleryPostList({
 
       const response = await fetch(apiUrl, {
         headers: user ? {
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          'Authorization': `Bearer ${user.access_token}`
         } : {}
       })
-      
+
       if (!response.ok) {
         throw new Error('게시물을 불러오는데 실패했습니다')
       }
-      
+
       const data = await response.json()
       console.log('[GalleryPostList] API 응답:', {
         galleryId: gallery.id,
@@ -142,7 +142,7 @@ export default function GalleryPostList({
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-    
+
     if (diffInHours < 1) return '방금 전'
     if (diffInHours < 24) return `${diffInHours}시간 전`
     if (diffInHours < 48) return '어제'
@@ -164,7 +164,7 @@ export default function GalleryPostList({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(user.access_token)}`
+          'Authorization': `Bearer ${user.access_token}`
         },
         body: JSON.stringify({ vote_type: voteType })
       })
@@ -176,16 +176,16 @@ export default function GalleryPostList({
 
       const data = await response.json()
       console.log('투표 성공:', data)
-      
+
       // 투표 상태 업데이트
       setUserVotes(prev => ({
         ...prev,
         [postId]: data.vote_type
       }))
-      
+
       // 게시물 목록의 투표 수 업데이트
-      setPosts(prev => prev.map(post => 
-        post.id === postId 
+      setPosts(prev => prev.map(post =>
+        post.id === postId
           ? { ...post, like_count: data.like_count, dislike_count: data.dislike_count }
           : post
       ))
@@ -198,21 +198,21 @@ export default function GalleryPostList({
   // 갤러리 게시물 번역
   const handleTranslatePost = async (post: Post, type: 'title' | 'content') => {
     if (translatingPosts.has(post.id)) return // 이미 번역 중이면 무시
-    
+
     setTranslatingPosts(prev => new Set(prev).add(post.id))
-    
+
     try {
       const text = type === 'title' ? post.title : post.content
       const targetLang = language === 'ko' ? 'es' : 'ko'
-      
+
       const translatedText = await translationService.translate(text, targetLang)
-      
-      setPosts(prevPosts => 
-        prevPosts.map(p => 
-          p.id === post.id 
-            ? { 
-                ...p, 
-                [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText 
+
+      setPosts(prevPosts =>
+        prevPosts.map(p =>
+          p.id === post.id
+            ? {
+                ...p,
+                [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText
               }
             : p
         )
@@ -252,7 +252,7 @@ export default function GalleryPostList({
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
           <p className="text-red-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={loadPosts}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
@@ -317,9 +317,9 @@ export default function GalleryPostList({
           onFilterChange={handleFilterChange}
           currentFilters={filters}
         />
-        
+
         {user && (
-          <Button 
+          <Button
             onClick={onCreatePost}
             className="bg-blue-500 hover:bg-blue-600 text-white whitespace-nowrap"
           >
@@ -330,7 +330,7 @@ export default function GalleryPostList({
 
       {/* 갤러리 헤더 */}
       <div className="flex items-center space-x-3">
-        <div 
+        <div
           className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
           style={{ backgroundColor: gallery.color + '20' }}
         >
@@ -346,7 +346,7 @@ export default function GalleryPostList({
       {/* 게시물 목록 */}
       <div className="space-y-4">
         {posts.map((post) => (
-          <Card 
+          <Card
             key={post.id}
             className="cursor-pointer hover:shadow-md transition-all duration-200 border hover:border-gray-600 dark:border-gray-400"
             onClick={() => onPostSelect(post)}
@@ -358,8 +358,8 @@ export default function GalleryPostList({
                   {/* 작성자 아바타 */}
                   <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                     {post.user.avatar_url ? (
-                      <img 
-                        src={post.user.avatar_url} 
+                      <img
+                        src={post.user.avatar_url}
                         alt={post.user.full_name}
                         className="w-full h-full rounded-full object-cover"
                       />
@@ -369,7 +369,7 @@ export default function GalleryPostList({
                       </span>
                     )}
                   </div>
-                  
+
                   <div>
                     <p className="font-medium text-gray-800">{post.user.full_name}</p>
                     <p className="text-xs text-gray-500">{formatDate(post.created_at)}</p>
@@ -445,8 +445,8 @@ export default function GalleryPostList({
                   <div className="flex space-x-2">
                     {post.images.slice(0, 3).map((image, index) => (
                       <div key={index} className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
-                        <img 
-                          src={image} 
+                        <img
+                          src={image}
                           alt={`첨부 이미지 ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
@@ -473,7 +473,7 @@ export default function GalleryPostList({
                     <span>{post.comment_count}</span>
                   </div>
                 </div>
-                
+
                 {/* 투표 버튼 */}
                 <div className="flex items-center space-x-2">
                   <button
@@ -491,7 +491,7 @@ export default function GalleryPostList({
                     <span>👍</span>
                     <span>{post.like_count}</span>
                   </button>
-                  
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -520,7 +520,7 @@ export default function GalleryPostList({
           <div className="text-gray-400 text-4xl mb-4">📝</div>
           <p className="text-gray-600 mb-4">{t('community.galleryList.noPosts')}</p>
           {user && (
-            <Button 
+            <Button
               onClick={onCreatePost}
               className="bg-blue-500 hover:bg-blue-600 text-white"
             >

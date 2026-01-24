@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { userId, title, body: messageBody, data, tag, actions } = body
 
-    console.log('🔔 [API] 푸시 알림 발송 요청:', { userId, title, messageBody, data })
+    console.log('[PUSH] Push notification request:', { userId, title, messageBody })
 
     if (!userId || !title || !messageBody) {
       return NextResponse.json(
@@ -173,6 +173,15 @@ export async function POST(request: Request) {
                     messageId: result.messageId
                   }
                 } else {
+                  // Check if token is unregistered and delete all tokens for this user
+                  if (result.errorCode === 'UNREGISTERED') {
+                    console.log('🗑️ FCM 토큰이 등록 해제됨 - 사용자 모든 토큰 삭제:', userId)
+                    await supabase
+                      .from('push_subscriptions')
+                      .delete()
+                      .eq('user_id', userId)
+                  }
+
                   throw new Error(result.error || 'FCM v1 발송 실패')
                 }
               } catch (fcmError) {

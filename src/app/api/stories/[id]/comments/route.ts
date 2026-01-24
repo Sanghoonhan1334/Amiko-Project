@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 스토리 댓글 목록 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -52,7 +53,7 @@ export async function GET(
     // 사용자 정보 조회
     const userIds = [...new Set(allComments?.map(c => c.user_id).filter(Boolean))]
     let usersMap: { [key: string]: any } = {}
-    
+
     if (userIds.length > 0) {
       const { data: users, error: usersError } = await supabaseServer
         .from('users')
@@ -76,7 +77,7 @@ export async function GET(
     const commentIds = allComments?.map(c => c.id) || []
     let commentLikesMap: { [key: string]: number } = {}
     let userLikesMap: { [key: string]: boolean } = {}
-    
+
     // 모든 댓글의 좋아요 수를 0으로 초기화
     commentIds.forEach(commentId => {
       commentLikesMap[commentId] = 0
@@ -85,11 +86,11 @@ export async function GET(
 
     // 댓글 데이터 변환
     const commentsWithUser = allComments?.map(comment => {
-      const user = usersMap[comment.user_id] || { 
-        id: comment.user_id, 
-        full_name: '사용자', 
-        avatar_url: null, 
-        profile_image: null 
+      const user = usersMap[comment.user_id] || {
+        id: comment.user_id,
+        full_name: '사용자',
+        avatar_url: null,
+        profile_image: null
       }
       return {
         id: comment.id,
@@ -156,8 +157,9 @@ export async function GET(
 // 스토리 댓글 작성
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -243,8 +245,8 @@ export async function POST(
 
       // 답글의 답글은 허용하지 않음 (1단계만 허용)
       if (parentComment.parent_comment_id) {
-        return NextResponse.json({ 
-          error: 'Cannot reply to a reply. Please reply to the original comment.' 
+        return NextResponse.json({
+          error: 'Cannot reply to a reply. Please reply to the original comment.'
         }, { status: 400 })
       }
 

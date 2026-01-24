@@ -42,7 +42,7 @@ export default function NotificationBell() {
     try {
       setLoading(true)
       const response = await fetch('/api/notifications')
-      
+
       console.log('알림 API 응답:', { status: response.status })
 
       if (!response.ok) {
@@ -53,11 +53,11 @@ export default function NotificationBell() {
       }
 
       const data: NotificationResponse = await response.json()
-      
+
       // 좋아요, 댓글, 새로운 뉴스만 필터링
       const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
       const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
-      
+
       const unread = filteredNotifications.filter(n => !n.is_read).length || 0
       setNotifications(filteredNotifications)
       setUnreadCount(unread)
@@ -85,31 +85,31 @@ export default function NotificationBell() {
         },
         cache: 'no-store'
       })
-      
+
       if (response.ok) {
         const data: NotificationResponse = await response.json()
-        
-        console.log('[NotificationBell] 전체 알림:', data.notifications?.length || 0, '개')
-        console.log('[NotificationBell] 전체 알림 타입들:', data.notifications?.map(n => n.type) || [])
-        
+
+        // console.log('[NotificationBell] 전체 알림:', data.notifications?.length || 0, '개')
+        // console.log('[NotificationBell] 전체 알림 타입들:', data.notifications?.map(n => n.type) || [])
+
         // 좋아요, 댓글, 새로운 뉴스만 필터링
         const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
         const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
-        
-        console.log('[NotificationBell] 필터링된 알림:', filteredNotifications.length, '개')
-        console.log('[NotificationBell] 필터링된 알림 타입들:', filteredNotifications.map(n => n.type))
-        
+
+        // console.log('[NotificationBell] 필터링된 알림:', filteredNotifications.length, '개')
+        // console.log('[NotificationBell] 필터링된 알림 타입들:', filteredNotifications.map(n => n.type))
+
         // 읽지 않은 알림 개수만 계산
         const unread = filteredNotifications.filter(n => !n.is_read).length || 0
-        console.log('[NotificationBell] 읽지 않은 알림:', unread, '개')
-        
+        // console.log('[NotificationBell] 읽지 않은 알림:', unread, '개')
+
         setUnreadCount(unread)
       } else {
-        console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
+        // console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
         setUnreadCount(0)
       }
     } catch (error) {
-      console.error('[NotificationBell] 알림 개수 조회 오류:', error)
+      // console.error('[NotificationBell] 알림 개수 조회 오류:', error)
       setUnreadCount(0)
     }
   }
@@ -124,9 +124,9 @@ export default function NotificationBell() {
       })
 
       if (response.ok) {
-        setNotifications(prev => 
-          prev.map(notification => 
-            notification.id === notificationId 
+        setNotifications(prev =>
+          prev.map(notification =>
+            notification.id === notificationId
               ? { ...notification, is_read: true }
               : notification
           )
@@ -142,12 +142,12 @@ export default function NotificationBell() {
   const handleNotificationClick = (notification: Notification) => {
     // 읽음 처리
     markAsRead(notification.id)
-    
+
     // 알림 드롭다운 닫기
     setIsOpen(false)
-    
+
     // 타입별로 다른 페이지로 이동
-    if (notification.type === 'like' || notification.type === 'story_like' || 
+    if (notification.type === 'like' || notification.type === 'story_like' ||
         notification.type === 'comment' || notification.type === 'story_comment') {
       // 내 게시물에 좋아요/댓글이 달린 경우 → 게시물 페이지로
       if (notification.related_id) {
@@ -240,7 +240,7 @@ export default function NotificationBell() {
     const date = new Date(dateString)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
-    
+
     const minutes = Math.floor(diff / (1000 * 60))
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -249,7 +249,7 @@ export default function NotificationBell() {
     if (minutes < 60) return `${minutes}분 전`
     if (hours < 24) return `${hours}시간 전`
     if (days < 7) return `${days}일 전`
-    
+
     return date.toLocaleDateString('ko-KR')
   }
 
@@ -258,7 +258,7 @@ export default function NotificationBell() {
     if (user) {
       fetchNotifications()
       fetchUnreadCount()
-      
+
       // 5초마다 읽지 않은 알림 개수 업데이트 (더 빠른 반응)
       const interval = setInterval(fetchUnreadCount, 5000)
       return () => clearInterval(interval)
@@ -283,11 +283,12 @@ export default function NotificationBell() {
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+        title={t('myTab.notifications') || 'Notificaciones'}
       >
         <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
         {unreadCount > 0 && (
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
           >
             {unreadCount > 99 ? '99+' : unreadCount}

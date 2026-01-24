@@ -4,8 +4,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 // 화상 채팅 파트너 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     const supabase = createAdminClient()
 

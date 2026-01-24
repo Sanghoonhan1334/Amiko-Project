@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useUnreadCounts } from '@/hooks/useUnreadCounts'
 
 export default function FaviconBadge() {
   const { user } = useAuth()
-  const [totalUnreadCount, setTotalUnreadCount] = useState(0)
+  const { data: unreadCounts } = useUnreadCounts()
   const faviconUrlRef = useRef<string | null>(null)
 
   // SVG 파비콘 생성 (배지 없이 하얀 원 + 검은색 A만)
@@ -38,7 +39,7 @@ export default function FaviconBadge() {
 
       // 기존 icon link 태그 찾기 (rel="icon"만, 첫 번째 것만)
       const iconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement
-      
+
       if (iconLink && iconLink.parentNode) {
         // 기존 link가 있으면 href만 업데이트 (안전하게)
         try {
@@ -64,66 +65,8 @@ export default function FaviconBadge() {
     }
   }, [])
 
-  // 읽지 않은 채팅 + 알림 합계 가져오기
-  const fetchTotalUnreadCount = useCallback(async () => {
-    if (!user) {
-      setTotalUnreadCount(0)
-      updateTitle(0)
-      updateAppBadge(0)
-      return
-    }
-
-    try {
-      // 1. 읽지 않은 채팅 개수
-      let unreadChatCount = 0
-      try {
-        const roomsResponse = await fetch('/api/chat/rooms')
-        const roomsData = await roomsResponse.json()
-        
-        if (roomsData.success && roomsData.rooms) {
-          const amikoRoom = roomsData.rooms.find((room: any) => 
-            room.type === 'country' && (
-              room.name?.toLowerCase().includes('amiko') || 
-              room.name?.toLowerCase().includes('아미코')
-            )
-          )
-          
-          if (amikoRoom) {
-            const chatResponse = await fetch(
-              `/api/chat/unread-check?roomId=${amikoRoom.id}&userId=${user.id}`,
-              { cache: 'no-store' }
-            )
-            const chatData = await chatResponse.json()
-            if (chatData.success) {
-              unreadChatCount = chatData.unreadCount || 0
-            }
-          }
-        }
-      } catch (error) {
-        console.error('[FaviconBadge] 채팅 개수 조회 실패:', error)
-      }
-
-      // 2. 읽지 않은 알림 개수
-      let unreadNotificationCount = 0
-      try {
-        const notificationResponse = await fetch('/api/notifications/unread-count', {
-          cache: 'no-store'
-        })
-        const notificationData = await notificationResponse.json()
-        unreadNotificationCount = notificationData.count || 0
-      } catch (error) {
-        console.error('[FaviconBadge] 알림 개수 조회 실패:', error)
-      }
-
-      // 3. 합계 계산
-      const total = unreadChatCount + unreadNotificationCount
-      setTotalUnreadCount(total)
-      updateTitle(total)
-      updateAppBadge(total)
-    } catch (error) {
-      console.error('[FaviconBadge] 전체 개수 조회 실패:', error)
-    }
-  }, [user])
+  // 읽지 않은 채팅 + 알림 합계 가져오기 (React Query로 대체)
+  // fetchTotalUnreadCount 함수는 더 이상 사용하지 않음
 
   // 타이틀 업데이트
   const updateTitle = useCallback((count: number) => {
@@ -160,27 +103,16 @@ export default function FaviconBadge() {
   useEffect(() => {
     // 초기 파비콘 설정 (한 번만)
     updateFavicon(0)
-    
-    fetchTotalUnreadCount()
-    const interval = setInterval(fetchTotalUnreadCount, 5000)
-    
-    return () => {
-      clearInterval(interval)
-      // cleanup에서는 파비콘을 건드리지 않음 (다른 스크립트와 충돌 방지)
-      updateTitle(0)
-      updateAppBadge(0)
-      
-      // URL 정리
-      if (faviconUrlRef.current) {
-        try {
-          URL.revokeObjectURL(faviconUrlRef.current)
-        } catch (e) {
-          // 무시
-        }
-        faviconUrlRef.current = null
-      }
-    }
-  }, [user, fetchTotalUnreadCount, updateFavicon, updateTitle, updateAppBadge])
+
+    // React Query가 자동으로 데이터를 가져오므로 수동 호출 불필요
+  }, [updateFavicon])
+
+  // 읽지 않은 메시지 개수 변경 시 UI 업데이트
+  useEffect(() => {
+    const total = unreadCounts?.total || 0
+    updateTitle(total)
+    updateAppBadge(total)
+  }, [unreadCounts?.total, updateTitle, updateAppBadge])
 
   return null
 }

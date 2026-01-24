@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 스토리 개별 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -53,8 +54,9 @@ export async function GET(
 // 스토리 업데이트 (가시성 변경 등)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -77,10 +79,10 @@ export async function PUT(
     }
 
     const token = authHeader.replace('Bearer ', '')
-    
+
     // 토큰에서 사용자 정보 추출
     const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(token)
-    
+
     if (authError || !authUser) {
       return NextResponse.json(
         { error: '인증에 실패했습니다.' },
@@ -160,8 +162,9 @@ export async function PUT(
 // 스토리 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -182,10 +185,10 @@ export async function DELETE(
     }
 
     const token = authHeader.replace('Bearer ', '')
-    
+
     // 토큰에서 사용자 정보 추출
     const { data: { user: authUser }, error: authError } = await supabaseServer.auth.getUser(token)
-    
+
     if (authError || !authUser) {
       return NextResponse.json(
         { error: '인증에 실패했습니다.' },

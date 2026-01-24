@@ -52,13 +52,13 @@ export function useMainPageData() {
       const promises = [
         fetch(`${baseUrl}/api/points?userId=${user.id}`, {
           headers: { 
-            'Authorization': `Bearer ${encodeURIComponent(token)}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
         token ? fetch(`${baseUrl}/api/coupons/check`, {
           headers: { 
-            'Authorization': `Bearer ${encodeURIComponent(token)}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }) : Promise.resolve(null)
@@ -109,7 +109,7 @@ export function useMainPageData() {
               // 새 토큰으로 쿠폰 조회 재시도
               const retryResponse = await fetch(`${baseUrl}/api/coupons/check`, {
                 headers: { 
-                  'Authorization': `Bearer ${encodeURIComponent(newToken)}`,
+                  'Authorization': `Bearer ${newToken}`,
                   'Content-Type': 'application/json'
                 }
               })
