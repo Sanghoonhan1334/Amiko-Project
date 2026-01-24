@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   // Server config: allow overriding with CAPACITOR_SERVER_URL environment variable
   // Example for physical device dev testing: export CAPACITOR_SERVER_URL="http://192.168.1.100:3000"
   server: {
-    url: process.env.CAPACITOR_SERVER_URL || 'https://victor-overabusive-hospitably.ngrok-free.dev',
+    url: 'https://www.helloamiko.com',
     // If URL is http (not https), enable cleartext so Android can load it
     // cleartext: (process.env.CAPACITOR_SERVER_URL || '').startsWith('http://') || false
   },
