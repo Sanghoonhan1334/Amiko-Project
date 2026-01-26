@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 댓글 투표 (좋아요/싫어요)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; commentId: string } }
+  context: { params: Promise<{ id: string; commentId: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -30,10 +31,10 @@ export async function POST(
     }
 
     const token = authHeader.substring(7)
-    
+
     // 토큰으로 사용자 인증
     const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: '유효하지 않은 토큰입니다.' },
@@ -150,6 +151,145 @@ export async function POST(
       dislikeCount: newDislikeCount
     })
 
+    // 새로운 좋아요 알림 생성 (좋아요를 눌렀을 때만)
+    if (newVoteType === 'like') {
+      console.log('[COMMENT_VOTE] 좋아요 알림 생성 시작 - vote_type:', newVoteType)
+      try {
+        console.log('[COMMENT_VOTE] 좋아요 알림 생성 시도')
+
+        // 댓글 정보 및 작성자 조회
+        const { data: commentData, error: commentDataError } = await supabaseServer
+          .from('post_comments')
+          .select(`
+            id,
+            user_id,
+            gallery_posts!post_comments_post_id_fkey(
+              title,
+              user_id
+            )
+          `)
+          .eq('id', commentId)
+          .single()
+
+        if (commentDataError || !commentData) {
+          console.error('[COMMENT_VOTE] 댓글 정보 조회 실패:', commentDataError)
+        } else {
+          const commentAuthorId = commentData.user_id
+          const postTitle = commentData.gallery_posts?.title || '게시물'
+
+          // 댓글 작성자와 좋아요 누른 사람이 다른 경우에만 알림 생성
+          if (commentAuthorId && commentAuthorId !== user.id) {
+            console.log('[COMMENT_VOTE] 알림 생성 조건 통과:', {
+              commentAuthor: commentAuthorId,
+              liker: user.id,
+              isDifferentUser: commentAuthorId !== user.id
+            })
+
+            // 알림 설정 확인
+            const { data: notificationSettings, error: settingsError } = await supabaseServer
+              .from('notification_settings')
+              .select('interaction_notifications_enabled, push_notifications')
+              .eq('user_id', commentAuthorId)
+              .single()
+
+            console.log('[COMMENT_VOTE] Notification settings:', notificationSettings, 'Error:', settingsError?.message)
+
+            // 알림 설정이 켜져있고 푸시가 활성화된 경우에만 발송
+            // 설정이 없거나 조회 실패하면 기본적으로 활성화로 간주
+            const hasSettings = !settingsError && notificationSettings
+            const interactionEnabled = hasSettings ? notificationSettings.interaction_notifications_enabled !== false : true
+            const pushEnabled = hasSettings ? notificationSettings.push_notifications !== false : true
+
+            if (interactionEnabled && pushEnabled) {
+              console.log('[COMMENT_VOTE] Notification settings allow sending')
+
+              // 좋아요 누른 사용자 이름 조회
+              const { data: likerProfile } = await supabaseServer
+                .from('user_profiles')
+                .select('display_name')
+                .eq('user_id', user.id)
+                .single()
+
+              let likerName = '익명'
+              if (likerProfile?.display_name && likerProfile.display_name.trim() !== '') {
+                likerName = likerProfile.display_name.includes('#')
+                  ? likerProfile.display_name.split('#')[0]
+                  : likerProfile.display_name
+              } else {
+                // user_profiles에 없으면 users 테이블에서 조회
+                const { data: likerUser } = await supabaseServer
+                  .from('users')
+                  .select('full_name, korean_name, spanish_name')
+                  .eq('id', user.id)
+                  .single()
+
+                if (likerUser) {
+                  likerName = likerUser.korean_name || likerUser.spanish_name || likerUser.full_name || '익명'
+                }
+              }
+
+              // 댓글 작성자의 언어 설정 확인
+              const { data: authorProfile } = await supabaseServer
+                .from('users')
+                .select('language')
+                .eq('id', commentAuthorId)
+                .single()
+
+              const authorLanguage = authorProfile?.language || 'es' // 기본값 스페인어
+
+              // 번역된 알림 생성
+              let notificationTitle: string
+              let notificationMessage: string
+
+              if (authorLanguage === 'ko') {
+                notificationTitle = '좋아요를 받았습니다'
+                notificationMessage = `${likerName}님이 회원님의 댓글에 좋아요를 눌렀습니다.`
+              } else {
+                notificationTitle = 'Nuevo like'
+                notificationMessage = `${likerName} dio like a tu comentario`
+              }
+
+              // 알림 생성
+              const notificationPayload = {
+                user_id: commentAuthorId, // 댓글 작성자
+                type: 'like',
+                title: notificationTitle,
+                message: notificationMessage,
+                data: {
+                  post_id: postId,
+                  comment_id: commentId,
+                  liker_id: user.id
+                }
+              }
+
+              console.log('[COMMENT_VOTE] 좋아요 알림 생성 페이로드:', notificationPayload)
+
+              const { data: notificationData, error: notificationError } = await supabaseServer
+                .from('notifications')
+                .insert(notificationPayload)
+                .select()
+                .single()
+
+              if (notificationError) {
+                console.error('[COMMENT_VOTE] 좋아요 알림 생성 실패:', {
+                  error: notificationError,
+                  code: notificationError.code,
+                  message: notificationError.message,
+                  details: notificationError.details,
+                  hint: notificationError.hint
+                })
+              } else {
+                console.log('[COMMENT_VOTE] 좋아요 알림 생성 성공:', notificationData.id)
+              }
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.error('[COMMENT_VOTE] 좋아요 알림 생성 예외:', notificationError)
+        // 알림 생성 실패해도 투표는 성공으로 처리
+      }
+    }
+
     return NextResponse.json({
       success: true,
       vote_type: newVoteType,
@@ -191,10 +331,10 @@ export async function GET(
     }
 
     const token = authHeader.substring(7)
-    
+
     // 토큰으로 사용자 인증
     const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: '유효하지 않은 토큰입니다.' },

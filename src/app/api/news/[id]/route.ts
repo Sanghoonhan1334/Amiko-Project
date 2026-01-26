@@ -7,8 +7,10 @@ const supabase = createClient(supabaseUrl!, supabaseKey!)
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
+
   try {
     const authHeader = request.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -47,9 +49,9 @@ export async function PUT(
       return NextResponse.json({ error: '뉴스를 찾을 수 없는오' }, { status: 404 })
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      newsItem: data[0] 
+    return NextResponse.json({
+      success: true,
+      newsItem: data[0]
     })
   } catch (error) {
     console.error('뉴스 수정 API 오류:', error)
@@ -59,8 +61,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     // 개발 환경에서는 인증 체크 생략
     // const authHeader = request.headers.get('Authorization')

@@ -3,12 +3,13 @@ import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     const commentId = params.id
     const authHeader = request.headers.get('authorization')
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({
         success: false,
@@ -17,10 +18,10 @@ export async function POST(
     }
 
     const token = authHeader.replace('Bearer ', '')
-    
+
     // 토큰에서 사용자 정보 추출
     const { data: { user }, error: userError } = await supabaseServer.auth.getUser(token)
-    
+
     if (userError || !user) {
       return NextResponse.json({
         success: false,
@@ -29,7 +30,7 @@ export async function POST(
     }
 
     const { vote_type } = await request.json()
-    
+
     if (!vote_type || !['like', 'dislike'].includes(vote_type)) {
       return NextResponse.json({
         success: false,

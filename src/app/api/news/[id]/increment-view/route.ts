@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 뉴스 조회수 증가 API
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(

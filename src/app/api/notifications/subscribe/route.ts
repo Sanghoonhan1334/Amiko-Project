@@ -51,6 +51,34 @@ export async function POST(request: Request) {
         )
       }
 
+      // 자동으로 오래된 토큰 정리 (현재 토큰을 제외한 모든 토큰 삭제)
+      console.log('🧹 자동 토큰 정리 시작:', userId)
+      const { data: allTokens, error: fetchError } = await supabase
+        .from('push_subscriptions')
+        .select('id, native_token, updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+
+      if (!fetchError && allTokens && allTokens.length > 1) {
+        // 가장 최신 토큰을 제외한 나머지 삭제
+        const newestToken = allTokens[0]
+        const oldTokens = allTokens.slice(1)
+
+        console.log(`📊 ${allTokens.length}개 토큰 발견, ${oldTokens.length}개 오래된 토큰 정리`)
+
+        const oldTokenIds = oldTokens.map(t => t.id)
+        const { error: deleteError } = await supabase
+          .from('push_subscriptions')
+          .delete()
+          .in('id', oldTokenIds)
+
+        if (!deleteError) {
+          console.log('✅ 자동 토큰 정리 완료')
+        } else {
+          console.warn('⚠️ 자동 토큰 정리 실패:', deleteError)
+        }
+      }
+
       console.log('✅ 네이티브 푸시 구독 저장 성공:', data)
       return NextResponse.json({
         success: true,
@@ -87,6 +115,34 @@ export async function POST(request: Request) {
         { success: false, message: '구독 정보 저장에 실패했습니다.' },
         { status: 500 }
       )
+    }
+
+    // 자동으로 오래된 토큰 정리 (현재 구독을 제외한 모든 구독 삭제)
+    console.log('🧹 자동 구독 정리 시작:', userId)
+    const { data: allSubscriptions, error: fetchError } = await supabase
+      .from('push_subscriptions')
+      .select('id, endpoint, updated_at')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+
+    if (!fetchError && allSubscriptions && allSubscriptions.length > 1) {
+      // 가장 최신 구독을 제외한 나머지 삭제
+      const newestSubscription = allSubscriptions[0]
+      const oldSubscriptions = allSubscriptions.slice(1)
+
+      console.log(`📊 ${allSubscriptions.length}개 구독 발견, ${oldSubscriptions.length}개 오래된 구독 정리`)
+
+      const oldSubscriptionIds = oldSubscriptions.map(s => s.id)
+      const { error: deleteError } = await supabase
+        .from('push_subscriptions')
+        .delete()
+        .in('id', oldSubscriptionIds)
+
+      if (!deleteError) {
+        console.log('✅ 자동 구독 정리 완료')
+      } else {
+        console.warn('⚠️ 자동 구독 정리 실패:', deleteError)
+      }
     }
 
     console.log('✅ 푸시 구독 저장 성공:', data)

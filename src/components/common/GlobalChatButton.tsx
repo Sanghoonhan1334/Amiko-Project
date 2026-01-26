@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import ChatRoomClient from '@/components/main/app/community/ChatRoomClient'
+import { useUnreadCounts } from '@/hooks/useUnreadCounts'
 
 interface ChatRoom {
   id: string
@@ -24,8 +25,7 @@ export default function GlobalChatButton() {
   const [isOpening, setIsOpening] = useState(false)
   const [amikoRoom, setAmikoRoom] = useState<ChatRoom | null>(null)
   const [loading, setLoading] = useState(false)
-  const [hasUnread, setHasUnread] = useState(false) // 읽지 않은 메시지 존재 여부
-  const [unreadCount, setUnreadCount] = useState(0) // 읽지 않은 메시지 개수
+  const { data: unreadCounts } = useUnreadCounts()
   const { user, loading: authLoading } = useAuth()
   const { t, language } = useLanguage()
   const router = useRouter()
@@ -37,39 +37,39 @@ export default function GlobalChatButton() {
     if (pathname?.startsWith('/verification')) {
       return
     }
-    
+
     const fetchAmikoRoom = async () => {
       if (!user) {
         setAmikoRoom(null)
         return
       }
-      
+
       try {
         setLoading(true)
         const response = await fetch('/api/chat/rooms')
         const data = await response.json()
-        
+
         if (data.success && data.rooms) {
           // country 타입 중 "아미코 채팅방" 찾기
-          let amikoRoomData = data.rooms.find((room: any) => 
+          let amikoRoomData = data.rooms.find((room: any) =>
             room.type === 'country' && (
-              room.name?.toLowerCase().includes('amiko') || 
+              room.name?.toLowerCase().includes('amiko') ||
               room.name?.toLowerCase().includes('아미코')
             )
           )
-          
+
           // 아미코 채팅방이 없으면 생성 또는 복구
           if (!amikoRoomData) {
             const createResponse = await fetch('/api/chat/rooms/create-amiko', {
               method: 'POST'
             })
             const createData = await createResponse.json()
-            
+
             if (createData.success && createData.room) {
               amikoRoomData = createData.room
             }
           }
-          
+
           if (amikoRoomData) {
             setAmikoRoom(amikoRoomData)
           } else {
@@ -92,70 +92,9 @@ export default function GlobalChatButton() {
     }
   }, [user, pathname])
 
-  // 읽지 않은 메시지 확인
-  useEffect(() => {
-    // 인증센터 페이지에서는 확인하지 않음
-    if (pathname?.startsWith('/verification')) {
-      return
-    }
-
-    // 채팅방이 열려있으면 읽지 않은 메시지 확인하지 않음
-    if (isOpen) {
-      setHasUnread(false)
-      setUnreadCount(0)
-      return
-    }
-
-    if (!user || !amikoRoom?.id) {
-      setHasUnread(false)
-      setUnreadCount(0)
-      return
-    }
-
-    const checkUnreadMessages = async () => {
-      try {
-        const response = await fetch(
-          `/api/chat/unread-check?roomId=${amikoRoom.id}&userId=${user.id}`,
-          { cache: 'no-store' }
-        )
-        
-        if (!response.ok) {
-          console.warn('[GlobalChatButton] 읽지 않은 메시지 확인 실패:', response.status)
-          return
-        }
-        
-        const data = await response.json()
-        
-        if (data.success) {
-          console.log('[GlobalChatButton] 읽지 않은 메시지 확인:', {
-            hasUnread: data.hasUnread,
-            unreadCount: data.unreadCount,
-            roomId: amikoRoom.id,
-            userId: user.id
-          })
-          setHasUnread(data.hasUnread)
-          setUnreadCount(data.unreadCount || 0)
-        }
-      } catch (error) {
-        // 네트워크 에러는 조용히 처리 (API가 없거나 연결 실패 시)
-        if (error instanceof TypeError && error.message === 'Failed to fetch') {
-          console.warn('[GlobalChatButton] 네트워크 연결 실패 - API 엔드포인트를 확인하세요')
-        } else {
-          console.error('[GlobalChatButton] 읽지 않은 메시지 확인 실패:', error)
-        }
-      }
-    }
-
-    // 초기 확인
-    checkUnreadMessages()
-
-    // 5초마다 확인 (폴링)
-    const interval = setInterval(checkUnreadMessages, 5000)
-
-    return () => {
-      clearInterval(interval)
-    }
-  }, [user, amikoRoom?.id, isOpen, pathname])
+  // 읽지 않은 메시지 상태 동기화 (React Query에서 가져옴)
+  const hasUnread = (unreadCounts?.chat || 0) > 0
+  const unreadCount = unreadCounts?.chat || 0
 
   const handleToggle = () => {
     // 인증 체크 강화
@@ -180,7 +119,7 @@ export default function GlobalChatButton() {
       }, 300)
     }
   }
-  
+
   const handleClose = async () => {
     // 채팅방을 닫을 때 읽음 상태 업데이트
     if (user && amikoRoom?.id) {
@@ -202,7 +141,7 @@ export default function GlobalChatButton() {
         console.error('[GlobalChatButton] 채팅방 닫을 때 읽음 상태 업데이트 실패:', error)
       }
     }
-    
+
     setIsClosing(true)
     setTimeout(() => {
       setIsOpen(false)
@@ -240,7 +179,7 @@ export default function GlobalChatButton() {
         )}
         {/* 읽지 않은 메시지 숫자 배지 표시 */}
         {hasUnread && !isOpen && unreadCount > 0 && (
-          <span 
+          <span
             className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full border-2 border-white shadow-lg flex items-center justify-center"
             title={language === 'ko' ? `읽지 않은 메시지 ${unreadCount}개` : `${unreadCount} mensajes no leídos`}
           >
@@ -252,7 +191,7 @@ export default function GlobalChatButton() {
       {/* 채팅 모달/사이드바 - 인증된 사용자만 */}
       {(isOpen || isClosing || isOpening) && !authLoading && user && (
         <div className={`fixed top-16 bottom-0 right-0 left-0 sm:left-auto sm:right-0 sm:top-0 sm:bottom-0 sm:w-96 z-[60] bg-white shadow-2xl flex flex-col rounded-t-xl sm:rounded-l-2xl sm:rounded-r-none sm:rounded-t-none overflow-hidden ${
-          isClosing 
+          isClosing
             ? 'animate-[slideDownMobile_0.3s_ease-out_forwards] sm:animate-[slideOutRight_0.3s_ease-out_forwards]'
             : isOpening
             ? 'animate-[slideUpMobile_0.3s_ease-out] sm:animate-[slideInRight_0.3s_ease-out]'

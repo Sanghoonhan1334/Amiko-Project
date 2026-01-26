@@ -124,7 +124,7 @@ export async function sendFCMv1Notification(
   title: string,
   body: string,
   data?: Record<string, string>
-): Promise<{ success: boolean; messageId?: string; error?: string }> {
+): Promise<{ success: boolean; messageId?: string; error?: string; errorCode?: string }> {
   try {
     // 서비스 계정 정보 로드
     const serviceAccount = loadServiceAccount()
@@ -167,29 +167,33 @@ export async function sendFCMv1Notification(
     })
 
     if (!response.ok) {
-      const errorData = await response.text()
+      let errorData: any = await response.text()
+      try {
+        errorData = JSON.parse(errorData)
+      } catch (e) {
+        // If parsing fails, keep as string
+      }
+
       console.error('❌ FCM v1 API 호출 실패:', response.status, errorData)
+
+      // Extract FCM error code
+      let errorCode = 'UNKNOWN'
+      if (typeof errorData === 'object' && errorData?.error?.details) {
+        const detail = errorData.error.details.find((d: any) => d['@type'] === 'type.googleapis.com/google.firebase.fcm.v1.FcmError')
+        if (detail?.errorCode) {
+          errorCode = detail.errorCode
+        }
+      }
+
       return {
         success: false,
-        error: `FCM 발송 실패: ${response.status} ${errorData}`
+        error: `FCM 발송 실패: ${response.status} ${typeof errorData === 'string' ? errorData : JSON.stringify(errorData)}`,
+        errorCode
       }
     }
 
     const result = await response.json()
     console.log('✅ FCM v1 푸시 알림 발송 성공:', result.name)
-
-    // 로컬 알림 스케줄링
-    await LocalNotifications.schedule({
-      notifications: [{
-        id: Date.now() % 100000,
-        title: String(title),
-        body: String(body),
-        channelId: 'default',
-        sound: 'default',
-        smallIcon: undefined,
-        extra: data || {}
-      }]
-    })
 
     return {
       success: true,
@@ -200,7 +204,8 @@ export async function sendFCMv1Notification(
     console.error('❌ FCM v1 푸시 알림 발송 중 오류:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : '알 수 없는 오류'
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
+      errorCode: 'UNKNOWN'
     }
   }
 }
@@ -218,7 +223,7 @@ export async function sendFCMv1BatchNotifications(
   title: string,
   body: string,
   data?: Record<string, string>
-): Promise<Array<{ token: string; success: boolean; messageId?: string; error?: string }>> {
+): Promise<Array<{ token: string; success: boolean; messageId?: string; error?: string; errorCode?: string }>> {
   const results = await Promise.allSettled(
     deviceTokens.map(token =>
       sendFCMv1Notification(token, title, body, data).then(result => ({
@@ -235,7 +240,8 @@ export async function sendFCMv1BatchNotifications(
       return {
         token: deviceTokens[index],
         success: false,
-        error: result.reason?.message || '알 수 없는 오류'
+        error: result.reason?.message || '알 수 없는 오류',
+        errorCode: 'UNKNOWN'
       }
     }
   })

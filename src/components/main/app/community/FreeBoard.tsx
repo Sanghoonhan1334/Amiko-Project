@@ -8,10 +8,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Plus, 
-  MessageSquare, 
-  ThumbsUp, 
+import {
+  Plus,
+  MessageSquare,
+  ThumbsUp,
   ThumbsDown,
   Eye,
   User,
@@ -78,10 +78,10 @@ export default function FreeBoard() {
   const { t, language } = useLanguage()
   const router = useRouter()
   const supabase = createSupabaseBrowserClient()
-  
+
   // 번역 서비스 초기화
   const translationService = TranslationService.getInstance()
-  
+
   // 상태 관리
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -92,10 +92,10 @@ export default function FreeBoard() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingPost, setEditingPost] = useState<Post | null>(null)
   const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false)
-  
+
   // 번역 상태 관리
   const [translatingPosts, setTranslatingPosts] = useState<Set<string>>(new Set())
-  
+
   // 필터 및 검색
   const [currentCategory, setCurrentCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -107,7 +107,7 @@ export default function FreeBoard() {
     currentPage: 1,
     limit: 10
   })
-  
+
   // 게시글 작성
   const [writeTitle, setWriteTitle] = useState('')
   const [writeContent, setWriteContent] = useState('')
@@ -116,24 +116,24 @@ export default function FreeBoard() {
   const [writeIsSurvey, setWriteIsSurvey] = useState(false)
   const [writeSurveyOptions, setWriteSurveyOptions] = useState(['', ''])
   const [writeLoading, setWriteLoading] = useState(false)
-  
+
   // 공지사항 작성 상태
   const [announcementTitle, setAnnouncementTitle] = useState('')
   const [announcementContent, setAnnouncementContent] = useState('')
   const [announcementLoading, setAnnouncementLoading] = useState(false)
   const [announcementImages, setAnnouncementImages] = useState<string[]>([])
   const [uploadingAnnouncementImages, setUploadingAnnouncementImages] = useState(false)
-  
+
   // 운영자 권한 체크 (특정 운영자 아이디만 허용)
   const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
-  
+
   // 디버깅용 로그
   console.log('현재 사용자 정보:', {
     email: user?.email,
     isAdmin: isAdmin,
     user: user
   })
-  
+
   // 이미지 업로드
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -155,8 +155,8 @@ export default function FreeBoard() {
     const maxSize = 5 * 1024 * 1024
     const validFiles = imageFiles.filter(file => {
       if (file.size > maxSize) {
-        alert(language === 'ko' 
-          ? `${file.name}은(는) 5MB를 초과합니다.` 
+        alert(language === 'ko'
+          ? `${file.name}은(는) 5MB를 초과합니다.`
           : `${file.name} excede 5MB.`)
         return false
       }
@@ -204,7 +204,7 @@ export default function FreeBoard() {
         const response = await fetch('/api/upload/image', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
+            'Authorization': `Bearer ${currentToken}`
           },
           body: formData
         })
@@ -270,23 +270,23 @@ export default function FreeBoard() {
       // 공지글은 항상 맨 위에
       if (a.is_notice && !b.is_notice) return -1
       if (!a.is_notice && b.is_notice) return 1
-      
+
       // 공지글끼리는 생성일 기준 내림차순
       if (a.is_notice && b.is_notice) {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
-      
+
       // 일반 게시글끼리는 생성일 기준 내림차순
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
-    
+
     console.log('[SORT_POSTS] 정렬 결과:', {
       total: sorted.length,
       notices: sorted.filter(p => p.is_notice).length,
       firstPost: sorted[0] ? { title: sorted[0].title, is_notice: sorted[0].is_notice } : null,
       firstNotice: sorted.find(p => p.is_notice) ? { title: sorted.find(p => p.is_notice)!.title } : null
     })
-    
+
     return sorted
   }
 
@@ -325,9 +325,9 @@ export default function FreeBoard() {
       const response = await fetch(`/api/posts?${params}`, {
         signal: controller.signal
       })
-      
+
       clearTimeout(timeoutId)
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('API Error:', response.status, errorData)
@@ -339,13 +339,13 @@ export default function FreeBoard() {
       console.log('첫 번째 게시글의 작성자 정보:', data.posts[0]?.author)
       console.log('첫 번째 게시글 is_notice:', data.posts[0]?.is_notice)
       console.log('공지사항 개수:', data.posts?.filter(p => p.is_notice).length || 0)
-      
+
       // API에서 이미 공지사항이 먼저 정렬되어 반환되므로, 클라이언트 정렬은 생략
       // 만약 정렬이 필요하다면 sortPosts 함수 사용
       // const sortedPosts = sortPosts(data.posts)
       // setPosts(sortedPosts)
       setPosts(data.posts || [])
-      
+
       // 페이지네이션 정보 업데이트
       setPagination({
         total: data.pagination?.total || 0,
@@ -355,7 +355,7 @@ export default function FreeBoard() {
       })
     } catch (err) {
       console.error('게시글 목록 조회 실패:', err)
-      
+
       // AbortError인 경우 타임아웃으로 처리
       if (err instanceof Error && err.name === 'AbortError') {
         console.log('게시글 로딩 타임아웃, 빈 배열 사용')
@@ -412,7 +412,7 @@ export default function FreeBoard() {
 
       // AuthContext에서 토큰 가져오기
       let currentToken = token
-      
+
       // AuthContext에 토큰이 없으면 직접 가져오기
       if (!currentToken) {
         try {
@@ -426,7 +426,7 @@ export default function FreeBoard() {
           console.error('세션 조회 중 오류:', error)
         }
       }
-      
+
       // 토큰이 없으면 새로고침 시도
       if (!currentToken) {
         try {
@@ -440,21 +440,21 @@ export default function FreeBoard() {
           console.error('세션 새로고침 중 오류:', error)
         }
       }
-      
-      console.log('토큰 정보:', { 
-        authContextToken: !!token, 
-        currentToken: !!currentToken, 
-        user: !!user 
+
+      console.log('토큰 정보:', {
+        authContextToken: !!token,
+        currentToken: !!currentToken,
+        user: !!user
       })
-      
+
       if (!currentToken) {
         console.log('토큰이 없습니다. 에러 설정')
         setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
         return
       }
-      
+
       console.log('토큰 확인 완료, 요청 데이터 준비 중')
-      
+
       // 카테고리 설정 (사용자가 선택한 카테고리 사용)
       let category_name = writeCategory // 사용자가 선택한 카테고리 사용
       if (writeIsNotice) {
@@ -470,17 +470,17 @@ export default function FreeBoard() {
       formData.append('category_name', category_name)
       formData.append('is_notice', writeIsNotice.toString())
       formData.append('is_survey', writeIsSurvey.toString())
-      
+
       if (writeIsSurvey) {
         formData.append('survey_options', JSON.stringify(writeSurveyOptions.filter(option => option.trim())))
       }
-      
+
       // 업로드된 이미지 URL들 추가
       if (uploadedImages.length > 0) {
         formData.append('uploaded_images', JSON.stringify(uploadedImages))
       }
-      
-      console.log('요청 데이터:', { 
+
+      console.log('요청 데이터:', {
         title: writeTitle.trim(),
         content: writeContent.trim(),
         category_name,
@@ -488,19 +488,19 @@ export default function FreeBoard() {
         is_survey: writeIsSurvey,
         fileCount: attachedFiles.length
       })
-      
+
       // FormData 내용 확인
       console.log('FormData 내용:')
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value)
       }
-      
+
       console.log('API 요청 시작')
-      
+
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${encodeURIComponent(currentToken)}`
+          'Authorization': `Bearer ${currentToken}`
           // Content-Type을 명시하지 않음 (FormData 자동 설정)
         },
         body: formData
@@ -511,7 +511,7 @@ export default function FreeBoard() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('API 에러:', errorData)
-        
+
         // 데이터베이스 연결 문제인 경우 사용자 친화적인 메시지 표시
         if (response.status === 500) {
           // 빈 객체이거나 데이터베이스 관련 에러인 경우
@@ -520,7 +520,7 @@ export default function FreeBoard() {
             return
           }
         }
-        
+
         throw new Error(errorData.error || '게시글 작성에 실패했습니다.')
       }
 
@@ -568,7 +568,7 @@ export default function FreeBoard() {
       setUploadedImages([])
       setImagePreviews([])
       setShowWriteDialog(false)
-      
+
       // 목록 새로고침
       await fetchPosts()
     } catch (err) {
@@ -587,7 +587,10 @@ export default function FreeBoard() {
 
   // 좋아요/싫어요 토글
   const handleReaction = async (postId: string, reactionType: 'like' | 'dislike') => {
+    console.log('[FRONTEND] handleReaction called:', { postId, reactionType, user: user?.id })
+
     if (!user) {
+      console.error('[FRONTEND] No user logged in')
       setError('로그인이 필요합니다.')
       return
     }
@@ -595,30 +598,40 @@ export default function FreeBoard() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
-      
+
+      console.log('[FRONTEND] Auth session:', { hasSession: !!session, hasToken: !!token, tokenLength: token?.length })
+
       if (!token) {
+        console.error('[FRONTEND] No auth token available')
         setError('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
         return
       }
-      
+
+      console.log('[FRONTEND] Making API call to reactions endpoint')
       const response = await fetch(`/api/posts/${postId}/reactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encodeURIComponent(token)}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ reaction_type: reactionType })
       })
 
+      console.log('[FRONTEND] API response status:', response.status)
+
       if (!response.ok) {
         const errorData = await response.json()
+        console.error('[FRONTEND] API error:', errorData)
         throw new Error(errorData.error || '반응 처리에 실패했습니다.')
       }
+
+      const responseData = await response.json()
+      console.log('[FRONTEND] API success:', responseData)
 
       // 목록 새로고침
       await fetchPosts()
     } catch (err) {
-      console.error('반응 처리 실패:', err)
+      console.error('[FRONTEND] handleReaction error:', err)
       setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     }
   }
@@ -653,21 +666,21 @@ export default function FreeBoard() {
   // 게시글 번역 핸들러
   const handleTranslatePost = async (post: Post, type: 'title' | 'content') => {
     if (translatingPosts.has(post.id)) return // 이미 번역 중이면 무시
-    
+
     setTranslatingPosts(prev => new Set(prev).add(post.id))
-    
+
     try {
       const text = type === 'title' ? post.title : post.content
       const targetLang = language === 'ko' ? 'es' : 'ko'
-      
+
       const translatedText = await translationService.translate(text, targetLang)
-      
-      setPosts(prevPosts => 
-        prevPosts.map(p => 
-          p.id === post.id 
-            ? { 
-                ...p, 
-                [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText 
+
+      setPosts(prevPosts =>
+        prevPosts.map(p =>
+          p.id === post.id
+            ? {
+                ...p,
+                [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText
               }
             : p
         )
@@ -687,17 +700,17 @@ export default function FreeBoard() {
   // 게시글 수정 완료 핸들러
   const handlePostUpdated = (updatedPost: Post) => {
     // 게시글 목록에서 해당 게시글 업데이트
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
         post.id === updatedPost.id ? { ...post, ...updatedPost } : post
       )
     )
-    
+
     // 선택된 게시글이 수정된 게시글이면 업데이트
     if (selectedPost && selectedPost.id === updatedPost.id) {
       setSelectedPost({ ...selectedPost, ...updatedPost })
     }
-    
+
     setShowEditModal(false)
     setEditingPost(null)
   }
@@ -705,14 +718,14 @@ export default function FreeBoard() {
   // 공지사항 작성 핸들러
   const handleAnnouncementSubmit = async () => {
     if (!user || !isAdmin) return
-    
+
     if (!announcementTitle.trim() || !announcementContent.trim()) {
       alert(language === 'ko' ? '제목과 내용을 모두 입력해주세요.' : 'Por favor, complete el título y el contenido.')
       return
     }
 
     setAnnouncementLoading(true)
-    
+
     try {
       const response = await fetch('/api/posts', {
         method: 'POST',
@@ -739,13 +752,13 @@ export default function FreeBoard() {
       setAnnouncementContent('')
       setAnnouncementImages([])
       setShowAnnouncementDialog(false)
-      
+
       // 게시글 목록 새로고침
       fetchPosts()
-      
+
       // 공지사항 알림 전송
       await sendAnnouncementNotification(announcementTitle, announcementContent)
-      
+
       alert(language === 'ko' ? '공지사항이 작성되었습니다.' : 'Se ha publicado el anuncio.')
     } catch (error) {
       console.error('공지사항 작성 실패:', error)
@@ -784,11 +797,11 @@ export default function FreeBoard() {
     if (!files || files.length === 0) return
 
     setUploadingAnnouncementImages(true)
-    
+
     try {
       const uploadPromises = Array.from(files).map(file => handleAnnouncementImageUpload(file))
       const uploadedUrls = await Promise.all(uploadPromises)
-      
+
       setAnnouncementImages(prev => [...prev, ...uploadedUrls])
     } catch (error) {
       alert(language === 'ko' ? '이미지 업로드에 실패했습니다.' : 'Error al subir la imagen.')
@@ -852,9 +865,9 @@ export default function FreeBoard() {
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('ko-KR', { 
-      month: '2-digit', 
-      day: '2-digit' 
+    return date.toLocaleDateString('ko-KR', {
+      month: '2-digit',
+      day: '2-digit'
     })
   }
 
@@ -907,13 +920,13 @@ export default function FreeBoard() {
           검색
         </Button>
         {searchQuery && (
-          <Button 
+          <Button
             onClick={() => {
               setSearchQuery('')
               setCurrentPage(1)
               fetchPosts()
-            }} 
-            variant="ghost" 
+            }}
+            variant="ghost"
             size="sm"
           >
             초기화
@@ -924,8 +937,8 @@ export default function FreeBoard() {
       {/* 디버깅용 운영자 상태 표시 */}
       {user && (
         <div className="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm">
-          <strong>디버깅 정보:</strong> 
-          사용자: {user.email} | 
+          <strong>디버깅 정보:</strong>
+          사용자: {user.email} |
           운영자 여부: {isAdmin ? '✅ 운영자' : '❌ 일반 사용자'}
         </div>
       )}
@@ -940,8 +953,8 @@ export default function FreeBoard() {
               size="sm"
               onClick={() => handleCategoryChange(option.value)}
               className={`transition-all duration-200 ${
-                currentCategory === option.value 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                currentCategory === option.value
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
                   : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400'
               } active:scale-95 active:bg-blue-200 dark:active:bg-blue-800 active:text-blue-800 dark:active:text-blue-200`}
             >
@@ -949,7 +962,7 @@ export default function FreeBoard() {
             </Button>
           ))}
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={handleSortChange}>
             <SelectTrigger className="w-32">
@@ -963,12 +976,12 @@ export default function FreeBoard() {
               ))}
             </SelectContent>
           </Select>
-          
+
           {/* 운영자만 보이는 공지사항 버튼 */}
           {isAdmin && (
             <Dialog open={showAnnouncementDialog} onOpenChange={setShowAnnouncementDialog}>
               <DialogTrigger asChild>
-                <Button 
+                <Button
                   className="bg-orange-500 hover:bg-orange-600 text-white font-bold border-2 border-orange-600 shadow-lg"
                   onClick={() => {
                     if (!user) {
@@ -984,17 +997,17 @@ export default function FreeBoard() {
               </DialogTrigger>
             </Dialog>
           )}
-          
+
           {/* 운영자가 아닌 경우 표시 (디버깅용) */}
           {!isAdmin && user && (
             <div className="text-xs text-gray-500 px-2">
               (운영자가 아님)
             </div>
           )}
-          
+
           <Dialog open={showWriteDialog} onOpenChange={setShowWriteDialog}>
             <DialogTrigger asChild>
-              <Button 
+              <Button
                 className="bg-blue-400 hover:bg-blue-500 text-white"
                 onClick={() => {
                   if (!user) {
@@ -1008,9 +1021,9 @@ export default function FreeBoard() {
                 {t('buttons.write')}
               </Button>
             </DialogTrigger>
-            <DialogContent 
+            <DialogContent
               className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl mx-4"
-              style={{ 
+              style={{
                 backgroundColor: 'white',
                 opacity: 1,
                 zIndex: 1000
@@ -1026,8 +1039,8 @@ export default function FreeBoard() {
                 {/* 카테고리 선택 */}
                 <div>
                   <label className="block text-sm font-medium mb-2">{t('freeboard.category')}</label>
-                  <select 
-                    value={writeCategory} 
+                  <select
+                    value={writeCategory}
                     onChange={(e) => setWriteCategory(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
@@ -1051,8 +1064,8 @@ export default function FreeBoard() {
                     onChange={(e) => setWriteTitle(e.target.value)}
                   />
                 </div>
-                
-                
+
+
                 <div className="space-y-3">
                 <div>
                     <label className="block text-sm font-medium mb-2">{t('freeboard.postType')}</label>
@@ -1106,7 +1119,7 @@ export default function FreeBoard() {
                       )}
                     </div>
                   </div>
-                  
+
                   {writeIsSurvey && (
                     <div className="bg-blue-50 p-3 rounded-lg">
                       <p className="text-sm text-blue-800 mb-2">
@@ -1175,7 +1188,7 @@ export default function FreeBoard() {
                       </div>
                     </div>
                   )}
-                  
+
                   {writeIsNotice && (
                     <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
                       <div className="flex items-center gap-2">
@@ -1192,7 +1205,7 @@ export default function FreeBoard() {
                     </div>
                   )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">내용</label>
                   <Textarea
@@ -1202,7 +1215,7 @@ export default function FreeBoard() {
                     rows={8}
                   />
                 </div>
-                
+
                 {/* 파일 첨부 섹션 */}
                 <div>
                   <label className="block text-sm font-medium mb-2">파일 첨부</label>
@@ -1229,7 +1242,7 @@ export default function FreeBoard() {
                       </div>
                     </label>
                   </div>
-                  
+
                   {/* 업로드된 이미지 미리보기 */}
                   {imagePreviews.length > 0 && (
                     <div className="mt-3 space-y-2">
@@ -1254,7 +1267,7 @@ export default function FreeBoard() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
@@ -1294,7 +1307,7 @@ export default function FreeBoard() {
               {t('freeboard.backToList')}
             </Button>
           </div>
-          
+
           {/* 게시글 상세 내용 */}
           <PostDetail
             postId={selectedPost.id}
@@ -1311,7 +1324,7 @@ export default function FreeBoard() {
                       'Authorization': `Bearer ${token}`
                     }
                   })
-                  
+
                   if (response.ok) {
                     alert(t('freeboard.deleteSuccess'))
                     setShowPostDetail(false)
@@ -1430,7 +1443,7 @@ export default function FreeBoard() {
                         </td>
                       </tr>
                     ))}
-                    
+
                     {/* 일반 게시글 표시 */}
                     {posts.filter(post => !post.is_notice).map((post, index) => (
                       <tr
@@ -1505,7 +1518,7 @@ export default function FreeBoard() {
                   </tbody>
                 </table>
               </div>
-              
+
               {/* 페이지네이션 */}
               {pagination.totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
@@ -1518,7 +1531,7 @@ export default function FreeBoard() {
                   >
                     이전
                   </Button>
-                  
+
                   {/* 페이지 번호들 */}
                   <div className="flex gap-1">
                     {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
@@ -1532,7 +1545,7 @@ export default function FreeBoard() {
                       } else {
                         pageNum = currentPage - 2 + i;
                       }
-                      
+
                       return (
                         <Button
                           key={pageNum}
@@ -1540,8 +1553,8 @@ export default function FreeBoard() {
                           size="sm"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`min-w-[32px] ${
-                            currentPage === pageNum 
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                            currentPage === pageNum
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
                               : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500'
                           }`}
                         >
@@ -1550,7 +1563,7 @@ export default function FreeBoard() {
                       );
                     })}
                   </div>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -1587,7 +1600,7 @@ export default function FreeBoard() {
               운영자만 작성할 수 있는 공지사항입니다. 작성된 공지사항은 게시글 목록 상단에 고정 표시됩니다.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* 제목 입력 */}
             <div>
@@ -1625,7 +1638,7 @@ export default function FreeBoard() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 이미지 첨부 (선택사항)
               </label>
-              
+
               {/* 이미지 업로드 버튼 */}
               <div className="mb-4">
                 <input

@@ -10,10 +10,10 @@ async function getUserFromRequest(request: NextRequest) {
     try {
       const token = authHeader.replace('Bearer ', '').trim()
       const decodedToken = decodeURIComponent(token)
-      
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      
+
       if (supabaseUrl && supabaseAnonKey) {
         const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
         const { data: { user }, error } = await supabase.auth.getUser(decodedToken)
@@ -25,7 +25,7 @@ async function getUserFromRequest(request: NextRequest) {
       console.error('헤더 토큰 검증 실패:', error)
     }
   }
-  
+
   // 헤더 토큰이 없거나 실패하면 쿠키에서 시도
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -35,8 +35,10 @@ async function getUserFromRequest(request: NextRequest) {
 // 반복 스케줄 삭제 또는 비활성화
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
+
   try {
     const user = await getUserFromRequest(request)
     if (!user) {
@@ -45,7 +47,7 @@ export async function DELETE(
         { status: 401 }
       )
     }
-    
+
     const supabase = createClient()
     const scheduleId = params.id
 
