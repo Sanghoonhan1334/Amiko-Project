@@ -107,7 +107,6 @@ export default function NotificationBell() {
       } else {
         // console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
         setUnreadCount(0)
-        return
       }
     } catch (error) {
       // console.error('[NotificationBell] 알림 개수 조회 오류:', error)
