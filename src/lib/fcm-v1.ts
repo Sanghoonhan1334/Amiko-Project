@@ -90,16 +90,7 @@ function loadServiceAccount(): ServiceAccount {
     }
   }
 
-  // 방법 2: JSON 파일 경로가 제공된 경우
-  if (process.env.FCM_SERVICE_ACCOUNT_JSON_PATH) {
-    const fs = require('fs')
-    const path = require('path')
-    const jsonPath = path.resolve(process.env.FCM_SERVICE_ACCOUNT_JSON_PATH)
-    const jsonContent = fs.readFileSync(jsonPath, 'utf8')
-    return JSON.parse(jsonContent)
-  }
-
-  // 방법 3: JSON 문자열로 제공된 경우
+  // 방법 2: JSON 문자열로 제공된 경우 (표준 방식)
   if (process.env.FCM_SERVICE_ACCOUNT_JSON) {
     return JSON.parse(process.env.FCM_SERVICE_ACCOUNT_JSON)
   }
