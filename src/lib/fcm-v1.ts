@@ -77,12 +77,15 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
  * 환경변수에서 서비스 계정 정보를 로드하거나 JSON 파일에서 읽음
  */
 function loadServiceAccount(): ServiceAccount {
+  console.log('🔍 [FCM] Loading service account, checking environment variables...')
+
   // 방법 1: 환경변수에서 직접 로드
   if (
     process.env.FCM_PROJECT_ID &&
     process.env.FCM_PRIVATE_KEY &&
     process.env.FCM_CLIENT_EMAIL
   ) {
+    console.log('✅ [FCM] Using individual FCM environment variables')
     return {
       project_id: process.env.FCM_PROJECT_ID,
       private_key: process.env.FCM_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -90,11 +93,26 @@ function loadServiceAccount(): ServiceAccount {
     }
   }
 
+  console.log('🔄 [FCM] Individual FCM vars not found, checking FCM_SERVICE_ACCOUNT_JSON...')
+
   // 방법 2: JSON 문자열로 제공된 경우 (표준 방식)
   if (process.env.FCM_SERVICE_ACCOUNT_JSON) {
-    return JSON.parse(process.env.FCM_SERVICE_ACCOUNT_JSON)
+    console.log('✅ [FCM] Found FCM_SERVICE_ACCOUNT_JSON, parsing...')
+    try {
+      const parsed = JSON.parse(process.env.FCM_SERVICE_ACCOUNT_JSON)
+      console.log('✅ [FCM] FCM_SERVICE_ACCOUNT_JSON parsed successfully:', {
+        project_id: parsed.project_id,
+        has_private_key: !!parsed.private_key,
+        has_client_email: !!parsed.client_email
+      })
+      return parsed
+    } catch (parseError) {
+      console.error('❌ [FCM] Failed to parse FCM_SERVICE_ACCOUNT_JSON:', parseError)
+      throw new Error(`FCM_SERVICE_ACCOUNT_JSON 파싱 실패: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`)
+    }
   }
 
+  console.log('❌ [FCM] No FCM service account configuration found')
   throw new Error(
     'FCM 서비스 계정 정보가 설정되지 않았습니다. ' +
     '환경변수 FCM_PROJECT_ID, FCM_PRIVATE_KEY, FCM_CLIENT_EMAIL 또는 ' +
@@ -116,15 +134,31 @@ export async function sendFCMv1Notification(
   body: string,
   data?: Record<string, string>
 ): Promise<{ success: boolean; messageId?: string; error?: string; errorCode?: string }> {
+  console.log('🔥 [FCM] Starting FCM v1 notification send:', {
+    token: deviceToken.substring(0, 20) + '...',
+    title,
+    body: body.substring(0, 50) + (body.length > 50 ? '...' : ''),
+    hasData: !!data
+  })
+
   try {
     // 서비스 계정 정보 로드
+    console.log('🔑 [FCM] Loading service account...')
     const serviceAccount = loadServiceAccount()
+    console.log('✅ [FCM] Service account loaded:', {
+      project_id: serviceAccount.project_id,
+      client_email: serviceAccount.client_email.substring(0, 30) + '...',
+      has_private_key: !!serviceAccount.private_key
+    })
 
     // OAuth 2.0 access token 생성
+    console.log('🔐 [FCM] Generating OAuth access token...')
     const accessToken = await getAccessToken(serviceAccount)
+    console.log('✅ [FCM] Access token generated (length:', accessToken.length, ')')
 
     // FCM v1 API 엔드포인트
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`
+    console.log('📡 [FCM] FCM URL:', fcmUrl)
 
     // FCM v1 메시지 페이로드
     const message = {
@@ -147,7 +181,14 @@ export async function sendFCMv1Notification(
       }
     }
 
+    console.log('📦 [FCM] Message payload prepared:', {
+      hasNotification: !!message.message.notification,
+      hasData: !!message.message.data,
+      dataKeys: message.message.data ? Object.keys(message.message.data) : []
+    })
+
     // FCM v1 API 호출
+    console.log('🚀 [FCM] Making FCM API call...')
     const response = await fetch(fcmUrl, {
       method: 'POST',
       headers: {
@@ -157,15 +198,20 @@ export async function sendFCMv1Notification(
       body: JSON.stringify(message)
     })
 
+    console.log('📥 [FCM] FCM API response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    })
+
     if (!response.ok) {
       let errorData: any = await response.text()
       try {
         errorData = JSON.parse(errorData)
+        console.log('❌ [FCM] Parsed error response:', JSON.stringify(errorData, null, 2))
       } catch (e) {
-        // If parsing fails, keep as string
+        console.log('❌ [FCM] Raw error response:', errorData)
       }
-
-      console.error('❌ FCM v1 API 호출 실패:', response.status, errorData)
 
       // Extract FCM error code
       let errorCode = 'UNKNOWN'
@@ -173,18 +219,29 @@ export async function sendFCMv1Notification(
         const detail = errorData.error.details.find((d: any) => d['@type'] === 'type.googleapis.com/google.firebase.fcm.v1.FcmError')
         if (detail?.errorCode) {
           errorCode = detail.errorCode
+          console.log('🔍 [FCM] Extracted FCM error code:', errorCode)
         }
       }
 
+      const errorMessage = `FCM 발송 실패: ${response.status} ${typeof errorData === 'string' ? errorData : JSON.stringify(errorData)}`
+      console.error('❌ [FCM] FCM API call failed:', {
+        status: response.status,
+        errorCode,
+        errorMessage
+      })
+
       return {
         success: false,
-        error: `FCM 발송 실패: ${response.status} ${typeof errorData === 'string' ? errorData : JSON.stringify(errorData)}`,
+        error: errorMessage,
         errorCode
       }
     }
 
     const result = await response.json()
-    console.log('✅ FCM v1 푸시 알림 발송 성공:', result.name)
+    console.log('✅ [FCM] FCM notification sent successfully:', {
+      messageId: result.name,
+      fullResponse: result
+    })
 
     return {
       success: true,
@@ -192,7 +249,10 @@ export async function sendFCMv1Notification(
     }
 
   } catch (error) {
-    console.error('❌ FCM v1 푸시 알림 발송 중 오류:', error)
+    console.error('💥 [FCM] Exception during FCM send:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return {
       success: false,
       error: error instanceof Error ? error.message : '알 수 없는 오류',
