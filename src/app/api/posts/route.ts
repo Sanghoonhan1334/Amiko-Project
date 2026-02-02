@@ -884,7 +884,7 @@ export async function POST(request: NextRequest) {
       const postTitle = newPost.title || '새로운 게시물'
 
       // 게시물 알림이 활성화된 사용자들에게 푸시 알림 발송
-      const pushResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/broadcast-push`, {
+      const pushResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/broadcast-push`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

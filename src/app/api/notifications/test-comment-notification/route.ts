@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
       // Try to send push notification
       try {
-        const pushResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
+        const pushResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/send-push`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

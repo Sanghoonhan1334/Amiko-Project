@@ -475,7 +475,7 @@ export async function PUT(request: Request) {
     // 각 사용자에게 개별적으로 발송
     const results = await Promise.allSettled(
       userIds.map(userId =>
-        fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
+        fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/send-push`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, title, body: messageBody, data, tag, actions })

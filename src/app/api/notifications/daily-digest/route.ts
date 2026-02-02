@@ -32,11 +32,11 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     const mexicoOffset = -6 * 60 // CST (UTC-6), 일광절약시간 고려 필요
     const mexicoTime = new Date(now.getTime() + (mexicoOffset * 60 * 1000))
-    
+
     // 오늘 오전 8:30
     const today830 = new Date(mexicoTime)
     today830.setHours(8, 30, 0, 0)
-    
+
     // 어제 오전 8:30
     const yesterday830 = new Date(today830)
     yesterday830.setDate(yesterday830.getDate() - 1)
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
 
           // 푸시 알림 발송
           const pushResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`,
+            `${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/send-push`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
