@@ -365,7 +365,12 @@ export async function POST(
               message: notificationPayload.message
             })
 
-            const pushResponse = await fetch(`http://localhost:3000/api/notifications/send-push`, {
+            // Use localhost in development, app URL in production
+            const baseUrl = process.env.NODE_ENV === 'development'
+              ? 'http://localhost:3000'
+              : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
+            const pushResponse = await fetch(`${baseUrl}/api/notifications/send-push`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

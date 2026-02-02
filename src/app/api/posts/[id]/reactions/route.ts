@@ -270,10 +270,10 @@ export async function POST(
             try {
               console.log('[API] Sending push notification to user:', postAuthorId)
 
-              // Use localhost in development, ngrok in production
+              // Use localhost in development, app URL in production
               const baseUrl = process.env.NODE_ENV === 'development'
                 ? 'http://localhost:3000'
-                : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+                : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
 
               const pushResponse = await fetch(`${baseUrl}/api/notifications/send-push`, {
                 method: 'POST',

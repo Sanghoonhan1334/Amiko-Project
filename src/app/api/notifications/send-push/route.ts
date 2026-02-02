@@ -472,10 +472,15 @@ export async function PUT(request: Request) {
       )
     }
 
+    // Use localhost in development, app URL in production
+    const baseUrl = process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
     // 각 사용자에게 개별적으로 발송
     const results = await Promise.allSettled(
       userIds.map(userId =>
-        fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/send-push`, {
+        fetch(`${baseUrl}/api/notifications/send-push`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, title, body: messageBody, data, tag, actions })

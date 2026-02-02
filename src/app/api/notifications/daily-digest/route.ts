@@ -121,9 +121,14 @@ export async function GET(request: NextRequest) {
         if (newPostsCount > 0) {
           const message = `새로운 게시물 ${newPostsCount}개가 올라왔어요`
 
+          // Use localhost in development, app URL in production
+          const baseUrl = process.env.NODE_ENV === 'development'
+            ? 'http://localhost:3000'
+            : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
           // 푸시 알림 발송
           const pushResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/send-push`,
+            `${baseUrl}/api/notifications/send-push`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

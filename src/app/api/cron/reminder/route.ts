@@ -12,7 +12,7 @@ export async function GET() {
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     // 24시간 후 예약 중 리마인더가 아직 발송되지 않은 것들
     const { data: upcomingBookings, error: bookingError } = await supabase
       .from('bookings')
@@ -35,8 +35,8 @@ export async function GET() {
 
     if (!upcomingBookings || upcomingBookings.length === 0) {
       console.log('✅ 리마인더 발송할 예약이 없습니다.');
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: '리마인더 발송할 예약이 없습니다.',
         count: 0
       });
@@ -50,9 +50,14 @@ export async function GET() {
       try {
         console.log(`📧 [BOOKING ${booking.id}] 리마인더 발송 시작`);
 
+        // Use localhost in development, app URL in production
+        const baseUrl = process.env.NODE_ENV === 'development'
+          ? 'http://localhost:3000'
+          : (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
         // 1. 고객에게 푸시 알림 발송
         try {
-          const pushResponse = await fetch(`${process.env.APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
+          const pushResponse = await fetch(`${baseUrl}/api/notifications/send-push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -100,7 +105,7 @@ export async function GET() {
 
         // 3. 상담사에게 푸시 알림 발송
         try {
-          const consultantPushResponse = await fetch(`${process.env.APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
+          const consultantPushResponse = await fetch(`${baseUrl}/api/notifications/send-push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -150,7 +155,7 @@ export async function GET() {
         // 5. 예약에 리마인더 발송 완료 표시
         const { error: updateError } = await supabase
           .from('bookings')
-          .update({ 
+          .update({
             reminder_sent: true,
             reminder_sent_at: new Date().toISOString()
           })
@@ -183,9 +188,9 @@ export async function GET() {
 
   } catch (error) {
     console.error('❌ [CRON REMINDER] 스케줄러 실행 실패:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: '리마인더 스케줄러 실행 중 오류가 발생했습니다.',
         details: error instanceof Error ? error.message : '알 수 없는 오류'
       },
