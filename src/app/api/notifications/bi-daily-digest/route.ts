@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
 
           // 푸시 알림 발송
           const pushResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`,
+            `${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/send-push`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
