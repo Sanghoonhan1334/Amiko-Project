@@ -881,10 +881,15 @@ export async function POST(request: NextRequest) {
     try {
       console.log('[POST_CREATE] 게시물 푸시 알림 브로드캐스트 시도')
 
+      // Use localhost in development, app URL in production
+      const baseUrl = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
       const postTitle = newPost.title || '새로운 게시물'
 
       // 게시물 알림이 활성화된 사용자들에게 푸시 알림 발송
-      const pushResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com'}/api/notifications/broadcast-push`, {
+      const pushResponse = await fetch(`${baseUrl}/api/notifications/broadcast-push`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

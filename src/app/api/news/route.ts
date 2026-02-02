@@ -231,8 +231,13 @@ export async function POST(request: NextRequest) {
       const newsItem = data[0]
       const newsTitle = newsItem.title || newsItem.title_es || '새로운 뉴스'
 
+      // Use localhost in development, app URL in production
+      const baseUrl = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
       // 푸시 알림 발송 (모든 사용자에게) - 제목을 범용적으로 변경
-      const pushResponse = await fetch(`http://localhost:3000/api/notifications/broadcast-push`, {
+      const pushResponse = await fetch(`${baseUrl}/api/notifications/broadcast-push`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
