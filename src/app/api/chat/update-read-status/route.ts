@@ -20,13 +20,41 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: 'Authorization token required' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '').trim()
+    const {
+      data: { user },
+      error: authError
+    } = await supabase.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired token' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { roomId, userId, lastReadAt } = body
 
-    if (!roomId || !userId) {
+    if (!roomId) {
       return NextResponse.json(
-        { success: false, error: 'Room ID and User ID required' },
+        { success: false, error: 'Room ID required' },
         { status: 400 }
+      )
+    }
+
+    if (userId && userId !== user.id) {
+      return NextResponse.json(
+        { success: false, error: 'Cannot update read status for another user' },
+        { status: 403 }
       )
     }
 
@@ -53,7 +81,7 @@ export async function POST(request: Request) {
       .from('chat_room_participants')
       .upsert({
         room_id: roomId,
-        user_id: userId,
+        user_id: user.id,
         last_read_at: finalLastReadAt
       })
 

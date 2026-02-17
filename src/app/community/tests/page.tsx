@@ -69,7 +69,7 @@ function TestsPageContent() {
   const router = useRouter()
   const { t, language } = useLanguage()
   const { user, token } = useAuth()
-  
+
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [quizzesLoading, setQuizzesLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -86,7 +86,7 @@ function TestsPageContent() {
     // 번역키가 없으면 기본값 반환
     const translationKey = `tests.categories.${category}`
     const translated = t(translationKey)
-    
+
     // 번역키가 그대로 반환되면 기본값 사용
     if (translated === translationKey) {
       const categoryNames: { [key: string]: string } = {
@@ -100,7 +100,7 @@ function TestsPageContent() {
       }
       return categoryNames[category] || category
     }
-    
+
     return translated
   }
 
@@ -117,7 +117,7 @@ function TestsPageContent() {
           'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         setIsAdmin(data.isAdmin || false)
@@ -133,29 +133,29 @@ function TestsPageContent() {
     try {
       setQuizzesLoading(true)
       console.log('퀴즈 로딩 시작...')
-      
+
       const response = await fetch('/api/quizzes')
       console.log('API 응답 상태:', response.status)
-      
+
       if (response.ok) {
         const responseData = await response.json()
         console.log('API 응답 데이터:', responseData)
-        
+
         let apiQuizzes = responseData.data || responseData || []
-        
+
         // 카테고리 필터링
         let filteredTests = apiQuizzes
-        
+
         if (selectedCategory === 'favorites') {
           // 즐겨찾기 필터링
-          filteredTests = apiQuizzes.filter((test: any) => 
+          filteredTests = apiQuizzes.filter((test: any) =>
             favoriteQuizzes.includes(test.id)
           )
         } else if (selectedCategory !== 'all') {
           // 일반 카테고리 필터링
           filteredTests = apiQuizzes.filter((test: any) => test.category === selectedCategory)
         }
-        
+
         setQuizzes(filteredTests)
         console.log('API에서 퀴즈 로드됨:', filteredTests.length, '개 (카테고리:', selectedCategory, ')')
       } else {
@@ -173,19 +173,19 @@ function TestsPageContent() {
   // 즐겨찾기 상태 로드
   const loadFavoriteStatus = async () => {
     if (!user || !token) return
-    
+
     try {
       const response = await fetch(`/api/favorites?userId=${user.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         const favoriteIds = data.favorites.map((fav: any) => fav.quizzes?.id).filter(Boolean)
         setFavoriteQuizzes(favoriteIds)
-        
+
         // 각 퀴즈의 즐겨찾기 개수 로드
         const counts: Record<string, number> = {}
         for (const quiz of quizzes) {
@@ -216,7 +216,7 @@ function TestsPageContent() {
     try {
       const isFavorited = favoriteQuizzes.includes(quizId)
       const action = isFavorited ? 'remove' : 'add'
-      
+
       const response = await fetch('/api/favorites', {
         method: 'POST',
         headers: {
@@ -231,28 +231,28 @@ function TestsPageContent() {
 
       if (response.ok) {
         const data = await response.json()
-        
+
         // 즐겨찾기 목록 업데이트
         if (isFavorited) {
           setFavoriteQuizzes(prev => prev.filter(id => id !== quizId))
         } else {
           setFavoriteQuizzes(prev => [...prev, quizId])
         }
-        
+
         // 즐겨찾기 개수 업데이트
         setFavoriteCounts(prev => ({
           ...prev,
           [quizId]: data.favoriteCount
         }))
-        
-        toast.success(isFavorited 
+
+        toast.success(isFavorited
           ? (language === 'ko' ? '즐겨찾기에서 제거되었습니다.' : 'Eliminado de favoritos.')
           : (language === 'ko' ? '즐겨찾기에 추가되었습니다.' : 'Añadido a favoritos.')
         )
       } else {
         const errorData = await response.json()
         console.error('즐겨찾기 토글 실패:', errorData)
-        
+
         // 중복 키 에러면 상태 다시 로드
         if (errorData.details?.includes('duplicate key')) {
           await loadFavoriteStatus()
@@ -274,7 +274,7 @@ function TestsPageContent() {
     console.log('🔍 [퀴즈 클릭] slug:', quiz.slug)
     console.log('🔍 [퀴즈 클릭] id:', quiz.id)
     console.log('🔍 [퀴즈 클릭] isCompleted:', quiz.isCompleted)
-    
+
     // 미완성 테스트 체크 - 명시적으로 false인 경우만 차단
     if (quiz?.isCompleted === false) {
       console.log('🔍 [퀴즈 클릭] 미완성 테스트, 차단됨')
@@ -286,7 +286,7 @@ function TestsPageContent() {
       )
       return
     }
-    
+
     // slug 우선 라우팅
     const href = quiz?.slug ? `/quiz/${quiz.slug}` : `/quiz/${quiz.id}`;
     console.log('🔍 [퀴즈 클릭] 라우팅할 경로:', href);
@@ -323,11 +323,11 @@ function TestsPageContent() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [user, quizzes])
 
-  // 주기적으로 참여자 수 새로고침 (30초마다)
+  // 주기적으로 참여자 수 새로고침 (5분마다로 변경하여 성능 최적화)
   useEffect(() => {
     const interval = setInterval(() => {
       fetchQuizzes()
-    }, 30000) // 30초마다
+    }, 300000) // 30초 → 5분(300초)으로 변경
 
     return () => clearInterval(interval)
   }, [selectedCategory])
@@ -337,7 +337,7 @@ function TestsPageContent() {
     // BTS 이미지 프리로딩
     const preloadImage = new Image()
     preloadImage.src = '/quizzes/mbti-with-kpop-stars/cover/cover.png'
-    
+
     // 다른 셀럽 이미지들도 프리로딩
     const celebImages = [
       '/quizzes/mbti-with-kpop-stars/cover/cover.png',
@@ -345,7 +345,7 @@ function TestsPageContent() {
       '/quizzes/mbti-with-kpop-stars/celebs/jimin.png',
       '/quizzes/mbti-with-kpop-stars/celebs/jungkook.png'
     ]
-    
+
     celebImages.forEach(src => {
       const img = new Image()
       img.src = src
@@ -356,14 +356,14 @@ function TestsPageContent() {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* 기존 Header 컴포넌트 사용 */}
       <Header />
-      
+
       {/* 페이지별 헤더 - 모바일 컴팩트 */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2 pt-28 sm:pt-32 md:pt-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">{t('tests.title')}</h1>
           </div>
-          
+
           {/* 카테고리 선택 - 헤더 중앙 */}
           <div className="flex-1 text-center px-1 sm:px-4">
             <div className="flex items-center justify-center gap-1 sm:gap-2">
@@ -386,7 +386,7 @@ function TestsPageContent() {
               </Select>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* 이전 버튼 */}
             <Button
@@ -419,7 +419,7 @@ function TestsPageContent() {
               const config = categoryConfig[quiz.category || 'meme'] || categoryConfig.meme
               const isFavorited = favoriteQuizzes.includes(quiz.id)
               const favoriteCount = favoriteCounts[quiz.id] || 0
-              
+
               return (
                 <div
                   key={quiz.id}
@@ -433,7 +433,7 @@ function TestsPageContent() {
                       alt={quiz.title}
                       className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
                     />
-                    
+
                     {/* 즐겨찾기 버튼 */}
                     <button
                       onClick={(e) => {
@@ -441,8 +441,8 @@ function TestsPageContent() {
                         toggleFavorite(quiz.id)
                       }}
                       className={`absolute top-2 right-2 p-1 rounded-full transition-all ${
-                        isFavorited 
-                          ? 'bg-blue-500 text-white' 
+                        isFavorited
+                          ? 'bg-blue-500 text-white'
                           : 'bg-white/80 text-gray-600 hover:bg-blue-500 hover:text-white'
                       }`}
                     >
@@ -451,12 +451,12 @@ function TestsPageContent() {
                       </svg>
                     </button>
                   </div>
-                  
+
                   {/* 제목 */}
                   <h3 className="text-sm md:text-base font-medium text-gray-900 dark:text-gray-100 mb-1 line-clamp-2 text-center px-1">
                     {quiz.title}
                   </h3>
-                  
+
                   {/* 참여자 수 */}
                   <div className="flex items-center justify-center gap-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                     <Play className="w-3 h-3 md:w-4 md:h-4" />
@@ -467,7 +467,7 @@ function TestsPageContent() {
             })}
           </div>
         )}
-        
+
         {!quizzesLoading && quizzes.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 dark:text-gray-400">
@@ -476,10 +476,10 @@ function TestsPageContent() {
           </div>
         )}
       </div>
-      
+
       {/* 모바일 하단 네비게이션 */}
       <BottomTabNavigation />
-      
+
     </div>
   )
 }

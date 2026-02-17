@@ -7,6 +7,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import ChatRoomClient from '@/components/main/app/community/ChatRoomClient'
 import { useUnreadCounts } from '@/hooks/useUnreadCounts'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 interface ChatRoom {
   id: string
@@ -121,14 +122,32 @@ export default function GlobalChatButton() {
   }
 
   const handleClose = async () => {
+    if (isClosing) return
+
+    // 먼저 즉시 닫기 (UX 반응성 우선)
+    setIsClosing(true)
+    setTimeout(() => {
+      setIsOpen(false)
+      setIsClosing(false)
+    }, 300)
+
     // 채팅방을 닫을 때 읽음 상태 업데이트
     if (user && amikoRoom?.id) {
       try {
+        const supabase = createSupabaseBrowserClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        const accessToken = session?.access_token
+
+        if (!accessToken) {
+          throw new Error('No access token available')
+        }
+
         // 읽음 상태 업데이트 (API에서 가장 최근 메시지 시간 자동 사용)
         await fetch('/api/chat/update-read-status', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
           },
           body: JSON.stringify({
             roomId: amikoRoom.id,
@@ -141,12 +160,6 @@ export default function GlobalChatButton() {
         console.error('[GlobalChatButton] 채팅방 닫을 때 읽음 상태 업데이트 실패:', error)
       }
     }
-
-    setIsClosing(true)
-    setTimeout(() => {
-      setIsOpen(false)
-      setIsClosing(false)
-    }, 300)
   }
 
   // 인증센터 페이지에서는 플로팅 버튼 숨김

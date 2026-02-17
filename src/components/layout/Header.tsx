@@ -106,25 +106,25 @@ function HeaderContent() {
   // 포인트 로딩 함수 - 숨김 처리
   // const loadUserPoints = async () => {
   //   if (!user?.id) return
-  // 
+  //
   //   try {
   //     const response = await fetch(`/api/points?userId=${user.id}`)
-  //     
+  //
   //     if (response.ok) {
   //       const data = await response.json()
-  //       
+  //
   //       // 실제 데이터베이스 응답 구조에 맞게 수정
-  //       const points = data.totalPoints || 
-  //                     data.userPoints?.total_points || 
-  //                     data.availablePoints || 
-  //                     data.userPoints?.available_points || 
+  //       const points = data.totalPoints ||
+  //                     data.userPoints?.total_points ||
+  //                     data.availablePoints ||
+  //                     data.userPoints?.available_points ||
   //                     0
-  //       
+  //
   //       // 더미 데이터인 경우 로그 출력
   //       if (data.isDummy) {
   //         console.log('[HEADER POINTS] 더미 데이터 사용:', data.reason)
   //       }
-  //       
+  //
   //       console.log('포인트 로딩 성공:', { userId: user.id, points, isDummy: data.isDummy })
   //       setUserPoints(points)
   //     } else {
@@ -313,7 +313,7 @@ function HeaderContent() {
           // Level 2 인증 기준으로 확인 (실시간 채팅, 화상통화용 인증)
           // SMS + 이메일 + 실명 + 프로필 사진 + 자기소개(20자)
           const { canAccess: isLevel2Verified, hasBadge } = checkLevel2Auth(profileResult.user)
-          
+
           // Level 2 인증 완료 또는 verified_badge가 있으면 인증완료로 표시
           const isVerified = isLevel2Verified || !!profileResult.user.verified_badge
 
@@ -373,7 +373,7 @@ function HeaderContent() {
                 // Level 2 인증 기준으로 확인
                 const { canAccess: isLevel2Verified } = checkLevel2Auth(profileResult.user)
                 const isVerified = isLevel2Verified || !!profileResult.user.verified_badge
-                
+
                 setVerificationStatus(isVerified ? 'verified' : 'unverified')
                 console.log('[HEADER] 인증 상태 업데이트 완료 (Level 2 기준):', isVerified)
               }
@@ -387,8 +387,8 @@ function HeaderContent() {
       }
     }
 
-    // 주기적으로 플래그 확인 (인증 완료 후 즉시 반영)
-    const interval = setInterval(checkVerificationJustCompleted, 1000)
+    // 주기적으로 플래그 확인 (60초 간격으로 변경하여 성능 최적화)
+    const interval = setInterval(checkVerificationJustCompleted, 60000)
     checkVerificationJustCompleted() // 즉시 한 번 확인
 
     return () => clearInterval(interval)
@@ -420,8 +420,8 @@ function HeaderContent() {
       // 커뮤니티 탭도 다른 탭과 동일하게 처리
       setActiveMainTab(tab)
       // 이벤트 디스패치로 메인 페이지에 알림
-      window.dispatchEvent(new CustomEvent('mainTabChanged', { 
-        detail: { tab } 
+      window.dispatchEvent(new CustomEvent('mainTabChanged', {
+        detail: { tab }
       }))
       return
     }
@@ -449,19 +449,19 @@ function HeaderContent() {
     if (tab !== 'community') {
       // cTab은 자동으로 제거됨 (설정하지 않으면)
     }
-    
+
     // URL 업데이트
     router.push(`/main?${params.toString()}`)
-    
+
     // 세션스토리지에 저장
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('lastActiveTab', tab)
       console.log('세션스토리지에 저장됨:', tab)
     }
-    
+
     // 커스텀 이벤트로 알림
-    window.dispatchEvent(new CustomEvent('mainTabChanged', { 
-      detail: { tab } 
+    window.dispatchEvent(new CustomEvent('mainTabChanged', {
+      detail: { tab }
     }))
     console.log('커스텀 이벤트 발송됨:', tab)
   }
@@ -879,8 +879,8 @@ function HeaderContent() {
                         handleMainNavClick('educacion')
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
-                        activeMainTab === 'educacion' 
-                          ? 'text-purple-500' 
+                        activeMainTab === 'educacion'
+                          ? 'text-purple-500'
                           : 'text-gray-800 dark:!text-white hover:text-purple-500'
                       }`}
                       style={{ backgroundColor: 'transparent', pointerEvents: 'auto' }}

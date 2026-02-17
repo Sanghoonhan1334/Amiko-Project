@@ -16,11 +16,11 @@ export default function Hero() {
   useEffect(() => {
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'))
-      
+
       // 강제로 텍스트 색상 적용
       const subtitleMobile = document.getElementById('hero-subtitle-mobile')
       const subtitleDesktop = document.getElementById('hero-subtitle-desktop')
-      
+
       if (subtitleMobile) {
         subtitleMobile.style.color = document.documentElement.classList.contains('dark') ? '#ffffff' : '#6b7280'
       }
@@ -28,22 +28,18 @@ export default function Hero() {
         subtitleDesktop.style.color = document.documentElement.classList.contains('dark') ? '#ffffff' : '#6b7280'
       }
     }
-    
+
     checkDarkMode()
-    
-    // 다크모드 변경 감지
+
+    // 다크모드 변경 감지 (MutationObserver만 사용, 불필요한 polling 제거)
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class']
     })
-    
-    // 주기적으로 색상 확인
-    const interval = setInterval(checkDarkMode, 1000)
-    
+
     return () => {
       observer.disconnect()
-      clearInterval(interval)
     }
   }, [])
 
@@ -61,7 +57,7 @@ export default function Hero() {
         {/* 모바일 레이아웃 */}
         <div className="block md:hidden text-center px-4 relative z-50">
             {/* 상단 텍스트 */}
-            <p 
+            <p
               className="text-gray-600 dark:text-white text-lg font-medium mb-2 leading-relaxed relative z-50"
               style={{
                 fontSize: '18px',
@@ -74,9 +70,9 @@ export default function Hero() {
             >
               {t('heroSlides.slide1.subtitle')}
             </p>
-            
+
             {/* 메인 제목 */}
-            <h1 
+            <h1
               className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 leading-tight font-['Inter'] relative z-50"
               style={{
                 fontSize: '36px',
@@ -89,9 +85,9 @@ export default function Hero() {
             >
               {t('heroSlides.slide1.title')}
             </h1>
-            
+
             {/* 하단 설명 */}
-            <p 
+            <p
               className="text-gray-700 dark:text-gray-300 text-base leading-relaxed mb-8 relative z-50"
               style={{
                 fontSize: '16px',
@@ -102,12 +98,12 @@ export default function Hero() {
             >
               {t('heroSlides.slide1.description')}
             </p>
-            
+
             {/* 이미지 */}
             <div className="flex justify-center -mt-20 -mb-8 relative z-0">
-              <img 
-                src="/misc/Slide1.png" 
-                alt="Global Community" 
+              <img
+                src="/misc/Slide1.png"
+                alt="Global Community"
                 className="w-full max-w-sm h-auto object-contain relative z-0"
                 loading="lazy"
               />
@@ -117,7 +113,7 @@ export default function Hero() {
         {/* 데스크톱 레이아웃 */}
         <div className="hidden md:block text-center pt-4 md:pt-6 lg:pt-8 px-4 sm:px-6 lg:px-8 relative z-50">
                 {/* 상단 텍스트 */}
-                <p 
+                <p
                   className="text-gray-600 dark:text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium mb-1 leading-relaxed bg-transparent relative z-50"
                   style={{
                     fontSize: '24px',
@@ -129,9 +125,9 @@ export default function Hero() {
                 >
                   {t('heroSlides.slide1.subtitle')}
                 </p>
-                
+
                 {/* 메인 제목 */}
-                <h1 
+                <h1
                   className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight font-['Inter'] relative z-50"
                   style={{
                     fontSize: '80px',
@@ -143,9 +139,9 @@ export default function Hero() {
                 >
                   {t('heroSlides.slide1.title')}
                 </h1>
-                
+
                 {/* 하단 설명 */}
-                <p 
+                <p
                   className="text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed mb-0 relative z-50"
                   style={{
                     fontSize: '20px',
@@ -156,12 +152,12 @@ export default function Hero() {
                 >
                   {t('heroSlides.slide1.description')}
                 </p>
-                
+
                 {/* 이미지 */}
                 <div className="flex justify-center -mt-20 md:-mt-28 lg:-mt-36 relative z-0">
-                  <img 
-                    src="/misc/Slide1.png" 
-                    alt="Global Community" 
+                  <img
+                    src="/misc/Slide1.png"
+                    alt="Global Community"
                     className="w-full max-w-4xl h-auto object-contain relative z-0"
                     loading="lazy"
                   />
@@ -177,7 +173,7 @@ export default function Hero() {
               <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
                 {/* 왼쪽: 텍스트 */}
                 <div className="text-left max-w-lg">
-                  <h1 
+                  <h1
                     className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight font-['Inter']"
                     style={{
                       fontSize: '36px',
@@ -189,8 +185,8 @@ export default function Hero() {
                   >
                     {t('heroSlides.slide2.title')}
                   </h1>
-                  
-                  <p 
+
+                  <p
                     className="text-gray-600 dark:text-gray-400 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-relaxed mb-0"
                     style={{
                       fontSize: '16px',
@@ -210,9 +206,9 @@ export default function Hero() {
 
                 {/* 오른쪽: 이미지 */}
                 <div className="flex justify-center z-10">
-                  <img 
-                    src="/misc/Slide2.png" 
-                    alt="화상 채팅" 
+                  <img
+                    src="/misc/Slide2.png"
+                    alt="화상 채팅"
                     className="w-48"
                     loading="lazy"
                   />
@@ -233,7 +229,7 @@ export default function Hero() {
               <div className="space-y-2 sm:space-y-3 pt-0 md:pt-0">
                 {/* 제목 섹션 */}
                 <div className="text-left ml-4 sm:ml-6 md:ml-12 lg:ml-16">
-                  <h2 
+                  <h2
                     className="text-base sm:text-lg md:text-3xl lg:text-4xl xl:text-4xl font-normal text-gray-900 dark:text-gray-100 mb-2 sm:mb-3"
                     style={{
                       fontSize: '16px',
@@ -244,7 +240,7 @@ export default function Hero() {
                   >
                     {t('heroSlides.slide3.subtitle')}
                   </h2>
-                  <h1 
+                  <h1
                     className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 font-['Inter']"
                     style={{
                       fontSize: '36px',
@@ -256,7 +252,7 @@ export default function Hero() {
                   >
                     {t('heroSlides.slide3.title')}
                   </h1>
-                  <div 
+                  <div
                     className="space-y-1 text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-lg lg:text-xl xl:text-2xl leading-relaxed"
                     style={{
                       fontSize: '16px',
@@ -267,7 +263,7 @@ export default function Hero() {
                     <p>{t('heroSlides.slide3.description')}</p>
                   </div>
                 </div>
-                
+
                 {/* 4개 카드 그리드 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mt-2 sm:mt-4 md:mt-6 mx-2 sm:mx-4 md:mx-6 lg:mx-8">
                   {/* 01. Tableros de temas (주제별 게시판) */}
@@ -285,7 +281,7 @@ export default function Hero() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* 02. Zona de K-cultura ⭐ (K-컬쳐 존 - 메인!) */}
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 dark:border-gray-700 relative h-28 sm:h-32 md:h-36 lg:h-40">
                     <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
@@ -301,7 +297,7 @@ export default function Hero() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* 03. Test Psicológico (심리테스트) */}
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 dark:border-gray-700 relative h-28 sm:h-32 md:h-36 lg:h-40">
                     <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
@@ -317,7 +313,7 @@ export default function Hero() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* 스토리 카드 */}
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg border border-gray-100 dark:border-gray-700 relative h-28 sm:h-32 md:h-36 lg:h-40">
                     <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
@@ -350,7 +346,7 @@ export default function Hero() {
             <p className="text-lg sm:text-xl md:text-2xl text-white/90 dark:text-white mb-8 leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
               {t('heroSlides.slide3.bottomSection.description')}
             </p>
-            <button 
+            <button
               onClick={() => {
                 marketingEvents.clickCTA('landing_start_button')
                 router.push('/main')
@@ -367,7 +363,7 @@ export default function Hero() {
       {showVideo && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg aspect-video">
-            <button 
+            <button
               onClick={() => setShowVideo(false)}
               className="absolute -top-12 right-0 text-white text-2xl hover:text-gray-300 transition-colors"
             >

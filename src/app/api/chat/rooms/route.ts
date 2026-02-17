@@ -23,17 +23,22 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
 
-    let query = supabase
+    let query = supabaseAdmin
       .from('chat_rooms')
       .select('*')
       .eq('is_active', true)
-      .order('updated_at', { ascending: false })
 
     if (type) {
       query = query.eq('type', type)
     }
 
-    const { data, error } = await query
+    let { data, error } = await query.order('updated_at', { ascending: false })
+
+    if (error && (error.code === '42703' || error.message?.includes('updated_at'))) {
+      const fallbackResult = await query.order('created_at', { ascending: false })
+      data = fallbackResult.data
+      error = fallbackResult.error
+    }
 
     if (error) {
       console.error('Error fetching chat rooms:', error)

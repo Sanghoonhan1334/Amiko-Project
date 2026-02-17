@@ -3,16 +3,20 @@ import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
 import { sendFCMv1Notification } from '@/lib/fcm-v1'
 
+const isDev = process.env.NODE_ENV === 'development'
+
 // VAPID 키 설정 (환경변수가 없으면 빌드 시점에 오류를 방지하기 위해 조건부로 설정)
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
 
-console.log('🔧 [INIT] Environment variables check:')
-console.log('   NEXT_PUBLIC_VAPID_PUBLIC_KEY:', vapidPublicKey ? '✅ Set' : '❌ Missing')
-console.log('   VAPID_PRIVATE_KEY:', vapidPrivateKey ? '✅ Set' : '❌ Missing')
-console.log('   FCM_SERVICE_ACCOUNT_JSON:', process.env.FCM_SERVICE_ACCOUNT_JSON ? '✅ Set' : '❌ Missing')
-console.log('   NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Missing')
-console.log('   SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing')
+if (isDev) {
+  console.log('🔧 [INIT] Environment variables check:')
+  console.log('   NEXT_PUBLIC_VAPID_PUBLIC_KEY:', vapidPublicKey ? '✅ Set' : '❌ Missing')
+  console.log('   VAPID_PRIVATE_KEY:', vapidPrivateKey ? '✅ Set' : '❌ Missing')
+  console.log('   FCM_SERVICE_ACCOUNT_JSON:', process.env.FCM_SERVICE_ACCOUNT_JSON ? '✅ Set' : '❌ Missing')
+  console.log('   NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Missing')
+  console.log('   SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing')
+}
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(
@@ -20,7 +24,9 @@ if (vapidPublicKey && vapidPrivateKey) {
     vapidPublicKey,
     vapidPrivateKey
   )
-  console.log('✅ [INIT] VAPID 키 설정 완료')
+  if (isDev) {
+    console.log('✅ [INIT] VAPID 키 설정 완료')
+  }
 } else {
   console.warn('⚠️ [INIT] VAPID 키가 설정되지 않았습니다. 푸시 알림 기능이 비활성화됩니다.')
 }

@@ -96,7 +96,7 @@ link[rel="shortcut icon"] img {
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 262.1 83.3% 57.8%; /* original indigo - no purple tint */
+    --primary: 193 40% 64%; /* #7DB8C7 - custom teal blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
@@ -108,7 +108,7 @@ link[rel="shortcut icon"] img {
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%; /* original indigo - no purple tint */
+    --ring: 193 40% 64%; /* #7DB8C7 - custom teal blue */
     --radius: 0.5rem;
   }
 
@@ -119,7 +119,7 @@ link[rel="shortcut icon"] img {
     --card-foreground: 210 20% 90%;
     --popover: 210 11% 9%;
     --popover-foreground: 210 20% 90%;
-    --primary: 270 75% 55%;
+    --primary: 193 40% 64%; /* #7DB8C7 - custom teal blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 11% 15%; /* #2A2A2A - 보조 요소는 더 밝게 */
     --secondary-foreground: 210 20% 90%;
@@ -131,7 +131,7 @@ link[rel="shortcut icon"] img {
     --destructive-foreground: 210 40% 98%;
     --border: 210 11% 20%; /* #3A3A3A - 경계선은 적절한 대비 */
     --input: 210 11% 15%;
-    --ring: 270 75% 55%;
+    --ring: 193 40% 64%; /* #7DB8C7 - custom teal blue */
   }
 }
 
@@ -139,7 +139,7 @@ link[rel="shortcut icon"] img {
   * {
     @apply border-gray-200 dark:border-gray-700;
   }
-  
+
   /* 버튼 클릭 시 outline 제거 */
   button,
   button:focus,
@@ -149,32 +149,32 @@ link[rel="shortcut icon"] img {
     box-shadow: none !important;
     -webkit-tap-highlight-color: transparent !important;
   }
-  
+
   body {
     background-color: hsl(var(--background)) !important;
     color: hsl(var(--foreground));
   }
-  
+
   /* Default palette: keep original text colors */
   html[data-palette="default"] body {
     color: #111827 !important; /* gray-900 */
   }
-  
+
   html[data-palette="default"] .dark body {
     color: #f9fafb !important; /* gray-50 */
   }
-  
+
   /* 다크모드에서 전체 배경 강제 적용 */
   .dark html,
   .dark body {
     background-color: hsl(var(--background)) !important;
   }
-  
+
   /* 다크모드에서 모든 요소의 기본 배경색 강제 적용 */
   .dark * {
     background-color: inherit;
   }
-  
+
   /* 아이콘과 SVG 요소는 배경색 강제 적용에서 제외 */
   .dark svg,
   .dark [data-lucide],
@@ -195,7 +195,7 @@ link[rel="shortcut icon"] img {
     filter: none !important;
     -webkit-filter: none !important;
   }
-  
+
   /* 버튼 내부의 아이콘들 특별 보호 */
   .dark button *,
   .dark .btn *,
@@ -204,7 +204,7 @@ link[rel="shortcut icon"] img {
     background-color: transparent !important;
     background: transparent !important;
   }
-  
+
   /* 모든 가능한 아이콘 요소들 보호 */
   .dark [class*="icon"],
   .dark [class*="Icon"],
@@ -219,12 +219,12 @@ link[rel="shortcut icon"] img {
     background: transparent !important;
     mix-blend-mode: normal !important;
   }
-  
+
   /* 흰색 배경을 가진 요소들을 다크모드에서 강제로 변경 */
   .dark .bg-white {
     background-color: #1f2937 !important; /* gray-800 */
   }
-  
+
   /* 아미코 로고 배경은 항상 흰색 유지 - 모든 경우 커버 */
   .amiko-logo-bg,
   .dark .amiko-logo-bg,
@@ -237,13 +237,13 @@ link[rel="shortcut icon"] img {
     background: #FFFFFF !important;
     background-image: none !important;
   }
-  
+
   /* 부모 요소의 배경색이 상속되지 않도록 (이미지 제외) */
   .amiko-logo-bg > *:not(img):not([class*="Image"]):not([data-nimg]),
   [data-amiko-logo-bg="true"] > *:not(img):not([class*="Image"]):not([data-nimg]) {
     background-color: transparent !important;
   }
-  
+
   /* 로고 이미지는 정상적으로 표시되도록 */
   .amiko-logo-bg img,
   [data-amiko-logo-bg="true"] img,
@@ -258,7 +258,7 @@ link[rel="shortcut icon"] img {
     position: relative !important;
     z-index: 1 !important;
   }
-  
+
   /* Next.js Image 컴포넌트의 span 래퍼도 보이도록 */
   .amiko-logo-bg span,
   [data-amiko-logo-bg="true"] span {
@@ -266,7 +266,7 @@ link[rel="shortcut icon"] img {
     visibility: visible !important;
     opacity: 1 !important;
   }
-  
+
   /* 인라인 스타일이 있어도 덮어쓰기 - 최고 우선순위 */
   div.amiko-logo-bg[style],
   div[class*="amiko-logo-bg"][style],
@@ -276,7 +276,7 @@ link[rel="shortcut icon"] img {
     background: #FFFFFF !important;
     background-image: none !important;
   }
-  
+
   /* 모든 팔레트에서도 흰색 유지 */
   html[data-palette] .amiko-logo-bg,
   html[data-palette] [data-amiko-logo-bg="true"],
@@ -296,7 +296,7 @@ link[rel="shortcut icon"] img {
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
   --font-baloo2: 'Baloo 2', cursive;
   --font-pretendard: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-  
+
   /* 블롭 색상 변수 */
   --blob-1: #ff9ec5;
   --blob-2: #80e5c7;
@@ -310,7 +310,7 @@ link[rel="shortcut icon"] img {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
-  
+
   body {
     font-family: var(--font-inter);
     line-height: 1.6;
@@ -319,20 +319,20 @@ link[rel="shortcut icon"] img {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-inter);
     font-weight: 700;
     line-height: 1.2;
   }
-  
+
   /* 모든 스크롤 가능한 요소에 터치 스크롤 최적화 적용 */
   * {
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* 다크모드 로고 배경 조정 */
-  
+
   /* Hero subtitle 강제 색상 적용 */
   #hero-subtitle-mobile,
   #hero-subtitle-desktop {
@@ -341,14 +341,14 @@ link[rel="shortcut icon"] img {
     position: relative !important;
     z-index: 9999 !important;
   }
-  
+
   .dark #hero-subtitle-mobile,
   .dark #hero-subtitle-desktop {
     color: #ffffff !important;
     position: relative !important;
     z-index: 9999 !important;
   }
-  
+
   /* 모든 가능한 선택자로 강제 적용 */
   .dark p[id*="hero-subtitle"],
   .dark p#hero-subtitle-mobile,
@@ -359,12 +359,12 @@ link[rel="shortcut icon"] img {
     position: relative !important;
     z-index: 9999 !important;
   }
-  
+
   /* 다크모드에서 모든 p 태그 강제 흰색 적용 */
   .dark p {
     color: #ffffff !important;
   }
-  
+
   /* Hero 섹션 내 모든 텍스트 강제 흰색 */
   .dark section p,
   .dark section h1,
@@ -376,16 +376,16 @@ link[rel="shortcut icon"] img {
     background: transparent;
     mix-blend-mode: screen;
   } */
-  
+
   /* 스크롤바 숨기기 */
   .scrollbar-hide {
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
     scrollbar-width: none;  /* Firefox */
   }
-  .scrollbar-hide::-webkit-scrollbar { 
+  .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Safari and Chrome */
   }
-  
+
   /* 아코디언 애니메이션 - Tailwind CSS 클래스 */
   @keyframes accordion-down {
     from {
@@ -397,7 +397,7 @@ link[rel="shortcut icon"] img {
       opacity: 1;
     }
   }
-  
+
   @keyframes accordion-up {
     from {
       height: var(--radix-accordion-content-height);
@@ -408,15 +408,15 @@ link[rel="shortcut icon"] img {
       opacity: 0;
     }
   }
-  
+
   .animate-accordion-down {
     animation: accordion-down 300ms ease-out;
   }
-  
+
   .animate-accordion-up {
     animation: accordion-up 300ms ease-out;
   }
-  
+
   /* 대안 애니메이션 */
   @keyframes slideDown {
     from {
@@ -428,7 +428,7 @@ link[rel="shortcut icon"] img {
       opacity: 1;
     }
   }
-  
+
   @keyframes slideUp {
     from {
       max-height: 500px;
@@ -439,17 +439,17 @@ link[rel="shortcut icon"] img {
       opacity: 0;
     }
   }
-  
+
   /* Radix Accordion 기본 스타일 강화 */
   [data-radix-accordion-content] {
     overflow: hidden;
   }
-  
+
   /* 대안 애니메이션 클래스 */
   .accordion-slide-down {
     animation: slideDown 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
   }
-  
+
   .accordion-slide-up {
     animation: slideUp 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
   }
@@ -460,65 +460,65 @@ link[rel="shortcut icon"] img {
   .container-custom {
     @apply max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8;
   }
-  
+
   .section-padding {
     @apply py-12 sm:py-16 md:py-24;
   }
-  
+
   .heading-primary {
     @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900;
   }
-  
+
   .heading-secondary {
     @apply text-xl sm:text-2xl md:text-3xl font-bold text-gray-800;
   }
-  
+
   .text-body {
     @apply text-gray-600;
   }
-  
+
   .btn-primary {
     @apply inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-2xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base;
   }
-  
+
   .btn-secondary {
     @apply inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-2xl border-2 border-gray-200 hover:border-brand-300 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base;
   }
-  
+
   .card {
     @apply bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm;
   }
-  
+
   .badge {
     @apply inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-medium rounded-xl;
   }
-  
+
   .badge-brand {
     @apply bg-brand-100 text-brand-700;
   }
-  
+
   .badge-mint {
     @apply bg-mint-100 text-mint-700;
   }
-  
+
   .badge-banana {
     @apply bg-banana-100 text-banana-700;
   }
-  
+
   .badge-sky {
     @apply bg-sky-100 text-sky-700;
   }
-  
+
   /* 스크롤바 숨기기 */
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
-  
+
   /* line-clamp 유틸리티 */
   .line-clamp-1 {
     overflow: hidden;
@@ -526,136 +526,136 @@ link[rel="shortcut icon"] img {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
   }
-  
+
   .line-clamp-2 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
-  
+
   .line-clamp-3 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
-  
+
   /* 터치 영역 최적화 */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
-  
+
   .touch-target-sm {
     @apply min-h-[36px] min-w-[36px];
   }
-  
+
   /* 모바일 텍스트 크기 최적화 */
   .text-mobile-sm {
     @apply text-xs sm:text-sm;
   }
-  
+
   .text-mobile-base {
     @apply text-sm sm:text-base;
   }
-  
+
   .text-mobile-lg {
     @apply text-base sm:text-lg;
   }
-  
+
   .text-mobile-xl {
     @apply text-lg sm:text-xl;
   }
-  
+
   /* 모바일 간격 최적화 */
   .space-mobile-sm {
     @apply space-y-2 sm:space-y-3;
   }
-  
+
   .space-mobile-md {
     @apply space-y-3 sm:space-y-4;
   }
-  
+
   .space-mobile-lg {
     @apply space-y-4 sm:space-y-6;
   }
-  
+
   /* 터치 스크롤 최적화 */
   .scroll-smooth-touch {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     overscroll-behavior: contain;
   }
-  
+
   .scroll-horizontal-smooth {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
   }
-  
+
   /* 터치 피드백 */
   .touch-feedback {
     @apply transition-transform duration-150 ease-out active:scale-95;
   }
-  
+
   .touch-feedback-sm {
     @apply transition-transform duration-150 ease-out active:scale-98;
   }
-  
+
   /* 뒤로가기 버튼 */
   .back-button {
     @apply flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 touch-target;
   }
-  
+
   .back-button-mobile {
     @apply flex items-center gap-1 px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 touch-target-sm;
   }
-  
+
   /* 햄버거 메뉴 애니메이션 */
   .hamburger-menu-icon {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .hamburger-menu-icon.open {
     transform: rotate(180deg);
   }
-  
+
   .hamburger-line {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .hamburger-line:nth-child(1) {
     transform-origin: center;
   }
-  
+
   .hamburger-line:nth-child(2) {
     transform-origin: center;
   }
-  
+
   .hamburger-line:nth-child(3) {
     transform-origin: center;
   }
-  
+
   .hamburger-menu-icon.open .hamburger-line:nth-child(1) {
     transform: rotate(45deg) translate(5px, 5px);
   }
-  
+
   .hamburger-menu-icon.open .hamburger-line:nth-child(2) {
     opacity: 0;
   }
-  
+
   .hamburger-menu-icon.open .hamburger-line:nth-child(3) {
     transform: rotate(-45deg) translate(7px, -6px);
   }
-  
+
   /* 튜토리얼 하이라이트 효과 - 가상 요소로 하이라이트 표시 */
   [data-tutorial-highlight] {
     position: relative !important;
     z-index: 99999 !important; /* 매우 높은 값으로 증가 */
     isolation: isolate !important; /* 새로운 stacking context 생성 */
   }
-  
+
   /* 하이라이트 오버레이 (실제 하이라이트 표시) */
   [data-tutorial-highlight]::after {
     content: '' !important;
@@ -672,7 +672,7 @@ link[rel="shortcut icon"] img {
     pointer-events: none !important;
     animation: tutorial-pulse-highlight 2s ease-in-out infinite !important;
   }
-  
+
   /* 펄스 애니메이션 */
   [data-tutorial-highlight]::before {
     content: '' !important;
@@ -687,7 +687,7 @@ link[rel="shortcut icon"] img {
     pointer-events: none !important;
     animation: tutorial-pulse 2s infinite !important;
   }
-  
+
   @keyframes tutorial-pulse {
     0% {
       box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7);
@@ -699,7 +699,7 @@ link[rel="shortcut icon"] img {
       box-shadow: 0 0 0 0 rgba(147, 51, 234, 0);
     }
   }
-  
+
   @keyframes tutorial-pulse-highlight {
     0%, 100% {
       box-shadow: 0 0 0 6px rgba(147, 51, 234, 0.7), 0 0 0 12px rgba(147, 51, 234, 0.4),
@@ -846,16 +846,16 @@ link[rel="shortcut icon"] img {
   .body-gradient {
     background: hsl(var(--background));
   }
-  
+
   /* 라이트 모드에서 명시적으로 흰색 배경 */
   .body-gradient:not(.dark) {
     background: #ffffff !important;
   }
-  
+
   .dark .body-gradient {
     background: hsl(var(--background));
   }
-  
+
   /* 온라인 상태 무지개 테두리 애니메이션 */
   /* ===== Palette visual bindings to common utility classes ===== */
   html[data-palette] .btn-primary {
@@ -969,12 +969,12 @@ link[rel="shortcut icon"] img {
   html[data-palette] header {
     border-color: hsl(var(--border)) !important;
   }
-  
+
   html[data-palette] header .header-background {
     background-color: hsl(var(--card)) !important;
     background-image: linear-gradient(0deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0.08)) !important;
   }
-  
+
   /* Default palette: header should be pure white */
   html[data-palette="default"] header .header-background {
     background-color: hsl(var(--card)) !important;
@@ -991,12 +991,12 @@ link[rel="shortcut icon"] img {
     color: hsl(var(--foreground)) !important;
     border-color: hsl(var(--border)) !important;
   }
-  
+
   /* Default palette: keep original card text colors */
   html[data-palette="default"] .card {
     color: inherit !important;
   }
-  
+
   /* Card borders - darker for better visibility (except default) */
   html[data-palette]:not([data-palette="default"]) .card,
   html[data-palette]:not([data-palette="default"]) [class*="card"],
@@ -1004,7 +1004,7 @@ link[rel="shortcut icon"] img {
     border-color: hsl(var(--primary) / 0.25) !important;
     border-width: 1px !important;
   }
-  
+
   /* Override Tailwind border utilities in cards and white containers */
   html[data-palette]:not([data-palette="default"]) [class*="border-gray-200"],
   html[data-palette]:not([data-palette="default"]) [class*="border-gray-300"],
@@ -1015,7 +1015,7 @@ link[rel="shortcut icon"] img {
   html[data-palette]:not([data-palette="default"]) .dark [class*="border-gray-700"] {
     border-color: hsl(var(--primary) / 0.25) !important;
   }
-  
+
   /* Apply to white background containers that act like cards */
   html[data-palette]:not([data-palette="default"]) [class*="bg-white"][class*="border"],
   html[data-palette]:not([data-palette="default"]) [class*="bg-white"][class*="rounded"] {
@@ -1032,7 +1032,7 @@ link[rel="shortcut icon"] img {
   html[data-palette] [class^="bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]) {
     background-color: hsl(var(--card)) !important;
   }
-  
+
   /* Ensure image/video containers maintain their original background */
   html[data-palette] [class*="aspect-video"]:not([class*="bg-gradient"]),
   html[data-palette] [class*="aspect-square"]:not([class*="bg-gradient"]),
@@ -1045,7 +1045,7 @@ link[rel="shortcut icon"] img {
   html[data-palette] img[alt] {
     background-color: transparent !important;
   }
-  
+
   /* Remove any background color/image from image containers */
   html[data-palette] [class*="aspect-video"]:has(img),
   html[data-palette] [class*="aspect-square"]:has(img),
@@ -1054,7 +1054,7 @@ link[rel="shortcut icon"] img {
     background-color: transparent !important;
     background-image: none !important;
   }
-  
+
   /* Override bg-gray-* classes on image containers */
   html[data-palette] [class*="aspect-video"]:has(img)[class*="bg-gray"],
   html[data-palette] [class*="aspect-square"]:has(img)[class*="bg-gray"],
@@ -1062,14 +1062,14 @@ link[rel="shortcut icon"] img {
   html[data-palette] [class*="bg-gray-50"]:has(img) {
     background-color: transparent !important;
   }
-  
+
   /* Ensure img tags themselves are visible, but don't override display to respect Tailwind classes */
   html[data-palette] img:not([class*="hidden"]) {
     opacity: 1 !important;
     visibility: visible !important;
     /* Don't set display here - let Tailwind's responsive classes handle it */
   }
-  
+
   /* Ensure images in aspect containers are visible */
   html[data-palette] [class*="aspect-square"] img,
   html[data-palette] [class*="aspect-video"] img {
@@ -1104,7 +1104,7 @@ link[rel="shortcut icon"] img {
   html[data-palette]:not([data-palette="default"]) [class*="bg-gradient-to-"]:not(:has(img)):not(:has(video)):not([class*="absolute"]):not([class*="inset-0"]) {
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(280 70% 60%)) !important;
   }
-  
+
   /* Point system title and subtitle - white text when palette is active (except default) */
   html[data-palette]:not([data-palette="default"]) .point-system-title,
   html[data-palette]:not([data-palette="default"]) .point-system-subtitle {
@@ -1116,46 +1116,46 @@ link[rel="shortcut icon"] img {
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
-  
+
   /* 튜토리얼 하이라이트 펄스 애니메이션 */
   @keyframes tutorial-pulse-highlight {
-    0% { 
+    0% {
       opacity: 0.6;
       transform: scale(1);
     }
-    50% { 
+    50% {
       opacity: 1;
       transform: scale(1.02);
     }
-    100% { 
+    100% {
       opacity: 0.6;
       transform: scale(1);
     }
   }
-  
+
   /* 스토리 컨테이너 반응형 너비 */
   .story-container {
     width: calc(160px * 1 + 8px * 0); /* 매우 작은 화면: 1개 */
   }
-  
+
   @media (min-width: 360px) {
     .story-container {
       width: calc(180px * 2 + 8px * 1); /* 작은 화면: 2개 */
     }
   }
-  
+
   @media (min-width: 480px) {
     .story-container {
       width: calc(200px * 2 + 12px * 1); /* 작은 화면: 2개 */
     }
   }
-  
+
   @media (min-width: 800px) {
     .story-container {
       width: calc(200px * 3 + 12px * 2); /* 중간 화면: 3개 */
     }
   }
-  
+
   @media (min-width: 900px) {
     .story-container {
       width: calc(200px * 4 + 12px * 3); /* 현재 화면: 4개 (최대) */
@@ -1854,24 +1854,24 @@ body.splash-active [class*="footer"] {
   .mobile-chat-small * {
     font-size: 0.75rem !important; /* 12px */
   }
-  
+
   .mobile-chat-small input,
   .mobile-chat-small textarea,
   .mobile-chat-small button {
     font-size: 0.75rem !important;
     padding: 0.375rem 0.5rem !important;
   }
-  
+
   .mobile-chat-small .w-8,
   .mobile-chat-small .h-8 {
     width: 1.25rem !important; /* 20px */
     height: 1.25rem !important;
   }
-  
+
   .mobile-chat-small .gap-3 {
     gap: 0.5rem !important;
   }
-  
+
   .mobile-chat-small .px-4,
   .mobile-chat-small .py-4 {
     padding-left: 0.5rem !important;
@@ -1879,8 +1879,20 @@ body.splash-active [class*="footer"] {
     padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
   }
-  
+
   .mobile-chat-small .space-y-4 > * + * {
     margin-top: 0.5rem !important;
   }
+}
+
+/* Custom gradient utility for primary color */
+.to-primary\/10 {
+    @supports (color: color-mix(in lab, red, red)) {
+        --tw-gradient-to: color-mix(in oklab, #7DB8C7 10%, transparent);
+    }
+}
+
+/* Override bg-blue-500 with custom color */
+.bg-blue-500 {
+    background-color: #7DB8C7 !important;
 }

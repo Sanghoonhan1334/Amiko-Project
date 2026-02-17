@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ArrowRight,
-  User,
   Lock,
   Eye,
   EyeOff,
@@ -20,9 +19,8 @@ import { checkWebAuthnSupport, startBiometricRegistration, startBiometricAuthent
 import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '@/components/ui/dialog'
 import { Fingerprint } from 'lucide-react'
-import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick, trackIntendedActionResume } from '@/lib/analytics'
+import { signInEvents, trackLoginAttempt, trackLoginSuccess, trackCTAClick } from '@/lib/analytics'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
-import { Capacitor } from '@capacitor/core'
 
 export default function SignInPage() {
   const BIOMETRIC_ENABLED = process.env.NEXT_PUBLIC_BIOMETRIC_ENABLED === 'true'
@@ -46,15 +44,6 @@ export default function SignInPage() {
   // 로그인 페이지 방문 이벤트
   useEffect(() => {
     signInEvents.visitLogin()
-
-    // 히스토리 초기화 - 모바일 뒤로가기 방지
-    if (typeof window !== 'undefined') {
-      // 히스토리가 비어있으면 랜딩 페이지를 히스토리에 추가
-      if (window.history.state === null) {
-        window.history.replaceState({ index: 0 }, '', '/')
-        window.history.pushState({ index: 1 }, '', '/sign-in')
-      }
-    }
 
     // 쿼리 파라미터 확인
     if (typeof window !== 'undefined') {
@@ -164,7 +153,7 @@ export default function SignInPage() {
     }
 
     checkLastUser()
-  }, [])
+  }, [BIOMETRIC_ENABLED])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -329,7 +318,7 @@ export default function SignInPage() {
       // 로그인 성공 후 redirect 처리
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search)
-        const redirectPath = params.get('redirect')
+        const redirectPath = params.get('redirect') || params.get('redirectTo')
 
         // redirect 파라미터가 있으면 해당 경로로 이동
         if (redirectPath) {
@@ -414,7 +403,7 @@ export default function SignInPage() {
         // redirect 처리
         if (typeof window !== 'undefined') {
           const params = new URLSearchParams(window.location.search)
-          const redirectPath = params.get('redirect')
+          const redirectPath = params.get('redirect') || params.get('redirectTo')
           if (redirectPath) {
             router.push(redirectPath)
             return
@@ -432,7 +421,7 @@ export default function SignInPage() {
     // redirect 처리
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      const redirectPath = params.get('redirect')
+      const redirectPath = params.get('redirect') || params.get('redirectTo')
       if (redirectPath) {
         router.push(redirectPath)
         return
@@ -483,7 +472,7 @@ export default function SignInPage() {
           // 이미 서버에서 세션이 생성되었으므로 실패는 무시
           console.log('[BIOMETRIC_LOGIN] 클라이언트 세션 업데이트 시도 (서버 세션 이미 생성됨)')
         })
-      } catch (err) {
+      } catch {
         // 무시 - 서버 세션이 이미 있음
       }
 

@@ -33,8 +33,7 @@ export function useUnreadCounts() {
 
               if (amikoRoom) {
                 const unreadRes = await fetch(
-                  `/api/chat/unread-check?roomId=${amikoRoom.id}&userId=${user.id}`,
-                  { cache: 'no-store' }
+                  `/api/chat/unread-check?roomId=${amikoRoom.id}&userId=${user.id}`
                 )
                 const unreadData = await unreadRes.json()
                 return unreadData.success ? unreadData.unreadCount || 0 : 0
@@ -43,7 +42,7 @@ export function useUnreadCounts() {
             return 0
           }),
           // 알림 개수 확인
-          fetch('/api/notifications/unread-count', { cache: 'no-store' })
+          fetch('/api/notifications/unread-count')
             .then(res => res.json())
             .then(data => data.count || 0)
             .catch(() => 0)
@@ -60,8 +59,8 @@ export function useUnreadCounts() {
       }
     },
     enabled: !!user,
-    staleTime: 10000, // 10초 동안 fresh 상태 유지
-    refetchInterval: 30000, // 30초마다 백그라운드에서 재검증
+    staleTime: 120000, // 2분 동안 fresh 상태 유지
+    refetchInterval: false, // 자동 refetch 비활성화 (성능 최적화)
     refetchIntervalInBackground: false, // 백그라운드에서는 재검증하지 않음
   })
 }
