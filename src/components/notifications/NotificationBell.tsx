@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, X, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 interface Notification {
   id: string
@@ -31,6 +32,12 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const channelRef = useRef<any>(null)
+  const realtimeErrorLoggedRef = useRef(false)
+
+  const realtimeSupabase = useMemo(() => {
+    return createSupabaseBrowserClient()
+  }, [])
 
   // 알림 목록 조회
   const fetchNotifications = async () => {
@@ -42,7 +49,7 @@ export default function NotificationBell() {
     try {
       setLoading(true)
       const response = await fetch('/api/notifications')
-      
+
       console.log('알림 API 응답:', { status: response.status })
 
       if (!response.ok) {
@@ -53,11 +60,11 @@ export default function NotificationBell() {
       }
 
       const data: NotificationResponse = await response.json()
-      
+
       // 좋아요, 댓글, 새로운 뉴스만 필터링
       const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
       const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
-      
+
       const unread = filteredNotifications.filter(n => !n.is_read).length || 0
       setNotifications(filteredNotifications)
       setUnreadCount(unread)
@@ -78,44 +85,16 @@ export default function NotificationBell() {
     }
 
     try {
-      const response = await fetch('/api/notifications', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store'
-      })
-      
-      if (!response.ok) {
-        console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
-        setUnreadCount(0)
-        return
-      }
-      
-      const data: NotificationResponse = await response.json()
-      
-      console.log('[NotificationBell] 전체 알림:', data.notifications?.length || 0, '개')
-      console.log('[NotificationBell] 전체 알림 타입들:', data.notifications?.map(n => n.type) || [])
-      
-      // 좋아요, 댓글, 새로운 뉴스만 필터링
       const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
-      const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
-      
-      console.log('[NotificationBell] 필터링된 알림:', filteredNotifications.length, '개')
-      console.log('[NotificationBell] 필터링된 알림 타입들:', filteredNotifications.map(n => n.type))
-      
-      // 읽지 않은 알림 개수만 계산
-      const unread = filteredNotifications.filter(n => !n.is_read).length || 0
-      console.log('[NotificationBell] 읽지 않은 알림:', unread, '개')
-      
-      setUnreadCount(unread)
-    } catch (error) {
-      // 네트워크 에러는 조용히 처리 (API가 없거나 연결 실패 시)
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        console.warn('[NotificationBell] 네트워크 연결 실패 - API 엔드포인트를 확인하세요')
+      const response = await fetch(`/api/notifications/unread-count?types=${allowedTypes.join(',')}`)
+
+      if (response.ok) {
+        const data = await response.json()
+        setUnreadCount(data.count || 0)
       } else {
-        console.error('[NotificationBell] 알림 개수 조회 오류:', error)
+        setUnreadCount(0)
       }
+    } catch (error) {
       setUnreadCount(0)
     }
   }
@@ -130,9 +109,9 @@ export default function NotificationBell() {
       })
 
       if (response.ok) {
-        setNotifications(prev => 
-          prev.map(notification => 
-            notification.id === notificationId 
+        setNotifications(prev =>
+          prev.map(notification =>
+            notification.id === notificationId
               ? { ...notification, is_read: true }
               : notification
           )
@@ -148,12 +127,12 @@ export default function NotificationBell() {
   const handleNotificationClick = (notification: Notification) => {
     // 읽음 처리
     markAsRead(notification.id)
-    
+
     // 알림 드롭다운 닫기
     setIsOpen(false)
-    
+
     // 타입별로 다른 페이지로 이동
-    if (notification.type === 'like' || notification.type === 'story_like' || 
+    if (notification.type === 'like' || notification.type === 'story_like' ||
         notification.type === 'comment' || notification.type === 'story_comment') {
       // 내 게시물에 좋아요/댓글이 달린 경우 → 게시물 페이지로
       if (notification.related_id) {
@@ -246,7 +225,7 @@ export default function NotificationBell() {
     const date = new Date(dateString)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
-    
+
     const minutes = Math.floor(diff / (1000 * 60))
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -255,24 +234,101 @@ export default function NotificationBell() {
     if (minutes < 60) return `${minutes}분 전`
     if (hours < 24) return `${hours}시간 전`
     if (days < 7) return `${days}일 전`
-    
+
     return date.toLocaleDateString('ko-KR')
   }
 
-  // 컴포넌트 마운트 시 알림 조회
+  // 컴포넌트 마운트 시 알림 조회 및 Realtime 구독
   useEffect(() => {
     if (user) {
       fetchNotifications()
       fetchUnreadCount()
-      
-      // 5초마다 읽지 않은 알림 개수 업데이트 (더 빠른 반응)
-      const interval = setInterval(fetchUnreadCount, 5000)
-      return () => clearInterval(interval)
+
+      try {
+        const topic = `user:${user.id}:notifications`
+
+        const initRealtime = async () => {
+          const { data: { session } } = await realtimeSupabase.auth.getSession()
+          const accessToken = session?.access_token
+
+          if (!accessToken) {
+            return
+          }
+
+          realtimeSupabase.realtime.setAuth(accessToken)
+
+          // 기존 채널 정리
+          if (channelRef.current) {
+            realtimeSupabase.removeChannel(channelRef.current)
+            channelRef.current = null
+          }
+
+          // notifications topic broadcast 구독
+          const channel = realtimeSupabase
+            .channel(topic, { config: { private: true } })
+            .on(
+              'broadcast',
+              { event: 'INSERT' },
+              () => {
+                fetchNotifications()
+                fetchUnreadCount()
+              }
+            )
+            .on(
+              'broadcast',
+              { event: 'UPDATE' },
+              () => {
+                fetchNotifications()
+                fetchUnreadCount()
+              }
+            )
+            .on(
+              'broadcast',
+              { event: 'DELETE' },
+              () => {
+                fetchNotifications()
+                fetchUnreadCount()
+              }
+            )
+            .subscribe((status) => {
+              if (status === 'SUBSCRIBED') {
+                realtimeErrorLoggedRef.current = false
+              } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                if (!realtimeErrorLoggedRef.current) {
+                  console.warn('❌ Notifications Realtime unavailable; using API fallback')
+                  realtimeErrorLoggedRef.current = true
+                }
+              }
+            })
+
+          channelRef.current = channel
+        }
+
+        initRealtime().catch((error) => {
+          if (!realtimeErrorLoggedRef.current) {
+            console.warn('❌ Notifications Realtime init failed; using API fallback')
+            realtimeErrorLoggedRef.current = true
+          }
+        })
+      } catch (error) {
+        if (!realtimeErrorLoggedRef.current) {
+          console.warn('❌ Notifications Realtime setup failed; using API fallback')
+          realtimeErrorLoggedRef.current = true
+        }
+      }
+
+      return () => {
+        // 컴포넌트 언마운트 시 채널 정리
+        if (channelRef.current) {
+          realtimeSupabase.removeChannel(channelRef.current)
+          channelRef.current = null
+        }
+      }
     } else {
       setNotifications([])
       setUnreadCount(0)
     }
-  }, [user?.id]) // user 객체 대신 user?.id만 의존성으로 사용
+  }, [user?.id, realtimeSupabase])
 
   // 드롭다운이 열릴 때마다 최신 알림 가져오기
   useEffect(() => {
@@ -289,11 +345,12 @@ export default function NotificationBell() {
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+        title={t('myTab.notifications') || 'Notificaciones'}
       >
         <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
         {unreadCount > 0 && (
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
           >
             {unreadCount > 99 ? '99+' : unreadCount}

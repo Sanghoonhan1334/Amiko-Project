@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Bookmark, Heart, Target, Share2, Play, Clock } from 'lucide-react'
 import Header from '@/components/layout/Header'
-import { useLanguage } from '@/context/LanguageContext'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { useAuth } from '@/context/AuthContext'
 import TestComments from '@/components/quiz/TestComments'
@@ -24,14 +24,12 @@ interface QuizData {
 
 export default function FortuneTestPage() {
   const router = useRouter()
-  const { language } = useLanguage()
   const { user } = useAuth()
   const [isStarting, setIsStarting] = useState(false)
-  const [currentlyStarting, setCurrentlyStarting] = useState(false)
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   // 상호작용 버튼 상태
   const [isSaved, setIsSaved] = useState(false)
   const [isFun, setIsFun] = useState(false)
@@ -48,7 +46,7 @@ export default function FortuneTestPage() {
       try {
         // DB에서 퀴즈 데이터 가져오기 시도
         const response = await fetch(`/api/quizzes/${FORTUNE_QUIZ_ID}`)
-        
+
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.data?.quiz) {
@@ -67,7 +65,7 @@ export default function FortuneTestPage() {
             return
           }
         }
-        
+
         // DB에 없으면 기본 데이터 사용 (하지만 참여자 수는 0으로 시작)
         const fortuneTestData: QuizData = {
           id: FORTUNE_QUIZ_ID,
@@ -84,6 +82,7 @@ export default function FortuneTestPage() {
         setLoading(false)
       } catch (error) {
         console.error('Error al cargar datos del quiz:', error)
+        setError('Error al cargar el test')
         // 에러 발생 시 기본 데이터 사용
         const fortuneTestData: QuizData = {
           id: FORTUNE_QUIZ_ID,
@@ -129,11 +128,11 @@ export default function FortuneTestPage() {
         await refreshParticipantCount()
         return
       }
-      
+
       try {
         const supabase = createSupabaseBrowserClient()
         const { data: { session } } = await supabase.auth.getSession()
-        
+
         if (!session?.access_token) {
           await refreshParticipantCount()
           return
@@ -145,7 +144,7 @@ export default function FortuneTestPage() {
             'Authorization': `Bearer ${session.access_token}`
           }
         })
-        
+
         if (favResponse.ok) {
           const favData = await favResponse.json()
           setIsSaved(favData.isFavorited)
@@ -157,7 +156,7 @@ export default function FortuneTestPage() {
             'Authorization': `Bearer ${session.access_token}`
           }
         })
-        
+
         if (feedbackResponse.ok) {
           const feedbackData = await feedbackResponse.json()
           setIsFun(feedbackData.isFun)
@@ -168,22 +167,22 @@ export default function FortuneTestPage() {
       } catch (error) {
         console.error('Error al cargar datos de interacción:', error)
       }
-      
+
       // 참여자 수 새로고침
       await refreshParticipantCount()
     }
-    
+
     loadInteractionData()
-    
-    // 주기적으로 참여자 수 새로고침 (10초마다)
-    const interval = setInterval(refreshParticipantCount, 10000)
-    
+
+    // 주기적으로 참여자 수 새로고침 (60초마다)
+    const interval = setInterval(refreshParticipantCount, 60000)
+
     // 페이지 포커스 시 참여자 수 새로고침
     const handleFocus = () => {
       refreshParticipantCount()
     }
     window.addEventListener('focus', handleFocus)
-    
+
     return () => {
       clearInterval(interval)
       window.removeEventListener('focus', handleFocus)
@@ -208,11 +207,11 @@ export default function FortuneTestPage() {
       alert('Por favor, inicia sesión para guardar el test.')
       return
     }
-    
+
     try {
       const supabase = createSupabaseBrowserClient()
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session?.access_token) {
         alert('Necesitas iniciar sesión.')
         return
@@ -244,18 +243,18 @@ export default function FortuneTestPage() {
       alert('Por favor, inicia sesión para dar like.')
       return
     }
-    
+
     try {
       const supabase = createSupabaseBrowserClient()
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session?.access_token) {
         alert('Necesitas iniciar sesión.')
         return
       }
 
       const action = isFun ? 'remove' : 'add'
-      
+
       const response = await fetch(`/api/quiz/${FORTUNE_QUIZ_ID}/feedback`, {
         method: 'POST',
         headers: {
@@ -283,18 +282,18 @@ export default function FortuneTestPage() {
       alert('Por favor, inicia sesión para calificar.')
       return
     }
-    
+
     try {
       const supabase = createSupabaseBrowserClient()
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session?.access_token) {
         alert('Necesitas iniciar sesión.')
         return
       }
 
       const action = isAccurate ? 'remove' : 'add'
-      
+
       const response = await fetch(`/api/quiz/${FORTUNE_QUIZ_ID}/feedback`, {
         method: 'POST',
         headers: {
@@ -321,13 +320,13 @@ export default function FortuneTestPage() {
     try {
       // 프로덕션 URL 사용
       const isLocalhost = window.location.hostname === 'localhost'
-      const baseUrl = isLocalhost 
+      const baseUrl = isLocalhost
         ? 'https://helloamiko.com'
         : window.location.origin
-      
+
       const shareUrl = `${baseUrl}/quiz/fortune`
       const shareText = `${quizData?.description || 'Test de Fortuna Personalizada'}\n\n${shareUrl}`
-      
+
       if (navigator.share) {
         await navigator.share({
           title: quizData?.title || 'Test de Fortuna',
@@ -387,7 +386,7 @@ export default function FortuneTestPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       {/* 테스트 소개 페이지 */}
       <div className="pt-24 md:pt-32 pb-8 px-4">
         <div className="max-w-2xl mx-auto">
@@ -410,7 +409,7 @@ export default function FortuneTestPage() {
               <h1 className="text-2xl font-bold text-gray-900 mb-3">
                 {quizData.title}
               </h1>
-              
+
               <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                 <div className="flex items-center gap-1">
                   <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
@@ -430,15 +429,17 @@ export default function FortuneTestPage() {
             {/* 썸네일 이미지 - 작게 표시 */}
             <div className="mb-6">
               <div className="relative w-full h-48 rounded-lg overflow-hidden">
-                <img 
-                  src={quizData.thumbnail_url || "/quizzes/fortune/cover/cover.png"} 
+                <Image
+                  src={quizData.thumbnail_url || "/quizzes/fortune/cover/cover.png"}
                   alt={quizData.title}
                   className="w-full h-full object-cover"
+                  fill
+                  sizes="100vw"
                 />
-                
+
                 {/* 그라데이션 오버레이 */}
                 <div className="absolute inset-0 bg-gradient-to-b from-orange-600/60 to-yellow-500/60"></div>
-                
+
                 {/* 이미지 오버레이 텍스트 */}
                 <div className="absolute top-4 left-4 right-4">
                   <p className="text-white text-sm font-medium drop-shadow-lg">
@@ -450,13 +451,13 @@ export default function FortuneTestPage() {
                     ¿Qué te depara el destino?
                   </h2>
                 </div>
-                
+
                 {/* 북마크 버튼 (우측 상단) */}
                 <button
                   onClick={handleSave}
                   className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
-                    isSaved 
-                      ? 'bg-blue-500 text-white shadow-lg' 
+                    isSaved
+                      ? 'bg-blue-500 text-white shadow-lg'
                       : 'bg-white/80 text-gray-700 hover:bg-white'
                   }`}
                   aria-label={isSaved ? 'Guardado' : 'Guardar'}
@@ -471,7 +472,7 @@ export default function FortuneTestPage() {
               <p className="text-gray-800 text-base leading-relaxed mb-3">
                 {quizData.description}
               </p>
-              
+
               <div className="space-y-2 mb-4">
                 <p className="text-gray-700">
                   ¿Cómo te sientes hoy? 😊
@@ -486,7 +487,7 @@ export default function FortuneTestPage() {
                   ¿Qué te preocupa más? 📋
                 </p>
               </div>
-              
+
               <p className="text-gray-800 font-medium">
                 ¡Descubre tu fortuna personalizada basada en tus respuestas! 🌟
               </p>
@@ -525,7 +526,7 @@ export default function FortuneTestPage() {
 
             {/* 상호작용 버튼들 */}
             <div className="grid grid-cols-4 gap-4 mb-8">
-              <button 
+              <button
                 onClick={handleSave}
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-colors ${
                   isSaved ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'
@@ -534,8 +535,8 @@ export default function FortuneTestPage() {
                 <Bookmark className={`w-5 h-5 ${isSaved ? 'text-blue-600 fill-current' : 'text-gray-600'}`} />
                 <span className="text-xs">Guardar</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={handleFun}
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-colors ${
                   isFun ? 'bg-red-50 text-red-600' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'
@@ -545,8 +546,8 @@ export default function FortuneTestPage() {
                 <span className="text-xs">Divertido</span>
                 <span className="text-xs text-gray-500">{funCount}</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={handleAccurate}
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-colors ${
                   isAccurate ? 'bg-green-50 text-green-600' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'
@@ -556,8 +557,8 @@ export default function FortuneTestPage() {
                 <span className="text-xs">Preciso</span>
                 <span className="text-xs text-gray-500">{accurateCount}</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={handleShare}
                 className="flex flex-col items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
               >
@@ -566,7 +567,7 @@ export default function FortuneTestPage() {
               </button>
             </div>
           </div>
-          
+
           {/* 댓글 섹션 */}
           <div className="border-t pt-6 mt-8">
             <TestComments testId="fortune" />

@@ -4,11 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 // 알림을 읽음으로 표시
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     const supabase = createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json(
@@ -69,7 +70,7 @@ export async function POST(
 export async function PUT(request: NextRequest) {
   try {
     const supabase = createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json(

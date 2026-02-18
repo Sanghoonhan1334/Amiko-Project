@@ -11,7 +11,10 @@
     "cron:reminder": "curl -X GET http://localhost:3000/api/cron/reminder",
     "test:reminder": "curl -X GET http://localhost:3000/api/cron/test-reminder",
     "seed:idol-position": "tsx scripts/seed-idol-position.ts",
-    "generate:android-icons": "node scripts/generate-android-icons.js"
+    "generate:android-icons": "node scripts/generate-android-icons.js",
+    "cleanup:tokens": "node scripts/cleanup-orphaned-tokens.js",
+    "test:comment-push": "node scripts/test-comment-push.js",
+    "find:test-data": "node scripts/find-test-data.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.1",

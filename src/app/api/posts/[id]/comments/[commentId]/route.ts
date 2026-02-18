@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 댓글 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string, commentId: string } }
+  context: { params: Promise<{ id: string, commentId: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(

@@ -3,11 +3,12 @@ import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     console.log('[ANSWERS_API] GET 요청 시작:', params.id)
-    
+
     if (!supabaseServer) {
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
@@ -37,7 +38,7 @@ export async function GET(
 
     // 사용자 ID 목록 추출
     const userIds = [...new Set(answers?.map(a => a.user_id).filter(Boolean))]
-    
+
     // 사용자 정보 조회
     let usersMap: { [key: string]: any } = {}
     if (userIds.length > 0) {
@@ -79,12 +80,13 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     console.log('[ANSWERS_API] POST 요청 시작:', params.id)
     console.log('[ANSWERS_API] 요청 헤더:', Object.fromEntries(request.headers.entries()))
-    
+
     if (!supabaseServer) {
       console.error('[ANSWERS_API] Supabase 서버 클라이언트가 없습니다.')
       return NextResponse.json(
@@ -107,7 +109,7 @@ export async function POST(
     // 인증 토큰에서 사용자 ID 추출
     const authHeader = request.headers.get('Authorization')
     console.log('[ANSWERS_API] Authorization 헤더:', authHeader)
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.error('[ANSWERS_API] 인증 헤더가 없거나 잘못된 형식입니다.')
       return NextResponse.json(
@@ -118,10 +120,10 @@ export async function POST(
 
     const token = authHeader.replace('Bearer ', '')
     console.log('[ANSWERS_API] 토큰 길이:', token.length)
-    
+
     // 토큰에서 사용자 정보 가져오기
     const { data: { user }, error: userError } = await supabaseServer.auth.getUser(token)
-    
+
     if (userError) {
       console.error('[ANSWERS_API] 사용자 인증 오류:', userError)
       return NextResponse.json(
@@ -129,7 +131,7 @@ export async function POST(
         { status: 401 }
       )
     }
-    
+
     if (!user) {
       console.error('[ANSWERS_API] 사용자 정보가 없습니다.')
       return NextResponse.json(
@@ -137,7 +139,7 @@ export async function POST(
         { status: 401 }
       )
     }
-    
+
     console.log('[ANSWERS_API] 인증된 사용자:', user.id)
 
     console.log('[ANSWERS_API] 답변 생성 시도:', {

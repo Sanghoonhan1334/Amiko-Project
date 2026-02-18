@@ -3,9 +3,20 @@ import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
 import { sendFCMv1Notification } from '@/lib/fcm-v1'
 
+const isDev = process.env.NODE_ENV === 'development'
+
 // VAPID 키 설정 (환경변수가 없으면 빌드 시점에 오류를 방지하기 위해 조건부로 설정)
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
+
+if (isDev) {
+  console.log('🔧 [INIT] Environment variables check:')
+  console.log('   NEXT_PUBLIC_VAPID_PUBLIC_KEY:', vapidPublicKey ? '✅ Set' : '❌ Missing')
+  console.log('   VAPID_PRIVATE_KEY:', vapidPrivateKey ? '✅ Set' : '❌ Missing')
+  console.log('   FCM_SERVICE_ACCOUNT_JSON:', process.env.FCM_SERVICE_ACCOUNT_JSON ? '✅ Set' : '❌ Missing')
+  console.log('   NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Missing')
+  console.log('   SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing')
+}
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(
@@ -13,16 +24,20 @@ if (vapidPublicKey && vapidPrivateKey) {
     vapidPublicKey,
     vapidPrivateKey
   )
-  console.log('[PUSH] VAPID 키 설정 완료')
+  if (isDev) {
+    console.log('✅ [INIT] VAPID 키 설정 완료')
+  }
 } else {
-  console.warn('[PUSH] VAPID 키가 설정되지 않았습니다. 푸시 알림 기능이 비활성화됩니다.')
+  console.warn('⚠️ [INIT] VAPID 키가 설정되지 않았습니다. 푸시 알림 기능이 비활성화됩니다.')
 }
 
 export async function POST(request: Request) {
+  console.log('🚀 [API] Push notification request started')
+
   try {
     // VAPID 키가 설정되지 않았으면 오류 반환
     if (!vapidPublicKey || !vapidPrivateKey) {
-      console.warn('[PUSH] VAPID 키가 설정되지 않아 푸시 알림을 발송할 수 없습니다.')
+      console.warn('❌ [API] VAPID 키가 설정되지 않아 푸시 알림을 발송할 수 없습니다.')
       return NextResponse.json(
         {
           success: false,
@@ -37,9 +52,17 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { userId, title, body: messageBody, data, tag, actions } = body
 
-    console.log('🔔 [API] 푸시 알림 발송 요청:', { userId, title, messageBody, data })
+    console.log('📨 [API] Push notification request details:', {
+      userId,
+      title,
+      messageBody: messageBody?.substring(0, 100) + (messageBody?.length > 100 ? '...' : ''),
+      hasData: !!data,
+      tag,
+      hasActions: !!actions
+    })
 
     if (!userId || !title || !messageBody) {
+      console.log('❌ [API] Missing required fields:', { userId: !!userId, title: !!title, messageBody: !!messageBody })
       return NextResponse.json(
         { success: false, message: '사용자 ID, 제목, 내용이 필요합니다.' },
         { status: 400 }
@@ -48,20 +71,32 @@ export async function POST(request: Request) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    console.log('🔗 [API] Supabase connection:', {
+      url: supabaseUrl ? '✅ Set' : '❌ Missing',
+      hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      usingAnonKey: !process.env.SUPABASE_SERVICE_ROLE_KEY
+    })
+
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.warn('[SUPABASE] SUPABASE_SERVICE_ROLE_KEY not set; falling back to anon key for server operations')
+      console.warn('⚠️ [SUPABASE] SUPABASE_SERVICE_ROLE_KEY not set; falling back to anon key for server operations')
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     // 1. 사용자의 푸시 구독 정보 조회
+    console.log('🔍 [API] Fetching push subscriptions for user:', userId)
     const { data: subscriptions, error: fetchError } = await supabase
       .from('push_subscriptions')
       .select('*')
       .eq('user_id', userId)
 
     if (fetchError) {
-      console.error('❌ 푸시 구독 조회 실패:', fetchError)
+      console.error('❌ [API] Push subscription fetch failed:', {
+        error: fetchError.message,
+        code: fetchError.code,
+        hint: fetchError.hint,
+        details: fetchError.details
+      })
       return NextResponse.json(
         {
           success: false,
@@ -77,14 +112,23 @@ export async function POST(request: Request) {
     }
 
     if (!subscriptions || subscriptions.length === 0) {
-      console.log('⚠️ 사용자에게 푸시 구독이 없음:', userId)
+      console.log('⚠️ [API] No push subscriptions found for user:', userId)
       return NextResponse.json(
         { success: false, message: '사용자에게 푸시 구독이 없습니다.' },
         { status: 404 }
       )
     }
 
-    console.log('✅ 푸시 구독 정보 조회 성공:', subscriptions.length, '개')
+    console.log('✅ [API] Push subscriptions found:', {
+      count: subscriptions.length,
+      subscriptions: subscriptions.map(sub => ({
+        id: sub.id,
+        platform: sub.platform,
+        isNative: String(sub.endpoint).startsWith('native://'),
+        hasNativeToken: !!sub.native_token,
+        endpoint: sub.endpoint ? sub.endpoint.substring(0, 50) + '...' : null
+      }))
+    })
 
     // 2. 알림 로그 생성
     const { data: notificationLog, error: logError } = await supabase
@@ -147,11 +191,32 @@ export async function POST(request: Request) {
             const nativeToken = subscription.native_token as string
             const platform = subscription.platform as string
 
-            console.log(`[PUSH] 네이티브 앱 푸시 발송 시도: ${platform}, 토큰: ${nativeToken?.substring(0, 20)}...`)
+            console.log(`📱 [FCM] Attempting native push for ${platform}, token: ${nativeToken?.substring(0, 20)}...`)
 
             if (platform === 'android') {
+              console.log('🔥 [FCM] Sending via FCM HTTP v1 API')
               try {
-                // FCM HTTP v1 API 사용
+                console.log('🔑 [FCM] Checking FCM service account...')
+                // Test FCM service account loading
+                const testFCM = process.env.FCM_SERVICE_ACCOUNT_JSON
+                if (!testFCM) {
+                  console.error('❌ [FCM] FCM_SERVICE_ACCOUNT_JSON environment variable is missing!')
+                  throw new Error('FCM_SERVICE_ACCOUNT_JSON not configured')
+                }
+
+                try {
+                  const parsedFCM = JSON.parse(testFCM)
+                  console.log('✅ [FCM] FCM service account JSON is valid:', {
+                    project_id: parsedFCM.project_id,
+                    client_email: parsedFCM.client_email?.substring(0, 30) + '...',
+                    has_private_key: !!parsedFCM.private_key
+                  })
+                } catch (parseError) {
+                  console.error('❌ [FCM] FCM_SERVICE_ACCOUNT_JSON is not valid JSON:', parseError)
+                  throw new Error('Invalid FCM service account JSON')
+                }
+
+                console.log('📤 [FCM] Calling sendFCMv1Notification...')
                 const result = await sendFCMv1Notification(
                   nativeToken,
                   title,
@@ -163,8 +228,14 @@ export async function POST(request: Request) {
                   }
                 )
 
+                console.log('📥 [FCM] FCM response received:', result)
+
                 if (result.success) {
-                  console.log('✅ FCM v1 푸시 알림 발송 성공:', subscription.id, result.messageId)
+                  console.log('✅ [FCM] Push notification sent successfully:', {
+                    subscriptionId: subscription.id,
+                    messageId: result.messageId,
+                    platform: 'android'
+                  })
                   return {
                     subscriptionId: subscription.id,
                     success: true,
@@ -173,10 +244,35 @@ export async function POST(request: Request) {
                     messageId: result.messageId
                   }
                 } else {
-                  throw new Error(result.error || 'FCM v1 발송 실패')
+                  console.error('❌ [FCM] FCM returned failure:', {
+                    errorCode: result.errorCode,
+                    error: result.error,
+                    subscriptionId: subscription.id
+                  })
+
+                  // Check if token is unregistered and delete all tokens for this user
+                  if (result.errorCode === 'UNREGISTERED') {
+                    console.log('🗑️ [FCM] Token unregistered - deleting all user tokens:', userId)
+                    await supabase
+                      .from('push_subscriptions')
+                      .delete()
+                      .eq('user_id', userId)
+                  }
+
+                  return {
+                    subscriptionId: subscription.id,
+                    success: false,
+                    error: result.error || 'FCM v1 발송 실패',
+                    errorCode: result.errorCode,
+                    statusCode: 500
+                  }
                 }
               } catch (fcmError) {
-                console.error('❌ FCM v1 푸시 알림 발송 실패:', fcmError)
+                console.error('💥 [FCM] FCM sending exception:', {
+                  error: fcmError instanceof Error ? fcmError.message : 'Unknown FCM error',
+                  stack: fcmError instanceof Error ? fcmError.stack : undefined,
+                  subscriptionId: subscription.id
+                })
                 return {
                   subscriptionId: subscription.id,
                   success: false,
@@ -253,10 +349,42 @@ export async function POST(request: Request) {
     const failed = results.filter(r => r.status === 'fulfilled' && !r.value.success).length
     const errors = results.filter(r => r.status === 'rejected').length
 
-    console.log('📊 푸시 알림 발송 결과:', { successful, failed, errors })
+    console.log('📊 [API] Push notification results summary:', {
+      totalSubscriptions: subscriptions.length,
+      successful,
+      failed,
+      errors,
+      finalStatus: failed === 0 ? 'sent' : (successful > 0 ? 'partial' : 'failed')
+    })
+
+    // Log detailed results for each subscription
+    console.log('📋 [API] Detailed results per subscription:')
+    results.forEach((result, index) => {
+      const subscription = subscriptions[index]
+      if (result.status === 'fulfilled') {
+        console.log(`   ${index + 1}. ${subscription.platform}:`, {
+          success: result.value.success,
+          subscriptionId: result.value.subscriptionId,
+          statusCode: result.value.statusCode,
+          error: result.value.error || null,
+          platform: result.value.platform
+        })
+      } else {
+        console.log(`   ${index + 1}. ${subscription.platform}: REJECTED`, {
+          error: result.reason,
+          subscriptionId: subscription.id
+        })
+      }
+    })
 
     // 5. 알림 로그 상태 업데이트
     const finalStatus = failed === 0 ? 'sent' : (successful > 0 ? 'partial' : 'failed')
+
+    console.log('💾 [API] Updating notification log status:', {
+      notificationId: notificationLog.id,
+      status: finalStatus,
+      errorMessage: failed > 0 ? `${failed}개 구독에서 발송 실패` : null
+    })
 
     await supabase
       .from('push_notification_logs')
@@ -268,7 +396,7 @@ export async function POST(request: Request) {
       .eq('id', notificationLog.id)
 
     // 6. 응답 반환
-    return NextResponse.json({
+    const responseData = {
       success: true,
       message: '푸시 알림 발송 완료',
       data: {
@@ -279,7 +407,11 @@ export async function POST(request: Request) {
         errors,
         status: finalStatus
       }
-    })
+    }
+
+    console.log('✅ [API] Push notification API completed successfully:', responseData)
+
+    return NextResponse.json(responseData)
 
   } catch (error) {
     console.error('❌ 푸시 알림 발송 API 처리 중 예외 발생:', error)
@@ -346,10 +478,15 @@ export async function PUT(request: Request) {
       )
     }
 
+    // Use localhost in development, app URL in production
+    const baseUrl = process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
     // 각 사용자에게 개별적으로 발송
     const results = await Promise.allSettled(
       userIds.map(userId =>
-        fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
+        fetch(`${baseUrl}/api/notifications/send-push`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, title, body: messageBody, data, tag, actions })

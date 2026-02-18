@@ -146,7 +146,12 @@ class AdminNotificationService {
       // 2. 푸시 알림 발송 (활성화된 경우)
       if (settings.push_enabled) {
         try {
-          const pushResponse = await fetch(`${process.env.APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
+          // Use localhost in development, app URL in production
+          const baseUrl = process.env.NODE_ENV === 'development'
+            ? 'http://localhost:3000'
+            : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
+          const pushResponse = await fetch(`${baseUrl}/api/notifications/send-push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

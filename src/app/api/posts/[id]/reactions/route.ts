@@ -7,8 +7,11 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   const params = await context.params
+  console.log('[API] POST /api/posts/[id]/reactions called:', { postId: params.id })
+
   try {
     if (!supabaseServer) {
+      console.error('[API] Supabase server client not available')
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
         { status: 500 }
@@ -19,9 +22,14 @@ export async function POST(
     const body = await request.json()
     const { reaction_type } = body // 'like' 또는 'dislike'
 
+    console.log('[API] Request body:', { reaction_type })
+
     // 인증 확인
     const authHeader = request.headers.get('authorization')
+    console.log('[API] Auth header present:', !!authHeader)
+
     if (!authHeader) {
+      console.error('[API] No authorization header')
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
@@ -29,14 +37,20 @@ export async function POST(
     }
 
     const token = authHeader.replace('Bearer ', '')
+    console.log('[API] Token length:', token.length)
+
     const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
 
     if (authError || !user) {
+      console.error('[API] Auth error:', authError)
+      console.log('[API] User object:', user)
       return NextResponse.json(
         { error: '인증에 실패했습니다.' },
         { status: 401 }
       )
     }
+
+    console.log('[API] Auth successful for user:', user.id)
 
     // 입력 검증
     if (!reaction_type || !['like', 'dislike'].includes(reaction_type)) {
@@ -48,10 +62,10 @@ export async function POST(
 
     // 게시글 존재 확인 및 작성자 정보 가져오기
     const { data: post, error: postError } = await supabaseServer
-      .from('posts')
+      .from('gallery_posts')
       .select('id, user_id, title')
       .eq('id', postId)
-      .eq('status', 'published')
+      .eq('is_deleted', false)
       .single()
 
     if (postError || !post) {
@@ -85,7 +99,7 @@ export async function POST(
 
     if (existingReaction) {
       console.log('[POST_REACTION] 기존 반응 발견:', (existingReaction as any).reaction_type)
-      
+
       if ((existingReaction as any).reaction_type === reaction_type) {
         // 같은 반응이면 제거
         console.log('[POST_REACTION] 같은 반응 제거 중...')
@@ -174,7 +188,7 @@ export async function POST(
     // 게시글 테이블의 카운트도 업데이트
     // Update post table counts as well
     await (supabaseServer as any)
-      .from('posts')
+      .from('gallery_posts')
       .update({
         like_count: actualLikeCount,
         dislike_count: actualDislikeCount
@@ -183,16 +197,21 @@ export async function POST(
 
     // 좋아요가 추가되었고, 본인 게시글이 아닌 경우 알림 발송
     if (action === 'added' && reaction_type === 'like' && postAuthorId !== user.id) {
+      console.log('[API] Like notification condition met:', { action, reaction_type, postAuthorId, userId: user.id })
+
       try {
         // 알림 설정 확인
         const { data: notificationSettings } = await supabaseServer
           .from('notification_settings')
-          .select('like_notifications_enabled, push_enabled')
+          .select('interaction_notifications_enabled, push_notifications')
           .eq('user_id', postAuthorId)
           .single()
 
+        console.log('[API] Notification settings:', notificationSettings)
+
         // 알림 설정이 켜져있고 푸시가 활성화된 경우에만 발송
-        if (notificationSettings?.like_notifications_enabled !== false && notificationSettings?.push_enabled !== false) {
+        if (notificationSettings?.interaction_notifications_enabled !== false && notificationSettings?.push_notifications !== false) {
+          console.log('[API] Notification settings allow sending')
           // 좋아요를 누른 사용자 이름 가져오기
           const { data: likerUser } = await supabaseServer
             .from('users')
@@ -202,26 +221,93 @@ export async function POST(
 
           const likerName = likerUser?.korean_name || likerUser?.spanish_name || likerUser?.full_name || '누군가'
 
-          // 푸시 알림 발송 (비동기, 실패해도 좋아요는 성공 처리)
-          fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send-push`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: postAuthorId,
-              title: '새로운 좋아요',
-              body: `${likerName}님이 내 글에 좋아요를 달았습니다`,
-              data: {
-                type: 'post_liked',
-                postId: postId,
-                postTitle: (post as any).title || '',
-                url: `/community/posts/${postId}`
-              },
-              tag: `post_liked_${postId}`
-            })
-          }).catch(err => {
-            console.error('[POST_REACTION] 푸시 알림 발송 실패:', err)
-            // 알림 실패는 무시하고 계속 진행
-          })
+          // Get post author's language preference
+          const { data: authorProfile } = await supabaseServer
+            .from('users')
+            .select('language')
+            .eq('id', postAuthorId)
+            .single()
+
+          const authorLanguage = authorProfile?.language || 'es' // Default to Spanish
+
+          // Create notification with proper translations
+          let notificationTitle: string
+          let notificationMessage: string
+
+          if (authorLanguage === 'ko') {
+            notificationTitle = '새로운 좋아요'
+            notificationMessage = `${likerName}님이 "${(post as any).title?.substring(0, 30) || '게시물'}"에 좋아요를 눌렀습니다.`
+          } else {
+            notificationTitle = 'Nuevo like'
+            notificationMessage = `A ${likerName} le gustó tu post "${(post as any).title?.substring(0, 30) || 'Publicación'}"`
+          }
+
+          // 알림 생성
+          const notificationPayload = {
+            user_id: postAuthorId,
+            type: 'like',
+            title: notificationTitle,
+            message: notificationMessage,
+            data: {
+              postId: postId,
+              related_id: postId // For backward compatibility
+            }
+          }
+
+          console.log('[POST_REACTION] 알림 생성 시도:', notificationPayload)
+
+          const { data: notificationData, error: notificationError } = await supabaseServer
+            .from('notifications')
+            .insert(notificationPayload)
+            .select()
+
+          if (notificationError) {
+            console.error('[POST_REACTION] 알림 생성 실패:', notificationError)
+          } else {
+            console.log('[POST_REACTION] 알림 생성 성공:', notificationData?.id)
+
+            // 푸시 알림 발송 시도
+            try {
+              console.log('[API] Sending push notification to user:', postAuthorId)
+
+              // Use localhost in development, app URL in production
+              const baseUrl = process.env.NODE_ENV === 'development'
+                ? 'http://localhost:3000'
+                : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
+              const pushResponse = await fetch(`${baseUrl}/api/notifications/send-push`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  userId: postAuthorId,
+                  title: notificationPayload.title,
+                  body: notificationPayload.message,
+                  data: {
+                    type: 'like',
+                    postId: postId,
+                    postTitle: (post as any).title?.substring(0, 30) || '게시물',
+                    likerName: likerName,
+                    url: `/community/posts/${postId}`
+                  },
+                  tag: `post_liked_${postId}`
+                })
+              })
+
+              console.log('[API] Push response status:', pushResponse.status)
+
+              if (pushResponse.ok) {
+                const pushResult = await pushResponse.json()
+                console.log('[API] Push notification sent successfully:', pushResult)
+              } else {
+                const pushError = await pushResponse.text()
+                console.error('[API] Push notification failed:', pushResponse.status, pushError)
+              }
+            } catch (pushError) {
+              console.error('[API] Push notification exception:', pushError)
+            }
+          }
         }
       } catch (notificationError) {
         console.error('[POST_REACTION] 알림 처리 중 오류:', notificationError)
@@ -240,7 +326,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('[POST_REACTION] 서버 에러:', error)
+    console.error('[API] Server error:', error)
     return NextResponse.json(
       { error: '서버 에러가 발생했습니다.' },
       { status: 500 }

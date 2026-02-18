@@ -1,10 +1,16 @@
 import { createBrowserClient } from '@supabase/ssr'
 
+let browserClient: ReturnType<typeof createBrowserClient> | null = null
+
 /**
  * Supabase Browser Client Helper
  * Para uso en Client Components solamente
  */
 export function createSupabaseBrowserClient() {
+  if (browserClient) {
+    return browserClient
+  }
+
   // 서버사이드에서 실행되는 경우 체크
   if (typeof window === 'undefined') {
     console.warn('[SUPABASE CLIENT] 서버사이드에서 브라우저 클라이언트 생성 시도됨 - 기본 클라이언트 반환')
@@ -14,7 +20,7 @@ export function createSupabaseBrowserClient() {
     )
   }
 
-  return createBrowserClient(
+  browserClient = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -33,4 +39,6 @@ export function createSupabaseBrowserClient() {
       },
     }
   )
+
+  return browserClient
 }

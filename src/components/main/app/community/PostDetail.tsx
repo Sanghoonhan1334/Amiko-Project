@@ -61,7 +61,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   const [isAdmin, setIsAdmin] = useState(false)
   const [relatedPosts, setRelatedPosts] = useState<Post[]>([])
   const [loadingRelatedPosts, setLoadingRelatedPosts] = useState(false)
-  
+
   // 번역 서비스 초기화
   const translationService = TranslationService.getInstance()
   const [translating, setTranslating] = useState(false)
@@ -72,7 +72,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       setIsAdmin(false)
       return
     }
-    
+
     // 운영자 이메일 목록
     const adminEmails = [
       'admin@amiko.com',
@@ -80,12 +80,12 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       'manager@amiko.com',
       'info@helloamiko.com'
     ]
-    
+
     // 운영자 ID 목록
     const adminIds = [
       '66623263-4c1d-4dce-85a7-cc1b21d01f70' // 현재 사용자 ID
     ]
-    
+
     const isAdminUser = adminEmails.includes(user.email) || adminIds.includes(user.id)
     setIsAdmin(isAdminUser)
   }
@@ -129,12 +129,12 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         const documentHeight = document.documentElement.scrollHeight
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop
         const scrollPercent = Math.round((scrollTop / (documentHeight - windowHeight)) * 100)
-        
+
         if (scrollPercent > maxScrollDepth) {
           setMaxScrollDepth(scrollPercent)
           communityEvents.scrollDepth(postId, scrollPercent)
         }
-        
+
         // 스크롤 이벤트 (25%, 50%, 75%, 100%에서만)
         const milestones = [25, 50, 75, 100]
         if (milestones.includes(scrollPercent)) {
@@ -150,7 +150,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       clearInterval(readTimeInterval)
       clearTimeout(scrollTimeout)
       window.removeEventListener('scroll', handleScroll)
-      
+
       // 최종 읽기 시간 전송
       const finalReadTime = Math.floor((Date.now() - readStartTime) / 1000)
       if (finalReadTime > 10) {
@@ -163,14 +163,14 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
     try {
       setLoading(true)
       const response = await fetch(`/api/posts/${postId}`)
-      
+
       if (!response.ok) {
         throw new Error(t('freeboard.loadingPosts'))
       }
-      
+
       const data = await response.json()
       setPost(data.post)
-      
+
       // 커뮤니티 퍼널 이벤트: 게시물 조회 (PostDetail 컴포넌트에서)
       if (data.post) {
         communityEvents.viewPost(postId, data.post.title)
@@ -186,14 +186,14 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   const loadUserVote = async () => {
     if (!user || !token) return
-    
+
     try {
       const response = await fetch(`/api/posts/${postId}/vote`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         setUserVote(data.vote_type)
@@ -212,10 +212,10 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
         limit: '10',
         exclude: postId
       })
-      
+
       const response = await fetch(`/api/posts?${params}`)
       const data = await response.json()
-      
+
       if (data.success && data.posts) {
         // 현재 게시글 제외하고 최대 10개만
         const filtered = data.posts
@@ -234,16 +234,16 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
   // 게시물 번역 핸들러
   const handleTranslatePost = async (type: 'title' | 'content') => {
     if (!post || translating) return
-    
+
     setTranslating(true)
-    
+
     try {
       const text = type === 'title' ? post.title : post.content
       const targetLang = language === 'ko' ? 'es' : 'ko'
-      
+
       const translatedText = await translationService.translate(text, targetLang)
-      
-      setPost(prevPost => 
+
+      setPost(prevPost =>
         prevPost ? {
           ...prevPost,
           [`translated${type.charAt(0).toUpperCase() + type.slice(1)}`]: translatedText
@@ -324,12 +324,12 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
       const data = await response.json()
       console.log('투표 성공:', data)
-      
+
       // 커뮤니티 퍼널 이벤트: 게시물 좋아요
       if (voteType === 'like' && data.vote_type === 'like') {
         communityEvents.likePost(postId, true)
       }
-      
+
       // 서버 응답으로 최종 동기화
       setUserVote(data.vote_type)
       if (post) {
@@ -341,7 +341,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
       }
     } catch (err) {
       console.error('투표 오류:', err)
-      
+
       // 에러 발생 시 이전 상태로 롤백
       setUserVote(previousVote)
       if (post) {
@@ -351,7 +351,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
           dislike_count: previousDislikeCount
         })
       }
-      
+
       setError(err instanceof Error ? err.message : '투표 처리 중 오류가 발생했습니다')
     }
   }
@@ -373,7 +373,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   const handleShare = async () => {
     if (!post) return
-    
+
     try {
       await shareCommunityPost(post.id, post.title, post.content, language as 'ko' | 'es')
       // 커뮤니티 퍼널 이벤트: 게시물 공유
@@ -410,16 +410,16 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
   const isAuthor = user && user.id === post.author?.id
   const canManage = post.is_notice ? isAdmin : (isAuthor || isAdmin) // 공지사항은 운영자만, 일반 게시글은 작성자이거나 운영자
-  
-  console.log('PostDetail 권한 확인:', {
-    userId: user?.id,
-    postUserId: post.author?.id,
-    isAuthor,
-    isAdmin,
-    canManage,
-    onEdit: !!onEdit,
-    onDelete: !!onDelete
-  })
+
+  // console.log('PostDetail 권한 확인:', {
+  //   userId: user?.id,
+  //   postUserId: post.author?.id,
+  //   isAuthor,
+  //   isAdmin,
+  //   canManage,
+  //   onEdit: !!onEdit,
+  //   onDelete: !!onDelete
+  // })
 
   return (
     <div>
@@ -461,7 +461,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                 {t('freeboard.hot')}
               </Badge>
             )}
-            
+
             <div className="flex flex-col space-y-1 md:space-y-2">
               {/* 수정/삭제 버튼 */}
               {canManage && (
@@ -475,9 +475,9 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                     </Button>
                   )}
                   {(post.is_notice ? isAdmin : (isAuthor || isAdmin)) && onDelete && (
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => {
                         console.log('삭제 버튼 클릭됨, onDelete 함수:', onDelete)
                         onDelete()
@@ -500,7 +500,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               <span className="text-[10px] md:text-xs text-blue-500">{t('freeboard.translated')}</span>
             </div>
           )}
-          <div 
+          <div
             className="prose max-w-none prose-sm md:prose-base"
             dangerouslySetInnerHTML={{ __html: formatContent(post.translatedContent || post.content) }}
           />
@@ -514,12 +514,12 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                 // 파일 확장자로 타입 판단
                 const isVideo = media.match(/\.(mp4|webm|mov|avi|mkv)$/i)
                 const isGif = media.match(/\.gif$/i)
-                
+
                 return (
                   <div key={index} className="relative group">
                     {isVideo ? (
-                      <video 
-                        src={media} 
+                      <video
+                        src={media}
                         controls
                         className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => window.open(media, '_blank')}
@@ -527,8 +527,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                         {language === 'es' ? 'Tu navegador no soporta el elemento de video.' : '브라우저가 비디오 태그를 지원하지 않습니다.'}
                       </video>
                     ) : (
-                      <img 
-                        src={media} 
+                      <img
+                        src={media}
                         alt={isGif ? `GIF ${index + 1}` : `첨부 이미지 ${index + 1}`}
                         className="w-full h-auto object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => window.open(media, '_blank')}
@@ -568,7 +568,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               <span className="text-base md:text-lg">👍</span>
               <span className="font-medium">{post.like_count}</span>
             </button>
-            
+
             <button
               onClick={() => handleVote('dislike')}
               disabled={!user}
@@ -581,13 +581,13 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               <span className="text-base md:text-lg">👎</span>
               <span className="font-medium">{post.dislike_count}</span>
             </button>
-            
+
             {!user && (
               <span className="text-[10px] md:text-xs text-gray-500 ml-1 md:ml-2">
                 {t('freeboard.loginToVote')}
               </span>
             )}
-            
+
             {/* 공유 버튼 */}
             <button
               onClick={handleShare}
@@ -602,8 +602,8 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
 
       {/* 댓글 섹션 */}
       <div className="border-t border-gray-200">
-        <CommentSection 
-          postId={post.id} 
+        <CommentSection
+          postId={post.id}
           onCommentCountChange={(count) => {
             // 댓글 수가 변경되면 게시물 정보 업데이트
             setPost(prev => prev ? { ...prev, comment_count: count } : null)
@@ -645,7 +645,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
               </thead>
               <tbody className="bg-white dark:bg-gray-900">
                 {relatedPosts.map((relatedPost, index) => (
-                  <tr 
+                  <tr
                     key={relatedPost.id}
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
                     onClick={() => {
@@ -715,7 +715,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[24px]">
                       {index + 1}
                     </span>
-                    
+
                     {/* 제목 및 정보 */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-1">
@@ -737,7 +737,7 @@ export default function PostDetail({ postId, onBack, onEdit, onDelete }: PostDet
                           </span>
                         )}
                       </div>
-                      
+
                       {/* 메타 정보 */}
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                         <AuthorName

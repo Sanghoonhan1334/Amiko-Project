@@ -604,7 +604,7 @@ export default function CommunityTab({ onViewChange }: CommunityTabProps = {}) {
         const response = await fetch('/api/upload/image', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${encodeURIComponent(token)}`
+            'Authorization': `Bearer ${token}`
           },
           body: formData
         })
@@ -1074,7 +1074,7 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       }
       
       if (token) {
-        headers['Authorization'] = `Bearer ${encodeURIComponent(token)}`
+        headers['Authorization'] = `Bearer ${token}`
       }
       
       const baseUrl = window.location.origin

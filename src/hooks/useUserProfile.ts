@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext'
 // 🚀 최적화: 사용자 프로필 데이터 캐싱 및 중복 요청 방지
 export function useUserProfile() {
   const { user, token } = useAuth()
-  
+
   return useQuery({
     queryKey: ['userProfile', user?.id],
     queryFn: async () => {
@@ -15,7 +15,7 @@ export function useUserProfile() {
       const [profileResponse, authResponse, adminResponse] = await Promise.all([
         fetch(`/api/profile?userId=${user.id}`, {
           headers: {
-            'Authorization': `Bearer ${encodeURIComponent(token)}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
@@ -58,7 +58,7 @@ export function useUpdateProfile() {
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${encodeURIComponent(token)}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(profileData)
@@ -81,7 +81,7 @@ export function useUpdateProfile() {
 // 🚀 최적화: 포인트 데이터 캐싱
 export function useUserPoints() {
   const { user } = useAuth()
-  
+
   return useQuery({
     queryKey: ['userPoints', user?.id],
     queryFn: async () => {

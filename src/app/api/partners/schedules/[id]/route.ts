@@ -4,11 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 // 가능 시간 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     const supabase = createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json(

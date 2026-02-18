@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -20,9 +20,14 @@ export default function CreateChatRoomPage() {
     fanclub_name: ''
   })
 
-  // 로그인 체크
+  // 로그인 체크 (클라이언트에서만 리다이렉트)
+  useEffect(() => {
+    if (!user) {
+      router.replace('/sign-in')
+    }
+  }, [user, router])
+
   if (!user) {
-    router.push('/sign-in')
     return null
   }
 
@@ -137,8 +142,8 @@ export default function CreateChatRoomPage() {
               disabled={creating || !formData.name.trim()}
               className="flex-1"
             >
-              {creating 
-                ? (t('community.chatRoomCreating') || '생성 중...') 
+              {creating
+                ? (t('community.chatRoomCreating') || '생성 중...')
                 : (t('community.chatRoomCreate') || '만들기')
               }
             </Button>

@@ -6,7 +6,7 @@ import { translations, Language } from '@/lib/translations'
 interface LanguageContextType {
   language: Language
   setLanguage: (lang: Language) => void
-  t: (key: string, params?: Record<string, string | number>) => string
+  t: (key: string, params?: Record<string, string | number>) => any
   toggleLanguage: () => void
   setUserLanguage: (userLanguage: string | null) => void
 }
@@ -38,14 +38,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         // 3. 브라우저 언어 및 시간대 감지
         const browserLang = navigator.language
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-        
+
         // 시간대 기반 국가 추정
-        const isSpanishSpeakingRegion = timezone.includes('America/') && 
-          !timezone.includes('America/New_York') && 
-          !timezone.includes('America/Chicago') && 
-          !timezone.includes('America/Denver') && 
+        const isSpanishSpeakingRegion = timezone.includes('America/') &&
+          !timezone.includes('America/New_York') &&
+          !timezone.includes('America/Chicago') &&
+          !timezone.includes('America/Denver') &&
           !timezone.includes('America/Los_Angeles')
-        
+
         // 브라우저 언어가 스페인어이거나 스페인어권 시간대인 경우
         if (browserLang.startsWith('es') || isSpanishSpeakingRegion) {
           setLanguage('es')
@@ -66,7 +66,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // 사용자 프로필 언어 설정 함수
   const setUserLanguage = useCallback((userLanguage: string | null) => {
     if (userLanguageSet) return // 이미 사용자 언어가 설정되었으면 무시
-    
+
     if (userLanguage && (userLanguage === 'ko' || userLanguage === 'es')) {
       console.log('[LANGUAGE] 사용자 프로필 언어 적용:', userLanguage)
       setLanguage(userLanguage as Language)
@@ -76,34 +76,35 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [userLanguageSet])
 
   // useCallback으로 t 함수 최적화 (불필요한 리렌더링 방지)
-  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
+  const t = useCallback((key: string, params?: Record<string, string | number>): any => {
     try {
       const keys = key.split('.')
       let value: unknown = translations[language]
-      
+
       for (const k of keys) {
         if (typeof value === 'object' && value !== null && k in value) {
           value = (value as Record<string, unknown>)[k]
         } else {
-          console.warn(`Translation key not found: ${key} in language ${language}`)
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`Translation key not found: ${key} in language ${language}`)
+          }
           return key
         }
       }
-      
+
       if (typeof value === 'string') {
         let result = value
-        
+
         // Replace placeholders with parameters
         if (params) {
           for (const [paramKey, paramValue] of Object.entries(params)) {
             result = result.replace(new RegExp(`{${paramKey}}`, 'g'), String(paramValue))
           }
         }
-        
+
         return result
       } else {
-        console.warn(`Translation value is not a string for key: ${key}`, value)
-        return key
+        return value
       }
     } catch (error) {
       console.error(`Error translating key ${key}:`, error)

@@ -42,9 +42,9 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('[NEWS_GET] 뉴스 조회 성공:', data?.length || 0, '개, 총', count || 0, '개')
-    return NextResponse.json({ 
-      success: true, 
-      newsItems: data, 
+    return NextResponse.json({
+      success: true,
+      newsItems: data,
       total: count || 0,
       page: pageNum,
       limit: limitNum,
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('[NEWS_CREATE] POST 요청 시작')
-    
+
     if (!supabaseServer) {
       console.log('[NEWS_API] Supabase 서버 클라이언트가 없음, 뉴스 생성 불가')
       return NextResponse.json(
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    
+
     // 운영자 확인 - 직접 Supabase에서 확인
     const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
     }
@@ -98,14 +98,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, title_es, content, content_es, source, category, thumbnail, author, published, date } = body
 
-    console.log('[NEWS_CREATE] 요청 데이터:', { 
-      title, 
-      title_es, 
-      content: content?.substring(0, 100) + '...', 
-      content_es: content_es?.substring(0, 100) + '...', 
-      source, 
-      category, 
-      thumbnail: thumbnail ? `Base64 data (${thumbnail.length} chars)` : null, 
+    console.log('[NEWS_CREATE] 요청 데이터:', {
+      title,
+      title_es,
+      content: content?.substring(0, 100) + '...',
+      content_es: content_es?.substring(0, 100) + '...',
+      source,
+      category,
+      thumbnail: thumbnail ? `Base64 data (${thumbnail.length} chars)` : null,
       author,
       date
     })
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     // 필수 필드 검증: 제목과 내용은 한국어나 스페인어 중 하나라도 있으면 통과
     const hasTitle = title?.trim() || title_es?.trim()
     const hasContent = content?.trim() || content_es?.trim()
-    
+
     if (!hasTitle || !hasContent || !author) {
       console.log('[NEWS_CREATE] 필수 필드 누락:', { hasTitle, hasContent, author })
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
@@ -154,14 +154,133 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[NEWS_CREATE] 뉴스 생성 성공:', data[0])
-    return NextResponse.json({ 
-      success: true, 
-      newsItem: data[0] 
+
+    // 새로운 뉴스 발행 알림 생성 (모든 사용자에게 데이터베이스 알림 생성)
+    try {
+      console.log('[NEWS_CREATE] 뉴스 알림 생성 시도')
+
+      const newsItem = data[0]
+      const newsTitle = newsItem.title || newsItem.title_es || '새로운 뉴스'
+
+      // 푸시 알림이 활성화된 모든 사용자 조회
+      const { data: eligibleUsers, error: usersError } = await supabaseServer
+        .from('push_subscriptions')
+        .select(`
+          user_id,
+          users!inner(language)
+        `)
+        .eq('notification_settings.push_enabled', true)
+        .neq('user_id', user.id) // 뉴스 작성자 제외
+
+      if (usersError) {
+        console.error('[NEWS_CREATE] 사용자 조회 실패:', usersError)
+      } else if (eligibleUsers && eligibleUsers.length > 0) {
+        console.log(`[NEWS_CREATE] ${eligibleUsers.length}명의 사용자에게 뉴스 알림 생성`)
+
+        // 각 사용자별로 알림 생성
+        const notificationsToCreate = eligibleUsers.map((user: any) => {
+          const userLanguage = user.users?.language || 'es' // 기본값 스페인어
+
+          let notificationTitle: string
+          let notificationMessage: string
+
+          if (userLanguage === 'ko') {
+            notificationTitle = '새로운 뉴스가 도착했습니다'
+            notificationMessage = `"${newsTitle.substring(0, 50)}${newsTitle.length > 50 ? '...' : ''}"`
+          } else {
+            notificationTitle = 'Nueva noticia disponible'
+            notificationMessage = `"${newsTitle.substring(0, 50)}${newsTitle.length > 50 ? '...' : ''}"`
+          }
+
+          return {
+            user_id: user.user_id,
+            type: 'new_news',
+            title: notificationTitle,
+            message: notificationMessage,
+            related_id: newsItem.id.toString(),
+            data: {
+              newsId: newsItem.id,
+              newsTitle: newsTitle,
+              category: newsItem.category,
+              url: `/news/${newsItem.id}`
+            }
+          }
+        })
+
+        // 알림 일괄 생성
+        const { data: createdNotifications, error: notificationError } = await supabaseServer
+          .from('notifications')
+          .insert(notificationsToCreate)
+          .select()
+
+        if (notificationError) {
+          console.error('[NEWS_CREATE] 뉴스 알림 생성 실패:', notificationError)
+        } else {
+          console.log(`[NEWS_CREATE] ${createdNotifications?.length || 0}개의 뉴스 알림 생성 성공`)
+        }
+      }
+    } catch (notificationError) {
+      console.error('[NEWS_CREATE] 뉴스 알림 생성 예외:', notificationError)
+      // 알림 생성 실패해도 뉴스는 생성됨
+    }
+
+    // 새로운 뉴스 발행 푸시 알림 브로드캐스트 (기존 로직 유지)
+    try {
+      console.log('[NEWS_CREATE] 뉴스 푸시 알림 브로드캐스트 시도')
+
+      const newsItem = data[0]
+      const newsTitle = newsItem.title || newsItem.title_es || '새로운 뉴스'
+
+      // Use localhost in development, app URL in production
+      const baseUrl = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : (process.env.NEXT_PUBLIC_APP_URL || 'https://helloamiko.com')
+
+      // 푸시 알림 발송 (모든 사용자에게) - 제목을 범용적으로 변경
+      const pushResponse = await fetch(`${baseUrl}/api/notifications/broadcast-push`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: 'Amiko - Nueva noticia', // 범용 제목 사용
+          body: `"${newsTitle.substring(0, 50)}${newsTitle.length > 50 ? '...' : ''}"`,
+          data: {
+            type: 'new_news',
+            newsId: newsItem.id,
+            newsTitle: newsTitle,
+            category: newsItem.category,
+            url: `/news/${newsItem.id}`
+          },
+          excludeUserId: user.id // 뉴스 작성자는 알림 제외 (선택사항)
+        })
+      })
+
+      if (pushResponse.ok) {
+        const pushResult = await pushResponse.json()
+        console.log('[NEWS_CREATE] 뉴스 푸시 알림 브로드캐스트 성공:', {
+          sent: pushResult.sent,
+          failed: pushResult.failed,
+          total: pushResult.total
+        })
+      } else {
+        const pushError = await pushResponse.text()
+        console.error('[NEWS_CREATE] 뉴스 푸시 알림 브로드캐스트 실패:', pushResponse.status, pushError)
+        // 푸시 알림 실패해도 뉴스는 생성됨
+      }
+    } catch (pushError) {
+      console.error('[NEWS_CREATE] 뉴스 푸시 알림 브로드캐스트 예외:', pushError)
+      // 푸시 알림 실패해도 뉴스는 생성됨
+    }
+
+    return NextResponse.json({
+      success: true,
+      newsItem: data[0]
     }, { status: 200 })
   } catch (error) {
     console.error('[NEWS_CREATE] 뉴스 생성 API 오류:', error)
     console.error('[NEWS_CREATE] 오류 스택:', error instanceof Error ? error.stack : 'No stack trace')
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: '서버 오류: ' + (error instanceof Error ? error.message : 'Unknown error'),
       details: error instanceof Error ? error.stack : null
     }, { status: 500 })
@@ -229,7 +348,7 @@ export async function PUT(request: NextRequest) {
     // 고정 상태만 변경하는 경우
     if (is_pinned !== undefined && !title && !content && !author) {
       console.log('[NEWS_UPDATE] 고정 상태만 변경:', { id, is_pinned })
-      
+
       const { data, error } = await supabaseServer
         .from('korean_news')
         .update({ is_pinned })
@@ -248,16 +367,16 @@ export async function PUT(request: NextRequest) {
       }
 
       console.log('[NEWS_UPDATE] 고정 상태 변경 성공:', data[0])
-      return NextResponse.json({ 
-        success: true, 
-        newsItem: data[0] 
+      return NextResponse.json({
+        success: true,
+        newsItem: data[0]
       })
     }
 
     // 필수 필드 검증 (고정 상태만 변경하는 경우가 아닐 때)
     const hasTitle = title?.trim() || title_es?.trim()
     const hasContent = content?.trim() || content_es?.trim()
-    
+
     if (!hasTitle || !hasContent || !author) {
       console.log('[NEWS_UPDATE] 필수 필드 누락:', { hasTitle, hasContent, author })
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
@@ -302,9 +421,9 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log('[NEWS_UPDATE] 뉴스 수정 성공:', data[0])
-    return NextResponse.json({ 
-      success: true, 
-      newsItem: data[0] 
+    return NextResponse.json({
+      success: true,
+      newsItem: data[0]
     })
   } catch (error) {
     console.error('[NEWS_UPDATE] 뉴스 수정 API 오류:', error)

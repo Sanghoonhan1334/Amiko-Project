@@ -1,5 +1,5 @@
 // 모듈 로딩 시점 로그 (가장 먼저 실행)
-if (typeof console !== 'undefined') {
+if (process.env.NODE_ENV === 'development' && typeof console !== 'undefined') {
   console.log('[VERIFY_START] 🔥 모듈 로드 완료 - TOP LEVEL')
 }
 
@@ -23,14 +23,14 @@ export async function POST(request: NextRequest) {
     if (typeof console !== 'undefined') {
       console.log('[VERIFY_START] STEP 2: 요청 본문 파싱 시작')
     }
-    
+
     let body: any
     try {
       const text = await request.text()
       if (typeof console !== 'undefined') {
         console.log('[VERIFY_START] STEP 2: 요청 본문 텍스트 받음:', text?.substring(0, 100))
       }
-      
+
       if (!text || text.trim() === '') {
         if (typeof console !== 'undefined') {
           console.error('[VERIFY_START] STEP 2 에러: 요청 본문이 비어있음')
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      
+
       body = JSON.parse(text)
       if (typeof console !== 'undefined') {
         console.log('[VERIFY_START] STEP 2 완료:', { channel: body?.channel, target: body?.target?.substring(0, 5) + '...' })
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     let { channel, target, nationality, purpose } = body
 
     // STEP 3: 입력 유효성 검사
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
-        
+
     // 채널 정규화 (wa -> whatsapp)
     if (channel === 'wa') {
       channel = 'whatsapp'
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       console.log('[VERIFY_START] STEP 4: 대상 정규화 시작')
     }
     let normalizedTarget = target
-    
+
     // 이메일 채널인 경우 이메일 형식 검증만 수행
     if (channel === 'email') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         )
       }
     }
-          
+
     // STEP 5: 인증코드 생성
     if (typeof console !== 'undefined') {
       console.log('[VERIFY_START] STEP 5: 인증코드 생성')
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       console.log(`[VERIFY_START] STEP 6: ${channel.toUpperCase()} 발송 시작`)
       console.log('[VERIFY_START] 동적 import 시작...')
     }
-    
+
     let sendSuccess = false
     try {
       // 언어 설정 (이메일은 nationality 또는 기본값 사용, 전화번호는 국가코드 기준)
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
       } else {
         language = normalizedTarget.startsWith('+82') ? 'ko' : 'es'
       }
-      
+
       if (channel === 'sms') {
         // SMS 발송
         const { sendVerificationSMS } = await import('@/lib/smsService')
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
           console.log('[VERIFY_START] sendVerificationSMS import 성공')
           console.log('[VERIFY_START] SMS 발송 호출:', { to: normalizedTarget, code: verificationCode, language, nationality })
         }
-        
+
         sendSuccess = await sendVerificationSMS(normalizedTarget, verificationCode, language, nationality)
         if (typeof console !== 'undefined') {
           console.log('[VERIFY_START] SMS 발송 결과:', sendSuccess)
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
           console.log('[VERIFY_START] sendVerificationWhatsApp import 성공')
           console.log('[VERIFY_START] WhatsApp 발송 호출:', { to: normalizedTarget, code: verificationCode, language })
         }
-        
+
         sendSuccess = await sendVerificationWhatsApp(normalizedTarget, verificationCode, language)
         if (typeof console !== 'undefined') {
           console.log('[VERIFY_START] WhatsApp 발송 결과:', sendSuccess)
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
           console.log('[VERIFY_START] sendVerificationEmail import 성공')
           console.log('[VERIFY_START] Email 발송 호출:', { to: normalizedTarget, code: verificationCode, language, purpose: purpose || 'signup' })
         }
-        
+
         const emailPurpose: 'signup' | 'passwordReset' = purpose === 'passwordReset' ? 'passwordReset' : 'signup'
         sendSuccess = await sendVerificationEmail(normalizedTarget, verificationCode, language, emailPurpose)
         if (typeof console !== 'undefined') {
@@ -206,9 +206,9 @@ export async function POST(request: NextRequest) {
         console.error(`[VERIFY_START] STEP 6 에러: ${channel.toUpperCase()} 발송 중 예외 발생!`, sendError)
       }
       return NextResponse.json(
-        { 
-          ok: false, 
-          error: `${channel.toUpperCase()}_SEND_EXCEPTION`, 
+        {
+          ok: false,
+          error: `${channel.toUpperCase()}_SEND_EXCEPTION`,
           message: `${channel === 'sms' ? 'SMS' : channel === 'whatsapp' ? 'WhatsApp' : 'Email'} 발송 중 오류가 발생했습니다.`,
           detail: sendError instanceof Error ? sendError.message : String(sendError),
           stack: sendError instanceof Error ? sendError.stack : 'N/A'
@@ -235,20 +235,20 @@ export async function POST(request: NextRequest) {
     if (typeof console !== 'undefined') {
       console.log('[VERIFY_START] STEP 7: 인증코드 DB 저장 시작')
     }
-    
+
     try {
       const { createClient } = await import('@/lib/supabase/server')
       const supabase = createClient()
-      
+
       // DB type 변환: 'whatsapp' → 'sms' (verification_codes 테이블의 type 컬럼은 'sms' 사용)
       // 이메일의 경우 'email'로 저장
       const dbType = channel === 'whatsapp' ? 'sms' : channel
-      
+
       // 기존 미인증 코드들 비활성화
       if (typeof console !== 'undefined') {
         console.log('[VERIFY_START] 기존 미인증 코드 비활성화')
       }
-      
+
       // 이메일인 경우 email 필드 사용, 전화번호인 경우 phone_number 필드 사용
       if (channel === 'email') {
         await supabase
@@ -265,7 +265,7 @@ export async function POST(request: NextRequest) {
           .eq('type', dbType)
           .eq('verified', false)
       }
-      
+
       // 새 인증코드 저장 (10분간 유효)
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
       const insertData: any = {
@@ -276,26 +276,26 @@ export async function POST(request: NextRequest) {
         ip_address: request.headers.get('x-forwarded-for') || '127.0.0.1',
         user_agent: request.headers.get('user-agent') || 'Unknown'
       }
-      
+
       // 이메일인 경우 email 필드 사용, 전화번호인 경우 phone_number 필드 사용
       if (channel === 'email') {
         insertData.email = normalizedTarget
       } else {
         insertData.phone_number = normalizedTarget
       }
-      
+
       if (typeof console !== 'undefined') {
-        console.log('[VERIFY_START] 인증코드 DB 저장 시도:', { 
+        console.log('[VERIFY_START] 인증코드 DB 저장 시도:', {
           target: channel === 'email' ? normalizedTarget.substring(0, 5) + '...' : normalizedTarget.substring(0, 5) + '...',
           type: dbType,
           code: verificationCode.substring(0, 2) + '****'
         })
       }
-      
+
       const { error: insertError } = await supabase
         .from('verification_codes')
         .insert([insertData])
-      
+
       if (insertError) {
         if (typeof console !== 'undefined') {
           console.error('[VERIFY_START] STEP 7 에러: 인증코드 DB 저장 실패!', insertError)
@@ -334,10 +334,10 @@ export async function POST(request: NextRequest) {
       console.error('[VERIFY_START] 에러 메시지:', error instanceof Error ? error.message : String(error))
       console.error('[VERIFY_START] 에러 스택:', error instanceof Error ? error.stack : 'N/A')
     }
-    
+
     return NextResponse.json(
-      { 
-        ok: false, 
+      {
+        ok: false,
         error: 'INTERNAL_SERVER_ERROR',
         message: '서버 오류가 발생했습니다.',
         detail: error instanceof Error ? error.message : String(error),

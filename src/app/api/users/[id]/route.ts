@@ -4,8 +4,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
 // 사용자 정보 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params
   try {
     if (!supabaseServer) {
       return NextResponse.json(
@@ -23,7 +24,7 @@ export async function GET(
       .select('display_name, avatar_url')
       .eq('user_id', userId)
       .single()
-    
+
     console.log('[USER_GET] user_profiles 조회:', { profile, error: profileError?.message })
 
     // 2. users 테이블에서 사용자 정보 조회
@@ -33,11 +34,11 @@ export async function GET(
       .eq('id', userId)
       .single()
 
-    console.log('[USER_GET] users 조회:', { 
-      id: user?.id, 
-      full_name: user?.full_name, 
+    console.log('[USER_GET] users 조회:', {
+      id: user?.id,
+      full_name: user?.full_name,
       nickname: user?.nickname,
-      error: error?.message 
+      error: error?.message
     })
 
     if (error || !user) {
@@ -51,8 +52,8 @@ export async function GET(
     let displayName = user.full_name
     if (profile?.display_name && profile.display_name.trim() !== '') {
       // display_name에서 # 이후 제거
-      displayName = profile.display_name.includes('#') 
-        ? profile.display_name.split('#')[0] 
+      displayName = profile.display_name.includes('#')
+        ? profile.display_name.split('#')[0]
         : profile.display_name
     } else if (user.nickname && user.nickname.trim() !== '') {
       displayName = user.nickname
