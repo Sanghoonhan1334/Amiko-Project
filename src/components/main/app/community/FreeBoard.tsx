@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -291,7 +291,7 @@ export default function FreeBoard() {
   }
 
   // 게시글 목록 조회
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -368,7 +368,7 @@ export default function FreeBoard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, sortBy, currentCategory, searchQuery]) // 의존성 배열에 모든 변수 포함
 
   // 게시글 작성
   const handleWritePost = async () => {
@@ -846,13 +846,10 @@ export default function FreeBoard() {
   useEffect(() => {
     console.log('FreeBoard 마운트됨, 사용자 상태:', { user: !!user })
     fetchPosts()
-  }, [currentPage, user])
+  }, [currentPage, user, fetchPosts]) // fetchPosts를 의존성에 추가
 
-  // 카테고리, 정렬, 검색어 변경 시 재조회
-  useEffect(() => {
-    console.log('필터 변경 감지:', { currentCategory, sortBy, searchQuery })
-    fetchPosts()
-  }, [currentCategory, sortBy, searchQuery])
+  // 카테고리, 정렬, 검색어 변경 시 재조회 - fetchPosts가 이미 이 값들을 의존하므로 자동으로 실행됨
+  // 별도의 useEffect는 불필요하므로 제거하여 중복 호출 방지
 
   // 아이콘 렌더링
   const getPostIcon = (post: Post) => {

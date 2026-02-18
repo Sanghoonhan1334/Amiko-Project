@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, X, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 interface Notification {
   id: string
@@ -31,6 +32,12 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const channelRef = useRef<any>(null)
+  const realtimeErrorLoggedRef = useRef(false)
+
+  const realtimeSupabase = useMemo(() => {
+    return createSupabaseBrowserClient()
+  }, [])
 
   // 알림 목록 조회
   const fetchNotifications = async () => {
@@ -78,38 +85,16 @@ export default function NotificationBell() {
     }
 
     try {
-      const response = await fetch('/api/notifications', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store'
-      })
+      const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
+      const response = await fetch(`/api/notifications/unread-count?types=${allowedTypes.join(',')}`)
 
       if (response.ok) {
-        const data: NotificationResponse = await response.json()
-
-        // console.log('[NotificationBell] 전체 알림:', data.notifications?.length || 0, '개')
-        // console.log('[NotificationBell] 전체 알림 타입들:', data.notifications?.map(n => n.type) || [])
-
-        // 좋아요, 댓글, 새로운 뉴스만 필터링
-        const allowedTypes = ['like', 'story_like', 'comment', 'story_comment', 'new_post', 'new_news']
-        const filteredNotifications = (data.notifications || []).filter(n => allowedTypes.includes(n.type))
-
-        // console.log('[NotificationBell] 필터링된 알림:', filteredNotifications.length, '개')
-        // console.log('[NotificationBell] 필터링된 알림 타입들:', filteredNotifications.map(n => n.type))
-
-        // 읽지 않은 알림 개수만 계산
-        const unread = filteredNotifications.filter(n => !n.is_read).length || 0
-        // console.log('[NotificationBell] 읽지 않은 알림:', unread, '개')
-
-        setUnreadCount(unread)
+        const data = await response.json()
+        setUnreadCount(data.count || 0)
       } else {
-        // console.warn('[NotificationBell] 알림 개수 조회 실패:', response.status)
         setUnreadCount(0)
       }
     } catch (error) {
-      // console.error('[NotificationBell] 알림 개수 조회 오류:', error)
       setUnreadCount(0)
     }
   }
@@ -253,20 +238,97 @@ export default function NotificationBell() {
     return date.toLocaleDateString('ko-KR')
   }
 
-  // 컴포넌트 마운트 시 알림 조회
+  // 컴포넌트 마운트 시 알림 조회 및 Realtime 구독
   useEffect(() => {
     if (user) {
       fetchNotifications()
       fetchUnreadCount()
 
-      // 5초마다 읽지 않은 알림 개수 업데이트 (더 빠른 반응)
-      const interval = setInterval(fetchUnreadCount, 5000)
-      return () => clearInterval(interval)
+      try {
+        const topic = `user:${user.id}:notifications`
+
+        const initRealtime = async () => {
+          const { data: { session } } = await realtimeSupabase.auth.getSession()
+          const accessToken = session?.access_token
+
+          if (!accessToken) {
+            return
+          }
+
+          realtimeSupabase.realtime.setAuth(accessToken)
+
+          // 기존 채널 정리
+          if (channelRef.current) {
+            realtimeSupabase.removeChannel(channelRef.current)
+            channelRef.current = null
+          }
+
+          // notifications topic broadcast 구독
+          const channel = realtimeSupabase
+            .channel(topic, { config: { private: true } })
+            .on(
+              'broadcast',
+              { event: 'INSERT' },
+              () => {
+                fetchNotifications()
+                fetchUnreadCount()
+              }
+            )
+            .on(
+              'broadcast',
+              { event: 'UPDATE' },
+              () => {
+                fetchNotifications()
+                fetchUnreadCount()
+              }
+            )
+            .on(
+              'broadcast',
+              { event: 'DELETE' },
+              () => {
+                fetchNotifications()
+                fetchUnreadCount()
+              }
+            )
+            .subscribe((status) => {
+              if (status === 'SUBSCRIBED') {
+                realtimeErrorLoggedRef.current = false
+              } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                if (!realtimeErrorLoggedRef.current) {
+                  console.warn('❌ Notifications Realtime unavailable; using API fallback')
+                  realtimeErrorLoggedRef.current = true
+                }
+              }
+            })
+
+          channelRef.current = channel
+        }
+
+        initRealtime().catch((error) => {
+          if (!realtimeErrorLoggedRef.current) {
+            console.warn('❌ Notifications Realtime init failed; using API fallback')
+            realtimeErrorLoggedRef.current = true
+          }
+        })
+      } catch (error) {
+        if (!realtimeErrorLoggedRef.current) {
+          console.warn('❌ Notifications Realtime setup failed; using API fallback')
+          realtimeErrorLoggedRef.current = true
+        }
+      }
+
+      return () => {
+        // 컴포넌트 언마운트 시 채널 정리
+        if (channelRef.current) {
+          realtimeSupabase.removeChannel(channelRef.current)
+          channelRef.current = null
+        }
+      }
     } else {
       setNotifications([])
       setUnreadCount(0)
     }
-  }, [user?.id]) // user 객체 대신 user?.id만 의존성으로 사용
+  }, [user?.id, realtimeSupabase])
 
   // 드롭다운이 열릴 때마다 최신 알림 가져오기
   useEffect(() => {

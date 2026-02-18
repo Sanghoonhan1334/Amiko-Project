@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,12 +12,12 @@ import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import { toast } from 'sonner'
 import { TranslationService } from '@/lib/translation'
-import { 
-  MessageSquare, 
-  ThumbsUp, 
-  Eye, 
-  Calendar, 
-  User, 
+import {
+  MessageSquare,
+  ThumbsUp,
+  Eye,
+  Calendar,
+  User,
   Search,
   Plus,
   Filter,
@@ -71,21 +71,21 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const { language, t } = useLanguage()
   const { theme } = useTheme()
   const router = useRouter()
-  
+
   // Supabase 클라이언트 (프로필 이미지 URL 변환용)
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-  
+
   // 번역 서비스 초기화
   const translationService = TranslationService.getInstance()
-  
+
   // LibreTranslate 무료 번역 서비스 설정
   useEffect(() => {
     translationService.setProvider('libretranslate')
   }, [])
-  
+
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -104,7 +104,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [postTitle, setPostTitle] = useState('')
   const [postContent, setPostContent] = useState('')
   const [postCategory, setPostCategory] = useState('')
-  
+
   // 공지사항 관련 상태
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
   const [announcementTitle, setAnnouncementTitle] = useState('')
@@ -117,7 +117,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   const [uploadingImages, setUploadingImages] = useState(false)
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [isSubmittingPost, setIsSubmittingPost] = useState(false)
-  
+
   // 필드별 에러 상태
   const [fieldErrors, setFieldErrors] = useState<{
     category?: string
@@ -125,15 +125,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     content?: string
     general?: string
   }>({})
-  
+
   // 번역 상태 관리
   const [isTranslating, setIsTranslating] = useState(false)
   const [translatedPosts, setTranslatedPosts] = useState<Post[]>([])
   const [translationMode, setTranslationMode] = useState<'none' | 'ko-to-es' | 'es-to-ko'>('none')
-  
+
   // 운영자 권한 체크
   const [isAdmin, setIsAdmin] = useState(false)
-  
+  const imageUrlCache = useRef<Map<string, string>>(new Map()) // 이미지 URL 캐시 (성능 최적화)
+
   // 운영자 상태 확인
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -146,9 +147,9 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         const params = new URLSearchParams()
         if (user?.id) params.append('userId', user.id)
         if (user?.email) params.append('email', user.email)
-        
+
         const response = await fetch(`/api/admin/check?${params.toString()}`)
-        
+
         if (response.ok) {
           const data = await response.json()
           setIsAdmin(data.isAdmin || false)
@@ -193,10 +194,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     const checkMobileNavigation = () => {
       setHasMobileNavigation(window.innerWidth < 768)
     }
-    
+
     checkMobileNavigation()
     window.addEventListener('resize', checkMobileNavigation)
-    
+
     return () => window.removeEventListener('resize', checkMobileNavigation)
   }, [])
 
@@ -213,12 +214,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       if (profileResponse.ok) {
         const profileResult = await profileResponse.json()
         const userProfile = profileResult.user
-        
+
         const { canAccess, missingRequirements } = checkLevel1Auth(userProfile)
-        
+
         if (!canAccess) {
           toast.error(
-            language === 'ko' 
+            language === 'ko'
               ? `게시글 작성을 위해 ${missingRequirements.join(', ')}이(가) 필요합니다.`
               : `Se requiere ${missingRequirements.join(', ')} para crear publicaciones.`
           )
@@ -247,14 +248,14 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   // 공지사항 작성 함수
   const handleAnnouncementSubmit = async () => {
     if (!user || !isAdmin) return
-    
+
     if (!announcementTitle.trim() || !announcementContent.trim()) {
       toast.error('제목과 내용을 모두 입력해주세요.')
       return
     }
 
     setAnnouncementLoading(true)
-    
+
     try {
       console.log('공지사항 작성 시작:', {
         title: announcementTitle,
@@ -299,10 +300,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       setAnnouncementContent('')
       setAnnouncementImages([])
       setShowAnnouncementModal(false)
-      
+
       // 게시글 목록 새로고침
       loadPosts()
-      
+
       toast.success('공지사항이 작성되었습니다.')
     } catch (error) {
       console.error('공지사항 작성 실패:', error)
@@ -326,20 +327,20 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
       // Supabase 클라이언트 생성
       const supabase = createSupabaseBrowserClient()
-      
+
       // 세션에서 토큰 가져오기
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
+
       if (sessionError) {
         console.error('세션 에러:', sessionError)
         throw new Error('세션을 가져올 수 없습니다.')
       }
-      
+
       if (!session?.access_token) {
         console.error('토큰이 없습니다. 세션:', session)
         throw new Error('인증 토큰을 가져올 수 없습니다. 다시 로그인해주세요.')
       }
-      
+
       const token = session.access_token
       console.log('토큰 가져오기 성공:', token.slice(0, 20) + '...')
 
@@ -372,11 +373,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     if (!files || files.length === 0) return
 
     setUploadingAnnouncementImages(true)
-    
+
     try {
       const uploadPromises = Array.from(files).map(file => handleAnnouncementImageUpload(file))
       const uploadedUrls = await Promise.all(uploadPromises)
-      
+
       setAnnouncementImages(prev => [...prev, ...uploadedUrls])
     } catch (error) {
       toast.error('이미지 업로드에 실패했습니다.')
@@ -463,12 +464,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
   // 게시판 변경 핸들러
   const handleBoardChange = (board: string) => {
     console.log('[BOARD_CHANGE] 게시판 변경:', board)
-    
+
     // 이전 요청 취소
     if (abortController) {
       abortController.abort()
     }
-    
+
     setSelectedBoard(board)
     setCurrentPage(1)
     setPosts([]) // 이전 데이터 즉시 초기화
@@ -485,12 +486,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const threeDaysAgo = new Date()
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
       const postDate = new Date(post.created_at)
-      
+
       if (postDate < threeDaysAgo) {
         return false // 3일 이상 된 글은 추천글에서 제외
       }
     }
-    
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       return (
@@ -507,12 +508,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     // 공지사항은 항상 맨 위에
     if (a.is_notice && !b.is_notice) return -1
     if (!a.is_notice && b.is_notice) return 1
-    
+
     // 공지사항끼리는 생성일 기준 내림차순
     if (a.is_notice && b.is_notice) {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     }
-    
+
     // 일반 게시글은 탭에 따라 정렬
     switch (activeTab) {
       case 'recommended':
@@ -552,7 +553,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       // 파일 타입 검증
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
       const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type))
-      
+
       if (invalidFiles.length > 0) {
         toast.error(language === 'es' ? 'Tipo de archivo no permitido. Solo se permiten imágenes, videos y GIFs.' : '지원하지 않는 파일 형식입니다. 이미지, 영상, GIF만 업로드 가능합니다.')
         return
@@ -562,10 +563,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         // 이미지와 영상의 크기 제한을 다르게 설정
         const isVideo = file.type.startsWith('video/')
         const maxSize = isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024 // 영상: 100MB, 이미지: 5MB
-        
+
         if (file.size > maxSize) {
           throw new Error(
-            language === 'es' 
+            language === 'es'
               ? `El tamaño del archivo no puede exceder ${isVideo ? '100MB' : '5MB'}.`
               : `파일 크기는 ${isVideo ? '100MB' : '5MB'}를 초과할 수 없습니다.`
           )
@@ -593,7 +594,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
       const urls = await Promise.all(uploadPromises)
       setUploadedImages(prev => [...prev, ...urls])
-      
+
       // 미리보기 생성 (이미지만, 영상은 썸네일 생성 불가)
       const previews = Array.from(files).map(file => {
         if (file.type.startsWith('image/')) {
@@ -604,7 +605,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         }
       }).filter(Boolean) as string[]
       setImagePreviews(prev => [...prev, ...previews])
-      
+
       toast.success(language === 'es' ? '¡Archivo(s) subido(s) exitosamente!' : '파일이 업로드되었습니다!')
     } catch (error) {
       console.error('파일 업로드 실패:', error)
@@ -651,7 +652,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     // 에러가 있으면 표시하고 중단
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
-      
+
       // 첫 번째 에러 필드로 스크롤
       const firstErrorField = Object.keys(errors)[0]
       const errorElement = document.querySelector(`[data-field="${firstErrorField}"]`)
@@ -669,7 +670,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           textareaElement?.focus()
         }
       }
-      
+
       return
     }
 
@@ -698,7 +699,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
       const galleryId = categoryGalleryMap[postCategory] || 'free'
       console.log('[POST_CREATE] 갤러리 ID 매핑:', { postCategory, galleryId })
-      
+
       console.log('[POST_CREATE] API 요청 준비:', {
         url: '/api/posts',
         method: 'POST',
@@ -714,9 +715,9 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           category_name: categories.find(cat => cat.id === postCategory)?.name || '자유게시판'
         }
       })
-      
+
       console.log('[POST_CREATE] fetch 요청 시작...')
-      
+
         const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
@@ -731,7 +732,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           category_name: categories.find(cat => cat.id === postCategory)?.name || '자유게시판'
         })
       })
-      
+
       console.log('[POST_CREATE] fetch 응답 받음:', {
         status: response.status,
         statusText: response.statusText,
@@ -741,11 +742,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       if (response.ok) {
         toast.success(t('community.postCreatedSuccess'))
         handleClosePostModal()
-        
+
         // 작성한 카테고리로 필터 변경
         const categoryName = categories.find(cat => cat.id === postCategory)?.name || '자유게시판'
         setSelectedBoard(categoryName)
-        
+
         // 게시글 목록 새로고침
         loadPosts()
       } else {
@@ -757,7 +758,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         } catch (e) {
           // JSON 파싱 실패 시 기본 메시지 사용
         }
-        
+
         setFieldErrors({ general: errorMessage })
         toast.error(errorMessage)
       }
@@ -768,7 +769,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         stack: error instanceof Error ? error.stack : undefined,
         name: error instanceof Error ? error.name : undefined
       })
-      
+
       const errorMessage = error instanceof Error ? error.message : t('community.postCreateError')
       setFieldErrors({ general: errorMessage })
       toast.error(errorMessage)
@@ -783,7 +784,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
       const handleClickOutside = () => {
         setIsFabExpanded(false)
       }
-      
+
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
     }
@@ -795,15 +796,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     if (abortController) {
       abortController.abort()
     }
-    
+
     // 새로운 AbortController 생성
     const newController = new AbortController()
     setAbortController(newController)
-    
+
     setLoading(true)
     try {
       console.log('[LOAD_POSTS] 게시글 로딩 시작:', { selectedBoard })
-      
+
       // 게시판 이름을 갤러리 슬러그로 변환
       const boardToSlugMap: { [key: string]: string } = {
         '전체': 'all',
@@ -827,14 +828,14 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         '스페인어공부': 'spanish',
         'Foro de Español': 'spanish'
       }
-      
+
       const gallerySlug = boardToSlugMap[selectedBoard] || 'free'
       console.log('[LOAD_POSTS] 갤러리 슬러그:', gallerySlug)
-      
+
       // 페이지네이션 파라미터 추가
       const offset = (currentPage - 1) * itemsPerPage
       const limit = itemsPerPage
-      
+
       // API URL 구성
       let apiUrl
       if (gallerySlug === 'all') {
@@ -847,9 +848,9 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         // 특정 갤러리 선택 시
         apiUrl = `/api/posts?gallery=${gallerySlug}&page=${currentPage}&limit=${limit}&offset=${offset}`
       }
-      
+
       console.log('[LOAD_POSTS] API URL:', apiUrl)
-      
+
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
@@ -897,17 +898,17 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         console.log('[LOAD_POSTS] 변환된 게시글:', transformedPosts.length, '개')
         console.log('[LOAD_POSTS] 첫 번째 게시글 is_notice:', transformedPosts[0]?.is_notice)
         console.log('[LOAD_POSTS] 공지사항 개수:', transformedPosts.filter(p => p.is_notice).length)
-        
+
         // API에서 이미 공지사항이 먼저 정렬되어 반환되므로, 클라이언트 정렬은 생략
         // API 응답 순서를 그대로 사용
         setPosts(transformedPosts)
-        
+
         // 페이지네이션 정보 업데이트
         const total = data.total || transformedPosts.length
         const totalPagesCount = Math.ceil(total / itemsPerPage)
         setTotalPosts(total)
         setTotalPages(totalPagesCount)
-        
+
         console.log('[LOAD_POSTS] 페이지네이션 정보:', {
           total,
           totalPages: totalPagesCount,
@@ -941,15 +942,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
     const date = new Date(dateString)
     const koreaTime = new Date(date.toLocaleString("en-US", {timeZone: "Asia/Seoul"}))
     const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Seoul"}))
-    
+
     const diffInMinutes = Math.floor((now.getTime() - koreaTime.getTime()) / (1000 * 60))
     const diffInHours = Math.floor(diffInMinutes / 60)
     const diffInDays = Math.floor(diffInHours / 24)
-    
+
     // 오늘인지 확인 (한국 시간 기준)
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     const postDate = new Date(koreaTime.getFullYear(), koreaTime.getMonth(), koreaTime.getDate())
-    
+
     if (postDate.getTime() === today.getTime()) {
       // 오늘 올린 글: 시간 표시
       if (diffInMinutes < 1) return t('community.postDetail.timeAgo.now')
@@ -1011,7 +1012,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 <ArrowLeft className="w-4 h-4" />
                 {t('buttons.back')}
               </Button>
-              
+
               {/* 웹용 정렬 드롭다운 - 카테고리 탭 왼쪽 */}
               <div className="hidden md:flex items-center gap-4">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('community.labels.sort')}</span>
@@ -1082,7 +1083,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   </Button>
                 )}
               </div>
-              
+
               {/* 모바일: 드롭다운 */}
               <div className="md:hidden">
                 <Select value={selectedBoard} onValueChange={handleBoardChange}>
@@ -1098,7 +1099,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* 공지사항 버튼 (운영자만) */}
               {isAdmin && (
                 <Button
@@ -1108,12 +1109,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   📢 공지사항
                 </Button>
               )}
-              
+
               {/* 글쓰기 버튼 */}
               <Button
                 onClick={handleOpenPostModal}
                 className="text-white px-4 py-2 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-                style={{ 
+                style={{
                   background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
                   border: 'none',
                   color: 'white'
@@ -1149,7 +1150,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   {/* 정렬 드롭다운 */}
                   <Select value={sortBy} onValueChange={setSortBy}>
@@ -1162,8 +1163,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                       <SelectItem value="views">조회순</SelectItem>
                     </SelectContent>
                   </Select>
-                  
-                  <Button 
+
+                  <Button
                     onClick={handleOpenPostModal}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
@@ -1203,7 +1204,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                       <MessageSquare className="w-8 h-8 text-gray-400" />
                     </div>
                     <h3 className="text-base font-medium text-gray-900 mb-2">
-                      {searchQuery.trim() 
+                      {searchQuery.trim()
                         ? (language === 'ko' ? '검색 결과가 없습니다' : 'No search results')
                         : (language === 'ko' ? '게시글이 없습니다' : 'No posts yet')
                       }
@@ -1284,16 +1285,16 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
 
             {/* 페이지네이션 */}
             <div className="flex items-center justify-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
                 className="bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500"
               >
                 {t('buttons.back')}
               </Button>
-              
+
               {/* 동적 페이지 번호 생성 */}
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum;
@@ -1310,15 +1311,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     pageNum = currentPage - 2 + i;
                   }
                 }
-                
+
                 return (
                   <Button
                     key={pageNum}
                     variant={currentPage === pageNum ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setCurrentPage(pageNum)}
-                    className={currentPage === pageNum 
-                      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                    className={currentPage === pageNum
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white'
                       : 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500'
                     }
                   >
@@ -1326,10 +1327,10 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   </Button>
                 );
               })}
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
+
+              <Button
+                variant="outline"
+                size="sm"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
                 className="bg-white dark:bg-gray-600 text-gray-900 dark:text-white border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500"
@@ -1395,48 +1396,48 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
         {/* 카테고리 필터 */}
         <div className="bg-white dark:bg-gray-800 py-2 border-b border-gray-200 dark:border-gray-700">
           <div className={`flex gap-2 overflow-x-auto pb-1 px-4 ${language === 'es' ? 'gap-1' : 'gap-2'}`}>
-            <button 
+            <button
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
               }               ${
-                activeTab === 'all' 
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                activeTab === 'all'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('all')}
             >
               {t('community.tabs.all')}
             </button>
-            <button 
+            <button
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
               }               ${
-                activeTab === 'recommended' 
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                activeTab === 'recommended'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('recommended')}
             >
               {language === 'ko' ? '추천글' : 'Recomendados'}
             </button>
-            <button 
+            <button
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
               }               ${
-                activeTab === 'popular' 
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                activeTab === 'popular'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('popular')}
             >
               {t('community.tabs.popular')}
             </button>
-            <button 
+            <button
               className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
                 language === 'es' ? 'text-[10px]' : 'text-xs'
               }               ${
-                activeTab === 'latest' 
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                activeTab === 'latest'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               onClick={() => handleTabChange('latest')}
@@ -1474,7 +1475,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 <MessageSquare className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
               <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">
-                {searchQuery.trim() 
+                {searchQuery.trim()
                   ? (language === 'ko' ? '검색 결과가 없습니다' : 'No search results')
                   : (language === 'ko' ? '게시글이 없습니다' : 'No posts yet')
                 }
@@ -1489,8 +1490,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
           ) : (
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {sortedPosts.map((post, index) => (
-                <div 
-                  key={post.id} 
+                <div
+                  key={post.id}
                   className="py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-3"
                   onClick={() => {
                     if (onPostSelect) {
@@ -1507,24 +1508,30 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                       {(() => {
                         const avatarUrl = post.author_profile_image
                         let publicUrl = avatarUrl
-                        
-                        // Supabase Storage URL을 공개 URL로 변환
+
+                        // Supabase Storage URL을 공개 URL로 변환 (캐시 사용)
                         if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
-                          try {
-                            const { data: { publicUrl: convertedUrl } } = supabase.storage
-                              .from('profile-images')
-                              .getPublicUrl(avatarUrl)
-                            publicUrl = convertedUrl
-                          } catch (error) {
-                            console.error('[FreeBoardList] 프로필 이미지 URL 변환 실패:', error)
+                          // 캐시 확인
+                          if (imageUrlCache.current.has(avatarUrl)) {
+                            publicUrl = imageUrlCache.current.get(avatarUrl)!
+                          } else {
+                            try {
+                              const { data: { publicUrl: convertedUrl } } = supabase.storage
+                                .from('profile-images')
+                                .getPublicUrl(avatarUrl)
+                              publicUrl = convertedUrl
+                              imageUrlCache.current.set(avatarUrl, publicUrl) // 캐시 저장
+                            } catch (error) {
+                              console.error('[FreeBoardList] 프로필 이미지 URL 변환 실패:', error)
+                            }
                           }
                         }
-                        
+
                         if (publicUrl && post.author_id) {
                           return (
                             <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 mt-0.5">
-                              <img 
-                                src={publicUrl} 
+                              <img
+                                src={publicUrl}
                                 alt={post.author_name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
@@ -1542,7 +1549,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                             </div>
                           )
                         }
-                        
+
                         // 프로필 사진이 없으면 이니셜 표시
                         return (
                           <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-[8px] sm:text-[10px] font-semibold mt-0.5">
@@ -1550,18 +1557,18 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                           </div>
                         )
                       })()}
-                      
+
                       <h3 className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 line-clamp-2 flex-1">
                         {post.title}
                       </h3>
                     </div>
-                    
+
                     {/* 카테고리와 날짜 */}
                     <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                       <span className="font-bold">{translateCategoryName(post.category_name)}</span>
                       <span>{formatDate(post.created_at)}</span>
                     </div>
-                    
+
                     {/* 통계 */}
                     <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-400 dark:text-gray-500">
                       <span className="flex items-center gap-1">
@@ -1618,12 +1625,12 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   📢 공지사항
                 </button>
               )}
-              
+
               {/* 글쓰기 버튼 */}
               <button
                 onClick={handleOpenPostModal}
                 className="text-white px-4 py-2 rounded-full text-xs font-medium mr-1 shadow-lg border-2 border-white transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{ 
+                style={{
                   background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
                   color: 'white'
                 }}
@@ -1637,7 +1644,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 {t('community.writePost')}
               </button>
             </div>
-            
+
             {/* 메인 버튼 */}
             <Button
               onClick={() => {
@@ -1650,7 +1657,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 }
               }}
               className="w-11 h-11 rounded-full text-white shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center border-2 border-white hover:scale-110 active:scale-95"
-              style={{ 
+              style={{
                 background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
                 color: 'white'
               }}
@@ -1694,15 +1701,15 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   {fieldErrors.general}
                 </div>
               )}
-              
+
               {/* 카테고리 선택 */}
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                   {t('community.category')} {fieldErrors.category && <span className="text-red-500">*</span>}
                 </label>
-                <select 
+                <select
                   data-field="category"
-                  value={postCategory} 
+                  value={postCategory}
                   onChange={(e) => {
                     setPostCategory(e.target.value)
                     if (fieldErrors.category) {
@@ -1710,8 +1717,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                     }
                   }}
                   className={`w-full h-10 text-xs md:text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 ${
-                    fieldErrors.category 
-                      ? 'border-red-500 dark:border-red-500' 
+                    fieldErrors.category
+                      ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-200 dark:border-gray-600'
                   }`}
                 >
@@ -1752,8 +1759,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   }}
                   placeholder={t('community.postTitlePlaceholder')}
                   className={`w-full px-3 py-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                    fieldErrors.title 
-                      ? 'border-red-500 dark:border-red-500' 
+                    fieldErrors.title
+                      ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-200 dark:border-gray-600'
                   }`}
                   maxLength={100}
@@ -1785,8 +1792,8 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   placeholder={t('community.postContentPlaceholder')}
                   rows={6}
                   className={`w-full px-3 py-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                    fieldErrors.content 
-                      ? 'border-red-500 dark:border-red-500' 
+                    fieldErrors.content
+                      ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-200 dark:border-gray-600'
                   }`}
                   maxLength={2000}
@@ -1826,7 +1833,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     {language === 'es' ? 'Imágenes (máx. 5MB), videos y GIFs (máx. 100MB) permitidos' : '이미지 (최대 5MB), 영상 및 GIF (최대 100MB) 지원'}
                   </div>
-                  
+
                   {/* 이미지/영상 미리보기 */}
                   {(imagePreviews.length > 0 || uploadedImages.length > 0) && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -1834,7 +1841,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                         const isVideo = url.match(/\.(mp4|webm|mov|avi|mkv)$/i)
                         const isGif = url.match(/\.gif$/i)
                         const preview = imagePreviews[index] || null
-                        
+
                         return (
                           <div key={index} className="relative group">
                             {isVideo ? (
@@ -1882,11 +1889,11 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 }}
                 disabled={isSubmittingPost}
                 className={`px-6 py-2 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${
-                  isSubmittingPost 
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                  isSubmittingPost
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                     : 'text-white'
                 }`}
-                style={!isSubmittingPost ? { 
+                style={!isSubmittingPost ? {
                   background: 'linear-gradient(to right, rgb(59 130 246), rgb(147 51 234))',
                   border: 'none',
                   color: 'white'
@@ -1975,7 +1982,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                   이미지 첨부 (선택사항)
                 </label>
-                
+
                 {/* 이미지 업로드 버튼 */}
                 <div className="mb-4">
                   <input

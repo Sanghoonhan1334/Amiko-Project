@@ -3,6 +3,15 @@ import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function GET(request: NextRequest) {
   try {
+    if (!supabaseServer) {
+      return NextResponse.json({
+        success: true,
+        isAdmin: false,
+        adminInfo: null,
+        message: '일반 사용자입니다.'
+      })
+    }
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     const email = searchParams.get('email')
@@ -31,12 +40,21 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await query.single()
 
-    if (error && error.code !== 'PGRST116') { // PGRST116은 "no rows returned" 에러
+    if (error && !['PGRST116', '42P01', 'PGRST204', 'PGRST205'].includes(error.code || '')) {
       console.error('[ADMIN_CHECK] Supabase 오류:', error)
       return NextResponse.json(
         { error: '운영진 확인 중 오류가 발생했습니다.' },
         { status: 500 }
       )
+    }
+
+    if (error && ['42P01', 'PGRST204', 'PGRST205'].includes(error.code || '')) {
+      return NextResponse.json({
+        success: true,
+        isAdmin: false,
+        adminInfo: null,
+        message: '일반 사용자입니다.'
+      })
     }
 
     const isAdmin = !!data

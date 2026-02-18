@@ -131,6 +131,11 @@ CREATE POLICY "Users can join chat rooms"
   ON chat_room_participants FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+CREATE POLICY "Users can update own participant row"
+  ON chat_room_participants FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
 CREATE POLICY "Users can leave chat rooms"
   ON chat_room_participants FOR DELETE
   USING (auth.uid() = user_id);
@@ -143,7 +148,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE chat_room_participants;
 -- Uncomment to insert sample rooms
 /*
 INSERT INTO chat_rooms (name, type, country, description, created_by)
-VALUES 
+VALUES
   ('🇰🇷 Korea Chat', 'country', 'Korea', 'Chat about Korean culture and K-pop', '00000000-0000-0000-0000-000000000000'),
   ('🇪🇸 Spain Chat', 'country', 'Spain', 'Chat in Spanish about K-pop', '00000000-0000-0000-0000-000000000000'),
   ('🇧🇹 BTS Army', 'fanclub', NULL, 'BTS fan club chat', '00000000-0000-0000-0000-000000000000');

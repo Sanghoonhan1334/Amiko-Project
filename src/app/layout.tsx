@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, Baloo_2 } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
@@ -101,13 +101,14 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: 'cover', // Safe Area 적용
-  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -124,22 +125,6 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/logos/apple-touch-icon.png" />
         <link rel="shortcut icon" href="/logos/amiko-logo.png" />
-        {/* 폰트 preload로 초기 렌더링 최적화 */}
-        <link
-          rel="preload"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
-          as="style"
-        />
-        <link
-          rel="preload"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-          as="style"
-        />
-        <link
-          rel="preload"
-          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap"
-          as="style"
-        />
       </head>
       <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`} suppressHydrationWarning>
         <Suspense fallback={null}>
@@ -175,70 +160,6 @@ export default function RootLayout({
         </QueryProvider>
         </Suspense>
         <Script src="//www.instagram.com/embed.js" strategy="lazyOnload" />
-        {/* 카카오톡 링크 미리보기용 추가 메타 태그 */}
-        <Script
-          id="kakao-meta-tags"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              // 카카오톡 링크 미리보기 강제 업데이트
-              if (typeof window !== 'undefined') {
-                const metaTags = [
-                  { property: 'og:title', content: 'Amiko - 한국 문화 교류 플랫폼' },
-                  { property: 'og:description', content: '한국 문화를 배우고 소통하는 플랫폼' },
-                  { property: 'og:image', content: 'https://www.helloamiko.com/amiko-logo.png' },
-                  { property: 'og:url', content: 'https://www.helloamiko.com' },
-                  { property: 'og:type', content: 'website' },
-                  { property: 'og:site_name', content: 'Amiko' },
-                  { name: 'twitter:card', content: 'summary_large_image' },
-                  { name: 'twitter:title', content: 'Amiko - 한국 문화 교류 플랫폼' },
-                  { name: 'twitter:description', content: '한국 문화를 배우고 소통하는 플랫폼' },
-                  { name: 'twitter:image', content: 'https://www.helloamiko.com/amiko-logo.png' }
-                ];
-
-                metaTags.forEach(tag => {
-                  let element = document.querySelector(\`meta[property="\${tag.property}"]\`) ||
-                               document.querySelector(\`meta[name="\${tag.name}"]\`);
-                  if (element) {
-                    element.setAttribute('content', tag.content);
-                  } else {
-                    element = document.createElement('meta');
-                    if (tag.property) {
-                      element.setAttribute('property', tag.property);
-                    } else {
-                      element.setAttribute('name', tag.name);
-                    }
-                    element.setAttribute('content', tag.content);
-                    document.head.appendChild(element);
-                  }
-                });
-
-                // 파비콘 크기 최적화 - 더 큰 파비콘 우선 사용
-                const faviconSizes = ['512x512', '192x192', '128x128', '96x96', '64x64', '32x32', '16x16'];
-                const existingFavicon = document.querySelector('link[rel="icon"]');
-                if (existingFavicon) {
-                  existingFavicon.href = '/favicon-128x128.png';
-                }
-
-                // 파비콘 크기 강제 조정
-                const allFavicons = document.querySelectorAll('link[rel="icon"]');
-                allFavicons.forEach(favicon => {
-                  favicon.href = '/favicon-128x128.png';
-                });
-
-                // 추가 파비콘 링크들 생성
-                faviconSizes.forEach(size => {
-                  const link = document.createElement('link');
-                  link.rel = 'icon';
-                  link.type = 'image/png';
-                  link.sizes = size;
-                  link.href = \`/favicon-\${size}.png\`;
-                  document.head.appendChild(link);
-                });
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   )

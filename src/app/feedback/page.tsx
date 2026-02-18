@@ -4,12 +4,6 @@ import { useLanguage } from '@/context/LanguageContext'
 
 export default function FeedbackPage() {
   const { t } = useLanguage()
-  
-  console.log('Current language:', t('language'))
-  console.log('feedback.sections.guidelines.title:', t('feedback.sections.guidelines.title'))
-  console.log('feedback.sections.guidelines.content:', t('feedback.sections.guidelines.content'))
-  console.log('feedback.sections.types.title:', t('feedback.sections.types.title'))
-  console.log('feedback.sections.types.content:', t('feedback.sections.types.content'))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">

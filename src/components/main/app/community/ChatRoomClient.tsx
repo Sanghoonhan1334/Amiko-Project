@@ -1,13 +1,12 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
-import { ArrowLeft, Send, Users, Image as ImageIcon, X, RotateCw, Shield, Ban, UserMinus, Settings, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowUp, Send, Users, Image as ImageIcon, X, RotateCw, Shield, Ban, UserMinus, Settings, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@supabase/supabase-js'
-import Image from 'next/image'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 import UserBadge from '@/components/common/UserBadge'
 
 interface Message {
@@ -41,16 +40,6 @@ interface ChatRoom {
   participant_count: number
   owner_id?: string
 }
-
-interface Participant {
-  user_id: string
-  role: 'owner' | 'admin' | 'moderator' | 'member'
-}
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 // 색상 팔레트 정의
 const colorPalettes = [
@@ -133,19 +122,19 @@ const getColorPalette = (roomId: string) => {
   if (!roomId) {
     return colorPalettes[0]
   }
-  
+
   // 더 나은 해시 함수: djb2 알고리즘 변형
   let hash = 5381
   for (let i = 0; i < roomId.length; i++) {
     hash = ((hash << 5) + hash) + roomId.charCodeAt(i)
   }
-  
+
   // 절대값을 사용하여 인덱스 계산
   const index = Math.abs(hash) % colorPalettes.length
   const selectedPalette = colorPalettes[index]
-  
+
   console.log('[getColorPalette] RoomId:', roomId, 'Hash:', hash, 'Index:', index, 'Color:', selectedPalette.background)
-  
+
   return selectedPalette
 }
 
@@ -153,31 +142,15 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const { user, token, loading: authLoading, refreshSession } = useAuth()
   const router = useRouter()
   const { t, language } = useLanguage()
-  
-  // Create authenticated Supabase client with useMemo to prevent multiple instances
-  // ⚠️ 중요: 모든 hooks는 early return 이전에 호출되어야 함
-  const authSupabase = useMemo(() => {
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : '',
-          },
-        },
-      }
-    )
-  }, [token])
 
-  // 비로그인 사용자도 채팅을 볼 수 있도록 anon client 생성
-  const anonSupabase = useMemo(() => {
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+  // Shared browser Supabase client
+  const authSupabase = useMemo(() => {
+    return createSupabaseBrowserClient()
   }, [])
-  
+
+  // 비로그인 조회/로그인 동작 모두 동일 클라이언트 사용
+  const anonSupabase = authSupabase
+
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -194,8 +167,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const [participants, setParticipants] = useState<any[]>([])
   const [reports, setReports] = useState<any[]>([])
   const [showBanMenu, setShowBanMenu] = useState<string | null>(null) // 채팅금지 드롭다운 메뉴 표시
-  const [realtimeEnabled, setRealtimeEnabled] = useState(false) // Realtime 기본 비활성화 (오류 방지)
+  const [realtimeEnabled, setRealtimeEnabled] = useState(true) // Realtime 기본 활성화, 실패 시 polling fallback
   const [lastReadAt, setLastReadAt] = useState<string | null>(null) // 마지막 읽은 시간
+  const [hasMoreOlderMessages, setHasMoreOlderMessages] = useState(true)
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const channelRef = useRef<any>(null)
@@ -205,6 +180,12 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const deletedMessageIdsRef = useRef<Set<string>>(new Set()) // 삭제된 메시지 ID 추적
   const messagesContainerRef = useRef<HTMLDivElement>(null) // 메시지 컨테이너 참조
   const updateReadStatusTimeoutRef = useRef<NodeJS.Timeout | null>(null) // 읽음 상태 업데이트 디바운스
+  const imageUrlCache = useRef<Map<string, string>>(new Map()) // 이미지 URL 캐시 (성능 최적화)
+  const messagesRef = useRef<Message[]>([]) // polling에서 최신 메시지 상태 참조
+  const chatCacheKey = useMemo(() => `amiko-chat-cache:${roomId}`, [roomId])
+  const chatCursorKey = useMemo(() => `amiko-chat-cursor:${roomId}`, [roomId])
+  const chatCacheTtlMs = 24 * 60 * 60 * 1000
+  const messagePageSize = 20
 
   // 색상 팔레트 가져오기 (useMemo로 메모이제이션) - early return 이전에 배치
   const palette = useMemo(() => {
@@ -218,14 +199,61 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     console.log('[ChatRoomClient] Background Color:', selectedPalette.background)
     return selectedPalette
   }, [roomId])
-  
-  
+
+
   // 메시지 스크롤 useEffect - early return 이전에 배치
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
+
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !roomId) return
+
+    try {
+      const cacheableMessages = messages
+        .filter(message => !message.id.startsWith('temp-') && message.status !== 'failed')
+        .slice(-200)
+
+      const cachePayload = JSON.stringify({
+        savedAt: Date.now(),
+        messages: cacheableMessages
+      })
+      const latestMessageTime = cacheableMessages[cacheableMessages.length - 1]?.created_at
+
+      try {
+        localStorage.setItem(chatCacheKey, cachePayload)
+      } catch {
+        // localStorage 저장 실패 시 sessionStorage 폴백
+      }
+
+      try {
+        sessionStorage.setItem(chatCacheKey, cachePayload)
+      } catch {
+        // sessionStorage 저장 실패는 무시
+      }
+
+      if (latestMessageTime) {
+        try {
+          localStorage.setItem(chatCursorKey, latestMessageTime)
+        } catch {
+          // localStorage 저장 실패 시 sessionStorage 폴백
+        }
+        try {
+          sessionStorage.setItem(chatCursorKey, latestMessageTime)
+        } catch {
+          // sessionStorage 저장 실패는 무시
+        }
+      }
+    } catch {
+      // 캐시 저장 실패는 무시
+    }
+  }, [messages, roomId, chatCacheKey, chatCursorKey])
 
   // Prevent default browser drag behavior - early return 이전에 배치
   useEffect(() => {
@@ -264,9 +292,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       }
     }
   }, [showBanMenu])
-  
+
   // 사용자 프로필 가져오기 (캐시 활용) - early return 이전에 정의
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string) => {
     // 캐시에서 먼저 확인
     if (profileCache.current.has(userId)) {
       return profileCache.current.get(userId)!
@@ -278,18 +306,18 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       // 프로필 조회
       const { data: profile } = await supabaseClient
         .from('user_profiles')
-        .select('display_name, avatar_url, profile_image, total_points')
+        .select('display_name, avatar_url')
         .eq('user_id', userId)
-        .single()
-      
+        .maybeSingle()
+
       // total_points 폴백
-      let totalPoints = profile?.total_points ?? 0
+      let totalPoints = 0
       if (!totalPoints) {
         const { data: pointsRow } = await authSupabase
           .from('user_points')
           .select('total_points')
           .eq('user_id', userId)
-          .single()
+          .maybeSingle()
         totalPoints = pointsRow?.total_points ?? 0
       }
 
@@ -303,13 +331,13 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       // 캐시에 저장
       profileCache.current.set(userId, userProfile)
       return userProfile
-    } catch (error) {
+    } catch {
       // 에러 시 기본값 반환 및 캐시 저장
       const defaultProfile = { display_name: undefined, avatar_url: undefined, profile_image: undefined, total_points: 0 }
       profileCache.current.set(userId, defaultProfile)
       return defaultProfile
     }
-  }
+  }, [user, token, authSupabase, anonSupabase])
 
   // 중복 메시지 방지 헬퍼 함수 - early return 이전에 정의
   const addMessageSafely = (newMessage: Message) => {
@@ -324,23 +352,15 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       // 이미 처리된 메시지인지 확인
       if (processedMessageIds.current.has(newMessage.id)) {
-        // 개발 환경에서만 로그 출력
-        if (process.env.NODE_ENV === 'development') {
-          console.log('⚠️ 중복 메시지 무시:', newMessage.id)
-        }
         return prev
       }
-      
+
       // 배열에도 이미 있는지 확인 (이중 체크)
       const exists = prev.some(m => m.id === newMessage.id)
       if (exists) {
-        // 개발 환경에서만 로그 출력
-        if (process.env.NODE_ENV === 'development') {
-          console.log('⚠️ 중복 메시지 무시 (배열에 이미 존재):', newMessage.id)
-        }
         return prev
       }
-      
+
       // 새 메시지 추가
       processedMessageIds.current.add(newMessage.id)
       if (process.env.NODE_ENV === 'development') {
@@ -355,7 +375,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     try {
       // 비로그인 사용자도 채팅방 정보를 볼 수 있도록 anon client 사용
       const supabaseClient = user && token ? authSupabase : anonSupabase
-      
+
       const { data, error } = await supabaseClient
         .from('chat_rooms')
         .select('*')
@@ -383,7 +403,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       }
 
       setRoom(data)
-      
+
       if (user) {
         const { data: participant } = await authSupabase
           .from('chat_room_participants')
@@ -391,7 +411,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           .eq('room_id', roomId)
           .eq('user_id', user.id)
           .single()
-        
+
         if (participant) {
           setUserRole(participant.role as any)
           setLastReadAt(participant.last_read_at || null)
@@ -402,20 +422,83 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     }
   }
 
+  const enrichMessages = useCallback(async (rawMessages: Message[]) => {
+    return Promise.all(
+      rawMessages.map(async (msg) => {
+        const userProfile = await fetchUserProfile(msg.user_id)
+        const supabaseClient = user && token ? authSupabase : anonSupabase
+        let userInfo = null
+        try {
+          const { data: userData } = await supabaseClient
+            .from('users')
+            .select('full_name, korean_name, spanish_name')
+            .eq('id', msg.user_id)
+            .single()
+          userInfo = userData
+        } catch (error) {
+          console.error('Error fetching user info:', error)
+        }
+
+        return {
+          ...msg,
+          user_profiles: userProfile,
+          users: userInfo
+        }
+      })
+    )
+  }, [user, token, authSupabase, anonSupabase, fetchUserProfile])
+
   const fetchMessages = async (retryCount = 0) => {
     try {
       // 비로그인 사용자도 채팅을 볼 수 있도록, 로그인 여부에 따라 다른 client 사용
       const supabaseClient = user && token ? authSupabase : anonSupabase
-      
+
+      let cachedMessages: Message[] = []
+      if (typeof window !== 'undefined') {
+        try {
+          const rawCache = localStorage.getItem(chatCacheKey) || sessionStorage.getItem(chatCacheKey)
+          if (rawCache) {
+            const parsed = JSON.parse(rawCache)
+            const isValidCache = parsed && Array.isArray(parsed.messages)
+            const isFresh = parsed?.savedAt && (Date.now() - parsed.savedAt < chatCacheTtlMs)
+
+            if (isValidCache && isFresh) {
+              cachedMessages = parsed.messages
+                .filter((msg: Message) => !deletedMessageIdsRef.current.has(msg.id))
+                .sort((a: Message, b: Message) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                .slice(-messagePageSize)
+
+              if (cachedMessages.length > 0) {
+                processedMessageIds.current = new Set(cachedMessages.map(m => m.id))
+                setMessages(cachedMessages)
+                setLoading(false)
+              }
+            } else if (!isFresh) {
+              try {
+                localStorage.removeItem(chatCacheKey)
+                sessionStorage.removeItem(chatCacheKey)
+                localStorage.removeItem(chatCursorKey)
+                sessionStorage.removeItem(chatCursorKey)
+              } catch {
+                // 캐시 정리 실패는 무시
+              }
+            }
+          }
+        } catch {
+          // 캐시 파싱 실패는 무시
+        }
+      }
+
       const { data, error } = await supabaseClient
         .from('chat_messages')
         .select('*')
         .eq('room_id', roomId)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
+        .limit(messagePageSize)
 
       if (error) {
         console.error('❌ Error fetching messages:', error)
-        
+
         // 로그인한 사용자의 경우에만 세션 갱신 시도
         if (user && token && (error.message?.includes('JWT') || error.message?.includes('expired') || error.code === 'PGRST301')) {
           console.log('[CHAT] 메시지 로드 인증 에러 감지, 세션 갱신 시도...')
@@ -437,39 +520,35 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         throw error
       }
 
-      const messages = data || []
-      
+      const latestMessages = (data || []).reverse()
+
       // 삭제된 메시지 필터링
-      const activeMessages = messages.filter(msg => !deletedMessageIdsRef.current.has(msg.id))
-      
-          const messagesWithProfiles = await Promise.all(
-        activeMessages.map(async (msg) => {
-          const userProfile = await fetchUserProfile(msg.user_id)
-          // users 테이블에서 실제 이름 가져오기 (비로그인 사용자도 조회 가능하도록 anon client 사용)
-          const supabaseClient = user && token ? authSupabase : anonSupabase
-          let userInfo = null
-          try {
-            const { data: userData } = await supabaseClient
-              .from('users')
-              .select('full_name, korean_name, spanish_name')
-              .eq('id', msg.user_id)
-              .single()
-            userInfo = userData
-          } catch (error) {
-            console.error('Error fetching user info:', error)
-          }
-          
-          return {
-            ...msg,
-            user_profiles: userProfile,
-            users: userInfo
-          }
-        })
-      )
-      
-      processedMessageIds.current = new Set(messagesWithProfiles.map(m => m.id))
-      setMessages(messagesWithProfiles)
-      console.log('📨 초기 메시지 로드:', messagesWithProfiles.length, '개')
+      const activeMessages = latestMessages.filter(msg => !deletedMessageIdsRef.current.has(msg.id))
+      const messagesWithProfiles = await enrichMessages(activeMessages)
+
+      const mergedMessages = [...messagesWithProfiles]
+        .filter(msg => !deletedMessageIdsRef.current.has(msg.id))
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+
+      processedMessageIds.current = new Set(mergedMessages.map(m => m.id))
+      setMessages(mergedMessages)
+      setHasMoreOlderMessages((data || []).length === messagePageSize)
+
+      const latestMergedTime = mergedMessages[mergedMessages.length - 1]?.created_at
+      if (latestMergedTime && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(chatCursorKey, latestMergedTime)
+        } catch {
+          // localStorage 저장 실패 시 sessionStorage 폴백
+        }
+        try {
+          sessionStorage.setItem(chatCursorKey, latestMergedTime)
+        } catch {
+          // sessionStorage 저장 실패는 무시
+        }
+      }
+
+      console.log('📨 초기 메시지 로드:', mergedMessages.length, '개')
     } catch (error) {
       console.error('❌ Error fetching messages:', error)
     } finally {
@@ -477,15 +556,69 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     }
   }
 
+  const loadOlderMessages = useCallback(async () => {
+    if (loadingOlderMessages || !hasMoreOlderMessages) return
+
+    const currentMessages = messagesRef.current
+    const oldestMessage = currentMessages[0]
+    if (!oldestMessage?.created_at) return
+
+    const container = messagesContainerRef.current
+    const previousScrollHeight = container?.scrollHeight || 0
+    const previousScrollTop = container?.scrollTop || 0
+
+    setLoadingOlderMessages(true)
+    try {
+      const supabaseClient = user && token ? authSupabase : anonSupabase
+      const { data, error } = await supabaseClient
+        .from('chat_messages')
+        .select('*')
+        .eq('room_id', roomId)
+        .lt('created_at', oldestMessage.created_at)
+        .order('created_at', { ascending: false })
+        .limit(messagePageSize)
+
+      if (error) {
+        throw error
+      }
+
+      const olderRaw = (data || []).reverse()
+      const olderActive = olderRaw.filter(msg => !deletedMessageIdsRef.current.has(msg.id))
+      const olderMessages = await enrichMessages(olderActive)
+
+      setMessages(prev => {
+        const olderUnique = olderMessages.filter(msg => !prev.some(existing => existing.id === msg.id))
+        if (olderUnique.length === 0) return prev
+        return [...olderUnique, ...prev]
+      })
+
+      if ((data || []).length < messagePageSize) {
+        setHasMoreOlderMessages(false)
+      }
+
+      requestAnimationFrame(() => {
+        if (!messagesContainerRef.current) return
+        const newScrollHeight = messagesContainerRef.current.scrollHeight
+        messagesContainerRef.current.scrollTop = newScrollHeight - previousScrollHeight + previousScrollTop
+      })
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Older message load error:', error)
+      }
+    } finally {
+      setLoadingOlderMessages(false)
+    }
+  }, [loadingOlderMessages, hasMoreOlderMessages, user, token, authSupabase, anonSupabase, roomId, messagePageSize, enrichMessages])
+
   const startPolling = () => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
     }
-    
-    console.log('🔄 Polling started (1.5초 간격)')
+
+    console.log('🔄 Polling started (5초 간격으로 최적화)')
     pollingIntervalRef.current = setInterval(() => {
       fetchNewMessages()
-    }, 1500)
+    }, 5000) // 1.5초 → 5초로 변경하여 성능 최적화
   }
 
   const stopPolling = () => {
@@ -497,12 +630,13 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
   const fetchNewMessages = async () => {
     try {
-      const lastMessage = messages[messages.length - 1]
+      const currentMessages = messagesRef.current
+      const lastMessage = currentMessages[currentMessages.length - 1]
       const lastMessageTime = lastMessage?.created_at || new Date(0).toISOString()
 
       // 비로그인 사용자도 새 메시지를 볼 수 있도록 anon client 사용
       const supabaseClient = user && token ? authSupabase : anonSupabase
-      
+
       const { data, error } = await supabaseClient
         .from('chat_messages')
         .select('*')
@@ -519,10 +653,16 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       }
 
       if (data && data.length > 0) {
-        console.log('🔄 Polling: 새 메시지', data.length, '개 발견')
-        
+        const unseenMessages = data.filter(msg => !processedMessageIds.current.has(msg.id))
+
+        if (unseenMessages.length === 0) {
+          return
+        }
+
+        console.log('🔄 Polling: 새 메시지', unseenMessages.length, '개 발견')
+
         const messagesWithProfiles = await Promise.all(
-          data.map(async (msg) => {
+          unseenMessages.map(async (msg) => {
             const userProfile = await fetchUserProfile(msg.user_id)
             // users 테이블에서 실제 이름 가져오기 (비로그인 사용자도 조회 가능하도록 anon client 사용)
             const supabaseClient = user && token ? authSupabase : anonSupabase
@@ -537,7 +677,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             } catch (error) {
               console.error('Error fetching user info:', error)
             }
-            
+
             return {
               ...msg,
               user_profiles: userProfile,
@@ -545,7 +685,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             }
           })
         )
-        
+
         messagesWithProfiles.forEach(msg => addMessageSafely(msg))
       }
     } catch (error) {
@@ -570,7 +710,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       if (channelRef.current) {
         try {
           authSupabase.removeChannel(channelRef.current)
-        } catch (e) {
+        } catch {
           // 채널 제거 오류 무시
         }
         channelRef.current = null
@@ -578,20 +718,20 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       let channel
       try {
+        const topic = `room:${roomId}:messages`
         channel = authSupabase
-          .channel(`room-${roomId}-${Date.now()}`)
+          .channel(topic, { config: { private: true } })
           .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'chat_messages',
-              filter: `room_id=eq.${roomId}`
-            },
+            'broadcast',
+            { event: 'INSERT' },
             async (payload) => {
               try {
-                const rawMessage = payload.new as Message
-                
+                const rawMessage = payload.payload?.new as Message
+
+                if (!rawMessage?.id) {
+                  return
+                }
+
                 const userProfile = await fetchUserProfile(rawMessage.user_id)
                 // users 테이블에서 실제 이름 가져오기 (비로그인 사용자도 조회 가능하도록 anon client 사용)
                 const supabaseClient = user && token ? authSupabase : anonSupabase
@@ -603,32 +743,41 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                     .eq('id', rawMessage.user_id)
                     .single()
                   userInfo = userData
-                } catch (error) {
+                } catch {
                   // 사용자 정보 조회 실패는 무시
                 }
-                
+
                 const newMessage = {
                   ...rawMessage,
                   user_profiles: userProfile,
                   users: userInfo
                 }
-                
+
                 addMessageSafely(newMessage)
-              } catch (error) {
+              } catch {
                 // Realtime 메시지 처리 오류 무시
               }
             }
           )
+          .on(
+            'broadcast',
+            { event: 'DELETE' },
+            async () => {
+              await fetchMessages()
+            }
+          )
           .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-              console.log('🎉 Realtime 연결 성공')
+              console.log('🎉 Realtime 연결 성공:', topic)
+              stopPolling()
             } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
               // Realtime 연결 실패 시 비활성화하고 Polling만 사용
               setRealtimeEnabled(false)
+              startPolling()
               if (channelRef.current) {
                 try {
                   authSupabase.removeChannel(channelRef.current)
-                } catch (e) {
+                } catch {
                   // 무시
                 }
                 channelRef.current = null
@@ -637,35 +786,72 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           })
 
         channelRef.current = channel
-      } catch (error) {
+      } catch {
         // Realtime 구독 실패 시 비활성화
         setRealtimeEnabled(false)
+        startPolling()
         channelRef.current = null
       }
-    } catch (error) {
+    } catch {
       // Realtime 구독 실패 시 비활성화
       setRealtimeEnabled(false)
+      startPolling()
       channelRef.current = null
     }
   }
+
+  const updateReadStatusViaApi = useCallback(async (lastReadAt?: string) => {
+    if (!user) return null
+
+    try {
+      const { data: { session } } = await authSupabase.auth.getSession()
+      const accessToken = session?.access_token || token
+
+      if (!accessToken) {
+        return null
+      }
+
+      const response = await fetch('/api/chat/update-read-status', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          roomId,
+          userId: user.id,
+          lastReadAt
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[ChatRoomClient] 읽음 상태 API 업데이트 실패:', errorText)
+        return null
+      }
+
+      const result = await response.json()
+      if (!result?.success) {
+        console.error('[ChatRoomClient] 읽음 상태 API 응답 실패:', result)
+        return null
+      }
+
+      return result.lastReadAt || lastReadAt || new Date().toISOString()
+    } catch (error) {
+      console.error('[ChatRoomClient] 읽음 상태 API 호출 실패:', error)
+      return null
+    }
+  }, [user, token, authSupabase, roomId])
 
   const joinRoom = async () => {
     if (!user) return
 
     try {
       const now = new Date().toISOString()
-      const { data } = await authSupabase
-        .from('chat_room_participants')
-        .upsert({
-          room_id: roomId,
-          user_id: user.id,
-          last_read_at: now
-        })
-        .select('last_read_at')
-        .single()
-      
-      if (data) {
-        setLastReadAt(data.last_read_at || now)
+      const updatedAt = await updateReadStatusViaApi(now)
+
+      if (updatedAt) {
+        setLastReadAt(updatedAt)
       }
     } catch (error) {
       console.error('Error joining room:', error)
@@ -676,18 +862,18 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     if (!user) return
 
     try {
-      await authSupabase
-        .from('chat_room_participants')
-        .update({ last_read_at: new Date().toISOString() })
-        .eq('room_id', roomId)
-        .eq('user_id', user.id)
+      const now = new Date().toISOString()
+      const updatedAt = await updateReadStatusViaApi(now)
+      if (updatedAt) {
+        setLastReadAt(updatedAt)
+      }
     } catch (error) {
       console.error('Error leaving room:', error)
     }
   }
 
   // 읽음 상태 업데이트 함수 (디바운스 적용)
-  const updateReadStatus = async () => {
+  const updateReadStatus = useCallback(async () => {
     if (!user || !roomId) return
 
     // 기존 타임아웃 취소
@@ -699,33 +885,23 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     updateReadStatusTimeoutRef.current = setTimeout(async () => {
       try {
         const now = new Date().toISOString()
-        const { data, error } = await authSupabase
-          .from('chat_room_participants')
-          .upsert({
-            room_id: roomId,
-            user_id: user.id,
-            last_read_at: now
-          })
-          .select('last_read_at')
-          .single()
-        
-        if (error) {
-          console.error('[ChatRoomClient] 읽음 상태 업데이트 실패:', error)
+        const updatedAt = await updateReadStatusViaApi(now)
+
+        if (!updatedAt) {
+          console.error('[ChatRoomClient] 읽음 상태 업데이트 실패: API returned no data')
         } else {
-          if (data) {
-            setLastReadAt(data.last_read_at || now)
-          }
+          setLastReadAt(updatedAt)
           console.log('[ChatRoomClient] 읽음 상태 업데이트 완료:', {
             roomId,
             userId: user.id,
-            last_read_at: now
+            last_read_at: updatedAt
           })
         }
       } catch (error) {
         console.error('[ChatRoomClient] 읽음 상태 업데이트 실패:', error)
       }
     }, 500)
-  }
+  }, [user, roomId, updateReadStatusViaApi])
 
   // 스크롤 감지 및 읽음 상태 업데이트
   useEffect(() => {
@@ -736,9 +912,14 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       const { scrollTop, scrollHeight, clientHeight } = messagesContainer
       // 맨 아래에서 100px 이내에 있으면 읽음 상태 업데이트
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
+      const isNearTop = scrollTop < 80
 
       if (isNearBottom) {
         updateReadStatus()
+      }
+
+      if (isNearTop) {
+        void loadOlderMessages()
       }
     }
 
@@ -751,7 +932,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         clearTimeout(updateReadStatusTimeoutRef.current)
       }
     }
-  }, [user, roomId])
+  }, [user, roomId, updateReadStatus, loadOlderMessages])
 
   // 메시지가 추가될 때 자동으로 읽음 상태 업데이트 (맨 아래에 있을 때만)
   useEffect(() => {
@@ -764,24 +945,24 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     if (isNearBottom) {
       updateReadStatus()
     }
-  }, [messages.length, user, roomId])
+  }, [messages.length, user, roomId, updateReadStatus])
 
   // 운영자 권한 체크 useEffect
   useEffect(() => {
     const checkOperatorStatus = async () => {
       if (!user?.id && !user?.email) return
-      
+
       try {
         const params = new URLSearchParams()
         if (user?.id) params.append('userId', user.id)
         if (user?.email) params.append('email', user.email)
-        
+
         const response = await fetch(`/api/admin/check?${params.toString()}`)
         if (response.ok) {
           const data = await response.json()
           setIsOperator(data.isAdmin || false)
         }
-      } catch (error) {
+      } catch {
         setIsOperator(false)
       }
     }
@@ -790,7 +971,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       checkOperatorStatus()
     }
   }, [user])
-  
+
   // 채팅 초기화 useEffect - early return 이전에 배치
   useEffect(() => {
     if (authLoading) {
@@ -811,9 +992,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       joinRoom()
       subscribeToMessages()
     }
-    startPolling() // 비로그인 사용자도 Polling으로 새 메시지 확인 가능
 
     return () => {
+      void leaveRoom()
       if (channelRef.current) {
         authSupabase.removeChannel(channelRef.current)
         channelRef.current = null
@@ -823,8 +1004,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         pollingIntervalRef.current = null
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, user, authSupabase, authLoading, refreshSession, router])
-  
+
   // 로딩 중일 때 표시
   if (authLoading) {
     console.log('[ChatRoomClient] 로딩 중...')
@@ -837,10 +1019,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       </div>
     )
   }
-  
+
   // 비로그인 사용자도 채팅을 볼 수 있도록 로그인 체크 제거
   // 메시지 전송 시에만 로그인 체크를 수행
-  
+
 
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -919,22 +1101,22 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // 회원가입한 모든 사용자가 채팅 사용 가능 - 로그인 여부만 확인
     if (!user || !user.id) {
       alert(t('auth.loginRequired'))
       router.push('/sign-in?redirect=/community/k-chat')
       return
     }
-    
+
     if ((!newMessage.trim() && !selectedImage) || uploading) return
 
     // tempMessage를 함수 스코프로 이동
     let tempMessage: Message | null = null
-    
+
     try {
       setUploading(true)
-      
+
       let imageUrl: string | null = null
       if (selectedImage) {
         imageUrl = await uploadImage(selectedImage)
@@ -967,10 +1149,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       } catch (error) {
         console.error('Error fetching current user info:', error)
       }
-      
+
       // user_profiles 정보도 가져오기
       const currentUserProfile = await fetchUserProfile(user.id)
-      
+
       // ⚡ Optimistic UI: DB에 insert하기 전에 먼저 UI에 추가
       tempMessage = {
         id: `temp-${Date.now()}`, // 임시 ID
@@ -982,10 +1164,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         users: currentUserInfo,
         user_profiles: currentUserProfile
       }
-      
+
       console.log('🚀 Optimistic UI: 메시지 즉시 표시')
       setMessages(prev => [...prev, tempMessage!])
-      
+
       // 입력 필드 즉시 비우기
       setNewMessage('')
       setSelectedImage(null)
@@ -1029,7 +1211,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       }
 
       console.log('✅ DB에 메시지 저장 완료:', data.id)
-      
+
       // 현재 사용자의 실명 정보 가져오기
       let userInfo = null
       try {
@@ -1042,28 +1224,28 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       } catch (error) {
         console.error('Error fetching user info:', error)
       }
-      
+
       // user_profiles 정보도 가져오기
       const userProfile = await fetchUserProfile(user.id)
-      
+
       // 임시 메시지를 실제 메시지로 교체 (상태: sent, users 정보 포함)
       if (data && tempMessage) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === tempMessage!.id ? { 
-            ...data, 
+        setMessages(prev => prev.map(msg =>
+          msg.id === tempMessage!.id ? {
+            ...data,
             status: 'sent' as const,
             users: userInfo,
             user_profiles: userProfile
           } : msg
         ))
       }
-      
+
     } catch (error) {
       console.error('❌ Error sending message:', error)
-      
+
       // 실패 시 상태를 'failed'로 변경 (제거하지 않음!)
       if (tempMessage) {
-        setMessages(prev => prev.map(msg => 
+        setMessages(prev => prev.map(msg =>
           msg.id === tempMessage!.id ? { ...msg, status: 'failed' as const } : msg
         ))
       }
@@ -1078,9 +1260,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
     try {
       setUploading(true)
-      
+
       // 상태를 'sending'으로 변경
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id === failedMessage.id ? { ...msg, status: 'sending' as const } : msg
       ))
 
@@ -1104,16 +1286,16 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       if (error) throw error
 
       console.log('✅ 재전송 성공:', data.id)
-      
+
       // 실패한 메시지를 실제 메시지로 교체
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id === failedMessage.id ? { ...data, status: 'sent' as const } : msg
       ))
-      
+
     } catch (error) {
       console.error('❌ 재전송 실패:', error)
       // 상태를 다시 'failed'로
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id === failedMessage.id ? { ...msg, status: 'failed' as const } : msg
       ))
     } finally {
@@ -1153,7 +1335,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         .eq('user_id', userId)
 
       alert('Usuario expulsado')
-      
+
       // 채팅방 새로고침
       fetchRoom()
     } catch (error) {
@@ -1183,7 +1365,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       // 기간 계산
       let expiresAt: string | null = null
       let banType: 'temporary' | 'permanent' = 'temporary'
-      
+
       if (banDays === null) {
         // 영구 추방 (최후의 수단) - 참여자 목록에서 제거
         banType = 'permanent'
@@ -1206,10 +1388,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           room_id: roomId,
           user_id: userId,
           banned_by: user.id,
-          reason: reason || (banDays === null 
+          reason: reason || (banDays === null
             ? (language === 'ko' ? '운영자에 의해 영구 추방됨' : 'Expulsado permanentemente por operador')
-            : (language === 'ko' 
-              ? `채팅금지 ${banDays}일` 
+            : (language === 'ko'
+              ? `채팅금지 ${banDays}일`
               : `Prohibición de chat por ${banDays} días`)),
           ban_type: banType,
           expires_at: expiresAt
@@ -1225,12 +1407,12 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       const banMessage = banDays === null
         ? (language === 'ko' ? '사용자가 영구 추방되었습니다.' : 'Usuario expulsado permanentemente.')
-        : (language === 'ko' 
-          ? `채팅금지 ${banDays}일이 적용되었습니다.` 
+        : (language === 'ko'
+          ? `채팅금지 ${banDays}일이 적용되었습니다.`
           : `Prohibición de chat por ${banDays} días aplicada.`)
-      
+
       alert(banMessage)
-      
+
       // 채팅방 새로고침
       fetchRoom()
       setShowBanMenu(null)
@@ -1244,7 +1426,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   const deleteMessage = async (messageId: string, messageUserId: string) => {
     // 권한 확인: 본인 또는 관리자/운영자
     const canDelete = user?.id === messageUserId || user?.is_admin || isAdmin() || isOperatorUser()
-    
+
     if (!canDelete) {
       alert(language === 'ko' ? '메시지를 삭제할 권한이 없습니다.' : 'No tienes permiso para eliminar este mensaje.')
       return
@@ -1267,8 +1449,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       if (!response.ok) {
         const errorText = await response.text()
         console.error('메시지 삭제 오류:', errorText)
-        alert(language === 'ko' 
-          ? '메시지 삭제에 실패했습니다.' 
+        alert(language === 'ko'
+          ? '메시지 삭제에 실패했습니다.'
           : 'Error al eliminar el mensaje.')
         return
       }
@@ -1277,8 +1459,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
 
       if (!result.success) {
         console.error('메시지 삭제 오류:', result.error)
-        alert(language === 'ko' 
-          ? (result.error || '메시지 삭제에 실패했습니다.') 
+        alert(language === 'ko'
+          ? (result.error || '메시지 삭제에 실패했습니다.')
           : (result.error || 'Error al eliminar el mensaje.'))
         return
       }
@@ -1308,9 +1490,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         console.error('Error fetching participants:', error)
         throw error
       }
-      
+
       console.log('Participants data:', data)
-      
+
       // user_id로 사용자 정보 가져오기
       const participantsWithUserInfo = await Promise.all(
         (data || []).map(async (participant) => {
@@ -1318,19 +1500,19 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             // user_profiles 테이블에서 프로필 정보 가져오기
             const { data: profileData } = await authSupabase
               .from('user_profiles')
-              .select('display_name, avatar_url, profile_image, total_points')
+              .select('display_name, avatar_url')
               .eq('user_id', participant.user_id)
-              .single()
-            let totalPoints3 = profileData?.total_points ?? 0
+              .maybeSingle()
+            let totalPoints3 = 0
             if (!totalPoints3) {
               const { data: pointsRow3 } = await authSupabase
                 .from('user_points')
                 .select('total_points')
                 .eq('user_id', participant.user_id)
-                .single()
+                .maybeSingle()
               totalPoints3 = pointsRow3?.total_points ?? 0
             }
-            
+
             // users 테이블에서 실제 이름 가져오기
             let userInfo = null
             try {
@@ -1343,7 +1525,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             } catch (error) {
               console.error('Error fetching user info:', error)
             }
-            
+
             return {
               ...participant,
               user_profiles: { ...(profileData || {}), display_name: profileData?.display_name, avatar_url: profileData?.avatar_url, profile_image: profileData?.profile_image, total_points: totalPoints3 },
@@ -1358,7 +1540,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           }
         })
       )
-      
+
       console.log('Participants with info:', participantsWithUserInfo)
       setParticipants(participantsWithUserInfo)
     } catch (error) {
@@ -1381,7 +1563,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         console.error('Error fetching reports:', error)
         throw error
       }
-      
+
       // 신고된 사용자와 신고한 사용자 정보 가져오기
       const reportsWithUserInfo = await Promise.all(
         (data || []).map(async (report) => {
@@ -1391,15 +1573,15 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
               .from('user_profiles')
               .select('display_name')
               .eq('user_id', report.reported_user_id)
-              .single()
-            
+              .maybeSingle()
+
             // 신고한 사용자 정보
             const { data: reporterProfile } = await authSupabase
               .from('user_profiles')
               .select('display_name')
               .eq('user_id', report.reporter_id)
-              .single()
-            
+              .maybeSingle()
+
             return {
               ...report,
               reported_user_name: reportedProfile?.display_name || 'Usuario',
@@ -1415,30 +1597,12 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           }
         })
       )
-      
+
       console.log('Reports with info:', reportsWithUserInfo)
       setReports(reportsWithUserInfo)
     } catch (error) {
       console.error('Error fetching reports:', error)
       alert('Error al cargar denuncias')
-    }
-  }
-
-  // 부방장 지정
-  const assignAdmin = async (userId: string) => {
-    try {
-      const { error } = await authSupabase
-        .from('chat_room_participants')
-        .update({ role: 'admin' })
-        .eq('room_id', roomId)
-        .eq('user_id', userId)
-
-      if (error) throw error
-      alert('Subanfitrión asignado')
-      fetchParticipants()
-    } catch (error) {
-      console.error('Error assigning admin:', error)
-      alert('Error al asignar subanfitrión')
     }
   }
 
@@ -1465,7 +1629,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
     try {
       const { error } = await authSupabase
         .from('chat_reports')
-        .update({ 
+        .update({
           status: action === 'resolve' ? 'resolved' : 'dismissed',
           reviewed_at: new Date().toISOString(),
           reviewed_by: user?.id
@@ -1479,10 +1643,6 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       console.error('Error handling report:', error)
       alert('Error al procesar denuncia')
     }
-  }
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   const getUserName = (message: Message) => {
@@ -1501,7 +1661,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
         return message.users.full_name
       }
     }
-    
+
     // 2순위: user_profiles의 display_name (fallback)
     if (message.user_profiles?.display_name) {
       let name = message.user_profiles.display_name
@@ -1511,17 +1671,17 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       }
       return name
     }
-    
+
     // 3순위: users의 user_metadata name
     if (message.users?.user_metadata?.name) {
       return message.users.user_metadata.name
     }
-    
+
     // 4순위: email에서 추출
     if (message.users?.email) {
       return message.users.email.split('@')[0]
     }
-    
+
     // 5순위: 기본값
     return 'Usuario'
   }
@@ -1579,7 +1739,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
               </p>
             </div>
           </div>
-          
+
               {/* 설정 버튼 */}
             <Button
               variant="ghost"
@@ -1611,20 +1771,20 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                     <p className="text-sm text-gray-600 mb-4">
                       {language === 'ko' ? '역할: ' : 'Rol: '}
                       <span className="font-medium">
-                        {userRole === 'owner' ? (language === 'ko' ? '방장' : 'Anfitrión') : 
-                         userRole === 'admin' ? (language === 'ko' ? '부방장' : 'Subanfitrión') : 
-                         userRole === 'moderator' ? (language === 'ko' ? '모더레이터' : 'Moderador') : 
+                        {userRole === 'owner' ? (language === 'ko' ? '방장' : 'Anfitrión') :
+                         userRole === 'admin' ? (language === 'ko' ? '부방장' : 'Subanfitrión') :
+                         userRole === 'moderator' ? (language === 'ko' ? '모더레이터' : 'Moderador') :
                          (language === 'ko' ? '일반 멤버' : 'Miembro')}
                       </span>
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   fetchParticipants()
                   setShowParticipantsModal(true)
-                }} 
+                }}
                 className="flex-1"
               >
                 <Users className="w-4 h-4 mr-2" />
@@ -1632,13 +1792,13 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                           {language === 'ko' ? '참가자 관리' : 'Administrar participantes'}
                         </span>
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   fetchReports()
                   setShowReportsModal(true)
-                }} 
+                }}
                 className="flex-1"
               >
                 <Shield className="w-4 h-4 mr-2" />
@@ -1651,8 +1811,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                 ) : (
                   <div className="text-center py-6">
                     <p className="text-gray-600 text-sm">
-                      {language === 'ko' 
-                        ? '채팅방 관리 권한이 없습니다. 방장이나 부방장만 관리할 수 있습니다.' 
+                      {language === 'ko'
+                        ? '채팅방 관리 권한이 없습니다. 방장이나 부방장만 관리할 수 있습니다.'
                         : 'No tienes permisos para administrar esta sala. Solo el anfitrión o subanfitrión pueden administrar.'}
                     </p>
           </div>
@@ -1664,10 +1824,10 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
       )}
 
       {/* Messages */}
-      <div 
+      <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-4" 
-        style={{ 
+        className="flex-1 overflow-y-auto px-4 py-4"
+        style={{
           backgroundColor: palette.background,
           background: palette.background,
           // CSS 변수도 함께 설정
@@ -1685,20 +1845,49 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             </div>
           ) : (
             <div className="animate-in fade-in duration-500">
+          <div className="flex justify-center mb-3">
+            {hasMoreOlderMessages ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void loadOlderMessages()}
+                disabled={loadingOlderMessages}
+                className="bg-white/90 border-gray-300 hover:bg-white"
+              >
+                {loadingOlderMessages ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin mr-2" />
+                    {language === 'ko' ? '이전 메시지 불러오는 중...' : 'Cargando mensajes anteriores...'}
+                  </>
+                ) : (
+                  <>
+                    <ArrowUp className="w-4 h-4 mr-2" />
+                    {language === 'ko' ? '이전 메시지 보기' : 'Ver mensajes anteriores'}
+                  </>
+                )}
+              </Button>
+            ) : (
+              <p className="text-xs text-gray-500">
+                {language === 'ko' ? '가장 오래된 메시지입니다.' : 'Has llegado al mensaje más antiguo.'}
+              </p>
+            )}
+          </div>
+
           {messages.map((message, index) => {
             const isOwn = message.user_id === user?.id
             // 고유한 키 생성 (id + index)
             const uniqueKey = `${message.id}-${index}`
-            
+
             // 마지막 읽은 메시지 위치 확인
             const messageTime = new Date(message.created_at).getTime()
             const lastReadTime = lastReadAt ? new Date(lastReadAt).getTime() : 0
             const isUnread = messageTime > lastReadTime
-            const isLastReadMessage = lastReadAt && 
-              messageTime <= lastReadTime && 
-              (index === messages.length - 1 || 
+            const isLastReadMessage = lastReadAt &&
+              messageTime <= lastReadTime &&
+              (index === messages.length - 1 ||
                (index < messages.length - 1 && new Date(messages[index + 1].created_at).getTime() > lastReadTime))
-            
+
             return (
               <React.Fragment key={uniqueKey}>
                 {/* 마지막 읽은 메시지 구분선 */}
@@ -1716,9 +1905,9 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                 >
                 <div className={`flex gap-3 max-w-xs md:max-w-md ${isOwn ? 'flex-row-reverse' : ''}`}>
                   {/* Avatar */}
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" 
-                    style={{ 
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+                    style={{
                       backgroundColor: isOwn ? palette.avatarBg : palette.otherMessageBg,
                       color: isOwn ? palette.avatarText : palette.otherMessageText
                     } as React.CSSProperties}
@@ -1726,21 +1915,28 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                     {(() => {
                       const avatarUrl = message.user_profiles?.avatar_url || message.user_profiles?.profile_image
                       if (avatarUrl) {
-                        // Supabase Storage URL을 공개 URL로 변환
+                        // Supabase Storage URL을 공개 URL로 변환 (캐시 사용)
                         let publicUrl = avatarUrl
                         if (avatarUrl && avatarUrl.trim() !== '' && !avatarUrl.startsWith('http')) {
-                          try {
-                            const { data: { publicUrl: convertedUrl } } = anonSupabase.storage
-                              .from('profile-images')
-                              .getPublicUrl(avatarUrl)
-                            publicUrl = convertedUrl
-                          } catch (error) {
-                            console.error('[ChatRoomClient] 프로필 이미지 URL 변환 실패:', error)
+                          // 캐시 확인
+                          if (imageUrlCache.current.has(avatarUrl)) {
+                            publicUrl = imageUrlCache.current.get(avatarUrl)!
+                          } else {
+                            try {
+                              const { data: { publicUrl: convertedUrl } } = anonSupabase.storage
+                                .from('profile-images')
+                                .getPublicUrl(avatarUrl)
+                              publicUrl = convertedUrl
+                              imageUrlCache.current.set(avatarUrl, publicUrl) // 캐시 저장
+                            } catch (error) {
+                              console.error('[ChatRoomClient] 프로필 이미지 URL 변환 실패:', error)
+                            }
                           }
                         }
                         return (
-                          <img 
-                            src={publicUrl} 
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={publicUrl}
                             alt={getUserName(message)}
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -1799,7 +1995,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                             <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px] ban-menu-container">
                               <button
                                 onClick={() => {
-                                  if (confirm(language === 'ko' 
+                                  if (confirm(language === 'ko'
                                     ? `${getUserName(message)}님에게 채팅금지 1일을 적용하시겠습니까?`
                                     : `¿Prohibir el chat por 1 día a ${getUserName(message)}?`)) {
                                     chatBanUser(message.user_id, 1)
@@ -1811,7 +2007,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                               </button>
                               <button
                                 onClick={() => {
-                                  if (confirm(language === 'ko' 
+                                  if (confirm(language === 'ko'
                                     ? `${getUserName(message)}님에게 채팅금지 3일을 적용하시겠습니까?`
                                     : `¿Prohibir el chat por 3 días a ${getUserName(message)}?`)) {
                                     chatBanUser(message.user_id, 3)
@@ -1823,7 +2019,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                               </button>
                               <button
                                 onClick={() => {
-                                  if (confirm(language === 'ko' 
+                                  if (confirm(language === 'ko'
                                     ? `${getUserName(message)}님에게 채팅금지 7일을 적용하시겠습니까?`
                                     : `¿Prohibir el chat por 7 días a ${getUserName(message)}?`)) {
                                     chatBanUser(message.user_id, 7)
@@ -1836,7 +2032,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                               <div className="border-t border-gray-200"></div>
                               <button
                                 onClick={() => {
-                                  if (confirm(language === 'ko' 
+                                  if (confirm(language === 'ko'
                                     ? `${getUserName(message)}님을 영구 추방하시겠습니까? (최후의 수단)`
                                     : `¿Expulsar permanentemente a ${getUserName(message)}? (Último recurso)`)) {
                                     chatBanUser(message.user_id, null)
@@ -1865,6 +2061,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                     >
                       {message.image_url && (
                         <div className="mb-2 -mx-1">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={message.image_url}
                             alt="Chat image"
@@ -1946,11 +2143,11 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
           </div>
         </div>
       )}
-      
+
       {/* ⚠️ 강화: user와 user.id가 반드시 있어야만 입력 필드 표시 */}
       {!(authLoading || loading) && user && user.id && (
       <div className="border-t border-gray-200" style={{ backgroundColor: palette.inputBg } as React.CSSProperties}>
-        <div 
+        <div
           style={isDragging ? {
             border: '2px dashed ' + palette.avatarBg
           } as React.CSSProperties : {}}
@@ -1968,6 +2165,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
             {imagePreview && (
               <div className="mb-2 relative inline-block">
                 <div className="relative w-24 h-24 border rounded-lg overflow-hidden" style={{ backgroundColor: palette.imageBg } as React.CSSProperties}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview}
                     alt="Preview"
@@ -1983,7 +2181,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                 </button>
               </div>
             )}
-            
+
             <div className="flex gap-2">
               <input
                 ref={fileInputRef}
@@ -2083,7 +2281,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                   {participants.map((participant) => {
                     // 메시지에서 사용하는 getUserName 로직과 동일하게
                     let username = 'Usuario'
-                    
+
                     // 1순위: users 테이블의 실제 이름
                     if (participant.users) {
                       if (participant.users.korean_name) {
@@ -2094,7 +2292,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                         username = participant.users.full_name
                       }
                     }
-                    
+
                     // 2순위: user_profiles의 display_name (fallback)
                     if (!username || username === 'Usuario') {
                       if (participant.user_profiles?.display_name) {
@@ -2105,13 +2303,13 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                         }
                       }
                     }
-                    
+
                     const isCurrentUser = participant.user_id === user?.id
                     const canModify = userRole === 'owner' && !isCurrentUser
-                    const canKick = (userRole === 'owner' || userRole === 'admin' || userRole === 'moderator') && 
-                                    !isCurrentUser && 
+                    const canKick = (userRole === 'owner' || userRole === 'admin' || userRole === 'moderator') &&
+                                    !isCurrentUser &&
                                     participant.role !== 'owner' // 방장은 추방 불가
-                    
+
                     return (
                       <div key={participant.user_id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
@@ -2121,8 +2319,8 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                           <div>
                             <p className="font-medium">{username}</p>
                             <p className="text-sm text-gray-500">
-                              {participant.role === 'owner' ? 'Anfitrión' : 
-                               participant.role === 'admin' ? 'Subanfitrión' : 
+                              {participant.role === 'owner' ? 'Anfitrión' :
+                               participant.role === 'admin' ? 'Subanfitrión' :
                                participant.role === 'moderator' ? 'Moderador' : 'Miembro'}
                             </p>
                           </div>
@@ -2142,11 +2340,11 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                           {canKick && (
                             <button
                               onClick={() => {
-                                if (confirm(language === 'ko' 
-                                  ? `${username}님을 채팅방에서 추방하시겠습니까?` 
+                                if (confirm(language === 'ko'
+                                  ? `${username}님을 채팅방에서 추방하시겠습니까?`
                                   : `¿Expulsar a ${username} de la sala?`)) {
-                                  banUser(participant.user_id, language === 'ko' 
-                                    ? '관리자에 의해 추방됨' 
+                                  banUser(participant.user_id, language === 'ko'
+                                    ? '관리자에 의해 추방됨'
                                     : 'Expulsado por administrador')
                                   fetchParticipants()
                                 }
@@ -2186,7 +2384,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
                   {reports.map((report) => {
                     const reportedName = report.reported_user_name || 'Usuario'
                     const reporterName = report.reporter_name || 'Usuario'
-                    
+
                     return (
                       <div key={report.id} className="border rounded-lg p-3">
                         <div className="flex items-start justify-between mb-2">

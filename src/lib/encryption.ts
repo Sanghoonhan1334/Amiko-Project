@@ -49,15 +49,15 @@ export function encryptData(data: string, key?: string): string {
     const salt = generateSalt()
     const iv = generateIV()
     const encryptionKey = key ? deriveKey(key, salt) : deriveKey(MASTER_KEY, salt)
-    
+
     const cipher = crypto.createCipher(ALGORITHM, encryptionKey)
     cipher.setAAD(Buffer.from('amiko-encryption', 'utf8'))
-    
+
     let encrypted = cipher.update(data, 'utf8', 'hex')
     encrypted += cipher.final('hex')
-    
+
     const tag = cipher.getAuthTag()
-    
+
     // 솔트 + IV + 태그 + 암호화된 데이터를 결합
     const result = Buffer.concat([
       salt,
@@ -65,7 +65,7 @@ export function encryptData(data: string, key?: string): string {
       tag,
       Buffer.from(encrypted, 'hex')
     ])
-    
+
     return result.toString('base64')
   } catch (error) {
     console.error('암호화 실패:', error)
@@ -82,22 +82,22 @@ export function encryptData(data: string, key?: string): string {
 export function decryptData(encryptedData: string, key?: string): string {
   try {
     const buffer = Buffer.from(encryptedData, 'base64')
-    
+
     // 솔트, IV, 태그, 암호화된 데이터 분리
     const salt = buffer.subarray(0, SALT_LENGTH)
     const iv = buffer.subarray(SALT_LENGTH, SALT_LENGTH + IV_LENGTH)
     const tag = buffer.subarray(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + TAG_LENGTH)
     const encrypted = buffer.subarray(SALT_LENGTH + IV_LENGTH + TAG_LENGTH)
-    
+
     const decryptionKey = key ? deriveKey(key, salt) : deriveKey(MASTER_KEY, salt)
-    
+
     const decipher = crypto.createDecipher(ALGORITHM, decryptionKey)
     decipher.setAAD(Buffer.from('amiko-encryption', 'utf8'))
     decipher.setAuthTag(tag)
-    
+
     let decrypted = decipher.update(encrypted, undefined, 'utf8')
     decrypted += decipher.final('utf8')
-    
+
     return decrypted
   } catch (error) {
     console.error('복호화 실패:', error)
@@ -152,19 +152,19 @@ export function createJWT(payload: any, secretKey: string, expiresIn: number = 3
     alg: 'HS256',
     typ: 'JWT'
   }
-  
+
   const now = Math.floor(Date.now() / 1000)
   const jwtPayload = {
     ...payload,
     iat: now,
     exp: now + expiresIn
   }
-  
+
   const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url')
   const encodedPayload = Buffer.from(JSON.stringify(jwtPayload)).toString('base64url')
-  
+
   const signature = createHMAC(`${encodedHeader}.${encodedPayload}`, secretKey)
-  
+
   return `${encodedHeader}.${encodedPayload}.${signature}`
 }
 
@@ -180,24 +180,24 @@ export function verifyJWT(token: string, secretKey: string): any {
     if (parts.length !== 3) {
       throw new Error('잘못된 JWT 형식입니다.')
     }
-    
+
     const [encodedHeader, encodedPayload, signature] = parts
-    
+
     // 서명 검증
     const expectedSignature = createHMAC(`${encodedHeader}.${encodedPayload}`, secretKey)
     if (signature !== expectedSignature) {
       throw new Error('JWT 서명이 유효하지 않습니다.')
     }
-    
+
     // 페이로드 디코딩
     const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8'))
-    
+
     // 만료 시간 검증
     const now = Math.floor(Date.now() / 1000)
     if (payload.exp && payload.exp < now) {
       throw new Error('JWT 토큰이 만료되었습니다.')
     }
-    
+
     return payload
   } catch (error) {
     console.error('JWT 검증 실패:', error)
@@ -245,16 +245,16 @@ export function maskSensitiveData(data: string, type: 'email' | 'phone' | 'ssn' 
     case 'email':
       const [local, domain] = data.split('@')
       return `${local.substring(0, 2)}***@${domain}`
-    
+
     case 'phone':
       return data.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
-    
+
     case 'ssn':
       return data.replace(/(\d{3})\d{2}(\d{3})/, '$1**$2')
-    
+
     case 'creditcard':
       return data.replace(/(\d{4})\d{8}(\d{4})/, '$1********$2')
-    
+
     default:
       return data
   }
@@ -300,10 +300,10 @@ export function rotateEncryptionKey(oldKey: string, newKey: string, encryptedDat
   try {
     // 기존 키로 복호화
     const decryptedData = decryptData(encryptedData, oldKey)
-    
+
     // 새 키로 재암호화
     const reEncryptedData = encryptData(decryptedData, newKey)
-    
+
     return reEncryptedData
   } catch (error) {
     console.error('키 회전 실패:', error)
@@ -322,25 +322,25 @@ export function validateSecuritySettings(): {
 } {
   const issues: string[] = []
   const recommendations: string[] = []
-  
+
   // 마스터 키 검증
   if (MASTER_KEY === 'default-master-key-change-in-production') {
     issues.push('기본 마스터 키가 사용되고 있습니다.')
     recommendations.push('프로덕션 환경에서 강력한 마스터 키를 설정하세요.')
   }
-  
+
   // 환경변수 검증
   if (!process.env.ENCRYPTION_MASTER_KEY) {
     issues.push('ENCRYPTION_MASTER_KEY 환경변수가 설정되지 않았습니다.')
     recommendations.push('ENCRYPTION_MASTER_KEY 환경변수를 설정하세요.')
   }
-  
+
   // 암호화 알고리즘 검증
   if (!crypto.getCiphers().includes(ALGORITHM)) {
     issues.push('지원되지 않는 암호화 알고리즘입니다.')
     recommendations.push('지원되는 암호화 알고리즘을 사용하세요.')
   }
-  
+
   return {
     isValid: issues.length === 0,
     issues,
@@ -350,7 +350,8 @@ export function validateSecuritySettings(): {
 
 // 보안 설정 검증 실행
 const securityValidation = validateSecuritySettings()
-if (!securityValidation.isValid) {
+const isBuildTime = process.env.npm_lifecycle_event === 'build' || process.env.NEXT_PHASE === 'phase-production-build'
+if (!securityValidation.isValid && !isBuildTime) {
   console.warn('보안 설정 검증 실패:', securityValidation.issues)
   console.warn('권장사항:', securityValidation.recommendations)
 }
