@@ -1715,7 +1715,7 @@ export default function ChatRoomClient({ roomId, hideHeader = false }: { roomId:
   }
 
   return (
-    <div className={`flex flex-col ${hideHeader ? 'h-full' : 'h-screen'}`} style={chatRoomStyle}>
+    <div className={`flex flex-col ${hideHeader ? 'h-full' : 'h-dvh'}`} style={chatRoomStyle}>
       {/* Header and Settings Panel Container */}
       {!hideHeader && (
         <div className="sticky top-0 z-[100] bg-white">

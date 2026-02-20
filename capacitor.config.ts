@@ -4,6 +4,8 @@ const config: CapacitorConfig = {
   appId: 'com.amiko.app',
   appName: 'Amiko App',
   webDir: 'public',
+  // Color de fondo del WebView nativo - evita el area gris al abrir el teclado
+  backgroundColor: '#1a1a2e',
   // Server config: allow overriding with CAPACITOR_SERVER_URL environment variable
   // Example for physical device dev testing: export CAPACITOR_SERVER_URL="http://192.168.1.100:3000"
   server: {
@@ -21,6 +23,10 @@ const config: CapacitorConfig = {
       scopes: ['profile', 'email'],
       serverClientId: '392429655544-gkro4u100tsilt2seoqdrs1oadcvnv9g.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
+    },
+    Keyboard: {
+      resize: 'none',
+      resizeOnFullScreen: false,
     }
   },
   // Deep linking 설정

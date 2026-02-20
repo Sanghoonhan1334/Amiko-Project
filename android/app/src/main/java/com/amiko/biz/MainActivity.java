@@ -20,32 +20,22 @@ public class MainActivity extends BridgeActivity {
         // ✅ WhatsApp 인증용 App Hash 출력
         AppSignatureHelper.printAppHash(this);
 
-        // ✅ 시스템 바 표시하고 앱은 시스템 바 아래에 배치
+        // ✅ 시스템 바 설정
         Window window = getWindow();
         View decorView = window.getDecorView();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11+ : 시스템 바를 항상 표시하고 컨텐츠는 그 아래에
-            window.setDecorFitsSystemWindows(true);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Android 5.0+ : Status Bar & Navigation Bar 처리
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(Color.TRANSPARENT);
-            window.setNavigationBarColor(Color.TRANSPARENT);
-
-            // 시스템 UI를 표시하고 컨텐츠는 시스템 바 아래에
-            int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-            decorView.setSystemUiVisibility(flags);
         }
 
-        // ✅ fitsSystemWindows 적용
+        // ✅ Status bar padding만 적용 (bottom은 0으로 - 키보드 회색 영역 방지)
         ViewCompat.setOnApplyWindowInsetsListener(decorView, (v, windowInsets) -> {
             v.setPadding(
-                    windowInsets.getSystemWindowInsetLeft(),
-                    windowInsets.getSystemWindowInsetTop(),
-                    windowInsets.getSystemWindowInsetRight(),
-                    windowInsets.getSystemWindowInsetBottom()
+                    0,
+                    windowInsets.getSystemWindowInsetTop(),  // status bar 높이만 적용
+                    0,
+                    0  // bottom 0 = 키보드 회색 영역 방지
             );
             return windowInsets;
         });

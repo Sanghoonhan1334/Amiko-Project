@@ -126,7 +126,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/logos/apple-touch-icon.png" />
         <link rel="shortcut icon" href="/logos/amiko-logo.png" />
       </head>
-      <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-dvh`} suppressHydrationWarning>
         <Suspense fallback={null}>
           <Analytics />
         </Suspense>

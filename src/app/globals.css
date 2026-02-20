@@ -28,14 +28,16 @@
 }
 
 html {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left) !important;
   background-color: hsl(var(--background)) !important; /* ensure page edges use palette background */
+  height: 100%;
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100%;
   padding: 0 !important;
   margin: 0 !important;
+  padding-bottom: env(safe-area-inset-bottom) !important;
 }
 
 .logo-container img {
