@@ -797,11 +797,9 @@ export default function HomeTab() {
         loadCurrentEvents(),
         loadHotPosts(),
         loadPopularTests(),
-        loadOnlineUsers(),
         loadRecentStories(),
         loadNotices(),
         loadGalleryPosts(),
-        loadHotChatRoomsAndPolls(),
         loadKNoticiaNews(),
         loadYoutubeVideos()
       ])
@@ -1248,6 +1246,9 @@ export default function HomeTab() {
                   <img
                     src={test.image}
                     alt={test.title}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                     className="w-full h-32 md:h-48 lg:h-56 xl:h-64 object-contain rounded-lg"
                   />
                 </div>
@@ -1314,6 +1315,9 @@ export default function HomeTab() {
                         <img
                           src={post.image}
                           alt={post.title}
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       </div>
@@ -1380,6 +1384,9 @@ export default function HomeTab() {
                         <img
                           src={post.image}
                           alt={post.title}
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       </div>
@@ -1661,6 +1668,9 @@ export default function HomeTab() {
                         <img
                           src={story.image_url}
                           alt={story.user_name}
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       ) : (
@@ -2097,6 +2107,9 @@ export default function HomeTab() {
                           <img
                             src={test.image}
                             alt={test.title}
+                            loading="lazy"
+                            decoding="async"
+                            fetchPriority="low"
                             className="w-full h-32 md:h-48 lg:h-56 xl:h-64 object-contain rounded-lg"
                           />
                         </div>
@@ -2164,6 +2177,9 @@ export default function HomeTab() {
                               <img
                                 src={post.image}
                                 alt={post.title}
+                                loading="lazy"
+                                decoding="async"
+                                fetchPriority="low"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                               />
                             </div>
@@ -2230,6 +2246,9 @@ export default function HomeTab() {
                               <img
                                 src={post.image}
                                 alt={post.title}
+                                loading="lazy"
+                                decoding="async"
+                                fetchPriority="low"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                               />
                             </div>
@@ -2502,6 +2521,9 @@ export default function HomeTab() {
                               <img
                                 src={story.image_url}
                                 alt={story.user_name}
+                                loading="lazy"
+                                decoding="async"
+                                fetchPriority="low"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                               />
                             ) : (
@@ -2574,6 +2596,9 @@ export default function HomeTab() {
                             <img
                               src={video.thumbnail}
                               alt={video.title}
+                              loading="lazy"
+                              decoding="async"
+                              fetchPriority="low"
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                             <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
@@ -2641,6 +2666,9 @@ export default function HomeTab() {
                         <img
                           src="/logos/para-fans-logo.jpg"
                           alt="Para Fans"
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                           className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
                           draggable={false}
                         />
@@ -2655,6 +2683,9 @@ export default function HomeTab() {
                         <img
                           src="/logos/acu-point-logo.jpg"
                           alt="Acu-Point"
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                           className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
                           draggable={false}
                         />
@@ -2669,6 +2700,9 @@ export default function HomeTab() {
                         <img
                           src="/logos/socios-placeholder.jpg"
                           alt="Partner"
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                           className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
                           draggable={false}
                         />
