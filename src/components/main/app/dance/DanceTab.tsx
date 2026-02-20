@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   Info,
@@ -42,10 +43,15 @@ interface DanceVideo {
   comment_count?: number;
   view_count?: number;
   is_guide?: boolean; // 가이드 영상 여부 (운영자 영상)
+  is_own_pending?: boolean; // 자신의 대기 중 영상
+  status?: string;
+  user_display_name?: string;
+  user_avatar_url?: string;
 }
 
 export default function DanceTab() {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [dancePlaylist, setDancePlaylist] = useState<DancePlaylist | null>(
     null,
   );
@@ -54,7 +60,7 @@ export default function DanceTab() {
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  const loadDanceData = async () => {
+  const loadDanceData = useCallback(async () => {
     setDanceLoading(true);
     try {
       // 최신 플레이리스트 가져오기
@@ -74,9 +80,10 @@ export default function DanceTab() {
         setDancePlaylist(null);
       }
 
-      // 승인된 댄스 비디오 가져오기 (최신 12개, 가이드 영상 포함)
+      // 승인된 댄스 비디오 가져오기 (최신 12개, 가이드 영상 포함, 자신의 pending 포함)
+      const userParam = user?.id ? `&userId=${user.id}` : "";
       const videosResponse = await fetch(
-        "/api/dance/videos?limit=12&status=approved&includeGuide=true",
+        `/api/dance/videos?limit=12&status=approved&includeGuide=true${userParam}`,
       );
       if (videosResponse.ok) {
         const videosData = await videosResponse.json();
@@ -107,7 +114,7 @@ export default function DanceTab() {
     } finally {
       setDanceLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     loadDanceData();
@@ -122,7 +129,7 @@ export default function DanceTab() {
         localStorage.setItem("danceGuideViewed", "true");
       }
     }
-  }, []);
+  }, [loadDanceData]);
 
   const handleUpload = () => {
     setIsUploadModalOpen(true);
@@ -226,6 +233,8 @@ export default function DanceTab() {
               views: video.view_count || 0,
             };
             const isGuide = video.is_guide || false;
+            const isPending =
+              video.is_own_pending || video.status === "pending";
 
             return (
               <div
@@ -266,6 +275,12 @@ export default function DanceTab() {
                 {isGuide && (
                   <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 bg-yellow-500 text-white text-[9px] sm:text-xs font-bold px-1 py-0.5 sm:px-2 sm:py-0.5 rounded">
                     Video guía
+                  </div>
+                )}
+                {/* 대기 중 라벨 (오른쪽 위) - 자신의 pending 영상 */}
+                {isPending && !isGuide && (
+                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 bg-orange-500 text-white text-[9px] sm:text-xs font-bold px-1 py-0.5 sm:px-2 sm:py-0.5 rounded">
+                    ⏳ Pendiente
                   </div>
                 )}
 
