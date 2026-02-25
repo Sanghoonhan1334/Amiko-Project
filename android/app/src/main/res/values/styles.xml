@@ -24,5 +24,7 @@
         <item name="android:background">@drawable/splash</item>
         <!-- 스플래시 스크린 배경색을 흰색으로 설정 -->
         <item name="android:windowSplashScreenBackground">#FFFFFF</item>
+        <!-- 키보드 열릴 때 회색 영역 방지 - 앱 배경색과 동일 -->
+        <item name="android:windowBackground">#1a1a2e</item>
     </style>
 </resources>

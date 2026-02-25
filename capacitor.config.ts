@@ -1,35 +1,42 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.amiko.app',
-  appName: 'Amiko App',
-  webDir: 'public',
+  appId: "com.amiko.app",
+  appName: "Amiko App",
+  webDir: "public",
+  // Color de fondo del WebView nativo - evita el area gris al abrir el teclado
+  backgroundColor: "#1a1a2e",
   // Server config: allow overriding with CAPACITOR_SERVER_URL environment variable
   // Example for physical device dev testing: export CAPACITOR_SERVER_URL="http://192.168.1.100:3000"
   server: {
-    url: 'https://www.helloamiko.com',
+    url: "https://www.helloamiko.com",
     // If URL is http (not https), enable cleartext so Android can load it
     // cleartext: (process.env.CAPACITOR_SERVER_URL || '').startsWith('http://') || false
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#ffffff',
-      showSpinner: false
+      backgroundColor: "#ffffff",
+      showSpinner: false,
     },
     GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '392429655544-gkro4u100tsilt2seoqdrs1oadcvnv9g.apps.googleusercontent.com',
+      scopes: ["profile", "email"],
+      serverClientId:
+        "392429655544-gkro4u100tsilt2seoqdrs1oadcvnv9g.apps.googleusercontent.com",
       forceCodeForRefreshToken: true,
-    }
+    },
+    Keyboard: {
+      resize: "none",
+      resizeOnFullScreen: false,
+    },
   },
   // Deep linking 설정
   app: {
     // Android Intent URI scheme
-    customUrlScheme: 'amiko',
+    customUrlScheme: "amiko",
     // iOS Universal Links
     // universalLinks: ['https://www.helloamiko.com']
-  }
+  },
 };
 
 export default config;

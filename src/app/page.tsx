@@ -196,12 +196,12 @@ function HomePageContent() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <img src="/misc/1.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
-                    <img src="/logos/amiko-logo-dark.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
+                    <img src="/misc/1.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 dark:hidden" loading="lazy" decoding="async" fetchPriority="low" />
+                    <img src="/logos/amiko-logo-dark.png" alt="AMIKO" className="w-24 h-24 mx-auto mb-2 hidden dark:block" loading="lazy" decoding="async" fetchPriority="low" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.description')}</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <img src="/misc/2.png" alt="Bridge" className="w-24 h-24 mx-auto mb-2" />
+                    <img src="/misc/2.png" alt="Bridge" className="w-24 h-24 mx-auto mb-2" loading="lazy" decoding="async" fetchPriority="low" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       {language === 'es' ? (
                         <>
@@ -215,8 +215,8 @@ function HomePageContent() {
                     </p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <img src="/misc/3.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 dark:hidden" />
-                    <img src="/logos/amiko-logo-dark.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 hidden dark:block" />
+                    <img src="/misc/3.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 dark:hidden" loading="lazy" decoding="async" fetchPriority="low" />
+                    <img src="/logos/amiko-logo-dark.png" alt="Connect" className="w-24 h-24 mx-auto mb-2 hidden dark:block" loading="lazy" decoding="async" fetchPriority="low" />
                     <p className="text-sm text-gray-700 dark:text-gray-300">{t('heroSlides.slide3.infoSection.about.connectDescription')}</p>
                   </div>
                 </div>
@@ -456,7 +456,7 @@ function HomePageContent() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
                   >
-                    <img src="/social/tiktok.png" alt="TikTok" className="w-8 h-8 object-contain" />
+                    <img src="/social/tiktok.png" alt="TikTok" className="w-8 h-8 object-contain" loading="lazy" decoding="async" fetchPriority="low" />
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">TikTok</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
@@ -468,7 +468,7 @@ function HomePageContent() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
                   >
-                    <img src="/social/instagram.jpeg" alt="Instagram" className="w-8 h-8 object-contain" />
+                    <img src="/social/instagram.jpeg" alt="Instagram" className="w-8 h-8 object-contain" loading="lazy" decoding="async" fetchPriority="low" />
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">Instagram</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">@amiko_latin</p>
@@ -480,7 +480,7 @@ function HomePageContent() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300"
                   >
-                    <img src="/social/youtube.png" alt="YouTube" className="w-8 h-8 object-contain" />
+                    <img src="/social/youtube.png" alt="YouTube" className="w-8 h-8 object-contain" loading="lazy" decoding="async" fetchPriority="low" />
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">YouTube</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">@AMIKO_Officialstudio</p>

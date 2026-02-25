@@ -1,71 +1,77 @@
-'use client'
+"use client";
 
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 
-import { useLanguage } from '@/context/LanguageContext'
-import { translations } from '@/lib/translations'
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 
 type SectionContent = {
-  title: string
-  content?: string
-  items?: string[]
-  notes?: string[]
+  title: string;
+  content?: string;
+  items?: string[];
+  notes?: string[];
   subSections?: Array<{
-    title: string
-    content?: string
-    items?: string[]
-  }>
-}
+    title: string;
+    content?: string;
+    items?: string[];
+  }>;
+};
 
 const renderParagraphs = (content?: string) => {
-  if (!content) return null
+  if (!content) return null;
   return content
-    .split('\n')
+    .split("\n")
     .filter((paragraph) => paragraph.trim().length > 0)
     .map((paragraph, idx) => (
-      <p key={idx} className="text-gray-700 dark:text-gray-300 font-['Inter'] leading-relaxed">
+      <p
+        key={idx}
+        className="text-gray-700 dark:text-gray-300 font-['Inter'] leading-relaxed"
+      >
         {paragraph.trim()}
       </p>
-    ))
-}
+    ));
+};
 
 const renderItems = (items?: string[]) => {
-  if (!items || items.length === 0) return null
+  if (!items || items.length === 0) return null;
 
   return (
     <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300 font-['Inter']">
       {items.map((item, index) => {
-        const [label, ...rest] = item.split(':')
-        const value = rest.join(':').trim()
+        const [label, ...rest] = item.split(":");
+        const value = rest.join(":").trim();
 
         if (value) {
           return (
             <li key={index}>
               <strong>{label.trim()}:</strong> {value}
             </li>
-          )
+          );
         }
 
-        return <li key={index}>{label.trim()}</li>
+        return <li key={index}>{label.trim()}</li>;
       })}
     </ul>
-  )
-}
+  );
+};
 
 export default function PrivacyPolicy() {
-  const { language, setLanguage } = useLanguage()
+  const { language, setLanguage } = useLanguage();
+  const router = useRouter();
 
   // 정책 페이지 진입 시 기본 언어를 스페인어로 설정
   useEffect(() => {
     // 페이지 진입 시 한국어로 되어 있으면 스페인어로 변경
     // 사용자가 드롭박스로 변경하면 그대로 유지됨
-    if (language === 'ko') {
-      setLanguage('es')
+    if (language === "ko") {
+      setLanguage("es");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // 마운트 시 한 번만 실행
+  }, []); // 마운트 시 한 번만 실행
 
-  const privacy = useMemo(() => translations[language]?.privacy, [language])
+  const privacy = useMemo(() => translations[language]?.privacy, [language]);
 
   if (!privacy) {
     return (
@@ -74,21 +80,30 @@ export default function PrivacyPolicy() {
           Privacy policy content is not available in the selected language.
         </p>
       </div>
-    )
+    );
   }
 
   const sectionOrder =
     privacy.sectionOrder && Array.isArray(privacy.sectionOrder)
       ? privacy.sectionOrder
-      : Object.keys(privacy.sections || {})
+      : Object.keys(privacy.sections || {});
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
       <div className="container mx-auto px-4 pt-32 md:pt-40 lg:pt-48 pb-12 max-w-4xl">
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="mb-6 p-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-6 h-6 text-gray-900 dark:text-gray-100" />
+        </button>
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-['Inter']">
-            {privacy.title || 'Privacy Policy'}
+            {privacy.title || "Privacy Policy"}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 font-['Inter']">
             {privacy.lastUpdated}: {privacy.lastUpdatedDate}
@@ -98,8 +113,10 @@ export default function PrivacyPolicy() {
         {/* Content */}
         <div className="bg-white/85 dark:bg-gray-800/80 rounded-2xl shadow-lg divide-y divide-gray-200/70 dark:divide-gray-700/60 overflow-hidden">
           {sectionOrder.map((key) => {
-            const section = privacy.sections?.[key] as SectionContent | undefined
-            if (!section) return null
+            const section = privacy.sections?.[key] as
+              | SectionContent
+              | undefined;
+            if (!section) return null;
 
             return (
               <section key={key} className="p-6 md:p-8 space-y-4">
@@ -126,7 +143,7 @@ export default function PrivacyPolicy() {
 
                 {renderItems(section.notes)}
               </section>
-            )
+            );
           })}
         </div>
 
@@ -135,13 +152,22 @@ export default function PrivacyPolicy() {
           <p>
             {privacy.contactEmail && (
               <>
-                Email: <a href={`mailto:${privacy.contactEmail}`} className="underline">{privacy.contactEmail}</a>
+                Email:{" "}
+                <a
+                  href={`mailto:${privacy.contactEmail}`}
+                  className="underline"
+                >
+                  {privacy.contactEmail}
+                </a>
               </>
             )}
             {privacy.supportEmail && (
               <>
-                {'  '}| Support:{' '}
-                <a href={`mailto:${privacy.supportEmail}`} className="underline">
+                {"  "}| Support:{" "}
+                <a
+                  href={`mailto:${privacy.supportEmail}`}
+                  className="underline"
+                >
                   {privacy.supportEmail}
                 </a>
               </>
@@ -150,5 +176,5 @@ export default function PrivacyPolicy() {
         </div>
       </div>
     </div>
-  )
+  );
 }

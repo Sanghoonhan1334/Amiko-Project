@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/context/LanguageContext'
 import { marketingEvents } from '@/lib/analytics'
@@ -11,12 +9,9 @@ export default function Hero() {
   const router = useRouter()
   const { t } = useLanguage()
   const [showVideo, setShowVideo] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
     const checkDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'))
-
       // 강제로 텍스트 색상 적용
       const subtitleMobile = document.getElementById('hero-subtitle-mobile')
       const subtitleDesktop = document.getElementById('hero-subtitle-desktop')
@@ -106,6 +101,8 @@ export default function Hero() {
                 alt="Global Community"
                 className="w-full max-w-sm h-auto object-contain relative z-0"
                 loading="lazy"
+                decoding="async"
+                fetchPriority="low"
               />
             </div>
         </div>
@@ -160,6 +157,8 @@ export default function Hero() {
                     alt="Global Community"
                     className="w-full max-w-4xl h-auto object-contain relative z-0"
                     loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                   />
                 </div>
         </div>
@@ -211,6 +210,8 @@ export default function Hero() {
                     alt="화상 채팅"
                     className="w-48"
                     loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                   />
                 </div>
               </div>
@@ -273,7 +274,7 @@ export default function Hero() {
                     </div>
                     <div className="text-center">
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
-                        <img src="/icons/Tablero por tema.png" alt="Tableros de temas" className="w-8 h-8 object-contain" />
+                        <img src="/icons/Tablero por tema.png" alt="Tableros de temas" className="w-8 h-8 object-contain" loading="lazy" decoding="async" fetchPriority="low" />
                       </div>
                       <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.topicBoard.title')}</h3>
                       <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
@@ -289,7 +290,7 @@ export default function Hero() {
                     </div>
                     <div className="text-center">
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
-                        <img src="/icons/Zona de K-Cultura.png" alt="Zona de K-cultura" className="w-8 h-8 object-contain" />
+                        <img src="/icons/Zona de K-Cultura.png" alt="Zona de K-cultura" className="w-8 h-8 object-contain" loading="lazy" decoding="async" fetchPriority="low" />
                       </div>
                       <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.kCulture.title')}</h3>
                       <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
@@ -305,7 +306,7 @@ export default function Hero() {
                     </div>
                     <div className="text-center">
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
-                        <img src="/icons/psychology-test.png" alt="Test Psicológico" className="w-8 h-8 object-contain" />
+                        <img src="/icons/psychology-test.png" alt="Test Psicológico" className="w-8 h-8 object-contain" loading="lazy" decoding="async" fetchPriority="low" />
                       </div>
                       <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.koreanTest.title')}</h3>
                       <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
@@ -321,7 +322,7 @@ export default function Hero() {
                     </div>
                     <div className="text-center">
                       <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mb-2 overflow-hidden mx-auto">
-                        <img src="/icons/story.png" alt="스토리" className="w-8 h-8 object-contain" />
+                        <img src="/icons/story.png" alt="스토리" className="w-8 h-8 object-contain" loading="lazy" decoding="async" fetchPriority="low" />
                       </div>
                       <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 font-['Inter']">{t('heroSlides.slide3.cards.story.title')}</h3>
                       <p className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs md:text-sm lg:text-base leading-tight whitespace-nowrap overflow-hidden text-ellipsis">

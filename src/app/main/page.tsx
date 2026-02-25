@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 // 🚀 최적화: 컴포넌트 지연 로딩으로 초기 번들 크기 감소
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
-import HomeTab from '@/components/main/app/home/HomeTab'
 import { useLanguage } from '@/context/LanguageContext'
 import { translations } from '@/lib/translations'
 import { useAuth } from '@/context/AuthContext'
@@ -16,6 +15,19 @@ import { appEngagementEvents, marketingEvents } from '@/lib/analytics'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
 import { Skeleton } from '@/components/ui/skeleton'
 import PushNotificationConsentModal from '@/components/notifications/PushNotificationConsentModal'
+
+const HomeTab = dynamic(() => import('@/components/main/app/home/HomeTab'), {
+  loading: () => (
+    <div className="space-y-4 p-4">
+      <Skeleton className="h-8 w-1/3" />
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-32 rounded-lg" />
+        ))}
+      </div>
+    </div>
+  )
+})
 
 // 지연 로딩 컴포넌트들
 const MeetTab = dynamic(() => import('@/components/main/app/meet/MeetTab'), {
@@ -438,7 +450,7 @@ function AppPageContent() {
                     <DanceTab />
                   </div>
                 </div>
-                
+
                 {/* 모바일: 섹션 카드 없이 */}
                 <div className="block md:hidden pt-0">
                   <div className="px-0 pt-0">

@@ -1,214 +1,229 @@
-'use client'
+"use client";
 
-import { useState, useRef } from 'react'
-import { useLanguage } from '@/context/LanguageContext'
-import { useAuth } from '@/context/AuthContext'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Upload, X, Loader2, Video, Image as ImageIcon } from 'lucide-react'
-import Image from 'next/image'
+import { useState, useRef } from "react";
+import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Upload, X, Loader2, Video, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 interface DanceUploadModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onUploadSuccess?: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onUploadSuccess?: () => void;
 }
 
-export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: DanceUploadModalProps) {
-  const { t } = useLanguage()
-  const { user, token } = useAuth()
-  const [videoFile, setVideoFile] = useState<File | null>(null)
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [title, setTitle] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [error, setError] = useState<string | null>(null)
-  const [videoPreview, setVideoPreview] = useState<string | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
-  const thumbnailInputRef = useRef<HTMLInputElement>(null)
+export default function DanceUploadModal({
+  isOpen,
+  onClose,
+  onUploadSuccess,
+}: DanceUploadModalProps) {
+  const { t } = useLanguage();
+  const { user, token } = useAuth();
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   // 비디오 파일 선택
   const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     // 파일 타입 검증
-    if (!file.type.startsWith('video/')) {
-      setError('비디오 파일만 업로드 가능합니다.')
-      return
+    if (!file.type.startsWith("video/")) {
+      setError("비디오 파일만 업로드 가능합니다.");
+      return;
     }
 
     // 파일 크기 검증 (100MB)
     if (file.size > 100 * 1024 * 1024) {
-      setError('비디오 파일 크기는 100MB를 초과할 수 없습니다.')
-      return
+      setError("비디오 파일 크기는 100MB를 초과할 수 없습니다.");
+      return;
     }
 
-    setVideoFile(file)
-    setError(null)
+    setVideoFile(file);
+    setError(null);
 
     // 미리보기 생성
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
-      setVideoPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
+      setVideoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // 썸네일 파일 선택
-  const handleThumbnailFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleThumbnailFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     // 파일 타입 검증
-    if (!file.type.startsWith('image/')) {
-      setError('이미지 파일만 업로드 가능합니다.')
-      return
+    if (!file.type.startsWith("image/")) {
+      setError("이미지 파일만 업로드 가능합니다.");
+      return;
     }
 
     // 파일 크기 검증 (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('이미지 파일 크기는 5MB를 초과할 수 없습니다.')
-      return
+      setError("이미지 파일 크기는 5MB를 초과할 수 없습니다.");
+      return;
     }
 
-    setThumbnailFile(file)
-    setError(null)
+    setThumbnailFile(file);
+    setError(null);
 
     // 미리보기 생성
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
-      setThumbnailPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
+      setThumbnailPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // 파일 업로드
   const uploadFile = async (file: File, folder: string): Promise<string> => {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('folder', folder)
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", folder);
 
-    const response = await fetch('/api/upload/image', {
-      method: 'POST',
+    const response = await fetch("/api/upload/image", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token || ''}`
+        Authorization: `Bearer ${token || ""}`,
       },
-      body: formData
-    })
+      body: formData,
+    });
 
     if (!response.ok) {
-      const data = await response.json()
-      throw new Error(data.error || '파일 업로드 실패')
+      const data = await response.json();
+      throw new Error(data.error || "파일 업로드 실패");
     }
 
-    const data = await response.json()
-    return data.url
-  }
+    const data = await response.json();
+    return data.url;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!user) {
-      setError('로그인이 필요합니다.')
-      return
+    e.preventDefault();
+
+    if (!user || !token) {
+      setError("로그인이 필요합니다.");
+      return;
     }
 
     if (!videoFile) {
-      setError('비디오 파일을 선택해주세요.')
-      return
+      setError("비디오 파일을 선택해주세요.");
+      return;
     }
 
-    setUploading(true)
-    setError(null)
-    setUploadProgress(0)
+    setUploading(true);
+    setError(null);
+    setUploadProgress(0);
 
     try {
       // 1. 비디오 파일 업로드
-      setUploadProgress(30)
-      const videoUrl = await uploadFile(videoFile, 'dance-videos')
-      setUploadProgress(60)
+      setUploadProgress(30);
+      const videoUrl = await uploadFile(videoFile, "dance-videos");
+      setUploadProgress(60);
 
       // 2. 썸네일 파일 업로드 (있는 경우)
-      let thumbnailUrl: string | null = null
+      let thumbnailUrl: string | null = null;
       if (thumbnailFile) {
-        thumbnailUrl = await uploadFile(thumbnailFile, 'dance-thumbnails')
+        thumbnailUrl = await uploadFile(thumbnailFile, "dance-thumbnails");
       }
-      setUploadProgress(80)
+      setUploadProgress(80);
 
       // 3. 비디오 정보 저장
-      const response = await fetch('/api/dance/videos', {
-        method: 'POST',
+      const response = await fetch("/api/dance/videos", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           video_url: videoUrl,
           thumbnail_url: thumbnailUrl,
-          title: title.trim() || null
-        })
-      })
+          title: title.trim() || null,
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || '업로드 실패')
+        throw new Error(data.error || "업로드 실패");
       }
 
-      setUploadProgress(100)
+      setUploadProgress(100);
 
       // 성공
-      setVideoFile(null)
-      setThumbnailFile(null)
-      setTitle('')
-      setVideoPreview(null)
-      setThumbnailPreview(null)
-      if (videoInputRef.current) videoInputRef.current.value = ''
-      if (thumbnailInputRef.current) thumbnailInputRef.current.value = ''
-      
-      onUploadSuccess?.()
+      setVideoFile(null);
+      setThumbnailFile(null);
+      setTitle("");
+      setVideoPreview(null);
+      setThumbnailPreview(null);
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+
+      onUploadSuccess?.();
       setTimeout(() => {
-        onClose()
-        setUploadProgress(0)
-      }, 500)
+        onClose();
+        setUploadProgress(0);
+      }, 500);
     } catch (err) {
-      console.error('[DanceUploadModal] 업로드 오류:', err)
-      setError(err instanceof Error ? err.message : '업로드 중 오류가 발생했습니다.')
-      setUploadProgress(0)
+      console.error("[DanceUploadModal] 업로드 오류:", err);
+      setError(
+        err instanceof Error ? err.message : "업로드 중 오류가 발생했습니다.",
+      );
+      setUploadProgress(0);
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const handleClose = () => {
     if (!uploading) {
-      setVideoFile(null)
-      setThumbnailFile(null)
-      setTitle('')
-      setVideoPreview(null)
-      setThumbnailPreview(null)
-      setError(null)
-      setUploadProgress(0)
-      if (videoInputRef.current) videoInputRef.current.value = ''
-      if (thumbnailInputRef.current) thumbnailInputRef.current.value = ''
-      onClose()
+      setVideoFile(null);
+      setThumbnailFile(null);
+      setTitle("");
+      setVideoPreview(null);
+      setThumbnailPreview(null);
+      setError(null);
+      setUploadProgress(0);
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+      onClose();
     }
-  }
+  };
 
   const removeVideo = () => {
-    setVideoFile(null)
-    setVideoPreview(null)
-    if (videoInputRef.current) videoInputRef.current.value = ''
-  }
+    setVideoFile(null);
+    setVideoPreview(null);
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  };
 
   const removeThumbnail = () => {
-    setThumbnailFile(null)
-    setThumbnailPreview(null)
-    if (thumbnailInputRef.current) thumbnailInputRef.current.value = ''
-  }
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+    if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -216,10 +231,11 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg md:text-xl font-bold">
             <Upload className="w-5 h-5 text-purple-600" />
-            {t('dance.upload.title') || '영상 업로드'}
+            {t("dance.upload.title") || "영상 업로드"}
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400 text-sm">
-            {t('dance.upload.description') || '비디오 파일을 선택하여 업로드하세요.'}
+            {t("dance.upload.description") ||
+              "비디오 파일을 선택하여 업로드하세요."}
           </DialogDescription>
         </DialogHeader>
 
@@ -227,7 +243,7 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
           {/* 비디오 파일 선택 */}
           <div className="space-y-2">
             <Label htmlFor="videoFile" className="text-sm font-semibold">
-              {t('dance.upload.videoFile') || '비디오 파일 *'}
+              {t("dance.upload.videoFile") || "비디오 파일 *"}
             </Label>
             {!videoFile ? (
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
@@ -246,10 +262,10 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
                 >
                   <Video className="w-8 h-8 text-gray-400" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {t('dance.upload.selectVideo') || '비디오 파일 선택'}
+                    {t("dance.upload.selectVideo") || "비디오 파일 선택"}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {t('dance.upload.videoSizeLimit') || '최대 100MB'}
+                    {t("dance.upload.videoSizeLimit") || "최대 100MB"}
                   </span>
                 </label>
               </div>
@@ -266,7 +282,9 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{videoFile.name}</p>
+                    <p className="text-sm font-medium truncate">
+                      {videoFile.name}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
@@ -287,7 +305,7 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
           {/* 썸네일 파일 선택 (선택) */}
           <div className="space-y-2">
             <Label htmlFor="thumbnailFile" className="text-sm font-semibold">
-              {t('dance.upload.thumbnailFile') || '썸네일 이미지 (선택)'}
+              {t("dance.upload.thumbnailFile") || "썸네일 이미지 (선택)"}
             </Label>
             {!thumbnailFile ? (
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 text-center hover:border-purple-500 transition-colors">
@@ -306,10 +324,10 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
                 >
                   <ImageIcon className="w-6 h-6 text-gray-400" />
                   <span className="text-xs text-gray-600 dark:text-gray-400">
-                    {t('dance.upload.selectThumbnail') || '썸네일 이미지 선택'}
+                    {t("dance.upload.selectThumbnail") || "썸네일 이미지 선택"}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {t('dance.upload.imageSizeLimit') || '최대 5MB'}
+                    {t("dance.upload.imageSizeLimit") || "최대 5MB"}
                   </span>
                 </label>
               </div>
@@ -327,7 +345,9 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{thumbnailFile.name}</p>
+                    <p className="text-sm font-medium truncate">
+                      {thumbnailFile.name}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {(thumbnailFile.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
@@ -348,12 +368,14 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
           {/* 제목 (선택) */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-sm font-semibold">
-              {t('dance.upload.titleInput') || '제목 (선택)'}
+              {t("dance.upload.titleInput") || "제목 (선택)"}
             </Label>
             <Input
               id="title"
               type="text"
-              placeholder={t('dance.upload.titlePlaceholder') || '영상 제목을 입력하세요'}
+              placeholder={
+                t("dance.upload.titlePlaceholder") || "영상 제목을 입력하세요"
+              }
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={uploading}
@@ -365,7 +387,7 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
           {uploading && uploadProgress > 0 && (
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                <span>{t('dance.upload.uploading') || '업로드 중...'}</span>
+                <span>{t("dance.upload.uploading") || "업로드 중..."}</span>
                 <span>{uploadProgress}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -403,12 +425,12 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
               {uploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t('dance.upload.uploading') || '업로드 중...'}
+                  {t("dance.upload.uploading") || "업로드 중..."}
                 </>
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" />
-                  {t('dance.upload.submit') || '업로드'}
+                  {t("dance.upload.submit") || "업로드"}
                 </>
               )}
             </Button>
@@ -416,5 +438,5 @@ export default function DanceUploadModal({ isOpen, onClose, onUploadSuccess }: D
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
