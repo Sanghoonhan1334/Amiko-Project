@@ -81,6 +81,7 @@ export default memo(function ChargingTab() {
   const { user } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
+  const [selectedVip, setSelectedVip] = useState<string | null>(null);
 
   // 포인트 현황 상태
   const [availablePoints, setAvailablePoints] = useState(0);
@@ -89,6 +90,16 @@ export default memo(function ChargingTab() {
 
   // Use static coupon packages from module-level constant
   const couponPackages = COUPON_PACKAGES;
+
+  // VIP PayPal 결제용 안정적인 orderId
+  const vipOrderIds = useMemo(
+    () => ({
+      monthly: `vip_monthly_${user?.id || "guest"}_${Math.random().toString(36).slice(2, 8)}`,
+      yearly: `vip_yearly_${user?.id || "guest"}_${Math.random().toString(36).slice(2, 8)}`,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.id],
+  );
 
   // PayPal 결제용 안정적인 orderId (렌더링마다 변경되지 않도록)
   const packageOrderIds = useMemo(
@@ -324,8 +335,18 @@ export default memo(function ChargingTab() {
                         </div>
                         <Button
                           size="sm"
-                          className="w-full text-xs h-8 bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                          className={`w-full text-xs h-8 font-semibold shadow-md hover:shadow-lg transition-all duration-200 ${
+                            selectedVip === "monthly"
+                              ? "bg-purple-700 hover:bg-purple-800 text-white"
+                              : "bg-purple-600 hover:bg-purple-700 text-white"
+                          }`}
+                          onClick={() =>
+                            setSelectedVip(
+                              selectedVip === "monthly" ? null : "monthly",
+                            )
+                          }
                         >
+                          {selectedVip === "monthly" ? "✓ " : ""}
                           {t("storeTab.vip.subscribe")}
                         </Button>
                       </div>
@@ -348,8 +369,18 @@ export default memo(function ChargingTab() {
                         </div>
                         <Button
                           size="sm"
-                          className="w-full text-xs h-8 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                          className={`w-full text-xs h-8 font-semibold shadow-md hover:shadow-lg transition-all duration-200 ${
+                            selectedVip === "yearly"
+                              ? "bg-purple-700 hover:bg-purple-800 text-white"
+                              : "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+                          }`}
+                          onClick={() =>
+                            setSelectedVip(
+                              selectedVip === "yearly" ? null : "yearly",
+                            )
+                          }
                         >
+                          {selectedVip === "yearly" ? "✓ " : ""}
                           {t("storeTab.vip.subscribe")}
                         </Button>
                         <div className="text-xs text-green-600 dark:text-green-400 mt-1">
@@ -358,6 +389,50 @@ export default memo(function ChargingTab() {
                       </div>
                     </div>
                   </div>
+
+                  {/* PayPal 결제 버튼 - VIP 선택 시 표시 */}
+                  {selectedVip && (
+                    <div className="p-4 bg-white dark:bg-gray-800 border-2 border-purple-300 dark:border-purple-600 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="font-semibold text-sm text-gray-800 dark:text-gray-100">
+                            VIP{" "}
+                            {selectedVip === "monthly"
+                              ? t("storeTab.vip.monthly")
+                              : t("storeTab.vip.yearly")}
+                          </p>
+                          <p className="text-purple-600 dark:text-purple-400 font-bold">
+                            ${selectedVip === "monthly" ? 10 : 80}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setSelectedVip(null)}
+                          className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <X className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+                      <PayPalPaymentButton
+                        amount={selectedVip === "monthly" ? 10 : 80}
+                        orderId={
+                          vipOrderIds[selectedVip as keyof typeof vipOrderIds]
+                        }
+                        orderName={`VIP ${selectedVip === "monthly" ? "Monthly" : "Yearly"} Subscription`}
+                        customerName={
+                          user?.user_metadata?.full_name || user?.email || ""
+                        }
+                        customerEmail={user?.email || ""}
+                        userId={user?.id || ""}
+                        productType="vip_subscription"
+                        productData={{
+                          plan_type: selectedVip,
+                          price: selectedVip === "monthly" ? 10 : 80,
+                          duration_months: selectedVip === "monthly" ? 1 : 12,
+                        }}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
 
                   {/* VIP 기능 상세정보 - 아래로 이동 */}
                   <div className="text-center p-2 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-700 dark:to-gray-700 border-2 border-purple-300 dark:border-gray-600 rounded-lg">
