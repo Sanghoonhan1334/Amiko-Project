@@ -304,7 +304,8 @@ export default function PaymentsTab() {
       options={{
         clientId: PAYPAL_CONFIG.clientId || "sb",
         currency: PAYPAL_CONFIG.currency,
-        locale: PAYPAL_CONFIG.locale,
+        intent: PAYPAL_CONFIG.intent,
+        components: "buttons",
       }}
     >
       <div className="space-y-8 p-4">

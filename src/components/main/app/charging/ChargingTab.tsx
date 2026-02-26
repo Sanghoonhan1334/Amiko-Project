@@ -274,9 +274,10 @@ export default memo(function ChargingTab() {
   return (
     <PayPalScriptProvider
       options={{
-        clientId: PAYPAL_CONFIG.clientId || "test",
+        clientId: PAYPAL_CONFIG.clientId || "sb",
         currency: PAYPAL_CONFIG.currency,
-        locale: PAYPAL_CONFIG.locale,
+        intent: PAYPAL_CONFIG.intent,
+        components: "buttons",
       }}
     >
       <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-8 sm:mt-0">
