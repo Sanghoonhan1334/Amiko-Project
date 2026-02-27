@@ -59,17 +59,19 @@ export async function POST(request: NextRequest) {
     };
 
     // PayPal API 호출
-    const paypalResponse = await fetch(
-      `${process.env.PAYPAL_API_BASE_URL || "https://api-m.sandbox.paypal.com"}/v2/checkout/orders`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await getPayPalAccessToken()}`,
-        },
-        body: JSON.stringify(orderData),
+    const paypalApiBase =
+      process.env.PAYPAL_API_BASE_URL ||
+      (process.env.NODE_ENV === "production"
+        ? "https://api-m.paypal.com"
+        : "https://api-m.sandbox.paypal.com");
+    const paypalResponse = await fetch(`${paypalApiBase}/v2/checkout/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await getPayPalAccessToken()}`,
       },
-    );
+      body: JSON.stringify(orderData),
+    });
 
     const paypalData = await paypalResponse.json();
 
@@ -146,7 +148,10 @@ async function getPayPalAccessToken(): Promise<string> {
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
   const baseUrl =
-    process.env.PAYPAL_API_BASE_URL || "https://api-m.sandbox.paypal.com";
+    process.env.PAYPAL_API_BASE_URL ||
+    (process.env.NODE_ENV === "production"
+      ? "https://api-m.paypal.com"
+      : "https://api-m.sandbox.paypal.com");
 
   if (!clientId || !clientSecret) {
     throw new Error("PayPal client ID or secret is not configured");
