@@ -278,6 +278,7 @@ export default memo(function ChargingTab() {
         currency: PAYPAL_CONFIG.currency,
         intent: PAYPAL_CONFIG.intent,
         components: "buttons",
+        locale: PAYPAL_CONFIG.locale,
       }}
     >
       <div className="px-2 sm:px-4 py-6 sm:py-8 -mt-8 sm:mt-0">

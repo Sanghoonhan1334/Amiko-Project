@@ -306,6 +306,7 @@ export default function PaymentsTab() {
         currency: PAYPAL_CONFIG.currency,
         intent: PAYPAL_CONFIG.intent,
         components: "buttons",
+        locale: PAYPAL_CONFIG.locale,
       }}
     >
       <div className="space-y-8 p-4">
