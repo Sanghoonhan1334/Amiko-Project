@@ -987,13 +987,13 @@ export default function HomeTab() {
       {/* 모바일 버전 - 기존 그대로 */}
       <div className="md:hidden space-y-6 px-2 pt-6 pb-4">
         {/* Random Play Dance 섹션 */}
-        <RandomPlayDanceSection
+        {/* <RandomPlayDanceSection
           playlist={dancePlaylist}
           videos={danceVideos}
           loading={danceLoading}
           onPlaylistUpdate={loadDanceData}
           hideVideoGrid={true}
-        />
+        /> */}
         {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 */}
         {/* 지금 커뮤니티에서 핫한 글 */}
         <div className="space-y-3">
@@ -1373,7 +1373,7 @@ export default function HomeTab() {
         {/* 팬아트 & 아이돌 사진 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* 팬아트 */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img
@@ -1445,10 +1445,10 @@ export default function HomeTab() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           {/* 아이돌 사진 */}
-          <div className="space-y-2 pt-16 md:pt-20">
+          {/* <div className="space-y-2 pt-16 md:pt-20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img
@@ -1522,7 +1522,7 @@ export default function HomeTab() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
         </div>
 
         {/* 화상채팅 온라인 인원 - 모바일 버전 - 미구현으로 숨김 */}
@@ -1838,7 +1838,7 @@ export default function HomeTab() {
         )}
 
         {/* AMIKO 최근 영상 */}
-        <div className="space-y-3 md:hidden">
+        {/* <div className="space-y-3 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Play className="w-5 h-5 text-red-600" />
@@ -1880,7 +1880,7 @@ export default function HomeTab() {
                         <div className="absolute top-2 right-2 bg-black/70 text-white text-[6px] px-1 rounded z-10">
                           {video.duration}
                         </div>
-                        {/* YouTube 재생 아이콘 */}
+
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                           <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
                             <Play className="w-6 h-6 text-white fill-white" />
@@ -1916,10 +1916,10 @@ export default function HomeTab() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* AMIKO 제휴사 */}
-        <div className="space-y-3 md:hidden">
+        {/* <div className="space-y-3 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-blue-600" />
@@ -1984,20 +1984,20 @@ export default function HomeTab() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
 
       {/* 데스크톱 버전 - 한 줄 세로 레이아웃 */}
       <div className="hidden md:block max-w-4xl mx-auto px-2 md:px-4 lg:px-6 pt-20 pb-4">
         <div className="space-y-4">
           {/* Random Play Dance 섹션 */}
-          <RandomPlayDanceSection
+          {/* <RandomPlayDanceSection
             playlist={dancePlaylist}
             videos={danceVideos}
             loading={danceLoading}
             onPlaylistUpdate={loadDanceData}
             hideVideoGrid={true}
-          />
+          /> */}
 
           {/* 1. Post Populares - 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
           {/* 지금 커뮤니티에서 핫한 글 - 데스크톱 전용 3열 그리드 */}
@@ -2309,7 +2309,7 @@ export default function HomeTab() {
           {/* 팬아트 & 아이돌 사진 - 데스크톱 */}
           <div className="grid grid-cols-2 gap-4">
             {/* 팬아트 */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <img
@@ -2383,10 +2383,10 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
 
             {/* 아이돌 사진 */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <img
@@ -2460,7 +2460,7 @@ export default function HomeTab() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
           </div>
 
           {/* 화상채팅 온라인 인원 - 데스크톱 전용 사이드바 - 미구현으로 숨김 */}
@@ -2782,7 +2782,7 @@ export default function HomeTab() {
           )}
 
           {/* AMIKO 최근 영상 - 데스크톱 */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Play className="w-5 h-5 text-red-600" />
@@ -2827,7 +2827,6 @@ export default function HomeTab() {
                           <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
                             {video.duration}
                           </div>
-                          {/* YouTube 재생 아이콘 */}
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                             <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
                               <Play className="w-8 h-8 text-white fill-white" />
@@ -2863,10 +2862,10 @@ export default function HomeTab() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           {/* Socios de AMIKO - 데스크톱 */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-blue-600" />
@@ -2940,7 +2939,7 @@ export default function HomeTab() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
         </div>
       </div>
 
