@@ -1924,7 +1924,7 @@ export default function ChatRoomClient({
 
   return (
     <div
-      className={`flex flex-col ${hideHeader ? "h-full" : "h-dvh"}`}
+      className={`flex flex-col ${hideHeader ? "h-full" : "h-screen h-dvh"}`}
       style={chatRoomStyle}
     >
       {/* Header and Settings Panel Container */}

@@ -11,18 +11,18 @@ export function createSupabaseBrowserClient() {
     return browserClient
   }
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
   // 서버사이드에서 실행되는 경우 체크
   if (typeof window === 'undefined') {
     console.warn('[SUPABASE CLIENT] 서버사이드에서 브라우저 클라이언트 생성 시도됨 - 기본 클라이언트 반환')
-    return createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    return createBrowserClient(supabaseUrl, supabaseAnonKey)
   }
 
   browserClient = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {

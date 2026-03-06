@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic'
 // 🚀 최적화: 컴포넌트 지연 로딩으로 초기 번들 크기 감소
 import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 import { useLanguage } from '@/context/LanguageContext'
-import { translations } from '@/lib/translations'
 import { useAuth } from '@/context/AuthContext'
 import { Video, Music } from 'lucide-react'
 // 🚀 최적화: React Query hook 추가

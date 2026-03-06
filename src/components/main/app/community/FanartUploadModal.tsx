@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X, Upload, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface FanartUploadModalProps {
   isOpen: boolean
@@ -17,6 +18,7 @@ export default function FanartUploadModal({
   onSuccess,
 }: FanartUploadModalProps) {
   const { user, token } = useAuth()
+  const { t } = useLanguage()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -32,7 +34,7 @@ export default function FanartUploadModal({
     if (file) {
       // Check if file is an image
       if (!file.type.startsWith('image/')) {
-        setError('Por favor selecciona una imagen')
+        setError(t('community.uploadErrorImageRequired'))
         return
       }
       
@@ -50,12 +52,12 @@ export default function FanartUploadModal({
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      setError('Por favor ingresa un título')
+      setError(t('community.uploadErrorTitleRequired'))
       return
     }
 
     if (!selectedFile) {
-      setError('Por favor selecciona una imagen')
+      setError(t('community.uploadErrorImageRequired'))
       return
     }
 
@@ -77,7 +79,7 @@ export default function FanartUploadModal({
       })
 
       if (!uploadRes.ok) {
-        throw new Error('Error al subir el archivo')
+        throw new Error(t('community.uploadErrorFileFailed'))
       }
 
       const uploadData = await uploadRes.json()
@@ -101,7 +103,7 @@ export default function FanartUploadModal({
       })
 
       if (!postRes.ok) {
-        throw new Error('Error al crear el fan art')
+        throw new Error(t('community.fanartUploadErrorCreateFailed'))
       }
 
       // 성공
@@ -113,7 +115,7 @@ export default function FanartUploadModal({
       onSuccess()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al subir')
+      setError(err instanceof Error ? err.message : t('community.uploadErrorGeneric'))
     } finally {
       setIsUploading(false)
     }
@@ -127,7 +129,7 @@ export default function FanartUploadModal({
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
-              Subir Fan Art
+              {t('community.fanartUploadTitle')}
             </h2>
             <button
               onClick={onClose}
@@ -140,20 +142,20 @@ export default function FanartUploadModal({
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700">
-                Título
+                {t('community.uploadTitleLabel')}
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full border rounded-lg px-4 py-2 bg-white border-gray-300"
-                placeholder="Ingresa el título del fan art"
+                placeholder={t('community.fanartUploadTitlePlaceholder')}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700">
-                Categoría
+                {t('community.fanartUploadCategoryLabel')}
               </label>
               <select
                 value={category}
@@ -168,7 +170,7 @@ export default function FanartUploadModal({
 
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700">
-                Subir Imagen
+                {t('community.fanartUploadImageLabel')}
               </label>
               <div className="border-2 border-dashed rounded-lg p-8 text-center border-gray-300">
                 <input
@@ -192,14 +194,14 @@ export default function FanartUploadModal({
                       }}
                       className="text-sm text-red-500 hover:text-red-700"
                     >
-                      Eliminar imagen
+                      {t('community.uploadRemoveImage')}
                     </button>
                   </div>
                 ) : (
                   <label htmlFor="image-upload" className="cursor-pointer">
                     <Upload className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                     <p className="text-sm text-gray-500">
-                      Haz clic para subir una imagen
+                      {t('community.fanartUploadClickToUpload')}
                     </p>
                   </label>
                 )}
@@ -208,14 +210,14 @@ export default function FanartUploadModal({
 
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700">
-                Descripción
+                {t('community.uploadDescriptionLabel')}
               </label>
               <textarea
                 rows={4}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="w-full border rounded-lg px-4 py-2 bg-white border-gray-300"
-                placeholder="Ingresa una descripción del fan art"
+                placeholder={t('community.fanartUploadDescPlaceholder')}
               />
             </div>
 
@@ -230,7 +232,7 @@ export default function FanartUploadModal({
                 className="flex-1"
                 disabled={isUploading}
               >
-                Cancelar
+                {t('community.uploadCancel')}
               </Button>
               <Button
                 onClick={handleSubmit}
@@ -240,10 +242,10 @@ export default function FanartUploadModal({
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Subiendo...
+                    {t('community.uploadUploading')}
                   </>
                 ) : (
-                  'Subir'
+                  t('community.uploadSubmit')
                 )}
               </Button>
             </div>

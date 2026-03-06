@@ -1350,7 +1350,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
             <input
               type="text"
               placeholder={t('community.searchPlaceholder')}
-              className="flex-1 text-xs outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+              className="flex-1 text-base md:text-xs outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
             />

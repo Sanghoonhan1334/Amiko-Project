@@ -726,7 +726,7 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
                   type="text"
                   value={zoomLink}
                   onChange={(e) => setZoomLink(e.target.value)}
-                  className="w-full text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full text-base md:text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="https://zoom.us/j/YOUR_MEETING_ID"
                 />
               </div>
@@ -738,7 +738,7 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
                   type="text"
                   value={zepLink}
                   onChange={(e) => setZepLink(e.target.value)}
-                  className="w-full text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="w-full text-base md:text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="https://zep.us/play/YOUR_ROOM_ID"
                 />
               </div>

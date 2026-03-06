@@ -1929,10 +1929,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                    </div>
                  </div>
                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 font-['Inter']">
-                   COMUNIDAD
+                   {t('communityHeader.title')}
                  </h2>
                  <p className="text-xs text-[#6B7280] dark:text-gray-400 mb-3">
-                   Explora la cultura coreana y conecta con la comunidad
+                   {t('communityHeader.subtitle')}
                  </p>
                  <div className="w-16 h-1 bg-purple-300 mx-auto rounded-full"></div>
                </div>

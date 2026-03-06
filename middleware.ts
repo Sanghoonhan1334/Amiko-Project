@@ -69,30 +69,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Supabase 클라이언트 생성 (SSR 방식)
-  const response = NextResponse.next()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value)
-            response.cookies.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
-
-  // 세션 새로고침 (쿠키 동기화)
-  const { data: { session }, error } = await supabase.auth.getSession()
-
-  // 공개 경로 체크
+  // 공개 경로 체크 (먼저 확인하여 불필요한 Supabase 호출 방지)
   const isPublicPath = publicPaths.some(path => {
     // 정확한 경로 매칭 또는 하위 경로 매칭
     if (pathname === path) return true
@@ -115,18 +92,36 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(path)
   )
 
-  // 디버그 로그
-  console.log('[MIDDLEWARE]', {
-    pathname,
-    hasSession: !!session,
-    isPublicPath,
-    isProtectedPath,
-    isProtectedApiPath
-  })
+  // 공개 경로는 인증 없이 바로 통과 (Supabase 호출 불필요)
+  if (isPublicPath && !isProtectedPath && !isAdminPath) {
+    return NextResponse.next()
+  }
+
+  // 인증이 필요한 경로만 Supabase 세션 확인
+  const response = NextResponse.next()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value)
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+
+  // 세션 새로고침 (쿠키 동기화) - 보호된 경로에서만 실행
+  const { data: { session }, error } = await supabase.auth.getSession()
 
   // 공개 경로는 인증 상태와 관계없이 통과
   if (isPublicPath) {
-    console.log('[MIDDLEWARE] 공개 경로 통과:', pathname)
     return response
   }
 

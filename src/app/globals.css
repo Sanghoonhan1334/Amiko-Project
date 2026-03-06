@@ -19,6 +19,22 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* iOS Safari auto-zoom 방지: 모바일에서 input/textarea/select 최소 16px */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="url"],
+  input[type="tel"],
+  input[type="search"],
+  input[type="number"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
 /* Safe Area Insets for mobile apps */
 :root {
   --sat: env(safe-area-inset-top);
@@ -1029,41 +1045,61 @@ link[rel="shortcut icon"] img {
     background-color: hsl(var(--card)) !important;
   }
   /* catch plain bg-white composed via utilities in many cards */
-  /* Exclude containers with images/videos to preserve media visibility */
-  html[data-palette] [class~="bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
-  html[data-palette] [class*=" bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
-  html[data-palette] [class^="bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]) {
-    background-color: hsl(var(--card)) !important;
+  /* Firefox < 121 fallback: apply to all bg-white without :has() exclusions */
+  @supports not selector(:has(*)) {
+    html[data-palette] [class~="bg-white"]:not([class*="aspect-video"]):not([class*="aspect-square"]),
+    html[data-palette] [class*=" bg-white"]:not([class*="aspect-video"]):not([class*="aspect-square"]),
+    html[data-palette] [class^="bg-white"]:not([class*="aspect-video"]):not([class*="aspect-square"]) {
+      background-color: hsl(var(--card)) !important;
+    }
+  }
+  /* Modern browsers: exclude containers with images/videos to preserve media visibility */
+  @supports selector(:has(*)) {
+    html[data-palette] [class~="bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
+    html[data-palette] [class*=" bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
+    html[data-palette] [class^="bg-white"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]) {
+      background-color: hsl(var(--card)) !important;
+    }
   }
 
   /* Ensure image/video containers maintain their original background */
   html[data-palette] [class*="aspect-video"]:not([class*="bg-gradient"]),
   html[data-palette] [class*="aspect-square"]:not([class*="bg-gradient"]),
-  html[data-palette] :has(img):not([class*="bg-gradient"]),
-  html[data-palette] :has(video):not([class*="bg-gradient"]),
-  html[data-palette] :has(iframe):not([class*="bg-gradient"]),
-  html[data-palette] [class*="aspect-video"] > img,
-  html[data-palette] [class*="aspect-square"] > img,
   html[data-palette] img[src],
   html[data-palette] img[alt] {
     background-color: transparent !important;
   }
+  @supports selector(:has(*)) {
+    html[data-palette] :has(img):not([class*="bg-gradient"]),
+    html[data-palette] :has(video):not([class*="bg-gradient"]),
+    html[data-palette] :has(iframe):not([class*="bg-gradient"]) {
+      background-color: transparent !important;
+    }
+  }
+  html[data-palette] [class*="aspect-video"] > img,
+  html[data-palette] [class*="aspect-square"] > img {
+    background-color: transparent !important;
+  }
 
   /* Remove any background color/image from image containers */
-  html[data-palette] [class*="aspect-video"]:has(img),
-  html[data-palette] [class*="aspect-square"]:has(img),
-  html[data-palette] [class*="aspect-video"]:has(img[src]),
-  html[data-palette] [class*="aspect-square"]:has(img[src]) {
-    background-color: transparent !important;
-    background-image: none !important;
+  @supports selector(:has(*)) {
+    html[data-palette] [class*="aspect-video"]:has(img),
+    html[data-palette] [class*="aspect-square"]:has(img),
+    html[data-palette] [class*="aspect-video"]:has(img[src]),
+    html[data-palette] [class*="aspect-square"]:has(img[src]) {
+      background-color: transparent !important;
+      background-image: none !important;
+    }
   }
 
   /* Override bg-gray-* classes on image containers */
-  html[data-palette] [class*="aspect-video"]:has(img)[class*="bg-gray"],
-  html[data-palette] [class*="aspect-square"]:has(img)[class*="bg-gray"],
-  html[data-palette] [class*="bg-gray-100"]:has(img),
-  html[data-palette] [class*="bg-gray-50"]:has(img) {
-    background-color: transparent !important;
+  @supports selector(:has(*)) {
+    html[data-palette] [class*="aspect-video"]:has(img)[class*="bg-gray"],
+    html[data-palette] [class*="aspect-square"]:has(img)[class*="bg-gray"],
+    html[data-palette] [class*="bg-gray-100"]:has(img),
+    html[data-palette] [class*="bg-gray-50"]:has(img) {
+      background-color: transparent !important;
+    }
   }
 
   /* Ensure img tags themselves are visible, but don't override display to respect Tailwind classes */
@@ -1087,10 +1123,19 @@ link[rel="shortcut icon"] img {
     color: hsl(var(--foreground)) !important;
   }
   /* gray background variants frequently used in sections */
-  /* Exclude image/video containers */
-  html[data-palette] [class~="bg-gray-50"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
-  html[data-palette] [class~="bg-gray-100"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]) {
-    background-color: hsl(var(--secondary)) !important;
+  /* Firefox < 121 fallback: apply without :has() exclusions */
+  @supports not selector(:has(*)) {
+    html[data-palette] [class~="bg-gray-50"]:not([class*="aspect-video"]):not([class*="aspect-square"]),
+    html[data-palette] [class~="bg-gray-100"]:not([class*="aspect-video"]):not([class*="aspect-square"]) {
+      background-color: hsl(var(--secondary)) !important;
+    }
+  }
+  /* Modern browsers: Exclude image/video containers */
+  @supports selector(:has(*)) {
+    html[data-palette] [class~="bg-gray-50"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]),
+    html[data-palette] [class~="bg-gray-100"]:not(:has(img)):not(:has(video)):not(:has(iframe)):not([class*="aspect-video"]):not([class*="aspect-square"]) {
+      background-color: hsl(var(--secondary)) !important;
+    }
   }
   /* borders with opacity utilities */
   html[data-palette] [class*="border-gray-200"],
@@ -1103,9 +1148,17 @@ link[rel="shortcut icon"] img {
     background-color: hsl(var(--background)) !important;
   }
   /* broad override for gradient utilities to reflect palette - purple gradient (except default) */
-  /* Exclude gradients inside image containers and absolute positioned overlays */
-  html[data-palette]:not([data-palette="default"]) [class*="bg-gradient-to-"]:not(:has(img)):not(:has(video)):not([class*="absolute"]):not([class*="inset-0"]) {
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(280 70% 60%)) !important;
+  /* Firefox < 121 fallback */
+  @supports not selector(:has(*)) {
+    html[data-palette]:not([data-palette="default"]) [class*="bg-gradient-to-"]:not([class*="absolute"]):not([class*="inset-0"]) {
+      background-image: linear-gradient(to right, hsl(var(--primary)), hsl(280 70% 60%)) !important;
+    }
+  }
+  /* Modern browsers: Exclude gradients inside image containers and absolute positioned overlays */
+  @supports selector(:has(*)) {
+    html[data-palette]:not([data-palette="default"]) [class*="bg-gradient-to-"]:not(:has(img)):not(:has(video)):not([class*="absolute"]):not([class*="inset-0"]) {
+      background-image: linear-gradient(to right, hsl(var(--primary)), hsl(280 70% 60%)) !important;
+    }
   }
 
   /* Point system title and subtitle - white text when palette is active (except default) */
@@ -1861,7 +1914,7 @@ body.splash-active [class*="footer"] {
   .mobile-chat-small input,
   .mobile-chat-small textarea,
   .mobile-chat-small button {
-    font-size: 0.75rem !important;
+    font-size: 1rem !important; /* 16px - iOS Safari에서 auto-zoom 방지 */
     padding: 0.375rem 0.5rem !important;
   }
 

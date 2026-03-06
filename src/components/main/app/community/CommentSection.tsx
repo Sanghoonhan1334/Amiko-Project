@@ -729,7 +729,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                   }
                 }}
                 placeholder={t('freeboard.commentPlaceholder')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base md:text-sm"
                 rows={3}
                 maxLength={1000}
               />
@@ -885,7 +885,7 @@ export default function CommentSection({ postId, onCommentCountChange }: Comment
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
                           placeholder={t('freeboard.replyPlaceholder').replace('{name}', comment.author?.full_name || t('freeboard.anonymous'))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs md:text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base md:text-sm"
                           rows={2}
                           maxLength={1000}
                         />

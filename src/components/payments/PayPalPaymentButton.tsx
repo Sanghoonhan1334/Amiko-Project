@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { PAYPAL_CONFIG } from "@/lib/paypal";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface PayPalPaymentButtonProps {
   amount: number;
@@ -34,6 +35,7 @@ export default function PayPalPaymentButton({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [{ isPending, isRejected, isResolved }] = usePayPalScriptReducer();
+  const { t } = useLanguage();
 
   // Debug: log SDK state on each render
   if (typeof window !== "undefined") {
@@ -144,10 +146,10 @@ export default function PayPalPaymentButton({
       <div className={className}>
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-center">
           <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">
-            Sistema de pagos no disponible
+            {t('payments.paymentSystemUnavailable')}
           </p>
           <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-            PayPal no está configurado. Contacta al administrador.
+            {t('payments.paypalNotConfigured')}
           </p>
         </div>
       </div>
@@ -160,7 +162,7 @@ export default function PayPalPaymentButton({
       {isPending && (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
-          <span className="text-sm text-gray-500">Cargando PayPal...</span>
+          <span className="text-sm text-gray-500">{t('payments.loadingPaypal')}</span>
         </div>
       )}
 
@@ -168,13 +170,13 @@ export default function PayPalPaymentButton({
       {isRejected && (
         <div className="text-center py-4">
           <p className="text-sm text-red-500 mb-2">
-            No se pudo cargar PayPal. Verifica tu conexión e inténtalo de nuevo.
+            {t('payments.paypalLoadFailed')}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="text-sm text-blue-600 hover:underline"
           >
-            Recargar página
+            {t('payments.reloadPage')}
           </button>
         </div>
       )}
@@ -183,7 +185,7 @@ export default function PayPalPaymentButton({
       {isLoading && (
         <div className="flex items-center justify-center py-2 mb-2">
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600 mr-2"></div>
-          <span className="text-sm text-gray-600">Procesando pago...</span>
+          <span className="text-sm text-gray-600">{t('payments.processingPaymentShort')}</span>
         </div>
       )}
 

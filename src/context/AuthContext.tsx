@@ -63,6 +63,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           full_name: result.user.full_name,
         });
 
+        // 프로필에서 언어 설정도 함께 저장 (별도 API 호출 불필요)
+        if (result.user.language && typeof window !== "undefined") {
+          localStorage.setItem("amiko-user-language", result.user.language);
+        }
+
         return {
           ...baseUser,
           is_admin: result.user.is_admin || false,
@@ -83,28 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 실패 시 null 반환 (프로필이 없음을 의미)
     return null;
-  };
-
-  // 사용자 프로필 언어 가져오기
-  const fetchUserLanguage = async (userId: string) => {
-    try {
-      const response = await fetch(`/api/profile?userId=${userId}`);
-      const result = await response.json();
-
-      if (response.ok && result.user?.language) {
-        console.log("[AUTH] 사용자 프로필 언어:", result.user.language);
-        // LanguageContext의 setUserLanguage 함수 호출 (동적 import)
-        if (typeof window !== "undefined") {
-          import("./LanguageContext").then(({ useLanguage }) => {
-            // 이 방법은 컴포넌트 외부에서는 사용할 수 없으므로
-            // localStorage를 통해 언어 설정을 전달
-            localStorage.setItem("amiko-user-language", result.user.language);
-          });
-        }
-      }
-    } catch (error) {
-      console.error("[AUTH] 사용자 언어 가져오기 실패:", error);
-    }
   };
 
   // 클라이언트에서만 Supabase 클라이언트 생성
@@ -289,9 +272,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("[AUTH] 세션 무효화 완료");
           } else {
             setUser(extendedUser);
-
-            // 사용자 프로필 언어 가져오기
-            await fetchUserLanguage(session.user.id);
 
             // 로컬 스토리지에 저장 (더 긴 만료시간으로)
             const extendedExpiry = session.expires_at + 30 * 24 * 60 * 60; // 30일 추가

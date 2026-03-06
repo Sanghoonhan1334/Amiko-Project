@@ -2063,7 +2063,7 @@ function StoriesPageContent() {
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder={replyToComment ? t('communityTab.cancelReply') : t('communityTab.writeComment')}
                     disabled={!!replyToComment}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-gray-400 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-gray-400 text-base md:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                     maxLength={500}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey && !replyToComment) {

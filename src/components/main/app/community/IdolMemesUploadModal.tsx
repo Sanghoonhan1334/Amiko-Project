@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X, Upload, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface IdolMemesUploadModalProps {
   isOpen: boolean
@@ -19,6 +20,7 @@ export default function IdolMemesUploadModal({
   theme,
 }: IdolMemesUploadModalProps) {
   const { user, token } = useAuth()
+  const { t } = useLanguage()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -47,12 +49,12 @@ export default function IdolMemesUploadModal({
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      setError('Por favor ingresa un título')
+      setError(t('community.uploadErrorTitleRequired'))
       return
     }
 
     if (!selectedFile) {
-      setError('Por favor selecciona una imagen o video')
+      setError(t('community.uploadErrorFileRequired'))
       return
     }
 
@@ -74,7 +76,7 @@ export default function IdolMemesUploadModal({
       })
 
       if (!uploadRes.ok) {
-        throw new Error('Error al subir el archivo')
+        throw new Error(t('community.uploadErrorFileFailed'))
       }
 
       const uploadData = await uploadRes.json()
@@ -99,7 +101,7 @@ export default function IdolMemesUploadModal({
       })
 
       if (!postRes.ok) {
-        throw new Error('Error al crear la publicación')
+        throw new Error(t('community.uploadErrorPostFailed'))
       }
 
       // 성공
@@ -110,7 +112,7 @@ export default function IdolMemesUploadModal({
       onSuccess()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al subir')
+      setError(err instanceof Error ? err.message : t('community.uploadErrorGeneric'))
     } finally {
       setIsUploading(false)
     }
@@ -130,7 +132,7 @@ export default function IdolMemesUploadModal({
             <h2 className={`text-2xl font-bold ${
               isDark ? 'text-white' : 'text-gray-900'
             }`}>
-              Foto de Ídolo
+              {t('community.idolMemesUploadTitle')}
             </h2>
             <button
               onClick={onClose}
@@ -145,7 +147,7 @@ export default function IdolMemesUploadModal({
               <label className={`block text-sm font-medium mb-2 ${
                 isDark ? 'text-gray-300' : 'text-gray-700'
               }`}>
-                Título
+                {t('community.uploadTitleLabel')}
               </label>
               <input
                 type="text"
@@ -156,7 +158,7 @@ export default function IdolMemesUploadModal({
                     ? 'bg-gray-800 border-gray-700 text-white'
                     : 'bg-white border-gray-300'
                 }`}
-                placeholder="Ingresa el título de la foto"
+                placeholder={t('community.idolMemesUploadTitlePlaceholder')}
               />
             </div>
 
@@ -164,7 +166,7 @@ export default function IdolMemesUploadModal({
               <label className={`block text-sm font-medium mb-2 ${
                 isDark ? 'text-gray-300' : 'text-gray-700'
               }`}>
-                Subir Foto
+                {t('community.idolMemesUploadPhotoLabel')}
               </label>
               <div
                 className={`border-2 border-dashed rounded-lg p-8 text-center ${
@@ -192,7 +194,7 @@ export default function IdolMemesUploadModal({
                       }}
                       className="text-sm text-red-500 hover:text-red-700"
                     >
-                      Eliminar imagen
+                      {t('community.uploadRemoveImage')}
                     </button>
                   </div>
                 ) : (
@@ -201,7 +203,7 @@ export default function IdolMemesUploadModal({
                     <p className={`text-sm ${
                       isDark ? 'text-gray-400' : 'text-gray-500'
                     }`}>
-                      Haz clic para subir una imagen o video
+                      {t('community.idolMemesUploadClickToUpload')}
                     </p>
                   </label>
                 )}
@@ -212,7 +214,7 @@ export default function IdolMemesUploadModal({
               <label className={`block text-sm font-medium mb-2 ${
                 isDark ? 'text-gray-300' : 'text-gray-700'
               }`}>
-                Descripción
+                {t('community.uploadDescriptionLabel')}
               </label>
               <textarea
                 rows={4}
@@ -223,7 +225,7 @@ export default function IdolMemesUploadModal({
                     ? 'bg-gray-800 border-gray-700 text-white'
                     : 'bg-white border-gray-300'
                 }`}
-                placeholder="Ingresa una descripción de la foto"
+                placeholder={t('community.idolMemesUploadDescPlaceholder')}
               />
             </div>
 
@@ -238,7 +240,7 @@ export default function IdolMemesUploadModal({
                 className="flex-1"
                 disabled={isUploading}
               >
-                Cancelar
+                {t('community.uploadCancel')}
               </Button>
               <Button
                 onClick={handleSubmit}
@@ -248,10 +250,10 @@ export default function IdolMemesUploadModal({
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Subiendo...
+                    {t('community.uploadUploading')}
                   </>
                 ) : (
-                  'Subir'
+                  t('community.uploadSubmit')
                 )}
               </Button>
             </div>

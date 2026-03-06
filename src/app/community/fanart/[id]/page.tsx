@@ -629,7 +629,7 @@ export default function FanartDetailPage() {
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
                             placeholder="Escribe una respuesta..."
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base md:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                             rows={2}
                           />
                           <div className="flex justify-end gap-2 mt-2">

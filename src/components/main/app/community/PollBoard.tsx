@@ -579,37 +579,37 @@ export default function PollBoard() {
                   <DialogContent className="max-w-2xl bg-white flex flex-col max-h-[90vh]">
                     <DialogHeader className="flex-shrink-0">
                       <DialogTitle className="text-xl font-semibold">
-                        {newPoll.poll_type === 'text' && (newPoll.options.length > 2 ? 'Crear Encuesta Múltiple' : 'Crear Encuesta A vs B')}
-                        {newPoll.poll_type === 'image' && 'Crear Encuesta de Imágenes'}
-                        {newPoll.poll_type === 'date' && 'Crear Encuesta de Fechas'}
+                        {newPoll.poll_type === 'text' && (newPoll.options.length > 2 ? t('community.pollCreateTextMultiple') : t('community.pollCreateTextAB'))}
+                        {newPoll.poll_type === 'image' && t('community.pollCreateImage')}
+                        {newPoll.poll_type === 'date' && t('community.pollCreateDate')}
                       </DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 overflow-y-auto space-y-6 pt-2">
               <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <Label className="text-sm font-medium mb-2 block">Título</Label>
+                <Label className="text-sm font-medium mb-2 block">{t('community.pollTitleLabel')}</Label>
                 <Input
                   value={newPoll.title}
                   onChange={(e) => setNewPoll({ ...newPoll, title: e.target.value })}
-                  placeholder="¿Cuál es tu canción favorita de BTS?"
+                  placeholder={t('community.pollTitlePlaceholder')}
                   className="bg-white"
                 />
               </div>
               <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <Label className="text-sm font-medium mb-2 block">Descripción (Opcional)</Label>
+                <Label className="text-sm font-medium mb-2 block">{t('community.pollDescriptionLabel')}</Label>
                 <Textarea
                   value={newPoll.description}
                   onChange={(e) => setNewPoll({ ...newPoll, description: e.target.value })}
-                  placeholder="ej: Por favor selecciona tu canción favorita"
+                  placeholder={t('community.pollDescriptionPlaceholder')}
                   rows={2}
                   className="bg-white"
                 />
               </div>
               <div className="bg-white rounded-lg p-4 border border-gray-200">
                 <Label className="text-sm font-medium mb-2 block">
-                  {newPoll.poll_type === 'date' ? 'Fechas para elegir' : 
-                   newPoll.poll_type === 'image' ? 'Opción A vs Opción B' :
-                   newPoll.poll_type === 'text' && newPoll.options.length === 2 ? 'Opción A vs Opción B' :
-                   'Opciones'}
+                  {newPoll.poll_type === 'date' ? t('community.pollDatesLabel') : 
+                   newPoll.poll_type === 'image' ? t('community.pollOptionAvsB') :
+                   newPoll.poll_type === 'text' && newPoll.options.length === 2 ? t('community.pollOptionAvsB') :
+                   t('community.pollOptionsLabel')}
                 </Label>
                 <div className="space-y-2">
                   {newPoll.options.map((option, index) => (
@@ -617,7 +617,7 @@ export default function PollBoard() {
                       {newPoll.poll_type === 'date' ? (
                         <div className="flex-1">
                           <Label className="text-xs text-gray-600 mb-1 block">
-                            {index === 0 ? 'Opción A' : index === 1 ? 'Opción B' : `Opción ${index + 1}`}
+                            {index === 0 ? t('community.pollOptionA') : index === 1 ? t('community.pollOptionB') : `${t('community.pollOptionsLabel')} ${index + 1}`}
                           </Label>
                           <Input
                             type="date"
@@ -628,7 +628,7 @@ export default function PollBoard() {
                             lang="es"
                           />
                           <p className="text-xs text-gray-400 mt-1">
-                            Formato: año-mes-día
+                            {t('community.pollDateFormat')}
                           </p>
                         </div>
                       ) : newPoll.poll_type === 'image' ? (
@@ -637,7 +637,7 @@ export default function PollBoard() {
                             <div className="relative">
                               <img 
                                 src={imagePreviews[index]!} 
-                                alt={`Opción ${index + 1}`}
+                                alt={`${t('community.pollOptionsLabel')} ${index + 1}`}
                                 className="w-full h-48 object-cover rounded-lg border-2 border-purple-200"
                               />
                               <button
@@ -665,10 +665,10 @@ export default function PollBoard() {
                               <div className="flex flex-col items-center gap-2">
                                 <ImageIcon className="w-12 h-12 text-purple-400" />
                                 <div className="text-sm font-medium text-gray-700">
-                                  {index === 0 ? 'Opción A' : 'Opción B'}
+                                  {index === 0 ? t('community.pollOptionA') : t('community.pollOptionB')}
                                 </div>
                                 <div className="text-xs text-gray-500">
-                                  Haz clic para subir o pegar (Ctrl+V)
+                                  {t('community.pollClickToUploadOrPaste')}
                                 </div>
                               </div>
                             </div>
@@ -681,8 +681,8 @@ export default function PollBoard() {
                           onChange={(e) => updateOption(index, e.target.value)}
                           placeholder={
                             newPoll.options.length === 2 
-                              ? (index === 0 ? "Opción A (ej: Dynamite)" : "Opción B (ej: Blood Sweat & Tears)")
-                              : `Opción ${index + 1} (ej: Opción ${index + 1})`
+                              ? (index === 0 ? t('community.pollOptionAPlaceholder') : t('community.pollOptionBPlaceholder'))
+                              : t('community.pollOptionPlaceholder', { index: String(index + 1) })
                           }
                           className="bg-white"
                         />
@@ -693,7 +693,7 @@ export default function PollBoard() {
                 {((newPoll.poll_type === 'text' && newPoll.options.length >= 3) || newPoll.poll_type === 'date') && (
                   <Button type="button" variant="outline" onClick={addOption} className="mt-3">
                     <Plus className="w-4 h-4 mr-2" />
-                    Agregar Opción
+                    {t('community.pollAddOption')}
                   </Button>
                 )}
               </div>
@@ -707,22 +707,22 @@ export default function PollBoard() {
                             checked={newPoll.is_public}
                             onCheckedChange={(checked) => setNewPoll({ ...newPoll, is_public: checked })}
                           />
-                          <Label>Pública</Label>
+                          <Label>{t('community.pollPublic')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
                             checked={newPoll.is_anonymous}
                             onCheckedChange={(checked) => setNewPoll({ ...newPoll, is_anonymous: checked })}
                           />
-                          <Label>Anónima</Label>
+                          <Label>{t('community.pollAnonymous')}</Label>
                         </div>
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={handleCreatePoll} disabled={creating} className="flex-1 bg-purple-300 hover:bg-purple-400 text-black">
-                          {creating ? 'Creando...' : 'Crear'}
+                          {creating ? t('community.pollCreating') : t('community.pollCreate')}
                         </Button>
                         <Button variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
-                          Cancelar
+                          {t('community.uploadCancel')}
                         </Button>
                       </div>
                     </div>
@@ -741,7 +741,7 @@ export default function PollBoard() {
                 ? 'bg-purple-300 hover:bg-purple-400 text-black font-semibold' 
                 : 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-300'}
             >
-              Todas
+              {t('community.pollFilterAll')}
             </Button>
             <Button
               size="sm"
@@ -750,7 +750,7 @@ export default function PollBoard() {
                 ? 'bg-purple-300 hover:bg-purple-400 text-black font-semibold' 
                 : 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-300'}
             >
-              En Curso
+              {t('community.pollFilterActive')}
             </Button>
             <Button
               size="sm"
@@ -759,7 +759,7 @@ export default function PollBoard() {
                 ? 'bg-purple-300 hover:bg-purple-400 text-black font-semibold' 
                 : 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-300'}
             >
-              Finalizadas
+              {t('community.pollFilterCompleted')}
             </Button>
           </div>
         </div>
@@ -769,15 +769,15 @@ export default function PollBoard() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="space-y-6">
           {loading ? (
-            <div className="text-center py-12">Cargando encuestas...</div>
+            <div className="text-center py-12">{t('community.pollLoading')}</div>
           ) : polls.length === 0 ? (
             <Card className="p-12 text-center border-2 border-dashed">
               <div className="text-6xl mb-4">🗳️</div>
               <h3 className="text-xl font-semibold mb-2 text-gray-700">
-                No hay encuestas disponibles
+                {t('community.pollNoPolls')}
               </h3>
               <p className="text-sm mb-6 text-gray-500">
-                ¡Crea la primera encuesta!
+                {t('community.pollCreateFirst')}
               </p>
             </Card>
           ) : (
@@ -796,12 +796,12 @@ export default function PollBoard() {
                     <div className="flex items-center gap-2 mb-2">
                       {poll.status === 'active' && (
                         <Badge variant="outline" className="border-orange-500 text-orange-600">
-                          En Curso
+                          {t('community.pollActive')}
                         </Badge>
                       )}
                       {poll.status === 'completed' && (
                         <Badge variant="outline" className="border-gray-400 text-gray-600">
-                          Finalizada
+                          {t('community.pollCompleted')}
                         </Badge>
                       )}
                       <div className="flex items-center text-gray-500">
@@ -822,7 +822,7 @@ export default function PollBoard() {
                       <button
                         onClick={(e) => handleDelete(poll.id, e)}
                         className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-500 hover:text-red-600"
-                        title="Eliminar encuesta"
+                        title={t('community.pollDeleteTitle')}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -853,7 +853,7 @@ export default function PollBoard() {
                           <div className="mb-3 -mx-6 -mt-6">
                             <img 
                               src={option.image_url} 
-                              alt={`Opción ${index + 1}`}
+                              alt={`${t('community.pollOptionsLabel')} ${index + 1}`}
                               className="w-full h-48 object-cover rounded-t-xl"
                               onError={(e) => {
                                 console.error('이미지 로드 실패:', option.image_url)
@@ -875,7 +875,7 @@ export default function PollBoard() {
                           <h4 className="font-bold text-lg mb-2">{option.option_text}</h4>
                         )}
                         <div className="text-2xl font-bold text-purple-600 mb-1">{option.percentage}%</div>
-                        <div className="text-sm text-gray-600">{option.vote_count} votos</div>
+                          <div className="text-sm text-gray-600">{option.vote_count} {t('community.pollVotesCount')}</div>
                       </div>
                       {poll.user_voted && (
                         <div className="absolute top-2 right-2">
@@ -904,10 +904,10 @@ export default function PollBoard() {
                           } ${poll.user_voted ? 'opacity-50' : ''}`}>
                             {poll.user_voted && <Check className="w-4 h-4 text-white" />}
                           </div>
-                          <span className="font-medium">{option.option_text || `Opción ${index + 1}`}</span>
+                          <span className="font-medium">{option.option_text || `${t('community.pollOptionsLabel')} ${index + 1}`}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <span>{option.vote_count} votos</span>
+                          <span>{option.vote_count} {t('community.pollVotesCount')}</span>
                           <span className="font-semibold">{option.percentage}%</span>
                         </div>
                       </div>
@@ -926,7 +926,7 @@ export default function PollBoard() {
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        <span>{poll.total_votes} votos</span>
+                        <span>{poll.total_votes} {t('community.pollVotesCount')}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
@@ -935,7 +935,7 @@ export default function PollBoard() {
                     </div>
                     {poll.user_voted && (
                       <Badge variant="outline" className="border-green-500 text-green-600">
-                        Ya votaste
+                        {t('community.pollAlreadyVoted')}
                       </Badge>
                     )}
                   </div>
@@ -990,7 +990,7 @@ export default function PollBoard() {
                   <div className="text-3xl">📝</div>
                   <div>
                     <h3 className="font-bold text-base">A vs B</h3>
-                    <p className="text-xs text-gray-600">Cara a cara</p>
+                    <p className="text-xs text-gray-600">{t('community.pollFaceToFace')}</p>
                   </div>
                 </button>
                 
@@ -1014,8 +1014,8 @@ export default function PollBoard() {
                 >
                   <div className="text-3xl">🖼️</div>
                   <div>
-                    <h3 className="font-bold text-base">Comparación de Imágenes</h3>
-                    <p className="text-xs text-gray-600">Compara con fotos</p>
+                    <h3 className="font-bold text-base">{t('community.pollImageComparison')}</h3>
+                    <p className="text-xs text-gray-600">{t('community.pollImageComparisonDesc')}</p>
                   </div>
                 </button>
                 
@@ -1038,8 +1038,8 @@ export default function PollBoard() {
                 >
                   <div className="text-3xl">📅</div>
                   <div>
-                    <h3 className="font-bold text-base">Selección de Fecha</h3>
-                    <p className="text-xs text-gray-600">¿Cuándo te parece bien?</p>
+                    <h3 className="font-bold text-base">{t('community.pollDateSelection')}</h3>
+                    <p className="text-xs text-gray-600">{t('community.pollDateSelectionDesc')}</p>
                   </div>
                 </button>
                 
@@ -1062,8 +1062,8 @@ export default function PollBoard() {
                 >
                   <div className="text-3xl">📊</div>
                   <div>
-                    <h3 className="font-bold text-base">Múltiples Opciones</h3>
-                    <p className="text-xs text-gray-600">Más de 3 opciones</p>
+                    <h3 className="font-bold text-base">{t('community.pollMultipleOptions')}</h3>
+                    <p className="text-xs text-gray-600">{t('community.pollMultipleOptionsDesc')}</p>
                   </div>
                 </button>
               </div>

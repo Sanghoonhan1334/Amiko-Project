@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { MessageCircle, Send, User, ThumbsUp, ThumbsDown, Reply, Trash2 } from 'lucide-react'
 import UserBadge from '@/components/common/UserBadge'
 import AuthorName from '@/components/common/AuthorName'
@@ -28,6 +29,7 @@ interface TestCommentsProps {
 
 export default function TestComments({ testId }: TestCommentsProps) {
   const { user, token, session } = useAuth()
+  const { t } = useLanguage()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -235,7 +237,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
     
     // 닉네임이 없으면 답글 작성 불가
     if (!displayName || displayName === 'Usuario') {
-      alert('Por favor, completa tu perfil con un nombre de usuario para poder responder.')
+      alert(t('testComments.profileRequired'))
       return
     }
     
@@ -290,7 +292,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
   const handleDeleteComment = (commentId: string, isReply: boolean = false, parentId?: string) => {
     if (!user) return
     
-    if (!confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+    if (!confirm(t('testComments.confirmDelete'))) {
       return
     }
     
@@ -320,7 +322,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
       setComments(updatedComments)
     } catch (error) {
       console.error('Error deleting comment:', error)
-      alert('Error al eliminar el comentario.')
+      alert(t('testComments.deleteError'))
     }
   }
 
@@ -507,7 +509,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
       <div className="p-4 md:p-6 border-b">
         <h3 className="text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
           <MessageCircle className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
-          Comentarios ({comments.length})
+          {t('testComments.title')} ({comments.length})
         </h3>
       </div>
       
@@ -533,8 +535,8 @@ export default function TestComments({ testId }: TestCommentsProps) {
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Escribe tu comentario..."
-                className="w-full p-2 md:p-3 text-sm md:text-base border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder={t('testComments.placeholder')}
+                className="w-full p-2 md:p-3 text-base border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 rows={2}
                 maxLength={500}
               />
@@ -552,7 +554,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                   ) : (
                     <Send className="w-2.5 h-2.5 md:w-3 md:h-3" />
                   )}
-                  Comentar
+                  {t('testComments.submit')}
                 </button>
               </div>
             </div>
@@ -562,14 +564,14 @@ export default function TestComments({ testId }: TestCommentsProps) {
           <div className="p-3 border-b">
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 text-sm">
-                Por favor, completa tu perfil con un nombre de usuario para poder comentar.
+                {t('testComments.profileRequired')}
               </p>
             </div>
           </div>
         )
       ) : (
         <div className="p-3 border-b text-center text-gray-500 text-sm">
-          Por favor, inicia sesión para escribir comentarios.
+          {t('testComments.loginRequired')}
         </div>
       )}
       
@@ -577,11 +579,11 @@ export default function TestComments({ testId }: TestCommentsProps) {
       <div className="max-h-96 overflow-y-auto">
         {isLoading ? (
           <div className="p-3 text-center text-gray-500 text-sm">
-            Cargando comentarios...
+            {t('testComments.loading')}
           </div>
         ) : comments.length === 0 ? (
           <div className="p-3 text-center text-gray-500 text-sm">
-            Aún no hay comentarios. ¡Sé el primero en comentar!
+            {t('testComments.empty')}
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -644,7 +646,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                         className="flex items-center gap-1 text-xs md:text-sm text-gray-500 hover:text-gray-700"
                       >
                         <Reply className="w-3 h-3 md:w-4 md:h-4" />
-                        <span>Responder</span>
+                        <span>{t('testComments.reply')}</span>
                       </button>
                       
                       {/* 삭제 버튼 (본인 또는 관리자만) */}
@@ -654,7 +656,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                           className="flex items-center gap-1 text-xs md:text-sm text-red-500 hover:text-red-700"
                         >
                           <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
-                          <span>Eliminar</span>
+                          <span>{t('testComments.delete')}</span>
                         </button>
                       )}
                     </div>
@@ -667,15 +669,15 @@ export default function TestComments({ testId }: TestCommentsProps) {
                             type="text"
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Escribe tu respuesta..."
-                            className="flex-1 p-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder={t('testComments.replyPlaceholder')}
+                            className="flex-1 p-1.5 text-base md:text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                           />
                           <button
                             onClick={() => handleSubmitReply(comment.id)}
                             disabled={!replyText.trim()}
                             className="px-1.5 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 disabled:opacity-50"
                           >
-                            Enviar
+                            {t('testComments.send')}
                           </button>
                           <button
                             onClick={() => {
@@ -684,7 +686,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                             }}
                             className="px-1.5 py-1 bg-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-400"
                           >
-                            Cancelar
+                            {t('testComments.cancel')}
                           </button>
                         </div>
                       </div>
@@ -752,7 +754,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                                     className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
                                   >
                                     <Trash2 className="w-2.5 h-2.5" />
-                                    <span>Eliminar</span>
+                                    <span>{t('testComments.delete')}</span>
                                   </button>
                                 )}
                               </div>

@@ -10,12 +10,14 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useFanZone } from '@/hooks/useFanZone'
+import { useLanguage } from '@/context/LanguageContext'
 
 const FanZoneHome = React.memo(function FanZoneHome() {
   console.log('🎨 FanZoneHome RENDER')
   
   const router = useRouter()
   const { listFanrooms } = useFanZone()
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [activeFilter, setActiveFilter] = useState('trending')
@@ -188,7 +190,7 @@ const FanZoneHome = React.memo(function FanZoneHome() {
                   onClick={() => setSelectedCategory(category)}
                   className="text-xs"
                 >
-                  {category === 'all' ? 'Todas' : 
+                  {category === 'all' ? t('fanzone.all') : 
                    category === 'kpop' ? 'K-Pop' :
                    category === 'kdrama' ? 'K-Drama' : 'K-Beauty'}
                 </Button>
@@ -201,7 +203,7 @@ const FanZoneHome = React.memo(function FanZoneHome() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Mis Comunidades
+            {t('fanzone.myCommunities')}
           </h2>
         </div>
 
@@ -225,10 +227,10 @@ const FanZoneHome = React.memo(function FanZoneHome() {
                 <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
               </div>
               <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                Aún no te has unido a ninguna comunidad
+                {t('fanzone.noCommunityJoined')}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Explora y únete a comunidades que te interesen
+                {t('fanzone.exploreCommunities')}
               </p>
             </div>
           </Card>
@@ -344,7 +346,7 @@ const FanZoneHome = React.memo(function FanZoneHome() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Descubre comunidades
+          {t('fanzone.discoverCommunities')}
         </h2>
         
         {loading ? (
@@ -360,13 +362,13 @@ const FanZoneHome = React.memo(function FanZoneHome() {
                 <Users className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                No hay comunidades disponibles
+                {t('fanzone.noCommunityAvailable')}
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                Sé el primero en crear una comunidad increíble
+                {t('fanzone.beFirstToCreate')}
               </p>
               <Button onClick={handleCreateFanroom} className="mt-4">
-                Crear Comunidad
+                {t('fanzone.createCommunity')}
               </Button>
             </div>
           </Card>

@@ -4,12 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import HeaderWrapper from "@/components/layout/HeaderWrapper";
 import Footer from "@/components/layout/Footer";
-import ScrollToTop from "@/components/common/ScrollToTop";
 import CustomBanner from "@/components/layout/CustomBanner";
-import GlobalChatButton from "@/components/common/GlobalChatButton";
-import FaviconBadge from "@/components/common/FaviconBadge";
-import HistoryManager from "@/components/common/HistoryManager";
-import DeepLinkHandler from "@/components/common/DeepLinkHandler";
+import LazyComponents from "@/components/layout/LazyComponents";
 import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { UserProvider } from "@/context/UserContext";
@@ -17,7 +13,6 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/providers/QueryProvider";
 import Analytics from "@/components/analytics/Analytics";
 import { Suspense } from "react";
-import { PushNotificationInitializer } from "@/components/notifications/PushNotificationInitializer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,9 +29,6 @@ const baloo2 = Baloo_2({
 // Pretendard 폰트를 위한 CSS 변수 설정
 const pretendard = {
   variable: "--font-pretendard",
-  style: `
-    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
-  `,
 };
 
 export const metadata: Metadata = {
@@ -119,7 +111,16 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
-        <style dangerouslySetInnerHTML={{ __html: pretendard.style }} />
+        {/* Pretendard: carga async para no bloquear el render */}
+        <link
+          rel="preload"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css"
+          as="style"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css"
+        />
         {/* 파비콘 설정 */}
         <link
           rel="icon"
@@ -141,7 +142,7 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logos/amiko-logo.png" />
       </head>
       <body
-        className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-dvh`}
+        className={`${inter.variable} ${baloo2.variable} ${pretendard.variable} font-sans min-h-screen min-h-dvh`}
         suppressHydrationWarning
       >
         <Suspense fallback={null}>
@@ -158,18 +159,13 @@ export default function RootLayout({
               <AuthProvider>
                 <LanguageProvider>
                   <UserProvider>
-                    <PushNotificationInitializer />
-                    <DeepLinkHandler />
                     <CustomBanner />
                     <HeaderWrapper />
                     <main>
-                      <HistoryManager />
                       {children}
                     </main>
                     <Footer />
-                    <ScrollToTop />
-                    <GlobalChatButton />
-                    <FaviconBadge />
+                    <LazyComponents />
                   </UserProvider>
                 </LanguageProvider>
               </AuthProvider>

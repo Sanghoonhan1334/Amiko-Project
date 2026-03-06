@@ -17,7 +17,20 @@ const nextConfig = {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
   experimental: {
-    optimizePackageImports: ['lucide-react', '@tanstack/react-query'],
+    optimizePackageImports: [
+      'lucide-react',
+      '@tanstack/react-query',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-tooltip',
+      'framer-motion',
+      'date-fns',
+      '@supabase/supabase-js',
+      'swiper',
+    ],
   },
   turbopack: {
     rules: {
@@ -35,9 +48,9 @@ const nextConfig = {
   },
   // 🚀 최적화: 컴파일러 최적화 강화
   compiler: {
-    // API 라우트에서는 로그가 필요하므로 console.error만 제거
+    // 프로덕션에서 console.log/warn 제거 (2000+ console.log가 성능에 영향)
     removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['log', 'warn', 'error'], // 모든 console 메서드 유지 (디버깅용)
+      exclude: ['error'], // console.error만 유지
     } : false,
   },
   // React Strict Mode 설정

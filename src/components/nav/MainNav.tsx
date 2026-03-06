@@ -5,10 +5,12 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Menu, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/context/LanguageContext'
 
 export default function MainNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
+  const { t } = useLanguage()
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -60,21 +62,21 @@ export default function MainNav() {
             className="hover:text-indigo-600 transition-colors"
             onClick={() => handleNavigation('/main')}
           >
-            서비스 특징
+            {t('mainNav.serviceFeatures')}
           </Button>
           <Button
             variant="ghost"
             className="hover:text-indigo-600 transition-colors"
             onClick={() => handleNavigation('/booking/create')}
           >
-            상담 예약
+            {t('mainNav.bookConsultation')}
           </Button>
           <Button
             variant="ghost"
             className="hover:text-indigo-600 transition-colors"
             onClick={() => handleNavigation('#video')}
           >
-            소개 영상
+            {t('mainNav.introVideo')}
           </Button>
         </div>
 
@@ -85,21 +87,21 @@ export default function MainNav() {
                   className="hover:bg-brand-50 hover:border-brand-300 transition-colors"
                             onClick={() => handleNavigation('/main')}
                 >
-                  시작하기
+                  {t('mainNav.getStarted')}
                 </Button>
           <Button
             variant="outline"
             className="hover:bg-mint-50 hover:border-mint-300 transition-colors"
             onClick={() => handleNavigation('/main')}
           >
-            앱 열기
+            {t('mainNav.openApp')}
           </Button>
           <Button
             variant="outline"
             className="hover:bg-sky-50 hover:border-sky-300 transition-colors"
             onClick={() => handleNavigation('/lounge')}
           >
-            라운지
+            {t('mainNav.lounge')}
           </Button>
         </div>
 
@@ -126,21 +128,21 @@ export default function MainNav() {
                 className="w-full justify-start hover:text-indigo-600 transition-colors"
                 onClick={() => handleNavigation('/main')}
               >
-                서비스 특징
+                {t('mainNav.serviceFeatures')}
               </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-start hover:text-indigo-600 transition-colors"
                 onClick={() => handleNavigation('/booking/create')}
               >
-                상담 예약
+                {t('mainNav.bookConsultation')}
               </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-start hover:text-indigo-600 transition-colors"
                 onClick={() => handleNavigation('#video')}
               >
-                소개 영상
+                {t('mainNav.introVideo')}
               </Button>
               
               {/* 모바일 메뉴에 우측 버튼들 추가 */}
@@ -150,21 +152,21 @@ export default function MainNav() {
                   className="w-full justify-start hover:bg-brand-50 hover:border-brand-300 transition-colors"
                   onClick={() => handleNavigation('/main')}
                 >
-                  시작하기
+                  {t('mainNav.getStarted')}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full justify-start hover:bg-mint-50 hover:border-mint-300 transition-colors"
                   onClick={() => handleNavigation('/main')}
                 >
-                  앱 열기
+                  {t('mainNav.openApp')}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full justify-start hover:bg-sky-50 hover:border-sky-300 transition-colors"
                   onClick={() => handleNavigation('/lounge')}
                 >
-                  라운지
+                  {t('mainNav.lounge')}
                 </Button>
               </div>
             </div>

@@ -186,10 +186,10 @@ export default function KChatBoard() {
               <button
                 onClick={() => router.push('/main?tab=community')}
                 className="flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-colors"
-                title="Atrás"
+                title={t('community.back')}
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span className="hidden sm:inline">Comunidad</span>
+                <span className="hidden sm:inline">{t('community.communityLabel')}</span>
               </button>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold">{t('community.chatRoomTitle')}</h1>
@@ -208,7 +208,7 @@ export default function KChatBoard() {
           <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <Input
             type="text"
-            placeholder="Buscar salas de chat..."
+            placeholder={t('community.searchChatRooms')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 sm:pl-12 pr-10 py-2 w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"

@@ -99,7 +99,7 @@ export default function IdolPositionCoverPage() {
       <Header />
       
       {/* 풀스크린 커버 이미지 */}
-      <div className="absolute top-16 inset-x-0 bottom-0 w-full h-[calc(100vh-4rem)]">
+      <div className="absolute top-16 inset-x-0 bottom-0 w-full h-[calc(100dvh-4rem)] supports-[height:100dvh]:h-[calc(100dvh-4rem)]" style={{ height: 'calc(100vh - 4rem)' }}>
         {/* 썸네일 이미지를 배경으로 사용 */}
         <img 
           src={quizData.thumbnail_url || "/quizzes/idol-position/thumbnail.png"} 
