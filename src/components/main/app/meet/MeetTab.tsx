@@ -1,17 +1,20 @@
 'use client'
 
-import VideoCallStarter from '@/components/video/VideoCallStarter'
+import dynamic from 'next/dynamic'
+
+const VCMarketplace = dynamic(() => import('@/components/videocall/VCMarketplace'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full flex items-center justify-center py-12">
+      <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  ),
+})
 
 export default function MeetTab() {
-  const handleStartCall = (channelName: string) => {
-    console.log('Starting video call with channel:', channelName)
-    // TODO: 실제 Agora 채팅 시작 로직
-  }
-
   return (
     <div className="w-full space-y-6">
-      {/* VideoCallStarter가 모든 것을 처리 (현지인: 파트너 목록, 한국인: 예약 관리 대시보드) */}
-      <VideoCallStarter onStartCall={handleStartCall} />
+      <VCMarketplace />
     </div>
   )
 }

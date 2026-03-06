@@ -6,15 +6,10 @@ export async function GET() {
   try {
     const supabase = createClient()
 
-    // users 테이블과 조인하여 최신 avatar_url 가져오기
+    // conversation_partners 테이블 조회 (users 조인 없이 - RLS 무한재귀 방지)
     const { data, error } = await supabase
       .from('conversation_partners')
-      .select(`
-        *,
-        users!conversation_partners_user_id_fkey (
-          avatar_url
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -25,29 +20,7 @@ export async function GET() {
       )
     }
 
-    // users 테이블의 최신 avatar_url을 우선 사용하도록 매핑
-    const partners = (data || []).map(partner => {
-      // Supabase는 foreign key 조인 시 배열로 반환할 수 있음
-      const user = Array.isArray(partner.users) ? partner.users[0] : partner.users
-      // users 테이블의 avatar_url이 있으면 우선 사용, 없으면 conversation_partners의 avatar_url 사용
-      const avatarUrl = user?.avatar_url || partner.avatar_url
-      
-      // users 객체 제거 (불필요한 데이터 제거)
-      const { users, ...partnerData } = partner
-      
-      // user_id가 있는지 확인
-      if (!partnerData.user_id) {
-        console.warn('[API] conversation-partners: user_id가 없습니다:', {
-          partner_id: partnerData.id,
-          partner_name: partnerData.name
-        })
-      }
-      
-      return {
-        ...partnerData,
-        avatar_url: avatarUrl
-      }
-    })
+    const partners = data || []
 
     return NextResponse.json({ partners })
 
