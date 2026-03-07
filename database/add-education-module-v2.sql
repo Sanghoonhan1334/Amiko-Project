@@ -4,6 +4,17 @@
 -- ============================================================
 
 -- ============================================================
+-- PARTE 0 — Migrar datos existentes ANTES de cambiar constraints
+-- ============================================================
+
+-- 0.1 Migrar cursos con estado legacy 'pending_review' → 'submitted_for_review'
+--     (el flujo nuevo exige que los cursos pasen por 'draft' primero,
+--      pero los existentes ya estaban en revisión, así que los promovemos)
+UPDATE education_courses
+  SET status = 'submitted_for_review'
+  WHERE status = 'pending_review';
+
+-- ============================================================
 -- PARTE 1 — Ampliar estados existentes (DROP CONSTRAINT + ADD)
 -- ============================================================
 
